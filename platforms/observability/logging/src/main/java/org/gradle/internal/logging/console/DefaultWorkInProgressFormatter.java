@@ -42,7 +42,7 @@ public class DefaultWorkInProgressFormatter {
         StringBuilder builder = new StringBuilder();
         ProgressOperation current = op;
         while (current != null && !"org.gradle.internal.progress.BuildProgressLogger".equals(current.getCategory())) {
-            String message = current.getMessage();
+            String message = current.isHiddenWorkAction() ? null : current.getMessage();
             current = current.getParent();
 
             if (message == null) {
@@ -52,6 +52,11 @@ public class DefaultWorkInProgressFormatter {
             builder.insert(0, SEPARATOR).insert(SEPARATOR.length(), message);
         }
         if (builder.length() > 0) {
+            ProgressOperation countOwner = op.getWorkActionCountOwner();
+            if (countOwner != null) {
+                int completed = countOwner.getCompletedWorkActions();
+                builder.append(SEPARATOR).append(completed).append(completed == 1 ? " work action completed" : " work actions completed");
+            }
             builder.delete(0, 1);
         } else {
             return IDLE_SPANS;

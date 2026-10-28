@@ -18,8 +18,11 @@ package org.gradle.internal.logging.console;
 
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class ProgressOperation {
@@ -28,13 +31,21 @@ public class ProgressOperation {
     private final String category;
     private final OperationIdentifier operationId;
     private final ProgressOperation parent;
+    private final boolean workAction;
+    private int startedWorkActions;
+    private int completedWorkActions;
     private Set<ProgressOperation> children;
 
     public ProgressOperation(String status, String category, OperationIdentifier operationId, ProgressOperation parent) {
+        this(status, category, operationId, parent, false);
+    }
+
+    ProgressOperation(String status, String category, OperationIdentifier operationId, ProgressOperation parent, boolean workAction) {
         this.status = status;
         this.category = category;
         this.operationId = operationId;
         this.parent = parent;
+        this.workAction = workAction;
     }
 
     @Override
@@ -67,7 +78,11 @@ public class ProgressOperation {
 
     public boolean addChild(ProgressOperation operation) {
         if (children == null) {
-            children = new HashSet<ProgressOperation>();
+            // In start order, so lines are given to work actions in that order
+            children = new LinkedHashSet<ProgressOperation>();
+        }
+        if (operation.isWorkAction()) {
+            workActionStarted();
         }
         return children.add(operation);
     }
@@ -79,7 +94,82 @@ public class ProgressOperation {
         return children.remove(operation);
     }
 
-    public boolean hasChildren() {
-        return children != null && !children.isEmpty();
+    boolean isWorkAction() {
+        return workAction;
+    }
+
+    void workActionStarted() {
+        startedWorkActions++;
+    }
+
+    void workActionCompleted() {
+        completedWorkActions++;
+    }
+
+    int getCompletedWorkActions() {
+        return completedWorkActions;
+    }
+
+    /**
+     * Whether the work actions of this operation are shown, which is from its second work action on.
+     * A line for a single work action is of little use next to the line of this operation.
+     */
+    boolean showsWorkActions() {
+        return startedWorkActions > 1;
+    }
+
+    /**
+     * Whether this is the single work action of its parent.
+     * Such a work action is hidden: its line and its message are not shown.
+     */
+    boolean isHiddenWorkAction() {
+        return workAction && parent != null && !parent.showsWorkActions();
+    }
+
+    /**
+     * The operation whose count of completed work actions is shown on the line of this operation, if any.
+     * This is this operation, or else its hidden work action, at any depth, as a hidden work action has no line.
+     */
+    @Nullable
+    ProgressOperation getWorkActionCountOwner() {
+        ProgressOperation owner = this;
+        while (!owner.showsWorkActions()) {
+            List<ProgressOperation> workActions = owner.getWorkActions();
+            if (workActions.isEmpty()) {
+                return null;
+            }
+            owner = workActions.get(0);
+        }
+        return owner;
+    }
+
+    /**
+     * The running work actions of this operation, in the order they started.
+     */
+    List<ProgressOperation> getWorkActions() {
+        List<ProgressOperation> workActions = new ArrayList<ProgressOperation>();
+        if (children != null) {
+            for (ProgressOperation child : children) {
+                if (child.isWorkAction()) {
+                    workActions.add(child);
+                }
+            }
+        }
+        return workActions;
+    }
+
+    /**
+     * Whether this operation has children other than work actions.
+     * The children of a hidden work action are counted as children of this operation, at any depth.
+     */
+    boolean hasChildrenOtherThanWorkActions() {
+        if (children != null) {
+            for (ProgressOperation child : children) {
+                if (!child.isWorkAction() || (child.isHiddenWorkAction() && child.hasChildrenOtherThanWorkActions())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

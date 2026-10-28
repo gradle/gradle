@@ -25,7 +25,9 @@ import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.UpdateNowEvent;
+import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -97,14 +99,15 @@ public class WorkInProgressRenderer implements OutputEventListener {
     }
 
     private void attach(ProgressOperation operation) {
-        if (operation.hasChildren() || !isRenderable(operation)) {
+        // The children of an operation can end after this operation, which is then not shown again
+        if (!operations.isRunning(operation) || operation.hasChildrenOtherThanWorkActions() || !isRenderable(operation) || isShownOrWaiting(operation)) {
             return;
         }
 
-        // Don't show the parent operation while a child is visible
-        // Instead, reuse the parent label, if any, for the child
-        if (operation.getParent() != null) {
-            unshow(operation.getParent());
+        // The child is shown on the line of its line owner, if any, in place of this owner
+        // A work action is shown on a line of its own instead
+        if (operation.getParent() != null && !operation.isWorkAction()) {
+            unshow(lineOwner(operation.getParent()));
         }
 
         // No more unused label? Try to resize.
@@ -128,17 +131,46 @@ public class WorkInProgressRenderer implements OutputEventListener {
         operationIdToAssignedLabels.put(operation.getOperationId(), association);
     }
 
+    // The operation whose line is used by a child of parent: parent itself, or else its nearest ancestor that is not a hidden work action
+    private static ProgressOperation lineOwner(ProgressOperation parent) {
+        ProgressOperation owner = parent;
+        while (owner.isHiddenWorkAction() && owner.getParent() != null) {
+            owner = owner.getParent();
+        }
+        return owner;
+    }
+
+    // The work actions that started before the second work action are also shown
+    private void showWorkActions(@Nullable ProgressOperation parent) {
+        if (parent == null || !parent.showsWorkActions()) {
+            return;
+        }
+        // While the first work action was hidden, the line of the line owner was possibly given to a child of this work action
+        // So the line owner is attached again
+        attach(lineOwner(parent));
+        for (ProgressOperation workAction : parent.getWorkActions()) {
+            if (!isShownOrWaiting(workAction)) {
+                attach(workAction);
+            }
+        }
+    }
+
+    private boolean isShownOrWaiting(ProgressOperation operation) {
+        return operationIdToAssignedLabels.containsKey(operation.getOperationId()) || unassignedProgressOperations.contains(operation);
+    }
+
     // Declares that we're not following updates from this ProgressOperation anymore
     private void detach(ProgressOperation operation) {
         if (!isRenderable(operation)) {
             return;
         }
 
-        unshow(operation);
+        boolean lineFreed = unshow(operation);
 
-        if (operation.getParent() != null && isRenderable(operation.getParent())) {
-            attach(operation.getParent());
-        } else if (!unassignedProgressOperations.isEmpty()) {
+        // A work action is shown next to its parent, so its line, if any, is given to a waiting operation
+        if (!operation.isWorkAction() && operation.getParent() != null && isRenderable(operation.getParent())) {
+            attach(lineOwner(operation.getParent()));
+        } else if (lineFreed && !unassignedProgressOperations.isEmpty()) {
             attach(unassignedProgressOperations.pop());
             reportLinesNotShown();
         }
@@ -147,7 +179,7 @@ public class WorkInProgressRenderer implements OutputEventListener {
     // Declares that we are stopping showing updates from this ProgressOperation.
     // We might be completely done following this ProgressOperation, or
     // we might simply be waiting for its children to complete.
-    private void unshow(ProgressOperation operation) {
+    private boolean unshow(ProgressOperation operation) {
         OperationIdentifier operationId = operation.getOperationId();
         AssociationLabel association = operationIdToAssignedLabels.remove(operationId);
         if (association != null) {
@@ -155,6 +187,7 @@ public class WorkInProgressRenderer implements OutputEventListener {
         }
         unassignedProgressOperations.remove(operation);
         reportLinesNotShown();
+        return association != null;
     }
 
     private void reportLinesNotShown() {
@@ -196,11 +229,22 @@ public class WorkInProgressRenderer implements OutputEventListener {
             if (event instanceof ProgressStartEvent) {
                 progressArea.setVisible(true);
                 ProgressStartEvent startEvent = (ProgressStartEvent) event;
+                boolean workAction = startEvent.getBuildOperationCategory() == BuildOperationCategory.WORK_ACTION;
                 if (completeEventOperationIds.contains(startEvent.getProgressOperationId())) {
                     operationIdsToSkip.add(startEvent.getProgressOperationId());
                     // Don't attach to any labels
+                    if (workAction) {
+                        showWorkActions(operations.workActionUnshown(startEvent.getParentProgressOperationId()));
+                    }
                 } else {
-                    attach(operations.start(startEvent.getStatus(), startEvent.getCategory(), startEvent.getProgressOperationId(), startEvent.getParentProgressOperationId()));
+                    ProgressOperation operation = operations.start(startEvent.getStatus(), startEvent.getCategory(), startEvent.getProgressOperationId(), startEvent.getParentProgressOperationId(), workAction);
+                    if (!workAction) {
+                        attach(operation);
+                    } else if (operation.getParent() == null) {
+                        attach(operation);
+                    } else {
+                        showWorkActions(operation.getParent());
+                    }
                 }
             } else if (event instanceof ProgressCompleteEvent) {
                 ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
