@@ -82,6 +82,9 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         Set<String> typesToReprocess = previous.getTypesToReprocess(recompilationSpec.getClassesToCompile());
         processTypesToReprocess(typesToReprocess, recompilationSpec, sourceFileClassNameConverter);
         addModuleInfoToCompile(recompilationSpec, sourceFileClassNameConverter);
+        if (needsStashedClassFiles() && !recompilationSpec.isFullRebuildNeeded()) {
+            recompilationSpec.setClassesToLoadFromStash(previous.findClassesReferencedFromOutside(recompilationSpec.getClassesToCompile()));
+        }
 
         return recompilationSpec;
     }
@@ -137,6 +140,14 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     );
 
     protected abstract boolean isIncrementalOnResourceChanges(CurrentCompilation currentCompilation);
+
+    /**
+     * Whether the compiler loads classes of the previous output, and so needs the stashed class files of the classes being
+     * recompiled that those refer to, see {@link JavaCompileSpec#getStashedClassFiles()}.
+     */
+    protected boolean needsStashedClassFiles() {
+        return false;
+    }
 
     /**
      * This method collects all source paths that will be passed to a compiler. While collecting paths it additionally also
@@ -227,7 +238,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         if (!recompilationSpec.isBuildNeeded()) {
             spec.setSourceFiles(ImmutableSet.of());
             spec.setClassesToProcess(Collections.emptySet());
-            return new CompileTransaction(spec, fileOperations.patternSet(), ImmutableMap.of(), fileOperations, deleter);
+            return new CompileTransaction(spec, fileOperations.patternSet(), ImmutableMap.of(), fileOperations, deleter, recompilationSpec.getClassesToLoadFromStash());
         }
 
         PatternSet classesToDelete = fileOperations.patternSet();
@@ -239,7 +250,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         addClassesToProcess(spec, recompilationSpec);
         spec.setClassesToCompile(recompilationSpec.getClassesToCompile());
         Map<GeneratedResource.Location, PatternSet> resourcesToDelete = prepareResourcePatterns(recompilationSpec.getResourcesToGenerate(), fileOperations);
-        return new CompileTransaction(spec, classesToDelete, resourcesToDelete, fileOperations, deleter);
+        return new CompileTransaction(spec, classesToDelete, resourcesToDelete, fileOperations, deleter, recompilationSpec.getClassesToLoadFromStash());
     }
 
     private static Iterable<File> narrowDownSourcesToCompile(FileTree sourceTree, PatternSet sourceToCompile) {

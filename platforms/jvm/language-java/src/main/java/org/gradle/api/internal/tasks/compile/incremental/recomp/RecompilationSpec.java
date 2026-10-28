@@ -28,6 +28,7 @@ public class RecompilationSpec {
     private final Set<String> sourcePaths = new LinkedHashSet<>();
     private final Collection<String> classesToProcess = new LinkedHashSet<>();
     private final Collection<GeneratedResource> resourcesToGenerate = new LinkedHashSet<>();
+    private Set<String> classesToLoadFromStash = Collections.emptySet();
     private String fullRebuildCause;
 
     @Override
@@ -81,6 +82,17 @@ public class RecompilationSpec {
 
     public Collection<String> getSourcePaths() {
         return Collections.unmodifiableCollection(sourcePaths);
+    }
+
+    /**
+     * The classes being recompiled whose stashed class files the compiler may load, see {@code JavaCompileSpec#getStashedClassFiles()}.
+     */
+    public Set<String> getClassesToLoadFromStash() {
+        return classesToLoadFromStash;
+    }
+
+    public void setClassesToLoadFromStash(Set<String> classesToLoadFromStash) {
+        this.classesToLoadFromStash = classesToLoadFromStash;
     }
 
     public boolean isBuildNeeded() {

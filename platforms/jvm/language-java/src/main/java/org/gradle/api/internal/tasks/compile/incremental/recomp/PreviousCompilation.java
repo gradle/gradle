@@ -49,6 +49,14 @@ public class PreviousCompilation {
         return classAnalysis.findTransitiveDependents(classNames, classNames.stream().collect(Collectors.toMap(Function.identity(), classAnalysis::getConstants)));
     }
 
+    /**
+     * The given classes being recompiled that a class not being recompiled refers to, directly or through other classes being
+     * recompiled.
+     */
+    public Set<String> findClassesReferencedFromOutside(Set<String> recompiledClasses) {
+        return classAnalysis.findClassesReferencedFromOutside(recompiledClasses);
+    }
+
     public DependentsSet getAnnotationProcessingDependentsSet(String className) {
         return classAnalysis.getAnnotationProcessingDependentsSet(className);
     }

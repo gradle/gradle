@@ -61,8 +61,8 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
         where:
         bSuffix  | bCompileStatic                     | expectedRecompiledClass
         "java"   | ""                                 | ["B1", "C1", "D1", "E1", "E2"]
-        "groovy" | ""                                 | ["B1", "C1", "D1", "E1", "E2"]
-        "groovy" | "@groovy.transform.CompileStatic " | ["B1", "C1", "D1", "E1", "E2"]
+        "groovy" | ""                                 | ["B1", "E1", "E2"]
+        "groovy" | "@groovy.transform.CompileStatic " | ["B1", "E1", "E2"]
     }
 
     @ToBeFixedForIsolatedProjects(because = "cross-project incremental compilation")
@@ -145,8 +145,8 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
 
         where:
         bSuffix  | bCompileStatic                     | expectedRecompiledClass
-        "groovy" | ""                                 | ["B", "C", "D", "E"]
-        "groovy" | "@groovy.transform.CompileStatic " | ["B", "C", "D", "E"]
+        "groovy" | ""                                 | ["B", "E"]
+        "groovy" | "@groovy.transform.CompileStatic " | ["B", "E"]
     }
 
     @ToBeFixedForIsolatedProjects(because = "cross-project incremental compilation")
