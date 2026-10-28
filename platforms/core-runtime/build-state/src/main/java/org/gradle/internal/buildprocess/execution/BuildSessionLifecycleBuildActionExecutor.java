@@ -18,8 +18,7 @@ package org.gradle.internal.buildprocess.execution;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.initialization.layout.BuildLocator;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.invocation.BuildAction;
@@ -86,9 +85,8 @@ public class BuildSessionLifecycleBuildActionExecutor implements BuildActionExec
      * @see CrossBuildSessionParameters#getUserActionRootDirectory()
      */
     private File getUserActionRootDirectory(StartParameterInternal startParameter) {
-        BuildLayoutFactory buildLayoutFactory = globalServices.get(BuildLayoutFactory.class);
-        BuildLayout layout = buildLayoutFactory.getLayoutFor(startParameter.toBuildLayoutConfiguration());
-        return layout.getRootDirectory().getAbsoluteFile();
+        BuildLocator buildLocator = globalServices.get(BuildLocator.class);
+        return buildLocator.findBuildRootDirectory(startParameter.toBuildDiscoveryParameters()).getAbsoluteFile();
     }
 
     private static class ActionImpl implements Function<BuildSessionContext, BuildActionResult> {

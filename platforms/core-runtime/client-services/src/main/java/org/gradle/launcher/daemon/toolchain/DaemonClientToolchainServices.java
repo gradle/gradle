@@ -39,8 +39,8 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.initialization.layout.BuildLayoutConfiguration;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.initialization.layout.BuildDiscoveryParameters;
+import org.gradle.internal.initialization.layout.BuildLocator;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.impl.DefaultDeleter;
 import org.gradle.internal.hash.DefaultFileHasher;
@@ -92,12 +92,12 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
     private final ToolchainConfiguration toolchainConfiguration;
     private final ToolchainDownloadUrlProvider toolchainDownloadUrlProvider;
     private final Optional<InternalBuildProgressListener> buildProgressListener;
-    private final BuildLayoutConfiguration buildLayoutConfiguration;
+    private final BuildDiscoveryParameters buildDiscoveryParameters;
 
-    public DaemonClientToolchainServices(ToolchainConfiguration toolchainConfiguration, ToolchainDownloadUrlProvider toolchainDownloadUrlProvider, BuildLayoutConfiguration buildLayoutConfiguration, Optional<InternalBuildProgressListener> buildProgressListener) {
+    public DaemonClientToolchainServices(ToolchainConfiguration toolchainConfiguration, ToolchainDownloadUrlProvider toolchainDownloadUrlProvider, BuildDiscoveryParameters buildDiscoveryParameters, Optional<InternalBuildProgressListener> buildProgressListener) {
         this.toolchainConfiguration = toolchainConfiguration;
         this.toolchainDownloadUrlProvider = toolchainDownloadUrlProvider;
-        this.buildLayoutConfiguration = buildLayoutConfiguration;
+        this.buildDiscoveryParameters = buildDiscoveryParameters;
         // TODO passing an optional down is fishy
         this.buildProgressListener = buildProgressListener;
     }
@@ -123,7 +123,7 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
         OperatingSystem os,
         SystemInfo systemInfo,
         ScopedCacheBuilderFactory scopedCacheBuilderFactory,
-        BuildLayoutFactory buildLayoutFactory
+        BuildLocator buildLocator
     ) {
         // NOTE: These need to be kept in sync with ToolchainsJvmServices
         List<InstallationSupplier> installationSuppliers = new ArrayList<>(8);
@@ -137,7 +137,7 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
 
         // Caveat: when adding new manually created services ensure to close them if required, since the service registry does not manage them
         // Ensure rootDirectory is absolute, as it may be relative when the Tooling API is invoked with a relative project directory
-        File rootDirectory = buildLayoutFactory.getLayoutFor(buildLayoutConfiguration).getRootDirectory().getAbsoluteFile();
+        File rootDirectory = buildLocator.findBuildRootDirectory(buildDiscoveryParameters).getAbsoluteFile();
         FileResolver fileResolver = new BaseDirFileResolver(rootDirectory);
         CurrentBuildPlatform currentBuildPlatform = new CurrentBuildPlatform(systemInfo, os);
         DefaultFilePropertyFactory filePropertyFactory = new DefaultFilePropertyFactory(propertyHost, fileResolver, fileCollectionFactory);

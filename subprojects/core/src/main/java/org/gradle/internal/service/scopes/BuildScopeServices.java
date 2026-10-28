@@ -172,7 +172,8 @@ import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
 import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction;
 import org.gradle.initialization.internal.settings.StartParameterMutationReportingSettingsProcessor;
 import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.initialization.layout.BuildLocations;
+import org.gradle.internal.initialization.layout.BuildLocator;
 import org.gradle.initialization.layout.ResolvedBuildLayout;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
@@ -350,17 +351,22 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected BuildScopedCacheBuilderFactory createBuildScopedCacheBuilderFactory(
         GradleUserHomeDirProvider userHomeDirProvider,
-        BuildLayout buildLayout,
+        BuildLocations buildLocations,
         StartParameter startParameter,
         UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
     ) {
-        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLayout, startParameter);
+        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLocations, startParameter);
         return new DefaultBuildScopedCacheBuilderFactory(cacheDir.getDir(), unscopedCacheBuilderFactory);
     }
 
     @Provides
-    protected BuildLayout createBuildLocations(BuildLayoutFactory buildLayoutFactory, BuildDefinition buildDefinition) {
-        return buildLayoutFactory.getLayoutFor(buildDefinition.getStartParameter().toBuildLayoutConfiguration());
+    protected BuildLocations createBuildLocations(BuildLocator buildLocator, BuildDefinition buildDefinition) {
+        return buildLocator.findBuild(buildDefinition.getStartParameter().toBuildDiscoveryParameters());
+    }
+
+    @Provides
+    protected BuildLayout createBuildLayout(BuildLocations buildLocations) {
+        return new BuildLayout(buildLocations);
     }
 
     @Provides

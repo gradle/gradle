@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization.layout;
+package org.gradle.internal.initialization.layout;
 
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.initialization.BuildLogicFiles;
@@ -27,45 +27,51 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
+/// Finds the location of a build on the file system.
+///
+/// The root of the build is normally identified as the directory housing the settings script.
+///
+/// @see BuildLocations
 @ServiceScope(Scope.Global.class)
-public class BuildLayoutFactory {
+public class BuildLocator {
 
     private final ScriptFileResolver scriptFileResolver;
 
     @Inject
-    public BuildLayoutFactory(ScriptFileResolver scriptFileResolver) {
+    public BuildLocator(ScriptFileResolver scriptFileResolver) {
         this.scriptFileResolver = scriptFileResolver;
     }
 
-    public BuildLayoutFactory() {
+    public BuildLocator() {
         this(new DefaultScriptFileResolver());
     }
 
-    /**
-     * Determines the layout of the build, given a current directory and some other configuration.
-     */
-    public BuildLayout getLayoutFor(File currentDir, boolean shouldSearchUpwards) {
-        boolean searchUpwards = shouldSearchUpwards && !isBuildSrc(currentDir);
-        BuildLayout layout = searchUpwards ? findLayoutRecursively(currentDir) : findLayout(currentDir);
-        return layout != null ? layout : getLayoutWithDefaultSettingsFile(currentDir);
+    /// Resolves the root directory of the build, checking parent directories if necessary.
+    public File findBuildRootDirectory(BuildDiscoveryParameters parameters) {
+        return findBuild(parameters).getBuildRootDirectory();
     }
 
-    /**
-     * Determines the layout of the build, given a current directory and some other configuration.
-     */
-    public BuildLayout getLayoutFor(BuildLayoutConfiguration configuration) {
-        if (configuration.isUseEmptySettings()) {
-            return layout(configuration.getCurrentDir(), null);
+    /// Resolves the location of the build, checking parent directories if necessary.
+    public BuildLocations findBuild(BuildDiscoveryParameters parameters) {
+        if (parameters.isUseEmptySettings()) {
+            return locations(parameters.getTargetDirectory(), null);
         }
-        return getLayoutFor(configuration.getCurrentDir(), configuration.isSearchUpwards());
+        return findBuild(parameters.getTargetDirectory(), parameters.isSearchUpwards());
+    }
+
+    /// Resolves the location of the build, checking parent directories if necessary.
+    public BuildLocations findBuild(File targetDirectory, boolean shouldSearchUpwards) {
+        boolean searchUpwards = shouldSearchUpwards && !isBuildSrc(targetDirectory);
+        BuildLocations locations = searchUpwards ? findLocationsRecursively(targetDirectory) : findLocations(targetDirectory);
+        return locations != null ? locations : getLocationsWithDefaultSettingsFile(targetDirectory);
     }
 
     @Nullable
-    private BuildLayout findLayoutRecursively(File dir) {
+    private BuildLocations findLocationsRecursively(File dir) {
         while (dir != null) {
-            BuildLayout layout = findLayout(dir);
-            if (layout != null) {
-                return layout;
+            BuildLocations locations = findLocations(dir);
+            if (locations != null) {
+                return locations;
             }
             dir = dir.getParentFile();
         }
@@ -73,25 +79,25 @@ public class BuildLayoutFactory {
     }
 
     @Nullable
-    private BuildLayout findLayout(File dir) {
+    private BuildLocations findLocations(File dir) {
         ScriptResolutionResult resolutionResult = scriptFileResolver.resolveScriptFile(dir, BuildLogicFiles.SETTINGS_FILE_BASENAME);
         if (resolutionResult.isScriptFound()) {
-            return layout(dir, resolutionResult);
+            return locations(dir, resolutionResult);
         } else {
             return null;
         }
     }
 
-    private BuildLayout getLayoutWithDefaultSettingsFile(File dir) {
+    private BuildLocations getLocationsWithDefaultSettingsFile(File dir) {
         ScriptResolutionResult resolution = ScriptResolutionResult.fromSingleFile(
             BuildLogicFiles.SETTINGS_FILE_BASENAME,
             FileUtils.canonicalize(new File(dir, BuildLogicFiles.DEFAULT_SETTINGS_FILE))
         );
-        return layout(dir, resolution);
+        return locations(dir, resolution);
     }
 
-    private BuildLayout layout(File rootDir, @Nullable ScriptResolutionResult settingsFileResolution) {
-        return new BuildLayout(rootDir, settingsFileResolution, scriptFileResolver);
+    private BuildLocations locations(File rootDir, @Nullable ScriptResolutionResult settingsFileResolution) {
+        return new BuildLocations(rootDir, settingsFileResolution, scriptFileResolver);
     }
 
     private static boolean isBuildSrc(File dir) {

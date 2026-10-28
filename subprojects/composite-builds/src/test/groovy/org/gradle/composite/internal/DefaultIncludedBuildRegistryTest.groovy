@@ -24,8 +24,8 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.initialization.layout.BuildLayout
-import org.gradle.initialization.layout.BuildLayoutFactory
+import org.gradle.internal.initialization.layout.BuildLocations
+import org.gradle.internal.initialization.layout.BuildLocator
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildAddedListener
 import org.gradle.internal.build.BuildLifecycleController
@@ -63,7 +63,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         getBroadcaster(BuildAddedListener) >> buildAddedListener
     }
     def services = new DefaultServiceRegistry()
-    def buildLayoutFactory = Mock(BuildLayoutFactory)
+    def buildLocator = Mock(BuildLocator)
     def buildTree = Mock(BuildTreeServices)
     def factory = new BuildStateFactory(
         buildTree,
@@ -79,7 +79,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     )
 
     def setup() {
-        services.add(buildLayoutFactory)
+        services.add(buildLocator)
         services.add(Stub(WorkerLeaseService))
         services.add(Stub(BuildTreeWorkGraphController))
         services.add(Stub(ExceptionAnalyser))
@@ -105,15 +105,15 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def buildController = buildController()
         services.add(buildController)
         def rootDir = tmpDir.createDir("root")
-        def rootBuildLayout = Mock(BuildLayout) {
-            rootDirectory >> rootDir
+        def rootBuildLocations = Mock(BuildLocations) {
+            buildRootDirectory >> rootDir
         }
 
         when:
         def rootBuild = registry.createRootBuild(buildDefinition)
 
         then:
-        1 * buildLayoutFactory.getLayoutFor(_) >> rootBuildLayout
+        1 * buildLocator.findBuild(_) >> rootBuildLocations
         1 * buildAddedListener.buildAdded(_) >> { BuildState addedBuild ->
             notifiedBuild = addedBuild
         }
@@ -349,15 +349,15 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     private BuildLifecycleController buildController(SettingsInternal settings, GradleInternal gradle) {
         def buildController = Stub(BuildLifecycleController)
         def services = Stub(ServiceRegistry)
-        def buildLayout = Stub(BuildLayout)
+        def buildLocations = Stub(BuildLocations)
 
         _ * buildController.gradle >> gradle
         if (settings != null) {
             _ * gradle.settings >> settings
         }
         _ * gradle.services >> services
-        _ * services.get(BuildLayout) >> buildLayout
-        _ * buildLayout.rootDirectory >> tmpDir.file("root-dir")
+        _ * services.get(BuildLocations) >> buildLocations
+        _ * buildLocations.buildRootDirectory >> tmpDir.file("root-dir")
         _ * services.get(PublicBuildPath) >> Stub(PublicBuildPath)
 
         return buildController

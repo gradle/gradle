@@ -40,8 +40,8 @@ import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.PendingChangesManager;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.initialization.layout.BuildLocations;
+import org.gradle.internal.initialization.layout.BuildLocator;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.buildevents.BuildStartedTime;
@@ -100,9 +100,9 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    BuildTreeLocations createBuildTreeLocations(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
-        BuildLayout rootBuildLayout = buildLayoutFactory.getLayoutFor(((StartParameterInternal) startParameter).toBuildLayoutConfiguration());
-        return new BuildTreeLocations(rootBuildLayout);
+    BuildTreeLocations createBuildTreeLocations(BuildLocator buildLocator, StartParameter startParameter) {
+        BuildLocations rootBuildLocations = buildLocator.findBuild(((StartParameterInternal) startParameter).toBuildDiscoveryParameters());
+        return new BuildTreeLocations(rootBuildLocations);
     }
 
     @Provides
@@ -118,7 +118,7 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
         BuildOperationRunner buildOperationRunner,
         StartParameter startParameter
     ) {
-        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildTreeLocations.getRootBuildLayout(), startParameter);
+        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildTreeLocations.getRoot(), startParameter);
         return new ProjectCacheDir(cacheDir.getDir(), buildOperationRunner, deleter);
     }
 

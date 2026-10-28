@@ -25,7 +25,7 @@ import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeRegistry
-import org.gradle.initialization.layout.BuildLayoutFactory
+import org.gradle.internal.initialization.layout.BuildLocator
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classloader.ClasspathHasher
@@ -95,7 +95,7 @@ object BuildServices : ServiceRegistrationProvider {
     @Provides
     @Suppress("LongParameterList")
     fun createKotlinScriptEvaluator(
-        buildLayoutFactory: BuildLayoutFactory,
+        buildLocator: BuildLocator,
         classPathProvider: KotlinScriptClassPathProvider,
         classloadingCache: KotlinScriptClassloadingCache,
         pluginRequestsHandler: PluginRequestsHandler,
@@ -148,7 +148,7 @@ object BuildServices : ServiceRegistrationProvider {
             inputFingerprinter,
             internalOptions,
             gradleProperties,
-            buildLayoutFactory.getBuildTreeRootDir(startParameterInternal),
+            buildLocator.getBuildTreeRootDir(startParameterInternal),
             transformFactoryForLegacy,
             gradleCoreTypeRegistry,
             propertyUpgradeReportConfig,
@@ -160,8 +160,8 @@ object BuildServices : ServiceRegistrationProvider {
     // project.gradle.root.settings may not be available when we compile scripts,
     // e.g. init scripts or scripts for included builds
     // we need to compute the root directory from the start parameters
-    private fun BuildLayoutFactory.getBuildTreeRootDir(startParameter: StartParameterInternal): Path =
-        getLayoutFor(startParameter.toBuildLayoutConfiguration()).rootDirectory
+    private fun BuildLocator.getBuildTreeRootDir(startParameter: StartParameterInternal): Path =
+        findBuildRootDirectory(startParameter.toBuildDiscoveryParameters())
             .toPath().toAbsolutePath().normalize()
 
     @Provides

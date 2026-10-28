@@ -35,7 +35,7 @@ import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.initialization.layout.BuildLocator;
 import org.gradle.integtests.fixtures.FileSystemWatchingHelper;
 import org.gradle.integtests.fixtures.validation.ValidationServicesFixture;
 import org.gradle.internal.InternalListener;
@@ -320,8 +320,8 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         // TODO: Reuse more of CommandlineActionFactory
         CommandLineParser parser = new CommandLineParser();
         FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory();
-        BuildLayoutFactory buildLayoutFactory = GLOBAL_SERVICES.get(BuildLayoutFactory.class);
-        BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(buildLayoutFactory, fileCollectionFactory);
+        BuildLocator buildLocator = GLOBAL_SERVICES.get(BuildLocator.class);
+        BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(buildLocator, fileCollectionFactory);
         buildEnvironmentConfigurationConverter.configure(parser);
         Parameters parameters = buildEnvironmentConfigurationConverter.convertParameters(parser.parse(getAllArgs()), getWorkingDir());
 

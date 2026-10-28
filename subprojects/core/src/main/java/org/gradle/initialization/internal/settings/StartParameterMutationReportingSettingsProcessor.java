@@ -19,10 +19,10 @@ package org.gradle.initialization.internal.settings;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.initialization.SettingsLocation;
 import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.SettingsState;
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
+import org.gradle.internal.initialization.layout.BuildLocations;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -42,11 +42,11 @@ public class StartParameterMutationReportingSettingsProcessor implements Setting
     }
 
     @Override
-    public SettingsState process(GradleInternal gradle, SettingsLocation settingsLocation, ClassLoaderScope buildRootClassLoaderScope, StartParameterInternal startParameter) {
+    public SettingsState process(GradleInternal gradle, BuildLocations buildLocations, ClassLoaderScope buildRootClassLoaderScope, StartParameterInternal startParameter) {
         // Evaluate settings first, then register the listener: mutating the start parameter up to and
         // during settings evaluation (init scripts, the settings script, settingsEvaluated callbacks) is
         // allowed; only mutations after this point are violations.
-        SettingsState state = delegate.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
+        SettingsState state = delegate.process(gradle, buildLocations, buildRootClassLoaderScope, startParameter);
         startParameter.setMutationListener(methodSignature ->
             problems.report(factory ->
                 factory.problem("Start parameter mutated after settings evaluation", message -> message

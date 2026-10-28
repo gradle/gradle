@@ -15,27 +15,25 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.internal.initialization.layout.BuildLocations;
 import org.gradle.internal.scripts.ScriptResolutionResult;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.util.Optional;
 
 public class SettingsLocation {
-    private final File settingsDir;
-    @Nullable
-    private final ScriptResolutionResult settingsFileResolution;
 
-    public SettingsLocation(File settingsDir, @Nullable ScriptResolutionResult settingsFileResolution) {
-        this.settingsDir = settingsDir;
-        this.settingsFileResolution = settingsFileResolution;
+    protected final BuildLocations buildLocations;
+
+    public SettingsLocation(BuildLocations buildLocations) {
+        this.buildLocations = buildLocations;
     }
 
     /**
      * Returns the settings directory. Never null.
      */
     public File getSettingsDir() {
-        return settingsDir;
+        return buildLocations.getBuildRootDirectory();
     }
 
     /**
@@ -43,7 +41,7 @@ public class SettingsLocation {
      */
     @Nullable
     public ScriptResolutionResult getSettingsFileResolution() {
-        return settingsFileResolution;
+        return buildLocations.getSettingsFileResolution();
     }
 
     /**
@@ -51,9 +49,6 @@ public class SettingsLocation {
      */
     @Nullable
     public File getSettingsFile() {
-        return Optional
-            .ofNullable(settingsFileResolution)
-            .map(ScriptResolutionResult::getSelectedCandidate)
-            .orElse(null);
+        return buildLocations.getSettingsFile();
     }
 }

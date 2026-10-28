@@ -76,7 +76,7 @@ import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
-import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.internal.initialization.layout.BuildLocations;
 import org.gradle.internal.Describables;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.code.UserCodeApplicationContext;
@@ -382,10 +382,10 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
 
     @Provides({ProjectLayout.class, TaskFileVarFactory.class})
     DefaultProjectLayout createProjectLayout(
-        BuildLayout buildLayout, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
+        BuildLocations buildLocations, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
         FilePropertyFactory filePropertyFactory, PatternSetFactory patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory
     ) {
-        File settingsDir = buildLayout.getSettingsDir();
+        File settingsDir = buildLocations.getBuildRootDirectory();
         File projectDir = project.getProjectDir();
         return new DefaultProjectLayout(settingsDir, projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
     }

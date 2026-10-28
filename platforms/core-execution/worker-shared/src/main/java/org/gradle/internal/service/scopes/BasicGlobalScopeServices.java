@@ -37,7 +37,7 @@ import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.InetAddressProvider;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.initialization.layout.BuildLocator;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
@@ -159,8 +159,8 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    BuildLayoutFactory createBuildLayoutFactory(ScriptFileResolver scriptFileResolver) {
-        return new BuildLayoutFactory(scriptFileResolver);
+    BuildLocator createBuildLocator(ScriptFileResolver scriptFileResolver) {
+        return new BuildLocator(scriptFileResolver);
     }
 }
 

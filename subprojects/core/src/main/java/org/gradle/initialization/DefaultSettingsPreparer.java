@@ -30,8 +30,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.configuration.project.BuiltInCommand;
-import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.initialization.layout.BuildLocations;
+import org.gradle.internal.initialization.layout.BuildLocator;
 import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -69,7 +69,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
     private final SettingsProcessor settingsProcessor;
     private final BuildStateRegistry buildRegistry;
     private final ProjectStateRegistry projectRegistry;
-    private final BuildLayoutFactory buildLayoutFactory;
+    private final BuildLocator buildLocator;
     private final GradlePropertiesController gradlePropertiesController;
     private final BuildIncluder buildIncluder;
     private final InitScriptHandler initScriptHandler;
@@ -85,7 +85,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
         SettingsProcessor settingsProcessor,
         BuildStateRegistry buildRegistry,
         ProjectStateRegistry projectRegistry,
-        BuildLayoutFactory buildLayoutFactory,
+        BuildLocator buildLocator,
         GradlePropertiesController gradlePropertiesController,
         BuildIncluder buildIncluder,
         InitScriptHandler initScriptHandler,
@@ -100,7 +100,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
         this.settingsProcessor = settingsProcessor;
         this.buildRegistry = buildRegistry;
         this.projectRegistry = projectRegistry;
-        this.buildLayoutFactory = buildLayoutFactory;
+        this.buildLocator = buildLocator;
         this.gradlePropertiesController = gradlePropertiesController;
         this.buildIncluder = buildIncluder;
         this.initScriptHandler = initScriptHandler;
@@ -181,9 +181,9 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
     }
 
     private void loadGradlePropertiesForBuild(GradleInternal gradle) {
-        SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(gradle.getStartParameter().toBuildLayoutConfiguration());
+        File buildRootDir = buildLocator.findBuildRootDirectory(gradle.getStartParameter().toBuildDiscoveryParameters());
         BuildIdentity buildId = gradle.getOwner().getBuildIdentity();
-        gradlePropertiesController.loadGradleProperties(buildId, settingsLocation.getSettingsDir(), true);
+        gradlePropertiesController.loadGradleProperties(buildId, buildRootDir, true);
     }
 
     @SuppressWarnings("MixedMutabilityReturnType")
@@ -202,10 +202,10 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
 
     private SettingsState findAndLoadSettings(GradleInternal gradle) {
         StartParameterInternal startParameter = gradle.getStartParameter();
-        BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(startParameter.toBuildLayoutConfiguration());
-        if (buildLayout.getSettingsFileResolution() != null) {
+        BuildLocations buildLocations = buildLocator.findBuild(startParameter.toBuildDiscoveryParameters());
+        if (buildLocations.getSettingsFileResolution() != null) {
             ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(problems);
-            reporter.reportResolutionProblemsOf(buildLayout.getSettingsFileResolution());
+            reporter.reportResolutionProblemsOf(buildLocations.getSettingsFileResolution());
         }
 
         SettingsState state;
@@ -215,7 +215,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
             state = createEmptySettings(gradle, startParameter, gradle.getClassLoaderScope());
         } else {
             logger.debug("Loading build definition for build: '{}'", gradle.getIdentityPath());
-            state = findSettingsAndLoadIfAppropriate(gradle, startParameter, buildLayout, gradle.getClassLoaderScope());
+            state = findSettingsAndLoadIfAppropriate(gradle, startParameter, buildLocations, gradle.getClassLoaderScope());
         }
         spec = ProjectSpecs.forStartParameter(startParameter, state.getSettings());
 
@@ -239,8 +239,8 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
         StartParameterInternal noSearchParameter = startParameter.newInstanceInternal();
         noSearchParameter.useEmptySettings();
         noSearchParameter.doNotSearchUpwards();
-        BuildLayout layout = buildLayoutFactory.getLayoutFor(noSearchParameter.toBuildLayoutConfiguration());
-        return findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, layout, classLoaderScope);
+        BuildLocations buildLocations = buildLocator.findBuild(noSearchParameter.toBuildDiscoveryParameters());
+        return findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, buildLocations, classLoaderScope);
     }
 
     /**
@@ -251,15 +251,15 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
     private SettingsState findSettingsAndLoadIfAppropriate(
         GradleInternal gradle,
         StartParameterInternal startParameter,
-        BuildLayout buildLayout,
+        BuildLocations buildLocations,
         ClassLoaderScope classLoaderScope
     ) {
-        ScriptResolutionResult resolutionResult = buildLayout.getSettingsFileResolution();
+        ScriptResolutionResult resolutionResult = buildLocations.getSettingsFileResolution();
         if (resolutionResult != null) {
             new ScriptResolutionResultReporter(problems).reportResolutionProblemsOf(resolutionResult);
         }
 
-        SettingsState state = settingsProcessor.process(gradle, buildLayout, classLoaderScope, startParameter);
+        SettingsState state = settingsProcessor.process(gradle, buildLocations, classLoaderScope, startParameter);
         validate(state.getSettings());
         return state;
     }
