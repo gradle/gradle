@@ -16,15 +16,13 @@
 
 package org.gradle.internal.service;
 
-import java.io.Closeable;
-
 /**
  * Managed version of a {@link ServiceRegistry} that controls the lifetime of the registry members,
  * such as service instances and factories.
  * <p>
  * Members created by the registry are stopped and closed when this registry is {@link #close() closed}.
  */
-public interface ManagedServiceRegistry extends ServiceRegistry, Closeable {
+public interface ManagedServiceRegistry extends ServiceRegistry, AutoCloseable {
 
     /**
      * Closes this registry by stopping and closing all members managed by it.
