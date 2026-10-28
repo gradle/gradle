@@ -87,7 +87,7 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
             .withUpgradeGuideSection(9, "deprecated_get_properties")
             .nagUser();
 
-        DefaultProject.reportGetPropertiesProblem(reporter);
+        DefaultProject.reportGetPropertiesProblem(reporter, "Script.getProperties()");
         return reporter.runIgnoringProblemsOnCurrentThread(dynamicObject::getProperties);
     }
 

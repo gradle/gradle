@@ -41,6 +41,9 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.logging.format.JavaClassNameFormatter;
+import org.gradle.internal.logging.progress.WorkerLineOperation;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.SharedResource;
@@ -80,6 +83,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private final BuildServiceProvider.Listener listener;
     private final IsolatedProjectsProblemsReporter problems;
     private final BuildModelParameters buildModelParameters;
+    private final BuildOperationRunner buildOperationRunner;
 
     public DefaultBuildServicesRegistry(
         BuildIdentity buildIdentity,
@@ -91,7 +95,8 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         SharedResourceLeaseRegistry leaseRegistry,
         BuildServiceProvider.Listener listener,
         IsolatedProjectsProblemsReporter problems,
-        BuildModelParameters buildModelParameters
+        BuildModelParameters buildModelParameters,
+        BuildOperationRunner buildOperationRunner
     ) {
         this.buildIdentity = buildIdentity;
         this.internalRegistrations = uncheckedCast(collectionFactory.newNamedDomainObjectSet(BuildServiceRegistration.class));
@@ -106,6 +111,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         this.paramsInstantiator = instantiatorFactory.decorateScheme().withServices(services).instantiator();
         this.specInstantiator = instantiatorFactory.decorateLenient(services);
         this.listener = listener;
+        this.buildOperationRunner = buildOperationRunner;
         listenerManager.addListener(new ServiceCleanupListener());
     }
 
@@ -265,21 +271,6 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     @Override
-    public BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, BuildServiceParameters parameters, int maxUsages) {
-        return withRegistrations(registrations -> {
-            DefaultServiceRegistration<?, ?> registration = Cast.uncheckedCast(registrations.findByName(name));
-            if (registration != null) {
-                if (registration.provider.isKeepAlive()) {
-                    // Reuse the service instance
-                    return registration.provider;
-                }
-                throw new IllegalArgumentException(String.format("Service '%s' has already been registered.", name));
-            }
-            return doRegister(name, uncheckedNonnullCast(implementationType), parameters, maxUsages <= 0 ? null : maxUsages, registrations);
-        });
-    }
-
-    @Override
     public BuildServiceProvider<?, ?> consume(String name, Class<? extends BuildService<?>> implementationType) {
         return doConsume(name, uncheckedCast(implementationType));
     }
@@ -330,7 +321,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
                     DefaultServiceRegistration<?, ?> serviceRegistration = (DefaultServiceRegistration<?, ?>) registration;
                     // Do not stop services that are to be retained beyond configuration time (e.g. build event listeners)
                     if (forceAll || !serviceRegistration.provider.isKeepAlive()) {
-                        serviceRegistration.provider.maybeStop();
+                        stop(serviceRegistration.provider);
                     } else {
                         preserved.add(serviceRegistration);
                     }
@@ -344,6 +335,16 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             this.internalRegistrations.addAll(preserved);
             return null;
         });
+    }
+
+    private void stop(RegisteredBuildServiceProvider<?, ?> provider) {
+        String typeName = provider.getImplementationType().getName();
+        provider.maybeStop(close -> buildOperationRunner.run(new WorkerLineOperation(
+            buildIdentity.getBuildPath(),
+            "Close build service '" + provider.getName() + "' (" + typeName + ")",
+            "Close build service '" + provider.getName() + "' (" + JavaClassNameFormatter.abbreviateJavaPackage(typeName) + ")",
+            close
+        )));
     }
 
     private static class ServiceBackedSharedResource implements SharedResource {
@@ -461,7 +462,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         protected void onMethodCall(String signature) {
             if (buildModelParameters.isIsolatedProjects()) {
                 problems.report(factory ->
-                    factory.problem(message -> message
+                    factory.problem("Unsupported build service registrations access", message -> message
                         .text("Cannot call ").reference(signature)
                         .text(" on ").reference("BuildServicesRegistry.getRegistrations()")
                         .text(" when Isolated Projects is enabled. Only ").reference("findByName(String)")

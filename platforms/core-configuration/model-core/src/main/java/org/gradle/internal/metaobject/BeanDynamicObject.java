@@ -25,6 +25,7 @@ import groovy.lang.MetaProperty;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.groovy.reflection.CachedMethod;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.codehaus.groovy.runtime.MetaClassHelper;
 import org.codehaus.groovy.runtime.metaclass.MultipleSetterProperty;
@@ -537,7 +538,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                         continue;
                     }
                 }
-                properties.put(metaProperty.getName(), metaProperty.getProperty(bean));
+                properties.put(metaProperty.getName(), getPropertyValue(metaProperty));
             }
             if (bean instanceof PropertyMixIn) {
                 PropertyMixIn propertyMixIn = (PropertyMixIn) bean;
@@ -545,6 +546,27 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
             getOpaqueProperties(properties);
             return properties;
+        }
+
+        /**
+         * Get the value of a property, without triggering a deprecation warning if
+         * that property is deprecated.
+         */
+        private @Nullable Object getPropertyValue(MetaProperty metaProperty) {
+            if (isDeprecated(metaProperty)) {
+                return DeprecationLogger.whileDisabled(() -> metaProperty.getProperty(bean));
+            }
+            return metaProperty.getProperty(bean);
+        }
+
+        private boolean isDeprecated(MetaProperty metaProperty) {
+            if (metaProperty instanceof MetaBeanProperty) {
+                MetaMethod getter = ((MetaBeanProperty) metaProperty).getGetter();
+                if (getter instanceof CachedMethod) {
+                    return ((CachedMethod) getter).getCachedMethod().isAnnotationPresent(Deprecated.class);
+                }
+            }
+            return false;
         }
 
         // used in subclasses

@@ -797,7 +797,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         SharedResourceLeaseRegistry sharedResourceLeaseRegistry,
         FeatureFlags featureFlags,
         IsolatedProjectsProblemsReporter ipProblems,
-        BuildModelParameters buildModelParameters
+        BuildModelParameters buildModelParameters,
+        BuildOperationRunner buildOperationRunner
     ) {
         // TODO:configuration-cache remove this hack
         // HACK: force the instantiation of FlowScope so its listeners are registered before DefaultBuildServicesRegistry's
@@ -817,7 +818,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
                 ? new BuildServiceProviderNagger(services.get(WorkExecutionTracker.class))
                 : BuildServiceProvider.Listener.EMPTY,
             ipProblems,
-            buildModelParameters
+            buildModelParameters,
+            buildOperationRunner
         );
     }
 

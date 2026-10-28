@@ -23,7 +23,9 @@ import java.util.Map;
 /**
  * <p>An {@code AntBuilder} allows you to use Ant from your build script.</p>
  * @since 0.7
+ * @deprecated This type will be removed in Gradle 10.
  */
+@Deprecated
 @NotToBeMigratedToLazy
 public abstract class AntBuilder extends groovy.ant.AntBuilder {
     /**

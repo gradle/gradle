@@ -55,7 +55,7 @@ abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigu
     }
 
     protected ReceivedProblem consumeWarnModeProblem() {
-        return findReceivedProblem { it.fqid.endsWith(":configuration-cache-warn-mode") }
+        return findReceivedProblem { it.fqid == "Gradle:Configuration Cache:Configuration Cache warn mode is enabled" }
     }
 
     void configurationCacheFails(String... tasks) {

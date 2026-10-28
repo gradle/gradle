@@ -16,12 +16,32 @@
 
 package org.gradle.internal.scripts
 
+import org.gradle.api.problems.GradleProblemGroup
+import org.gradle.api.problems.GradleSecondLevelProblemGroup
+import org.gradle.api.problems.ProblemGroups
+import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemReporter
+import org.gradle.api.problems.Problems
 import org.gradle.api.problems.fixtures.FakeProblemBuilder
 import spock.lang.Specification
 
 class ScriptResolutionResultReporterTest extends Specification {
 
+    def multipleScripts = Stub(ProblemId)
+    def buildDefinition = Stub(GradleSecondLevelProblemGroup) {
+        problemId("Multiple script files in one directory") >> multipleScripts
+    }
+
+    private Problems problemsReportingTo(ProblemReporter problemReporter) {
+        Stub(Problems) {
+            getReporter() >> problemReporter
+            getGroups() >> Stub(ProblemGroups) {
+                getGradle() >> Stub(GradleProblemGroup) {
+                    getBuildDefinition() >> buildDefinition
+                }
+            }
+        }
+    }
 
     def "reportProblem formats single ignored candidate correctly"() {
         given:
@@ -36,7 +56,7 @@ class ScriptResolutionResultReporterTest extends Specification {
         }
         def result = new ScriptResolutionResult(directory, "script", selectedFile, [ignoredFile])
         def problemReporter = Mock(ProblemReporter)
-        def scriptResolutionReporter = new ScriptResolutionResultReporter(problemReporter)
+        def scriptResolutionReporter = new ScriptResolutionResultReporter(problemsReportingTo(problemReporter))
 
         when:
         scriptResolutionReporter.reportResolutionProblemsOf(result)
@@ -46,8 +66,7 @@ class ScriptResolutionResultReporterTest extends Specification {
             def spec = new FakeProblemBuilder()
             configurer.execute(spec)
 
-            assert problemId.name == "multiple-scripts"
-            assert problemId.displayName == "Multiple scripts"
+            assert problemId.is(multipleScripts)
             assert spec.contextualLabel == "Multiple script script files were found in directory '/some/dir'"
             assert spec.details == "Multiple script script files were found in directory '/some/dir'. Selected 'alice', and ignoring 'bob'."
             assert spec.solution == "Delete the files 'bob' in directory '/some/dir'"
@@ -70,7 +89,7 @@ class ScriptResolutionResultReporterTest extends Specification {
         }
         def result = new ScriptResolutionResult(directory, "script", selectedFile, [ignoredFile1, ignoredFile2])
         def problemReporter = Mock(ProblemReporter)
-        def scriptResolutionReporter = new ScriptResolutionResultReporter(problemReporter)
+        def scriptResolutionReporter = new ScriptResolutionResultReporter(problemsReportingTo(problemReporter))
 
         when:
         scriptResolutionReporter.reportResolutionProblemsOf(result)
@@ -80,8 +99,7 @@ class ScriptResolutionResultReporterTest extends Specification {
             def spec = new FakeProblemBuilder()
             configurer.execute(spec)
 
-            assert problemId.name == "multiple-scripts"
-            assert problemId.displayName == "Multiple scripts"
+            assert problemId.is(multipleScripts)
             assert spec.contextualLabel == "Multiple script script files were found in directory '/some/dir'"
             assert spec.details == "Multiple script script files were found in directory '/some/dir'. Selected 'alice', and ignoring 'bob', 'charlie'."
             assert spec.solution == "Delete the files 'bob', 'charlie' in directory '/some/dir'"

@@ -18,27 +18,29 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.artifacts.transform.TransformStepNode;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.QueryableExecutionPlan;
+import org.gradle.execution.plan.TaskInAnotherBuild;
 import org.gradle.execution.plan.TaskNode;
-import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildWorkGraph;
 import org.gradle.internal.build.ExecutionResult;
-import org.gradle.internal.build.ExportedTaskNode;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.util.Path;
 
 import java.io.StringWriter;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -46,28 +48,32 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 class DefaultBuildController implements BuildController {
     private enum State {
         DiscoveringTasks, ReadyToRun, RunningTasks, Finished
     }
 
+    private final Path buildPath;
     private final BuildWorkGraph workGraph;
-    private final Set<ExportedTaskNode> scheduled = new LinkedHashSet<>();
-    private final Set<ExportedTaskNode> queuedForExecution = new LinkedHashSet<>();
+    private final Set<Node> scheduled = new LinkedHashSet<>();
+    private final Set<Node> queuedForExecution = new LinkedHashSet<>();
     private final WorkerLeaseService workerLeaseService;
 
     private State state = State.DiscoveringTasks;
 
     public DefaultBuildController(BuildState build, WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
+        this.buildPath = build.getIdentityPath();
         this.workGraph = build.getWorkGraph().newWorkGraph();
     }
 
     @Override
-    public void queueForExecution(ExportedTaskNode taskNode) {
+    public void queueForExecution(Node node) {
         assertInState(State.DiscoveringTasks);
-        queuedForExecution.add(taskNode);
+        assertBelongsToThisBuild(node);
+        queuedForExecution.add(node);
     }
 
     @Override
@@ -112,10 +118,10 @@ class DefaultBuildController implements BuildController {
 
         // TODO - This check should live in the task execution plan, so that it can reuse checks that have already been performed and
         //   also check for cycles across all nodes
-        Set<TaskInternal> visited = new HashSet<>();
-        Set<TaskInternal> visiting = new HashSet<>();
-        for (ExportedTaskNode node : scheduled) {
-            checkForCyclesFor(node.getTask(), visited, visiting);
+        Set<Node> visited = new HashSet<>();
+        Set<Node> visiting = new HashSet<>();
+        for (Node node : scheduled) {
+            checkForCyclesFor(node, visited, visiting);
         }
         workGraph.finalizeGraph();
 
@@ -135,31 +141,48 @@ class DefaultBuildController implements BuildController {
         workGraph.stop();
     }
 
+    private void assertBelongsToThisBuild(Node node) {
+        ProjectInternal owningProject = node.getOwningProject();
+        if (owningProject == null) {
+            throw new IllegalArgumentException("Cannot queue " + node + " for execution in build " + buildPath + ", as it does not belong to any build.");
+        }
+        Path owningBuild = owningProject.getProjectIdentity().getBuildPath();
+        if (!owningBuild.equals(buildPath)) {
+            throw new IllegalArgumentException("Cannot queue " + node + " for execution in build " + buildPath + ", as it belongs to build " + owningBuild + ".");
+        }
+    }
+
     private void assertInState(State expectedState) {
         if (state != expectedState) {
             throw new IllegalStateException("Build is in unexpected state: " + state);
         }
     }
 
-    private static void checkForCyclesFor(TaskInternal task, Set<TaskInternal> visited, Set<TaskInternal> visiting) {
+    private static void checkForCyclesFor(Node task, Set<Node> visited, Set<Node> visiting) {
         if (visited.contains(task)) {
             // Already checked
             return;
         }
         if (!visiting.add(task)) {
             // Visiting dependencies -> have found a cycle
-            CachingDirectedGraphWalker<TaskInternal, Void> graphWalker = new CachingDirectedGraphWalker<>((node, values, connectedNodes) -> visitDependenciesOf(node, connectedNodes::add));
+            CachingDirectedGraphWalker<Node, Void> graphWalker = new CachingDirectedGraphWalker<>((node, values, connectedNodes) -> visitDependenciesOf(node, connectedNodes::add));
             graphWalker.add(task);
-            List<Set<TaskInternal>> cycles = graphWalker.findCycles();
-            Set<TaskInternal> cycle = cycles.get(0);
+            List<Set<Node>> cycles = graphWalker.findCycles();
+            Set<Node> cycle = cycles.get(0);
 
-            DirectedGraphRenderer<TaskInternal> graphRenderer = new DirectedGraphRenderer<>((node, output, alreadySeen) -> output.withStyle(StyledTextOutput.Style.Identifier).text(node.getIdentityPath()), (node, values, connectedNodes) -> visitDependenciesOf(node, dep -> {
-                if (cycle.contains(dep)) {
-                    connectedNodes.add(dep);
-                }
-            }));
+            // If the cycle has no reportable nodes, report all of its nodes.
+            Predicate<Node> isReported = cycle.stream().anyMatch(DefaultBuildController::isReportableInCycle)
+                ? DefaultBuildController::isReportableInCycle
+                : node -> true;
+            // Report the cycle starting from the first reportable node.
+            Node root = isReported.test(task) ? task : cycle.stream().filter(isReported).findFirst().orElse(task);
+
+            DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<>(
+                (node, output, alreadySeen) -> output.withStyle(StyledTextOutput.Style.Identifier).text(node.getDisplayName()),
+                (node, values, connectedNodes) -> visitReportedDependenciesOf(node, cycle, isReported, connectedNodes::add)
+            );
             StringWriter writer = new StringWriter();
-            graphRenderer.renderTo(task, writer);
+            graphRenderer.renderTo(root, writer);
             throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer));
         }
         visitDependenciesOf(task, dep -> checkForCyclesFor(dep, visited, visiting));
@@ -167,14 +190,46 @@ class DefaultBuildController implements BuildController {
         visited.add(task);
     }
 
-    private static void visitDependenciesOf(TaskInternal task, Consumer<TaskInternal> consumer) {
-        TaskNodeFactory taskNodeFactory = ((GradleInternal) task.getProject().getGradle()).getServices().get(TaskNodeFactory.class);
-        TaskNode node = taskNodeFactory.getOrCreateNode(task);
-        for (Node dependency : node.getAllSuccessors()) {
-            if (dependency instanceof TaskNode) {
-                consumer.accept(((TaskNode) dependency).getTask());
+    /**
+     * Only report task and transform nodes involved in cycles, as they are more actionable and don't leak
+     * internal node types to users.
+     */
+    private static boolean isReportableInCycle(Node node) {
+        return node instanceof TaskNode || node instanceof TransformStepNode;
+    }
+
+    /**
+     * Visits the reported nodes in the given cycle that the given node depends on, either directly or
+     * through nodes in the cycle that are not reported.
+     */
+    private static void visitReportedDependenciesOf(Node node, Set<Node> cycle, Predicate<Node> isReported, Consumer<? super Node> visitor) {
+        Set<Node> seen = new HashSet<>();
+        Deque<Node> queue = new ArrayDeque<>();
+        visitDependenciesOf(node, queue::add);
+        while (!queue.isEmpty()) {
+            Node dep = queue.removeFirst();
+            if (!cycle.contains(dep) || !seen.add(dep)) {
+                continue;
+            }
+            if (isReported.test(dep)) {
+                visitor.accept(dep);
+            } else {
+                // Skip over the unreported node, searching its dependencies instead, so that the
+                // given node is connected to the reported nodes that it reaches through this node.
+                visitDependenciesOf(dep, queue::add);
             }
         }
+    }
+
+    private static void visitDependenciesOf(Node node, Consumer<? super Node> visitor) {
+        node.getAllSuccessors().forEach(dep -> {
+            if (dep instanceof TaskInAnotherBuild) {
+                // Hop over the included build reference so we can detect cycles across build work graphs.
+                visitor.accept(((TaskInAnotherBuild) dep).getTargetNode());
+            } else {
+                visitor.accept(dep);
+            }
+        });
     }
 
     private ExecutionResult<Void> doRun() {

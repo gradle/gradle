@@ -53,10 +53,12 @@ import org.gradle.internal.component.external.model.ExternalModuleComponentGraph
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.logging.progress.WorkerLineOperation;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.security.internal.Fingerprint;
 import org.gradle.security.internal.PGPUtils;
@@ -106,6 +108,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
 
     private final DependencyVerifierBuilder verificationsBuilder = new DependencyVerifierBuilder();
     private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final List<String> checksums;
     private final Set<VerificationEntry> entriesToBeWritten = Sets.newLinkedHashSetWithExpectedSize(512);
     private final ChecksumService checksumService;
@@ -122,6 +125,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     public WriteDependencyVerificationFile(
         File verificationFile,
         BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         List<String> checksums,
         ChecksumService checksumService,
         SignatureVerificationServiceFactory signatureVerificationServiceFactory,
@@ -129,6 +133,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         boolean exportKeyRing
     ) {
         this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.checksums = checksums;
         this.checksumService = checksumService;
         this.verificationFile = verificationFile;
@@ -195,6 +200,11 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
 
     @Override
     public void buildFinished(GradleInternal gradle) {
+        String description = "Write dependency verification metadata";
+        buildOperationRunner.run(new WorkerLineOperation(gradle.getIdentityPath(), description, description, () -> writeVerificationMetadata(gradle)));
+    }
+
+    private void writeVerificationMetadata(GradleInternal gradle) {
         ensureOutputDirCreated();
         maybeReadExistingFile();
         // when we generate the verification file, we intentionally ignore if the "use key servers" flag is false

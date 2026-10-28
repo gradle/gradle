@@ -111,6 +111,20 @@ public interface ConsoleMetaData {
         return false;
     }
 
+    /**
+     * <p>Returns true if the font of the console has the eighth blocks, such as ▏ and ▉, when the console supports Unicode.</p>
+     *
+     * <p>The fonts of the Linux console have no eighth blocks.</p>
+     *
+     * @return false if the font of the console is known to lack the eighth blocks, true otherwise
+     */
+    default boolean supportsEighthBlocks() {
+        // TERM is linux on the Linux console, or a variant such as linux-16color, and screen.linux in GNU screen there.
+        // In tmux, and in GNU screen without the screen.linux terminfo entry, the outer terminal is not named in TERM.
+        String term = System.getenv("TERM");
+        return term == null || !(term.startsWith("linux") || term.startsWith("screen.linux"));
+    }
+
     boolean TASK_BAR_PROGRESS_SUPPORTED = evaluateTaskBarProgressSupport();
 
     /**

@@ -27,7 +27,7 @@ import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.tasks.properties.DefaultPropertyTypeResolver
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.problems.internal.GradleCoreProblemGroup
+import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
@@ -70,6 +70,8 @@ import static org.gradle.internal.reflect.validation.TypeValidationProblemRender
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class DefaultTypeMetadataStoreTest extends Specification implements ValidationMessageChecker {
+    private static final ProblemGroup TEST_GROUP = ProblemGroup.create("test", "Test")
+
     static final PROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
         Input, InputFile, InputFiles, InputDirectory, Nested, OutputFile, OutputDirectory, OutputFiles, OutputDirectories, Destroys, LocalState
     ]
@@ -158,7 +160,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
             context.visitPropertyWarning {
                 it
                     .forProperty(metadata.propertyName)
-                    .id("test-problem", "is broken", GradleCoreProblemGroup.validation().thisGroup())
+                    .id("test-problem", "is broken", TEST_GROUP)
                     .documentedAt(userManual("id", "section"))
                     .details("Test")
             }
@@ -170,7 +172,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
             context.visitTypeWarning {
                 it
                     .forFunction(metadata.getMethodName())
-                    .id("test-problem", "is broken", GradleCoreProblemGroup.validation().thisGroup())
+                    .id("test-problem", "is broken", TEST_GROUP)
                     .documentedAt(userManual("id", "section"))
                     .details("Test")
             }
@@ -208,7 +210,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
             context.visitPropertyWarning {
                 it
                     .forProperty(metadata.propertyName)
-                    .id("test-problem", "is broken", GradleCoreProblemGroup.validation().thisGroup())
+                    .id("test-problem", "is broken", TEST_GROUP)
                     .documentedAt(userManual("id", "section"))
                     .details("Test")
             }
@@ -219,7 +221,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
             context.visitTypeWarning {
                 it
                     .forFunction(metadata.getMethodName())
-                    .id("test-problem", "is broken", GradleCoreProblemGroup.validation().thisGroup())
+                    .id("test-problem", "is broken", TEST_GROUP)
                     .documentedAt(userManual("id", "section"))
                     .details("Test")
             }
@@ -246,7 +248,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
             context.visitTypeWarning {
                 it
                     .withAnnotationType(type)
-                    .id("test-problem", "type is broken", GradleCoreProblemGroup.validation().thisGroup())
+                    .id("test-problem", "type is broken", TEST_GROUP)
                     .documentedAt(userManual("id", "section"))
                     .details("Test")
             }
@@ -536,9 +538,9 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def problems = TestUtil.problemsService()
         def validationContext = DefaultTypeValidationContext.withoutRootType(false, problems)
         metadata.visitValidationFailures(null, validationContext)
-        // the handlers stubbed by this test report into the legacy group; everything else comes from the store
+        // the handlers stubbed by this test report into TEST_GROUP; everything else comes from the store
         assert (validationContext.warnings + validationContext.errors)
-            .findAll { it.definition.id.group != GradleCoreProblemGroup.validation().thisGroup() }
+            .findAll { it.definition.id.group != TEST_GROUP }
             .every { it.definition.id.group == problems.groups.gradle.pluginValidation }
         return validationContext.warnings.collect { normaliseLineSeparators(renderMinimalInformationAbout(it)) } + validationContext.errors.collect { normaliseLineSeparators(renderMinimalInformationAbout(it)) }
     }

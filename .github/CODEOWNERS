@@ -76,15 +76,10 @@ platforms/core-configuration/               @gradle/bt-cortex
 testing/smoke-ide-test/                     @gradle/bt-cortex
 subprojects/composite-builds                @gradle/bt-cortex
 
-# Core automation platform (Kotlin DSL)
+# DSLs
 build-logic/kotlin-dsl/                                     @gradle/bt-tide
 build-logic/kotlin-dsl-shared-runtime/                      @gradle/bt-tide
-platforms/core-configuration/kotlin-dsl/                    @gradle/bt-tide
-platforms/core-configuration/kotlin-dsl-integ-tests/        @gradle/bt-tide
-platforms/core-configuration/kotlin-dsl-plugins/            @gradle/bt-tide
-platforms/core-configuration/kotlin-dsl-provider-plugins/   @gradle/bt-tide
-platforms/core-configuration/kotlin-dsl-tooling-builders/   @gradle/bt-tide
-platforms/core-configuration/kotlin-dsl-tooling-models/     @gradle/bt-tide
+platforms/dsl/                                              @gradle/bt-tide
 
 # Core automation platform (Declarative DSL)
 platforms/core-configuration/declarative-dsl-api/                   @gradle/bt-declarative-gradle-project
@@ -96,7 +91,6 @@ platforms/core-configuration/declarative-dsl-tooling-models/        @gradle/bt-d
 
 # Core automation platform (core/runtime)
 platforms/core-runtime/                                     @gradle/bt-cortex
-platforms/core-runtime/build-operations/                    @gradle/bt-cortex
 platforms/core-runtime/files/                               @gradle/bt-cortex
 
 # Core automation platform (core/execution)
@@ -133,14 +127,14 @@ platforms/software/                         @gradle/bt-jvm
 platforms/extensibility/                    @gradle/bt-tide
 platforms/core-runtime/daemon-messaging     @gradle/bt-tide
 
+# Observability
+platforms/observability/          @gradle/bt-tide
+
 # Native
 platforms/native/                 @gradle/bt-jvm
 
 # IDE Experience
 platforms/ide/                    @gradle/bt-tide
-# Eventually be moved to the core platform.
-# Currently heavily developed by the bt-ide-experience team.
-platforms/ide/problems/           @gradle/bt-tide
 platforms/ide/ide-native/         @gradle/bt-tide @gradle/bt-jvm
 
 # Documentation

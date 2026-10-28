@@ -49,6 +49,10 @@ import org.gradle.api.provider.Property;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.model.DomainObjectContext;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resource.local.FileResourceListener;
 import org.jspecify.annotations.Nullable;
 
@@ -74,6 +78,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private final Property<LockMode> lockMode;
     private final RegularFileProperty lockFile;
     private final ListProperty<String> ignoredDependencies;
+    private final BuildOperationRunner buildOperationRunner;
     private boolean uniqueLockStateLoaded;
     private Map<String, List<String>> allLockState;
     private LockEntryFilter compoundLockEntryFilter;
@@ -88,9 +93,11 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         DependencySubstitutionRules dependencySubstitutionRules,
         PropertyFactory propertyFactory,
         FilePropertyFactory filePropertyFactory,
-        FileResourceListener listener
+        FileResourceListener listener,
+        BuildOperationRunner buildOperationRunner
     ) {
         this.instanceIdentity = instanceIdentity;
+        this.buildOperationRunner = buildOperationRunner;
         this.dependencySubstitutionRules = dependencySubstitutionRules;
         this.writeLocks = startParameter.isWriteDependencyLocks();
         if (writeLocks) {
@@ -221,8 +228,20 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     @Override
     public void buildFinished() {
         if (uniqueLockStateLoaded && lockFileReaderWriter.canWrite()) {
-            lockFileReaderWriter.writeUniqueLockfile(allLockState);
-            LOGGER.lifecycle("Persisted dependency lock state for {}", instanceIdentity.getDisplayName());
+            // The build is already part of the name of the owner, so its path is not added
+            String description = "Write dependency locks for " + instanceIdentity.getDisplayName();
+            buildOperationRunner.run(new RunnableBuildOperation() {
+                @Override
+                public void run(BuildOperationContext context) {
+                    lockFileReaderWriter.writeUniqueLockfile(allLockState);
+                    LOGGER.lifecycle("Persisted dependency lock state for {}", instanceIdentity.getDisplayName());
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName(description).progressDisplayName(description);
+                }
+            });
         }
     }
 

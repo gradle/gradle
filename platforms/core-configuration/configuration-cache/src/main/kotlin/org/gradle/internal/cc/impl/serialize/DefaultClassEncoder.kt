@@ -83,6 +83,7 @@ class DefaultClassEncoder(
             onProblem(
                 PropertyProblem(
                     trace,
+                    "Class cannot be encoded",
                     StructuredMessage.build {
                         text("Class ")
                         reference(className)

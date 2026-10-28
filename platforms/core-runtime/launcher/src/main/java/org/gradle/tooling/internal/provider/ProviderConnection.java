@@ -37,6 +37,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
@@ -309,6 +310,7 @@ public class ProviderConnection {
 
     private BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> createExecutor(ProviderOperationParameters operationParameters, Parameters params) {
         LoggingManagerInternal loggingManager;
+        OutputEventListener outputEventListener;
         BuildActionExecutor<BuildActionParameters, ClientBuildRequestContext> executor;
         InputStream standardInput = operationParameters.getStandardInput();
         if (standardInput == null) {
@@ -317,6 +319,7 @@ public class ProviderConnection {
         CompositeStoppable stoppable = new CompositeStoppable();
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingManager = sharedServices.get(LoggingManagerFactory.class).createLoggingManager();
+            outputEventListener = sharedServices.get(OutputEventListener.class);
             loggingManager.captureSystemSources();
             executor = new RunInProcess(new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(
                 sharedServices.get(GlobalUserInputReceiver.class),
@@ -327,12 +330,13 @@ public class ProviderConnection {
         } else {
             ServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
             loggingManager = requestSpecificLogging.get(LoggingManagerFactory.class).createLoggingManager();
+            outputEventListener = requestSpecificLogging.get(OutputEventListener.class);
             ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, params.requestContext, params.buildLayout.toLayoutConfiguration(), standardInput, Optional.ofNullable(operationParameters.getBuildProgressListener()));
             stoppable.add(clientServices);
             stoppable.add(requestSpecificLogging);
             executor = clientServices.get(DaemonClient.class);
         }
-        return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executor), loggingManager, stoppable);
+        return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executor), loggingManager, outputEventListener, stoppable);
     }
 
     private Parameters initParams(ProviderOperationParameters operationParameters) {

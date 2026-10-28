@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -58,8 +57,6 @@ import java.util.stream.Collectors;
 
 @NullMarked
 public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry {
-    private static final ProblemGroup TOOLCHAIN_PROBLEM_GROUP = ProblemGroup.create("jvm-toolchain", "JVM Toolchain");
-
     private final @Nullable BuildOperationRunner buildOperationRunner;
     private final Installations installations;
     private final JvmMetadataDetector metadataDetector;
@@ -212,7 +209,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
             // Auto-detected locations are not under the user's control, so they are not worth a warning
             logger.info(message);
         } else if (problems != null) {
-            ProblemId problemId = ProblemId.create("invalid-jvm-installation", "Invalid JVM installation", TOOLCHAIN_PROBLEM_GROUP);
+            ProblemId problemId = problems.getGroups().getProvisioning().getToolsAndToolchains().problemId("Invalid JVM installation");
             problems.getInternalReporter().report(problemId, spec -> spec
                 .contextualLabel(message)
                 .solution("Ensure that the configured JVM installation path is a valid, absolute path to a JDK or JRE installation")

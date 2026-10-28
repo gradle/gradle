@@ -19,7 +19,7 @@ import com.google.common.base.Objects;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.ProblemReporter;
+import org.gradle.api.problems.Problems;
 import org.gradle.internal.Cast;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.PathToFileResolver;
@@ -61,9 +61,9 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
         File dir,
         ProjectDescriptorRegistry projectDescriptorRegistry,
         PathToFileResolver fileResolver,
-        ProblemReporter problemReporter
+        Problems problems
     ) {
-        this(parent, name, dir, projectDescriptorRegistry, fileResolver, null, problemReporter);
+        this(parent, name, dir, projectDescriptorRegistry, fileResolver, null, problems);
     }
 
     @SuppressWarnings("this-escape")
@@ -74,7 +74,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
         ProjectDescriptorRegistry projectDescriptorRegistry,
         PathToFileResolver fileResolver,
         @Nullable ScriptFileResolver scriptFileResolver,
-        ProblemReporter problemReporter
+        Problems problems
     ) {
         this.parent = parent;
         this.name = name;
@@ -90,7 +90,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
         if (parent != null) {
             parent.children().add(this);
         }
-        this.scriptResolutionResultReporter = new ScriptResolutionResultReporter(problemReporter);
+        this.scriptResolutionResultReporter = new ScriptResolutionResultReporter(problems);
     }
 
     private Path path(String name) {

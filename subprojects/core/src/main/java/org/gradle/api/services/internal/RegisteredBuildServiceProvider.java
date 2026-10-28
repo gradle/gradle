@@ -187,8 +187,10 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         }
     }
 
-    @Override
-    public void maybeStop() {
+    /**
+     * Stops the service. When it has an instance to close, the closing is run by the given runner.
+     */
+    void maybeStop(Consumer<Runnable> closeRunner) {
         // We don't want to call stop actions with the lock held.
         ExecutionResult<Void> stopResult = ExecutionResult.forEach(getStopActions(), action -> action.accept(this));
         synchronized (instanceLock) {
@@ -196,13 +198,15 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
                 if (instance != null) {
                     instance.ifSuccessful(t -> {
                         if (t instanceof AutoCloseable) {
-                            try {
-                                ((AutoCloseable) t).close();
-                            } catch (Exception e) {
-                                ServiceLifecycleException failure = new ServiceLifecycleException("Failed to stop service '" + getName() + "'.", e);
-                                stopResult.getFailures().forEach(failure::addSuppressed);
-                                throw failure;
-                            }
+                            closeRunner.accept(() -> {
+                                try {
+                                    ((AutoCloseable) t).close();
+                                } catch (Exception e) {
+                                    ServiceLifecycleException failure = new ServiceLifecycleException("Failed to stop service '" + getName() + "'.", e);
+                                    stopResult.getFailures().forEach(failure::addSuppressed);
+                                    throw failure;
+                                }
+                            });
                         }
                     });
                 }

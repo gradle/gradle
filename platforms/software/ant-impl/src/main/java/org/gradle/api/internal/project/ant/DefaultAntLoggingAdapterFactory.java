@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.project.ant;
 
+@Deprecated
 public class DefaultAntLoggingAdapterFactory implements AntLoggingAdapterFactory {
+    @Deprecated
     @Override
     public AntLoggingAdapter create() {
         return new AntLoggingAdapter();

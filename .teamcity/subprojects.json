@@ -204,14 +204,14 @@
   },
   {
     "name": "build-operations",
-    "path": "platforms/core-runtime/build-operations",
+    "path": "platforms/observability/build-operations",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "build-operations-trace",
-    "path": "platforms/core-runtime/build-operations-trace",
+    "path": "platforms/observability/build-operations-trace",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
@@ -988,49 +988,49 @@
   },
   {
     "name": "kotlin-dsl",
-    "path": "platforms/core-configuration/kotlin-dsl",
+    "path": "platforms/dsl/kotlin-dsl",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "kotlin-dsl-integ-tests",
-    "path": "platforms/core-configuration/kotlin-dsl-integ-tests",
+    "path": "platforms/dsl/kotlin-dsl-integ-tests",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
     "name": "kotlin-dsl-plugins",
-    "path": "platforms/core-configuration/kotlin-dsl-plugins",
+    "path": "platforms/dsl/kotlin-dsl-plugins",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "kotlin-dsl-provider-plugins",
-    "path": "platforms/core-configuration/kotlin-dsl-provider-plugins",
+    "path": "platforms/dsl/kotlin-dsl-provider-plugins",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "kotlin-dsl-tooling-builders",
-    "path": "platforms/core-configuration/kotlin-dsl-tooling-builders",
+    "path": "platforms/dsl/kotlin-dsl-tooling-builders",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": true
   },
   {
     "name": "kotlin-dsl-tooling-model-impls",
-    "path": "platforms/core-configuration/kotlin-dsl-tooling-model-impls",
+    "path": "platforms/dsl/kotlin-dsl-tooling-model-impls",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "kotlin-dsl-tooling-models",
-    "path": "platforms/core-configuration/kotlin-dsl-tooling-models",
+    "path": "platforms/dsl/kotlin-dsl-tooling-models",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -1072,14 +1072,14 @@
   },
   {
     "name": "logging",
-    "path": "platforms/core-runtime/logging",
+    "path": "platforms/observability/logging",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "logging-api",
-    "path": "platforms/core-runtime/logging-api",
+    "path": "platforms/observability/logging-api",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -1282,35 +1282,35 @@
   },
   {
     "name": "problems",
-    "path": "platforms/ide/problems",
+    "path": "platforms/observability/problems",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "problems-api",
-    "path": "platforms/ide/problems-api",
+    "path": "platforms/observability/problems-api",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "problems-impl",
-    "path": "platforms/ide/problems-impl",
+    "path": "platforms/observability/problems-impl",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "problems-rendering",
-    "path": "platforms/ide/problems-rendering",
+    "path": "platforms/observability/problems-rendering",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "problems-reporting",
-    "path": "platforms/ide/problems-reporting",
+    "path": "platforms/observability/problems-reporting",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -1394,7 +1394,7 @@
   },
   {
     "name": "report-rendering",
-    "path": "platforms/core-runtime/report-rendering",
+    "path": "platforms/observability/report-rendering",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false

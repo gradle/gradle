@@ -281,9 +281,24 @@ include::sample[dir="snippets/reference/dependency-management/controlling-depend
 include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/groovy",files="build.gradle[tags=define_attribute]"]
 ====
 
-Attribute types support most Java primitive classes; such as `String`, `Boolean`, and any subtype of `Number` (including `Integer`).
-Or anything extending `org.gradle.api.Named`.
+An attribute value type must be one of `String`, `Boolean`, any subtype of `Number`, or anything extending `org.gradle.api.Named`.
 Plain Java `Enum` types (that do not implement `Named`) are **not** supported as attribute value types — resolution and publishing paths that desugar attributes require the value type to implement `Named`.
+
+Of the numeric types, only `Integer` can be published to Gradle Module Metadata; publishing an attribute with any other `Number` value fails.
+
+A `Named` value is reduced to a plain string whenever it leaves the build: it is published to Gradle Module Metadata as its `getName()`, and reported in resolution results in its string form.
+A `Named` type therefore does not survive publication, since consumers of your module see only the serialized string.
+
+What `Named` does offer is a type you can attach members to, at the cost of a type that every build script using the attribute must be able to see.
+`Named` types used as attributes should **never** include mutable state, as this state does **not** survive serialization.
+Immutable state is reachable only inside the build that declares the type.
+
+[TIP]
+====
+For custom attributes, prefer `String` over a `Named` type.
+Use `Boolean` or `Integer` when the attribute models a flag or a quantity.
+See <<best_practices_dependencies.adoc#favor_string_attribute_values,Favor `String` Values for Custom Attributes>>.
+====
 
 Attributes should always be declared in the _attribute schema_ found on the `dependencies` handler:
 
@@ -307,6 +322,9 @@ For attributes which type extends `Named`, the value of the attribute **must** b
 include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/kotlin",files="build.gradle.kts[tags=named-attributes]"]
 include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/groovy",files="build.gradle[tags=named-attributes]"]
 ====
+
+An `Enum` that implements `Named` is the one exception, as its constants are already instances.
+Using one as an attribute value type is supported, but not recommended — see <<best_practices_dependencies.adoc#favor_string_attribute_values,Favor `String` Values for Custom Attributes>>.
 
 [[sec:attribute-matching]]
 == Dealing with attribute matching

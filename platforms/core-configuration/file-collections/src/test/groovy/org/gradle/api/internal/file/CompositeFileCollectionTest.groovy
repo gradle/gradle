@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.AbstractFileCollectionTest.TestFileCollectio
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -95,6 +96,7 @@ class CompositeFileCollectionTest extends Specification {
         !collection.isEmpty()
     }
 
+    @ExpectDeprecation("The FileCollection.addToAntBuilder(Object, String, AntType) method has been deprecated.")
     def "add to Ant builder delegates to each source collection"() {
         def source1 = Mock(AbstractFileCollection)
         def source2 = Mock(AbstractFileCollection)

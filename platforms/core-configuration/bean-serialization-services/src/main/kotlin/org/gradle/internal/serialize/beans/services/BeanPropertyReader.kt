@@ -108,7 +108,7 @@ class BeanPropertyReader(
 
     private
     fun ReadContext.logNotAssignable(value: Any?, field: Field) {
-        logPropertyProblem("deserialize") {
+        logPropertyProblem("deserialize", "Value not assignable to field") {
             text("value ")
             reference(value.toString())
             text(" is not assignable to ")

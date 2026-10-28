@@ -79,7 +79,7 @@ main() {
     BRANCH_NAME="devprod/update-wrapper-$(date +%Y%m%d-%H%M%S)"
     git switch -c $BRANCH_NAME
     git commit --signoff --author="bot-gradle <bot-gradle@gradle.com>" -m "Update Gradle wrapper to version $WRAPPER_VERSION"
-    git push https://${GITHUB_TOKEN}@github.com/gradle/gradle.git $BRANCH_NAME
+    git push https://x-access-token:${GITHUB_TOKEN}@github.com/gradle/gradle.git $BRANCH_NAME
 
     PR_TITLE="Update Gradle wrapper to version $WRAPPER_VERSION"
 

@@ -35,6 +35,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.lazy.Lazy;
+import org.gradle.internal.logging.progress.WorkerLineOperation;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -310,6 +311,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName(
                     gradleInternal.contextualize("Notify task graph whenReady listeners"))
+                .progressDisplayName(WorkerLineOperation.lineText(gradleInternal.getIdentityPath(), "Running task graph ready listeners"))
                 .details(
                     new NotifyTaskGraphWhenReadyDetails(
                         gradleInternal.getIdentityPath()

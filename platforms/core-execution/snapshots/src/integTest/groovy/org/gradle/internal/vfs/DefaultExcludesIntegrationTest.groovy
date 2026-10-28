@@ -127,10 +127,10 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
 
         buildFile << """
             copyTask.doFirst {
-                ant.defaultexcludes remove: '**/${EXCLUDED_FILE_NAME}'
+                ${removeDefaultExclude(EXCLUDED_FILE_NAME)}
             }
             copyTask.doLast {
-                ant.defaultexcludes default: true
+                ${DirectoryScanner.name}.resetDefaultExcludes()
             }
         """
         List<String> defaultExcludesFromSettings = (DEFAULT_EXCLUDES  + ['**/' + EXCLUDED_FILE_NAME]).toSorted()

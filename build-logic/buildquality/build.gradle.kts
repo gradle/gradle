@@ -16,6 +16,9 @@ dependencies {
     implementation(projects.binaryCompatibility)
     implementation(projects.dependencyModules)
 
+    implementation(buildLibs.gson) {
+        because("Package-info data is exchanged between projects as JSON")
+    }
     implementation(buildLibs.codenarc) {
         // Groovy comes from the Gradle distribution, so none of CodeNarc's Groovy
         // distribution is wanted. The exclusion is group-wide on purpose: narrowing it

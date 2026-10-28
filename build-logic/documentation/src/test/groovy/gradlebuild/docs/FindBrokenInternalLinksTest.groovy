@@ -54,7 +54,6 @@ class FindBrokenInternalLinksTest extends Specification {
                 versionCatalogs {
                     create('buildLibs') {
                         version('asciidoctor', '3.0.1')
-                        version('asciidoctorPdf', '2.3.23')
                     }
                 }
             }
@@ -77,6 +76,8 @@ class FindBrokenInternalLinksTest extends Specification {
                 id 'checkstyle'
                 id 'gradlebuild.documentation'
             }
+
+            version = '9.9.0'
 
             repositories {
                 mavenCentral()

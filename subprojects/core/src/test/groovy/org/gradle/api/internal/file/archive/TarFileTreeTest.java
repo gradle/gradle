@@ -35,7 +35,6 @@ import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions;
 import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory;
 import static org.gradle.api.internal.file.TestFiles.fileHasher;
 import static org.gradle.api.internal.file.TestFiles.fileSystem;
-import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
 import static org.gradle.util.internal.WrapUtil.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -82,7 +81,6 @@ public class TarFileTreeTest extends AbstractArchiveFileTreeTest {
         TarFileTree tree = tarTree(tgz);
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
-        assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
     }
 
     @Test
@@ -96,7 +94,6 @@ public class TarFileTreeTest extends AbstractArchiveFileTreeTest {
         TarFileTree tree = tarTree(tbz2);
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
-        assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
     }
 
     @Test

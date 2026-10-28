@@ -35,10 +35,10 @@ class DefaultProblemFactory(
     override fun locationForCaller(consumer: String?): PropertyTrace =
         locationForCaller(consumer, userCodeContext.current()?.source)
 
-    override fun problem(message: StructuredMessage, exception: Throwable?, documentationSection: DocumentationSection?, getStackTrace: Boolean): PropertyProblem {
+    override fun problem(name: String, message: StructuredMessage, exception: Throwable?, documentationSection: DocumentationSection?, getStackTrace: Boolean): PropertyProblem {
         val diagnostics = getProblemDiagnostics(exception, getStackTrace)
         val trace = locationForCaller(null, diagnostics)
-        return PropertyProblem(trace, message, exception, diagnostics.failure, documentationSection)
+        return PropertyProblem(trace, name, message, exception, diagnostics.failure, documentationSection)
     }
 
     private fun getProblemDiagnostics(exception: Throwable?, getStackTrace: Boolean): ProblemDiagnostics {
@@ -52,7 +52,7 @@ class DefaultProblemFactory(
         }
     }
 
-    override fun problem(consumer: String?, message: Action<StructuredMessage.Builder>): ProblemFactory.Builder {
+    override fun problem(name: String, consumer: String?, message: Action<StructuredMessage.Builder>): ProblemFactory.Builder {
         val builtMessage = StructuredMessage.build { message.execute(this) }
         return object : ProblemFactory.Builder {
             var failure = true
@@ -87,7 +87,7 @@ class DefaultProblemFactory(
                     problemStream.forCurrentCaller()
                 }
                 val location = locationMapper(locationForCaller(consumer, diagnostics))
-                return PropertyProblem(location, builtMessage, diagnostics.exception, diagnostics.failure, documentationSection)
+                return PropertyProblem(location, name, builtMessage, diagnostics.exception, diagnostics.failure, documentationSection)
             }
 
             private fun exceptionMessage(): String {

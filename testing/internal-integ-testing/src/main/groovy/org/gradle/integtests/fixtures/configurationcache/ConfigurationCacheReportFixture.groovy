@@ -66,6 +66,11 @@ abstract class ConfigurationCacheReportFixture {
     protected abstract void assertContents(HasConfigurationCacheProblemsSpec spec)
 
     /**
+     * The report's diagnostics as parsed JSON, for tests that pin the report payload itself.
+     */
+    abstract List<Map<String, Object>> getDiagnostics()
+
+    /**
      * Asserts that the report contains no problems. This passes if the report is not present.
      */
     void assertHasNoProblems() {
@@ -79,6 +84,11 @@ abstract class ConfigurationCacheReportFixture {
 
         NoReportFixture(File projectRoot) {
             this.projectRoot = projectRoot
+        }
+
+        @Override
+        List<Map<String, Object>> getDiagnostics() {
+            throw new AssertionError((Object) "Expected a report but no report is available in '$projectRoot'")
         }
 
         @Override
@@ -117,6 +127,11 @@ abstract class ConfigurationCacheReportFixture {
         @Override
         String toString() {
             return "CC Report with ${diagnostics.size()} entries at $reportFile"
+        }
+
+        @Override
+        List<Map<String, Object>> getDiagnostics() {
+            return diagnostics
         }
 
         @Override

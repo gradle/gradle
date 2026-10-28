@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.logging.format.JavaClassNameFormatter;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 
@@ -42,8 +43,6 @@ import java.util.Map;
  * </pre>
  */
 public class TestWorkerProgressListener implements TestListenerInternal {
-
-    private static final int MAX_TEST_NAME_LENGTH = 60;
 
     private final ProgressLoggerFactory factory;
     private final ProgressLogger parentProgressLogger;
@@ -117,7 +116,7 @@ public class TestWorkerProgressListener implements TestListenerInternal {
     private String createProgressLoggerDescription(TestDescriptorInternal testDescriptor) {
         DecoratingTestDescriptor decoratingTestDescriptor = (DecoratingTestDescriptor)testDescriptor;
         DefaultTestClassDescriptor defaultTestClassDescriptor = (DefaultTestClassDescriptor)decoratingTestDescriptor.getDescriptor();
-        return "Executing test " + JavaClassNameFormatter.abbreviateJavaPackage(defaultTestClassDescriptor.getClassName(), MAX_TEST_NAME_LENGTH);
+        return "Executing test " + JavaClassNameFormatter.abbreviateJavaPackage(defaultTestClassDescriptor.getClassName());
     }
 
     Map<String, ProgressLogger> getTestWorkerProgressLoggers() {

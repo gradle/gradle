@@ -737,6 +737,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
 
     def "changing usage #property = #change (change property to true) on detached configurations fails"() {
         given:
+        enableProblemsApiCheck()
         buildFile << """
             def detached = project.configurations.detachedConfiguration()
 
@@ -750,8 +751,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
-        failure.assertHasCause("""Method call not allowed
+        failure.assertHasCause("""Configuration method call not allowed
   Calling $property($change) on configuration ':detachedConfiguration1' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+        receivedProblem.fqid == 'Gradle:Build Logic:Configuration method call not allowed'
 
         where:
         property | change

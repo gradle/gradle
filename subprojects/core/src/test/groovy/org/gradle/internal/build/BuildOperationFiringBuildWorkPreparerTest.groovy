@@ -98,7 +98,7 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
 
         then:
         def record = buildOperationRunner.log.mostRecent(CalculateTaskGraphBuildOperationType)
-        record.descriptor.progressDisplayName == "Building task graph of root build"
+        record.descriptor.progressDisplayName == "Building task graph"
     }
 
     def "build operation has good progress display name for included build"() {
@@ -123,6 +123,6 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
 
         then:
         def record = buildOperationRunner.log.mostRecent(CalculateTaskGraphBuildOperationType)
-        record.descriptor.progressDisplayName == "Building task graph of build ':buildB'"
+        record.descriptor.progressDisplayName == ":buildB > Building task graph"
     }
 }

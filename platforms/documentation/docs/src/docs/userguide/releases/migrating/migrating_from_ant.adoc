@@ -27,6 +27,11 @@ Migrating from https://ant.apache.org/ivy/[Ivy]-based dependency management isn'
 
 We will start by outlining the things you should consider when migrating a build from Ant to Gradle and offer some general guidelines on how to proceed.
 
+WARNING: Gradle's built-in Ant integration is deprecated and will be removed in Gradle 10.
+The import-based path described in this chapter, which relies on `ant.importBuild()` and on calling Ant tasks directly from a build script, remains a useful bridge while you migrate, but it is no longer a destination.
+Plan to finish replacing Ant with Gradle tasks and plugins before you upgrade to Gradle 10.
+See <<upgrading_version_9.adoc#deprecated_ant_builder,Deprecation of the Ant integration>> in the upgrade guide for the recommended alternatives.
+
 [[migant:general_guidelines]]
 == General guidelines
 

@@ -3,6 +3,7 @@ import gradlebuild.identity.extension.GradleModuleExtension
 import gradlebuild.identity.extension.ModuleTargetRuntimes
 import gradlebuild.runtimes.TargetRuntime
 import gradlebuild.runtimes.TargetRuntimeDetails
+import gradlebuild.traverseGraph
 
 /**
  * This plugin exposes a variant containing the declared target runtimes and dependencies of this module.
@@ -95,39 +96,6 @@ fun collectProjectComponentPaths(
         }
     }
     return components
-}
-
-/**
- * Traverses the dependency graph variant-by-variant, calling the given
- * callback for each node.
- */
-private
-fun traverseGraph(
-    rootComponent: ResolvedComponentResult,
-    rootVariant: ResolvedVariantResult,
-    nodeCallback: (ResolvedVariantResult) -> Unit
-) {
-    val seen = mutableSetOf(rootVariant)
-    val queue = ArrayDeque(listOf(rootVariant to rootComponent))
-    while (queue.isNotEmpty()) {
-        val (variant, component) = queue.removeFirst()
-        component.getDependenciesForVariant(variant).forEach { dependency ->
-            val resolved = when (dependency) {
-                is ResolvedDependencyResult -> dependency
-                is UnresolvedDependencyResult -> throw dependency.failure
-                else -> throw AssertionError("Unknown dependency type: $dependency")
-            }
-
-            if (!resolved.isConstraint) {
-                val toVariant = resolved.resolvedVariant
-
-                if (seen.add(toVariant)) {
-                    nodeCallback(toVariant)
-                    queue.addLast(toVariant to resolved.selected)
-                }
-            }
-        }
-    }
 }
 
 

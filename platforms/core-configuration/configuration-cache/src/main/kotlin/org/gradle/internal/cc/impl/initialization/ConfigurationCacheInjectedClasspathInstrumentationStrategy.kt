@@ -45,6 +45,7 @@ internal class ConfigurationCacheInjectedClasspathInstrumentationStrategy intern
         problems.onProblem(
             PropertyProblem(
                 PropertyTrace.Gradle,
+                "Unsupported third-party Java agent",
                 StructuredMessage.build { text("third-party Java agents with inactive Gradle's instrumentation agent are not supported by the configuration cache.") },
                 documentationSection = DocumentationSection.RequirementsJavaAgent
             )

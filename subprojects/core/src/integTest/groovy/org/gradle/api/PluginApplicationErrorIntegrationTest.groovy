@@ -95,12 +95,12 @@ class BrokenPlugin {
 
         then:
         failure.assertHasCause("Failed to apply plugin 'org.gradle.base'")
-        failureHasCause("Unexpected plugin type")
+        failureHasCause("Plugin applied to the wrong target")
         failureCauseContains("The plugin must be applied in a build script (or to the Project object), but was applied in a settings script (or to the Settings object)")
 
         and:
         verifyAll(receivedProblem(0)) {
-            fqid == "plugin-application:target-type-mismatch"
+            fqid == "Gradle:Build Definition:Plugin applied to the wrong target"
             contextualLabel == "The plugin must be applied in a build script (or to the Project object), but was applied in a settings script (or to the Settings object)"
         }
     }
@@ -124,7 +124,7 @@ class BrokenPlugin {
 
         then:
         failure.assertHasCause("Failed to apply plugin class 'SomePlugin'.")
-        failureHasCause("Unexpected plugin type")
+        failureHasCause("Plugin applied to the wrong target")
         failureCauseContains(errorMessage)
 
         where:
@@ -156,7 +156,7 @@ class BrokenPlugin {
 
         then:
         failure.assertHasCause("Failed to apply plugin class 'SomePlugin'.")
-        failureHasCause("Unexpected plugin type")
+        failureHasCause("Plugin applied to the wrong target")
         failureCauseContains(errorMessage)
 
         where:

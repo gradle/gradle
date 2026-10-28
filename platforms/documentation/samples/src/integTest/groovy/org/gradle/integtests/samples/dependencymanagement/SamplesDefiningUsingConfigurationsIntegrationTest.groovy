@@ -19,8 +19,6 @@ package org.gradle.integtests.samples.dependencymanagement
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 
 class SamplesDefiningUsingConfigurationsIntegrationTest extends AbstractIntegrationSpec {
@@ -30,22 +28,6 @@ class SamplesDefiningUsingConfigurationsIntegrationTest extends AbstractIntegrat
 
     def setup() {
         executer.withRepositoryMirrors()
-    }
-
-    @UsesSample("integration-tests/dependencyManagement/definingUsingConfigurations-custom")
-    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor) // Sample only works with isolated distribution classpath, because otherwise multiple JARs contain conflicting versions of 'javax/servlet/descriptor/JspConfigDescriptor'
-    def "can declare and resolve custom configuration with #dsl dsl"() {
-        setup:
-        executer.inDirectory(sample.dir.file(dsl))
-
-        when:
-        succeeds('preCompileJsps')
-
-        then:
-        sample.dir.file("$dsl/build/compiled-jsps/org/apache/jsp/hello_jsp.java").isFile()
-
-        where:
-        dsl << ['groovy', 'kotlin']
     }
 
     @UsesSample("integration-tests/dependencyManagement/definingUsingConfigurations-inheritance")

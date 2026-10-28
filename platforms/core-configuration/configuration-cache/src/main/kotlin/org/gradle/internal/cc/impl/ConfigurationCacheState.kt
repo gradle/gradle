@@ -1041,6 +1041,7 @@ class ConfigurationCacheState(
                 onProblem(
                     PropertyProblem(
                         subscription.location(),
+                        "Unsupported provider registered as task completion listener",
                         StructuredMessage.build {
                             text("Unsupported provider is registered as a task completion listener in ")
                             reference(BuildEventsListenerRegistry::class)

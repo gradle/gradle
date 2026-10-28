@@ -31,6 +31,9 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
         given: "A sample project with an Ant build"
         def dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
+        3.times {
+            expectAntDeprecation("The Project.getAnt() method has been deprecated.")
+        }
 
         when:
         def result = succeeds('clean', 'assemble')
@@ -85,6 +88,9 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
         given: "A sample multi-project build"
         def dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
+        deprecations.times {
+            expectAntDeprecation("The Project.getAnt() method has been deprecated.")
+        }
 
         when:
         def result = succeeds(':web:build')
@@ -94,6 +100,15 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
         result.assertTaskScheduled(':web:compile')
 
         where:
-        dsl << ['groovy', 'kotlin']
+        dsl      | deprecations
+        'groovy' | 2
+        'kotlin' | 1 // The Kotlin DSL reports no location for the warnings, so only reports one deprecation
+    }
+
+    private void expectAntDeprecation(String summary) {
+        executer.expectDocumentedDeprecationWarning(
+            "${summary} This is scheduled to be removed in Gradle 10. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_ant_builder"
+        )
     }
 }

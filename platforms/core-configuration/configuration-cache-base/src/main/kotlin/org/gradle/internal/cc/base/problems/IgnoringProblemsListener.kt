@@ -28,7 +28,7 @@ import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 object IgnoringProblemsListener : ProblemsListener {
     override fun onProblem(problem: PropertyProblem) = Unit
 
-    override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) = Unit
+    override fun onError(trace: PropertyTrace, name: String, error: Exception, message: StructuredMessageBuilder) = Unit
 
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener = this
 

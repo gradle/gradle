@@ -33,7 +33,7 @@ suspend fun WriteContext.writePropertyValue(kind: PropertyKind, name: String, va
         try {
             write(value)
         } catch (error: Exception) {
-            onError(error) {
+            onError("Error writing value", error) {
                 when {
                     value != null -> {
                         text("error writing value of type ")

@@ -34,11 +34,13 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Timeout
 
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Function
 
 import static org.apache.commons.io.FileUtils.touch
-import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes
+import static org.gradle.api.file.FileVisitorUtil.assertVisits
 import static org.hamcrest.CoreMatchers.equalTo
 
 class DefaultSourceDirectorySetTest extends Specification {
@@ -203,7 +205,7 @@ class DefaultSourceDirectorySetTest extends Specification {
         set.srcDir 'dir2'
 
         then:
-        assertSetContainsForAllTypes(set, 'subdir/file1.txt', 'subdir/file2.txt', 'subdir2/file1.txt')
+        assertVisits(set, ['subdir/file1.txt', 'subdir/file2.txt', 'subdir2/file1.txt'], ['subdir', 'subdir2'])
     }
 
     void convertsSourceDirectoriesToDirectoryTrees() {
@@ -270,7 +272,7 @@ class DefaultSourceDirectorySetTest extends Specification {
         set.exclude '**/file2*'
 
         then:
-        assertSetContainsForAllTypes(set, 'subdir/file1.txt', 'subdir2/file1.txt')
+        assertVisits(set, ['subdir/file1.txt', 'subdir2/file1.txt'], ['subdir', 'subdir2'])
     }
 
     void "can use patterns to filter files but not directories with getSrcDirTrees method"() {
@@ -295,11 +297,11 @@ class DefaultSourceDirectorySetTest extends Specification {
 
         DirectoryFileTree tree1 = set.getSrcDirTrees().first() as DirectoryFileTree
         tree1.getDir() == srcDir1
-        assertSetContainsForAllTypes(tree1, 'subdir/file2.txt')
+        assertVisits(tree1, ['subdir/file2.txt'], ['subdir'])
 
         DirectoryFileTree tree2 = set.getSrcDirTrees().last() as DirectoryFileTree
         tree2.getDir() == srcDir2
-        assertSetContainsForAllTypes(tree2, 'subdir2/file2.txt')
+        assertVisits(tree2, ['subdir2/file2.txt'], ['subdir2'])
     }
 
     void "can use patterns to include only certain files but not directories with getSrcDirTrees method"() {
@@ -325,11 +327,11 @@ class DefaultSourceDirectorySetTest extends Specification {
 
         DirectoryFileTree tree1 = set.getSrcDirTrees().first() as DirectoryFileTree
         tree1.getDir() == srcDir1
-        assertSetContainsForAllTypes(tree1, 'subdir2/file2.txt')
+        assertVisits(tree1, ['subdir2/file2.txt'], ['subdir', 'subdir2', 'subdir3']) // Dirs aren't filtered
 
         DirectoryFileTree tree2 = set.getSrcDirTrees().last() as DirectoryFileTree
         tree2.getDir() == srcDir2
-        assertSetContainsForAllTypes(tree2, 'subdir2/file2.txt')
+        assertVisits(tree2, ['subdir2/file2.txt'], ['subdir', 'subdir2'])
     }
 
     void canUseFilterPatternsToFilterCertainFiles() {
@@ -349,7 +351,7 @@ class DefaultSourceDirectorySetTest extends Specification {
         set.filter.exclude '**/file2*'
 
         then:
-        assertSetContainsForAllTypes(set, 'subdir/file1.txt', 'subdir2/file1.txt')
+        assertVisits(set, ['subdir/file1.txt', 'subdir2/file1.txt'], ['subdir', 'subdir2'])
     }
 
     void ignoresSourceDirectoriesWhichDoNotExist() {
@@ -361,7 +363,7 @@ class DefaultSourceDirectorySetTest extends Specification {
         set.srcDir 'dir2'
 
         then:
-        assertSetContainsForAllTypes(set, 'subdir/file1.txt')
+        assertVisits(set, ['subdir/file1.txt'], ['subdir'])
     }
 
     void failsWhenSourceDirectoryIsNotADirectory() {
@@ -370,11 +372,34 @@ class DefaultSourceDirectorySetTest extends Specification {
 
         when:
         set.srcDir 'dir1'
-        set.addToAntBuilder("node", "fileset")
+        set.files
 
         then:
         InvalidUserDataException e = thrown()
         e.message == "Source directory '$srcDir' is not a directory."
+    }
+
+    @Timeout(30)
+    void doesNotFailWhenSourceDirectoryIsConcurrentlyDeletedAndRecreated() {
+        File srcDir = new File(testDir, 'dir1')
+        set.srcDir 'dir1'
+        AtomicBoolean recreating = new AtomicBoolean(true)
+        Thread recreator = Thread.startDaemon {
+            while (recreating.get()) {
+                srcDir.mkdir()
+                srcDir.delete()
+            }
+        }
+
+        when:
+        100_000.times { set.srcDirs }
+
+        then:
+        noExceptionThrown()
+
+        cleanup:
+        recreating.set(false)
+        recreator?.join()
     }
 
     void hasNoDependenciesWhenNoSourceDirectoriesSpecified() {
@@ -436,7 +461,7 @@ class DefaultSourceDirectorySetTest extends Specification {
         }
 
         then:
-        assertSetContainsForAllTypes(filteredSet, 'subdir/file1.txt')
+        assertVisits(filteredSet, ['subdir/file1.txt'], ['subdir'])
     }
 
     void canUsePatternsAndFilterPatternsAndMatchingMethodToFilterSourceFiles() {
@@ -457,7 +482,7 @@ class DefaultSourceDirectorySetTest extends Specification {
         }
 
         then:
-        assertSetContainsForAllTypes(filteredSet, 'subdir/file1.txt')
+        assertVisits(filteredSet, ['subdir/file1.txt'], ['subdir'])
     }
 
     void filteredSetIsLive() {
@@ -472,13 +497,13 @@ class DefaultSourceDirectorySetTest extends Specification {
         FileTree filteredSet = set.matching { include '**/file1.txt' }
 
         then:
-        assertSetContainsForAllTypes(filteredSet, 'subdir/file1.txt')
+        assertVisits(filteredSet, ['subdir/file1.txt'], ['subdir'])
 
         when:
         set.srcDir 'dir2'
 
         then:
-        assertSetContainsForAllTypes(filteredSet, 'subdir/file1.txt', 'subdir2/file1.txt')
+        assertVisits(filteredSet, ['subdir/file1.txt', 'subdir2/file1.txt'], ['subdir', 'subdir2'])
     }
 
     void "compileBy can be called multiple times and only applies the last mapping"() {

@@ -161,7 +161,7 @@ object ClosureCodec : Codec<Closure<*>> {
 
         private
         fun scriptReferenced(invocationDescription: String): Nothing {
-            val problem = problemFactory.problem {
+            val problem = problemFactory.problem("Gradle script object referenced from closure at execution time") {
                 text("invocation of ")
                 reference(invocationDescription)
                 text(" references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")

@@ -16,6 +16,7 @@
 package org.gradle.internal.remote.internal.inet;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
@@ -64,6 +65,8 @@ public class InetAddressFactory {
                 init();
                 return localBindingAddress;
             }
+        } catch (InvalidUserDataException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Could not determine a usable local IP for this machine.", e);
         }
@@ -78,6 +81,8 @@ public class InetAddressFactory {
                 init();
                 return wildcardBindingAddress;
             }
+        } catch (InvalidUserDataException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Could not determine a usable wildcard IP for this machine.", e);
         }
@@ -143,7 +148,7 @@ public class InetAddressFactory {
             logger.debug("Environment variable {} detected. Using bind address {}.", envVarName, address);
             return InetAddress.getByName(address);
         } catch (UnknownHostException e) {
-            throw new RuntimeException(String.format("Invalid bind address '%s' specified in environment variable '%s'.", address, envVarName), e);
+            throw new InvalidUserDataException(String.format("Invalid bind address '%s' specified in environment variable '%s'.", address, envVarName), e);
         }
     }
 

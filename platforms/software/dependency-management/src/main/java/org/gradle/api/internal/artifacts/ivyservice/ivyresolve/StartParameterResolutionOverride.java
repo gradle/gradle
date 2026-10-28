@@ -37,6 +37,7 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult;
@@ -71,6 +72,7 @@ public class StartParameterResolutionOverride {
 
     public DependencyVerificationOverride dependencyVerificationOverride(
         BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         ChecksumService checksumService,
         SignatureVerificationServiceFactory signatureVerificationServiceFactory,
         DocumentationRegistry documentationRegistry,
@@ -83,7 +85,7 @@ public class StartParameterResolutionOverride {
         fileResourceListener.fileObserved(verificationsFile);
 
         if (!checksums.isEmpty() || startParameter.isExportKeys()) {
-            return new WriteDependencyVerificationFile(verificationsFile, buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys());
+            return new WriteDependencyVerificationFile(verificationsFile, buildOperationExecutor, buildOperationRunner, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys());
         }
 
         if (!verificationsFile.exists() ||

@@ -44,12 +44,12 @@ class CommandLineTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
 
         where:
-        taskName | message                                                                                                                  | expectedFqid                         | expectedDisplayName
-        ""       | "Cannot locate matching tasks for an empty path. The path should include a task name (for example ':help' or 'help')."   | "task-selection:empty-path"          | "Empty path"
-        ":"      | "Cannot locate tasks that match ':'. The path should include a task name (for example ':help' or 'help')."               | "task-selection:missing-task-name"   | "Missing task name"
-        "::"     | "Cannot locate tasks that match '::'. The path should include a task name (for example ':help' or 'help')."              | "task-selection:missing-task-name"   | "Missing task name"
-        ":a::"   | "Cannot locate tasks that match ':a::'. The path should not include an empty segment (try ':a' instead)."                | "task-selection:empty-segments"      | "Empty segments"
-        ":a::b"  | "Cannot locate tasks that match ':a::b'. The path should not include an empty segment (try ':a:b' instead)."             | "task-selection:empty-segments"      | "Empty segments"
+        taskName | message                                                                                                                  | expectedFqid                                       | expectedDisplayName
+        ""       | "Cannot locate matching tasks for an empty path. The path should include a task name (for example ':help' or 'help')."   | "Gradle:Invocation:Empty task path"                | "Empty task path"
+        ":"      | "Cannot locate tasks that match ':'. The path should include a task name (for example ':help' or 'help')."               | "Gradle:Invocation:Missing task name"              | "Missing task name"
+        "::"     | "Cannot locate tasks that match '::'. The path should include a task name (for example ':help' or 'help')."              | "Gradle:Invocation:Missing task name"              | "Missing task name"
+        ":a::"   | "Cannot locate tasks that match ':a::'. The path should not include an empty segment (try ':a' instead)."                | "Gradle:Invocation:Task path with empty segments"  | "Task path with empty segments"
+        ":a::b"  | "Cannot locate tasks that match ':a::b'. The path should not include an empty segment (try ':a:b' instead)."             | "Gradle:Invocation:Task path with empty segments"  | "Task path with empty segments"
     }
 
     def "build logic can mutate the list of requested tasks"() {
