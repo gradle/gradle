@@ -48,7 +48,10 @@ class GeneratedProjectDescriptor {
      * expanded from a template, has no descriptor.
      */
     @Nullable
-    static GeneratedProjectDescriptor findFor(String testProject) {
+    static GeneratedProjectDescriptor findFor(@Nullable String testProject) {
+        if (testProject == null) {
+            return null
+        }
         File descriptor = new File(TestProjectLocator.findProjectDir(testProject), FILE_NAME)
         if (!descriptor.file) {
             return null
