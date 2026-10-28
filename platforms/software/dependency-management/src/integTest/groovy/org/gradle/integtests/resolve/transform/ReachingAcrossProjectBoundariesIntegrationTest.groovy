@@ -65,7 +65,7 @@ class ReachingAcrossProjectBoundariesIntegrationTest extends AbstractDependencyR
     }
 
     // This tests current behavior, not desired behavior
-    @UnsupportedWithConfigurationCache(because = "Task does not declare that it uses the transform outputs")
+    @UnsupportedWithConfigurationCache(because = "Storing the task action resolves the configuration of another project, without the lock of that project")
     def "can consume transform outputs of external artifacts of another project without declaring this access"() {
         createDirs("a", "sneaky")
         settingsFile << """
@@ -112,7 +112,8 @@ class ReachingAcrossProjectBoundariesIntegrationTest extends AbstractDependencyR
     @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
     @UnsupportedWithConfigurationCache(
         because = "Loading the task fails, as the project owning the configuration is not found",
-        iterationMatchers = [".*external=true.*"]
+        // With parallel execution, the build fails before storing the task, unless the owner resolved the configuration
+        iterationMatchers = [".*external=true, (parallel=false|parallel=true, resolvedByOwner=true).*"]
     )
     def "task declaring transform outputs of artifacts of another project as an input (external=#external, parallel=#parallel, resolvedByOwner=#resolvedByOwner)"() {
         createDirs("a", "b", "c")

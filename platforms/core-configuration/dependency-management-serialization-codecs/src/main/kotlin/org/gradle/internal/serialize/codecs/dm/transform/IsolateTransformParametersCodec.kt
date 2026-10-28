@@ -25,11 +25,11 @@ import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
-import org.gradle.internal.model.DomainObjectContext
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.util.Path
 
 
 class IsolateTransformParametersCodec(
@@ -45,18 +45,21 @@ class IsolateTransformParametersCodec(
         write(value.parameterObject)
         writeClass(value.implementationClass)
         writeBoolean(value.isCacheable)
+        writeString(value.owner.displayName)
+        writeString(value.owner.buildPath.asString())
     }
 
     override suspend fun ReadContext.decode(): IsolateTransformParameters? {
         val parameterObject: TransformParameters = read()!!.uncheckedCast()
         val implementationClass = readClass()
         val cacheable = readBoolean()
+        val owner = SerializedProjectDomainObjectContext(readString(), Path.path(readString()))
 
         return IsolateTransformParameters(
             parameterObject,
             implementationClass,
             cacheable,
-            DomainObjectContext.NONE,
+            owner,
             parameterScheme.inspectionScheme.propertyWalker,
             isolatableFactory,
             buildOperationRunner,

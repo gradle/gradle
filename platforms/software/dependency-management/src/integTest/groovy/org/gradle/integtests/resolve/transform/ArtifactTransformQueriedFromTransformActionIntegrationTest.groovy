@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -28,7 +27,7 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
 
     private static final String DEPRECATION = "Querying the output of one artifact transform from the action of another, without declaring that output as an input of the other. This behavior has been deprecated. " +
         "This will fail with an error in Gradle 10. " +
-        "The output of artifact transform MakeRed, registered in root project 'root', was queried by the action of another artifact transform, which did not declare it as an input. " +
+        "The output of artifact transform MakeRed, registered in root project 'root', was queried by the action of artifact transform MakeGreen, which did not declare it as an input. " +
         "Declare the output of the one artifact transform as an input of the other, using a parameter annotated with @InputFiles. " +
         "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#querying_transform_output_from_transform_action"
 
@@ -320,10 +319,7 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
         )
 
         when:
-        // Transforms loaded from the configuration cache have no owning project, so isolating their parameters requires no lock
-        if (GradleContextualExecuter.notConfigCache) {
-            executer.expectDocumentedDeprecationWarning(DEPRECATION)
-        }
+        executer.expectDocumentedDeprecationWarning(DEPRECATION)
         if (project) {
             // The transform of the project artifact is executed outside of the work graph, without being declared as an input of the task
             executer.expectDocumentedDeprecationWarning(UNDECLARED_TRANSFORM_INPUT)
@@ -423,6 +419,182 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
 
         where:
         parallel << [true, false]
+    }
+
+    @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
+    def "deprecated when the constructor of a transform action queries the output of a transform through a build service it is given (parallel=#parallel)"() {
+        setupBuildWithTransforms()
+        transformActionQueries(
+            "names",
+            """
+                @Internal
+                Property<FilesService> getService()
+            """,
+            """
+                private final List<String> names
+
+                MakeGreen() {
+                    names = parameters.service.get().names()
+                }
+            """,
+            "service = filesService"
+        )
+
+        when:
+        executer.expectDocumentedDeprecationWarning(DEPRECATION)
+        runWithParallel(parallel, "consume")
+
+        then:
+        outputContains("transform action saw " + RED_EXTERNAL)
+        outputContains(GREEN_RESULT)
+
+        where:
+        parallel << [true, false]
+    }
+
+    @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
+    def "deprecated when a transform action queries the output of a transform that a task also uses (parallel=#parallel, tasks=#tasks)"() {
+        // Whether the task isolates the parameters of MakeRed before the transform action queries its output depends on scheduling
+        setupBuildWithTransforms()
+        transformActionQueries(
+            "parameters.service.get().names()",
+            """
+                @Internal
+                Property<FilesService> getService()
+            """,
+            "",
+            "service = filesService"
+        )
+        buildFile << """
+            tasks.register("red") {
+                inputs.files(redView)
+                doLast {
+                    println("red = " + redView.files*.name.sort())
+                }
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning(DEPRECATION)
+        if (parallel) {
+            executer.withArgument("--parallel")
+        }
+        run(*tasks)
+
+        then:
+        outputContains("transform action saw " + RED_EXTERNAL)
+        outputContains(GREEN_RESULT)
+
+        where:
+        parallel | tasks
+        true     | ["consume", "red"]
+        true     | ["red", "consume"]
+        false    | ["consume", "red"]
+        false    | ["red", "consume"]
+    }
+
+    def "deprecated when a settings transform action queries the output of a settings transform through a build service it is given"() {
+        (1..2).each { publishBlueModule("first$it") }
+        (1..2).each { publishBlueModule("second$it") }
+        settingsFile << """
+            import org.gradle.api.services.BuildServiceParameters
+
+            def color = Attribute.of("color", String)
+
+            interface NameParams extends TransformParameters {
+                @Input
+                Property<String> getName()
+            }
+
+            abstract class MakeRed implements TransformAction<NameParams> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    outputs.file(inputArtifact.get().asFile.name + ".red").text = "red"
+                }
+            }
+
+            abstract class FilesService implements BuildService<FilesService.Params> {
+                interface Params extends BuildServiceParameters {
+                    ConfigurableFileCollection getFiles()
+                }
+
+                List<String> names() {
+                    return parameters.files.files*.name.sort()
+                }
+            }
+
+            interface GreenParams extends NameParams {
+                @Internal
+                Property<FilesService> getService()
+            }
+
+            abstract class MakeGreen implements TransformAction<GreenParams> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    println("transform action saw " + parameters.service.get().names())
+                    outputs.file(inputArtifact.get().asFile.name + ".green").text = "green"
+                }
+            }
+
+            buildscript.repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+            def firstPath = buildscript.configurations.detachedConfiguration(
+                buildscript.dependencies.create("test:first1:1.0"),
+                buildscript.dependencies.create("test:first2:1.0")
+            )
+            firstPath.attributes.attribute(color, "blue")
+            def secondPath = buildscript.configurations.detachedConfiguration(
+                buildscript.dependencies.create("test:second1:1.0"),
+                buildscript.dependencies.create("test:second2:1.0")
+            )
+            secondPath.attributes.attribute(color, "blue")
+
+            def redView = secondPath.incoming.artifactView {
+                attributes.attribute(color, "red")
+            }.files
+            def filesService = gradle.sharedServices.registerIfAbsent("files", FilesService) {
+                parameters.files.from(redView)
+            }
+
+            buildscript.dependencies {
+                attributesSchema {
+                    attribute(color)
+                }
+                registerTransform(MakeRed) {
+                    from.attribute(color, "blue")
+                    to.attribute(color, "red")
+                    parameters {
+                        name = "red"
+                    }
+                }
+                registerTransform(MakeGreen) {
+                    from.attribute(color, "blue")
+                    to.attribute(color, "green")
+                    parameters {
+                        name = UUID.randomUUID().toString()
+                        service = filesService
+                    }
+                }
+            }
+
+            def greenView = firstPath.incoming.artifactView {
+                attributes.attribute(color, "green")
+            }.files
+            println("result = " + greenView.files*.name.sort())
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning(DEPRECATION.replace("root project 'root'", "build ':'"))
+        run("help")
+
+        then:
+        outputContains("transform action saw [second1-1.0.jar.red, second2-1.0.jar.red]")
+        outputContains("result = [first1-1.0.jar.green, first2-1.0.jar.green]")
     }
 
     @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
