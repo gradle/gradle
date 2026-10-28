@@ -25,7 +25,9 @@ import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -41,6 +43,10 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
      * from that subset in constant time.
      */
     private Set<T> nonProvidedValues = Collections.emptySet();
+
+    // Values of providers realized on add for an eager listener, which a value added directly can be a duplicate of.
+    // Values removed since may still be in here, which only costs a needless check for duplicates.
+    private Set<T> valuesRealizedOnAdd = Collections.emptySet();
 
     private void ensureNonProviderValuesMutable() {
         if (nonProvidedValues == Collections.EMPTY_SET) {
@@ -98,6 +104,9 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
         ensureNonProviderValuesMutable();
         if (nonProvidedValues.add(element)) {
             getInserted().add(new Element<T>(element));
+            if (valuesRealizedOnAdd.contains(element)) {
+                markDuplicates(element);
+            }
             return true;
         } else {
             return false;
@@ -112,13 +121,35 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
 
     @Override
     protected void clearCachedElement(Element<T> element) {
-        boolean wasRealized = element.isRealized();
+        List<T> previousValues = element.isRealized() ? element.getValues() : null;
         super.clearCachedElement(element);
-        if (wasRealized) {
+        if (previousValues != null) {
             for (T value : element.getValues()) {
                 markDuplicates(value);
             }
+            // A value hidden as a duplicate of a previous value may be visible again
+            for (T value : previousValues) {
+                markDuplicates(value);
+            }
         }
+    }
+
+    @Override
+    @Nullable
+    public List<T> removeRealized(ProviderInternal<? extends T> provider) {
+        List<T> removed = super.removeRealized(provider);
+        if (removed == null) {
+            return null;
+        }
+        List<T> gone = new ArrayList<>(removed.size());
+        for (T value : removed) {
+            // An equal value hidden as a duplicate of the removed one takes its place
+            markDuplicates(value);
+            if (!Iterators.contains(iteratorNoFlush(), value)) {
+                gone.add(value);
+            }
+        }
+        return gone;
     }
 
     @Override
@@ -130,6 +161,7 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
     @Override
     public void clear() {
         nonProvidedValues = Collections.emptySet();
+        valuesRealizedOnAdd = Collections.emptySet();
         super.clear();
     }
 
@@ -143,6 +175,7 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
                         if (seen) {
                             element.setDuplicate(index);
                         } else {
+                            element.clearDuplicate(index);
                             seen = true;
                         }
                     }
@@ -154,9 +187,8 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
     @Override
     public boolean addPending(ProviderInternal<? extends T> provider) {
         modCount++;
-        Element<T> element = cachingElement(provider);
-        if (!getInserted().contains(element)) {
-            addPendingElement(element);
+        if (!isAddedBy(provider)) {
+            addPendingElement(cachingElement(provider));
             return true;
         } else {
             return false;
@@ -166,13 +198,35 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
     @Override
     public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
         modCount++;
-        Element<T> element = cachingElement(provider);
-        if (!getInserted().contains(element)) {
-            addPendingElement(element);
+        if (!isAddedBy(provider)) {
+            addPendingElement(cachingElement(provider));
             return true;
         } else {
             return false;
         }
+    }
+
+    // Compared by provider: an element realized on add keeps its values, so it is not equal to a new one.
+    // An element realized by reading the collection doesn't count, so the provider is added and queried again.
+    private boolean isAddedBy(ProviderInternal<?> provider) {
+        for (Element<T> element : getInserted()) {
+            if ((!element.isRealized() || element.isRealizedOnAdd()) && element.isProvidedBy(provider)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    protected boolean addPendingElement(Element<T> element) {
+        boolean added = super.addPendingElement(element);
+        if (element.isRealizedOnAdd()) {
+            if (valuesRealizedOnAdd.isEmpty()) {
+                valuesRealizedOnAdd = new HashSet<>();
+            }
+            valuesRealizedOnAdd.addAll(element.getValues());
+        }
+        return added;
     }
 
     @Override
