@@ -249,24 +249,25 @@ plugins.withId("java-base") {
             }
         }
     }
-    afterEvaluate {
-        // Without afterEvaluate, configurations.all runs before the configurations' roles are set.
-        // This is yet another reason we need configuration factory methods.
-        // workaround for https://github.com/gradle/gradle/issues/12459
-        // note: constraints can't be used here because they end up in gradle module metadata
-        val attributesFactory = gradle.serviceOf<AttributesFactory>()
-        configurations.all {
-            if (isCanBeResolved && !isCanBeConsumed && name != libraryDependencies.name && !name.startsWith("jmh")) {
-                resolutionStrategy.dependencySubstitution.all {
-                    val requested = this.requested as? ModuleComponentSelector ?: return@all
-                    minifyPatterns.forEach { coordinates, _ ->
-                        if ("${requested.group}:${requested.module}" == coordinates) {
-                            val updated = DefaultModuleComponentSelector.withAttributes(
-                                requested,
-                                attributesFactory.of(minified, true)
-                            )
-                            useTarget(updated)
-                        }
+    // workaround for https://github.com/gradle/gradle/issues/12459
+    // note: constraints can't be used here because they end up in gradle module metadata
+    val attributesFactory = gradle.serviceOf<AttributesFactory>()
+    configurations.configureEach {
+        // Legacy configurations only lose roles after creation, so this covers every configuration that
+        // ends up resolvable-only; the rule checks the final role when it runs. jmh*, shadow and gr8Gr
+        // are left consumable and resolvable by third-party plugins, so the rule is not installed there.
+        if (isCanBeResolved && name != libraryDependencies.name && !name.startsWith("jmh") && name != "shadow" && name != "gr8Gr") {
+            val configuration = this
+            resolutionStrategy.dependencySubstitution.all {
+                if (configuration.isCanBeConsumed) return@all
+                val requested = this.requested as? ModuleComponentSelector ?: return@all
+                minifyPatterns.forEach { coordinates, _ ->
+                    if ("${requested.group}:${requested.module}" == coordinates) {
+                        val updated = DefaultModuleComponentSelector.withAttributes(
+                            requested,
+                            attributesFactory.of(minified, true)
+                        )
+                        useTarget(updated)
                     }
                 }
             }
