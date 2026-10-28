@@ -75,7 +75,8 @@ To fix it, follow the guidance for <<configuration_cache_requirements.adoc#confi
 link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#addLater(org.gradle.api.provider.Provider)[`addLater(Provider)`] and link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#addAllLater(org.gradle.api.provider.Provider)[`addAllLater(Provider)`] query the provider when the elements are needed, which is right away if an eager action such as link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#all(org.gradle.api.Action)[`all(Action)`] or link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#whenObjectAdded(org.gradle.api.Action)[`whenObjectAdded(Action)`] is registered on the collection.
 
 Previously, if the eager action was registered before the provider was added, Gradle queried the provider again when the collection was first read.
-The eager action ran twice for the same element, and the collection silently picked up changes made in between.
+The eager action ran twice: once for an element that was then discarded, and once for the element the collection kept.
+In addition, the collection silently picked up changes made in between.
 If the eager action was registered after the provider was added, the provider was queried only once, so the result depended on the order of the two calls.
 
 Now Gradle queries the provider once in both cases, and eager actions run once for each element:
