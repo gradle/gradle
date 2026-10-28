@@ -61,8 +61,8 @@ class ProblemsServiceModelBuilderCrossVersionSpec extends ToolingApiSpecificatio
                 }
                 Object buildAll(String modelName, Project project) {
                     ($threshold).times{
-                        problemsService.${ProblemsApiGroovyScriptUtils.report(targetVersion, 'testCategory', 'label')} {
-                            it.${ProblemsApiGroovyScriptUtils.id(targetVersion, 'testcategory', 'label')}
+                        problemsService.${ProblemsApiGroovyScriptUtils.report(targetVersion, 'testCategory', 'label', 'problemsService')} {
+                            it.${ProblemsApiGroovyScriptUtils.id(targetVersion, 'testcategory', 'label', 'problemsService')}
                                 .withException(new RuntimeException("test"))
                                 ${pre86api ? ".undocumented()" : ""}
                                 ${additionalDataCall}

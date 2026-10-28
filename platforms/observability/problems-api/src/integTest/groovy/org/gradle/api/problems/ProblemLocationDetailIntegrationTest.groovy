@@ -32,9 +32,10 @@ class ProblemLocationDetailIntegrationTest extends AbstractIntegrationSpec {
         given:
         settingsFile "rootProject.name = 'root'"
         buildFile """
-            def reporter = services.get(${Problems.name}).getReporter()
-            def group = ${ProblemGroup.name}.create('demo', 'demo group')
-            def problemId = { String id -> ${ProblemId.name}.create(id, id, group) }
+            def problems = services.get(${Problems.name})
+            def reporter = problems.getReporter()
+            def group = problems.getGroups().getOthers().group('demo')
+            def problemId = { String id -> group.problemId(id) }
         """
         // A problem is located where `report` is called, so each call has to be on its own line.
         6.times {

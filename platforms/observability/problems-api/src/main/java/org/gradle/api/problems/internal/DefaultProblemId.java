@@ -29,6 +29,7 @@ public class DefaultProblemId extends ProblemId implements Serializable {
     private final String displayName;
     private final ProblemGroup parent;
 
+    @SuppressWarnings("deprecation") // only Gradle may subclass
     public DefaultProblemId(String name, String displayName, ProblemGroup parent) {
         validateFields(name, displayName, parent);
         this.name = TextUtil.replaceLineSeparatorsOf(name, "");
@@ -54,8 +55,19 @@ public class DefaultProblemId extends ProblemId implements Serializable {
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.ID_DISPLAY_NAME);
         return displayName;
+    }
+
+    /**
+     * Returns the display name of {@code id} without emitting a deprecation warning.
+     * A foreign id is asked through the public method, which is the plugin's own code.
+     */
+    @SuppressWarnings("deprecation") // a foreign id keeps its display name until Gradle 10
+    public static String displayNameOf(ProblemId id) {
+        return id instanceof DefaultProblemId ? ((DefaultProblemId) id).displayName : id.getDisplayName();
     }
 
     @Override
@@ -70,7 +82,7 @@ public class DefaultProblemId extends ProblemId implements Serializable {
     }
 
     private static String groupPath(ProblemGroup group) {
-        ProblemGroup parent = group.getParent();
+        ProblemGroup parent = ProblemGroupInternal.parentOf(group);
         return parent == null ? group.getName() : groupPath(parent) + " > " + group.getName();
     }
 

@@ -41,6 +41,7 @@ public class DefaultProblemId implements ProblemId {
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
         return displayName;
     }

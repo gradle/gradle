@@ -108,6 +108,7 @@
             <trusting group="commons-collections" name="commons-collections"/>
             <trusting group="commons-logging" name="commons-logging"/>
          </trusted-key>
+         <trusted-key id="0D35D3F60078655126908E8AF3D1600878E85A3D" group="io.netty"/>
          <trusted-key id="0E18EAE07B7774EAC5DB3F2113BB90CE8EAFBE37" group="com.microsoft.playwright"/>
          <trusted-key id="120D6F34E627ED3A772EBBFE55C7E5E701832382">
             <trusting group="org.snakeyaml" name="snakeyaml-engine"/>
@@ -255,6 +256,7 @@
          <trusted-key id="58DF461CAAC5F4E5FB2BE32CBFFA420097F49C8A" group="com.lmax" name="disruptor"/>
          <trusted-key id="5B131E826582CF79510DAA11CD3E539F208832D0" group="net.rubygrapefruit" name="ansi-control-sequence-util"/>
          <trusted-key id="5B7F3605A8CE471A9CA8DB7EC84125C13BF6F2F2" group="^org[.]ajoberstar($|([.].*))" regex="true"/>
+         <trusted-key id="5C7B3C25A968B5958E7C4B8BFE0F876E6D975A36" group="io.ratpack"/>
          <trusted-key id="5CE325996A35213326AE2C68912D2C0ECCDA55C0" group="com.google.errorprone" name="error_prone_annotations"/>
          <trusted-key id="5E7D42F58249A287BD7384DA25A73BFC746E1035">
             <trusting group="net.sourceforge.cssparser"/>
@@ -826,78 +828,6 @@
             <sha256 value="86c3e09d956cd0b7b785472adfc650e7e87d381cc06ba6f77e48501896f1515a" origin="Verified"/>
          </artifact>
       </component>
-      <component group="io.netty" name="netty-buffer" version="4.1.32.Final">
-         <artifact name="netty-buffer-4.1.32.Final.jar">
-            <pgp value="7E22D50A7EBD9D2CD269B2D4056ACA74D46000BF"/>
-            <sha256 value="8ac0e30048636bd79ae205c4f9f5d7544290abd3a7ed39d8b6d97dfe3795afc1" origin="Verified"/>
-         </artifact>
-      </component>
-      <component group="io.netty" name="netty-codec" version="4.1.32.Final">
-         <artifact name="netty-codec-4.1.32.Final.jar">
-            <pgp value="7E22D50A7EBD9D2CD269B2D4056ACA74D46000BF"/>
-            <sha256 value="dbd6cea7d7bf5a2604e87337cb67c9468730d599be56511ed0979aacb309f879" origin="Verified"/>
-         </artifact>
-      </component>
-      <component group="io.netty" name="netty-codec-http" version="4.1.32.Final">
-         <artifact name="netty-codec-http-4.1.32.Final.jar">
-            <pgp value="7E22D50A7EBD9D2CD269B2D4056ACA74D46000BF"/>
-            <sha256 value="db2c22744f6a4950d1817e4e1a26692e53052c5d54abe6cceecd7df33f4eaac3" origin="Verified"/>
-         </artifact>
-      </component>
-      <component group="io.netty" name="netty-common" version="4.1.32.Final">
-         <artifact name="netty-common-4.1.32.Final.jar">
-            <pgp value="7E22D50A7EBD9D2CD269B2D4056ACA74D46000BF"/>
-            <sha256 value="cc993e660f8f8e3b033f1d25a9e2f70151666bdf878d460a6508cb23daa696dc" origin="Verified"/>
-         </artifact>
-      </component>
-      <component group="io.netty" name="netty-handler" version="4.1.32.Final">
-         <artifact name="netty-handler-4.1.32.Final.jar">
-            <pgp value="7E22D50A7EBD9D2CD269B2D4056ACA74D46000BF"/>
-            <sha256 value="07d9756e48b5f6edc756e33e8b848fb27ff0b1ae087dab5addca6c6bf17cac2d" origin="Verified"/>
-         </artifact>
-      </component>
-      <component group="io.netty" name="netty-resolver" version="4.1.32.Final">
-         <artifact name="netty-resolver-4.1.32.Final.jar">
-            <pgp value="7E22D50A7EBD9D2CD269B2D4056ACA74D46000BF"/>
-            <sha256 value="9b4a19982047a95ea4791a7ad7ad385c7a08c2ac75f0a3509cc213cb32a726ae" origin="Verified"/>
-         </artifact>
-      </component>
-      <component group="io.netty" name="netty-transport" version="4.1.32.Final">
-         <artifact name="netty-transport-4.1.32.Final.jar">
-            <pgp value="7E22D50A7EBD9D2CD269B2D4056ACA74D46000BF"/>
-            <sha256 value="175bae0d227d7932c0c965c983efbb3cf01f39abe934f5c4071d0319784715fb" origin="Verified"/>
-         </artifact>
-      </component>
-      <component group="io.netty" name="netty-transport-native-epoll" version="4.1.32.Final">
-         <artifact name="netty-transport-native-epoll-4.1.32.Final-linux-x86_64.jar">
-            <pgp value="7E22D50A7EBD9D2CD269B2D4056ACA74D46000BF"/>
-            <sha256 value="1aae5b70735f3dd999d2b52606b8417718499317d075ab2ea0b56a204468ee00" origin="Verified"/>
-         </artifact>
-      </component>
-      <component group="io.netty" name="netty-transport-native-unix-common" version="4.1.32.Final">
-         <artifact name="netty-transport-native-unix-common-4.1.32.Final.jar">
-            <pgp value="7E22D50A7EBD9D2CD269B2D4056ACA74D46000BF"/>
-            <sha256 value="5c9d5b3b7ca6bcd8f7a40b1f93c96cf8a7fd2238d9d633e5f2b3f0577518074e" origin="Verified"/>
-         </artifact>
-      </component>
-      <component group="io.ratpack" name="ratpack-base" version="1.6.1">
-         <artifact name="ratpack-base-1.6.1.jar">
-            <pgp value="5C7B3C25A968B5958E7C4B8BFE0F876E6D975A36"/>
-            <sha256 value="71d5ad34b5fdb83ab7dfd41f3a03a9b5f1dfc2bd8ad2336d1f03df4d218bd4e4" origin="Verified"/>
-         </artifact>
-      </component>
-      <component group="io.ratpack" name="ratpack-core" version="1.6.1">
-         <artifact name="ratpack-core-1.6.1.jar">
-            <pgp value="5C7B3C25A968B5958E7C4B8BFE0F876E6D975A36"/>
-            <sha256 value="0a7309a90f72fab267bf5d17fa1f5da06a278ceca34a105c49cfa1ed81866a2a" origin="Verified"/>
-         </artifact>
-      </component>
-      <component group="io.ratpack" name="ratpack-exec" version="1.6.1">
-         <artifact name="ratpack-exec-1.6.1.jar">
-            <pgp value="5C7B3C25A968B5958E7C4B8BFE0F876E6D975A36"/>
-            <sha256 value="d3d964960075a1c5ec97f16cb5906c8eddccf07af44d2c9558f6f5f0bf707dd9" origin="Verified"/>
-         </artifact>
-      </component>
       <component group="itext" name="itext" version="2.0.8">
          <artifact name="itext-2.0.8.jar">
             <sha256 value="d6e41bfa732ecc84ba6c0850a4e36d57ee665a9b8eb1184ba5c4ef8d301f24bd" reason="Artifact is not signed"/>
@@ -983,14 +913,14 @@
             <sha256 value="5076611c14107ec0aa057842567db1e1c0c4e54cdad229c6e189b6503bda8b2e" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.asciidoctor" name="asciidoctor5-core-plugin" version="5.0.3">
-         <artifact name="asciidoctor5-core-plugin-5.0.3.jar">
-            <sha256 value="c4da5ddc379e4a60e83f762d5206ac117fdc5c0b35e34390bfe3c27a038f9266" origin="Verified" reason="Artifact is not signed"/>
+      <component group="org.asciidoctor" name="asciidoctor5-core-plugin" version="5.1.0">
+         <artifact name="asciidoctor5-core-plugin-5.1.0.jar">
+            <sha256 value="e4cf09c8745af456035fd428e03724a2af19603ad3870229a7622e1625aec2a2" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.asciidoctor" name="asciidoctor5-jvm-core-plugin" version="5.0.3">
-         <artifact name="asciidoctor5-jvm-core-plugin-5.0.3.jar">
-            <sha256 value="051c73936acf77ea912372d7c1d3a725eaa06b28dd6fae101b10e1b6d3eb9d0e" origin="Verified" reason="Artifact is not signed"/>
+      <component group="org.asciidoctor" name="asciidoctor5-jvm-core-plugin" version="5.1.0">
+         <artifact name="asciidoctor5-jvm-core-plugin-5.1.0.jar">
+            <sha256 value="3cf23042271f178b2437aeba15e7b236a85b1f5b4c3bf047505804b3e957b7a5" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.asciidoctor" name="asciidoctorj" version="1.5.8.1">
@@ -1173,10 +1103,9 @@
             <sha256 value="fa4a710db7ae3e598a5f41639eb54e9f7b09de5fd0f58f56bd6070f21d956374" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.ysb33r.gradle.jruby" name="jrubygradle-resolver" version="2.4.1">
-         <artifact name="jrubygradle-resolver-2.4.1.jar">
+      <component group="org.ysb33r.gradle.jruby" name="jrubygradle-resolver" version="3.0.0">
+         <artifact name="jrubygradle-resolver-3.0.0.jar">
             <pgp value="93135AA35CDF701AB4E1513AB163E784347A4C24"/>
-            <sha256 value="d91a88f0d2ae7ca4709f60c2a50efade725f4c083ed85af552542c7a078dd3f2" origin="Verified"/>
          </artifact>
       </component>
       <component group="xalan" name="serializer" version="2.7.3">
