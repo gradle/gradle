@@ -47,17 +47,21 @@ configurations.consumable("apiStubElements") {
 }
 
 pluginManager.withPlugin("gradlebuild.java-library") {
-    val extractorClasspathConfig = configurations.create("extractorClasspathConfig")
+    val javaApiExtractor = configurations.dependencyScope("javaApiExtractor").get()
+    val extractorClasspathConfig = configurations.resolvable("extractorClasspathConfig") {
+        extendsFrom(javaApiExtractor)
+        configureAsRuntimeJarClasspath(objects)
+    }
 
     dependencies {
-        extractorClasspathConfig(project(":java-api-extractor"))
-        extractorClasspathConfig(platform(project(":distributions-dependencies")))
+        javaApiExtractor(project(":java-api-extractor"))
+        javaApiExtractor(platform(project(":distributions-dependencies")))
     }
 
     val extractJavaAbi = tasks.register<ExtractJavaAbi>("extractJavaAbi") {
         classesDirectories = sourceSets.main.get().output.classesDirs
         outputDirectory = layout.buildDirectory.dir("generated/java-abi")
-        extractorClasspath = extractorClasspathConfig
+        extractorClasspath.from(extractorClasspathConfig)
     }
 
     configurations {
