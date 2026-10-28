@@ -64,7 +64,7 @@ import static org.gradle.util.internal.CollectionUtils.join;
  * be registered as a listener of that type. Alternatively, service implementations can be annotated with {@link org.gradle.internal.service.scopes.ListenerService} to indicate that the should be
  * registered as a listener.</p>
  */
-public class DefaultServiceRegistry extends AbstractServiceRegistry implements CloseableServiceRegistry {
+public class DefaultServiceRegistry extends AbstractServiceRegistry implements ManagedServiceRegistry {
     private enum State {INIT, STARTED, CLOSED}
 
     private final static ServiceRegistry[] NO_PARENTS = new ServiceRegistry[0];

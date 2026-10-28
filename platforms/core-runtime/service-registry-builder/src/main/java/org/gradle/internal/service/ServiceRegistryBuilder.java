@@ -161,12 +161,12 @@ public class ServiceRegistryBuilder {
     /**
      * Creates a service registry with the provided configuration.
      * <p>
-     * The registry <b>should be {@link CloseableServiceRegistry#close() closed}</b> when it is no longer required
+     * The registry <b>should be {@link ManagedServiceRegistry#close() closed}</b> when it is no longer required
      * to cleanly dispose of the resources potentially held by created services.
      *
-     * @see CloseableServiceRegistry
+     * @see ManagedServiceRegistry
      */
-    public CloseableServiceRegistry build() {
+    public ManagedServiceRegistry build() {
         ServiceRegistry[] parents = this.parents.toArray(new ServiceRegistry[0]);
 
         DefaultServiceRegistry registry = scope != null

@@ -25,7 +25,7 @@ import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
-import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.ManagedServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
@@ -88,7 +88,7 @@ public class DefaultConnection implements ConnectionVersion4,
     private final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
 
     private @Nullable ServiceRegistry loggingServices;
-    private @Nullable CloseableServiceRegistry clientServices;
+    private @Nullable ManagedServiceRegistry clientServices;
     private @Nullable BuildProcessState embeddedDaemonState;
 
     @Nullable // not provided by older client versions

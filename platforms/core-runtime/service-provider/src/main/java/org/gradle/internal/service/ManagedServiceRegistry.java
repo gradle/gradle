@@ -24,7 +24,7 @@ import java.io.Closeable;
  * <p>
  * Members created by the registry are stopped and closed when this registry is {@link #close() closed}.
  */
-public interface CloseableServiceRegistry extends ServiceRegistry, Closeable {
+public interface ManagedServiceRegistry extends ServiceRegistry, Closeable {
 
     /**
      * Closes this registry by stopping and closing all members managed by it.
@@ -35,7 +35,7 @@ public interface CloseableServiceRegistry extends ServiceRegistry, Closeable {
      * <p>
      * Members are closed in reverse dependency order.
      *
-     * @see CloseableServiceRegistry
+     * @see ManagedServiceRegistry
      */
     @Override
     void close();

@@ -135,7 +135,7 @@ package org.gradle.internal.service;
  * <p>
  * If a service instance was created and the service implements {@link java.io.Closeable#close() Closeable} or
  * {@link org.gradle.internal.concurrent.Stoppable#stop() Stoppable} then the appropriate
- * method is called to dispose of it when the owning service registry is {@link CloseableServiceRegistry#close() closed}.
+ * method is called to dispose of it when the owning service registry is {@link ManagedServiceRegistry#close() closed}.
  */
 public interface ServiceRegistrationProvider {
 }
