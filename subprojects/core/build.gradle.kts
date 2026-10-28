@@ -5,10 +5,6 @@ plugins {
 
 description = "Public and internal 'core' Gradle APIs with implementation"
 
-configurations {
-    register("reports")
-}
-
 dependencies {
     api(projects.ant)
     api(projects.antApi)
