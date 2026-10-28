@@ -735,6 +735,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "groovy-dsl",
+    "path": "platforms/dsl/groovy-dsl",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "groovy-loader",
     "path": "platforms/core-runtime/groovy-loader",
     "unitTests": false,
