@@ -163,6 +163,15 @@ On a cache miss, read-only mode skips serialization entirely so the build runs a
 Use the default mode if your goal is to verify that your build is Configuration Cache compatible.
 ====
 
+[TIP]
+.Using the Configuration Cache on CI?
+====
+Ephemeral agents start cold on every run.
+Develocity Setup Cache restores Gradle's configuration phase on each agent, with no changes to build scripts.
+
+link:https://develocity.ai/product/setup-cache/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=configuration-cache-enabling-callout-setup-cache[How Setup Cache works]
+====
+
 [[config_cache:stable]]
 == Enabling Strict Configuration Cache Mode
 
