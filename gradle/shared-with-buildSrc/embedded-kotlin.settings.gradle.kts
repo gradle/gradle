@@ -24,12 +24,14 @@ import java.net.URI
 // their version in the system property that makes Gradle expect it (see KOTLIN_DSL_PLUGINS_VERSION_OVERRIDE_PROPERTY in the kotlin-dsl module).
 val kotlinDslGroups = "org\\.gradle\\.kotlin(\\..+)?"
 val pluginsRepository = providers.gradleProperty("gradlebuild.kotlinDslPluginsRepository").map { File(it) }.orNull?.takeIf { it.isDirectory }
+// Only this version: the repository can have other versions from an earlier build
+val pluginsVersion = providers.systemProperty("org.gradle.internal.kotlin.dsl.plugins.version.override").orNull
 
-data class ExtraRepository(val name: String, val url: URI, val groups: String)
+data class ExtraRepository(val name: String, val url: URI, val groups: String, val version: String? = null)
 
 // Declared after the repositories of the build. Thus only the versions that they do not have come from these repositories.
 val extraRepositories = listOfNotNull(
-    pluginsRepository?.let { ExtraRepository("Locally built Kotlin DSL plugins", it.toURI(), kotlinDslGroups) },
+    if (pluginsRepository != null && pluginsVersion != null) ExtraRepository("Locally built Kotlin DSL plugins", pluginsRepository.toURI(), kotlinDslGroups, pluginsVersion) else null,
     if (embeddedKotlinVersion.matches(Regex(".+-\\d+"))) ExtraRepository("Kotlin dev repository", URI("https://packages.jetbrains.team/maven/p/kt/dev"), "org\\.jetbrains\\.kotlin(\\..+)?") else null,
 )
 
@@ -43,7 +45,13 @@ fun RepositoryHandler.addExtraRepositories() {
         maven {
             name = repository.name
             url = repository.url
-            content { includeGroupByRegex(repository.groups) }
+            content {
+                if (repository.version != null) {
+                    includeVersionByRegex(repository.groups, ".*", Regex.escape(repository.version))
+                } else {
+                    includeGroupByRegex(repository.groups)
+                }
+            }
         }
     }
 }
