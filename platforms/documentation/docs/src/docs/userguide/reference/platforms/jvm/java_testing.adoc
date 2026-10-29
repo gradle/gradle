@@ -96,6 +96,8 @@ You can also enable this behavior by using the `--test-dry-run` command-line opt
 
 See link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] for details on all the available configuration options.
 
+TIP: To run tests across remote build agents instead of local forks, see Develocity link:https://develocity.ai/product/test-distribution/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=java-testing-callout-test-distribution[Test Distribution].
+
 [[test_filtering]]
 == Test filtering
 
@@ -105,6 +107,8 @@ It's a common requirement to run subsets of a test suite, such as when you're fi
  * Test inclusion/exclusion
 
 Filtering supersedes the inclusion/exclusion mechanism, but you may still come across the latter in the wild.
+
+TIP: Develocity link:https://develocity.ai/product/predictive-test-selection/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=java-testing-callout-predictive-test-selection[Predictive Test Selection] runs only the tests relevant to a given change, without hand-written filters.
 
 With Gradle's test filtering you can select tests to run based on:
 
