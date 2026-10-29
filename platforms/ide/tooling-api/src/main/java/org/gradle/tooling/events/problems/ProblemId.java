@@ -23,19 +23,17 @@ import org.gradle.api.Incubating;
  * <p>
  * Problem IDs are defined with a name and with group hierarchy. For example, in the domain of Java compilation problems, the id object for unused variable warnings would be:
  * <pre>
- * ProblemId(name: unused-variable, displayName: Unused Variable, group:
- *     ProblemGroup(name: Java, displayName: Java, parent:
- *         ProblemGroup(name: Compilation, displayName: Compilation, parent: null)))
+ * ProblemId(name: Unused variable, group:
+ *     ProblemGroup(name: Java, parent:
+ *         ProblemGroup(name: Compilation, parent: null)))
  * </pre>
- * From the name fields a fully qualified name can be inferred: {@code Compilation:Java:unused-variable}.
- * Also, the display names are intended for display on some user interface. Consumers of problem reports can build a tree representation of problems:
+ * Consumers of problem reports can build a tree representation of problems from the names:
  * <pre>
  * (Problem view)
  * Compilation
  *     Java
  *         Foo.java#L10: unused variable a
  *         Foo.java#L20: unused variable b
-
  * </pre>
  *
  * @since 8.9
@@ -47,8 +45,7 @@ public interface ProblemId {
      * <p>
      * Then name should be used categorize to create a fully qualified name and to categorize a set of problems. The name itself does not need to be unique, the uniqueness is determined the name and
      * the group hierarchy.
-     * <p>
-     * The convention for problem names is to use kebab-case (ie lower case with hyphens).
+     *
      * @since 8.9
      */
     String getName();
@@ -60,7 +57,10 @@ public interface ProblemId {
      *
      * @return the display name
      * @since 8.9
+     * @deprecated Use {@link #getName()} instead. Ids created from the predefined problem groups have a display name equal to their name.
+     * This method will be removed in Gradle 10.
      */
+    @Deprecated
     String getDisplayName();
 
     /**

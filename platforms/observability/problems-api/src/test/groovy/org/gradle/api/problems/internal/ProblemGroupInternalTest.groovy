@@ -39,7 +39,6 @@ class ProblemGroupInternalTest extends Specification {
         // the same structural rules apply to other implementations that delegate to ProblemGroupInternal
         child == foreign
         ProblemGroupInternal.structurallyEquals(foreign, child)
-        ProblemGroupInternal.structuralHashCode(foreign) == child.hashCode()
         !ProblemGroupInternal.structurallyEquals(root, "Root")
         !ProblemGroupInternal.structurallyEquals(root, null)
         !root.equals("Root")

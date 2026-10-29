@@ -147,13 +147,14 @@ public class ProblemsProgressEventUtils {
         );
     }
 
+    // sends the display name of a legacy id; 9.x clients read it until Gradle 11, so Gradle 10 sends the name
     private static InternalProblemId toInternalId(ProblemId problemId) {
-        return new DefaultProblemId(problemId.getName(), problemId.getDisplayName(), toInternalGroup(ProblemGroupInternal.of(problemId.getGroup())));
+        return new DefaultProblemId(problemId.getName(), org.gradle.api.problems.internal.DefaultProblemId.displayNameOf(problemId), toInternalGroup(ProblemGroupInternal.of(problemId.getGroup())));
     }
 
     private static InternalProblemGroup toInternalGroup(ProblemGroupInternal group) {
         ProblemGroupInternal parent = group.getParentInternal();
-        return new DefaultProblemGroup(group.getName(), group.getDisplayName(), parent == null ? null : toInternalGroup(parent));
+        return new DefaultProblemGroup(group.getName(), group.getDisplayNameInternal(), parent == null ? null : toInternalGroup(parent));
     }
 
     private static @Nullable InternalContextualLabel toInternalContextualLabel(@Nullable String contextualLabel) {

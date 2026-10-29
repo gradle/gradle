@@ -19,6 +19,7 @@ package org.gradle.internal.reflect.validation;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.problems.GradleProblemGroup;
 import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.internal.DefaultProblemId;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemBuilderInternal;
 import org.gradle.api.problems.internal.TypeValidationData;
@@ -87,7 +88,7 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
         ProblemInternal problem = super.build();
         Optional<TypeValidationData> additionalData = Optional.ofNullable((TypeValidationData) problem.getAdditionalData());
         String prefix = introductionFor(additionalData, isTypeIrrelevantInErrorMessage(problem.getDefinition().getId()));
-        String text = Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> problem.getDefinition().getId().getDisplayName());
+        String text = Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> DefaultProblemId.displayNameOf(problem.getDefinition().getId()));
         return problem.toBuilder(getInfrastructure()).contextualLabel(prefix + text).build();
     }
 
