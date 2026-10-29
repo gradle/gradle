@@ -376,6 +376,10 @@ When your transform runs, Gradle will inject the transitive dependencies into th
 
 Note that using input artifact dependencies in a transform has performance implications; only inject them when needed.
 
+NOTE: If a transform action needs the output of another artifact transform, declare those files on a parameter annotated with `@InputFiles`.
+Don't resolve them some other way, such as through a build service.
+See <<upgrading_version_9.adoc#querying_transform_output_from_transform_action,the deprecation of undeclared transform queries>> for an example.
+
 [[sec:caching-transforms]]
 === Artifact Transforms with Caching
 

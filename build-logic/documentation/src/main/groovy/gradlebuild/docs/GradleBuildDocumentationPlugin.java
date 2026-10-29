@@ -24,6 +24,7 @@ import gradlebuild.basics.PublicKotlinDslApi;
 import org.asciidoctor.gradle.model5.core.AsciidoctorModelExtension;
 import org.asciidoctor.gradle.model5.jvm.JvmModel;
 import org.asciidoctor.gradle.model5.jvm.extensions.AsciidoctorjGenericExtension;
+import org.asciidoctor.gradle.model5.jvm.formatters.AsciidoctorjGenericOutputFormatter;
 import org.asciidoctor.gradle.model5.jvm.formatters.AsciidoctorjHtml5;
 import org.asciidoctor.gradle.model5.jvm.plugins.AsciidoctorjBasePlugin;
 import org.asciidoctor.gradle.model5.jvm.toolchains.AsciidoctorjToolchain;
@@ -64,6 +65,12 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
      * The HTML output formatter registered on {@link #ASCIIDOCTORJ_TOOLCHAIN}.
      */
     public static final String HTML_FORMATTER = "html";
+
+    /**
+     * The Markdown output formatter registered on {@link #ASCIIDOCTORJ_TOOLCHAIN}. Uses the {@code markdown} backend
+     * provided by {@code MarkdownConverter} in {@code :docs-asciidoctor-extensions-base}.
+     */
+    public static final String MARKDOWN_FORMATTER = "markdown";
 
     /**
      * Matches every Asciidoctor warning message: any warning fails the user manual. The plugin selects
@@ -136,6 +143,10 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
         // Render in a worker process, as the classic plugin did with ExecutionMode.OUT_OF_PROCESS
         toolchain.getRegisteredOutputFormatters().register(HTML_FORMATTER, AsciidoctorjHtml5.class,
             html -> html.useProcessIsolation(forkOptions -> { }));
+        toolchain.getRegisteredOutputFormatters().register(MARKDOWN_FORMATTER, AsciidoctorjGenericOutputFormatter.class, markdown -> {
+            markdown.setBackend(MARKDOWN_FORMATTER);
+            markdown.useProcessIsolation(forkOptions -> { });
+        });
 
         toolchain.getAsciidocExtensions().register(GRADLE_EXTENSIONS, AsciidoctorjGenericExtension.class, extension -> {
             // Added lazily, so that applying this plugin doesn't require the project to exist, e.g. in build-logic tests
