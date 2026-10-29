@@ -21,7 +21,7 @@ For migrating to Gradle 9.0.0, see the <<upgrading_major_version_9.adoc#upgradin
 
 We recommend the following steps for all users:
 
-. Try running `gradle help --scan` and view the https://docs.develocity.ai/gradle/current/getting-started/#identifying-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
+. Try running `gradle help --scan` and view the https://docs.develocity.ai/gradle/current/getting-started/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=upgrading-version-9-link-build-scan#identifying-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
 +
 image::deprecations.png[Deprecations View of a Gradle Build Scan]
 +
@@ -1947,7 +1947,7 @@ It will also affect the output of the `properties` task when invoked for subproj
 Earlier versions of the Develocity plugin rely on the implicit property lookup in parent projects, which is <<#deprecated_implicit_lookup_in_parent_projects,deprecated>> and will be removed in Gradle 10.
 
 Upgrade to the link:https://plugins.gradle.org/plugin/com.gradle.develocity[latest Develocity plugin] from the Gradle Plugin Portal.
-See the link:https://gradle.com/help/gradle-plugin-compatibility/[Develocity plugin compatibility matrix] for details.
+See the link:https://docs.develocity.ai/current/miscellaneous/compatibility/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=upgrading-version-9-link-build-scan#develocity_gradle_plugin[Develocity plugin compatibility matrix] for details.
 
 [[deprecated_get_properties]]
 ==== Deprecation of `getProperties()`

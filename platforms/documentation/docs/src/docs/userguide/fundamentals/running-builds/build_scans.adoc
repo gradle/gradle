@@ -82,12 +82,12 @@ $ ./gradlew build --scan
 
 The equivalent Gradle properties are `com.gradle.develocity.url` and `com.gradle.develocity.plugin.version`.
 
-Check the https://docs.develocity.ai/gradle/current/gradle-plugin/#publish_no_modify[Develocity Gradle plugin documentation] for more details.
+Check the https://docs.develocity.ai/gradle/current/gradle-plugin/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=build-scans-link-build-scan#publish_no_modify[Develocity Gradle plugin documentation] for more details.
 
 [[sec:captured-information]]
 == Captured Information
 
-To see what data is captured and sent in a Build Scan, refer to the link:https://docs.develocity.ai/gradle/current/gradle-plugin/#captured-information[Captured Information] section in the Gradle Develocity Plugin documentation.
+To see what data is captured and sent in a Build Scan, refer to the link:https://docs.develocity.ai/gradle/current/gradle-plugin/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=build-scans-link-build-scan#captured-information[Captured Information] section in the Gradle Develocity Plugin documentation.
 
 Ready to build something? Start with the <<part1_gradle_init.adoc#part1_gradle_init,Beginner Tutorial>>.
 

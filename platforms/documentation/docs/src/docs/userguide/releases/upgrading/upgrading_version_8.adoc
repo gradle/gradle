@@ -21,7 +21,7 @@ For migrating from Gradle 7.x, see the <<upgrading_version_7.adoc#upgrading_vers
 
 We recommend the following steps for all users:
 
-. Try running `gradle help --scan` and view the https://docs.develocity.ai/gradle/current/getting-started/#identifying-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
+. Try running `gradle help --scan` and view the https://docs.develocity.ai/gradle/current/getting-started/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=upgrading-version-8-link-build-scan#identifying-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
 +
 image::deprecations.png[Deprecations View in a Build Scan]
 +
@@ -2302,7 +2302,7 @@ The plugin versions from 3.0 up to 3.13 will be ignored when applied.
 
 Upgrade to version 3.13.1 or later of the Develocity plugin.
 You can find the link:https://plugins.gradle.org/plugin/com.gradle.enterprise[latest available version on the Gradle Plugin Portal].
-More information on the compatibility can be found link:https://docs.develocity.ai/current/miscellaneous/compatibility/#build-scans[here].
+More information on the compatibility can be found link:https://docs.develocity.ai/current/miscellaneous/compatibility/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=upgrading-version-8-link-build-scan#build-scans[here].
 
 [[changes_8.2]]
 == Upgrading from 8.1 and earlier
