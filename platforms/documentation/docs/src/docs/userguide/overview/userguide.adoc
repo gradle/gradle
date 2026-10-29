@@ -49,10 +49,10 @@ Information on Gradle releases is found on the link:https://gradle.org/releases/
 Most projects will start with an existing Gradle build which does not require the installation of Gradle.
 However, if you are starting a project from scratch, and you need to install Gradle, check out the <<installation.adoc#installation,installation guide>>.
 
-[[dpe_university]]
-== DPE University
+[[video_tutorials]]
+== Video Tutorials
 
-Want to get up and running with Gradle quickly? Take our free, self-paced Gradle Build Tool courses at link:https://dpeuniversity.gradle.com/[DPE University].
+[[dpe_university]]Want to get up and running with Gradle quickly? Watch Gradle Build Tool videos on the link:https://www.youtube.com/@DevelocityAI[Develocity YouTube channel].
 
 [[for_software_engineers_and_developers]]
 == For Software Engineers and Developers
