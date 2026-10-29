@@ -256,6 +256,9 @@ NOTE: The Wrapper shell script and batch file reside in the root directory of a 
 
 Projects typically want to keep up with the times and upgrade their Gradle version to benefit from new features and improvements.
 
+NOTE: Older Gradle versions stop receiving security fixes under the <<feature_lifecycle.adoc#eol_support,end-of-life policy>>.
+If you can't upgrade right away, the https://gradle.org/security-subscription/[Gradle Security Subscription] provides security fixes to Gradle itself for versions past that policy, with contractual fix timelines.
+
 The recommended option is to run the `wrapper` task and provide the target Gradle version as described in <<#sec:adding_wrapper,Adding the Gradle Wrapper>>.
 Using the `wrapper` task ensures that any optimizations made to the Wrapper shell script or batch file with that specific Gradle version are applied to the project.
 
