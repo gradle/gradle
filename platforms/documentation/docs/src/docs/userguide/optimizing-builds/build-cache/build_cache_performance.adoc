@@ -85,7 +85,7 @@ When using Develocity you can use the https://docs.develocity.ai/current/referen
 You can then create statistics on how many tasks were cached per developer or build.
 You can even compare the times it took to execute the task vs loading it from the cache and then estimate the time saved per developer.
 
-When using the https://develocity.ai/product/build-cache/[Develocity build cache backend] you should pay close attention to the hit rate in the admin UI.
+When using the https://develocity.ai/product/build-cache/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=build-cache-performance-link-build-cache[Develocity build cache backend] you should pay close attention to the hit rate in the admin UI.
 A rise in the hit rate there probably indicates better usage by developers:
 
 [.screenshot]

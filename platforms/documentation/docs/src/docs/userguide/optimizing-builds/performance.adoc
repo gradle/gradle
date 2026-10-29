@@ -70,7 +70,7 @@ This section explores ways to optimize performance, highlights common pitfalls, 
 [[inspect_your_build]]
 == 0. Inspect your Build
 
-Before making any changes, <<inspect.adoc#inspecting_build_scans,inspect your build>> with a link:https://develocity.ai/product/build-scan/[*Build Scan*] or *profile report*.
+Before making any changes, <<inspect.adoc#inspecting_build_scans,inspect your build>> with a link:https://develocity.ai/product/build-scan/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=performance-link-build-scan[*Build Scan*] or *profile report*.
 A thorough inspection helps you understand:
 
 - **Total build time**
@@ -275,7 +275,7 @@ You can use:
 
 * A local Build Cache to speed up repeated builds on the same machine.
 * A shared Build Cache to accelerate builds across multiple machines.
-** https://develocity.ai/product/build-cache/[Develocity provides] a shared Cache solution for CI and developer builds.
+** https://develocity.ai/product/build-cache/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=performance-link-build-cache[Develocity provides] a shared Cache solution for CI and developer builds.
 
 When the build cache flag is used on our reference project, the build (`./gradlew clean build --build-cache`) time is *5 seconds*:
 

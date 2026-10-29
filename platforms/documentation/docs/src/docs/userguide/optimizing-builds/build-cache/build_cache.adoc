@@ -438,4 +438,4 @@ Using a different build cache backend to store build outputs (which is not cover
 your own logic for connecting to your custom build cache backend.
 To this end, custom build cache types can be registered via link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#registerBuildCacheService(java.lang.Class,java.lang.Class)[BuildCacheConfiguration.registerBuildCacheService(java.lang.Class, java.lang.Class)].
 
-link:https://develocity.ai/product/build-cache/[Develocity] includes a high-performance, easy to install and operate, shared build cache backend.
+link:https://develocity.ai/product/build-cache/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=build-cache-link-build-cache[Develocity] includes a high-performance, easy to install and operate, shared build cache backend.
