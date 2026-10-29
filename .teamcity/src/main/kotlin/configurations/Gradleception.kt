@@ -86,6 +86,12 @@ class Gradleception(
             (buildToolGradleParameters() + buildScanTags + extraSysProp + functionalTestParameters(Os.LINUX)).joinToString(
                 separator = " ",
             )
+        val buildWithBuiltGradleParameters =
+            "-Pgradle_installPath=dogfood-second -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp2 $defaultParameters"
+        val verifyCacheHits = buildJvm == BuildToolBuildJvm && bundleGroovyMajor == null
+        val cacheHitVerificationDir = "%teamcity.build.tempDir%/gradleception-cache-hit-verification"
+        val cacheHitVerificationParameters =
+            "--init-script .teamcity/scripts/gradleception-cache-hits.init.gradle.kts -Dgradleception.buildCacheDir=$cacheHitVerificationDir/build-cache"
 
         params {
             // Override the default commit id so the build steps produce reproducible distribution
@@ -132,12 +138,45 @@ class Gradleception(
                         "-Pgradle_installPath=dogfood-first -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp1 $defaultParameters"
                 }
 
+                if (verifyCacheHits) {
+                    script {
+                        name = "PREPARE_CACHE_HIT_VERIFICATION"
+                        scriptContent =
+                            """
+                            for home in $cacheHitVerificationDir/user-home-1 $cacheHitVerificationDir/user-home-2; do
+                              mkdir -p "${'$'}home"
+                              cp "${'$'}HOME/.gradle/gradle.properties" "${'$'}home/" 2>/dev/null || true
+                              cp -r "${'$'}HOME/.gradle/init.d" "${'$'}home/" 2>/dev/null || true
+                            done
+                            echo "##teamcity[setParameter name='env.GRADLE_RO_DEP_CACHE' value='${'$'}HOME/.gradle/caches']"
+                            """.trimIndent()
+                    }
+                }
+
                 localGradle {
                     name = "BUILD_WITH_BUILT_GRADLE"
                     tasks = "clean :distributions-full:install"
                     gradleHome = "%teamcity.build.checkoutDir%/dogfood-first"
                     gradleParams =
-                        "-Pgradle_installPath=dogfood-second -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp2 $defaultParameters"
+                        if (verifyCacheHits) {
+                            "$buildWithBuiltGradleParameters $cacheHitVerificationParameters -g $cacheHitVerificationDir/user-home-1"
+                        } else {
+                            buildWithBuiltGradleParameters
+                        }
+                }
+
+                if (verifyCacheHits) {
+                    localGradle {
+                        name = "VERIFY_CACHE_HITS_WITH_BUILT_GRADLE"
+                        tasks = "clean :distributions-full:install"
+                        gradleHome = "%teamcity.build.checkoutDir%/dogfood-first"
+                        gradleParams =
+                            "$buildWithBuiltGradleParameters $cacheHitVerificationParameters -g $cacheHitVerificationDir/user-home-2 -Dgradleception.verifyCacheHits=report"
+                    }
+                    script {
+                        name = "RESET_READ_ONLY_DEPENDENCY_CACHE"
+                        scriptContent = "echo \"##teamcity[setParameter name='env.GRADLE_RO_DEP_CACHE' value='']\""
+                    }
                 }
 
                 localGradle {
