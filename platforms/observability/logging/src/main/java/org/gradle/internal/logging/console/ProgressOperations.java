@@ -25,12 +25,16 @@ import java.util.Map;
 public class ProgressOperations {
     private final Map<OperationIdentifier, ProgressOperation> operationsById = new HashMap<OperationIdentifier, ProgressOperation>();
 
-    public ProgressOperation start(String status, String category, OperationIdentifier operationId, @Nullable OperationIdentifier parentOperationId) {
+    public ProgressOperation start(String status, String category, OperationIdentifier operationId, @Nullable OperationIdentifier parentOperationId, long startTimestamp) {
+        return start(status, category, operationId, parentOperationId, startTimestamp, false);
+    }
+
+    ProgressOperation start(String status, String category, OperationIdentifier operationId, @Nullable OperationIdentifier parentOperationId, long startTimestamp, boolean workAction) {
         ProgressOperation parent = null;
         if (parentOperationId != null) {
             parent = operationsById.get(parentOperationId);
         }
-        ProgressOperation operation = new ProgressOperation(status, category, operationId, parent);
+        ProgressOperation operation = new ProgressOperation(status, category, operationId, parent, startTimestamp, workAction);
         if (parent != null) {
             parent.addChild(operation);
         }
@@ -50,6 +54,23 @@ public class ProgressOperations {
         return op;
     }
 
+    /**
+     * The parent, if known, of a work action that started and completed between two updates.
+     * This work action is counted on the parent, and has no line.
+     */
+    @Nullable
+    ProgressOperation workActionUnshown(@Nullable OperationIdentifier parentOperationId) {
+        if (parentOperationId == null) {
+            return null;
+        }
+        ProgressOperation parent = operationsById.get(parentOperationId);
+        if (parent != null) {
+            parent.workActionStarted();
+            parent.workActionCompleted();
+        }
+        return parent;
+    }
+
     public ProgressOperation complete(OperationIdentifier operationId) {
         ProgressOperation op = operationsById.remove(operationId);
         if (op == null) {
@@ -57,7 +78,14 @@ public class ProgressOperations {
         }
         if (op.getParent() != null) {
             op.getParent().removeChild(op);
+            if (op.isWorkAction()) {
+                op.getParent().workActionCompleted();
+            }
         }
         return op;
+    }
+
+    boolean isRunning(ProgressOperation operation) {
+        return operationsById.containsKey(operation.getOperationId());
     }
 }

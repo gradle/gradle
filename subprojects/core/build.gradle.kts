@@ -247,6 +247,7 @@ dependencies {
     integTestImplementation(projects.launcher)
     integTestImplementation(projects.war)
     integTestImplementation(projects.daemonServices)
+    integTestImplementation(projects.groovyDsl)
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(testLibs.littleproxy)

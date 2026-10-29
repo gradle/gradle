@@ -45,7 +45,14 @@ final class PredefinedVerificationProblemGroup extends VerificationProblemGroup 
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_DISPLAY_NAME);
+        return getDisplayNameInternal();
+    }
+
+    @Override
+    public String getDisplayNameInternal() {
         return NAME;
     }
 
@@ -56,7 +63,9 @@ final class PredefinedVerificationProblemGroup extends VerificationProblemGroup 
 
     @Override
     @Nullable
+    @Deprecated
     public ProblemGroup getParent() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_PARENT);
         return null;
     }
 

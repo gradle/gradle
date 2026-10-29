@@ -165,8 +165,9 @@ public final class DefaultProblemGroups implements ProblemGroupsInternal {
     @Override
     public ProblemId canonical(ProblemId id) {
         List<ProblemGroup> rootToLeaf = new ArrayList<>();
-        for (ProblemGroup current = id.getGroup(); current != null; current = current.getParent()) {
-            rootToLeaf.add(0, current);
+        for (ProblemGroupInternal current = ProblemGroupInternal.of(id.getGroup()); current != null; current = current.getParentInternal()) {
+            // every Gradle-owned implementation extends ProblemGroup
+            rootToLeaf.add(0, (ProblemGroup) current);
         }
         ProblemGroup canonicalParent = null;
         boolean changed = false;
@@ -178,13 +179,13 @@ public final class DefaultProblemGroups implements ProblemGroupsInternal {
                 if (predefined != null) {
                     canonicalGroup = predefined;
                 } else if (changed) {
-                    canonicalGroup = new DefaultProblemGroup(group.getName(), group.getDisplayName(), canonicalParent);
+                    canonicalGroup = new DefaultProblemGroup(group.getName(), ProblemGroupInternal.displayNameOf(group), canonicalParent);
                 }
             }
             changed |= canonicalGroup != group;
             canonicalParent = canonicalGroup;
         }
-        return changed ? new DefaultProblemId(id.getName(), id.getDisplayName(), Objects.requireNonNull(canonicalParent)) : id;
+        return changed ? new DefaultProblemId(id.getName(), DefaultProblemId.displayNameOf(id), Objects.requireNonNull(canonicalParent)) : id;
     }
 
     @Nullable

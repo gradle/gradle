@@ -112,6 +112,7 @@ dependencies {
     }
 
     integTestImplementation(projects.cli)
+    integTestImplementation(projects.groovyDsl)
     integTestImplementation(projects.ide)
     integTestImplementation(projects.jvmServices)
     integTestImplementation(projects.launcher)

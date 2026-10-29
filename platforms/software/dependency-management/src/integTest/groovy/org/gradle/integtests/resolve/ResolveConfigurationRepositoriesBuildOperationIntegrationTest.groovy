@@ -29,6 +29,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     @SuppressWarnings("GroovyUnusedDeclaration")
     def operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
+    def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
+    }
+
     def "repositories used when resolving project configurations are exposed via build operation (repo: #repo)"() {
         setup:
         executer.beforeExecute { executer.withPluginRepositoryMirrorDisabled() }

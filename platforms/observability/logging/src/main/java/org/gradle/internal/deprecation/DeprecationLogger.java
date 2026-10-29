@@ -17,6 +17,7 @@ package org.gradle.internal.deprecation;
 
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.LegacyProblemIdentityUsage;
 import org.gradle.internal.Factory;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -66,10 +67,12 @@ public class DeprecationLogger {
 
     public synchronized static void init(WarningMode warningMode, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter, Problems problemsService, ProblemStream problemStream) {
         DEPRECATED_FEATURE_HANDLER.init(warningMode, buildOperationProgressEventEmitter, problemsService, problemStream);
+        LegacyProblemIdentityUsage.install(new LegacyProblemIdentityDeprecationListener());
         initialized = true;
     }
 
     public synchronized static void reset() {
+        LegacyProblemIdentityUsage.uninstall();
         DEPRECATED_FEATURE_HANDLER.reset();
     }
 

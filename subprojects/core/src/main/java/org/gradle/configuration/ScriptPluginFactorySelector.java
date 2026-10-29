@@ -29,13 +29,11 @@ import org.gradle.scripts.ScriptingLanguage;
 
 /**
  * Selects a {@link ScriptPluginFactory} suitable for handling a given build script based
- * on its file name. Build script file names ending in ".gradle" are supported by the
- * {@link DefaultScriptPluginFactory}. Other files are delegated to the first available
- * matching implementation of the {@link ScriptingLanguage} SPI. If no provider
- * implementations matches for a given file name, handling falls back to the
- * {@link DefaultScriptPluginFactory}. This approach allows users to name build scripts
- * with a suffix of choice, e.g. "build.groovy" or "my.build" instead of the typical
- * "build.gradle" while preserving default behaviour which is to fallback to Groovy support.
+ * on its file name. Each file is delegated to the provider of the first matching
+ * {@link ScriptingLanguage} in {@link ScriptingLanguages}. If no scripting language matches
+ * a given file name, handling falls back to {@link ScriptingLanguages#defaultLanguage()},
+ * the Groovy DSL. This approach allows users to name build scripts with a suffix of choice,
+ * e.g. "build.groovy" or "my.build" instead of the typical "build.gradle".
  *
  * This factory wraps each {@link ScriptPlugin} implementation in a {@link BuildOperationScriptPlugin}.
  *
@@ -78,20 +76,17 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
         };
     }
 
-    private final ScriptPluginFactory defaultScriptPluginFactory;
     private final ProviderInstantiator providerInstantiator;
     private final BuildOperationRunner buildOperationRunner;
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final ScriptSourceListener scriptSourceListener;
 
     public ScriptPluginFactorySelector(
-        ScriptPluginFactory defaultScriptPluginFactory,
         ProviderInstantiator providerInstantiator,
         BuildOperationRunner buildOperationRunner,
         UserCodeApplicationContext userCodeApplicationContext,
         ScriptSourceListener scriptSourceListener
     ) {
-        this.defaultScriptPluginFactory = defaultScriptPluginFactory;
         this.providerInstantiator = providerInstantiator;
         this.buildOperationRunner = buildOperationRunner;
         this.userCodeApplicationContext = userCodeApplicationContext;
@@ -113,13 +108,10 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
         for (ScriptingLanguage scriptingLanguage : ScriptingLanguages.all()) {
             if (fileName.endsWith(scriptingLanguage.getExtension())) {
                 String provider = scriptingLanguage.getProvider();
-                if (provider != null) {
-                    return instantiate(provider);
-                }
-                return defaultScriptPluginFactory;
+                return instantiate(provider);
             }
         }
-        return defaultScriptPluginFactory;
+        return instantiate(ScriptingLanguages.defaultLanguage().getProvider());
     }
 
     private ScriptPluginFactory instantiate(String provider) {

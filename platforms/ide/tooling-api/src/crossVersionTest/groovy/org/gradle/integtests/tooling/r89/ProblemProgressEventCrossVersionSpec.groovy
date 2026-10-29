@@ -159,11 +159,11 @@ class ProblemProgressEventCrossVersionSpec extends ToolingApiSpecification {
         then:
         problems.size() == 1
         verifyAll(problems[0]) {
-            definition.id.name == 'id'
+            definition.id.name == (ProblemsApiGroovyScriptUtils.hasPredefinedGroups(targetVersion) ? 'shortProblemMessage' : 'id')
             definition.id.displayName == 'shortProblemMessage'
-            definition.id.group.name == 'generic'
+            definition.id.group.name == (ProblemsApiGroovyScriptUtils.hasPredefinedGroups(targetVersion) ? 'Generic' : 'generic')
             definition.id.group.displayName == 'Generic'
-            definition.id.group.parent == null
+            definition.id.group.parent?.name == (ProblemsApiGroovyScriptUtils.hasPredefinedGroups(targetVersion) ? 'Others' : null)
             definition.severity == Severity.WARNING
             definition.documentationLink?.url == expecteDocumentation
             details?.details == expectedDetails

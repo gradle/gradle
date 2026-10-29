@@ -188,7 +188,7 @@ The Configuration Cache is automatically invalidated when inputs to the configur
 However, some inputs are not yet tracked, meaning you may need to manually invalidate the cache when untracked inputs change.
 This is more likely if you have <<configuration_cache_enabling.adoc#config_cache:usage:ignore_problems,ignored problems>>.
 
-See the <<configuration_cache_requirements.adoc#config_cache:requirements>> and <<configuration_cache_status.adoc#config_cache:not_yet_implemented>> sections for more details.
+See the <<configuration_cache_requirements.adoc#config_cache:requirements,Configuration Cache requirements>> and <<configuration_cache_status.adoc#config_cache:not_yet_implemented,Not Yet Implemented>> sections for more details.
 
 The Configuration Cache state is stored in a `.gradle/configuration-cache` directory in the root of your Gradle build.
 

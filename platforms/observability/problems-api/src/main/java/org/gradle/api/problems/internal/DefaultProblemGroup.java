@@ -36,6 +36,7 @@ public class DefaultProblemGroup extends ProblemGroup implements ProblemGroupInt
         this(groupId, displayName, null);
     }
 
+    @SuppressWarnings("deprecation") // only Gradle may subclass
     public DefaultProblemGroup(String name, String displayName, @Nullable ProblemGroup parent) {
         validateFields(name, displayName);
         this.name = TextUtil.replaceLineSeparatorsOf(name, "");
@@ -56,7 +57,7 @@ public class DefaultProblemGroup extends ProblemGroup implements ProblemGroupInt
             return group;
         }
         // the constructor copies the parent chain
-        return new DefaultProblemGroup(group.getName(), group.getDisplayName(), group.getParent());
+        return new DefaultProblemGroup(group.getName(), ProblemGroupInternal.displayNameOf(group), ProblemGroupInternal.parentOf(group));
     }
 
     private static void validateFields(String name, String displayName) {
@@ -74,13 +75,22 @@ public class DefaultProblemGroup extends ProblemGroup implements ProblemGroupInt
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_DISPLAY_NAME);
+        return displayName;
+    }
+
+    @Override
+    public String getDisplayNameInternal() {
         return displayName;
     }
 
     @Nullable
     @Override
+    @Deprecated
     public ProblemGroup getParent() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_PARENT);
         // every Gradle-owned implementation extends ProblemGroup
         return (ProblemGroup) parent;
     }

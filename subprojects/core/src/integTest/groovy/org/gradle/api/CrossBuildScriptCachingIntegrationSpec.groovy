@@ -48,6 +48,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
     private TestFile homeDirectory = testDirectoryProvider.getTestDirectory().file("user-home")
 
     def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
         executer.requireOwnGradleUserHomeDir()
         root = new FileTreeBuilder(testDirectory)
         cachesDir = new File(homeDirectory, 'caches')

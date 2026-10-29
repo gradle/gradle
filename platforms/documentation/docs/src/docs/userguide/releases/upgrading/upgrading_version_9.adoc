@@ -84,12 +84,12 @@ It does this by implementing the internal `org.gradle.internal.exceptions.Resolu
 
 This matters only if you had already subclassed `GradleException`, or one of its public subtypes:
 
-* If you directly implemented `ResolutionProvider` on a subclass yourself, you no longer need to as the interface is inherited.
+* If you directly implemented `ResolutionProvider` on a subclass yourself, you no longer need to, because `GradleException` already implements it.
 * If you added a `getResolutions()` method to a subtype that returns anything other than `List<String>`, this no longer compiles.
-* Similarly, if you added a `addResolution(String)` or `clearResolutions()` method to subtypes, they must return `void`.
+* Similarly, if you added an `addResolution(String)` or `clearResolutions()` method to subtypes, they must return `void`.
 * Custom implementations of `addResolution(String)`, `getResolutions()`, `clearResolutions()` should honor the implicit contract between these methods.
 
-Subclasses of `ResolveException` and `ProjectConfigurationException` additionally can no longer override `getResolutions()`.
+Subclasses of `ResolveException` and `ProjectConfigurationException` also can no longer override `getResolutions()`.
 Those types combine the resolutions added to them directly with the ones contributed by their causes, and an override would silently discard the former.
 Add resolutions to these types with `addResolution(String)` instead.
 
@@ -120,12 +120,12 @@ These APIs are intentionally focused on testing use cases.
 If you extract the report data for other purposes, please comment on these issues and describe your use case.
 
 [[deprecation_problem_ids_moved_to_predefined_groups]]
-==== Deprecation problem ids moved to the predefined problem groups
+==== Deprecation problem IDs moved to the predefined problem groups
 
 Gradle's deprecation warnings now report into the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>>, in the `Gradle > Deprecation` group reserved for them, instead of the legacy `deprecation` group.
-A deprecation is now named after the kind of feature being deprecated, instead of a slug derived from its message.
+A deprecation is now named after the kind of feature being deprecated, instead of a slug derived from its message or subject.
 Details of the usage, such as the name of a task or a configuration, no longer appear in the name; they remain in the problem's contextual label.
-One id therefore now covers every deprecation of the same kind:
+One ID therefore now covers every deprecation of the same kind:
 
 [cols="1,1"]
 |===
@@ -147,16 +147,16 @@ One id therefore now covers every deprecation of the same kind:
 |`Gradle:Deprecation:Implicit lookup of methods in parent projects`
 |===
 
-This affects Tooling API clients, Build Scans, and any tooling that matches problems by id.
+This affects Tooling API clients, Build Scans, and any tooling that matches problems by ID.
 Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
 Matching on the text of a deprecation now means matching the contextual label rather than the name.
 The messages of these deprecations, their solutions, and their documentation links are unchanged.
 
 [[compilation_problem_ids_moved_to_predefined_groups]]
-==== Compilation problem ids moved to the predefined problem groups
+==== Compilation problem IDs moved to the predefined problem groups
 
 Gradle's own compilation problems now report into the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>> instead of the legacy `compilation` groups.
-Both the group and the name of these problem ids changed:
+Both the group and the name of these problem IDs changed:
 
 [cols="1,1"]
 |===
@@ -175,16 +175,21 @@ Both the group and the name of these problem ids changed:
 |`Gradle:DSL Evaluation:Script compilation failed`
 |===
 
-This affects Tooling API clients, Build Scans, and any tooling that matches problems by id.
+This affects Tooling API clients, Build Scans, and any tooling that matches problems by ID.
 Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
 
 The console heading for a failed compiler start changes accordingly, from `Java compilation initialization error` to `Compiler initialization failed`.
 
 [[dependency_problem_ids_moved_to_predefined_groups]]
-==== Dependency problem ids moved to the predefined problem groups
+==== Dependency problem IDs moved to the predefined problem groups
 
 Gradle's own version catalog and dependency resolution problems now report into the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>> instead of the legacy `dependency-version-catalog` and `dependency-variant-resolution` groups.
-Version catalog problems report into `Dependencies > Declaration`, failures while resolving the dependency graph, such as selecting a version, a variant, or a capability, into `Dependencies > Graph Resolution`, and artifact selection failures into `Dependencies > Artifact Resolution`.
+They report into these groups:
+
+* Version catalog problems: `Dependencies > Declaration`.
+* Failures while resolving the dependency graph, such as selecting a version, a variant, or a capability: `Dependencies > Graph Resolution`.
+* Artifact selection failures: `Dependencies > Artifact Resolution`.
+
 Each problem is now named by its former display name, and the names of version catalog problems mention the version catalog.
 
 [cols="1,1"]
@@ -291,13 +296,13 @@ Each problem is now named by its former display name, and the names of version c
 |`Dependencies:Graph Resolution:Unknown resolution failure`
 |===
 
-This affects Tooling API clients, Build Scans, and any tooling that matches problems by id.
+This affects Tooling API clients, Build Scans, and any tooling that matches problems by ID.
 Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
 
 The display name of the ambiguous artifact transform failure is corrected from `Multiple artifacts transforms exist that would satisfy the request` to `Multiple artifact transforms exist that would satisfy the request`.
 
 [[validation_problem_ids_moved_to_predefined_groups]]
-==== Validation problem ids moved to the predefined problem groups
+==== Validation problem IDs moved to the predefined problem groups
 
 Gradle's own validation problems now report into the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>> instead of the legacy `validation:property-validation`, `validation:type-validation` and `scripts:dcl-schema` groups.
 Problems about input, output, and caching annotations report into `Gradle > Plugin Validation`.
@@ -497,14 +502,14 @@ Each problem is now named by its former display name, with a few names reworded 
 |===
 
 The two `ValidatePlugins` problems about the Java toolchain were reported directly into the legacy `validation` group.
-`annotation-invalid-in-context`, `incompatible-annotations` and `conflicting-annotations` existed in both legacy validation groups and are now one problem id each.
+`annotation-invalid-in-context`, `incompatible-annotations` and `conflicting-annotations` existed in both legacy validation groups and are now one problem ID each.
 
-This affects Tooling API clients, Build Scans, and any tooling that matches problems by id.
+This affects Tooling API clients, Build Scans, and any tooling that matches problems by ID.
 Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
 The messages of these problems, their solutions, and their documentation links are unchanged.
 
 [[runtime_problem_ids_moved_to_predefined_groups]]
-==== Runtime problem ids moved to the predefined problem groups
+==== Runtime problem IDs moved to the predefined problem groups
 
 The remaining problems Gradle reports now use the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>>, and the legacy groups `configuration-usage`, `daemon-toolchain`, `jvm-toolchain`, `packaging`, `plugin-application`, `problems-api`, `scripts`, `task-selection` and `validation` are gone.
 Problems with the requested tasks report into `Gradle > Invocation`.
@@ -513,7 +518,8 @@ Problems with the configured build, such as a reserved configuration name, a pro
 Problems with how build logic uses the build model, including the contract of project features and misuse of the Problems API itself, report into `Gradle > Build Logic`.
 JVM toolchain problems report into `Provisioning > Tools and Toolchains` and signing problems into `Packaging > Signing`.
 For the full set of groups Gradle reports into, see <<reporting_problems.adoc#sec:groups_gradle_reports_into,Groups Gradle reports into>>.
-Each problem is now named by its former display name, with a few exceptions:
+Each problem is now named by its former display name, or by a reworded name that describes the problem, as listed in the table below.
+The most notable changes are:
 
 * Configuration Cache and Isolated Projects problems are named after the kind of problem, for example `Error writing value` or `Cross-project model access`, instead of the message in kebab case.
   Details such as types, members, and projects no longer appear in the name; they remain in the problem's contextual label.
@@ -615,7 +621,7 @@ Each problem is now named by its former display name, with a few exceptions:
 |`Gradle:Isolated Projects:<kind of problem>`, for example `Gradle:Isolated Projects:Cross-project model access`
 |===
 
-This affects Tooling API clients, Build Scans, and any tooling that matches problems by id.
+This affects Tooling API clients, Build Scans, and any tooling that matches problems by ID.
 Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
 The messages of these problems, their solutions, and their documentation links are unchanged.
 
@@ -634,9 +640,9 @@ Gradle now keeps the evaluated settings and selects the root project for the bui
 
 Two consequences are worth checking when you upgrade:
 
-1. A build that silently ignored its settings file now uses it.
+* A build that silently ignored its settings file now uses it.
 Configuration problems that were never reached before can surface.
-2. `beforeSettings`, `settingsEvaluated` and the `Evaluate settings` build operation each fired twice in the affected case and now fire once.
+* `beforeSettings`, `settingsEvaluated` and the `Evaluate settings` build operation each fired twice in the affected case and now fire once.
 Init scripts and build operation consumers that observed the second firing will see one.
 
 [[gradle_in_non_project_directory]]
@@ -674,18 +680,19 @@ Running `gradle init` in the directory creates one for you.
 
 Two cases are unaffected:
 
-1. Running Gradle in a directory with no settings or build script anywhere in its parent hierarchy still reports an undefined build and still suggests `gradle init`.
-2. Running `gradle init` in a directory inside an existing build still creates a new build there.
+* Running Gradle in a directory with no settings or build script anywhere in its parent hierarchy still reports an undefined build and still suggests `gradle init`.
+* Running `gradle init` in a directory inside an existing build still creates a new build there.
 
 [[required_input_files_absent_nested_providers]]
 ==== Required input file properties reject absent providers nested in collections
 
 Required task input file properties now fail validation when a provider nested in a plain collection or array (such as a `List` passed to link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#files(java.lang.Object++...++)[`TaskInputs.files(...)`]) has no value.
+Previously, Gradle silently ignored such absent providers.
 This applies to `TaskInputs.files(...)` declarations and to required link:{javadocPath}/org/gradle/api/tasks/InputFiles.html[`@InputFiles`] properties whose value is such a collection or array.
 Gradle reports the failure as the <<validation_problems.adoc#value_not_set, Required value isn't set>> validation problem.
 
 Passing several providers as varargs, such as `inputs.files(providerA, providerB)`, was ignored in the same way.
-The collection and varargs forms now fail just like the direct form:
+The collection and varargs forms now fail just like the direct form when the task runs:
 
 [source,kotlin]
 .build.gradle.kts
@@ -695,11 +702,13 @@ val absent = objects.fileProperty() // no value configured
 // Failed before this change, and still fails
 tasks.register("direct") {
     inputs.files(absent).withPropertyName("p")
+    doLast { }
 }
 
 // Succeeded before this change, silently resolving to an empty collection; now fails
 tasks.register("wrapped") {
     inputs.files(listOf(absent)).withPropertyName("p")
+    doLast { }
 }
 ----
 
@@ -768,14 +777,84 @@ In general, the `ResolvedConfiguration`, `LenientConfiguration`, `ResolvedDepend
 They are not compatible with the <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types,Configuration Cache>> and, unlike the modern APIs, do not carry the task dependencies required to build the artifacts they return.
 Prefer the `ResolutionResult`, `ArtifactView`, link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`], and link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[`ArtifactCollection`] APIs, described in <<artifact_resolution.adoc#sec:available_apis,Artifact Resolution>>.
 
+[[wrapper_preserves_existing_properties]]
+==== The `wrapper` task preserves existing wrapper properties
+
+When the link:{groovyDslPath}/org.gradle.api.tasks.wrapper.Wrapper.html[`wrapper`] task regenerates an existing `gradle-wrapper.properties` file, it now keeps the values already in that file instead of resetting them to defaults.
+This applies to the distribution type (`bin` or `all`), `distributionBase`, `distributionPath`, `zipStoreBase`, `zipStorePath`, `networkTimeout`, `validateDistributionUrl`, `retries`, and `retryBackOffMs`.
+Values configured on the task or passed on the command line still take precedence.
+
+For example, given this existing file:
+
+[source,properties]
+.gradle/wrapper/gradle-wrapper.properties
+----
+distributionUrl=https\://services.gradle.org/distributions/gradle-9.8.0-all.zip
+networkTimeout=60000
+----
+
+Running `./gradlew wrapper --gradle-version 9.9.0` previously wrote a `-bin.zip` URL and `networkTimeout=10000`.
+It now writes a `-all.zip` URL and keeps `networkTimeout=60000`.
+
+This changes the result for builds and scripts that relied on regeneration to reset these values:
+
+* A single `--no-validate-url` run now disables URL validation until you run the task again with `--validate-url`.
+* An invalid value in the existing file, such as a non-numeric `networkTimeout`, now fails the task with `Invalid value '<value>' for property '<name>'`.
+Previously, the task ignored it and overwrote it with the default.
+* A `Wrapper` task that you register yourself now writes the default `networkTimeout`, `retries`, and `retryBackOffMs` when you don't configure them.
+Previously, only the built-in `wrapper` task wrote these defaults.
+
+To set a value explicitly, pass the matching option, for example `--distribution-type bin`, `--network-timeout 10000`, or `--validate-url`, or configure the property on the task.
+The `distributionUrl` is regenerated for the requested Gradle version, so a custom host is not preserved; pass `--gradle-distribution-url` to keep one.
+
+See <<gradle_wrapper.adoc#sec:preserving_wrapper_properties,Preserving Existing Wrapper Properties>> for details.
+
 === Deprecations
 
 [[deprecated_update_daemon_jvm_task_configuration_problem_id]]
 ==== Deprecation of `UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID`
 
-Gradle no longer reports problems with the id `UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID`.
-The `updateDaemonJvm` task reports its configuration problems in `Provisioning > Tools and Toolchains`, as `No toolchain download repositories configured` and `Daemon JVM toolchain not resolvable for requested platforms`, see <<runtime_problem_ids_moved_to_predefined_groups,Runtime problem ids moved to the predefined problem groups>>.
+Gradle no longer reports problems with the ID `UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID`.
+The `updateDaemonJvm` task reports its configuration problems in `Provisioning > Tools and Toolchains`, as `No toolchain download repositories configured` and `Daemon JVM toolchain not resolvable for requested platforms`.
+For details, see <<runtime_problem_ids_moved_to_predefined_groups,Runtime problem IDs moved to the predefined problem groups>>.
 The constant is deprecated and will be removed in Gradle 10.
+
+[[problems_api_legacy_identity]]
+==== Deprecation of the legacy problem identity API
+
+The incubating Problems API provides a <<reporting_problems.adoc#sec:predefined_problem_groups,predefined hierarchy of problem groups>>, available from the `Problems` service as `problems.groups`.
+The API that builds or reads problem identity outside that hierarchy is deprecated.
+`ProblemGroup.create()` and `ProblemId.create()` will be removed in Gradle 11.
+`getDisplayName()` on `ProblemGroup` and `ProblemId` and `ProblemGroup.getParent()` will be removed in Gradle 10, and Gradle 10 will not support subclassing `ProblemGroup` or `ProblemId`.
+Plugins that use any of it get a compiler warning.
+Calling the deprecated getters on Gradle's groups and IDs, or subclassing `ProblemGroup` or `ProblemId`, also emits a deprecation warning when the build runs.
+Like every deprecation, the warning fails the build under `--warning-mode=fail`.
+
+Create the group from the predefined hierarchy and the ID from the group:
+
+[source,kotlin]
+----
+// before
+val group = ProblemGroup.create("sample-group", "Sample Group")
+val id = ProblemId.create("missing-recipient", "Recipient not set", group)
+
+// after
+val group = problems.groups.others.group("Sample Group")
+val id = group.problemId("Recipient not set")
+----
+
+Pick the predefined root group that matches what the problem is about, for example `problems.groups.compilation`, and create a sub-group of it or report into one of its predefined sub-groups; `others` is for problems that fit no other root.
+The name of a predefined ID is also its display name, and group names are limited to letters, digits, spaces and the characters `-_.+/&'#`.
+
+Use `getName()` instead of `getDisplayName()`, both in the Problems API and in the Tooling API (`org.gradle.tooling.events.problems`).
+Until Gradle 10, `getName()` returns the display name given to `ProblemGroup.create()` or `ProblemId.create()`, and the name for groups and IDs from the predefined hierarchy.
+Gradle 10 will still send a display name, equal to the name, to Tooling API clients of earlier versions, so those clients keep working.
+A plugin that subclasses `ProblemGroup` or `ProblemId` must still implement `getDisplayName()`; mark the implementation `@Deprecated` to avoid the compiler warning.
+
+`ProblemGroup.getParent()` in the Problems API has no replacement.
+The groups from `problems.groups` have a fixed place in the predefined hierarchy, so plugins have no need to walk it.
+A plugin that subclasses `ProblemGroup` must still implement `getParent()` until Gradle 10; mark the implementation `@Deprecated` as well.
+The Tooling API `ProblemGroup.getParent()` is not deprecated, as clients use it to show the group hierarchy.
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]
 ==== Deprecation of restricting the `KotlinDslScriptsModel` to explicit scripts
@@ -917,7 +996,7 @@ val greeting = providers.of(Greeting::class) {
 }
 ----
 
-A value source that needs to run an external process injects link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] into the `ValueSource` implementation itself, as described in <<configuration_cache_requirements.adoc#config_cache:requirements:value_source,Using External Information Sources>>.
+To run an external process from a value source, inject link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] into the `ValueSource` implementation itself, as described in <<configuration_cache_requirements.adoc#config_cache:requirements:value_source,Using External Information Sources>>.
 
 [[version_catalog_plugin_non_required_versions]]
 ==== Deprecation of non-required versions for plugins in a version catalog
@@ -1000,7 +1079,9 @@ Otherwise, implement a `java.io.FilterReader` and pass it to `filter(Map, Class)
 
 ===== Manually adding Ant to the script classpath
 
-If you want to keep using Ant's filters, add Ant to the classpath of your build logic.
+This is a migration path for Gradle 10.
+Builds running on Gradle 9.x need no change.
+When you upgrade to Gradle 10 and want to keep using Ant's filters, add Ant to the classpath of your build logic.
 If your build uses convention plugins, add Ant as a dependency of the build that contains them, for example with `implementation("org.apache.ant:ant:1.10.17")`.
 Otherwise, add Ant to the `classpath` configuration in the `buildscript` block of your build script:
 
@@ -1053,8 +1134,7 @@ tasks.register("processTemplates", Copy) {
 =====
 ====
 
-NOTE: Before Gradle 10, this puts a second copy of Ant on the build script classpath, and Gradle's own copy of the Ant classes is used.
-Only depend on Ant directly like this starting with Gradle 10.
+NOTE: Before Gradle 10, this puts a second copy of Ant on the build script classpath, and Gradle's own copy of the Ant classes takes precedence.
 
 [[deprecated_ant_builder]]
 ==== Deprecation of the Ant integration
@@ -1091,7 +1171,7 @@ You can also put the tool on the classpath of your build logic and call its Java
 [[run_ant_as_a_separate_process]]
 ===== Run Ant as a separate process
 
-If the tool you want to run has no entry point other than an Ant task, you can execute Ant in a separate Java process in a Task.
+If the tool you want to run has no entry point other than an Ant task, you can execute Ant in a separate Java process in a task.
 First, declare configurations for Ant and the tool you want to execute.
 Then, register the task that executes Ant, using the resolvable configuration as its classpath.
 
@@ -1201,6 +1281,18 @@ public abstract class GenerateJaxbClasses extends DefaultTask {
     }
 }
 ----
+
+[[legacy_dependency_lock_format]]
+==== Deprecation of the legacy dependency lock file format
+
+Before Gradle 6.4, <<dependency_locking.adoc#locking-versions,dependency locking>> stored lock state in a separate file per locked configuration, located in the `gradle/dependency-locks` directory under that configuration's project directory.
+Since Gradle 6.4, lock state has been stored in a single `gradle.lockfile` per project, but Gradle has continued to read lock state stored in the legacy format.
+
+Loading lock state from legacy lock files is now deprecated.
+Starting in Gradle 10, Gradle will no longer read legacy lock files.
+
+To migrate, regenerate the lock state with `--write-locks` or `--update-locks`, as described in <<dependency_locking.adoc#sec:migrate-single-lockfile,Migrating your legacy lockfile>>.
+Only configurations resolved by that build are migrated, so make sure every locked configuration is resolved, including those of subprojects and build script classpaths (`buildEnvironment --write-locks`).
 
 [[changes_9.8.0]]
 == Upgrading from 9.7.0 and earlier

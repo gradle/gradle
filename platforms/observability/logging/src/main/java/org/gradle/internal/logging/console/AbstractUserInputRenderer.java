@@ -51,6 +51,9 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
 
     static final int MEMORY_QUEUE_LIMIT = 2_500;
 
+    // At most one clock event per second is held, as the work in progress is timed in whole seconds
+    private static final long HELD_CLOCK_EVENT_INTERVAL_MILLIS = 1_000;
+
     protected final OutputEventListener delegate;
     private final GlobalUserInputReceiver userInput;
     private final TemporaryFileProvider temporaryFileProvider;
@@ -62,6 +65,8 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
     private int overflowEventCount;
     private boolean paused;
     private boolean overflowFailed;
+    private boolean eventsSinceClockEvent;
+    private long lastHeldClockEventTimestamp;
 
     public AbstractUserInputRenderer(OutputEventListener delegate, GlobalUserInputReceiver userInput, TemporaryFileProvider temporaryFileProvider) {
         this.delegate = delegate;
@@ -90,16 +95,31 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
         }
 
         if (paused) {
-            if (event instanceof UpdateNowEvent
-                || event instanceof FlushOutputEvent
-                || event instanceof EndOutputEvent) {
+            if (event instanceof UpdateNowEvent) {
+                maybeHoldClockEvent((UpdateNowEvent) event);
+                return;
+            }
+            if (event instanceof FlushOutputEvent || event instanceof EndOutputEvent) {
                 return;
             }
             bufferEvent(event);
+            eventsSinceClockEvent = true;
             return;
         }
 
+        // Also outside a prompt, as the events received just before a prompt can still wait for a clock event
+        eventsSinceClockEvent = !(event instanceof UpdateNowEvent);
         delegate.onOutput(event);
+    }
+
+    // A clock event is held after events that wait for one, so that these events are timed close to when they were received.
+    // The work in progress, for example, is timed with the first clock event after its start.
+    private void maybeHoldClockEvent(UpdateNowEvent event) {
+        if (eventsSinceClockEvent && event.getTimestamp() >= lastHeldClockEventTimestamp + HELD_CLOCK_EVENT_INTERVAL_MILLIS) {
+            bufferEvent(event);
+            eventsSinceClockEvent = false;
+            lastHeldClockEventTimestamp = event.getTimestamp();
+        }
     }
 
     private void bufferEvent(OutputEvent event) {
@@ -155,6 +175,7 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
     private void handleUserInputRequestEvent() {
         startInput();
         paused = true;
+        lastHeldClockEventTimestamp = Long.MIN_VALUE;
     }
 
     private void handleUserInputResumeEvent(UserInputResumeEvent event) {
