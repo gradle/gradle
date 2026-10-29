@@ -156,6 +156,43 @@ abstract class AbstractConsoleConfigurationProgressFunctionalTest extends Abstra
         gradle.waitForFinish()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39634")
+    def "shows the path of the build when its init scripts are run"() {
+        def initScript = file("init.gradle") << """
+            ${server.callFromBuild('init-script')}
+        """
+        settingsFile << """
+            includeBuild "child"
+        """
+        buildFile << """
+            task hello {
+                dependsOn gradle.includedBuild("child").task(":hello")
+            }
+        """
+        createDirs("child")
+        file("child/build.gradle") << """
+            task hello
+        """
+
+        given:
+        def rootInitScript = server.expectAndBlock('init-script')
+        def childInitScript = server.expectAndBlock('init-script')
+        gradle = executer.usingInitScript(initScript).withTasks("hello").start()
+
+        expect:
+        rootInitScript.waitForAllPendingCalls()
+        assertHasWorkInProgress("Running init scripts")
+        rootInitScript.releaseAll()
+
+        and:
+        childInitScript.waitForAllPendingCalls()
+        assertHasWorkInProgress(":child > Running init scripts")
+        childInitScript.releaseAll()
+
+        and:
+        gradle.waitForFinish()
+    }
+
     def "shows work in progress with buildSrc build"() {
         buildFile << """
             ${server.callFromBuild('root-build-script')}

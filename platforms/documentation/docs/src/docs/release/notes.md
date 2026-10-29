@@ -93,7 +93,8 @@ This work is now shown on worker lines:
 * After the last task: [flow actions](userguide/dataflow_actions.html), the `close()` method of [build services](userguide/build_services.html), and the write operations for dependency locks and dependency verification metadata.
 * During a task: the work actions of the task, such as the ones submitted with the [Worker API](userguide/worker_api.html). When a task has more than one work action, each work action in progress is shown on its own line. The number of completed work actions is shown on the line of the task, as for test tasks.
 
-On some lines of an included build, the path of the build is put first, as in `> :lib > Running projects evaluated listeners`.
+On most lines of an included build or of a `buildSrc` build, the path of the build is put before the work, as in `> :lib > Evaluating settings`.
+Before, no build was shown for the settings, the loading of the projects and the init scripts of an included build or of a `buildSrc` build.
 
 More information is also shown on each worker line:
 

@@ -815,7 +815,7 @@ Below the status bar, the work in progress is shown on worker lines, one line fo
 * The work actions of a task, such as the ones submitted with the <<worker_api.adoc#worker_api,Worker API>>, when the task has more than one work action.
   The number of completed work actions is then shown on the line of the task.
 
-On some lines of an included build, the path of the build is put first, as in `> :lib > Building task graph`.
+On most lines of an included build or of a `buildSrc` build, the path of the build is put before the work, as in `> :lib > Evaluating settings`.
 When no work is in progress on a line, `> IDLE` is shown.
 
 After 10 seconds of work on a line, the time since the start of this work is shown at the end of the line, when it fits next to a part of the message of this work.

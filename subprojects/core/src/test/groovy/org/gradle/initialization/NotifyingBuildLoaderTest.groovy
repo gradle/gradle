@@ -37,26 +37,8 @@ class NotifyingBuildLoaderTest extends Specification {
     def loader = new NotifyingBuildLoader(Stub(BuildLoader), buildOperationRunner, Stub(BuildOperationProgressEventEmitter))
 
     def "shows the projects loaded listeners of the #build on a worker line"() {
-        given:
-        def rootProject = Stub(ProjectState) {
-            getIdentity() >> ProjectIdentity.forRootProject(buildPath, "root")
-            getProjectDir() >> new File("root")
-            getMutableModel() >> Stub(ProjectInternal) {
-                getBuildFile() >> new File("root/build.gradle")
-            }
-        }
-        def gradle = Stub(GradleInternal) {
-            getIdentityPath() >> buildPath
-            getOwner() >> Stub(BuildState) {
-                getOwnerToShow() >> ownerToShow
-                getProjects() >> Stub(BuildProjectRegistry) {
-                    getRootProject() >> rootProject
-                }
-            }
-        }
-
         when:
-        loader.load(Stub(SettingsInternal), gradle)
+        loader.load(Stub(SettingsInternal), gradle(buildPath, ownerToShow))
 
         then:
         def notify = buildOperationRunner.log.mostRecent(NotifyProjectsLoadedBuildOperationType)
@@ -67,5 +49,40 @@ class NotifyingBuildLoaderTest extends Specification {
         build            | buildPath         | ownerToShow | displayName
         "root build"     | Path.ROOT         | null        | "Notify projectsLoaded listeners"
         "included build" | Path.path(":lib") | ":lib"      | "Notify projectsLoaded listeners (:lib)"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39634")
+    def "shows the loading of the projects of the #build on a worker line"() {
+        when:
+        loader.load(Stub(SettingsInternal), gradle(buildPath, ownerToShow))
+
+        then:
+        def load = buildOperationRunner.log.mostRecent(LoadProjectsBuildOperationType)
+        load.descriptor.displayName == displayName
+        load.descriptor.progressDisplayName == ProgressDisplayName.of(ownerToShow, "Loading projects")
+
+        where:
+        build            | buildPath         | ownerToShow | displayName
+        "root build"     | Path.ROOT         | null        | "Load projects"
+        "included build" | Path.path(":lib") | ":lib"      | "Load projects (:lib)"
+    }
+
+    private GradleInternal gradle(Path buildPath, String ownerToShow) {
+        def rootProject = Stub(ProjectState) {
+            getIdentity() >> ProjectIdentity.forRootProject(buildPath, "root")
+            getProjectDir() >> new File("root")
+            getMutableModel() >> Stub(ProjectInternal) {
+                getBuildFile() >> new File("root/build.gradle")
+            }
+        }
+        Stub(GradleInternal) {
+            getIdentityPath() >> buildPath
+            getOwner() >> Stub(BuildState) {
+                getOwnerToShow() >> ownerToShow
+                getProjects() >> Stub(BuildProjectRegistry) {
+                    getRootProject() >> rootProject
+                }
+            }
+        }
     }
 }
