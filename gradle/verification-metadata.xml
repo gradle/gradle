@@ -62,6 +62,7 @@
       <key-servers enabled="false"/>
       <trusted-artifacts>
          <trust group="gradle" name="gradle"/>
+         <trust group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" reason="Built from this checkout and unsigned when a build run by the Gradle under development uses it"/>
          <trust file=".*-javadoc[.]jar" regex="true"/>
          <trust file=".*-sources[.]jar" regex="true"/>
          <trust file=".*[.]pom" regex="true"/>
