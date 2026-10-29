@@ -38,10 +38,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
-
-import org.jetbrains.kotlin.config.JvmTarget
+import org.gradle.util.internal.VersionNumber
 
 final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegrationSpec {
+
     def 'can configure an extension using DependencyCollector in declarative DSL'() {
         given: "a plugin that creates a custom extension using a DependencyCollector"
         file("build-logic/src/main/java/com/example/restricted/DependenciesExtension.java") << defineDependenciesExtension()
@@ -1027,26 +1027,19 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
     }
 
     private static String defineRestrictedPluginBuild(boolean kotlin = false) {
+        String kgpVersion = new KotlinGradlePluginVersions().latest
         return """
             plugins {
                 id('java-gradle-plugin')
-                ${ if (kotlin) { 'id("org.jetbrains.kotlin.jvm") version("' + new KotlinGradlePluginVersions().latestStableOrRC + '")' } else { '' } }
+                ${ if (kotlin) { 'id("org.jetbrains.kotlin.jvm") version("' + kgpVersion + '")' } else { '' } }
             }
 
             ${mavenCentralRepository()}
 
             ${if (kotlin) {
-                def majorJavaVersion = JavaVersion.current().majorVersion
-                def jvmTarget = JvmTarget.fromString(majorJavaVersion)
-
-                if (jvmTarget == null) {
-                    if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
-                        jvmTarget = JvmTarget.JVM_1_8
-                    } else {
-                        jvmTarget = JvmTarget.entries.last()
-                    }
-                }
-                def lastSupportedVersion = jvmTarget.description
+                def maxJavaVersion = KotlinGradlePluginVersions.getMaximumJavaVersionFor(VersionNumber.parse(kgpVersion))
+                def javaVersion = maxJavaVersion != null && JavaVersion.current() > maxJavaVersion ? maxJavaVersion : JavaVersion.current()
+                def lastSupportedVersion = javaVersion == JavaVersion.VERSION_1_8 ? "1.8" : javaVersion.majorVersion
 
                 """
                 java {
