@@ -235,7 +235,15 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
         if (parallel) {
             executer.withArgument("--parallel")
         }
+        runTransformActionsOneAtATime()
         run(task)
+    }
+
+    /**
+     * Avoids a deadlock between transform actions running at the same time, which still needs to be addressed.
+     */
+    private void runTransformActionsOneAtATime() {
+        executer.withArgument("--max-workers=1")
     }
 
     /**
@@ -483,6 +491,7 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
         if (parallel) {
             executer.withArgument("--parallel")
         }
+        runTransformActionsOneAtATime()
         run(*tasks)
 
         then:
@@ -594,6 +603,7 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
 
         when:
         executer.expectDocumentedDeprecationWarning(DEPRECATION.replace("root project 'root'", "build ':'"))
+        runTransformActionsOneAtATime()
         run("help")
 
         then:
