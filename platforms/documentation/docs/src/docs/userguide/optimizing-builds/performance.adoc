@@ -314,6 +314,14 @@ image::performance/timeline-not-cacheable.png[title="Timeline screen with 'not c
 To identify optimization opportunities, sort tasks by duration in the timeline view.
 The Build Scan above reveals that `:task1` and `:task3` could be improved and made cacheable, while also explaining why Gradle didn’t cache them.
 
+[TIP]
+.Too many cache misses to fix by hand?
+====
+Develocity Build Caching Optimizer diagnoses cache misses from Build Scan data and opens a pull request with the fix.
+
+link:https://develocity.ai/product/build-caching-optimizer/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=performance-callout-build-caching-optimizer[See Build Caching Optimizer]
+====
+
 [[enable_configuration_cache]]
 == 5. Enable the Configuration Cache
 
@@ -747,6 +755,15 @@ image::performance/tests-longest.png[title="Tests screen, with tests by project,
 
 The image above shows the interactive test report from a Build Scan, sorted by test duration.
 
+[TIP]
+.Running the full test suite on every change?
+====
+Develocity Predictive Test Selection runs only the tests relevant to a change and skips the rest.
+A model trained on your build history selects the tests, and recently failed or flaky tests always run.
+
+link:https://develocity.ai/product/predictive-test-selection/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=performance-callout-predictive-test-selection[How Predictive Test Selection works]
+====
+
 Gradle offers several strategies to speed up test execution:
 
 * A. Run tests in parallel
@@ -771,6 +788,14 @@ include::sample[dir="snippets/optimizing-builds/parallelTestExecution/groovy",fi
 Parallel test execution assumes that tests are isolated.
 Avoid shared resources such as file systems, databases, or external services.
 Tests that share state or resources may fail intermittently due to race conditions or resource conflicts.
+
+[TIP]
+.Test parallelism capped by a single machine?
+====
+Develocity Test Distribution runs the tests of a single build across a shared pool of remote agents, both locally and on CI.
+
+link:https://develocity.ai/product/test-distribution/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=performance-callout-test-distribution[Learn about Test Distribution]
+====
 
 [[fork_tests_into_multiple_processes]]
 ==== B. Fork tests into multiple processes
