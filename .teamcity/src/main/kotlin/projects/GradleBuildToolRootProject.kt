@@ -31,9 +31,6 @@ class GradleBuildToolRootProject(
         }
 
         params {
-            // Kept as a parameter so that Isolated Projects can be switched off again for a single build
-            // or a whole dependency tree (`reverse.dep.*.enableIsolatedProjects=false`) without a settings change.
-            param("enableIsolatedProjects", "true")
             param("env.GRADLE_OPTS", "-Dorg.gradle.isolated-projects=false")
         }
     })

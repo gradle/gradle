@@ -90,7 +90,7 @@ class Gradleception(
         params {
             // Override the default commit id so the build steps produce reproducible distribution
             param("env.BUILD_COMMIT_ID", "HEAD")
-            param("enableIsolatedProjects", "false")
+            param("env.GRADLE_OPTS", "-Dorg.gradle.isolated-projects=false")
         }
 
         if (buildJvm.version != BuildToolBuildJvm.version) {
