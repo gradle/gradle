@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.kotlin.dsl.resolver.GradleInstallation
+import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.junit.Before
 import java.io.File
@@ -95,6 +96,14 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     protected
     open val defaultSettingsScript
         get() = ""
+
+    /**
+     * The version of the `kotlin-dsl` plugin that the builds of this test expect.
+     * The executer makes them expect the locally built plugins, when there are any (see [RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsVersion]).
+     */
+    protected
+    val expectedKotlinDslPluginsVersionUnderTest: String
+        get() = RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsVersion() ?: expectedKotlinDslPluginsVersion
 
     protected
     val repositoriesBlock

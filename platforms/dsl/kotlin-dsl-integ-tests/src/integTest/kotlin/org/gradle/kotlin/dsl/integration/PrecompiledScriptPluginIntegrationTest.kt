@@ -7,7 +7,6 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.classEntriesFor
-import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
@@ -412,7 +411,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
                             }
 
                             dependencies {
-                                implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:$expectedKotlinDslPluginsVersion")
+                                implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:$expectedKotlinDslPluginsVersionUnderTest")
                             }
                         """
                     )
@@ -432,7 +431,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
         buildAndFail(":build").apply {
             assertThatDescription(
                 containsString(
-                    "Invalid plugin request [id: 'org.gradle.kotlin.kotlin-dsl', version: '${expectedKotlinDslPluginsVersion}']. " +
+                    "Invalid plugin request [id: 'org.gradle.kotlin.kotlin-dsl', version: '${expectedKotlinDslPluginsVersionUnderTest}']. " +
                             "Plugin requests from precompiled scripts must not include a version number. " +
                             "If you have been using the `kotlin-dsl` helper function, then simply replace it by 'id(\"org.gradle.kotlin.kotlin-dsl\")'. " +
                             "Make sure the module containing the requested plugin 'org.gradle.kotlin.kotlin-dsl' is an implementation dependency of project ':build-logic:meta'."
