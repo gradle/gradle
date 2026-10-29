@@ -20,16 +20,16 @@ import java.net.URI
 // A build that runs on the Gradle under development needs two things from extra repositories.
 // First, it needs the Kotlin that this Gradle embeds, on every script classpath. For a dev build, only the Kotlin dev repository has this Kotlin.
 // Second, it needs Kotlin DSL plugins built against this Kotlin. The published plugins are built against the embedded Kotlin of an older Gradle.
-// Thus the plugins built from this checkout replace them. The repository that the property names has them at the published version.
+// Thus the plugins built from this checkout replace them: the repository that the property names has them, and the build passes
+// their version in the system property that makes Gradle expect it (see KOTLIN_DSL_PLUGINS_VERSION_OVERRIDE_PROPERTY in the kotlin-dsl module).
 val kotlinDslGroups = "org\\.gradle\\.kotlin(\\..+)?"
 val pluginsRepository = providers.gradleProperty("gradlebuild.kotlinDslPluginsRepository").map { File(it) }.orNull?.takeIf { it.isDirectory }
 
-data class ExtraRepository(val name: String, val url: URI, val groups: String, val exclusive: Boolean = false)
+data class ExtraRepository(val name: String, val url: URI, val groups: String)
 
+// Declared after the repositories of the build. Thus only the versions that they do not have come from these repositories.
 val extraRepositories = listOfNotNull(
-    // Exclusive, because the Plugin Portal has the same version
-    pluginsRepository?.let { ExtraRepository("Locally built Kotlin DSL plugins", it.toURI(), kotlinDslGroups, exclusive = true) },
-    // Declared after the repositories of the build. Thus only the Kotlin that they do not have comes from this repository.
+    pluginsRepository?.let { ExtraRepository("Locally built Kotlin DSL plugins", it.toURI(), kotlinDslGroups) },
     if (embeddedKotlinVersion.matches(Regex(".+-\\d+"))) ExtraRepository("Kotlin dev repository", URI("https://packages.jetbrains.team/maven/p/kt/dev"), "org\\.jetbrains\\.kotlin(\\..+)?") else null,
 )
 
@@ -40,20 +40,10 @@ fun RepositoryHandler.addExtraRepositories() {
         if (any { it is MavenArtifactRepository && normalizeUrl(it.url) == normalizeUrl(repository.url) }) {
             return@forEach
         }
-        val declaration: MavenArtifactRepository.() -> Unit = {
+        maven {
             name = repository.name
             url = repository.url
-        }
-        if (repository.exclusive) {
-            exclusiveContent {
-                forRepository { maven(declaration) }
-                filter { includeGroupByRegex(repository.groups) }
-            }
-        } else {
-            maven {
-                declaration()
-                content { includeGroupByRegex(repository.groups) }
-            }
+            content { includeGroupByRegex(repository.groups) }
         }
     }
 }
