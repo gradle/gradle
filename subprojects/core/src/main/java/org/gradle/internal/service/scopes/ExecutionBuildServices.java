@@ -106,14 +106,12 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
     ExecutionHistoryStore createExecutionHistoryStore(
         ExecutionHistoryCacheAccess executionHistoryCacheAccess,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-        StringInterner stringInterner,
-        ClassLoaderHierarchyHasher classLoaderHasher
+        StringInterner stringInterner
     ) {
         return new DefaultExecutionHistoryStore(
             executionHistoryCacheAccess,
             inMemoryCacheDecoratorFactory,
-            stringInterner,
-            classLoaderHasher
+            stringInterner
         );
     }
 

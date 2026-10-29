@@ -28,8 +28,8 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.serialize.HashCodeSerializer;
+import org.gradle.internal.snapshot.impl.ValueSnapshotHasher;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -44,13 +44,11 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
     public DefaultExecutionHistoryStore(
         Supplier<PersistentCache> cache,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-        Interner<String> stringInterner,
-        ClassLoaderHierarchyHasher classLoaderHasher
+        Interner<String> stringInterner
     ) {
         DefaultPreviousExecutionStateSerializer serializer = new DefaultPreviousExecutionStateSerializer(
             new FileCollectionFingerprintSerializer(stringInterner),
             new FileSystemSnapshotSerializer(stringInterner),
-            classLoaderHasher,
             new HashCodeSerializer()
         );
 
@@ -73,7 +71,7 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
             executionState.getCacheKey(),
             executionState.getImplementation(),
             executionState.getAdditionalImplementations(),
-            executionState.getInputProperties(),
+            ValueSnapshotHasher.hashAll(executionState.getInputProperties()),
             prepareForSerialization(executionState.getInputFileProperties()),
             executionState.getOutputFilesProducedByWork(),
             executionState.isSuccessful()
