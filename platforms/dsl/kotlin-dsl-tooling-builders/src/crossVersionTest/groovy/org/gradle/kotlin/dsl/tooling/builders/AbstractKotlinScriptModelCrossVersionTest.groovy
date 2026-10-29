@@ -71,8 +71,12 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
     }
 
     private List<String> extraRepositoriesArguments() {
-        def initScript = targetDist.gradleHomeDir == IntegrationTestBuildContext.INSTANCE.gradleHomeDir ? RepoScriptBlockUtil.extraRepositoriesInitScriptFile() : null
-        return initScript == null ? [] : ["--init-script", initScript.absolutePath]
+        if (targetDist.gradleHomeDir != IntegrationTestBuildContext.INSTANCE.gradleHomeDir) {
+            return []
+        }
+        def initScript = RepoScriptBlockUtil.extraRepositoriesInitScriptFile()
+        def initScriptArguments = initScript == null ? [] : ["--init-script", initScript.absolutePath]
+        return initScriptArguments + RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsArguments()
     }
 
     def setup() {

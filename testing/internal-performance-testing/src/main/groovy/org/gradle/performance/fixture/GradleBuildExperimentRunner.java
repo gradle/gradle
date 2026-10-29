@@ -242,14 +242,13 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
     }
 
     private static List<String> withExtraRepositories(List<String> args) {
+        ImmutableList.Builder<String> result = ImmutableList.<String>builder().addAll(args);
         File initScript = RepoScriptBlockUtil.extraRepositoriesInitScriptFile();
-        if (initScript == null) {
-            return args;
+        if (initScript != null) {
+            result.add("--init-script=" + initScript.getAbsolutePath());
         }
-        return ImmutableList.<String>builder()
-            .addAll(args)
-            .add("--init-script=" + initScript.getAbsolutePath())
-            .build();
+        result.addAll(RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsArguments());
+        return result.build();
     }
 
     private static List<BuildMutator> collectMutators(InvocationSettings invocationSettings, GradleBuildExperimentSpec experimentSpec) {

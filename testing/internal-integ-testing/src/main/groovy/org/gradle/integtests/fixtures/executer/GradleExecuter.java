@@ -614,10 +614,11 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withPluginRepositoryMirrorDisabled();
 
     /**
-     * Does not add the extra repositories to the build.
+     * Does not add the extra repositories to the build. Then the build expects the published Kotlin DSL plugins, not the locally built ones.
      * Use this in a test that asserts on the applied scripts, the repositories or the callbacks of a build.
      *
      * @see org.gradle.integtests.fixtures.RepoScriptBlockUtil#extraRepositoriesInitScript
+     * @see org.gradle.integtests.fixtures.RepoScriptBlockUtil#locallyBuiltKotlinDslPluginsArguments
      */
     GradleExecuter withoutExtraRepositories();
 
