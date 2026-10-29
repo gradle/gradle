@@ -284,6 +284,14 @@ image::performance/performance-5.png[]
 For more information about the Build Cache, check out the
 <<build_cache_use_cases.adoc#use_cases_cache,Build Cache documentation>>.
 
+[TIP]
+.Speeding up builds for a whole team?
+====
+Develocity caches dependencies, build setup and task outputs across every CI run, so work done once is not repeated.
+
+link:https://develocity.ai/product/universal-cache/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=performance-callout-universal-cache[Explore Universal Cache]
+====
+
 [[visualize_build_cache_with_build_scan]]
 === Visualize the Build Cache with Build Scan
 
