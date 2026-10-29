@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.quality.codenarc
 
 
+import groovy.xml.XmlSlurper
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.quality.integtest.fixtures.CodeNarcCoverage
@@ -25,6 +26,8 @@ import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.TestEnvironmentPreconditions
 
 import org.gradle.util.internal.ToBeImplemented
+import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
@@ -51,11 +54,16 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
             }
 
             testing.suites.test.useJUnit()
-
-            configurations.codenarc {
-                resolutionStrategy.force 'org.apache.groovy:groovy:${GroovySystem.version}'
-            }
         """.stripIndent()
+
+        if (version.toString().endsWith("-groovy-4.0")) {
+            // Run CodeNarc built for Groovy 4 with the Groovy version under test
+            buildFile << """
+                configurations.codenarc {
+                    resolutionStrategy.force 'org.apache.groovy:groovy:${GroovySystem.version}'
+                }
+            """.stripIndent()
+        }
 
         writeRuleFile()
     }
@@ -198,6 +206,40 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         report("test").text.contains("testclass2")
     }
 
+    def "reports files of all source directories"() {
+        given:
+        buildFile << """
+            sourceSets.main.groovy.srcDir("src/main/other")
+            codenarcMain.reports.xml.required = true
+        """
+        file("src/main/groovy/org/gradle/Class2.groovy") << "package org.gradle; class Class2 { }"
+        file("src/main/other/org/gradle/class3.groovy") << "package org.gradle; class class3 { }"
+
+        when:
+        fails("codenarcMain")
+
+        then:
+        def xml = new XmlSlurper().parse(report("main", "xml"))
+        xml.PackageSummary.@totalFiles.text() == "2"
+        xml.PackageSummary.@filesWithViolations.text() == "1"
+        xml.'**'.findAll { it.name() == "File" }*.@name*.text() == ["class3.groovy"]
+    }
+
+    def "can disable rules in comments"() {
+        // Supported since CodeNarc 2.0
+        Assume.assumeTrue(versionNumber >= VersionNumber.parse("2.0.0"))
+
+        given:
+        file("src/main/groovy/org/gradle/class3.groovy") << """
+            // codenarc-disable ClassName
+            package org.gradle
+            class class3 { }
+        """
+
+        expect:
+        succeeds("codenarcMain")
+    }
+
     @Issue("GRADLE-3492")
     def "can exclude code"() {
         badCode()
@@ -229,7 +271,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         then:
         fails('check')
         def codenarcOutput = result.groupedOutput.task(":codenarcTest")
-        codenarcOutput.assertOutputContains('[ant:codenarc]     Violation: Rule=ClassName P=2 Loc=.(testclass2.groovy:1) Msg=[The name testclass2 failed to match the pattern ([A-Z]\\w*\\$?)*] Src=[package org.gradle; class testclass2 { }]')
+        codenarcOutput.assertOutputContains('    Violation: Rule=ClassName P=2 Loc=.(testclass2.groovy:1) Msg=[The name testclass2 failed to match the pattern ([A-Z]\\w*\\$?)*] Src=[package org.gradle; class testclass2 { }]')
     }
 
     def "can enable multiple reports with console"() {
@@ -253,7 +295,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         and:
         // Failures should be reported to console, HTML report should be written and failure should link to HTML report
         def codenarcOutput = result.groupedOutput.task(":codenarcTest")
-        codenarcOutput.assertOutputContains('[ant:codenarc]     Violation: Rule=ClassName P=2 Loc=.(testclass2.groovy:1) Msg=[The name testclass2 failed to match the pattern ([A-Z]\\w*\\$?)*] Src=[package org.gradle; class testclass2 { }]')
+        codenarcOutput.assertOutputContains('    Violation: Rule=ClassName P=2 Loc=.(testclass2.groovy:1) Msg=[The name testclass2 failed to match the pattern ([A-Z]\\w*\\$?)*] Src=[package org.gradle; class testclass2 { }]')
         failure.assertThatCause(startsWith("CodeNarc rule violations were found. See the report at:"))
         report("test").assertExists()
     }
