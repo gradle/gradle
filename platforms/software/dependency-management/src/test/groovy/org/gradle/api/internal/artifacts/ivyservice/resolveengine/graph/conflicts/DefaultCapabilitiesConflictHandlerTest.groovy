@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleResolveState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState
@@ -50,7 +52,7 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
         }
     }
 
-    DefaultCapabilitiesConflictHandler handler = new DefaultCapabilitiesConflictHandler(ImmutableList.of(), resolveState)
+    DefaultCapabilitiesConflictHandler handler = new DefaultCapabilitiesConflictHandler(ImmutableList.of(), new DefaultVersionComparator().asVersionComparator(), new VersionParser(), resolveState)
 
     @Issue("gradle/gradle#5920")
     def "order of components should be preserved"() {
