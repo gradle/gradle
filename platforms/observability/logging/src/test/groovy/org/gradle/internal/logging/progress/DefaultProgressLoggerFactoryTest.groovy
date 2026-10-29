@@ -18,6 +18,8 @@ package org.gradle.internal.logging.progress
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationOwner
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.time.MockClock
@@ -65,6 +67,33 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         1 * progressListener.completed(!null) >> { ProgressCompleteEvent event ->
             assert event.timestamp == 300L
             assert event.status == 'completed'
+        }
+    }
+
+    def "gives the owner of a build operation to its start event"() {
+        given:
+        def descriptor = BuildOperationDescriptor.displayName("Calculate task graph")
+            .progressDisplayName("Building task graph")
+            .owner({ -> ":lib" } as BuildOperationOwner)
+            .build(new OperationIdentifier(1), null)
+
+        when:
+        factory.newOperation(String, descriptor).start(descriptor.displayName, descriptor.progressDisplayName.text)
+
+        then:
+        1 * progressListener.started(!null) >> { ProgressStartEvent event ->
+            assert event.status == "Building task graph"
+            assert event.owner == ":lib"
+        }
+    }
+
+    def "gives no owner to the start event of an operation that is not a build operation"() {
+        when:
+        factory.newOperation("category").start("description", "status")
+
+        then:
+        1 * progressListener.started(!null) >> { ProgressStartEvent event ->
+            assert event.owner == null
         }
     }
 

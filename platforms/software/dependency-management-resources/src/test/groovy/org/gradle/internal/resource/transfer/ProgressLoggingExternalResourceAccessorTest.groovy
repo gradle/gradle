@@ -222,7 +222,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
             def descriptor = action.description().build()
             assert descriptor.name == "Download https://location/thing.jar"
             assert descriptor.displayName == "Download https://location/thing.jar"
-            assert descriptor.progressDisplayName == "thing.jar"
+            assert descriptor.progressDisplayName.text == "thing.jar"
 
             assert descriptor.details instanceof ExternalResourceReadBuildOperationType.Details
             assert descriptor.details.location == location.getUri().toASCIIString()

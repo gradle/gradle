@@ -244,7 +244,8 @@ public class WorkInProgressRenderer implements OutputEventListener {
                         startEvent.getProgressOperationId(),
                         startEvent.getParentProgressOperationId(),
                         now,
-                        workAction
+                        workAction,
+                        startEvent.getOwner()
                     );
                     if (!workAction) {
                         attach(operation);

@@ -152,15 +152,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     @Override
-    public String contextualize(String description) {
-        if (isRootBuild()) {
-            return description;
-        } else {
-            return description + " (" + getIdentityPath().asString() + ")";
-        }
-    }
-
-    @Override
     public @Nullable GradleInternal getParent() {
         BuildState parent = buildState.getParent();
         return parent != null

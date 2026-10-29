@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.catalog
 
+import org.gradle.internal.build.BuildIdentity
+import org.gradle.internal.operations.ProgressDisplayName
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.util.Path
 import spock.lang.Issue
@@ -28,31 +30,31 @@ class DefaultDependenciesAccessorsTest extends Specification {
 
     def "shows the generation of the dependency accessors of the #build on a worker line"() {
         when:
-        buildOperationRunner.run(DefaultDependenciesAccessors.dependencyAccessorsOperation(buildPath, "libs", {}))
+        buildOperationRunner.run(DefaultDependenciesAccessors.dependencyAccessorsOperation(new BuildIdentity(buildPath), "libs", {}))
 
         then:
         def generate = buildOperationRunner.log.descriptors.last()
         generate.displayName == displayName
-        generate.progressDisplayName == lineText
+        generate.progressDisplayName == ProgressDisplayName.of(ownerToShow, "Generating dependency accessors for 'libs'")
 
         where:
-        build            | buildPath              | displayName                                              | lineText
-        "root build"     | Path.ROOT              | "Generate dependency accessors for 'libs'"               | "Generating dependency accessors for 'libs'"
-        "included build" | Path.path(":included") | "Generate dependency accessors for 'libs' (:included)"   | ":included > Generating dependency accessors for 'libs'"
+        build            | buildPath              | ownerToShow | displayName
+        "root build"     | Path.ROOT              | null        | "Generate dependency accessors for 'libs'"
+        "included build" | Path.path(":included") | ":included" | "Generate dependency accessors for 'libs' (:included)"
     }
 
     def "shows the generation of the project accessors of the #build on a worker line"() {
         when:
-        buildOperationRunner.run(DefaultDependenciesAccessors.projectAccessorsOperation(buildPath, {}))
+        buildOperationRunner.run(DefaultDependenciesAccessors.projectAccessorsOperation(new BuildIdentity(buildPath), {}))
 
         then:
         def generate = buildOperationRunner.log.descriptors.last()
         generate.displayName == displayName
-        generate.progressDisplayName == lineText
+        generate.progressDisplayName == ProgressDisplayName.of(ownerToShow, "Generating project accessors")
 
         where:
-        build            | buildPath              | displayName                              | lineText
-        "root build"     | Path.ROOT              | "Generate project accessors"             | "Generating project accessors"
-        "included build" | Path.path(":included") | "Generate project accessors (:included)" | ":included > Generating project accessors"
+        build            | buildPath              | ownerToShow | displayName
+        "root build"     | Path.ROOT              | null        | "Generate project accessors"
+        "included build" | Path.path(":included") | ":included" | "Generate project accessors (:included)"
     }
 }

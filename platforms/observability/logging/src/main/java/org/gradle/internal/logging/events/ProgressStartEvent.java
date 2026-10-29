@@ -32,6 +32,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
     private final String description;
     private final @Nullable String loggingHeader;
     private final String status;
+    private final @Nullable String owner;
     private final int totalProgress;
     private final boolean buildOperationStart;
     private final @Nullable OperationIdentifier buildOperationId;
@@ -50,12 +51,30 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
         @Nullable OperationIdentifier buildOperationId,
         @Nullable BuildOperationCategory buildOperationCategory
     ) {
+        this(progressOperationId, parentProgressOperationId, timestamp, category, description, loggingHeader, status, null, totalProgress, buildOperationStart, buildOperationId, buildOperationCategory);
+    }
+
+    public ProgressStartEvent(
+        @Nullable OperationIdentifier progressOperationId,
+        @Nullable OperationIdentifier parentProgressOperationId,
+        long timestamp,
+        String category,
+        String description,
+        @Nullable String loggingHeader,
+        String status,
+        @Nullable String owner,
+        int totalProgress,
+        boolean buildOperationStart,
+        @Nullable OperationIdentifier buildOperationId,
+        @Nullable BuildOperationCategory buildOperationCategory
+    ) {
         super(timestamp, category, LogLevel.LIFECYCLE);
         this.progressOperationId = progressOperationId;
         this.parentProgressOperationId = parentProgressOperationId;
         this.description = description;
         this.loggingHeader = loggingHeader;
         this.status = status;
+        this.owner = owner;
         this.totalProgress = totalProgress;
         this.buildOperationStart = buildOperationStart;
         this.buildOperationId = buildOperationId;
@@ -80,6 +99,14 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
 
     public String getStatus() {
         return status;
+    }
+
+    /**
+     * The owner to show with the status, such as ":lib". Null when no owner is shown.
+     */
+    @Nullable
+    public String getOwner() {
+        return owner;
     }
 
     public int getTotalProgress() {
@@ -116,7 +143,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
     }
 
     public ProgressStartEvent withParentProgressOperation(OperationIdentifier parentProgressOperationId) {
-        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, buildOperationCategory);
+        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, loggingHeader, status, owner, totalProgress, buildOperationStart, buildOperationId, buildOperationCategory);
     }
 
     @Override

@@ -42,8 +42,10 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.format.JavaClassNameFormatter;
-import org.gradle.internal.logging.progress.WorkerLineOperation;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.SharedResource;
@@ -339,12 +341,19 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     private void stop(RegisteredBuildServiceProvider<?, ?> provider) {
         String typeName = provider.getImplementationType().getName();
-        provider.maybeStop(close -> buildOperationRunner.run(new WorkerLineOperation(
-            buildIdentity.getBuildPath(),
-            "Close build service '" + provider.getName() + "' (" + typeName + ")",
-            "Close build service '" + provider.getName() + "' (" + JavaClassNameFormatter.abbreviateJavaPackage(typeName) + ")",
-            close
-        )));
+        provider.maybeStop(close -> buildOperationRunner.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                close.run();
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Close build service '" + provider.getName() + "' (" + typeName + ")")
+                    .progressDisplayName("Close build service '" + provider.getName() + "' (" + JavaClassNameFormatter.abbreviateJavaPackage(typeName) + ")")
+                    .owner(buildIdentity);
+            }
+        }));
     }
 
     private static class ServiceBackedSharedResource implements SharedResource {

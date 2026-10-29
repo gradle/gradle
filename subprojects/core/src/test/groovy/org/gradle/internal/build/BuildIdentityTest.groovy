@@ -45,6 +45,17 @@ class BuildIdentityTest extends Specification {
         identity.capitalizedDisplayName == "Build ':included'"
     }
 
+    def "has no owner to show for the root build"() {
+        expect:
+        new BuildIdentity(Path.path(buildPath)).ownerToShow == ownerToShow
+
+        where:
+        buildPath            | ownerToShow
+        ":"                  | null
+        ":included"          | ":included"
+        ":included:buildSrc" | ":included:buildSrc"
+    }
+
     def "rejects a relative build path"() {
         when:
         new BuildIdentity(Path.path("relative"))

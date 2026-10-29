@@ -123,8 +123,6 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
      */
     Path getIdentityPath();
 
-    String contextualize(String description);
-
     PublicBuildPath getPublicBuildPath();
 
     /**

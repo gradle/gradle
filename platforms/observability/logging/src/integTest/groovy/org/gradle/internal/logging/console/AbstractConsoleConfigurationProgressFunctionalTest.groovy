@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Issue
 
 abstract class AbstractConsoleConfigurationProgressFunctionalTest extends AbstractIntegrationSpec {
     @Rule
@@ -112,6 +113,44 @@ abstract class AbstractConsoleConfigurationProgressFunctionalTest extends Abstra
         rootBuildScript.waitForAllPendingCalls()
         assertHasWorkInProgress("root project")
         rootBuildScript.releaseAll()
+
+        and:
+        gradle.waitForFinish()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39634")
+    def "shows the path of the build when its settings are evaluated"() {
+        settingsFile << """
+            ${server.callFromBuild('root-settings-script')}
+            includeBuild "child"
+        """
+        buildFile << """
+            task hello {
+                dependsOn gradle.includedBuild("child").task(":hello")
+            }
+        """
+        createDirs("child")
+        file("child/settings.gradle") << """
+            ${server.callFromBuild('child-settings-script')}
+        """
+        file("child/build.gradle") << """
+            task hello
+        """
+
+        given:
+        def rootSettingsScript = server.expectAndBlock('root-settings-script')
+        def childSettingsScript = server.expectAndBlock('child-settings-script')
+        gradle = executer.withTasks("hello").start()
+
+        expect:
+        rootSettingsScript.waitForAllPendingCalls()
+        assertHasWorkInProgress("Evaluating settings")
+        rootSettingsScript.releaseAll()
+
+        and:
+        childSettingsScript.waitForAllPendingCalls()
+        assertHasWorkInProgress(":child > Evaluating settings")
+        childSettingsScript.releaseAll()
 
         and:
         gradle.waitForFinish()

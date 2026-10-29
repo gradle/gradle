@@ -17,7 +17,6 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.logging.progress.WorkerLineOperation;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -51,8 +50,8 @@ public class ProjectsEvaluatedNotifier {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(gradle.contextualize("Notify projectsEvaluated listeners"))
-                .progressDisplayName(WorkerLineOperation.lineText(gradle.getIdentityPath(), "Running projects evaluated listeners"))
+            return BuildOperationDescriptor.displayName("Notify projectsEvaluated listeners").owner(gradle.getOwner())
+                .progressDisplayName("Running projects evaluated listeners")
                 .details(new NotifyProjectsEvaluatedBuildOperationType.Details() {
                     @Override
                     public String getBuildPath() {

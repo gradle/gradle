@@ -63,7 +63,7 @@ class ConfigurationCacheBuildOperationsTest {
 
         // and:
         assertThat(
-            runnableBuildOperation.value.description().build().progressDisplayName,
+            runnableBuildOperation.value.description().build().progressDisplayName?.text,
             equalTo("Storing configuration cache state")
         )
     }
@@ -88,7 +88,7 @@ class ConfigurationCacheBuildOperationsTest {
 
         // and:
         assertThat(
-            callableBuildOperation.value.description().build().progressDisplayName,
+            callableBuildOperation.value.description().build().progressDisplayName?.text,
             equalTo("Loading configuration cache state")
         )
     }
@@ -111,7 +111,7 @@ class ConfigurationCacheBuildOperationsTest {
 
         // and:
         assertThat(
-            callableBuildOperation.value.description().build().progressDisplayName,
+            callableBuildOperation.value.description().build().progressDisplayName?.text,
             equalTo("Checking configuration cache fingerprint")
         )
     }

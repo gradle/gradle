@@ -18,6 +18,7 @@ package org.gradle.internal.build;
 
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.operations.BuildOperationOwner;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
@@ -31,7 +32,7 @@ import org.jspecify.annotations.Nullable;
  * wherever only the identity of a build is required.
  */
 @ServiceScope(Scope.Build.class)
-public final class BuildIdentity implements DisplayName {
+public final class BuildIdentity implements DisplayName, BuildOperationOwner {
 
     private final Path buildPath;
     private final DisplayName displayName;
@@ -58,6 +59,12 @@ public final class BuildIdentity implements DisplayName {
      */
     public boolean isRootBuild() {
         return buildPath.equals(Path.ROOT);
+    }
+
+    @Override
+    @Nullable
+    public String getOwnerToShow() {
+        return isRootBuild() ? null : buildPath.asString();
     }
 
     /**

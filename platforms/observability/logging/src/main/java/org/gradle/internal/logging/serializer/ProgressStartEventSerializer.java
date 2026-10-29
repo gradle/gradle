@@ -31,6 +31,7 @@ import org.gradle.internal.serialize.Serializer;
  */
 public class ProgressStartEventSerializer implements Serializer<ProgressStartEvent> {
     private static final short PARENT_PROGRESS_ID = 1;
+    private static final short OWNER = 1 << 1;
     private static final short LOGGING_HEADER = 1 << 2;
     private static final short LOGGING_HEADER_IS_SUB_DESCRIPTION = 1 << 3;
     private static final short STATUS = 1 << 4;
@@ -80,6 +81,11 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             }
         }
 
+        String owner = event.getOwner();
+        if (owner != null) {
+            flags |= OWNER;
+        }
+
         OperationIdentifier buildOperationId = event.getBuildOperationId();
         if (buildOperationId != null) {
             if (buildOperationId.equals(event.getProgressOperationId())) {
@@ -124,6 +130,9 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             encoder.writeString(status);
         } else if ((flags & STATUS_IS_SUB_DESCRIPTION) != 0) {
             encoder.writeSmallInt(status.length());
+        }
+        if ((flags & OWNER) != 0) {
+            encoder.writeString(owner);
         }
         encoder.writeSmallInt(event.getTotalProgress());
 
@@ -171,6 +180,11 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             status = description.substring(description.length() - length);
         }
 
+        String owner = null;
+        if ((flags & OWNER) != 0) {
+            owner = decoder.readString();
+        }
+
         int totalProgress = decoder.readSmallInt();
 
         boolean buildOperationStart = (flags & BUILD_OPERATION_START) != 0;
@@ -192,6 +206,7 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             description,
             loggingHeader,
             status,
+            owner,
             totalProgress,
             buildOperationStart,
             buildOperationId,

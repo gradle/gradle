@@ -85,7 +85,7 @@ public class DefaultBuildWorkExecutor implements BuildWorkExecutor {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                BuildOperationDescriptor.Builder builder = BuildOperationDescriptor.displayName(gradle.contextualize("Run tasks"));
+                BuildOperationDescriptor.Builder builder = BuildOperationDescriptor.displayName("Run tasks").owner(gradle.getOwner());
                 if (gradle.isRootBuild()) {
                     long buildStartTime = gradle.getServices().get(BuildRequestMetaData.class).getStartTime();
                     builder.details(new RunRootBuildWorkBuildOperationType.Details(buildStartTime));

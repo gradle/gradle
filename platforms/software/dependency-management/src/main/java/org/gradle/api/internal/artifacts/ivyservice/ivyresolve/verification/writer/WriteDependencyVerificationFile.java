@@ -53,7 +53,6 @@ import org.gradle.internal.component.external.model.ExternalModuleComponentGraph
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.hash.ChecksumService;
-import org.gradle.internal.logging.progress.WorkerLineOperation;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -201,7 +200,19 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     @Override
     public void buildFinished(GradleInternal gradle) {
         String description = "Write dependency verification metadata";
-        buildOperationRunner.run(new WorkerLineOperation(gradle.getIdentityPath(), description, description, () -> writeVerificationMetadata(gradle)));
+        buildOperationRunner.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                writeVerificationMetadata(gradle);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName(description)
+                    .progressDisplayName(description)
+                    .owner(gradle.getOwner());
+            }
+        });
     }
 
     private void writeVerificationMetadata(GradleInternal gradle) {
