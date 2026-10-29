@@ -80,7 +80,9 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
         def gradle = Stub(GradleInternal) {
             isRootBuild() >> true
             getIdentityPath() >> Path.ROOT
-            contextualize(_) >> { String desc -> desc }
+            getOwner() >> Stub(BuildState) {
+                getOwnerToShow() >> null
+            }
         }
 
         def executionPlan = Stub(ExecutionPlan) {
@@ -98,6 +100,7 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
 
         then:
         def record = buildOperationRunner.log.mostRecent(CalculateTaskGraphBuildOperationType)
+        record.descriptor.displayName == "Calculate task graph"
         record.descriptor.progressDisplayName == "Building task graph"
     }
 
@@ -105,7 +108,9 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
         def gradle = Stub(GradleInternal) {
             isRootBuild() >> false
             getIdentityPath() >> Path.path(":buildB")
-            contextualize(_) >> { String desc -> desc + " (:buildB)" }
+            getOwner() >> Stub(BuildState) {
+                getOwnerToShow() >> ":buildB"
+            }
         }
 
         def executionPlan = Stub(ExecutionPlan) {
@@ -123,6 +128,7 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
 
         then:
         def record = buildOperationRunner.log.mostRecent(CalculateTaskGraphBuildOperationType)
+        record.descriptor.displayName == "Calculate task graph (:buildB)"
         record.descriptor.progressDisplayName == ":buildB > Building task graph"
     }
 }

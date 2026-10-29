@@ -227,8 +227,8 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         given:
         def gradle = Stub(GradleInternal) {
             getIdentityPath() >> buildPath
-            contextualize(_) >> { String description -> description }
             getOwner() >> Stub(BuildState) {
+                getOwnerToShow() >> ownerToShow
                 getProjects() >> Stub(BuildProjectRegistry) {
                     withMutableStateOfAllProjects(_ as Runnable) >> { Runnable action -> action.run() }
                 }
@@ -249,12 +249,13 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         taskGraph.populate(Stub(FinalizedExecutionPlan))
 
         then:
+        buildOperationRunner.operations[0].displayName == displayName
         buildOperationRunner.operations[0].progressDisplayName == lineText
 
         where:
-        build            | buildPath         | lineText
-        "root build"     | Path.ROOT         | "Running task graph ready listeners"
-        "included build" | Path.path(":lib") | ":lib > Running task graph ready listeners"
+        build            | buildPath         | ownerToShow | displayName                                    | lineText
+        "root build"     | Path.ROOT         | null        | "Notify task graph whenReady listeners"        | "Running task graph ready listeners"
+        "included build" | Path.path(":lib") | ":lib"      | "Notify task graph whenReady listeners (:lib)" | ":lib > Running task graph ready listeners"
     }
 
     def "notifies before task listeners"() {

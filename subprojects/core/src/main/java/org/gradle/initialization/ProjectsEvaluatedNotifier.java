@@ -51,7 +51,7 @@ public class ProjectsEvaluatedNotifier {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(gradle.contextualize("Notify projectsEvaluated listeners"))
+            return BuildOperationDescriptor.displayName("Notify projectsEvaluated listeners").owner(gradle.getOwner())
                 .progressDisplayName(WorkerLineOperation.lineText(gradle.getIdentityPath(), "Running projects evaluated listeners"))
                 .details(new NotifyProjectsEvaluatedBuildOperationType.Details() {
                     @Override

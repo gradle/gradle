@@ -128,16 +128,16 @@ public final class BuildOperationDescriptor {
 
     public static final class Builder {
         private final String displayName;
-        private String name;
+        private @Nullable String name;
         private @Nullable String progressDisplayName;
         private @Nullable Object details;
         private @Nullable BuildOperationRef parent;
         private BuildOperationMetadata metadata = BuildOperationMetadata.NONE;
         private int totalProgress;
+        private @Nullable BuildOperationOwner owner;
 
         private Builder(String displayName) {
             this.displayName = displayName;
-            this.name = displayName;
         }
 
         public Builder name(String name) {
@@ -166,6 +166,15 @@ public final class BuildOperationDescriptor {
         }
 
         /**
+         * The owner to show with this operation, such as ":lib".
+         * Set it for the work of a build or a project, unless the text names the owner.
+         */
+        public Builder owner(@Nullable BuildOperationOwner owner) {
+            this.owner = owner;
+            return this;
+        }
+
+        /**
          * Define the parent of the operation. Needs to be the state of an operations that is running at the same time
          * the described operation will run (see: {@code org.gradle.internal.operations.BuildOperationRunner#getCurrentOperation()}).
          * If parent ID is not set, The last started operation of the executing thread will be used as parent.
@@ -187,7 +196,9 @@ public final class BuildOperationDescriptor {
         }
 
         public BuildOperationDescriptor build(@Nullable OperationIdentifier id, @Nullable OperationIdentifier defaultParentId) {
-            return new BuildOperationDescriptor(id, parent == null ? defaultParentId : parent.getId(), name, displayName, progressDisplayName, details, metadata, totalProgress);
+            String ownerToShow = owner == null ? null : owner.getOwnerToShow();
+            String displayNameWithOwner = ownerToShow == null ? displayName : displayName + " (" + ownerToShow + ")";
+            return new BuildOperationDescriptor(id, parent == null ? defaultParentId : parent.getId(), name == null ? displayNameWithOwner : name, displayNameWithOwner, progressDisplayName, details, metadata, totalProgress);
         }
     }
 }

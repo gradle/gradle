@@ -46,8 +46,8 @@ class NotifyingBuildLoaderTest extends Specification {
         }
         def gradle = Stub(GradleInternal) {
             getIdentityPath() >> buildPath
-            contextualize(_) >> { String description -> description }
             getOwner() >> Stub(BuildState) {
+                getOwnerToShow() >> ownerToShow
                 getProjects() >> Stub(BuildProjectRegistry) {
                     getRootProject() >> rootProject
                 }
@@ -59,11 +59,12 @@ class NotifyingBuildLoaderTest extends Specification {
 
         then:
         def notify = buildOperationRunner.log.mostRecent(NotifyProjectsLoadedBuildOperationType)
+        notify.descriptor.displayName == displayName
         notify.descriptor.progressDisplayName == lineText
 
         where:
-        build            | buildPath         | lineText
-        "root build"     | Path.ROOT         | "Running projects loaded listeners"
-        "included build" | Path.path(":lib") | ":lib > Running projects loaded listeners"
+        build            | buildPath         | ownerToShow | displayName                              | lineText
+        "root build"     | Path.ROOT         | null        | "Notify projectsLoaded listeners"        | "Running projects loaded listeners"
+        "included build" | Path.path(":lib") | ":lib"      | "Notify projectsLoaded listeners (:lib)" | ":lib > Running projects loaded listeners"
     }
 }

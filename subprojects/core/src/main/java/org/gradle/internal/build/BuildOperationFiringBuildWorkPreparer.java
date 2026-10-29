@@ -111,7 +111,7 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
         @Override
         public BuildOperationDescriptor.@NonNull Builder description() {
             //noinspection Convert2Lambda
-            return BuildOperationDescriptor.displayName(gradle.contextualize("Calculate task graph"))
+            return BuildOperationDescriptor.displayName("Calculate task graph").owner(gradle.getOwner())
                 .progressDisplayName(WorkerLineOperation.lineText(gradle.getIdentityPath(), "Building task graph"))
                 .details(new Details() {
                     @Override
