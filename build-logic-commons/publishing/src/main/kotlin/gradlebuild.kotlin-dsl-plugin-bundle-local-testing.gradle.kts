@@ -35,6 +35,16 @@ publishing {
     }
 }
 
+// Publishing never removes versions, so earlier builds would leave their versions in the repository
+val cleanTestRepository = tasks.register<Delete>("cleanTestRepository") {
+    delete(testRepository)
+}
+
+// The repository of the task is not set yet when this runs, but its name ends with the name of the repository
+tasks.withType<PublishToMavenRepository>().matching { it.name.endsWith("ToTestRepository") }.configureEach {
+    dependsOn(cleanTestRepository)
+}
+
 val publishPluginsToTestRepository = tasks.register("publishPluginsToTestRepository") {
     dependsOn(tasks.withType<PublishToMavenRepository>().matching { it.repository.name == "test" })
     val repoDir = testRepository // Prevent capturing the Gradle script instance for configuration cache compatibility
