@@ -93,7 +93,7 @@ If not, the problem exists when executing one or more requested tasks (Gradle ex
 [[sec:troubleshooting_dependency_resolution]]
 == Debugging dependency resolution
 
-You can see a dependency tree and see which resolved dependency versions differed from what was requested by clicking the _Dependencies_ view and using the search functionality, specifying the resolution reason.
+In a <<build_scans.adoc#build_scans,Build Scan>>, you can see a dependency tree and see which resolved dependency versions differed from what was requested by clicking the _Dependencies_ view and using the search functionality, specifying the resolution reason.
 
 image::troubleshooting-dependency-management-build-scan.png[]
 
@@ -140,7 +140,7 @@ NOTE: Additional logs from the <<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>
 
 === Task executed when it should have been UP-TO-DATE
 
-`--info` logs explain why a task was executed, though a Build Scan does this in a searchable, visual way by going to the _Timeline_ view and clicking on the task you want to inspect.
+`--info` logs explain why a task was executed, though a <<build_scans.adoc#build_scans,Build Scan>> does this in a searchable, visual way by going to the _Timeline_ view and clicking on the task you want to inspect.
 
 .Debugging incremental build with Build Scan
 image::troubleshooting-task-execution-build-scan.png[]
@@ -218,5 +218,8 @@ You can monitor the detected network setup and the connection requests in the da
 == Getting additional help
 
 If you didn't find a fix for your issue here, please reach out to the Gradle community on the link:https://discuss.gradle.org/c/help-discuss[help forum] or search relevant developer resources using link:https://help.gradle.org/[help.gradle.org].
+
+TIP: When you ask for help, run the failing build with `--scan` and share the <<build_scans.adoc#build_scans,Build Scan>> link.
+For failures that recur across many builds, link:https://develocity.ai/product/failure-analytics/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=troubleshooting-callout-failure-analytics[Develocity Failure Analytics] groups them by root cause.
 
 If you believe you've found a bug in Gradle, please link:https://github.com/gradle/gradle/issues[file an issue] on GitHub.
