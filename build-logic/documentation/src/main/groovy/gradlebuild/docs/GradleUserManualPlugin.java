@@ -30,6 +30,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -44,10 +45,16 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
@@ -62,6 +69,12 @@ public class GradleUserManualPlugin implements Plugin<Project> {
      * distinct aliases to avoid writing to the same directory.
      */
     private static final String CHUNKED_HTML_OUTPUT = "chunkedHtml";
+    private static final String MARKDOWN_OUTPUT = "markdown";
+
+    /**
+     * Agents tend to truncate or summarize pages above this size, which loses the details the Markdown copy is for.
+     */
+    private static final long MARKDOWN_PAGE_SIZE_WARNING_THRESHOLD = 100 * 1024;
 
     @Override
     public void apply(Project project) {
@@ -227,12 +240,46 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             outputTo(task, extension.getUserManual().getStagingRoot().dir("render-multi"));
         });
 
+        // The Markdown rendering is the AI-readable copy of the manual: one .md per page, served next to
+        // the HTML. Redirect stubs carry no prose, so they are left out.
+        Provider<PatternFilterable> markdownSources = providers.of(UserManualPages.class, spec -> {
+            spec.getParameters().getUserManualRoot().set(extension.getUserManual().getRoot());
+            spec.getParameters().getExcludedFileNames().addAll("javaProject.*Layout\\.adoc", "userguide_single\\.adoc");
+            spec.getParameters().getExcludedDirectories().add("redirects");
+        }).map(pages -> new PatternSet().include(pages));
+
+        TaskProvider<AsciidoctorTask> asciidoctorUserguideMultiPageMarkdown = registerUserManualOutput(project, asciidoc, extension, "userguideMultiPage",
+            GradleBuildDocumentationPlugin.MARKDOWN_FORMATTER, MARKDOWN_OUTPUT);
+        asciidoctorUserguideMultiPageMarkdown.configure(task -> {
+            task.setDescription("Generates the multi-page user manual as Markdown, one .md file per page.");
+            task.setSourcePatterns(markdownSources);
+            task.onlyIf("quick feedback mode is not enabled", t -> !quickFeedback.get());
+            outputTo(task, extension.getUserManual().getStagingRoot().dir("render-markdown"));
+            Provider<Directory> markdownDir = task.getOutputDir();
+            task.doLast(t -> warnAboutLargeMarkdownPages(t.getLogger(), markdownDir.get().getAsFile().toPath()));
+        });
+
         // The plugin derives the conversion task names from the publication and the output alias, which is
         // not what contributors have always typed. These keep the historical names working as entry points.
         registerRenderingAlias(project, "userguideSinglePageHtml", "Generates HTML single-page user manual.", asciidoctorUserguideSinglePageHtml);
         registerRenderingAlias(project, "userguideMultiPage", "Generates multi-page user manual.", asciidoctorUserguideMultiPageChunkedHtml);
 
-        return asList(asciidoctorUserguideSinglePageHtml, asciidoctorUserguideMultiPageChunkedHtml);
+        return asList(asciidoctorUserguideSinglePageHtml, asciidoctorUserguideMultiPageChunkedHtml, asciidoctorUserguideMultiPageMarkdown);
+    }
+
+    private static void warnAboutLargeMarkdownPages(Logger logger, Path markdownDir) {
+        try (Stream<Path> files = Files.walk(markdownDir)) {
+            List<Path> pages = files.filter(file -> file.toString().endsWith(".md")).collect(Collectors.toList());
+            for (Path page : pages) {
+                long size = Files.size(page);
+                if (size > MARKDOWN_PAGE_SIZE_WARNING_THRESHOLD) {
+                    logger.warn("Markdown page {} is {} KB, larger than the {} KB that agents read reliably.",
+                        markdownDir.relativize(page), size / 1024, MARKDOWN_PAGE_SIZE_WARNING_THRESHOLD / 1024);
+                }
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     /**
@@ -288,9 +335,26 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             sourceSet.attributes(attrs -> attrs.attributeProvider(attributes));
             sources.execute(sourceSet);
         }));
+        return registerUserManualOutput(project, asciidoc, extension, name, GradleBuildDocumentationPlugin.HTML_FORMATTER, outputAlias);
+    }
+
+    /**
+     * Adds an output of the {@link GradleBuildDocumentationPlugin#ASCIIDOCTORJ_TOOLCHAIN} toolchain to a user manual
+     * publication, and returns its conversion task. A publication can carry several outputs, one per format.
+     */
+    private static TaskProvider<AsciidoctorTask> registerUserManualOutput(
+        Project project,
+        AsciidoctorModelExtension asciidoc,
+        GradleDocumentationExtension extension,
+        String publicationName,
+        String formatter,
+        String outputAlias
+    ) {
+        Provider<Directory> stagedDocumentation = extension.getUserManual().getStagedDocumentation();
+        AsciidoctorPublication publication = asciidoc.getPublications().getByName(publicationName);
         // The alias names the output, and the plugin derives both the conversion task name and the
         // per-run log directory (reports/asciidoc/logs/<toolchain>/<alias>) from it.
-        publication.output(GradleBuildDocumentationPlugin.ASCIIDOCTORJ_TOOLCHAIN, GradleBuildDocumentationPlugin.HTML_FORMATTER, outputAlias);
+        publication.output(GradleBuildDocumentationPlugin.ASCIIDOCTORJ_TOOLCHAIN, formatter, outputAlias);
 
         TaskProvider<AsciidoctorTask> task = project.getTasks().named(publication.taskNameFor(outputAlias), AsciidoctorTask.class);
         task.configure(t -> {

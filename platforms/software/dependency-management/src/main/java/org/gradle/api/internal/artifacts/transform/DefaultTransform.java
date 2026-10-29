@@ -107,6 +107,7 @@ public class DefaultTransform implements Transform {
     private final FileNormalizer dependenciesNormalizer;
     private final FileLookup fileLookup;
     private final ServiceLookup internalServices;
+    private final FileCollectionFactory fileCollectionFactory;
     private final boolean requiresDependencies;
     private final boolean requiresInputChanges;
     private final InstanceFactory<? extends TransformAction<?>> instanceFactory;
@@ -147,6 +148,7 @@ public class DefaultTransform implements Transform {
         this.dependenciesNormalizer = dependenciesNormalizer;
         this.fileLookup = fileLookup;
         this.internalServices = internalServices;
+        this.fileCollectionFactory = fileCollectionFactory;
         this.instanceFactory = actionInstantiationScheme.forType(implementationClass);
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
         this.requiresInputChanges = instanceFactory.requiresService(InputChanges.class);
@@ -190,6 +192,7 @@ public class DefaultTransform implements Transform {
         this.dependenciesNormalizer = dependenciesNormalizer;
         this.fileLookup = fileLookup;
         this.internalServices = internalServices;
+        this.fileCollectionFactory = (FileCollectionFactory) internalServices.get(FileCollectionFactory.class);
         this.instanceFactory = actionInstantiationScheme.forType(implementationClass);
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
         this.requiresInputChanges = instanceFactory.requiresService(InputChanges.class);
@@ -273,10 +276,23 @@ public class DefaultTransform implements Transform {
 
     @Override
     public TransformExecutionResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, TransformDependencies dependencies, @Nullable InputChanges inputChanges) {
-        TransformAction<?> transformAction = newTransformAction(inputArtifactProvider, dependencies, inputChanges);
+        ServiceLookup services = servicesForTransformAction(inputArtifactProvider, realizedTransformDependencies(dependencies), inputChanges);
         DefaultTransformOutputs transformOutputs = new DefaultTransformOutputs(inputArtifactProvider.get().getAsFile(), outputDir, fileLookup);
-        transformAction.transform(transformOutputs);
+        UndeclaredTransformQueryDeprecation.runAsTransformAction(implementationClass, () -> instanceFactory.newInstance(services).transform(transformOutputs));
         return transformOutputs.getRegisteredOutputs();
+    }
+
+    /**
+     * Realize the contents of the transform dependencies, preventing them from being realized
+     * in the transform action and being detected as an undeclared dependency.
+     */
+    private TransformDependencies realizedTransformDependencies(TransformDependencies dependencies) {
+        if (!requiresDependencies) {
+            return dependencies;
+        }
+        return dependencies.getFiles()
+            .<TransformDependencies>map(files -> new DefaultTransformDependencies(fileCollectionFactory.fixed(files.toString(), files.getFiles())))
+            .orElse(dependencies);
     }
 
     @Override
@@ -399,11 +415,10 @@ public class DefaultTransform implements Transform {
         return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
     }
 
-    private TransformAction<?> newTransformAction(Provider<FileSystemLocation> inputArtifactProvider, TransformDependencies transformDependencies, @Nullable InputChanges inputChanges) {
+    private ServiceLookup servicesForTransformAction(Provider<FileSystemLocation> inputArtifactProvider, TransformDependencies transformDependencies, @Nullable InputChanges inputChanges) {
         TransformParameters parameters = isolatedParameters.get().getIsolatedParameterObject().isolate();
         ServiceLookup services = new IsolationScheme<>(TransformAction.class, TransformParameters.class, TransformParameters.None.class).servicesForImplementation(parameters, internalServices, Collections.emptySet());
-        services = new TransformServiceLookup(inputArtifactProvider, requiresDependencies ? transformDependencies : null, inputChanges, services);
-        return instanceFactory.newInstance(services);
+        return new TransformServiceLookup(inputArtifactProvider, requiresDependencies ? transformDependencies : null, inputChanges, services);
     }
 
     public CalculatedValueContainer<IsolatedParameters, IsolateTransformParameters> getIsolatedParameters() {
@@ -596,6 +611,10 @@ public class DefaultTransform implements Transform {
             return parameterObject;
         }
 
+        public DomainObjectContext getOwner() {
+            return owner;
+        }
+
         public boolean isCacheable() {
             return cacheable;
         }
@@ -645,21 +664,10 @@ public class DefaultTransform implements Transform {
         private IsolatedParameters isolateParameters(InputFingerprinter inputFingerprinter) {
             ModelContainer<?> model = owner.getModel();
             if (!model.hasMutableState()) {
-                // This may happen when a task visits artifacts using a FileCollection instance created from a Configuration instance in a different project (not an artifact produced by a different project, these work fine)
-                // There is a check in DefaultConfiguration that deprecates resolving dependencies via FileCollection instance created by a different project, however that check may not
-                // necessarily be triggered. For example, the configuration may be legitimately resolved by some other task prior to the problematic task running
-                // TODO - hoist this up into configuration file collection visiting (and not when visiting the upstream dependencies of a transform), and deprecate this in Gradle 7.x
-                //
-                // This may also happen when a transform takes upstream dependencies and the dependencies are transformed using a different transform
-                // In this case, the main thread that schedules the work should isolate the transform parameters prior to scheduling the work. However, the dependencies may
-                // be filtered from the result, so that the transform is not visited by the main thread, or the transform worker may start work before the main thread
-                // has a chance to isolate the upstream transform
-                // TODO - ensure all transform parameters required by a transform worker are isolated prior to starting the worker
-                //
-                // Force access to the state of the owner, regardless of whether any other thread has access. This is because attempting to acquire a lock for a project may deadlock
-                // when performed from a worker thread (see DefaultBuildOperationQueue.waitForCompletion() which intentionally does not release the project locks while waiting)
-                // TODO - add validation to fail eagerly when a worker attempts to lock a project
-                //
+                // TODO: In Gradle 10, once the undeclared transform query deprecation is a failure, replace forceAccessToMutableState() with
+                //  model.fromMutableState(), and remove forceAccessToMutableState(), which has no other caller.
+                // TODO: Once CalculatedValueContainer acquires the lock of the context that owns the value it calculates,
+                //  the lock is always held here, so remove this branch.
                 return model.forceAccessToMutableState(o -> doIsolateParameters(inputFingerprinter));
             } else {
                 return doIsolateParameters(inputFingerprinter);
