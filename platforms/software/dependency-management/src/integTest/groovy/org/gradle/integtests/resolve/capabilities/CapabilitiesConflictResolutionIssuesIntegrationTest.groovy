@@ -546,7 +546,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
 
         capability("stax", "stax-api") {
             forModule("javax.xml.stream:stax-api")
-            selectHighest()
+            selectModule("stax", "stax-api")
         }
 
         when:
@@ -564,7 +564,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                     byConflictResolution("latest version of capability woodstox:wstx-asl")
                 }
                 module("stax:stax-api:1.0.1") {
-                    byConflictResolution("latest version of capability stax:stax-api")
+                    byConflictResolution("Explicit selection of stax:stax-api:1.0.1 variant runtime")
                 }
                 edge("woodstox:wstx-asl:2.9.3", "org.codehaus.woodstox:woodstox-core-asl:4.4.1")
             }

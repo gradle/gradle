@@ -20,6 +20,7 @@ import org.gradle.api.attributes.Category
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import spock.lang.Issue
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -339,6 +340,114 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
                     byReason("conflict resolution: latest version of capability org:foo")
                 }
                 edge("project ':producer2'", ":producer1", "test:producer1:unspecified")
+            }
+        }
+    }
+
+    @Issue("https://youtrack.jetbrains.com/issue/KT-89898")
+    def "selecting the highest capability version uses module version ordering (#lower < #higher)"() {
+        given:
+        repository {
+            id("org:legacy-js:$lower")
+            id("org:legacy:$higher") {
+                variant("runtime") {
+                    capability("org", "legacy", higher)
+                    capability("org", "legacy-js", higher)
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf("org:legacy-js:$lower")
+                conf("org:legacy:$higher")
+            }
+
+            configurations.conf {
+                resolutionStrategy.capabilitiesResolution.withCapability("org:legacy-js") {
+                    selectHighestVersion()
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            id("org:legacy-js:$lower") {
+                expectGetMetadata()
+            }
+            id("org:legacy:$higher") {
+                expectResolve()
+            }
+        }
+        run(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:legacy-js:$lower", "org:legacy:$higher")
+                    .byConflictResolution("latest version of capability org:legacy-js")
+                module("org:legacy:$higher")
+            }
+        }
+
+        where:
+        lower           | higher
+        "1.0.0-rc.9"    | "1.0.0-rc.10"
+        "1.0.0-beta9"   | "1.0.0-beta10"
+        "2.5.0-dev-999" | "2.5.0-dev-1000"
+        "1.2.3.9"       | "1.2.3.10"
+        "1.0"           | "1.0.0"
+        "1.0.0-rc-1"    | "1.0.0"
+    }
+
+    def "selecting the highest capability version uses the reason given by the rule"() {
+        given:
+        repository {
+            id("org:testA:1.0") {
+                variant("runtime") {
+                    capability("org", "testA", "1.0")
+                    capability("org.test", "cap", "1.0")
+                }
+            }
+            id("org:testB:1.0") {
+                variant("runtime") {
+                    capability("org", "testB", "1.0")
+                    capability("org.test", "cap", "2.0")
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf("org:testA:1.0")
+                conf("org:testB:1.0")
+            }
+
+            configurations.conf {
+                resolutionStrategy.capabilitiesResolution.withCapability("org.test:cap") {
+                    selectHighestVersion()
+                    because("custom reason")
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            id("org:testA:1.0") {
+                expectGetMetadata()
+            }
+            id("org:testB:1.0") {
+                expectResolve()
+            }
+        }
+        run(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:testA:1.0", "org:testB:1.0")
+                    .byConflictResolution("On capability org.test:cap custom reason")
+                module("org:testB:1.0")
             }
         }
     }
