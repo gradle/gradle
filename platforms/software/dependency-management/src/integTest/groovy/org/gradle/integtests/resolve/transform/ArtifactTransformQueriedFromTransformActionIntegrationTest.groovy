@@ -28,7 +28,7 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     private static final String DEPRECATION = "Querying the output of one artifact transform from the action of another, without declaring that output as an input of the other. This behavior has been deprecated. " +
         "This will fail with an error in Gradle 10. " +
         "The output of artifact transform MakeRed, registered in root project 'root', was queried by the action of artifact transform MakeGreen, which did not declare it as an input. " +
-        "Declare the output of the one artifact transform as an input of the other, using a parameter annotated with @InputFiles. " +
+        "Declare the output of artifact transform MakeRed as an input of artifact transform MakeGreen, using a parameter annotated with @InputFiles. " +
         "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#querying_transform_output_from_transform_action"
 
     private static final String UNDECLARED_TRANSFORM_INPUT = "Querying the output of an artifact transform from a task action without declaring it as a task input has been deprecated. " +

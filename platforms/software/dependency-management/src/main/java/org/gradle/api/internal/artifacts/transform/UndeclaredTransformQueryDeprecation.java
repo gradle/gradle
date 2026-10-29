@@ -63,7 +63,10 @@ public final class UndeclaredTransformQueryDeprecation {
                     "The output of artifact transform %s, registered in %s, was queried by the action of artifact transform %s, which did not declare it as an input.",
                     implementationClass.getName(), owner.getDisplayName(), runningAction.getName()
                 ))
-                .withAdvice("Declare the output of the one artifact transform as an input of the other, using a parameter annotated with @InputFiles.")
+                .withAdvice(String.format(
+                    "Declare the output of artifact transform %s as an input of artifact transform %s, using a parameter annotated with @InputFiles.",
+                    implementationClass.getName(), runningAction.getName()
+                ))
                 .willBecomeAnErrorInGradle10()
                 .withUpgradeGuideSection(9, "querying_transform_output_from_transform_action")
                 .nagUser();
