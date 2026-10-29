@@ -19,6 +19,9 @@
 This chapter provides the information you need to migrate your Gradle {gradleVersion8} builds to Gradle 9.0.0.
 For migrating within Gradle 8.x, see the <<upgrading_version_8.adoc#upgrading_version_8, older migration guide>> first.
 
+NOTE: Under the <<feature_lifecycle.adoc#eol_support,end-of-life policy>>, the previous major version is maintenance only: it receives only critical bug fixes and security fixes, backported to its last minor release.
+For security fixes to Gradle itself with contractual fix timelines, see the https://gradle.org/security-subscription/[Gradle Security Subscription].
+
 We recommend the following steps for all users:
 
 . Try running `gradle help --scan` and view the https://docs.develocity.ai/gradle/current/getting-started/#identifying-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
