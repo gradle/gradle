@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.dsl.GradleDsl
 
+import java.util.regex.Pattern
+
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.GOOGLE_URL
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.MAVEN_CENTRAL_URL
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
@@ -116,11 +118,14 @@ class RepoScriptBlockUtil {
         final String url
         /** Gradle searches this repository only for the groups that match these regexes. */
         final List<String> groupRegexes
+        /** When set, Gradle searches this repository in these groups only for the versions that match this regex. */
+        final String versionRegex
 
-        ExtraRepository(String name, String url, List<String> groupRegexes) {
+        ExtraRepository(String name, String url, List<String> groupRegexes, String versionRegex = null) {
             this.name = name
             this.url = url
             this.groupRegexes = groupRegexes
+            this.versionRegex = versionRegex
         }
     }
 
@@ -140,9 +145,10 @@ class RepoScriptBlockUtil {
         // The published Kotlin DSL plugins are built with an older Kotlin than the Kotlin under test.
         // Thus builds that apply them use the plugins built from this source, which the local test repository has at their own version.
         // The tests make Gradle expect that version (see locallyBuiltKotlinDslPluginsArguments).
+        // Only that version: other Gradle versions expect other versions, which the repository can have from an earlier build.
         // Only the projects that publish these plugins to their local test repository have this entry.
         locallyBuiltKotlinDslPluginsVersion() ?
-            new ExtraRepository("LOCALLY_BUILT_KOTLIN_DSL_PLUGINS", IntegrationTestBuildContext.INSTANCE.localRepository.toURI().toString(), [/org\.gradle\.kotlin(\..+)?/])
+            new ExtraRepository("LOCALLY_BUILT_KOTLIN_DSL_PLUGINS", IntegrationTestBuildContext.INSTANCE.localRepository.toURI().toString(), [/org\.gradle\.kotlin(\..+)?/], Pattern.quote(locallyBuiltKotlinDslPluginsVersion()))
             : null,
     ].findAll() as List<ExtraRepository>).asImmutable()
 
@@ -229,7 +235,11 @@ class RepoScriptBlockUtil {
     }
 
     static String extraRepositoryDefinition(GradleDsl dsl = GROOVY, ExtraRepository repository) {
-        def includes = repository.groupRegexes.collect { "includeGroupByRegex(\"${escapeBackslashes(it)}\")" }.join("\n")
+        def includes = repository.groupRegexes.collect {
+            repository.versionRegex == null
+                ? "includeGroupByRegex(\"${escapeBackslashes(it)}\")"
+                : "includeVersionByRegex(\"${escapeBackslashes(it)}\", \".*\", \"${escapeBackslashes(repository.versionRegex)}\")"
+        }.join("\n")
         // Repository content filtering exists since Gradle 5.1. Cross-version tests run builds on Gradle 4.0 and later.
         // Kotlin DSL builds under test run on Gradle 5.1 or later, so the Kotlin variant needs no version check.
         if (dsl == KOTLIN) {
@@ -324,7 +334,7 @@ class RepoScriptBlockUtil {
     }
 
     static String extraRepositoriesInitScript(List<ExtraRepository> repositories = EXTRA_REPOSITORIES) {
-        def data = repositories.collect { [name: it.name, url: it.url, groupRegexes: it.groupRegexes] }
+        def data = repositories.collect { [name: it.name, url: it.url, groupRegexes: it.groupRegexes, versionRegex: it.versionRegex] }
         // Gradle does not accept a package statement in an init script. Keep the line empty, so line numbers in errors match the file.
         def source = RepoScriptBlockUtil.getResource("ExtraRepositories.groovy").getText().replaceFirst(/(?m)^package .*$/, "")
         return source + "\nExtraRepositories.declareIn(gradle, ${data.inspect()})\n"
