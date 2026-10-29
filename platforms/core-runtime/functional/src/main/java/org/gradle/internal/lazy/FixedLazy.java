@@ -27,6 +27,11 @@ public class FixedLazy<V> implements Lazy<V> {
     }
 
     @Override
+    public boolean isInitialized() {
+        return true;
+    }
+
+    @Override
     public V get() {
         return value;
     }
