@@ -47,8 +47,9 @@
         // Mobile's `docs-navigation` is always at bottom of `content`,
         // so we should not slide down to where `docs-navigation` lays.
         if (desktopMediaQuery.matches) {
-            // Scroll to center of the page
-            link.scrollIntoView({ block: 'nearest' });
+            // Center the link in the nav without scrolling the window
+            var nav = link.closest(".docs-navigation");
+            nav.scrollTop = link.offsetTop - nav.clientHeight / 2;
         }
     });
 
