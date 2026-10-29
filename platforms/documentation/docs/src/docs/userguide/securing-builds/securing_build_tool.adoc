@@ -377,8 +377,8 @@ The security posture of your build depends on the security posture of the Gradle
 [[sec:supported_lines]]
 === Stay on a Supported Line
 
-Gradle publishes security fixes only for the current major line and, in some cases, the immediately preceding one.
-Older majors do not receive backported patches.
+Gradle publishes security fixes only for the latest minor release of the current and previous major versions.
+Older minors and majors do not receive backported patches.
 A build running on an unsupported major is one where a public vulnerability in the tool itself has no upstream remedy.
 For the release cadence, what counts as the "current" line, and when a line falls out of support, see <<feature_lifecycle.adoc#eol_support,Release end-of-life Policy>>.
 
@@ -388,6 +388,8 @@ For any long-lived project:
 * Treat "unsupported Gradle" as a security finding in its own right, distinct from your dependency vulnerabilities.
 * Prefer stable releases over release candidates or nightlies for production builds.
 Release candidates receive the same signing and publishing treatment, but the code has not yet been through the full stabilization window.
+
+If you can't upgrade before your line falls out of support, see <<#sec:extended_support,Gradle Security Subscription>>.
 
 [[sec:release_channels]]
 === Consume Gradle Through a Trusted Channel
@@ -405,9 +407,23 @@ Prefer these over third-party rebuilds, pin them by digest rather than by tag, a
 Combining these gives one straightforward workflow that fits most projects: a Wrapper with a pinned distribution URL and a `distributionSha256Sum`, running against a container image pinned by digest, on a Gradle version that is still in support.
 
 [[sec:extended_support]]
-=== Extended Security Support
+=== Gradle Security Subscription
 
-Some organizations need to stay on a Gradle major line beyond its community support window, either because a migration is genuinely infeasible on the required timeline or because a customer contract locks the toolchain.
-Running an unsupported Gradle is a security risk in its own right.
-For those situations, Gradle Inc. offers a paid https://gradle.org/security-subscription/[Security Subscription] that delivers security-patched builds of older Gradle majors after community support has ended.
-It is the sanctioned way to keep receiving fixes when upgrading is not possible in time.
+The open-source <<feature_lifecycle.adoc#eol_support,end-of-life policy>> limits security fixes to the latest minor release of the current and previous major versions.
+Those fixes are best-effort, with no committed timeline.
+If your build runs on an older minor or an end-of-life major, a vulnerability in Gradle itself has no upstream fix.
+
+The https://gradle.org/security-subscription/[Gradle Security Subscription] from Gradle, Inc. covers these cases:
+
+* *Covered versions:* the latest minor of the most recent end-of-life major, plus minor releases of the last two majors released in the past 12 months.
+* *Fix timelines:* critical vulnerabilities are fixed within 7 days and high-severity vulnerabilities within 30 days, under contract.
+* *Scope:* vulnerabilities in Gradle itself with a CVSS score of 7 or higher.
+For critical CVEs reported against bundled third-party libraries, Gradle publishes an impact analysis with an adjusted CVSS score.
+* *Embargoed notification:* advance, confidential notice of newly discovered vulnerabilities and available mitigations.
+
+Patched distributions are delivered through a secure file-sharing system.
+Host them in your own artifact repository and point the Wrapper at them, as described in <<#sec:pin_distribution_url,Pin the Distribution URL>>.
+Add a `distributionSha256Sum` for each patched distribution, as with any other distribution.
+
+A patch can occasionally change behavior, for example raising the minimum supported Java version when a bundled dependency must be upgraded.
+The advisory for each fix documents any such change.

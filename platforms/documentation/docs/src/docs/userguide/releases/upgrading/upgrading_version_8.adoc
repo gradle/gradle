@@ -20,7 +20,7 @@ This chapter provides the information you need to migrate your Gradle 8.x builds
 For migrating from Gradle 7.x, see the <<upgrading_version_7.adoc#upgrading_version_7, older migration guide>> first.
 
 NOTE: Under the <<feature_lifecycle.adoc#eol_support,end-of-life policy>>, the previous major version is maintenance only: it receives only critical bug fixes and security fixes, backported to its last minor release.
-For security fixes to Gradle itself with contractual fix timelines, see the https://gradle.org/security-subscription/[Gradle Security Subscription].
+For security fixes to Gradle itself with contractual fix timelines, see the <<securing_build_tool.adoc#sec:extended_support,Gradle Security Subscription>>.
 
 We recommend the following steps for all users:
 

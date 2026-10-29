@@ -19,7 +19,7 @@ This chapter provides the information you need to migrate your Gradle 7.x builds
 For migrating from Gradle 6.x, see the  <<upgrading_version_6.adoc#upgrading_version_6, older migration guide>> first.
 
 NOTE: Under the <<feature_lifecycle.adoc#eol_support,end-of-life policy>>, Gradle 7 no longer receives security fixes.
-For Gradle 7.6, the https://gradle.org/security-subscription/[Gradle Security Subscription] provides security fixes to Gradle itself with contractual fix timelines.
+For Gradle 7.6, the <<securing_build_tool.adoc#sec:extended_support,Gradle Security Subscription>> provides security fixes to Gradle itself with contractual fix timelines.
 
 We recommend the following steps for all users:
 
