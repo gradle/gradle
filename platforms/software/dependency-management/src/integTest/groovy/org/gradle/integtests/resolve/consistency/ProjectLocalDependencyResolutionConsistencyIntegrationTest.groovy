@@ -338,6 +338,188 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39472")
+    def "strict versions from consistency apply to dependencies of nodes in a cycle that is upgraded by constraints"() {
+        repository {
+            // ':test' depends on 'test-ui:1.0', which is upgraded to '2.0' by a constraint
+            // coming from 'ui-android', which is part of the consistency source graph
+            'org:test-ui:1.0' {
+                variants(["api", "runtime"]) {
+                    availableAt("../../test-ui-android/1.0/test-ui-android-1.0.module", "org", "test-ui-android", "1.0")
+                }
+            }
+            'org:test-ui:2.0' {
+                variants(["api", "runtime"]) {
+                    availableAt("../../test-ui-android/2.0/test-ui-android-2.0.module", "org", "test-ui-android", "2.0")
+                }
+            }
+            'org:test-ui-android:1.0' {
+                dependsOn 'org:activity:1.0'
+                dependsOn 'org:activity-compose:1.0'
+            }
+            'org:test-ui-android:2.0' {
+                dependsOn 'org:activity-compose:1.0'
+                dependsOn 'org:espresso:1.0'
+            }
+            'org:ui:2.0' {
+                variants(["api", "runtime"]) {
+                    availableAt("../../ui-android/2.0/ui-android-2.0.module", "org", "ui-android", "2.0")
+                }
+            }
+            'org:ui-android:2.0' {
+                constraint 'org:test-ui:2.0'
+            }
+            'org:ui:1.0'()
+            'org:activity:1.0'()
+            'org:activity:2.0' {
+                constraint 'org:activity-compose:2.0'
+                constraint 'org:activity-ktx:2.0'
+            }
+            'org:activity-ktx:2.0' {
+                dependsOn 'org:activity:2.0'
+            }
+            'org:activity-compose:1.0'()
+            'org:activity-compose:2.0' {
+                dependsOn 'org:ui:1.0'
+            }
+            'org:fragment:1.0'()
+            'org:fragment:2.0' {
+                dependsOn 'org:activity-ktx:2.0'
+            }
+            'org:fragment-ktx:2.0' {
+                dependsOn 'org:fragment:2.0'
+            }
+            'org:appcompat:1.0' {
+                dependsOn 'org:fragment:1.0'
+            }
+            'org:futures:1.0'()
+            'org:futures:2.0'()
+            'org:futures-ktx:1.0' {
+                dependsOn 'org:futures:1.0'
+            }
+            'org:futures-ktx:2.0' {
+                constraint 'org:futures:2.0'
+            }
+            'org:test-core:1.0' {
+                dependsOn 'org:futures-ktx:2.0'
+            }
+            'org:espresso:1.0'()
+            'org:espresso:2.0' {
+                dependsOn 'org:futures:2.0'
+                dependsOn 'org:test-core:1.0'
+            }
+            'org:espresso-contrib:2.0' {
+                dependsOn 'org:appcompat:1.0'
+            }
+        }
+
+        buildFile << """
+            configurations {
+                other
+                conf.shouldResolveConsistentlyWith(other)
+            }
+
+            dependencies {
+                other 'org:futures-ktx:1.0'
+                other 'org:fragment-ktx:2.0'
+                other 'org:ui:2.0'
+
+                conf 'org:espresso:2.0'
+                conf 'org:espresso-contrib:2.0'
+                conf 'org:test-ui:1.0'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            [
+                'org:test-ui:1.0', 'org:test-ui:2.0', 'org:test-ui-android:1.0', 'org:test-ui-android:2.0',
+                'org:ui:2.0', 'org:ui-android:2.0', 'org:ui:1.0',
+                'org:activity:1.0', 'org:activity:2.0', 'org:activity-ktx:2.0', 'org:activity-compose:1.0', 'org:activity-compose:2.0',
+                'org:fragment:1.0', 'org:fragment:2.0', 'org:fragment-ktx:2.0', 'org:appcompat:1.0',
+                'org:futures:1.0', 'org:futures:2.0', 'org:futures-ktx:1.0', 'org:futures-ktx:2.0',
+                'org:test-core:1.0', 'org:espresso:1.0', 'org:espresso:2.0', 'org:espresso-contrib:2.0'
+            ].each { coordinates ->
+                "$coordinates" { allowAll() }
+            }
+        }
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:espresso:2.0') {
+                    byConflictResolution('between versions 2.0 and 1.0')
+                    edge('org:futures:2.0', 'org:futures:1.0') {
+                        byAncestor()
+                        byConsistentResolution('other')
+                        notRequested()
+                    }
+                    module('org:test-core:1.0') {
+                        edge('org:futures-ktx:2.0', 'org:futures-ktx:1.0') {
+                            byAncestor()
+                            byConsistentResolution('other')
+                            notRequested()
+                            module('org:futures:1.0')
+                        }
+                    }
+                }
+                module('org:espresso-contrib:2.0') {
+                    module('org:appcompat:1.0') {
+                        edge('org:fragment:1.0', 'org:fragment:2.0') {
+                            byAncestor()
+                            byConsistentResolution('other')
+                            notRequested()
+                            module('org:activity-ktx:2.0') {
+                                byAncestor()
+                                byConsistentResolution('other')
+                                notRequested()
+                                module('org:activity:2.0') {
+                                    byAncestor()
+                                    byConsistentResolution('other')
+                                    notRequested()
+                                    constraint('org:activity-compose:2.0')
+                                    constraint('org:activity-ktx:2.0')
+                                }
+                            }
+                        }
+                    }
+                }
+                edge('org:test-ui:1.0', 'org:test-ui:2.0') {
+                    byConstraint()
+                    byConflictResolution('between versions 2.0 and 1.0')
+                    noArtifacts()
+                    module('org:test-ui-android:2.0') {
+                        edge('org:activity-compose:1.0', 'org:activity-compose:2.0') {
+                            byConstraint()
+                            byConflictResolution('between versions 2.0 and 1.0')
+                            edge('org:ui:1.0', 'org:ui:2.0') {
+                                byAncestor()
+                                byConsistentResolution('other')
+                                notRequested()
+                                noArtifacts()
+                                module('org:ui-android:2.0') {
+                                    byAncestor()
+                                    byConsistentResolution('other')
+                                    notRequested()
+                                    constraint('org:test-ui:2.0')
+                                }
+                            }
+                        }
+                        edge('org:espresso:1.0', 'org:espresso:2.0')
+                    }
+                }
+                constraint('org:futures:{strictly 1.0}', 'org:futures:1.0')
+                constraint('org:futures-ktx:{strictly 1.0}', 'org:futures-ktx:1.0')
+                constraint('org:fragment:{strictly 2.0}', 'org:fragment:2.0')
+                constraint('org:activity:{strictly 2.0}', 'org:activity:2.0')
+                constraint('org:activity-ktx:{strictly 2.0}', 'org:activity-ktx:2.0')
+                constraint('org:ui:{strictly 2.0}', 'org:ui:2.0')
+                constraint('org:ui-android:{strictly 2.0}', 'org:ui-android:2.0')
+            }
+        }
+    }
+
     void withEagerResolutionPrevention() {
         buildFile << """
             def beforeTaskExecutionPhase = true

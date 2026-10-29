@@ -143,7 +143,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     boolean computeSelector(StrictVersionConstraints ancestorsStrictVersions, boolean deferSelection) {
-        boolean ignoreVersion = !isForced() && ancestorsStrictVersions.contains(getTargetModuleIdentifier());
+        boolean ignoreVersion = !isForced() && isStrictVersionProvidedByAncestor(ancestorsStrictVersions);
         ComponentSelector componentSelector = dependencyMetadata.getSelector();
         SelectorState newSelector = resolveState.computeSelectorFor(componentSelector, ignoreVersion);
         if (this.selector != newSelector) {
@@ -154,6 +154,25 @@ class EdgeState implements DependencyGraphEdge {
         }
 
         return false;
+    }
+
+    /**
+     * Whether the version requested by this edge is overridden by a strict version declared by one of the ancestors of the source node.
+     * <p>
+     * Strict versions declared by the root apply to every edge that does not originate from the root itself, since the root is
+     * an ancestor of every node in the graph. This is checked directly, instead of relying only on the inherited strict versions
+     * of the source node: those are the intersection of the strict versions provided by all incoming edges, so for nodes that are
+     * part of a cycle, or that are still reachable from nodes that are being evicted, they can lose the strict versions of the root.
+     */
+    private boolean isStrictVersionProvidedByAncestor(StrictVersionConstraints ancestorsStrictVersions) {
+        if (ancestorsStrictVersions.contains(getTargetModuleIdentifier())) {
+            return true;
+        }
+        if (from.isRoot()) {
+            return false;
+        }
+        StrictVersionConstraints rootStrictVersions = resolveState.getRoot().ownStrictVersions;
+        return rootStrictVersions != null && rootStrictVersions.contains(getTargetModuleIdentifier());
     }
 
     public boolean clearSelector() {
