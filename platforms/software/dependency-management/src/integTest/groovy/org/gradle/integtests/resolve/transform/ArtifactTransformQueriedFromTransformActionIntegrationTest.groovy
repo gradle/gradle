@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
@@ -301,6 +302,7 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
         because = "Accessing a project that no task declared as an input fails, as the project is not scheduled",
         iterationMatchers = [".*project=true.*"]
     )
+    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { ... } and project(...) { ... }")
     def "deprecated when a transform action queries the output of a transform through a build service it is given (parallel=#parallel, project=#project)"() {
         // A transform of a project artifact isolates its parameters through another caller than a transform of an external artifact.
         // The route the action takes to the files does not depend on the kind of artifact, so only this test covers project artifacts.
@@ -422,6 +424,7 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     }
 
     @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
+    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { ... } and project(...) { ... }")
     def "deprecated when the constructor of a transform action queries the output of a transform through a build service it is given (parallel=#parallel)"() {
         setupBuildWithTransforms()
         transformActionQueries(
@@ -453,6 +456,7 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     }
 
     @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
+    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { ... } and project(...) { ... }")
     def "deprecated when a transform action queries the output of a transform that a task also uses (parallel=#parallel, tasks=#tasks)"() {
         // Whether the task isolates the parameters of MakeRed before the transform action queries its output depends on scheduling
         setupBuildWithTransforms()
@@ -598,6 +602,7 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     }
 
     @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
+    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { ... } and project(...) { ... }")
     def "transform action may query the output of a transform through a file collection parameter that is not an input (parallel=#parallel)"() {
         // The file collection is resolved when the parameters of MakeGreen are isolated, before its actions run
         setupBuildWithTransforms()
@@ -623,6 +628,7 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     }
 
     @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
+    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { ... } and project(...) { ... }")
     def "transform action may query the output of a transform through a value source in a property parameter (parallel=#parallel)"() {
         // The value source is obtained when the parameters of MakeGreen are isolated, before its actions run
         setupBuildWithTransforms()
@@ -655,6 +661,7 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     }
 
     @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
+    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { ... } and project(...) { ... }")
     def "transform action may query the output of a transform through a value source in a list property parameter (parallel=#parallel)"() {
         // The value source is obtained when the parameters of MakeGreen are isolated, before its actions run
         setupBuildWithTransforms()
@@ -680,6 +687,7 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     }
 
     @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
+    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { ... } and project(...) { ... }")
     def "transform action may query the output of a transform through a value source it creates (parallel=#parallel)"() {
         // The value source is obtained by the transform action, but its files were resolved when the parameters of MakeGreen were isolated
         setupBuildWithTransforms()
@@ -713,6 +721,7 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     }
 
     @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
+    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { ... } and project(...) { ... }")
     def "worker API action may query the output of a transform through a build service it is given (parallel=#parallel)"() {
         // Worker API actions may acquire project locks, as the task releases its project lock when it waits for them after its actions
         setupBuildWithTransforms()
@@ -729,6 +738,7 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     }
 
     @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
+    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { ... } and project(...) { ... }")
     def "worker API action may query the output of a transform through a value source it is given (parallel=#parallel)"() {
         // Worker API actions may acquire project locks, as the task releases its project lock when it waits for them after its actions
         setupBuildWithTransforms()

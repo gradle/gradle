@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 
@@ -115,6 +116,7 @@ class ReachingAcrossProjectBoundariesIntegrationTest extends AbstractDependencyR
         // With parallel execution, the build fails before storing the task, unless the owner resolved the configuration
         iterationMatchers = [".*external=true, (parallel=false|parallel=true, resolvedByOwner=true).*"]
     )
+    @UnsupportedWithIsolatedProjects(because = "Consumes the configuration of another project")
     def "task declaring transform outputs of artifacts of another project as an input (external=#external, parallel=#parallel, resolvedByOwner=#resolvedByOwner)"() {
         createDirs("a", "b", "c")
         settingsFile << """
