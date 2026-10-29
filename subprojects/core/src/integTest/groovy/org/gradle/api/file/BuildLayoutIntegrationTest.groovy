@@ -112,4 +112,28 @@ class BuildLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("settings dir: " + buildSrcDir + ".")
         outputContains("settings source file: " + buildSrcSettingsFile + ".")
     }
+
+    def "injecting internal #serviceName is deprecated"() {
+        buildFile """
+             abstract class SomePlugin implements Plugin<Project> {
+                @Inject
+                abstract ${serviceClass.name} getService()
+
+                void apply(Project p) {
+                    getService()
+                }
+            }
+
+            apply plugin: SomePlugin
+        """
+
+        executer.expectDocumentedDeprecationWarning("Injecting 'org.gradle.initialization.layout.BuildLayout' or 'org.gradle.initialization.SettingsLocation' service has been deprecated. This is scheduled to be removed in Gradle 10. These classes are not part of the public API. Instead 'org.gradle.api.file.BuildLayout.settingsDirectory' in settings plugins or 'ProjectLayout.settingsDirectory' in project plugins. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate-internal-buildlayout")
+
+        expect:
+        run "help"
+
+        where:
+        serviceClass << [org.gradle.initialization.layout.BuildLayout, org.gradle.initialization.SettingsLocation]
+        serviceName = serviceClass.simpleName
+    }
 }

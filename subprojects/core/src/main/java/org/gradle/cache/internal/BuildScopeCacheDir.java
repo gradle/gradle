@@ -19,7 +19,7 @@ package org.gradle.cache.internal;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.internal.initialization.layout.BuildLocations;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.Hashing;
 
@@ -34,18 +34,18 @@ public class BuildScopeCacheDir {
 
     public BuildScopeCacheDir(
         GradleUserHomeDirProvider userHomeDirProvider,
-        BuildLayout buildLayout,
+        BuildLocations buildLocations,
         StartParameter startParameter
     ) {
         if (startParameter.getProjectCacheDir() != null) {
             // Use explicitly requested build scoped cache dir
             cacheDir = startParameter.getProjectCacheDir();
-        } else if (!buildLayout.getRootDirectory().getName().equals(SettingsInternal.BUILD_SRC) && buildLayout.isBuildDefinitionMissing()) {
+        } else if (!buildLocations.getBuildRootDirectory().getName().equals(SettingsInternal.BUILD_SRC) && buildLocations.isBuildDefinitionMissing()) {
             // No build definition, use a cache dir in the user home directory to avoid generating garbage in the root directory
-            cacheDir = new File(userHomeDirProvider.getGradleUserHomeDirectory(), UNDEFINED_BUILD + Hashing.hashString(buildLayout.getRootDirectory().getAbsolutePath()));
+            cacheDir = new File(userHomeDirProvider.getGradleUserHomeDirectory(), UNDEFINED_BUILD + Hashing.hashString(buildLocations.getBuildRootDirectory().getAbsolutePath()));
         } else {
             // Use the .gradle directory in the build root directory
-            cacheDir = new File(buildLayout.getRootDirectory(), DEFAULT_BUILD_SCOPE_CACHE_DIR);
+            cacheDir = new File(buildLocations.getBuildRootDirectory(), DEFAULT_BUILD_SCOPE_CACHE_DIR);
         }
         if (cacheDir.exists() && !cacheDir.isDirectory()) {
             throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Cache directory '%s' exists and is not a directory.", cacheDir)), true);

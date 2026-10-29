@@ -28,7 +28,7 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.DefaultBuildClientMetaData;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.initialization.layout.BuildLocator;
 import org.gradle.internal.Actions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -256,7 +256,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         public void execute(ExecutionListener executionListener) {
             ServiceRegistry basicServices = createBasicGlobalServices(loggingServices);
             BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(
-                basicServices.get(BuildLayoutFactory.class),
+                basicServices.get(BuildLocator.class),
                 basicServices.get(FileCollectionFactory.class));
             buildEnvironmentConfigurationConverter.configure(parser);
 
@@ -343,7 +343,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             BuildOptionBackedConverter<LoggingConfiguration> loggingBuildOptions = new BuildOptionBackedConverter<>(new LoggingConfigurationBuildOptions());
             InitialPropertiesConverter propertiesConverter = new InitialPropertiesConverter();
             BuildLayoutConverter buildLayoutConverter = new BuildLayoutConverter();
-            LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(new BuildLayoutFactory());
+            LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(new BuildLocator());
             Map<String, String> environmentVariables = System.getenv();
 
             BuildLayoutResult buildLayout = buildLayoutConverter.defaultValues();
