@@ -47,7 +47,7 @@ import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.impl.FileCollectionFingerprinterRegistrations;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.ManagedServiceRegistry;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -60,7 +60,7 @@ import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 @SuppressWarnings("deprecation")
 public class ProjectExecutionServices implements ServiceRegistrationProvider {
 
-    public static CloseableServiceRegistry create(ProjectInternal project) {
+    public static ManagedServiceRegistry create(ProjectInternal project) {
         return ServiceRegistryBuilder.builder()
             .scopeStrictly(Scope.ProjectExecution.class)
             .displayName("project execution services for '" + project.getPath() + "'")

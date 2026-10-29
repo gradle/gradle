@@ -33,7 +33,7 @@ import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.internal.Actions;
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.ManagedServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
@@ -99,7 +99,7 @@ public class GroovyScriptPluginFactory implements ScriptPluginFactory {
 
         @Override
         public void apply(final Object target) {
-            CloseableServiceRegistry services = ServiceRegistryBuilder.builder()
+            ManagedServiceRegistry services = ServiceRegistryBuilder.builder()
                 .displayName("script plugin services")
                 .parent(scriptServices)
                 .provider(registration -> {

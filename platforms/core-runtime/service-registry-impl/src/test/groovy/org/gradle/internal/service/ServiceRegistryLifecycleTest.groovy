@@ -127,6 +127,21 @@ class ServiceRegistryLifecycleTest extends Specification implements ServiceRegis
         1 * service.stop()
     }
 
+    def "close stops rather than closes a service that is both stoppable and auto-closeable"() {
+        def registry = newRegistry()
+        def service = Mock(TestStopAndAutoCloseService)
+
+        given:
+        registry.add(TestStopAndAutoCloseService, service)
+
+        when:
+        registry.close()
+
+        then:
+        1 * service.stop()
+        0 * service.close()
+    }
+
     def "close ignores service with no close or stop method"() {
         def registry = newRegistry()
         registry.add(String, "service")
@@ -386,7 +401,7 @@ class ServiceRegistryLifecycleTest extends Specification implements ServiceRegis
         then:
         service == childService
         1 * parentService.close()
-        0 * childService.close()
+        0 * childService.stop()
     }
 
     /**
@@ -510,6 +525,12 @@ class ServiceRegistryLifecycleTest extends Specification implements ServiceRegis
 
     interface TestStopService extends Stoppable {
         void stop()
+    }
+
+    interface TestStopAndAutoCloseService extends Stoppable, AutoCloseable {
+        void stop()
+
+        void close()
     }
 
     static class CloseableService implements Closeable {
