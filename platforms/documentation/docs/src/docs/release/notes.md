@@ -136,6 +136,8 @@ See the [Predefined Problem Groups](userguide/reporting_problems.html#sec:predef
 #### Taskbar progress in Windows Terminal
 When Gradle runs in [Windows Terminal](https://learn.microsoft.com/en-us/windows/terminal/) 1.6 or later, the build progress shown in the console now also appears on the Windows taskbar icon, including in WSL shells hosted by Windows Terminal. This shows how far a long-running build has progressed while the terminal is in the background.
 
+![Taskbar progress in Windows Terminal with 9.9.0](release-notes-assets/windows-taskbar.gif)
+
 Gradle already reports progress this way to ConEmu, Ghostty, kitty, and iTerm2.
 
 See the [Rich console](userguide/command_line_interface.html#sec:rich_console) section in the Gradle User Manual for more details.
