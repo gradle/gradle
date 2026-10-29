@@ -18,7 +18,6 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.internal.logging.progress.WorkerLineOperation;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -79,7 +78,7 @@ public class NotifyingBuildLoader implements BuildLoader {
                 //noinspection Convert2Lambda
                 return BuildOperationDescriptor
                     .displayName("Notify projectsLoaded listeners").owner(gradle.getOwner())
-                    .progressDisplayName(WorkerLineOperation.lineText(gradle.getIdentityPath(), "Running projects loaded listeners"))
+                    .progressDisplayName("Running projects loaded listeners")
                     .details(new NotifyProjectsLoadedBuildOperationType.Details() {
                         @Override
                         public String getBuildPath() {

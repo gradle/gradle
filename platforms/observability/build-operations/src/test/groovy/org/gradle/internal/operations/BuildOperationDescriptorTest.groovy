@@ -42,6 +42,27 @@ class BuildOperationDescriptorTest extends Specification {
         descriptor.name == "Settings"
     }
 
+    def "progress display name has the owner to show"() {
+        def descriptor = BuildOperationDescriptor.displayName("Evaluate settings").progressDisplayName("Evaluating settings").owner(owner).build()
+
+        expect:
+        descriptor.progressDisplayName == progressDisplayName
+
+        where:
+        owner         | progressDisplayName
+        owner(":lib") | ProgressDisplayName.of(":lib", "Evaluating settings")
+        owner(null)   | ProgressDisplayName.of("Evaluating settings")
+        null          | ProgressDisplayName.of("Evaluating settings")
+    }
+
+    def "an owner without a progress display name is only in the display name"() {
+        def descriptor = BuildOperationDescriptor.displayName("Load build").owner(owner(":lib")).build()
+
+        expect:
+        descriptor.displayName == "Load build (:lib)"
+        descriptor.progressDisplayName == null
+    }
+
     private static BuildOperationOwner owner(String ownerToShow) {
         return { -> ownerToShow } as BuildOperationOwner
     }

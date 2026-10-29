@@ -76,7 +76,7 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
             def descriptor = action.description().build()
             assert descriptor.name == "Upload https://location/thing.jar"
             assert descriptor.displayName == "Upload https://location/thing.jar"
-            assert descriptor.progressDisplayName == "thing.jar"
+            assert descriptor.progressDisplayName.text == "thing.jar"
 
             assert descriptor.details instanceof ExternalResourceWriteBuildOperationType.Details
             assert descriptor.details.location == location.getUri().toASCIIString()

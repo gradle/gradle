@@ -116,6 +116,61 @@ class DefaultWorkInProgressFormatterTest extends Specification {
         statusBarFormatter.format(task, 0).first().text == "> :work > 2 work actions completed"
     }
 
+    def "puts the owner of an operation before its message (#owner)"() {
+        given:
+        def operation = new ProgressOperation("Building task graph", "VARIANT_CATEGORY", new OperationIdentifier(1), null, 0, false, owner)
+
+        expect:
+        statusBarFormatter.format(operation, 0).first().text == expected
+
+        where:
+        owner      | expected
+        ":lib"     | "> :lib > Building task graph"
+        ":lib:app" | "> :lib:app > Building task graph"
+        null       | "> Building task graph"
+    }
+
+    def "puts the owner of an operation after the message of its parent"() {
+        given:
+        def settings = new ProgressOperation("Evaluating settings", "VARIANT_CATEGORY", new OperationIdentifier(1), null, 0, false, null)
+        def listeners = new ProgressOperation("Running projects loaded listeners", "VARIANT_CATEGORY", new OperationIdentifier(2), settings, 0, false, ":plugins")
+
+        expect:
+        statusBarFormatter.format(listeners, 0).first().text == "> Evaluating settings > :plugins > Running projects loaded listeners"
+    }
+
+    def "does not show the owner of an operation without a message"() {
+        given:
+        def settings = new ProgressOperation("Evaluating settings", "VARIANT_CATEGORY", new OperationIdentifier(1), null, 0)
+        def withoutMessage = new ProgressOperation(null, "VARIANT_CATEGORY", new OperationIdentifier(2), settings, 0, false, ":lib")
+        def alone = new ProgressOperation(null, "VARIANT_CATEGORY", new OperationIdentifier(3), null, 0, false, ":lib")
+
+        expect:
+        statusBarFormatter.format(withoutMessage, 0).first().text == "> Evaluating settings"
+        statusBarFormatter.format(alone, 0).first().text == "> IDLE"
+    }
+
+    def "shows the time after the message of an operation with an owner"() {
+        given:
+        def operation = new ProgressOperation("Running projects evaluated listeners", "VARIANT_CATEGORY", new OperationIdentifier(1), null, 0, false, ":lib")
+
+        expect:
+        statusBarFormatter.format(operation, 12_000) == [new Span(Header, "> :lib > Running projects evaluated listeners"), new Span(Normal, "  12s")]
+    }
+
+    def "cuts a long line with an owner as the same line with the owner in its message (#cols columns)"() {
+        given:
+        consoleMetaData.getCols() >> cols
+        def message = "Generating dependency accessors for 'aCatalogWithAVeryLongNameThatDoesNotFitOnTheLine'"
+        def withPath = new ProgressOperation(message, "VARIANT_CATEGORY", new OperationIdentifier(1), null, 0, false, ":lib")
+
+        expect:
+        statusBarFormatter.format(withPath, 25_000) == statusBarFormatter.format(operationOf(":lib > " + message), 25_000)
+
+        where:
+        cols << [80, 40, 12]
+    }
+
     def "keeps a line of #length characters, which fits in one less than the console width"() {
         given:
         consoleMetaData.getCols() >> 80

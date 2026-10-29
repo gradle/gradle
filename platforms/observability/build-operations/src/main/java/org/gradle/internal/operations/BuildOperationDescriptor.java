@@ -26,7 +26,7 @@ public final class BuildOperationDescriptor {
     private final @Nullable OperationIdentifier parentId;
     private final String displayName;
     private final String name;
-    private final @Nullable String progressDisplayName;
+    private final @Nullable ProgressDisplayName progressDisplayName;
     private final @Nullable Object details;
     private final BuildOperationMetadata metadata;
     private final int totalProgress;
@@ -36,7 +36,7 @@ public final class BuildOperationDescriptor {
         @Nullable OperationIdentifier parentId,
         String name,
         String displayName,
-        @Nullable String progressDisplayName,
+        @Nullable ProgressDisplayName progressDisplayName,
         @Nullable Object details,
         BuildOperationMetadata metadata,
         int totalProgress
@@ -80,7 +80,7 @@ public final class BuildOperationDescriptor {
      * <p>When null, no progress logging is generated for the operation. Defaults to null.
      */
     @Nullable
-    public String getProgressDisplayName() {
+    public ProgressDisplayName getProgressDisplayName() {
         return progressDisplayName;
     }
 
@@ -198,7 +198,8 @@ public final class BuildOperationDescriptor {
         public BuildOperationDescriptor build(@Nullable OperationIdentifier id, @Nullable OperationIdentifier defaultParentId) {
             String ownerToShow = owner == null ? null : owner.getOwnerToShow();
             String displayNameWithOwner = ownerToShow == null ? displayName : displayName + " (" + ownerToShow + ")";
-            return new BuildOperationDescriptor(id, parent == null ? defaultParentId : parent.getId(), name == null ? displayNameWithOwner : name, displayNameWithOwner, progressDisplayName, details, metadata, totalProgress);
+            ProgressDisplayName progressDisplayNameWithOwner = progressDisplayName == null ? null : ProgressDisplayName.of(ownerToShow, progressDisplayName);
+            return new BuildOperationDescriptor(id, parent == null ? defaultParentId : parent.getId(), name == null ? displayNameWithOwner : name, displayNameWithOwner, progressDisplayNameWithOwner, details, metadata, totalProgress);
         }
     }
 }

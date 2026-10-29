@@ -33,6 +33,7 @@ public class ProgressOperation {
     private final ProgressOperation parent;
     private final long startTimestamp;
     private final boolean workAction;
+    private final @Nullable String owner;
     private int startedWorkActions;
     private int completedWorkActions;
     private Set<ProgressOperation> children;
@@ -42,12 +43,17 @@ public class ProgressOperation {
     }
 
     ProgressOperation(String status, String category, OperationIdentifier operationId, ProgressOperation parent, long startTimestamp, boolean workAction) {
+        this(status, category, operationId, parent, startTimestamp, workAction, null);
+    }
+
+    ProgressOperation(String status, String category, OperationIdentifier operationId, ProgressOperation parent, long startTimestamp, boolean workAction, @Nullable String owner) {
         this.status = status;
         this.category = category;
         this.operationId = operationId;
         this.parent = parent;
         this.startTimestamp = startTimestamp;
         this.workAction = workAction;
+        this.owner = owner;
     }
 
     @Override
@@ -72,6 +78,14 @@ public class ProgressOperation {
 
     public OperationIdentifier getOperationId() {
         return operationId;
+    }
+
+    /**
+     * The owner to show with the message, such as ":lib". Null when no owner is shown.
+     */
+    @Nullable
+    public String getOwner() {
+        return owner;
     }
 
     public long getStartTimestamp() {

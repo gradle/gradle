@@ -55,6 +55,10 @@ public class DefaultWorkInProgressFormatter {
                     deepestWithMessage = current;
                 }
                 builder.insert(0, SEPARATOR).insert(SEPARATOR.length(), message);
+                String owner = current.getOwner();
+                if (owner != null) {
+                    builder.insert(0, SEPARATOR).insert(SEPARATOR.length(), owner);
+                }
             }
             current = current.getParent();
         }

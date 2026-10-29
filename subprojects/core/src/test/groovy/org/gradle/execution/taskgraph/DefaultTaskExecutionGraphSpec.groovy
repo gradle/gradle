@@ -30,6 +30,7 @@ import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.internal.operations.ProgressDisplayName
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.util.Path
 import spock.lang.Issue
@@ -250,12 +251,12 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
 
         then:
         buildOperationRunner.operations[0].displayName == displayName
-        buildOperationRunner.operations[0].progressDisplayName == lineText
+        buildOperationRunner.operations[0].progressDisplayName == ProgressDisplayName.of(ownerToShow, "Running task graph ready listeners")
 
         where:
-        build            | buildPath         | ownerToShow | displayName                                    | lineText
-        "root build"     | Path.ROOT         | null        | "Notify task graph whenReady listeners"        | "Running task graph ready listeners"
-        "included build" | Path.path(":lib") | ":lib"      | "Notify task graph whenReady listeners (:lib)" | ":lib > Running task graph ready listeners"
+        build            | buildPath         | ownerToShow | displayName
+        "root build"     | Path.ROOT         | null        | "Notify task graph whenReady listeners"
+        "included build" | Path.path(":lib") | ":lib"      | "Notify task graph whenReady listeners (:lib)"
     }
 
     def "notifies before task listeners"() {

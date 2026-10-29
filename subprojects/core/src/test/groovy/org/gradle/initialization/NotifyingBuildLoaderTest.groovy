@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.operations.ProgressDisplayName
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.util.Path
 import spock.lang.Issue
@@ -60,11 +61,11 @@ class NotifyingBuildLoaderTest extends Specification {
         then:
         def notify = buildOperationRunner.log.mostRecent(NotifyProjectsLoadedBuildOperationType)
         notify.descriptor.displayName == displayName
-        notify.descriptor.progressDisplayName == lineText
+        notify.descriptor.progressDisplayName == ProgressDisplayName.of(ownerToShow, "Running projects loaded listeners")
 
         where:
-        build            | buildPath         | ownerToShow | displayName                              | lineText
-        "root build"     | Path.ROOT         | null        | "Notify projectsLoaded listeners"        | "Running projects loaded listeners"
-        "included build" | Path.path(":lib") | ":lib"      | "Notify projectsLoaded listeners (:lib)" | ":lib > Running projects loaded listeners"
+        build            | buildPath         | ownerToShow | displayName
+        "root build"     | Path.ROOT         | null        | "Notify projectsLoaded listeners"
+        "included build" | Path.path(":lib") | ":lib"      | "Notify projectsLoaded listeners (:lib)"
     }
 }

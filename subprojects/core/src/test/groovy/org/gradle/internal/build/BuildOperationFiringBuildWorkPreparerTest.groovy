@@ -30,6 +30,7 @@ import org.gradle.execution.plan.QueryableExecutionPlan
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.ToPlannedNodeConverterRegistry
 import org.gradle.execution.plan.ToPlannedTaskConverter
+import org.gradle.internal.operations.ProgressDisplayName
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.NodeIdentity
@@ -101,7 +102,7 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
         then:
         def record = buildOperationRunner.log.mostRecent(CalculateTaskGraphBuildOperationType)
         record.descriptor.displayName == "Calculate task graph"
-        record.descriptor.progressDisplayName == "Building task graph"
+        record.descriptor.progressDisplayName == ProgressDisplayName.of(null, "Building task graph")
     }
 
     def "build operation has good progress display name for included build"() {
@@ -129,6 +130,6 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
         then:
         def record = buildOperationRunner.log.mostRecent(CalculateTaskGraphBuildOperationType)
         record.descriptor.displayName == "Calculate task graph (:buildB)"
-        record.descriptor.progressDisplayName == ":buildB > Building task graph"
+        record.descriptor.progressDisplayName == ProgressDisplayName.of(":buildB", "Building task graph")
     }
 }

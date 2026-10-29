@@ -65,15 +65,17 @@ import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.logging.progress.WorkerLineOperation;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationOwner;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.util.Path;
 import org.gradle.util.internal.IncubationLogger;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -154,7 +156,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         try {
             this.classLoaderScope = classLoaderScope;
             this.models.clear(); // this is used in tests only, shouldn't happen in real context
-            Path buildPath = ((SettingsInternal) settings).getGradle().getIdentityPath();
+            BuildOperationOwner owner = ((SettingsInternal) settings).getGradle().getOwner();
             for (VersionCatalogBuilder builder : builders) {
                 DefaultVersionCatalog model = ((VersionCatalogBuilderInternal) builder).build();
                 models.add(model);
@@ -162,37 +164,61 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             if (models.stream().anyMatch(DefaultVersionCatalog::isNotEmpty)) {
                 for (DefaultVersionCatalog model : models) {
                     if (model.isNotEmpty()) {
-                        writeDependenciesAccessors(model, buildPath);
+                        writeDependenciesAccessors(model, owner);
                     }
                 }
             }
             if (featureFlags.isEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
                 IncubationLogger.incubatingFeatureUsed("Type-safe project accessors");
-                writeProjectAccessors(((SettingsInternal) settings).getProjectRegistry(), buildPath);
+                writeProjectAccessors(((SettingsInternal) settings).getProjectRegistry(), owner);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void writeDependenciesAccessors(DefaultVersionCatalog model, Path buildPath) {
-        buildOperationRunner.run(dependencyAccessorsOperation(buildPath, model.getName(), () -> executeWork(new DependencyAccessorUnitOfWork(model))));
+    private void writeDependenciesAccessors(DefaultVersionCatalog model, BuildOperationOwner owner) {
+        buildOperationRunner.run(dependencyAccessorsOperation(owner, model.getName(), () -> executeWork(new DependencyAccessorUnitOfWork(model))));
     }
 
-    static WorkerLineOperation dependencyAccessorsOperation(Path buildPath, String catalogName, Runnable generation) {
-        return new WorkerLineOperation(buildPath, "Generate dependency accessors for '" + catalogName + "'", "Generating dependency accessors for '" + catalogName + "'", generation);
+    static RunnableBuildOperation dependencyAccessorsOperation(BuildOperationOwner owner, String catalogName, Runnable generation) {
+        return new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                generation.run();
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Generate dependency accessors for '" + catalogName + "'")
+                    .progressDisplayName("Generating dependency accessors for '" + catalogName + "'")
+                    .owner(owner);
+            }
+        };
     }
 
-    private void writeProjectAccessors(ProjectDescriptorRegistry projectRegistry, Path buildPath) {
+    private void writeProjectAccessors(ProjectDescriptorRegistry projectRegistry, BuildOperationOwner owner) {
         if (!assertCanGenerateAccessors(projectRegistry)) {
             return;
         }
         warnIfRootProjectNameNotSetExplicitly(projectRegistry.getRootProject());
-        buildOperationRunner.run(projectAccessorsOperation(buildPath, () -> executeWork(new ProjectAccessorUnitOfWork(projectRegistry))));
+        buildOperationRunner.run(projectAccessorsOperation(owner, () -> executeWork(new ProjectAccessorUnitOfWork(projectRegistry))));
     }
 
-    static WorkerLineOperation projectAccessorsOperation(Path buildPath, Runnable generation) {
-        return new WorkerLineOperation(buildPath, "Generate project accessors", "Generating project accessors", generation);
+    static RunnableBuildOperation projectAccessorsOperation(BuildOperationOwner owner, Runnable generation) {
+        return new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                generation.run();
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Generate project accessors")
+                    .progressDisplayName("Generating project accessors")
+                    .owner(owner);
+            }
+        };
     }
 
     private static void warnIfRootProjectNameNotSetExplicitly(@Nullable ProjectDescriptorInternal project) {

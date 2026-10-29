@@ -129,6 +129,30 @@ class ProgressStartEventSerializerTest extends LogSerializerSpec {
         "the description" | ""                    | null
     }
 
+    def "can serialize ProgressStartEvent messages with an owner"() {
+        given:
+        def event = new ProgressStartEvent(OPERATION_ID, new OperationIdentifier(5678L), TIMESTAMP, CATEGORY, description, null, status, owner, 10, true, new OperationIdentifier(42L), BuildOperationCategory.UNCATEGORIZED)
+
+        when:
+        def result = serialize(event, serializer)
+
+        then:
+        result instanceof ProgressStartEvent
+        result.description == description
+        result.status == status
+        result.owner == owner
+        result.totalProgress == 10
+        result.buildOperationId == new OperationIdentifier(42L)
+
+        where:
+        description                   | status                | owner
+        "Calculate task graph (:lib)" | "Building task graph" | ":lib"
+        "Calculate task graph"        | "Building task graph" | ":"
+        "Calculate task graph"        | "Building task graph" | null
+        "the description"             | "description"         | ":lib:app"
+        "Load build (:lib)"           | ""                    | ":lib"
+    }
+
     def "can serialize ProgressStartEvent with common categories"() {
         given:
         def event = new ProgressStartEvent(OPERATION_ID, new OperationIdentifier(5678L), TIMESTAMP, category, DESCRIPTION, "header", "status", 10, true, new OperationIdentifier(42L), BuildOperationCategory.UNCATEGORIZED)

@@ -50,6 +50,19 @@ class WorkInProgressRendererTest extends OutputSpecification {
         cursorParkText == ""
     }
 
+    def "shows the owner of a start event before its status"() {
+        given:
+        metaData.getRows() >> 6
+
+        when:
+        renderer.onOutput(start(id: 1, status: "Building task graph", owner: ":lib"))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :lib > Building task graph"]
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/39559")
     def "shows how long the work of a line has run, at each update"() {
         given:

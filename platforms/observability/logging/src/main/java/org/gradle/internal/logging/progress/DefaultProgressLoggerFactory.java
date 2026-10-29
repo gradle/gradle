@@ -26,6 +26,7 @@ import org.gradle.internal.operations.BuildOperationMetadata;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.ProgressDisplayName;
 import org.gradle.internal.time.Clock;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.Nullable;
@@ -74,9 +75,13 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         );
         logger.totalProgress = buildOperationDescriptor.getTotalProgress();
 
-        // Make some assumptions about the console output
-        if (buildOperationCategory.isTopLevelWorkItem()) {
-            logger.loggingHeader = buildOperationDescriptor.getProgressDisplayName();
+        ProgressDisplayName progressDisplayName = buildOperationDescriptor.getProgressDisplayName();
+        if (progressDisplayName != null) {
+            logger.owner = progressDisplayName.getOwner();
+            // Make some assumptions about the console output
+            if (buildOperationCategory.isTopLevelWorkItem()) {
+                logger.loggingHeader = progressDisplayName.getText();
+            }
         }
 
         return logger;
@@ -130,6 +135,8 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         private ProgressLoggerImpl parent;
         private String description;
         private String loggingHeader;
+        @Nullable
+        private String owner;
         private State state = State.idle;
         private int totalProgress;
 
@@ -219,6 +226,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
                 description,
                 loggingHeader,
                 ensureNotNull(status),
+                owner,
                 totalProgress,
                 buildOperationStart,
                 buildOperationId,

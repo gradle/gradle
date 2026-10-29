@@ -46,7 +46,8 @@ public class BuildOperationProgressEventListenerAdapter implements DefaultBuildO
     public void start(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
         buildOperationListener.started(descriptor, new OperationStartEvent(operationState.getStartTime()));
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationRunner.class, descriptor);
-        this.progressLogger = progressLogger.start(descriptor.getDisplayName(), descriptor.getProgressDisplayName());
+        ProgressDisplayName progressDisplayName = descriptor.getProgressDisplayName();
+        this.progressLogger = progressLogger.start(descriptor.getDisplayName(), progressDisplayName == null ? null : progressDisplayName.getText());
     }
 
     @Override

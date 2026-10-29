@@ -121,7 +121,7 @@ empty=
         then:
         def write = buildOperationRunner.log.descriptors.last()
         write.displayName == "Write dependency locks for project ':included:sub'"
-        write.progressDisplayName == "Write dependency locks for project ':included:sub'"
+        write.progressDisplayName.text == "Write dependency locks for project ':included:sub'"
     }
 
     def 'can load lockfile as strict constraints'() {

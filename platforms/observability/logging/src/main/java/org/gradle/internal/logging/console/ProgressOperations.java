@@ -26,15 +26,15 @@ public class ProgressOperations {
     private final Map<OperationIdentifier, ProgressOperation> operationsById = new HashMap<OperationIdentifier, ProgressOperation>();
 
     public ProgressOperation start(String status, String category, OperationIdentifier operationId, @Nullable OperationIdentifier parentOperationId, long startTimestamp) {
-        return start(status, category, operationId, parentOperationId, startTimestamp, false);
+        return start(status, category, operationId, parentOperationId, startTimestamp, false, null);
     }
 
-    ProgressOperation start(String status, String category, OperationIdentifier operationId, @Nullable OperationIdentifier parentOperationId, long startTimestamp, boolean workAction) {
+    ProgressOperation start(String status, String category, OperationIdentifier operationId, @Nullable OperationIdentifier parentOperationId, long startTimestamp, boolean workAction, @Nullable String owner) {
         ProgressOperation parent = null;
         if (parentOperationId != null) {
             parent = operationsById.get(parentOperationId);
         }
-        ProgressOperation operation = new ProgressOperation(status, category, operationId, parent, startTimestamp, workAction);
+        ProgressOperation operation = new ProgressOperation(status, category, operationId, parent, startTimestamp, workAction, owner);
         if (parent != null) {
             parent.addChild(operation);
         }
