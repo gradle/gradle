@@ -13,5 +13,4 @@ dependencies {
     implementation(projects.moduleIdentity)
 
     implementation(buildLibs.publishPlugin)
-    implementation(libs.asm)
 }
