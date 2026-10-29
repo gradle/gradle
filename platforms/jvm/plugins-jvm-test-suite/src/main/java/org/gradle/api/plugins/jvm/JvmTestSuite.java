@@ -158,7 +158,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework.
      * <p>
-     *     Gradle will provide the version of kotlin.test to use. Defaults to version {@code 2.5.0-Beta2}
+     *     Gradle will provide the version of kotlin.test to use. Defaults to version {@code 2.5.20-dev-2076}
      * </p>
      * @since 7.3
      */
