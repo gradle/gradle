@@ -12,17 +12,17 @@
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-In this release, Kotlin DSL scripts benefit from [incremental compilation](#performance-improvements), making script recompilation after a change in buildSrc or an included build up to 65% faster in large multi-project builds.
+In this release, Kotlin DSL scripts benefit from [incremental compilation](#performance-improvements), making script recompilation after a change in `buildSrc` or an included build up to 65% faster in large multi-project builds.
 
-[Test filters](#test-reporting-and-execution) now apply to JUnit Platform tests that are not declared as methods, such as ArchUnit rules and Spek scopes, so --tests runs only the tests you select.
+[Test filters](#test-reporting-and-execution) now also apply to JUnit Platform tests that are not declared as methods, such as ArchUnit rules and Spek scopes, so `--tests` runs only the tests you select.
 
-In [CLI, logging, and problem reporting](#cli-logging-and-problem-reporting), the Problems API introduces a predefined hierarchy of problem groups, and build progress now appears on the Windows taskbar in Windows Terminal.
+The [wrapper task](#general-improvements) now keeps your customized properties when you upgrade Gradle.
 
-[Build authoring](#build-authoring-improvements) becomes more convenient, with the wrapper task preserving customized properties when you regenerate it, and new ProviderFactory methods.
+In [CLI, logging, and problem reporting](#cli-logging-and-problem-reporting), the Problems API groups problems by area, such as `Compilation > Java`, so you can see where each one comes from, and Windows Terminal now shows build progress on the taskbar. [Isolated Projects](#isolated-projects) now also works with Eclipse, so you can sync builds that have it enabled in Buildship as well as in IntelliJ IDEA and Android Studio.
 
-For [plugin authors](#core-plugin-and-plugin-authoring-enhancements), the Sync task can now empty its destination when its source is empty.
+[Build authors](#build-authoring-improvements) get new `ProviderFactory` methods for values that are already known, and [plugin authors](#core-plugin-and-plugin-authoring-enhancements) can now make the `Sync` task empty its destination when its source is empty.
 
-Finally, [Eclipse users](#tooling-and-ide-integration) can now sync builds that have Isolated Projects enabled, and the [User Manual](#documentation-and-training) gains a new chapter on securing Gradle builds.
+Finally, the [User Manual](#documentation-and-training) is now available as Markdown, so AI agents and other tools can read it directly, and includes a new chapter on securing Gradle builds.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [devareddy05](https://github.com/devareddy05),
@@ -63,6 +63,8 @@ Gradle continuously improves [build performance](userguide/performance.html) thr
 #### Incremental compilation of Kotlin DSL scripts
 [Kotlin DSL](userguide/kotlin_dsl.html) scripts are now compiled using the [Kotlin Build Tools API](https://kotlinlang.org/docs/build-tools-api.html), making incremental compilation available for build scripts.
 
+![Kotlin DSL script recompilation time, Gradle 9.8.0 vs 9.9.0](release-notes-assets/kotlin-dsl-incremental-compilation.png)
+
 When a script has to be recompiled, for example, after a signature change in `buildSrc` or an included build, only the affected parts are compiled again. In one of our performance tests on a large multi-project build, this makes recompiling scripts 65% faster.
 
 Builds that rarely recompile scripts see no change.
@@ -93,10 +95,26 @@ Rules grouped with `ArchTests.in(...)` are matched by the grouped class instead 
 Tests that an engine registers only during execution, as [Kotest](https://kotest.io/) does, can still only be selected by their spec class.
 
 This also improves the [Test Retry plugin](https://github.com/gradle/test-retry-gradle-plugin), which uses test filters to select tests to rerun.  
-Previously, it reran every non-method-based test whenever any test in the task was retried, even ones that had passed. 
-Now it reruns only the failed ones.
+Previously, it reran every non-method-based test whenever any test in the task was retried, even ones that had passed. Now it reruns only the failed ones.
 
 See the [Upgrade Guide](userguide/upgrading_version_9.html#filters_apply_to_non_method_tests) for breaking changes, and the [Filtering Non-Method Tests](userguide/java_testing.html#filtering_non_method_tests) section in the Gradle User Manual for more details.
+
+### General improvements
+Gradle provides various incremental updates to ensure the continued reliability of the build ecosystem.
+
+#### The `wrapper` task preserves customized properties
+The [`wrapper`](userguide/gradle_wrapper.html#gradle_wrapper) task now preserves values from an existing `gradle-wrapper.properties` file when you regenerate the wrapper, for example, with `./gradlew wrapper --gradle-version @version@`.  
+Previously, the task overwrote them with defaults.
+
+Gradle preserves the distribution type (`bin` or `all`), the network timeout, retries, and retry backoff, URL validation, and the distribution and archive paths and bases.  
+Values configured on the task or passed on the command line still take precedence.  
+The `distributionUrl` is regenerated for the new Gradle version, so a custom host is not preserved.
+
+URL validation is preserved like any other value, so a single `--no-validate-url` run disables validation until you run the task again with `--validate-url`.
+
+User-declared `Wrapper` tasks now also write the default network timeout, retry count, and retry backoff when those properties are not otherwise configured.
+
+See the [Preserving Existing Wrapper Properties](userguide/gradle_wrapper.html#sec:preserving_wrapper_properties) section in the Gradle User Manual for more details.
 
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
@@ -104,7 +122,7 @@ Gradle provides an intuitive [command-line interface](userguide/command_line_int
 #### Predefined groups in the Problems API
 The incubating [Problems API](userguide/reporting_problems.html#header) now provides a predefined hierarchy of problem groups, available from the `Problems` service as `problems.groups`.
 
-Eleven root groups cover the areas a problem can come from, each with predefined subgroups: `Compilation > Java`, `Dependencies > Declaration`, `Packaging > Signing`, `Provisioning > Tools and Toolchains`, `Gradle > Plugin Validation,` and so on. Plugins report into the matching predefined group or add a subgroup below it. The types of hierarchy enforce placement:
+Eleven root groups cover the areas a problem can come from, each with predefined subgroups: `Compilation > Java`, `Dependencies > Declaration`, `Packaging > Signing`, `Provisioning > Tools and Toolchains`, `Gradle > Plugin Validation`, and so on. Plugins report into the matching predefined group or add a subgroup below it. The types of hierarchy enforce placement:
 
 ```kotlin
 problems.reporter.report(problems.groups.compilation.java.problemId("Unused import")) {}
@@ -134,26 +152,26 @@ See the [Predefined Problem Groups](userguide/reporting_problems.html#sec:predef
 #### Taskbar progress in Windows Terminal
 When Gradle runs in [Windows Terminal](https://learn.microsoft.com/en-us/windows/terminal/) 1.6 or later, the build progress shown in the console now also appears on the Windows taskbar icon, including in WSL shells hosted by Windows Terminal. This shows how far a long-running build has progressed while the terminal is in the background.
 
+![Taskbar progress in Windows Terminal with 9.9.0](release-notes-assets/windows-taskbar.gif)
+
 Gradle already reports progress this way to ConEmu, Ghostty, kitty, and iTerm2.
 
 See the [Rich console](userguide/command_line_interface.html#sec:rich_console) section in the Gradle User Manual for more details.
 
+### Isolated Projects
+[Isolated Projects](userguide/isolated_projects.html) is an incubating performance feature that safely runs project configuration in parallel, significantly reducing configuration time in many scenarios, including IDE sync and CI builds.
+
+#### Eclipse sync works with Isolated Projects
+[Buildship](https://projects.eclipse.org/projects/tools.buildship), the Gradle integration for Eclipse, can now synchronize builds that have [Isolated Projects](userguide/isolated_projects.html) enabled.
+
+Previously, synchronizing such a build in Eclipse failed because the Eclipse tooling models read the state of other projects in a way that Isolated Projects reports as a [constraint violation](userguide/isolated_projects.html#sec:constraints). Gradle now builds these models without breaking project isolation, so Eclipse users can adopt Isolated Projects alongside users of IntelliJ IDEA and Android Studio.
+
+Builds that do not enable Isolated Projects see no change.
+
+See the [Isolated Projects](userguide/isolated_projects.html) section in the Gradle User Manual for more details.
+
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
-
-#### The `wrapper` task preserves customized properties
-The [`wrapper`](userguide/gradle_wrapper.html#gradle_wrapper) task now preserves values from an existing `gradle-wrapper.properties` file when you regenerate the wrapper, for example, with `./gradlew wrapper --gradle-version @version@`.  
-Previously, the task overwrote them with defaults.
-
-Gradle preserves the distribution type (`bin` or `all`), the network timeout, retries, and retry backoff, URL validation, and the distribution and archive paths and bases.  
-Values configured on the task or passed on the command line still take precedence.  
-The `distributionUrl` is regenerated for the new Gradle version, so a custom host is not preserved.
-
-URL validation is preserved like any other value, so a single `--no-validate-url` run disables validation until you run the task again with `--validate-url`.
-
-User-declared `Wrapper` tasks now also write the default network timeout, retry count, and retry backoff when those properties are not otherwise configured.
-
-See the [Preserving Existing Wrapper Properties](userguide/gradle_wrapper.html#sec:preserving_wrapper_properties) section in the Gradle User Manual for more details.
 
 #### Providers for values that are already known
 Build logic often has a value at hand and needs to pass it to an API that accepts a [`Provider`](javadoc/org/gradle/api/provider/Provider.html). Previously, this required wrapping the value in a `Callable` with `providers.provider { value }`, or `providers.provider { null }` for a provider that has no value.
@@ -194,18 +212,6 @@ By default, `Sync` still skips the task when its source has no files or director
 
 See [Synchronizing from an empty source](userguide/working_with_files.html#sec:sync_task_empty_source) in the Gradle User Manual for more details.
 
-### Tooling and IDE integration
-Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
-
-#### Eclipse sync works with Isolated Projects
-[Buildship](https://projects.eclipse.org/projects/tools.buildship), the Gradle integration for Eclipse, can now synchronize builds that have [Isolated Projects](userguide/isolated_projects.html) enabled.
-
-Previously, synchronizing such a build in Eclipse failed because the Eclipse tooling models read the state of other projects in a way that Isolated Projects reports as a [constraint violation](userguide/isolated_projects.html#sec:constraints). Gradle now builds these models without breaking project isolation, so Eclipse users can adopt Isolated Projects alongside users of IntelliJ IDEA and Android Studio.
-
-Builds that do not enable Isolated Projects see no change.
-
-See the [Isolated Projects](userguide/isolated_projects.html) section in the Gradle User Manual for more details.
-
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
@@ -229,7 +235,9 @@ Use it to find the first member spec that an object does not satisfy.
 ## Documentation and training
 
 ### User Manual
-A new chapter, [Securing Gradle Builds,](userguide/security.html) covers securing the [build tool](userguide/securing_build_tool.html), [repositories](userguide/securing_repositories.html), and [dependencies](userguide/securing_dependencies.html).
+Every page of the User Manual is now also available as Markdown, so AI agents and other tools can read the documentation directly. Replace `.html` with `.md` in a page's URL, for example, [userguide/gradle_wrapper.md](userguide/gradle_wrapper.md).
+
+A new chapter, [Securing Gradle Builds](userguide/security.html), covers securing the [build tool](userguide/securing_build_tool.html), [repositories](userguide/securing_repositories.html), and [dependencies](userguide/securing_dependencies.html).
 
 The rewrite of the core plugin reference pages continues with the [Java](userguide/java_plugin.html), [Java Library](userguide/java_library_plugin.html), [Java Platform](userguide/java_platform_plugin.html), [Java Test Fixtures](userguide/java_test_fixtures_plugin.html), [JVM Test Suite](userguide/jvm_test_suite_plugin.html), [JaCoCo](userguide/jacoco_plugin.html), [War](userguide/war_plugin.html), [Distribution](userguide/distribution_plugin.html), and [Version Catalog](userguide/version_catalog_plugin.html) plugins. The [Build Init plugin](userguide/build_init_plugin.html) page now documents the test frameworks it supports.
 
@@ -243,7 +251,6 @@ Other notable additions:
 A new entry has been added to the [Best Practices](userguide/best_practices.html):
 
 - [Favor `String` values for custom attributes](userguide/best_practices_dependencies.html#favor_string_attribute_values) over `Named` types, since attribute values are published as plain strings.
-
 
 ## Fixed issues
 
