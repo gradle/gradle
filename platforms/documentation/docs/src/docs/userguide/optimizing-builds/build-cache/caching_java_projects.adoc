@@ -18,6 +18,9 @@
 As of Gradle 4.0, the build tool fully supports caching plain Java projects.
 Built-in tasks for compiling, testing, documenting and checking the quality of Java code support the build cache out of the box.
 
+TIP: When a Java task misses the cache unexpectedly, a link:https://develocity.ai/product/build-scan/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=caching-java-projects-callout-build-scan[Build Scan] comparison shows which input changed.
+See <<build_cache_debugging.adoc#diagnosing_cache_miss,Diagnosing the reasons for a cache miss>>.
+
 [[java_compilation]]
 == Java compilation
 

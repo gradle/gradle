@@ -17,6 +17,8 @@
 
 This section provides general guidelines for resolving issues with the Configuration Cache, whether in your build logic or Gradle plugins.
 
+TIP: link:https://develocity.ai/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=configuration-cache-debugging-callout-develocity[Develocity] and <<build_scans.adoc#build_scans,Build Scan>> show whether each build reused the Configuration Cache entry, including builds that run on CI.
+
 [[config_cache:troubleshooting]]
 == Use the Configuration Report
 
