@@ -91,7 +91,7 @@ class Gradleception(
         val verifyCacheHits = buildJvm == BuildToolBuildJvm && bundleGroovyMajor == null
         val cacheHitVerificationDir = "%teamcity.build.tempDir%/gradleception-cache-hit-verification"
         val cacheHitVerificationParameters =
-            "--init-script .teamcity/scripts/gradleception-cache-hits.init.gradle.kts -Dgradleception.buildCacheDir=$cacheHitVerificationDir/build-cache"
+            "--init-script gradle/gradleception-cache-hits.init.gradle.kts -Dgradleception.buildCacheDir=$cacheHitVerificationDir/build-cache"
 
         params {
             // Override the default commit id so the build steps produce reproducible distribution
