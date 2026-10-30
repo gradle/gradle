@@ -16,6 +16,7 @@
 
 package org.gradle.features.internal.binding;
 
+import org.gradle.api.Named;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.features.binding.BuildModel;
 import org.gradle.features.binding.Definition;
@@ -186,16 +187,24 @@ public class ProjectFeatureSupportInternal {
         addProjectFeatureDynamicObjectToDefinition(objectFactory, (DynamicObjectAware) target, context);
     }
 
-    public static <T extends Definition<V>, V extends BuildModel> V createBuildModelInstance(ObjectFactory objectFactory, ProjectFeatureImplementation<T, V> projectFeature) {
-        return createBuildModelInstance(objectFactory, projectFeature.getBuildModelImplementationType());
+    public static <T extends Definition<V>, V extends BuildModel> V createBuildModelInstance(
+        ObjectFactory objectFactory,
+        ProjectFeatureImplementation<T, V> projectFeature,
+        @Nullable String definitionName
+    ) {
+        return createBuildModelInstance(objectFactory, projectFeature.getBuildModelImplementationType(), definitionName);
     }
 
-    public static <V> V createBuildModelInstance(ObjectFactory factory, Class<? extends V> buildModelType) {
+    public static <V> V createBuildModelInstance(ObjectFactory factory, Class<? extends V> buildModelType, @Nullable String definitionName) {
         if (buildModelType == BuildModel.None.class) {
             return uncheckedCast(NONE);
         }
 
-        return factory.newInstance(buildModelType);
+        if (definitionName != null && Named.class.isAssignableFrom(buildModelType)) {
+            return factory.newInstance(buildModelType, definitionName);
+        } else {
+            return factory.newInstance(buildModelType);
+        }
     }
 
     private static void addProjectFeatureDynamicObjectToDefinition(

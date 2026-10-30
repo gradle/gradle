@@ -16,6 +16,7 @@
 
 package org.gradle.features.internal.binding;
 
+import org.gradle.api.Named;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.features.binding.BuildModel;
 import org.gradle.features.binding.Definition;
@@ -44,7 +45,14 @@ public class DefaultBuildModelRegistrar implements BuildModelRegistrarInternal {
             return Cast.uncheckedCast(maybeContext.getBuildModel());
         }
 
-        V buildModel = ProjectFeatureSupportInternal.createBuildModelInstance(objectFactory, implementationType);
+        String definitionName;
+        if (definition instanceof Named) {
+            definitionName = ((Named) definition).getName();
+        } else {
+            definitionName = null;
+        }
+
+        V buildModel = ProjectFeatureSupportInternal.createBuildModelInstance(objectFactory, implementationType, definitionName);
         ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModel, projectFeatureApplicator, projectFeatureDeclarations, objectFactory);
 
         return buildModel;
