@@ -40,6 +40,28 @@ public class ImmutableComponentMetadataRules {
         return rulesHash;
     }
 
+    /**
+     * Two instances are equal when they contain the same rules in the same order.
+     * Equality of the rules themselves is based on the identity of the rule actions
+     * they wrap, so instances produced by repeated snapshots of the same rule
+     * container compare equal.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ImmutableComponentMetadataRules that)) {
+            return false;
+        }
+        return rules.equals(that.rules);
+    }
+
+    @Override
+    public int hashCode() {
+        return rulesHash;
+    }
+
     private static int computeRulesHash(ImmutableList<ImmutableRule> rules) {
         int hash = 0;
         for (ImmutableRule rule : rules) {
