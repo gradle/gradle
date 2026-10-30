@@ -164,6 +164,11 @@ public class NodeState implements DependencyGraphNode {
      */
     private @Nullable StrictVersionConstraints cachedEndorsedStrictVersions;
 
+    /**
+     * What this node passed on to its children at the end of its last visit, or {@code null} if unknown.
+     */
+    private @Nullable StrictVersionConstraints passedOnStrictVersions;
+
     private boolean findingExternalVariants;
 
     public NodeState(long nodeId, ComponentState component, ResolveState resolveState, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
@@ -296,7 +301,6 @@ public class NodeState implements DependencyGraphNode {
      */
     void visitOutgoingDependenciesAndCollectEdges(Collection<EdgeState> discoveredEdges) {
         ExcludeSpec resolutionFilter = computeModuleResolutionFilter(incomingEdges);
-        StrictVersionConstraints passedOnBefore = getPassedOnStrictVersions();
         StrictVersionConstraints ancestorsStrictVersions = computeAncestorsStrictVersions();
         this.ancestorsStrictVersions = ancestorsStrictVersions;
 
@@ -304,7 +308,6 @@ public class NodeState implements DependencyGraphNode {
             // None of our parents passes on a known value yet, and we are queued again once one does. Until then,
             // only compute our own strict versions, which the nodes that endorse us need, and keep our edges as they are.
             collectOwnStrictVersions(resolutionFilter);
-            onPassedOnStrictVersionsChanged(passedOnBefore, null);
             return;
         }
 
@@ -313,9 +316,19 @@ public class NodeState implements DependencyGraphNode {
         assert (previousTraversalExclusions == null) == (previousAncestorsStrictVersions == null);
         this.previousTraversalExclusions = resolutionFilter;
         this.previousAncestorsStrictVersions = ancestorsStrictVersions;
+    }
 
-        this.cachedEndorsedStrictVersions = computeEndorsedStrictVersions();
-        onPassedOnStrictVersionsChanged(passedOnBefore, getPassedOnStrictVersions());
+    /**
+     * Completes the visit of this node, once the edges it discovered are attached: recomputes the strict versions
+     * it endorses, and queues its children if what it passes on to them changed.
+     */
+    void updatePassedOnStrictVersions() {
+        if (ancestorsStrictVersions != null) {
+            this.cachedEndorsedStrictVersions = computeEndorsedStrictVersions();
+        }
+        StrictVersionConstraints passedOn = getPassedOnStrictVersions();
+        onPassedOnStrictVersionsChanged(passedOnStrictVersions, passedOn);
+        this.passedOnStrictVersions = passedOn;
     }
 
     private void doVisitDependencies(ExcludeSpec resolutionFilter, StrictVersionConstraints ancestorsStrictVersions, Collection<EdgeState> discoveredEdges) {
@@ -1128,22 +1141,16 @@ public class NodeState implements DependencyGraphNode {
 
     /**
      * Determine all strict versions endorsed by this node: the own strict versions of the targets of our
-     * endorsing edges. {@code null} while one of them is not known yet: a target not selected yet, or one
-     * that has not computed its own strict versions yet.
+     * endorsing edges, or {@code null} while a target has not computed them yet, which it does at its next visit.
+     * An edge without a target yet endorses nothing for now: its selection can depend on constraints from our own
+     * descendants, which must not wait for it. When it gets a target, this node is queued again, and what it
+     * passes on grows.
      */
     private @Nullable StrictVersionConstraints computeEndorsedStrictVersions() {
         StrictVersionConstraints endorsedStrictVersions = StrictVersionConstraints.EMPTY;
         for (EdgeState edgeState : outgoingEdges) {
             if (edgeState.getDependencyMetadata().isEndorsingStrictVersions()) {
-                List<NodeState> targetNodes = edgeState.getTargetNodes();
-                if (targetNodes.isEmpty()) {
-                    if (edgeState.hasFailure()) {
-                        // A failed edge endorses nothing
-                        continue;
-                    }
-                    return null;
-                }
-                for (NodeState endorsedNode : targetNodes) {
+                for (NodeState endorsedNode : edgeState.getTargetNodes()) {
                     if (endorsedNode.ownStrictVersions == null) {
                         return null;
                     }

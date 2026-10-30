@@ -520,24 +520,6 @@ class EdgeState implements DependencyGraphEdge {
         return requested;
     }
 
-    /**
-     * Whether this edge failed to resolve, as far as known so far. Unlike {@link #getFailure()}, can be called
-     * on an edge whose selection is not complete yet.
-     */
-    boolean hasFailure() {
-        if (substitutionFailure != null || targetNodeSelectionFailure != null) {
-            return true;
-        }
-        if (selector == null) {
-            return false;
-        }
-        if (selector.getFailure() != null) {
-            return true;
-        }
-        ComponentState selectedComponent = selector.getTargetModule().getSelected();
-        return selectedComponent != null && selectedComponent.getMetadataResolveFailure() != null;
-    }
-
     @Override
     public @Nullable ModuleVersionResolveException getFailure() {
         if (substitutionFailure != null) {

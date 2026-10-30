@@ -202,6 +202,7 @@ public class DependencyGraphBuilder {
                 edges.clear();
                 node.visitOutgoingDependenciesAndCollectEdges(edges);
                 resolveEdges(node, edges, resolveState);
+                node.updatePassedOnStrictVersions();
             } else {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
                 if (moduleConflictHandler.hasConflicts()) {
