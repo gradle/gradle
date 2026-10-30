@@ -311,6 +311,14 @@ public abstract class GradleRunner {
 
     /**
      * Sets whether debugging support is enabled.
+     * <p>
+     * Debug mode is not supported for a build under test that enables the Configuration Cache or
+     * Isolated Projects while another Java agent, such as a coverage agent or one attached by the IDE,
+     * is attached to the test JVM. To debug such a build, leave debug support off, pass
+     * {@code -Dorg.gradle.debug=true} to the build under test, and attach the debugger to that process.
+     * See <a
+     * href="https://docs.gradle.org/current/userguide/test_kit.html#sub:test-kit-debug-config-cache" target="_top">Debugging
+     * with the Configuration Cache or Isolated Projects</a>.
      *
      * @see #isDebug()
      * @param flag the debug flag
