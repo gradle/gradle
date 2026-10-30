@@ -22,31 +22,31 @@ import org.gradle.api.file.DirectoryProperty;
 /**
  * Configuration for user manual documentation
  */
-public abstract class UserManual {
+public interface UserManual {
     /**
      * The root of the user manual documentation.  This is the source of the adoc files.
      */
-    public abstract DirectoryProperty getRoot();
+    DirectoryProperty getRoot();
 
     /**
      * Source of snippets that can be inserted into the user manual
      */
-    public abstract DirectoryProperty getSnippets();
+    DirectoryProperty getSnippets();
 
     /**
      * Working directory for staging directory for intermediate user manual files
      */
-    public abstract DirectoryProperty getStagingRoot();
+    DirectoryProperty getStagingRoot();
 
-    public abstract DirectoryProperty getStagedDocumentation();
+    DirectoryProperty getStagedDocumentation();
 
     /**
      * Additional resources to include in the final docs
      */
-    public abstract ConfigurableFileCollection getResources();
+    ConfigurableFileCollection getResources();
 
     /**
      * A collection of the final rendered user manual
      */
-    public abstract ConfigurableFileCollection getRenderedDocumentation();
+    ConfigurableFileCollection getRenderedDocumentation();
 }
