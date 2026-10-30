@@ -41,6 +41,7 @@ class ConstraintsFromNodesCutOffFromTheRootIntegrationTest extends AbstractInteg
 
         settingsFile << """
             rootProject.name = "test"
+            // Otherwise the nodes cut off from the root also deliver their artifacts
             enableFeaturePreview("ENHANCED_GRAPH_ORDERING")
         """
         buildFile << """
