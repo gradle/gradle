@@ -27,7 +27,9 @@ class CheckProject(
 
         params {
             if (model.branch.isMaster || model.branch.isExperimental) {
-                param("env.GRADLE_OPTS", "-Dorg.gradle.isolated-projects=%enableIsolatedProjects%")
+                // Clear the `-Dorg.gradle.isolated-projects=false` inherited from the root project,
+                // so that `org.gradle.isolated-projects=true` from gradle.properties takes effect.
+                param("env.GRADLE_OPTS", "")
             }
             param("credentialsStorageType", "credentialsJSON")
             // Disallow Web UI changes to TeamCity settings
