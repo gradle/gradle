@@ -21,7 +21,7 @@ For migrating within Gradle 8.x, see the <<upgrading_version_8.adoc#upgrading_ve
 
 We recommend the following steps for all users:
 
-. Try running `gradle help --scan` and view the https://docs.develocity.ai/gradle/current/getting-started/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=upgrading-major-version-9-link-build-scan#identifying-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
+. Try running `gradle help --scan` and view the https://docs.develocity.ai/gradle/current/getting-started/#identifying-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
 +
 image::deprecations.png[Deprecations View in a Build Scan]
 +
@@ -216,7 +216,7 @@ Starting with Gradle 9.0.0, the minimum supported Gradle Enterprise Plugin versi
 Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
 
 Consider upgrading to the latest version of the Gradle Enterprise Plugin,
-or better yet, upgrade to the latest version of the link:https://docs.develocity.ai/gradle/current/gradle-plugin/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=upgrading-major-version-9-link-build-scan[Develocity Plugin].
+or better yet, upgrade to the latest version of the link:https://docs.develocity.ai/gradle/current/gradle-plugin/[Develocity Plugin].
 
 For Gradle 8.x, the minimum supported version was 3.0.
 

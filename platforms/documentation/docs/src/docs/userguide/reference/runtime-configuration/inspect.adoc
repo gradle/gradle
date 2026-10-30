@@ -41,7 +41,7 @@ $ ./gradlew build --scan
 ----
 
 For older Gradle versions, the
-https://docs.develocity.ai/gradle/current/gradle-plugin/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=inspect-link-build-scan#getting-set-up[Develocity Plugin User Manual] explains how to generate a Build Scan.
+https://docs.develocity.ai/gradle/current/gradle-plugin/#getting-set-up[Develocity Plugin User Manual] explains how to generate a Build Scan.
 
 At the end of your build, Gradle displays a URL where you can find your Build Scan:
 

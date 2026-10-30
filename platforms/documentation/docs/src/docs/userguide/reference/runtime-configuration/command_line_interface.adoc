@@ -586,7 +586,7 @@ Print out the full (very verbose) stacktrace for any exceptions. See also <<#sec
 Print out the stacktrace also for user exceptions (e.g. compile error). See also <<#sec:command_line_logging, logging options>>.
 
 `--scan`::
-Create a https://develocity.ai/product/build-scan/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=command-line-interface-link-build-scan[Build Scan] with fine-grained information about all aspects of your Gradle build.
+Create a https://develocity.ai/product/build-scan/[Build Scan] with fine-grained information about all aspects of your Gradle build.
 
 `-Dorg.gradle.debug=true`::
 A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that debugs the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process. Gradle will wait for you to attach a debugger at `localhost:5005` by default.

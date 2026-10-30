@@ -20,7 +20,7 @@ For migrating from Gradle 4.x, see the <<upgrading_version_4.adoc#upgrading_vers
 
 We recommend the following steps for all users:
 
-. Try running `gradle help --scan` and view the https://docs.develocity.ai/gradle/current/getting-started/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=upgrading-version-5-link-build-scan#identifying-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
+. Try running `gradle help --scan` and view the https://docs.develocity.ai/gradle/current/getting-started/#identifying-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
 +
 image::deprecations.png[Deprecations View in a Build Scan]
 +
@@ -175,7 +175,7 @@ Gradle 6.0 supports Android Gradle Plugin versions 3.4 and later.
 
 For Gradle 6, usage of the Build Scan plugin must be replaced with the Develocity plugin.
 This also requires changing how the plugin is applied.
-Please see link:https://docs.develocity.ai/gradle/current/gradle-plugin/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=upgrading-version-5-link-build-scan#gradle_6_x_and_later[Develocity Gradle plugin documentation] for more information.
+Please see link:https://docs.develocity.ai/gradle/current/gradle-plugin/#gradle_6_x_and_later[Develocity Gradle plugin documentation] for more information.
 
 [[v5_updates_to_bundled_gradle_dependencies]]
 ==== Updates to bundled Gradle dependencies
@@ -708,7 +708,7 @@ The built-in <<play_plugin.adoc#play_plugin, Play plugin>> has been deprecated a
 
 The _build comparison_ plugin has been deprecated and will be removed in the next major version of Gradle.
 
-A link:https://develocity.ai/product/build-scan/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=upgrading-version-5-link-build-scan[Build Scan] shows much deeper insights into your build and you can use link:https://develocity.ai/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=upgrading-version-5-link-develocity[Develocity] to directly compare two build's build-scans.
+A link:https://develocity.ai/product/build-scan/[Build Scan] shows much deeper insights into your build and you can use link:https://develocity.ai/[Develocity] to directly compare two build's build-scans.
 
 [[v5_potential_breaking_changes_5_5]]
 === Potential breaking changes
