@@ -43,6 +43,8 @@ Logging:
   --warn, -w                         Sets the log level to warn.
 
 Console:
+  --agent                            Enables agent mode, for builds driven by an AI agent. [incubating]
+  --no-agent                         Disables agent mode. [incubating]
   --console                          Specifies which type of console output to generate. Supported values are 'plain', 'colored', 'auto' (default), 'rich', or 'verbose'.
   --console-unicode                  Specifies which character types are allowed in the console output. Supported values are 'auto' (default), 'disable', or 'enable'.
   --non-interactive                  Do not do interactive prompting. [incubating]
