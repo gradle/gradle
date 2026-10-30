@@ -101,7 +101,7 @@ Gradle provides [Tooling APIs](userguide/third_party_integration.html) that faci
 Gradle continuously improves [build performance](userguide/performance.html) through caching, parallelism, and reduced overhead across all phases of the build.
 
 ### General improvements
-Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
+Gradle provides various incremental updates and optimizations to ensure the continued reliability of the build ecosystem.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

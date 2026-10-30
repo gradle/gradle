@@ -811,6 +811,98 @@ See <<gradle_wrapper.adoc#sec:preserving_wrapper_properties,Preserving Existing 
 
 === Deprecations
 
+[[querying_transform_output_from_transform_action]]
+==== Deprecation of querying artifact transform outputs from an artifact transform action
+
+Querying the output of one artifact transform from the action of another, without declaring that output as an input of the querying action, is deprecated and will become an error in Gradle 10.
+
+This happens when a transform action resolves a configuration or artifact view that isn't declared on its parameters, and that resolution requires another artifact transform.
+A common case is a configuration held by a shared build service.
+
+In the following deprecated example, `MakeGreen` reads files transformed by `MakeRed` through a build service:
+
+[source,kotlin]
+----
+abstract class FilesService : BuildService<FilesService.Params> {
+    interface Params : BuildServiceParameters {
+        val files: ConfigurableFileCollection
+    }
+}
+
+interface Parameters : TransformParameters {
+    @get:Internal
+    val service: Property<FilesService>
+}
+
+abstract class MakeGreen : TransformAction<Parameters> {
+    override fun transform(outputs: TransformOutputs) {
+        // Deprecated: resolving these files runs MakeRed, which MakeGreen doesn't declare as an input
+        val redNames = parameters.service.get().parameters.files.files.map { it.name }
+        // ...
+    }
+}
+----
+
+To fix this warning, declare the files the transform action uses as one of its inputs.
+Use a parameter annotated with `@InputFiles`, and set it when registering the transform.
+In the following example, `MakeGreen` keeps only the input artifacts that also appear in the `resolved` configuration.
+It reads those files after `MakeRed` transforms them, so it declares them on its `redFiles` parameter:
+
+[source,kotlin]
+----
+val color = Attribute.of("color", String::class.java)
+
+interface Parameters : TransformParameters {
+    @get:InputFiles
+    val redFiles: ConfigurableFileCollection
+}
+
+abstract class MakeGreen : TransformAction<Parameters> {
+    @get:InputArtifact
+    abstract val inputArtifact: Provider<FileSystemLocation>
+
+    override fun transform(outputs: TransformOutputs) {
+        val input = inputArtifact.get().asFile
+        // Use the files declared on the parameters, rather than files
+        // reached in another way, like through a build service
+        val redNames = parameters.redFiles.files.map { it.name }
+        if (input.name + ".red" in redNames) {
+            input.copyTo(outputs.file(input.name + ".green"))
+        }
+    }
+}
+
+val deps = configurations.dependencyScope("deps")
+val resolved = configurations.resolvable("resolved") {
+    extendsFrom(deps)
+    attributes.attribute(color, "blue")
+}
+
+dependencies {
+    attributesSchema {
+        attribute(color)
+    }
+    deps("org:bar:1")
+    // MakeRed is any transform from "blue" to "red"
+    registerTransform(MakeRed::class) {
+        from.attribute(color, "blue")
+        to.attribute(color, "red")
+    }
+    registerTransform(MakeGreen::class) {
+        from.attribute(color, "blue")
+        to.attribute(color, "green")
+        parameters {
+            // Declare the output of MakeRed as an input
+            redFiles.from(resolved.map {
+                it.incoming.artifactView {
+                    attributes.attribute(color, "red")
+                }.files
+            })
+        }
+    }
+}
+----
+
 [[deprecated_update_daemon_jvm_task_configuration_problem_id]]
 ==== Deprecation of `UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID`
 

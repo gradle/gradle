@@ -44,6 +44,7 @@ import java.io.File;
 public class TransformStep implements TaskDependencyContainer, Describable {
     private final Transform transform;
     private final TransformInvocationFactory transformInvocationFactory;
+    private final DomainObjectContext owner;
     private final @Nullable ProjectState owningProject;
     private final InputFingerprinter globalInputFingerprinter;
 
@@ -51,11 +52,16 @@ public class TransformStep implements TaskDependencyContainer, Describable {
         this.transform = transform;
         this.transformInvocationFactory = transformInvocationFactory;
         this.globalInputFingerprinter = globalInputFingerprinter;
+        this.owner = owner;
         this.owningProject = owner instanceof ProjectDomainObjectContext pdoc ? pdoc.getModel() : null;
     }
 
     public Transform getTransform() {
         return transform;
+    }
+
+    public void deprecateIfQueriedFromTransformAction() {
+        UndeclaredTransformQueryDeprecation.deprecateIfFromTransformAction(transform.getImplementationClass(), owner);
     }
 
     @Nullable

@@ -82,6 +82,7 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
     public void visit(ArtifactVisitor visitor) {
         DisplayName artifactSetName = Describables.of(targetVariant.getComponentId());
         for (TransformStepNode node : transformedArtifacts) {
+            node.getTransformStep().deprecateIfQueriedFromTransformAction();
             node.executeIfNotAlready();
             Try<TransformStepSubject> transformedSubject = node.getTransformedSubject();
             if (transformedSubject.isSuccessful()) {

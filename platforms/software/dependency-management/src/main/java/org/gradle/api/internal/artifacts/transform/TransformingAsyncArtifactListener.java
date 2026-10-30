@@ -270,6 +270,8 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
 
         @Override
         public void visit(ArtifactVisitor visitor) {
+            // The last step produces the output being queried, the earlier steps only its intermediate results
+            transformSteps.get(transformSteps.size() - 1).getTransformStep().deprecateIfQueriedFromTransformAction();
             Try<TransformStepSubject> transformedSubject = finalizeValue();
             transformedSubject.ifSuccessfulOrElse(
                 subject -> {
