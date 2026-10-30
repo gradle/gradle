@@ -315,6 +315,11 @@ public class NodeState implements DependencyGraphNode {
             // None of our parents passes on a known value yet, and we are queued again once one does. Until then,
             // only compute our own strict versions, which the nodes that endorse us need, and keep our edges as they are.
             collectOwnStrictVersions(resolutionFilter);
+            if (upcomingNoLongerPendingConstraints != null) {
+                // We cannot link our constraints without knowing which of their versions to ignore. Their modules
+                // must not wait for us, and we link the constraints once we are known.
+                releaseDeferredSelections();
+            }
             return;
         }
 
@@ -465,16 +470,8 @@ public class NodeState implements DependencyGraphNode {
     private void cleanupConstraints() {
         // This part covers constraint that were taken into account between a selection being deferred and this node being scheduled for traversal
         if (upcomingNoLongerPendingConstraints != null) {
-            for (ModuleIdentifier identifier : upcomingNoLongerPendingConstraints) {
-                ModuleResolveState module = resolveState.getModule(identifier);
-                for (EdgeState unattachedEdge : module.getUnattachedEdges()) {
-                    if (unattachedEdge.getSelector().requiresSelection()) {
-                        // We have a selector that was deferred but the constraint has been removed in between
-                        NodeState from = unattachedEdge.getFrom();
-                        from.prepareToRecomputeEdge(unattachedEdge);
-                    }
-                }
-            }
+            // We have selectors that were deferred but the constraints have been removed in between
+            releaseDeferredSelections();
             upcomingNoLongerPendingConstraints = null;
         }
         // This part covers constraint that might be triggered in the future if the node they point gains a real edge
@@ -487,6 +484,24 @@ public class NodeState implements DependencyGraphNode {
                     if (targetModule.isPending()) {
                         targetModule.unregisterConstraintProvider(this);
                     }
+                }
+            }
+        }
+    }
+
+    /**
+     * A module whose selection was deferred for our constraints is selected again once we link them, see
+     * {@link #prepareForConstraintNoLongerPending(ModuleIdentifier)}. When we will not link them now, the edges
+     * waiting for them are recomputed without them, so that their selection is not left deferred.
+     */
+    private void releaseDeferredSelections() {
+        assert upcomingNoLongerPendingConstraints != null;
+        for (ModuleIdentifier identifier : upcomingNoLongerPendingConstraints) {
+            ModuleResolveState module = resolveState.getModule(identifier);
+            for (EdgeState unattachedEdge : module.getUnattachedEdges()) {
+                if (unattachedEdge.getSelector().requiresSelection()) {
+                    NodeState from = unattachedEdge.getFrom();
+                    from.prepareToRecomputeEdge(unattachedEdge);
                 }
             }
         }
