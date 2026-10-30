@@ -160,7 +160,6 @@ public class DependencyGraphBuilder {
         );
 
         traverseGraph(resolveState);
-        assert strictVersionsKnownForReachableNodes(resolveState);
 
         validateGraph(resolveState, failingOnDynamicVersions, failingOnChangingVersions, conflictResolution, failureResolutions);
 
@@ -212,40 +211,6 @@ public class DependencyGraphBuilder {
                 }
             }
         }
-    }
-
-    /**
-     * Every node reachable from the root must end with known inherited strict versions. A node that is still
-     * unknown never had its dependencies visited.
-     */
-    private static boolean strictVersionsKnownForReachableNodes(ResolveState resolveState) {
-        Set<NodeState> seen = new HashSet<>();
-        Deque<NodeState> queue = new ArrayDeque<>();
-        queue.add(resolveState.getRoot());
-        List<NodeState> unknown = new ArrayList<>();
-        while (!queue.isEmpty()) {
-            NodeState node = queue.poll();
-            if (!seen.add(node)) {
-                continue;
-            }
-            if (!node.hasKnownAncestorsStrictVersions()) {
-                unknown.add(node);
-            }
-            for (EdgeState edge : node.getOutgoingEdges()) {
-                queue.addAll(edge.getTargetNodes());
-            }
-        }
-        if (!unknown.isEmpty()) {
-            StringBuilder message = new StringBuilder("Inherited strict versions are unknown for " + unknown);
-            for (NodeState node : unknown) {
-                message.append("\n").append(node).append(node.describeStrictVersionsState());
-                for (EdgeState edge : node.getIncomingEdges()) {
-                    message.append("\n    from ").append(edge.getFrom()).append(edge.getFrom().describeStrictVersionsState());
-                }
-            }
-            throw new AssertionError(message.toString());
-        }
-        return true;
     }
 
     private void resolveEdges(
@@ -443,6 +408,34 @@ public class DependencyGraphBuilder {
                         }
                     }
                 }
+            }
+        }
+
+        // Every node reachable from the root must know the strict versions it inherits. A node that does not
+        // never had its dependencies visited. Nodes that are selected but not reachable, in a cycle that lost
+        // its path from the root, may not know them.
+        Set<NodeState> seen = new HashSet<>();
+        Deque<NodeState> queue = new ArrayDeque<>();
+        queue.add(resolveState.getRoot());
+        while (!queue.isEmpty()) {
+            NodeState node = queue.poll();
+            if (!seen.add(node)) {
+                continue;
+            }
+            if (!node.hasKnownAncestorsStrictVersions()) {
+                StringBuilder incoming = new StringBuilder();
+                for (EdgeState edge : node.getIncomingEdges()) {
+                    incoming.append("\n    from ").append(edge.getFrom().getDisplayName()).append(edge.getFrom().describeStrictVersionsState());
+                }
+                throw new IllegalStateException(String.format(
+                    "Node %s is reachable from the root, but does not know the strict versions it inherits %s.%s",
+                    node.getDisplayName(),
+                    node.describeStrictVersionsState(),
+                    incoming
+                ));
+            }
+            for (EdgeState edge : node.getOutgoingEdges()) {
+                queue.addAll(edge.getTargetNodes());
             }
         }
     }
