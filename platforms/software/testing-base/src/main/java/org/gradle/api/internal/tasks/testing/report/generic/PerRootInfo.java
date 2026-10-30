@@ -26,10 +26,20 @@ import org.gradle.api.tasks.testing.TestResult;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public abstract class PerRootInfo {
     public static final class Builder {
+        /**
+         * Orders builders by the start time of their first result, then by id.
+         * <p>
+         * This is meant for builders that haven't been merged yet, which have exactly one result.
+         */
+        static final Comparator<Builder> BY_START_TIME =
+            Comparator.comparingLong((Builder builder) -> builder.results.get(0).getStartTime())
+                .thenComparingLong(builder -> builder.id);
+
         private final long id;
         private final List<SerializableTestResult> results;
         private final List<OutputEntry> outputEntries;
