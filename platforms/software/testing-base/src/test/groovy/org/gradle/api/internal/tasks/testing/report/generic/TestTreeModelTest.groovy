@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore
+import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.api.tasks.testing.TestResult
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -37,15 +38,6 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
 
-/**
- * Tests for {@link TestTreeModel}, specifically how multiple runs of the same node within a root are combined.
- *
- * <p>When a test group (e.g. a test class) is emitted multiple times within the same root,
- * some runs may have no children (e.g. when a worker is lost before any method reports), so they look like leaves.
- * If any run of the node has children, all of its runs must be merged into a single entry, ordered by start time,
- * regardless of the order in which they arrive. If every run is a leaf, they are probably retries and are kept
- * as separate entries.</p>
- */
 class TestTreeModelTest extends Specification {
 
     private static final String CLASS_NAME = "com.example.MySuite"
@@ -55,41 +47,9 @@ class TestTreeModelTest extends Specification {
 
     private int nextDescriptorId = 1
 
-    /**
-     * The kinds of runs of {@code MySuite} that can be written to a store.
-     */
-    private enum Run {
-        CHILDLESS,
-        FAILED_CHILDLESS,
-        SKIPPED_CHILDLESS,
-        WITH_CHILD
-    }
-
     def "merges runs #runs into a single entry ordered by start time"() {
         given:
-        def store = writeStore { writer ->
-            def root = descriptor("root", null)
-            writer.started(root, new TestStartEvent(0))
-            runs.eachWithIndex { Run run, int i ->
-                long start = 100 * (i + 1)
-                switch (run) {
-                    case CHILDLESS:
-                        childlessRun(writer, root, start, SUCCESS)
-                        break
-                    case FAILED_CHILDLESS:
-                        childlessRun(writer, root, start, FAILURE)
-                        break
-                    case SKIPPED_CHILDLESS:
-                        childlessRun(writer, root, start, SKIPPED)
-                        break
-                    case WITH_CHILD:
-                        runWithChildren(writer, root, start, "test$i")
-                        break
-                }
-            }
-            def end = 100 * (runs.size() + 1)
-            writer.completed(root, result(0, end), new TestCompleteEvent(end))
-        }
+        def store = writeRuns(runs)
 
         when:
         def model = loadModel(store)
@@ -102,10 +62,6 @@ class TestTreeModelTest extends Specification {
         def entry = suiteNode.perRootInfo[0][0]
         !entry.isLeaf()
         entry.results*.startTime == (1..runs.size()).collect { 100L * it }
-        // Each childless run counts as a leaf of its own, in addition to the children of the other runs.
-        entry.totalLeafCount == runs.size()
-        entry.failedLeafCount == runs.count(FAILED_CHILDLESS)
-        entry.skippedLeafCount == runs.count(SKIPPED_CHILDLESS)
         suiteNode.children*.path*.name == childNames
 
         and:
@@ -113,19 +69,99 @@ class TestTreeModelTest extends Specification {
         classes[0].results*.name == childNames
 
         where:
-        runs                                                        | childNames
-        [WITH_CHILD, CHILDLESS]                                     | ["test0"]
-        [CHILDLESS, WITH_CHILD]                                     | ["test1"]
-        [CHILDLESS, CHILDLESS, WITH_CHILD]                          | ["test2"]
-        [CHILDLESS, CHILDLESS, CHILDLESS, WITH_CHILD]               | ["test3"]
-        [CHILDLESS, WITH_CHILD, CHILDLESS]                          | ["test1"]
-        [WITH_CHILD, CHILDLESS, WITH_CHILD]                         | ["test0", "test2"]
-        [CHILDLESS, WITH_CHILD, CHILDLESS, WITH_CHILD]              | ["test1", "test3"]
-        [WITH_CHILD, WITH_CHILD]                                    | ["test0", "test1"]
-        [FAILED_CHILDLESS, WITH_CHILD]                              | ["test1"]
-        [WITH_CHILD, FAILED_CHILDLESS]                              | ["test0"]
-        [FAILED_CHILDLESS, CHILDLESS, FAILED_CHILDLESS, WITH_CHILD] | ["test3"]
-        [SKIPPED_CHILDLESS, WITH_CHILD]                             | ["test1"]
+        runs                                           | childNames
+        [WITH_CHILD, CHILDLESS]                        | ["test0"]
+        [CHILDLESS, WITH_CHILD]                        | ["test1"]
+        [CHILDLESS, CHILDLESS, WITH_CHILD]             | ["test2"]
+        [CHILDLESS, CHILDLESS, CHILDLESS, WITH_CHILD]  | ["test3"]
+        [CHILDLESS, WITH_CHILD, CHILDLESS]             | ["test1"]
+        [WITH_CHILD, CHILDLESS, WITH_CHILD]            | ["test0", "test2"]
+        [CHILDLESS, WITH_CHILD, CHILDLESS, WITH_CHILD] | ["test1", "test3"]
+        [WITH_CHILD, WITH_CHILD]                       | ["test0", "test1"]
+        [SKIPPED_CHILDLESS, WITH_CHILD]                | ["test1"]
+    }
+
+    def "does not count successful or skipped childless runs merged from #runs"() {
+        given:
+        def store = writeRuns(runs)
+
+        when:
+        def model = loadModel(store)
+
+        then:
+        def suiteAndRoot = [model.children[0].perRootInfo[0][0], model.perRootInfo[0][0]]
+        suiteAndRoot*.totalLeafCount == [total, total]
+        suiteAndRoot*.failedLeafCount == [0, 0]
+        suiteAndRoot*.skippedLeafCount == [0, 0]
+
+        where:
+        runs                                           | total
+        [WITH_CHILD, CHILDLESS]                        | 1
+        [CHILDLESS, WITH_CHILD, CHILDLESS, WITH_CHILD] | 2
+        [SKIPPED_CHILDLESS, WITH_CHILD]                | 1
+    }
+
+    def "counts failed childless runs merged from #runs via a synthetic child"() {
+        given:
+        def store = writeRuns(runs)
+
+        when:
+        def model = loadModel(store)
+
+        then: "the synthetic child exists with an entry per failed run"
+        def suiteNode = model.children[0]
+        def executionError = suiteNode.children.find { it.path.name == "executionError" }
+        executionError != null
+        executionError.perRootInfo[0].size() == failed
+
+        and: "each entry is counted in the total and failed leaf counts"
+        def suiteAndRoot = [suiteNode.perRootInfo[0][0], model.perRootInfo[0][0]]
+        suiteAndRoot*.totalLeafCount == [total, total]
+        suiteAndRoot*.failedLeafCount == [failed, failed]
+        suiteAndRoot*.skippedLeafCount == [0, 0]
+
+        where:
+        runs                                                        | total | failed
+        [FAILED_CHILDLESS, WITH_CHILD]                              | 2     | 1
+        [FAILED_CHILDLESS, CHILDLESS, FAILED_CHILDLESS, WITH_CHILD] | 3     | 2
+    }
+
+    def "reports failed childless runs merged from #runs as executionError"() {
+        given:
+        def store = writeRuns(runs)
+
+        when:
+        def model = loadModel(store)
+        def classes = loadClasses(store)
+
+        then: "a single executionError child is added after the reported children"
+        def suiteNode = model.children[0]
+        suiteNode.children*.path*.name == childNames
+
+        and: "each of its entries is a leaf carrying the failures of a failed run"
+        def executionErrors = suiteNode.children.find { it.path.name == "executionError" }.perRootInfo[0]
+        executionErrors.every { it.isLeaf() }
+        executionErrors.collect { it.results*.failures*.message.flatten() } ==
+            [["java.lang.RuntimeException: worker lost"]] * runs.count(FAILED_CHILDLESS)
+
+        and: "every entry in the model has a unique id"
+        def ids = []
+        model.walkDepthFirst { node -> node.perRootInfo[0].each { ids << it.id } }
+        ids.size() == ids.toUnique().size()
+
+        and: "the XML results have an executionError per failed run, ordered by start time, with its failures"
+        classes[0].results*.name == methodNames
+        classes[0].results.findAll { it.name == "executionError" }.collect { it.failures*.message } ==
+            [["java.lang.RuntimeException: worker lost"]] * runs.count(FAILED_CHILDLESS)
+
+        where:
+        // The model has one node per child name, and adds executionError after the reported children, as it's created
+        // when merging. The XML results have one method per entry instead, ordered by start time, so each
+        // executionError takes the position of the run it came from.
+        runs                                                        | childNames                  | methodNames
+        [FAILED_CHILDLESS, WITH_CHILD]                              | ["test1", "executionError"] | ["executionError", "test1"]
+        [WITH_CHILD, FAILED_CHILDLESS]                              | ["test0", "executionError"] | ["test0", "executionError"]
+        [FAILED_CHILDLESS, CHILDLESS, FAILED_CHILDLESS, WITH_CHILD] | ["test3", "executionError"] | ["executionError", "executionError", "test3"]
     }
 
     def "orders merged runs by start time rather than by arrival order"() {
@@ -249,6 +285,46 @@ class TestTreeModelTest extends Specification {
     }
 
     /**
+     * The kinds of runs of {@code MySuite} that can be written to a store.
+     */
+    private enum Run {
+        CHILDLESS,
+        FAILED_CHILDLESS,
+        SKIPPED_CHILDLESS,
+        WITH_CHILD
+    }
+
+    /**
+     * Writes the given runs of {@code MySuite} under a single root, each starting 100ms after the previous one.
+     * The child of a run with children is named after the run's index, e.g. {@code test1}.
+     */
+    private Path writeRuns(List<Run> runs) {
+        return writeStore { writer ->
+            def root = descriptor("root", null)
+            writer.started(root, new TestStartEvent(0))
+            runs.eachWithIndex { Run run, int i ->
+                long start = 100 * (i + 1)
+                switch (run) {
+                    case CHILDLESS:
+                        childlessRun(writer, root, start, SUCCESS)
+                        break
+                    case FAILED_CHILDLESS:
+                        childlessRun(writer, root, start, FAILURE)
+                        break
+                    case SKIPPED_CHILDLESS:
+                        childlessRun(writer, root, start, SKIPPED)
+                        break
+                    case WITH_CHILD:
+                        runWithChildren(writer, root, start, "test$i")
+                        break
+                }
+            }
+            def end = 100 * (runs.size() + 1)
+            writer.completed(root, result(0, end), new TestCompleteEvent(end))
+        }
+    }
+
+    /**
      * Writes two overlapping runs of {@code MySuite}, so they arrive in the reverse of the order they were started in.
      * The first is started at 100 and completes at 500 without children.
      * The second is started at {@code secondStart} and completes at 300 with a single child.
@@ -318,12 +394,13 @@ class TestTreeModelTest extends Specification {
     }
 
     private TestResult result(long startTime, long endTime, TestResult.ResultType resultType = SUCCESS) {
+        def failures = resultType == FAILURE ? [TestFailure.fromTestFrameworkFailure(new RuntimeException("worker lost"))] : []
         return Mock(TestResult) {
             getStartTime() >> startTime
             getEndTime() >> endTime
             getResultType() >> resultType
             getAssumptionFailure() >> null
-            getFailures() >> []
+            getFailures() >> failures
         }
     }
 }

@@ -42,53 +42,34 @@ public abstract class PerRootInfo {
         private final List<SerializableTestResult> results;
         private final List<OutputEntry> outputEntries;
         private boolean isLeaf;
-        private int totalLeafCount;
-        private int failedLeafCount;
-        private int skippedLeafCount;
 
-        public Builder(
-            long id,
-            SerializableTestResult result,
-            OutputRanges ranges,
-            boolean isLeaf,
-            int totalLeafCount,
-            int failedLeafCount,
-            int skippedLeafCount
-        ) {
+        public Builder(long id, SerializableTestResult result, OutputRanges ranges, boolean isLeaf) {
             this.id = id;
             this.results = new ArrayList<>(Collections.singletonList(result));
             this.outputEntries = new ArrayList<>(Collections.singletonList(new OutputEntry(id, ranges)));
             this.isLeaf = isLeaf;
-            this.totalLeafCount = totalLeafCount;
-            this.failedLeafCount = failedLeafCount;
-            this.skippedLeafCount = skippedLeafCount;
+        }
+
+        public long getId() {
+            return id;
         }
 
         public String getName() {
             return results.get(0).getName();
         }
 
+        /**
+         * Returns the first result of this builder, which is the only result if this {@linkplain #isLeaf() is a leaf}.
+         */
+        public SerializableTestResult getFirstResult() {
+            return results.get(0);
+        }
+
         public boolean isLeaf() {
             return isLeaf;
         }
 
-        public int getTotalLeafCount() {
-            return totalLeafCount;
-        }
-
-        public int getFailedLeafCount() {
-            return failedLeafCount;
-        }
-
-        public int getSkippedLeafCount() {
-            return skippedLeafCount;
-        }
-
         public void merge(Builder otherBuilder) {
-            totalLeafCount += otherBuilder.totalLeafCount;
-            failedLeafCount += otherBuilder.failedLeafCount;
-            skippedLeafCount += otherBuilder.skippedLeafCount;
-
             if (!otherBuilder.getName().equals(getName())) {
                 throw new IllegalArgumentException("Cannot merge PerRootInfo.Builder with different names: " + getName() + " and " + otherBuilder.getName());
             }
@@ -101,23 +82,32 @@ public abstract class PerRootInfo {
             }
         }
 
-        public PerRootInfo build() {
+        /**
+         * Builds the info, deriving the counts of a container from the infos of its children in the same root.
+         */
+        public PerRootInfo build(Iterable<PerRootInfo> children) {
             if (isLeaf) {
                 if (results.size() > 1) {
                     // We don't support this case because we don't need it currently, so it saves us some complexity.
                     throw new IllegalStateException("Cannot build a leaf PerRootInfo with multiple results");
                 }
-
-                // Sanity check:
-                if (totalLeafCount != 1 || failedLeafCount > 1 || skippedLeafCount > 1) {
-                    throw new IllegalStateException("Inconsistent leaf counts for leaf PerRootInfo: total=" + totalLeafCount + ", failed=" + failedLeafCount + ", skipped=" + skippedLeafCount);
+                // Sanity check: any run with children would have made this a container.
+                if (!Iterables.isEmpty(children)) {
+                    throw new IllegalStateException("Cannot build a leaf PerRootInfo with children");
                 }
-
                 return new SingleResultLeaf(
                     id,
                     results.get(0),
                     outputEntries.get(0).getOutputRanges()
                 );
+            }
+            int totalLeafCount = 0;
+            int failedLeafCount = 0;
+            int skippedLeafCount = 0;
+            for (PerRootInfo child : children) {
+                totalLeafCount += child.getTotalLeafCount();
+                failedLeafCount += child.getFailedLeafCount();
+                skippedLeafCount += child.getSkippedLeafCount();
             }
             if (results.size() == 1) {
                 return new SingleResultContainer(

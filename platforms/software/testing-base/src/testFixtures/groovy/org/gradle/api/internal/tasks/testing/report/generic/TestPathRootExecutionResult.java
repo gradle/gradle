@@ -81,6 +81,19 @@ public interface TestPathRootExecutionResult {
      */
     int getFailedChildCount();
 
+    /**
+     * Asserts the number of tests, failures and skipped tests shown in the summary of the current test path.
+     */
+    TestPathRootExecutionResult assertSummaryCounts(int tests, int failures, int skipped);
+
+    /**
+     * Asserts the children listed in the given tab of the current test path's summary, e.g. "Failed" or "Skipped".
+     * A tab that isn't rendered is treated as empty.
+     * <p>
+     * This method only works on direct children of the current test path.
+     */
+    TestPathRootExecutionResult assertChildrenInTab(String tabName, String... testNames);
+
     TestPathRootExecutionResult assertStdout(Matcher<? super String> matcher);
 
     TestPathRootExecutionResult assertStderr(Matcher<? super String> matcher);

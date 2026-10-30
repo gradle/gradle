@@ -46,6 +46,12 @@ public class TestTreeModel {
     private static final TestTreeModel EMPTY_MODEL = new TestTreeModel(SmallPath.ROOT, ImmutableList.of(), ImmutableList.of());
 
     /**
+     * The name of the synthetic child that carries the failure of a childless run merged into a container.
+     * This matches the name used by the JUnit Platform adapter for container failures.
+     */
+    private static final String EXECUTION_ERROR_NAME = "executionError";
+
+    /**
      * Variant of {@link Path} optimized for minimal memory usage.
      * It is constructed strictly in a tree-like fashion, to allow sharing memory between parents and children,
      * and also allowing the segment string to be shared with other code, like the test result itself.
@@ -146,26 +152,8 @@ public class TestTreeModel {
         @Override
         public void process(long id, @Nullable Long parentId, SerializableTestResult result, OutputRanges outputRanges)
             throws IOException {
-            List<Child> children = childrenByParentId.get(id);
-            int totalLeafCount = 0;
-            int failedLeafCount = 0;
-            int skippedLeafCount = 0;
-            for (Child child : children) {
-                totalLeafCount += child.info.getTotalLeafCount();
-                failedLeafCount += child.info.getFailedLeafCount();
-                skippedLeafCount += child.info.getSkippedLeafCount();
-            }
-            boolean isLeaf = children.isEmpty();
-            if (isLeaf) {
-                // This is a leaf, so compute the counts for itself.
-                totalLeafCount = 1;
-                if (result.getResultType() == TestResult.ResultType.FAILURE) {
-                    failedLeafCount = 1;
-                } else if (result.getResultType() == TestResult.ResultType.SKIPPED) {
-                    skippedLeafCount = 1;
-                }
-            }
-            PerRootInfo.Builder thisInfo = new PerRootInfo.Builder(id, result, outputRanges, isLeaf, totalLeafCount, failedLeafCount, skippedLeafCount);
+            boolean isLeaf = childrenByParentId.get(id).isEmpty();
+            PerRootInfo.Builder thisInfo = new PerRootInfo.Builder(id, result, outputRanges, isLeaf);
             if (parentId == null) {
                 // We have the root, so now we can resolve all paths and attach to the models.
                 finalizePath(SmallPath.ROOT, id, thisInfo);
@@ -206,20 +194,32 @@ public class TestTreeModel {
         }
 
         TestTreeModel build() {
-            return new TestTreeModel(path, buildPerRootInfos(), buildChildren());
-        }
-
-        private List<List<PerRootInfo>> buildPerRootInfos() {
-            ImmutableList.Builder<List<PerRootInfo>> perRootInfosBuilder =
-                ImmutableList.builderWithExpectedSize(perRootInfoBuilders.size());
+            // Merge first, in case an executionError child is needed, then children can be built.
+            List<List<PerRootInfo.Builder>> mergedPerRootInfoBuilders = new ArrayList<>(perRootInfoBuilders.size());
             for (int i = 0; i < perRootInfoBuilders.size(); i++) {
                 // Clean up per root info builders as we build, to let GC reclaim their memory.
                 List<PerRootInfo.Builder> builders = perRootInfoBuilders.set(i, ImmutableList.of());
-                builders = mergeRunsIfNeeded(builders);
+                mergedPerRootInfoBuilders.add(mergeRunsIfNeeded(i, builders));
+            }
+            List<TestTreeModel> builtChildren = buildChildren();
+            return new TestTreeModel(path, buildPerRootInfos(mergedPerRootInfoBuilders, builtChildren), builtChildren);
+        }
 
+        private static List<List<PerRootInfo>> buildPerRootInfos(
+            List<List<PerRootInfo.Builder>> mergedPerRootInfoBuilders,
+            List<TestTreeModel> builtChildren
+        ) {
+            ImmutableList.Builder<List<PerRootInfo>> perRootInfosBuilder =
+                ImmutableList.builderWithExpectedSize(mergedPerRootInfoBuilders.size());
+            for (int i = 0; i < mergedPerRootInfoBuilders.size(); i++) {
+                int rootIndex = i;
+                Iterable<PerRootInfo> childInfos = Iterables.concat(
+                    Iterables.transform(builtChildren, child -> child.perRootInfo.get(rootIndex))
+                );
+                List<PerRootInfo.Builder> builders = mergedPerRootInfoBuilders.get(i);
                 ImmutableList.Builder<PerRootInfo> infosBuilder = ImmutableList.builderWithExpectedSize(builders.size());
                 for (PerRootInfo.Builder builder : builders) {
-                    infosBuilder.add(builder.build());
+                    infosBuilder.add(builder.build(childInfos));
                 }
                 perRootInfosBuilder.add(infosBuilder.build());
             }
@@ -232,17 +232,54 @@ public class TestTreeModel {
          * single class between multiple test workers, and runs of a container that happened to report no children,
          * e.g. a class rescheduled onto a worker that was lost before any test method could report.
          * Otherwise, every run is a leaf, and they might be retries, so they are kept as separate entries.
+         * <p>
+         * A merged childless run that failed adds an {@value #EXECUTION_ERROR_NAME} child carrying its failures, so
+         * the failure is counted, like the JUnit Platform adapter does for container failures. Other merged childless
+         * runs add nothing, as the counts of a container are derived only from its children.
          */
-        private static List<PerRootInfo.Builder> mergeRunsIfNeeded(List<PerRootInfo.Builder> builders) {
+        private List<PerRootInfo.Builder> mergeRunsIfNeeded(int rootIndex, List<PerRootInfo.Builder> builders) {
             if (builders.size() <= 1 || builders.stream().allMatch(PerRootInfo.Builder::isLeaf)) {
                 return builders;
             }
             // The list is discarded after building, so it's fine to sort it in place.
             builders.sort(PerRootInfo.Builder.BY_START_TIME);
+            for (PerRootInfo.Builder builder : builders) {
+                if (builder.isLeaf() && builder.getFirstResult().getResultType() == TestResult.ResultType.FAILURE) {
+                    children.computeIfAbsent(EXECUTION_ERROR_NAME, n -> new Builder(perRootInfoBuilders.size(), path.child(n)))
+                        .perRootInfoBuilders.get(rootIndex)
+                        .add(executionError(builder));
+                }
+            }
             Iterator<PerRootInfo.Builder> iterator = builders.iterator();
             PerRootInfo.Builder first = iterator.next();
             iterator.forEachRemaining(first::merge);
             return Collections.singletonList(first);
+        }
+
+        /**
+         * Creates the {@value #EXECUTION_ERROR_NAME} leaf for a failed childless run of a container, which reports the
+         * run's failures as a test, so they're counted. It takes the run's class name and times, but not its output,
+         * which is still shown on the container.
+         * <p>
+         * Its id is {@link Long#MAX_VALUE} minus the id of the run. Ids in a store count up from 1, so it's nearly
+         * impossible that it matches any other id given the number of tests it would take to reach the midpoint.
+         * <p>
+         * Ideally in the future we'll report container failures properly in the reports, and we can remove this as
+         * well as the JUnit Platform adapter's instances of this pattern.
+         */
+        private static PerRootInfo.Builder executionError(PerRootInfo.Builder failedRun) {
+            SerializableTestResult runResult = failedRun.getFirstResult();
+            SerializableTestResult.Builder result = SerializableTestResult.builder()
+                .name(EXECUTION_ERROR_NAME)
+                .displayName(EXECUTION_ERROR_NAME)
+                .className(runResult.getClassName())
+                .resultType(TestResult.ResultType.FAILURE)
+                .startTime(runResult.getStartTime())
+                .endTime(runResult.getEndTime());
+            runResult.getFailures().forEach(result::addFailure);
+            return new PerRootInfo.Builder(
+                Long.MAX_VALUE - failedRun.getId(), result.build(), OutputRanges.none(), true
+            );
         }
 
         private List<TestTreeModel> buildChildren() {
