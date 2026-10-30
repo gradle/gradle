@@ -23,7 +23,6 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
@@ -66,6 +65,6 @@ class JavaIDETaskExecutionPerformanceTest extends AbstractCrossVersionPerformanc
     }
 
     private determineIterations() {
-        return runner.testProject == LARGE_MONOLITHIC_JAVA_PROJECT.projectName ? 200 : 40
+        return runner.testProject == 'largeMonolithicJavaProject' ? 200 : 40
     }
 }
