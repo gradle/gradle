@@ -137,6 +137,13 @@ public class NodeState implements DependencyGraphNode {
     private boolean visitedDependencies = false;
 
     /**
+     * Whether our outgoing edges are only the edges to our virtual platforms, created while none of our incoming
+     * edges is transitive. If so, {@link #ownerEdgesForced} tells whether they were created as forced.
+     */
+    private boolean ownerEdgesOnly;
+    private boolean ownerEdgesForced;
+
+    /**
      * The transitive strict versions from inherited from parents, from the previous
      * graph traversal.
      */
@@ -340,13 +347,31 @@ public class NodeState implements DependencyGraphNode {
             // have from a previous traversal. Virtual platform edges remain in order to
             // maintain version alignment (this behavior differs from non-virtual platform
             // edges, which is confusing and potentially not desired).
-            removeOutgoingEdges();
             if (this.ownStrictVersions == null) {
                 // Compute our own strict versions here, as we are short-circuiting
                 // `visitDependencies`, which usually collects them.
                 collectOwnStrictVersions(resolutionFilter);
             }
+            boolean forced = hasStrongOpinion();
+            if (ownerEdgesOnly && ownerEdgesForced == forced) {
+                // The edges to our virtual platforms from our previous visit are still the ones we need. Keep them,
+                // so that the platforms do not see them removed and added again.
+                if (!resolutionFilter.equals(previousTraversalExclusions)) {
+                    for (EdgeState outgoingEdge : outgoingEdges) {
+                        outgoingEdge.updateTransitiveExcludesAndRequeueTargetNodes(resolutionFilter);
+                    }
+                }
+                if (!ancestorsStrictVersions.equals(previousAncestorsStrictVersions)) {
+                    for (EdgeState outgoingEdge : outgoingEdges) {
+                        outgoingEdge.recomputeSelectorAndRequeueTargetNodes(ancestorsStrictVersions, discoveredEdges);
+                    }
+                }
+                return;
+            }
+            removeOutgoingEdges();
             visitOwners(resolutionFilter, ancestorsStrictVersions, discoveredEdges);
+            ownerEdgesOnly = true;
+            ownerEdgesForced = forced;
             return;
         }
 
@@ -733,7 +758,7 @@ public class NodeState implements DependencyGraphNode {
             }
             requeueEndorsingParent(dependencyEdge);
             // Without this edge, our value can grow
-            resolveState.onIncomingEdgeRemoved(this, dependencyEdge);
+            resolveState.resetStrictVersions(this);
             resolveState.onFewerSelected(this);
         }
     }
@@ -757,8 +782,8 @@ public class NodeState implements DependencyGraphNode {
 
         for (EdgeState incomingEdge : removedEdges) {
             requeueEndorsingParent(incomingEdge);
-            resolveState.onIncomingEdgeRemoved(this, incomingEdge);
         }
+        resolveState.resetStrictVersions(this);
         resolveState.onFewerSelected(this);
 
         return removedEdges;
@@ -1203,20 +1228,6 @@ public class NodeState implements DependencyGraphNode {
     }
 
     /**
-     * Whether this node has an incoming edge from the same source as the given one, which endorses it alike.
-     * Such an edge passes on the same strict versions.
-     */
-    boolean hasIncomingEdgeLike(EdgeState edge) {
-        boolean endorsing = edge.getDependencyMetadata().isEndorsingStrictVersions();
-        for (EdgeState incomingEdge : incomingEdges) {
-            if (incomingEdge.getFrom() == edge.getFrom() && incomingEdge.getDependencyMetadata().isEndorsingStrictVersions() == endorsing) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Describes the strict version state of this node, for diagnostics.
      */
     String describeStrictVersionsState() {
@@ -1260,6 +1271,7 @@ public class NodeState implements DependencyGraphNode {
      */
     @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public void removeOutgoingEdges() {
+        ownerEdgesOnly = false;
         if (previousTraversalExclusions == null) {
             return;
         }
