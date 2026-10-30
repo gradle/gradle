@@ -46,7 +46,10 @@ public class TaskPropertyUtils {
         visitRegisteredProperties(task, visitor);
     }
 
-    private static void visitRegisteredProperties(TaskInternal task, PropertyVisitor visitor) {
+    /**
+     * Visits the properties declared via the runtime API ({@link org.gradle.api.tasks.TaskInputs} etc.).
+     */
+    public static void visitRegisteredProperties(TaskInternal task, PropertyVisitor visitor) {
         task.getInputs().visitRegisteredProperties(visitor);
         task.getOutputs().visitRegisteredProperties(visitor);
         ((TaskDestroyablesInternal) task.getDestroyables()).visitRegisteredProperties(visitor);
@@ -54,7 +57,10 @@ public class TaskPropertyUtils {
         // build services declared via Task#usesService are not visited as there is no use case for that
     }
 
-    static void visitAnnotatedProperties(PropertyWalker propertyWalker, TaskInternal task, TypeValidationContext validationContext, PropertyVisitor visitor) {
+    /**
+     * Visits the properties declared via annotations on the properties of the task type.
+     */
+    public static void visitAnnotatedProperties(PropertyWalker propertyWalker, TaskInternal task, TypeValidationContext validationContext, PropertyVisitor visitor) {
         propertyWalker.visitProperties(task, validationContext, visitor);
     }
 }

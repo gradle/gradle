@@ -121,7 +121,8 @@ public class AsmBackedClassGeneratorTest {
         }
 
         @Override
-        public void applyRoleTo(ModelObject owner, Object target) {
+        public Object applyRoleTo(ModelObject owner, Object target) {
+            return target;
         }
     };
     final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject(Collections.emptyList(), roleHandler, Collections.emptyList(), new TestCrossBuildInMemoryCacheFactory(), 0);
