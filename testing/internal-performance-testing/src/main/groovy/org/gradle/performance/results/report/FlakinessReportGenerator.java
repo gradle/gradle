@@ -37,7 +37,7 @@ public class FlakinessReportGenerator extends AbstractReportGenerator<CrossVersi
     }
 
     @Override
-    protected void renderIndexPage(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, File output) throws IOException {
+    protected void renderIndexPage(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, FailureCollector failureCollector, File output) throws IOException {
         new FileRenderer().render(null, new FlakinessIndexPageGenerator(flakinessDataProvider, executionDataProvider), output);
     }
 
