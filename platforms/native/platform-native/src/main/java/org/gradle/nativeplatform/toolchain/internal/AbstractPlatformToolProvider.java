@@ -161,7 +161,7 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     }
 
     protected final RuntimeException unavailableTool(String message) {
-        return new RuntimeException(message);
+        return new UnavailableToolException(message);
     }
 
     protected Compiler<?> createCppCompiler() {
