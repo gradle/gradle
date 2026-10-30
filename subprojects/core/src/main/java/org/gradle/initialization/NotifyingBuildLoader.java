@@ -49,6 +49,7 @@ public class NotifyingBuildLoader implements BuildLoader {
                 return BuildOperationDescriptor
                     .displayName("Load projects")
                     .progressDisplayName("Loading projects")
+                    .owner(gradle.getOwner())
                     .details(new LoadProjectsBuildOperationType.Details() {
                         @Override
                         public String getBuildPath() {
