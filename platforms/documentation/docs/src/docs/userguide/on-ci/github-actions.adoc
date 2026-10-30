@@ -112,7 +112,7 @@ jobs:
 | Required when `build-scan-publish` is enabled. Set the URL to `https://gradle.com/terms-of-service` and agreement to `yes`.
 
 | `develocity-access-key`
-| Access key for publishing Build Scans to a private link:https://develocity.ai/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=github-actions-link-develocity[Develocity] server. Provide via `secrets`.
+| Access key for publishing Build Scans to a private link:https://develocity.ai/[Develocity] server. Provide via `secrets`.
 
 | `add-job-summary`
 | Controls the GitHub Actions job summary produced by the action: `always` (default), `on-failure`, or `never`.
