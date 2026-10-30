@@ -1077,10 +1077,12 @@ public class NodeState implements DependencyGraphNode {
             }
         }
 
-        if (endorsed && existingOwnStrictVersions != null) {
+        if (endorsed) {
             // We inherit the strict versions of the nodes that endorse us, except our own. With fewer of our
             // own, we may inherit more, so our value can grow, which needs a reset. With more, it can shrink.
-            if (!existingOwnStrictVersions.minus(newStrictVersions).isEmpty()) {
+            // Once they are known for the first time, the endorsing edges pass on a known value, which can
+            // only make ours smaller.
+            if (existingOwnStrictVersions != null && !existingOwnStrictVersions.minus(newStrictVersions).isEmpty()) {
                 resolveState.resetStrictVersions(this);
             } else {
                 resolveState.onMoreSelected(this);
