@@ -126,16 +126,14 @@ class GroovyCoverage {
             supported = VersionCoverage.versionsBetweenInclusive(allVersions, '2.2.2', '2.5.10')
         } else if (javaVersion < JavaVersion.VERSION_11) {
             // 5.0.0 requires Java 11+
-            // Using 4.99.99 as a placeholder because beta versions aren't properly handled by VersionCoverage
-            supported = VersionCoverage.versionsBelow(allVersions, "4.99.99")
+            supported = VersionCoverage.versionsBelow(allVersions, "5.0.0")
         } else {
             supported = allVersions
         }
 
         // 6.0.0 requires Java 17+
-        // Using 5.99.99 as a placeholder because beta versions aren't properly handled by VersionCoverage
         if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
-            supported = VersionCoverage.versionsBelow(supported, "5.99.99")
+            supported = VersionCoverage.versionsBelow(supported, "6.0.0")
         }
 
         return supported
