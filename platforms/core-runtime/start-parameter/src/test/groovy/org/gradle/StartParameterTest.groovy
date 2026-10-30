@@ -236,6 +236,7 @@ class StartParameterTest extends Specification {
         parameter.systemPropertiesArgs.put("testprop", "foo")
         parameter.dryRun = true
         parameter.taskGraph = true
+        parameter.taskGraphLimit = 5
 
         // Non-copied
         parameter.currentDir = new File("other")
@@ -269,6 +270,7 @@ class StartParameterTest extends Specification {
         newParameter.lockedDependenciesToUpdate == parameter.lockedDependenciesToUpdate
         newParameter.dryRun == parameter.dryRun
         newParameter.taskGraph == parameter.taskGraph
+        newParameter.taskGraphLimit == parameter.taskGraphLimit
 
         assertRunsDefaultTasks(newParameter)
         newParameter.excludedTaskNames.empty
