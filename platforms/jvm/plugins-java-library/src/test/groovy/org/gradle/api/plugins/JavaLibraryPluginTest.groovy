@@ -16,11 +16,20 @@
 
 package org.gradle.api.plugins
 
+import org.gradle.api.DomainObjectCollection
+import org.gradle.api.GradleException
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.component.SoftwareComponentFactory
 import org.gradle.api.internal.component.SoftwareComponentInternal
+import org.gradle.api.internal.plugins.PluginApplicationException
 import org.gradle.api.internal.tasks.JvmConstants
+import org.gradle.api.plugins.internal.JavaPluginHelper
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.testing.base.TestSuite
+import org.gradle.testing.base.TestSuiteTarget
+import org.gradle.testing.base.TestingExtension
+import org.gradle.util.GradleVersion
 import org.gradle.util.TestUtil
 
 import static org.gradle.util.internal.WrapUtil.toSet
@@ -224,4 +233,105 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         apiVariant.dependencyConstraints == project.configurations.getByName(JvmConstants.API_CONFIGURATION_NAME).allDependencyConstraints
     }
 
+    def "reports a missing default test suite"() {
+        given:
+        project.pluginManager.apply(JavaPlugin)
+        def testing = project.extensions.getByType(TestingExtension)
+        testing.suites.remove(testing.suites.named("test"))
+
+        when:
+        project.pluginManager.apply(JavaLibraryPlugin)
+
+        then:
+        PluginApplicationException e = thrown()
+        e.cause.message == "The default test suite 'test' is required. Root project 'test-project' has no test suite named 'test' in 'testing.suites'."
+        (e.cause as GradleException).resolutions == [
+            "Don't remove the 'test' suite from 'testing.suites'. To skip its tests, disable the 'test' task instead.",
+            "To change the default suite, configure it with testing.suites.named('test', JvmTestSuite) instead of replacing it.",
+            "For more information on configuring the default test suite, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/jvm_test_suite_plugin.html#sec:configuring_the_built_in_test_suite in the Gradle documentation."
+        ]
+    }
+
+    def "reports a default test suite that is not a JVM test suite"() {
+        given:
+        project.pluginManager.apply(JvmTestSuitePlugin)
+        project.extensions.getByType(TestingExtension).suites.add(new CustomTestSuite(project.objects.domainObjectSet(TestSuiteTarget)))
+
+        when:
+        JavaPluginHelper.getDefaultTestSuite(project)
+
+        then:
+        GradleException e = thrown()
+        e.message == "The default test suite 'test' must be a JvmTestSuite, but the suite named 'test' in 'testing.suites' has type '${CustomTestSuite.name}'."
+        e.resolutions == [
+            "Rename your custom suite. The name 'test' is reserved for the default JvmTestSuite.",
+            "For more information on declaring additional test suites, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/jvm_test_suite_plugin.html#sec:declare_an_additional_test_suite in the Gradle documentation."
+        ]
+    }
+
+    def "reports a missing testing extension"() {
+        when:
+        JavaPluginHelper.getDefaultTestSuite(project)
+
+        then:
+        GradleException e = thrown()
+        e.message == "The Java plugin must be applied to access the default test suite ('test')."
+        e.resolutions == [
+            "Apply the 'java' plugin with plugins { id 'java' }. It applies the 'jvm-test-suite' plugin and registers the default 'test' suite.",
+            "For more information on the Java plugin, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/java_plugin.html#sec:java_usage in the Gradle documentation."
+        ]
+    }
+
+    def "reports a missing java component"() {
+        given:
+        project.pluginManager.apply(JavaPlugin)
+        project.components.remove(project.components.named("java"))
+
+        when:
+        project.pluginManager.apply(JavaLibraryPlugin)
+
+        then:
+        PluginApplicationException e = thrown()
+        e.cause.message == "The 'java' component is required. Root project 'test-project' has no component named 'java' in 'project.components'."
+        (e.cause as GradleException).resolutions == [
+            "Don't remove the 'java' component from 'project.components'.",
+            "For more information on the 'java' component, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/java_plugin.html#sec:java_plugin_publishing in the Gradle documentation."
+        ]
+    }
+
+    def "reports a java component that is not a JVM component"() {
+        given:
+        project.pluginManager.apply(JavaPlugin)
+        project.components.remove(project.components.named("java"))
+        project.components.add(project.services.get(SoftwareComponentFactory).adhoc("java"))
+
+        when:
+        project.pluginManager.apply(JavaLibraryPlugin)
+
+        then:
+        PluginApplicationException e = thrown()
+        e.cause.message == "The 'java' component must be created by the Java plugin, but the component named 'java' in root project 'test-project' has type 'org.gradle.api.publish.internal.component.DefaultAdhocSoftwareComponent'."
+        (e.cause as GradleException).resolutions == [
+            "Don't register a software component named 'java'. That name is reserved for the Java plugin.",
+            "For more information on the 'java' component, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/java_plugin.html#sec:java_plugin_publishing in the Gradle documentation."
+        ]
+    }
+
+    static class CustomTestSuite implements TestSuite {
+        private final DomainObjectCollection<TestSuiteTarget> targets
+
+        CustomTestSuite(DomainObjectCollection<TestSuiteTarget> targets) {
+            this.targets = targets
+        }
+
+        @Override
+        String getName() {
+            return "test"
+        }
+
+        @Override
+        DomainObjectCollection<? extends TestSuiteTarget> getTargets() {
+            return targets
+        }
+    }
 }
