@@ -20,8 +20,6 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.DisplayName;
 
-import java.util.Objects;
-
 /**
  * Identifies a file produced by transforming an input artifact.
  */
@@ -30,10 +28,12 @@ public class TransformedArtifactIdentifier implements ComponentArtifactIdentifie
     // TODO: This is not unique enough to identify a transformed artifact. Output files of a transform or chain with the same name but different directories collide.
     //  Fixing that is rather involved though and no one has yet reported this as a problem, so leaving it for now.
     private final String fileName;
+    private final int hashCode;
 
     public TransformedArtifactIdentifier(ComponentArtifactIdentifier inputArtifactId, String fileName) {
         this.inputArtifactId = inputArtifactId;
         this.fileName = fileName;
+        this.hashCode = 31 * inputArtifactId.hashCode() + fileName.hashCode();
     }
 
     @Override
@@ -83,6 +83,6 @@ public class TransformedArtifactIdentifier implements ComponentArtifactIdentifie
 
     @Override
     public int hashCode() {
-        return Objects.hash(inputArtifactId, fileName);
+        return hashCode;
     }
 }
