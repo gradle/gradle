@@ -96,7 +96,8 @@ main() {
         resolve_manual_version
     fi
 
-    # Required on a version change because gradle-wrapper.properties pins distributionSha256Sum
+    # Required on a version change because gradle-wrapper.properties pins distributionSha256Sum;
+    # :wrapper cannot look it up itself yet: https://github.com/gradle/gradle/issues/12785
     ./gradlew :wrapper --gradle-version="$WRAPPER_VERSION" --gradle-distribution-sha256-sum="$WRAPPER_SHA256"
     ./gradlew :wrapper
     git add gradle && git add gradlew && git add gradlew.bat
