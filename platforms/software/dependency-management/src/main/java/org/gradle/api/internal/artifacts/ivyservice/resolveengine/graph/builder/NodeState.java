@@ -143,10 +143,13 @@ public class NodeState implements DependencyGraphNode {
     private @Nullable StrictVersionConstraints previousAncestorsStrictVersions;
 
     /**
-     * The transitive strict versions from inherited from parents.
+     * The transitive strict versions inherited from parents, or {@code null} while unknown: before our first
+     * visit, after a reset, or while none of our parents passes on a known value. A known value can only be
+     * larger than the final one, never smaller: it shrinks as parents become known, and it is reset when a
+     * change could make it grow.
      */
     @VisibleForTesting
-    StrictVersionConstraints ancestorsStrictVersions = StrictVersionConstraints.EMPTY;
+    @Nullable StrictVersionConstraints ancestorsStrictVersions;
 
     /**
      * Our own strict version constraints, from the previous graph traversal.
@@ -155,8 +158,8 @@ public class NodeState implements DependencyGraphNode {
     @Nullable StrictVersionConstraints ownStrictVersions;
 
     /**
-     * Cached copy of all endorsed strict versions. Must be invalidated whenever
-     * an outgoing endorsing edge is added or removed, or if the target endorsed
+     * The strict versions endorsed by this node, as of its last visit, or {@code null} while unknown.
+     * This node is queued whenever an outgoing endorsing edge is added or removed, or the target endorsed
      * node's own strict versions change.
      */
     private @Nullable StrictVersionConstraints cachedEndorsedStrictVersions;
@@ -293,13 +296,26 @@ public class NodeState implements DependencyGraphNode {
      */
     void visitOutgoingDependenciesAndCollectEdges(Collection<EdgeState> discoveredEdges) {
         ExcludeSpec resolutionFilter = computeModuleResolutionFilter(incomingEdges);
-        StrictVersionConstraints ancestorsStrictVersions = this.ancestorsStrictVersions;
+        StrictVersionConstraints passedOnBefore = getPassedOnStrictVersions();
+        StrictVersionConstraints ancestorsStrictVersions = computeAncestorsStrictVersions();
+        this.ancestorsStrictVersions = ancestorsStrictVersions;
+
+        if (ancestorsStrictVersions == null) {
+            // None of our parents passes on a known value yet, and we are queued again once one does. Until then,
+            // only compute our own strict versions, which the nodes that endorse us need, and keep our edges as they are.
+            collectOwnStrictVersions(resolutionFilter);
+            onPassedOnStrictVersionsChanged(passedOnBefore, null);
+            return;
+        }
 
         doVisitDependencies(resolutionFilter, ancestorsStrictVersions, discoveredEdges);
 
         assert (previousTraversalExclusions == null) == (previousAncestorsStrictVersions == null);
         this.previousTraversalExclusions = resolutionFilter;
         this.previousAncestorsStrictVersions = ancestorsStrictVersions;
+
+        this.cachedEndorsedStrictVersions = computeEndorsedStrictVersions();
+        onPassedOnStrictVersionsChanged(passedOnBefore, getPassedOnStrictVersions());
     }
 
     private void doVisitDependencies(ExcludeSpec resolutionFilter, StrictVersionConstraints ancestorsStrictVersions, Collection<EdgeState> discoveredEdges) {
@@ -688,14 +704,9 @@ public class NodeState implements DependencyGraphNode {
             if (dependencyEdge.isTransitive()) {
                 transitiveEdgeCount++;
             }
-            requeueChildrenOfEndorsingParent(dependencyEdge);
+            requeueEndorsingParent(dependencyEdge);
 
-            if (incomingEdges.size() == 1) {
-                updateAncestorsStrictVersions(getStrictVersionsForEdge(dependencyEdge));
-            } else {
-                updateAncestorsStrictVersions(ancestorsStrictVersions.intersect(getStrictVersionsForEdge(dependencyEdge)));
-            }
-
+            // A new incoming edge can only make our value smaller: recompute it when visited
             resolveState.onMoreSelected(this);
         }
     }
@@ -707,8 +718,9 @@ public class NodeState implements DependencyGraphNode {
             if (dependencyEdge.isTransitive()) {
                 transitiveEdgeCount--;
             }
-            requeueChildrenOfEndorsingParent(dependencyEdge);
-            recomputeAncestorsStrictVersions();
+            requeueEndorsingParent(dependencyEdge);
+            // Without this edge, our value can grow
+            resolveState.resetStrictVersions(this);
             resolveState.onFewerSelected(this);
         }
     }
@@ -731,31 +743,21 @@ public class NodeState implements DependencyGraphNode {
         transitiveEdgeCount = 0;
 
         for (EdgeState incomingEdge : removedEdges) {
-            requeueChildrenOfEndorsingParent(incomingEdge);
+            requeueEndorsingParent(incomingEdge);
         }
-        updateAncestorsStrictVersions(StrictVersionConstraints.EMPTY);
+        resolveState.resetStrictVersions(this);
         resolveState.onFewerSelected(this);
 
         return removedEdges;
     }
 
     /**
-     * Whenever an incoming edge is added or removed from this node, if that edge is
-     * endorsing strict versions and this node has strict versions declared, other children
-     * of the source node need to be re-processed in order to ensure they handle the updated
-     * endorsed strict versions from their parent.
+     * Whenever an incoming edge that endorses our strict versions is added or removed, the strict versions
+     * endorsed by its source change: the source is queued to recompute them, and what it passes on.
      */
-    private void requeueChildrenOfEndorsingParent(EdgeState incomingEdge) {
+    private void requeueEndorsingParent(EdgeState incomingEdge) {
         if (incomingEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
-            NodeState sourceNode = incomingEdge.getFrom();
-            sourceNode.invalidateEndorsedStrictVersions();
-            for (EdgeState edge : sourceNode.getOutgoingEdges()) {
-                for (NodeState node : edge.getTargetNodes()) {
-                    if (node != this) {
-                        resolveState.onMoreSelected(node);
-                    }
-                }
-            }
+            resolveState.onMoreSelected(incomingEdge.getFrom());
         }
     }
 
@@ -998,9 +1000,9 @@ public class NodeState implements DependencyGraphNode {
 
     @VisibleForTesting
     void collectOwnStrictVersions(ExcludeSpec moduleResolutionFilter) {
-        List<EdgeState> edges = edges(moduleResolutionFilter);
+        // Not cached: the filter may still change before this node's first full visit
         PersistentSet<ModuleIdentifier> constraintsSet = PersistentSet.of();
-        for (EdgeState edge : edges) {
+        for (EdgeState edge : computeFilteredEdges(moduleResolutionFilter)) {
             constraintsSet = maybeCollectStrictVersions(constraintsSet, edge.getDependencyMetadata().getSelector());
         }
         storeOwnStrictVersions(constraintsSet);
@@ -1016,124 +1018,82 @@ public class NodeState implements DependencyGraphNode {
         return constraintsSet;
     }
 
+    /**
+     * Stores our own strict versions, computed during our visit. Nodes that endorse us include them in what
+     * they pass on, so they are queued to recompute it.
+     */
     private void storeOwnStrictVersions(PersistentSet<ModuleIdentifier> constraintsSet) {
         StrictVersionConstraints newStrictVersions = StrictVersionConstraints.of(constraintsSet);
 
         StrictVersionConstraints existingOwnStrictVersions = this.ownStrictVersions;
+        if (newStrictVersions.equals(existingOwnStrictVersions)) {
+            return;
+        }
         this.ownStrictVersions = newStrictVersions;
 
-        if (existingOwnStrictVersions == null) {
-            // If our existing strict versions are null, nobody else has observed them,
-            // so their value being initialized for the first time will no invalidate
-            // any existing calculated strict versions.
-            return;
-        }
-
-        if (!newStrictVersions.equals(existingOwnStrictVersions)) {
-            for (EdgeState incomingEdge : incomingEdges) {
-                if (incomingEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
-                    // Our own strict versions contribute to the endorsed strict versions of
-                    // ancestors that endorse us.
-                    incomingEdge.getFrom().invalidateEndorsedStrictVersions();
-                    // Our own strict versions contribute to our ancestors strict versions
-                    // if our ancestor endorses us.
-                    recomputeAncestorsStrictVersions();
-                }
-            }
-            for (EdgeState outgoingEdge : outgoingEdges) {
-                for (NodeState targetNode : outgoingEdge.getTargetNodes()) {
-                    // Our own strict versions contribute to our descendants strict versions.
-                    targetNode.recomputeAncestorsStrictVersions();
-                }
+        boolean endorsed = false;
+        for (EdgeState incomingEdge : incomingEdges) {
+            if (incomingEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
+                endorsed = true;
+                resolveState.onMoreSelected(incomingEdge.getFrom());
             }
         }
-    }
 
-    /**
-     * Recompute the strict versions inherited from ancestors,
-     * propagating the new value to all descendants.
-     */
-    @VisibleForTesting
-    void recomputeAncestorsStrictVersions() {
-        updateAncestorsStrictVersions(collectAncestorsStrictVersions());
-    }
-
-    /**
-     * Set the strict versions inherited from ancestors,
-     * propagating the new value to all descendants.
-     */
-    private void updateAncestorsStrictVersions(StrictVersionConstraints newAncestorsStrictVersions) {
-        if (newAncestorsStrictVersions.equals(this.ancestorsStrictVersions)) {
-            // No change, no need to propagate further.
-            return;
-        }
-
-        this.ancestorsStrictVersions = newAncestorsStrictVersions;
-
-        for (EdgeState outgoingEdge : outgoingEdges) {
-            for (NodeState targetNode : outgoingEdge.getTargetNodes()) {
-                // The ancestors strict versions of this node contribute to the
-                // ancestors strict versions of our children.
-                targetNode.recomputeAncestorsStrictVersions();
-            }
-        }
-    }
-
-    /**
-     * Determines all strict versions inherited from ancestors. When a node declares strict
-     * versions, either through its own dependencies, or by endorsement, those strict versions apply
-     * to all descendants of that node's exclusive subgraph. If a given node belongs to multiple
-     * subgraphs, a strict version is only inherited if all parent subgraphs provide a
-     * strict version for that module. For this reason, we compute the intersection of strict
-     * versions coming from all incoming edges.
-     */
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private StrictVersionConstraints collectAncestorsStrictVersions() {
-        if (incomingEdges.isEmpty()) {
-            return StrictVersionConstraints.EMPTY;
-        }
-
-        if (incomingEdges.size() == 1) {
-            EdgeState dependencyEdge = incomingEdges.get(0);
-            if (dependencyEdge.getFrom().isSelected()) {
-                return getStrictVersionsForEdge(dependencyEdge);
+        if (endorsed && existingOwnStrictVersions != null) {
+            // We inherit the strict versions of the nodes that endorse us, except our own. With fewer of our
+            // own, we may inherit more: our value can grow, which needs a reset. With more, it can shrink.
+            if (!existingOwnStrictVersions.minus(newStrictVersions).isEmpty()) {
+                resolveState.resetStrictVersions(this);
             } else {
-                return StrictVersionConstraints.EMPTY;
+                resolveState.onMoreSelected(this);
             }
+        }
+    }
+
+    /**
+     * The strict versions inherited from all incoming edges: the intersection of what each of them passes on,
+     * or {@code null} if none of them passes on a known value yet. The root inherits nothing.
+     */
+    private @Nullable StrictVersionConstraints computeAncestorsStrictVersions() {
+        if (isRoot()) {
+            return StrictVersionConstraints.EMPTY;
         }
 
         StrictVersionConstraints ancestorsStrictVersions = null;
         for (EdgeState dependencyEdge : incomingEdges) {
-            if (!dependencyEdge.getFrom().isSelected()) {
+            StrictVersionConstraints edgeStrictVersions = getStrictVersionsForEdge(dependencyEdge);
+            if (edgeStrictVersions == null) {
                 continue;
             }
-            StrictVersionConstraints allEdgeStrictVersions = getStrictVersionsForEdge(dependencyEdge);
-
             ancestorsStrictVersions = ancestorsStrictVersions == null
-                ? allEdgeStrictVersions
-                : ancestorsStrictVersions.intersect(allEdgeStrictVersions);
-
-            if (ancestorsStrictVersions == StrictVersionConstraints.EMPTY) {
-                // No need to continue. Empty intersected with anything is empty.
-                break;
-            }
+                ? edgeStrictVersions
+                : ancestorsStrictVersions.intersect(edgeStrictVersions);
         }
-        return ancestorsStrictVersions != null ?  ancestorsStrictVersions : StrictVersionConstraints.EMPTY;
+        return ancestorsStrictVersions;
     }
 
     /**
-     * Determine the strict versions inherited through a given edge.
+     * Determine the strict versions inherited through a given edge, or {@code null} if its source does not
+     * pass on a known value yet.
      */
-    private StrictVersionConstraints getStrictVersionsForEdge(EdgeState dependencyEdge) {
+    private @Nullable StrictVersionConstraints getStrictVersionsForEdge(EdgeState dependencyEdge) {
         NodeState from = dependencyEdge.getFrom();
+        if (!from.isSelected()) {
+            return null;
+        }
         StrictVersionConstraints parentStrongStrictVersions = from.getStrongStrictVersions();
-        StrictVersionConstraints parentEndorsedStrictVersions = from.getEndorsedStrictVersions();
+        StrictVersionConstraints parentEndorsedStrictVersions = from.cachedEndorsedStrictVersions;
+        if (parentStrongStrictVersions == null || parentEndorsedStrictVersions == null) {
+            return null;
+        }
 
         // If the source node endorses us, then we might be the source of a strict version that it
         // endorses. For this reason, we inherit a parent's endorsed strict versions only if we may
         // not be the source of that strict version.
         StrictVersionConstraints filteredEndorsedStrictVersions;
         if (dependencyEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
+            // The source's endorsed strict versions are only known once ours are
+            assert ownStrictVersions != null;
             filteredEndorsedStrictVersions = parentEndorsedStrictVersions.minus(ownStrictVersions);
         } else {
             filteredEndorsedStrictVersions = parentEndorsedStrictVersions;
@@ -1145,58 +1105,99 @@ public class NodeState implements DependencyGraphNode {
     /**
      * Get the strong strict versions of this node -- the strict versions that are sourced from higher up
      * in the graph. These strong strict versions take precedence over endorsed strict versions.
+     * {@code null} if not known yet.
      */
-    private StrictVersionConstraints getStrongStrictVersions() {
-        // This method assumes that `ownStrictVersions` has already been
-        // computed for the source node. If `ownStrictVersions` ever changes,
-        // we must ensure this node is re-processed.
-        assert ownStrictVersions != null;
+    private @Nullable StrictVersionConstraints getStrongStrictVersions() {
+        if (ownStrictVersions == null || ancestorsStrictVersions == null) {
+            return null;
+        }
         return ownStrictVersions.union(ancestorsStrictVersions);
     }
 
     /**
-     * Invalidate the cached strict versions endorsed by this node,
-     * propagating the invalidation to all descendants.
+     * Everything this node passes on to its children, before the filtering of endorsing edges,
+     * or {@code null} if not known yet.
      */
-    private void invalidateEndorsedStrictVersions() {
-        this.cachedEndorsedStrictVersions = null;
-
-        for (EdgeState outgoingEdge : outgoingEdges) {
-            for (NodeState targetNode : outgoingEdge.getTargetNodes()) {
-                // The endorsed strict versions of this node contributes to the
-                // ancestors strict versions of our children.
-                targetNode.recomputeAncestorsStrictVersions();
-            }
+    private @Nullable StrictVersionConstraints getPassedOnStrictVersions() {
+        StrictVersionConstraints strongStrictVersions = getStrongStrictVersions();
+        if (strongStrictVersions == null || cachedEndorsedStrictVersions == null) {
+            return null;
         }
+        return strongStrictVersions.union(cachedEndorsedStrictVersions);
     }
 
     /**
-     * Get the strict versions endorsed by this node, calculating the value if necessary.
+     * Determine all strict versions endorsed by this node: the own strict versions of the targets of our
+     * endorsing edges. {@code null} while one of them is not known yet: a target not selected yet, or one
+     * that has not computed its own strict versions yet.
      */
-    private StrictVersionConstraints getEndorsedStrictVersions() {
-        if (cachedEndorsedStrictVersions == null) {
-            this.cachedEndorsedStrictVersions = computeEndorsedStrictVersions();
-        }
-        return this.cachedEndorsedStrictVersions;
-    }
-
-    /**
-     * Determine all strict versions endorsed by this node.
-     */
-    private StrictVersionConstraints computeEndorsedStrictVersions() {
+    private @Nullable StrictVersionConstraints computeEndorsedStrictVersions() {
         StrictVersionConstraints endorsedStrictVersions = StrictVersionConstraints.EMPTY;
         for (EdgeState edgeState : outgoingEdges) {
             if (edgeState.getDependencyMetadata().isEndorsingStrictVersions()) {
-                for (NodeState endorsedNode : edgeState.getTargetNodes()) {
+                List<NodeState> targetNodes = edgeState.getTargetNodes();
+                if (targetNodes.isEmpty()) {
+                    if (edgeState.hasFailure()) {
+                        // A failed edge endorses nothing
+                        continue;
+                    }
+                    return null;
+                }
+                for (NodeState endorsedNode : targetNodes) {
                     if (endorsedNode.ownStrictVersions == null) {
-                        // The node's dependencies were not yet visited. Compute them now.
-                        endorsedNode.collectOwnStrictVersions(endorsedNode.computeModuleResolutionFilter(endorsedNode.incomingEdges));
+                        return null;
                     }
                     endorsedStrictVersions = endorsedStrictVersions.union(endorsedNode.ownStrictVersions);
                 }
             }
         }
         return endorsedStrictVersions;
+    }
+
+    /**
+     * Queues our children after a change of what we pass on: when it shrinks, or becomes known, they only need
+     * to recompute their value; when it grows, or becomes unknown, values they derived from ours may be too
+     * small, in a cycle in particular, so they are reset.
+     */
+    private void onPassedOnStrictVersionsChanged(@Nullable StrictVersionConstraints before, @Nullable StrictVersionConstraints after) {
+        if (Objects.equals(before, after)) {
+            return;
+        }
+        boolean grew = after == null || (before != null && !after.minus(before).isEmpty());
+        for (EdgeState outgoingEdge : outgoingEdges) {
+            for (NodeState targetNode : outgoingEdge.getTargetNodes()) {
+                if (grew) {
+                    resolveState.resetStrictVersions(targetNode);
+                } else {
+                    resolveState.onMoreSelected(targetNode);
+                }
+            }
+        }
+    }
+
+    /**
+     * Forgets the strict versions inherited from our ancestors, after a change that may make them larger,
+     * and resets our children, whose values may derive from ours. A node that was already unknown stops the
+     * reset: nothing was derived from its value. Called from the reset queue, which is drained before any visit.
+     */
+    void resetAncestorsStrictVersions() {
+        if (isRoot() || ancestorsStrictVersions == null) {
+            return;
+        }
+        ancestorsStrictVersions = null;
+        resolveState.onMoreSelected(this);
+        for (EdgeState outgoingEdge : outgoingEdges) {
+            for (NodeState targetNode : outgoingEdge.getTargetNodes()) {
+                resolveState.resetStrictVersions(targetNode);
+            }
+        }
+    }
+
+    /**
+     * Whether the strict versions inherited from our ancestors are known.
+     */
+    boolean hasKnownAncestorsStrictVersions() {
+        return ancestorsStrictVersions != null;
     }
 
     private boolean sameIncomingEdgesAsPreviousPass(int incomingEdgeCount) {

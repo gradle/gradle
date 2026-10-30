@@ -83,6 +83,10 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     private final DependencyToComponentIdResolver idResolver;
     private final ComponentMetaDataResolver metaDataResolver;
     private final Deque<NodeState> queue;
+    /**
+     * Nodes whose inherited strict versions must be reset, drained before the next node is visited.
+     */
+    private final Deque<NodeState> strictVersionResets = new ArrayDeque<>();
     private final ConflictResolution conflictResolution;
     private final ImmutableAttributes consumerAttributes;
     private final ImmutableAttributesSchema consumerSchema;
@@ -276,6 +280,26 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         // Add to the front of the queue, to flush out configurations that are no longer required.
         if (node.enqueue()) {
             queue.addFirst(node);
+        }
+    }
+
+    /**
+     * Called when a change may make the strict versions a node inherits from its ancestors larger. The node and
+     * its descendants forget theirs, before any other node is visited: see {@link #processStrictVersionResets()}.
+     */
+    public void resetStrictVersions(NodeState node) {
+        strictVersionResets.addLast(node);
+    }
+
+    /**
+     * Resets the inherited strict versions of the nodes queued by {@link #resetStrictVersions(NodeState)}, and
+     * of their descendants, one node at a time. Must be called before visiting the next node: a node visited
+     * while a reset is pending could compute its value from a value that is about to be reset, and keep it.
+     */
+    public void processStrictVersionResets() {
+        NodeState node;
+        while ((node = strictVersionResets.pollFirst()) != null) {
+            node.resetAncestorsStrictVersions();
         }
     }
 

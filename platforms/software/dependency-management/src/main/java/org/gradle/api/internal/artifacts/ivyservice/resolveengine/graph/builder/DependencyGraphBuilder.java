@@ -160,6 +160,7 @@ public class DependencyGraphBuilder {
         );
 
         traverseGraph(resolveState);
+        assert strictVersionsKnownForReachableNodes(resolveState);
 
         validateGraph(resolveState, failingOnDynamicVersions, failingOnChangingVersions, conflictResolution, failureResolutions);
 
@@ -176,7 +177,12 @@ public class DependencyGraphBuilder {
         ModuleConflictHandler moduleConflictHandler = resolveState.getModuleConflictHandler();
         CapabilitiesConflictHandler capabilitiesConflictHandler = resolveState.getCapabilitiesConflictHandler();
 
-        while (resolveState.peek() != null || moduleConflictHandler.hasConflicts() || capabilitiesConflictHandler.hasConflicts()) {
+        while (true) {
+            // Resets of inherited strict versions come before any visit
+            resolveState.processStrictVersionResets();
+            if (resolveState.peek() == null && !moduleConflictHandler.hasConflicts() && !capabilitiesConflictHandler.hasConflicts()) {
+                break;
+            }
             if (resolveState.peek() != null) {
                 final NodeState node = resolveState.pop();
 
@@ -205,6 +211,33 @@ public class DependencyGraphBuilder {
                 }
             }
         }
+    }
+
+    /**
+     * Every node reachable from the root must end with known inherited strict versions: a node that is still
+     * unknown never had its dependencies visited.
+     */
+    private static boolean strictVersionsKnownForReachableNodes(ResolveState resolveState) {
+        Set<NodeState> seen = new HashSet<>();
+        Deque<NodeState> queue = new ArrayDeque<>();
+        queue.add(resolveState.getRoot());
+        List<NodeState> unknown = new ArrayList<>();
+        while (!queue.isEmpty()) {
+            NodeState node = queue.poll();
+            if (!seen.add(node)) {
+                continue;
+            }
+            if (!node.hasKnownAncestorsStrictVersions()) {
+                unknown.add(node);
+            }
+            for (EdgeState edge : node.getOutgoingEdges()) {
+                queue.addAll(edge.getTargetNodes());
+            }
+        }
+        if (!unknown.isEmpty()) {
+            throw new AssertionError("Inherited strict versions are unknown for " + unknown);
+        }
+        return true;
     }
 
     private void resolveEdges(
