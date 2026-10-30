@@ -177,6 +177,11 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
+    boolean mayChangeProjectLocks() {
+        return true
+    }
+
+    @Override
     void blocking(Runnable action) {
         action.run()
     }
