@@ -164,6 +164,15 @@ A Configuration Cache entry stores:
 
 For the precise contents and how they're written to disk, see <<config_cache:intro:serialization, Serialization>>.
 
+[TIP]
+.Using the Configuration Cache on CI?
+====
+Ephemeral agents start cold on every run.
+Develocity Setup Cache restores Gradle's configuration phase on each agent, with no changes to build scripts.
+
+link:https://develocity.ai/product/setup-cache/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=configuration-cache-callout-setup-cache[How Setup Cache works]
+====
+
 [[config_cache:intro:build_configuration_inputs]]
 === Build Configuration Inputs
 

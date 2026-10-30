@@ -109,6 +109,14 @@ repositories {
 Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shorthand notation.
 All shorthand notations are available via the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API.
 
+[TIP]
+.Every CI agent downloading the same dependencies?
+====
+Develocity Artifact Cache serves dependencies from cache instead of the remote repository on every run.
+
+link:https://develocity.ai/product/artifact-cache/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=declaring-repositories-callout-artifact-cache[Learn about Artifact Cache]
+====
+
 [[sub:declaring-custom-repository-basics]]
 == Declaring a private or custom repository
 
