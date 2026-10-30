@@ -212,7 +212,10 @@ class NodeStateTest extends Specification {
     }
 
     StrictVersionConstraints visit(NodeState node) {
-        node.recomputeAncestorsStrictVersions()
+        // What the parents pass on is computed at the end of their own visits, once their edges are attached
+        node.incomingEdges.each { it.from.updatePassedOnStrictVersions() }
+        node.ancestorsStrictVersions = node.computeAncestorsStrictVersions()
+        node.updatePassedOnStrictVersions()
         node.ancestorsStrictVersions
     }
 

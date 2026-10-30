@@ -1117,7 +1117,8 @@ public class NodeState implements DependencyGraphNode {
      * The strict versions inherited from all incoming edges, which is the intersection of what each of them passes on.
      * Returns null if none of them passes on a known value yet. The root inherits nothing.
      */
-    private @Nullable StrictVersionConstraints computeAncestorsStrictVersions() {
+    @VisibleForTesting
+    @Nullable StrictVersionConstraints computeAncestorsStrictVersions() {
         if (isRoot()) {
             return StrictVersionConstraints.EMPTY;
         }
@@ -1131,6 +1132,10 @@ public class NodeState implements DependencyGraphNode {
             ancestorsStrictVersions = ancestorsStrictVersions == null
                 ? edgeStrictVersions
                 : ancestorsStrictVersions.intersect(edgeStrictVersions);
+            if (ancestorsStrictVersions.isEmpty()) {
+                // No need to continue. Empty intersected with anything is empty.
+                break;
+            }
         }
         return ancestorsStrictVersions;
     }
