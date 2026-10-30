@@ -29,6 +29,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -178,35 +179,7 @@ public class TestTreeModel {
             // We use LinkedHashMap for the children to keep them in the order of results in the store.
             TestTreeModel.Builder model = modelsByPath.computeIfAbsent(path, p -> new TestTreeModel.Builder(rootCount, p));
 
-            List<PerRootInfo.Builder> existingRootInfos = model.perRootInfoBuilders.get(rootIndex);
-            if (!existingRootInfos.isEmpty()) {
-                // Only merge into non-leaf nodes. Leaf nodes might be repeated by test retries,
-                // so we'll want to add them all to the model if possible.
-                // The merging is necessary to support test engines like TestNG which can split test methods in a single class between
-                // multiple test workers.  These results must be recombined in the model to get the correct counts and report structure.
-                boolean isLeaf = rootInfo.isLeaf();
-                if (isLeaf) {
-                    // Merge into an existing non-leaf if possible, otherwise add as a new entry for retries.
-                    PerRootInfo.Builder existingNonLeaf = existingRootInfos.stream()
-                        .filter(info -> !info.isLeaf())
-                        .findFirst()
-                        .orElse(null);
-                    if (existingNonLeaf != null) {
-                        existingNonLeaf.merge(rootInfo);
-                    } else {
-                        existingRootInfos.add(rootInfo);
-                    }
-                } else {
-                    // Merge into the one that is also not a leaf if possible, otherwise just merge into the first one.
-                    PerRootInfo.Builder toMerge = existingRootInfos.stream()
-                        .filter(info -> !info.isLeaf())
-                        .findFirst()
-                        .orElseGet(() -> existingRootInfos.get(0));
-                    toMerge.merge(rootInfo);
-                }
-            } else {
-                existingRootInfos.add(rootInfo);
-            }
+            model.perRootInfoBuilders.get(rootIndex).add(rootInfo);
 
             List<Child> children = childrenByParentId.get(id);
 
@@ -240,9 +213,9 @@ public class TestTreeModel {
             ImmutableList.Builder<List<PerRootInfo>> perRootInfosBuilder =
                 ImmutableList.builderWithExpectedSize(perRootInfoBuilders.size());
             for (int i = 0; i < perRootInfoBuilders.size(); i++) {
-                List<PerRootInfo.Builder> builders = perRootInfoBuilders.get(i);
                 // Clean up per root info builders as we build, to let GC reclaim their memory.
-                perRootInfoBuilders.set(i, ImmutableList.of());
+                List<PerRootInfo.Builder> builders = perRootInfoBuilders.set(i, ImmutableList.of());
+                builders = mergeRunsIfNeeded(builders);
 
                 ImmutableList.Builder<PerRootInfo> infosBuilder = ImmutableList.builderWithExpectedSize(builders.size());
                 for (PerRootInfo.Builder builder : builders) {
@@ -251,6 +224,25 @@ public class TestTreeModel {
                 perRootInfosBuilder.add(infosBuilder.build());
             }
             return perRootInfosBuilder.build();
+        }
+
+        /**
+         * If any run of this node has children, the node is a container, so all of its runs are merged into a single
+         * entry, ordered by start time. This recombines test engines like TestNG which can split the test methods of a
+         * single class between multiple test workers, and runs of a container that happened to report no children,
+         * e.g. a class rescheduled onto a worker that was lost before any test method could report.
+         * Otherwise, every run is a leaf, and they might be retries, so they are kept as separate entries.
+         */
+        private static List<PerRootInfo.Builder> mergeRunsIfNeeded(List<PerRootInfo.Builder> builders) {
+            if (builders.size() <= 1 || builders.stream().allMatch(PerRootInfo.Builder::isLeaf)) {
+                return builders;
+            }
+            // The list is discarded after building, so it's fine to sort it in place.
+            builders.sort(PerRootInfo.Builder.BY_START_TIME);
+            Iterator<PerRootInfo.Builder> iterator = builders.iterator();
+            PerRootInfo.Builder first = iterator.next();
+            iterator.forEachRemaining(first::merge);
+            return Collections.singletonList(first);
         }
 
         private List<TestTreeModel> buildChildren() {
