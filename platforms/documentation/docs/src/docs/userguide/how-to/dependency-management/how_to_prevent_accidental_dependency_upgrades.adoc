@@ -97,6 +97,9 @@ Then, generate a lock file:
 
 This creates a `gradle.lockfile` that stores the exact dependency versions, preventing future upgrades unless explicitly updated.
 
+TIP: A link:https://develocity.ai/product/build-scan/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=how-to-prevent-accidental-dependency-upgrades-callout-build-scan[Build Scan] shows the same dependency tree in a browser, including version conflicts.
+See <<viewing_debugging_dependencies.adoc#sec:dependencies-build-scans,Get a holistic view using Build Scan>>.
+
 [[sec:prevent_upgrades_summary]]
 == Summary
 

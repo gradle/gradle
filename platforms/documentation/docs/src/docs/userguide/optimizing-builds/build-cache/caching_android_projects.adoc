@@ -31,6 +31,8 @@ The Android cache is internal to certain tasks in the Android plugin, and will e
 The build cache can _significantly_ improve build performance for Android projects, in many cases by 30-40%.
 Many of the compilation and assembly tasks provided by the Android Gradle Plugin are cacheable, and more are made so with each new iteration.
 
+TIP: To measure the effect on your own build, use link:https://develocity.ai/product/build-scan/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=caching-android-projects-callout-build-scan[Build Scan] to compare a cached and an uncached run, or track the cache hit rate in link:https://develocity.ai/product/build-cache/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=caching-android-projects-callout-build-cache[Develocity].
+
 [[android_faster_ci_builds]]
 === Faster CI builds
 

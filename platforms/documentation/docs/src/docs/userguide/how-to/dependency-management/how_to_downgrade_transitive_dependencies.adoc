@@ -100,6 +100,9 @@ include::sample[dir="snippets/how-to/dependency-management/dependency-management
 
 This ensures that **Commons Codec 1.9 is always used**, even if transitive dependencies request a newer version.
 
+TIP: A link:https://develocity.ai/product/build-scan/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=how-to-downgrade-transitive-dependencies-callout-build-scan[Build Scan] shows the same dependency tree in a browser, including version conflicts.
+See <<viewing_debugging_dependencies.adoc#sec:dependencies-build-scans,Get a holistic view using Build Scan>>.
+
 [[sec:downgrade_summary]]
 == Summary
 

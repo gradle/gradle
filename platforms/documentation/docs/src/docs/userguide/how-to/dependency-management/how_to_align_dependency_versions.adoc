@@ -123,6 +123,9 @@ include::sample[dir="snippets/how-to/dependency-management/dependency-management
 
 This ensures all dependencies (`core`, `lib`, and `utils`) resolve consistently to version `1.1`.
 
+TIP: A link:https://develocity.ai/product/build-scan/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=how-to-align-dependency-versions-callout-build-scan[Build Scan] shows the same dependency tree in a browser, including version conflicts.
+See <<viewing_debugging_dependencies.adoc#sec:dependencies-build-scans,Get a holistic view using Build Scan>>.
+
 [[sec:version_alignment_summary]]
 == Summary
 

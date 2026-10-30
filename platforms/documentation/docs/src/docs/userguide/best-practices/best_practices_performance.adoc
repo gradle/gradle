@@ -161,6 +161,7 @@ include::{snippetsPath}/best-practices/useBuildCache-do/tests/useBuildCache-do.s
 === References
 
 - <<build_cache.adoc#sec:build_cache_intro,Build Cache Overview>>
+- link:https://develocity.ai/product/build-cache/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=best-practices-performance-reference-build-cache[Develocity Build Cache]
 
 === Tags
 
