@@ -20,6 +20,8 @@ import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportRes
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.jvm.Jvm
 
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
+
 abstract class AbstractApiGroovyCompilerIntegrationSpec extends AbstractGroovyCompilerIntegrationSpec implements VerifiesGenericTestReportResults {
     def canEnableAndDisableIntegerOptimization() {
         if (versionLowerThan('1.8')) {
@@ -40,6 +42,10 @@ abstract class AbstractApiGroovyCompilerIntegrationSpec extends AbstractGroovyCo
     def canEnableAndDisableAllOptimizations() {
         if (versionLowerThan('1.8')) {
             return
+        }
+        // Disabling optimizations turns off indy, which needs the optional groovy-callsite module since Groovy 6
+        if (versionNumber.major >= 6) {
+            buildFile << "dependencies { implementation '${groovyModuleDependency("groovy-callsite", versionNumber)}' }"
         }
 
         when:
