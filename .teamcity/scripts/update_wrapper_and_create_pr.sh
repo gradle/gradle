@@ -53,6 +53,33 @@ source_promoted_version() {
 
     source "$version_info"
     export WRAPPER_VERSION="$promotedVersion"
+
+    local sha256_file=$(find "$2" -name "gradle-${versionBase}-bin.zip.sha256" -print -quit 2>/dev/null)
+    if [[ -z "$sha256_file" ]]; then
+        printf "Error: gradle-%s-bin.zip.sha256 was not downloaded to %s from the triggering build. Was its artifact cleaned up?\n" "$versionBase" "$2" >&2
+        exit 1
+    fi
+    WRAPPER_SHA256=$(<"$sha256_file")
+}
+
+resolve_manual_version() {
+    local checksum_url="https://services.gradle.org/distributions/gradle-${WRAPPER_VERSION}-bin.zip.sha256"
+    local endpoint
+    # Same labels as the Wrapper task's --gradle-version
+    case "$WRAPPER_VERSION" in
+        latest) endpoint=current ;;
+        release-milestone) endpoint=milestone ;;
+        release-candidate|release-nightly|nightly) endpoint="$WRAPPER_VERSION" ;;
+    esac
+
+    if [[ -n "${endpoint:-}" ]]; then
+        local version_json
+        version_json=$(curl -fsSL "https://services.gradle.org/versions/$endpoint")
+        WRAPPER_VERSION=$(echo "$version_json" | jq -er '.version')
+        checksum_url=$(echo "$version_json" | jq -er '.checksumUrl')
+    fi
+
+    WRAPPER_SHA256=$(curl -fsSL "$checksum_url")
 }
 
 main() {
@@ -62,12 +89,15 @@ main() {
     : "${GITHUB_TOKEN:?GITHUB_TOKEN environment variable is required}"
 
     if [[ "$TRIGGERED_BY" == *"Release - Final"* ]]; then
-        source_promoted_version version-info-final-release
+        source_promoted_version version-info-final-release checksums-final-release
     elif [[ "$TRIGGERED_BY" == *"Release - Release Candidate"* ]]; then
-        source_promoted_version version-info-release-candidate
+        source_promoted_version version-info-release-candidate checksums-release-candidate
+    else
+        resolve_manual_version
     fi
 
-    ./gradlew :wrapper --gradle-version=$WRAPPER_VERSION
+    # Required on a version change because gradle-wrapper.properties pins distributionSha256Sum
+    ./gradlew :wrapper --gradle-version="$WRAPPER_VERSION" --gradle-distribution-sha256-sum="$WRAPPER_SHA256"
     ./gradlew :wrapper
     git add gradle && git add gradlew && git add gradlew.bat
 
