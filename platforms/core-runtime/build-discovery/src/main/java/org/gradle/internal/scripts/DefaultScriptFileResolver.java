@@ -43,11 +43,13 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
     @Override
     public ScriptResolutionResult resolveScriptFile(File dir, String basename) {
         File selectedCandidate = null;
+        List<File> missingCandidates = new ArrayList<>();
         List<File> ignoredCandidates = new ArrayList<>();
 
         for (String extension : EXTENSIONS) {
             File candidate = new File(dir, basename + extension);
             if (selectedCandidate == null) {
+                missingCandidates.add(candidate);
                 notifyListener(candidate);
                 if (candidate.isFile()) {
                     selectedCandidate = candidate;
@@ -59,7 +61,7 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
             }
         }
 
-        return new ScriptResolutionResult(dir, basename, selectedCandidate, ignoredCandidates);
+        return new ScriptResolutionResult(dir, basename, selectedCandidate, missingCandidates, ignoredCandidates);
     }
 
     @Override
