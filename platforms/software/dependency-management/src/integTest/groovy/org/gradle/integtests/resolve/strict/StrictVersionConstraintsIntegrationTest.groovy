@@ -340,8 +340,11 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             'org:a:1.0' {
                 expectGetMetadata()
             }
-            'org:c:1.0' {
-                expectGetMetadata()
+            if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
+                // Selected while b's request for c is still ignored for the strict version of a:1.0
+                'org:c:1.0' {
+                    expectGetMetadata()
+                }
             }
         }
         run ':checkDeps'
