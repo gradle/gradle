@@ -371,6 +371,10 @@ public class NodeState implements DependencyGraphNode {
                         outgoingEdge.recomputeSelectorAndRequeueTargetNodes(ancestorsStrictVersions, discoveredEdges);
                     }
                 }
+                if (edgesToRecompute != null) {
+                    discoveredEdges.addAll(edgesToRecompute);
+                    edgesToRecompute = null;
+                }
                 return;
             }
             removeOutgoingEdges();
@@ -512,7 +516,11 @@ public class NodeState implements DependencyGraphNode {
             edgesToRecompute = new LinkedHashSet<>();
         }
         edgesToRecompute.add(edgeToRecompute);
-        resolveState.onMoreSelected(this);
+        if (ancestorsStrictVersions != null) {
+            resolveState.onMoreSelected(this);
+        }
+        // Otherwise only the first visit once our strict versions are known recomputes the edge, and becoming known
+        // queues us. Queueing us now would only repeat a visit that cannot recompute it.
     }
 
     /**
