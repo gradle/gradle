@@ -40,7 +40,8 @@ public interface FileCollectionInternal extends FileCollection, TaskDependencyCo
     /**
      * Returns a copy of this collection, with the given collection replaced with the value returned by the given supplier.
      *
-     * This is used to deal with the case where a mutable collection may be added to itself. This is intended to become an error at some point.
+     * <p>This is used to capture the previous value when a mutable collection is assigned a value that structurally
+     * references itself. Only structurally visible collection nodes are traversed; opaque collection sources remain live.</p>
      */
     FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier);
 

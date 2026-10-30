@@ -1047,7 +1047,7 @@ assert custom.prop.get() == "value 4"
         outputContains("filter: null")
     }
 
-    def "circular evaluation of task property is detected"() {
+    def "structural self-reference of task property uses previous value"() {
         buildFile """
             abstract class MyTask extends DefaultTask {
                 @Input
@@ -1066,21 +1066,46 @@ assert custom.prop.get() == "value 4"
         """
 
         when:
+        run "myTask"
+
+        then:
+        outputContains("stringInput = $expected")
+
+        where:
+        selfReference                         || expected
+        "stringInput"                         || "defaultValue"
+        "stringInput.map { it.capitalize() }" || "DefaultValue"
+    }
+
+    def "opaque self-reference of task property is detected"() {
+        buildFile """
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract Property<String> getStringInput()
+
+                @TaskAction
+                def action() {
+                    println("stringInput = \${stringInput.get()}")
+                }
+            }
+
+            tasks.register("myTask", MyTask) {
+                stringInput.convention("defaultValue")
+                stringInput = provider { stringInput.get().capitalize() }
+            }
+        """
+
+        when:
         fails "myTask"
 
         then:
         failureCauseContains("Circular evaluation detected")
-
-        where:
-        selfReference                                 || _
-        "stringInput"                                 || _
-        "stringInput.map { it.capitalize() }"         || _
-        "provider { stringInput.get().capitalize() }" || _
     }
 
-    def "circular evaluation of standalone property is detected"() {
+    def "structural self-reference of standalone property uses previous value"() {
         buildFile """
             def prop = objects.property(String)
+            prop.convention("oldValue")
             prop.set(prop.map { "newValue" })
 
             println("prop = \${prop.get()}")
@@ -1089,10 +1114,10 @@ assert custom.prop.get() == "value 4"
         """
 
         when:
-        fails "myTask"
+        run "myTask"
 
         then:
-        failureCauseContains("Circular evaluation detected")
+        outputContains("prop = newValue")
     }
 
     def "property follows Groovy truth when used as a boolean (#description)"() {

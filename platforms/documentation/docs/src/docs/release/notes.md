@@ -115,6 +115,27 @@ See the [Rich console](userguide/command_line_interface.html#sec:rich_console) s
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
+#### Lazy properties can be derived from their current value
+
+Appending to a plugin default, removing an entry from a classpath or falling back to a convention previously required an eager `get()`, and the lazy spelling failed with `Circular evaluation detected`.
+A property can now be set from a provider derived from the property itself.
+Reads of the property inside the argument of `set()` (or assignment) mean the property's previous value:
+
+```kotlin
+tasks.named<JavaExec>("run") {
+    jvmArguments = jvmArguments.map { it + "-Dfeature=true" }
+}
+tasks.jacocoTestReport {
+    classDirectories.setFrom(classDirectories.filter { !it.name.endsWith("Generated.class") })
+}
+```
+
+When the property has no explicit value, the previous value is a live read of its convention, so the result does not depend on whether the plugin installs its default before or after the user's line.
+This works for `Property`, `ListProperty`, `SetProperty`, `MapProperty` and `ConfigurableFileCollection`, in both Groovy and Kotlin DSL.
+Reads hidden inside callbacks, such as `provider { p.get() }`, are still reported as circular evaluations.
+
+See [Deriving a value from the current value](userguide/lazy_configuration.html#deriving_from_current_value) for details.
+
 ### Dependency management enhancements
 Gradle provides a flexible [dependency management](userguide/getting_started_dep_man.html) engine for declaring, resolving, and verifying the dependencies your build needs.
 

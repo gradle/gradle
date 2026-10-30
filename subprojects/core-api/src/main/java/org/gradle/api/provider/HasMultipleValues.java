@@ -45,6 +45,13 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, SupportsConv
     /**
      * Sets the property to have the same value of the given provider, and replaces any existing value. This property will track the value of the provider and query its value each time the value of this property is queried. When the provider has no value, this property will also have no value.
      *
+     * <p>
+     * The provider may be derived from this property itself, for example {@code args.set(args.map(a -> a + "-ea"))}.
+     * Reads of this property found in the provider then mean the previous value of this property: the explicit
+     * value it had before this call or, when it had none, its convention. The convention is read live, so a
+     * convention set or changed after this call is still used. The property does not track such a provider.
+     * </p>
+     *
      * @param provider Provider of the elements.
      * @since 4.5
      */

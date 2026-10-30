@@ -47,6 +47,13 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
     /**
      * Sets the source paths for this collection. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      *
+     * <p>
+     * The paths may be derived from this collection itself, for example {@code classpath.setFrom(classpath.minus(files("notes.txt")))}.
+     * This collection, when found in the given paths, means its previous contents: the explicit source paths
+     * it had before this call or, when it had none, its convention. The convention is read live, so a convention
+     * set or changed after this call is still used.
+     * </p>
+     *
      * @param paths The paths. {@code null} values are ignored.
      * @since 1.0
      */
@@ -54,6 +61,10 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
 
     /**
      * Sets the source paths for this collection. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     *
+     * <p>
+     * The paths may be derived from this collection itself, see {@link #setFrom(Iterable)}.
+     * </p>
      *
      * @param paths The paths. {@code null} values are ignored.
      * @since 1.0
