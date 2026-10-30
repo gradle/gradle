@@ -1947,7 +1947,7 @@ It will also affect the output of the `properties` task when invoked for subproj
 Earlier versions of the Develocity plugin rely on the implicit property lookup in parent projects, which is <<#deprecated_implicit_lookup_in_parent_projects,deprecated>> and will be removed in Gradle 10.
 
 Upgrade to the link:https://plugins.gradle.org/plugin/com.gradle.develocity[latest Develocity plugin] from the Gradle Plugin Portal.
-See the link:https://gradle.com/help/gradle-plugin-compatibility/[Develocity plugin compatibility matrix] for details.
+See the link:https://docs.develocity.ai/current/miscellaneous/compatibility/#develocity_gradle_plugin[Develocity plugin compatibility matrix] for details.
 
 [[deprecated_get_properties]]
 ==== Deprecation of `getProperties()`
