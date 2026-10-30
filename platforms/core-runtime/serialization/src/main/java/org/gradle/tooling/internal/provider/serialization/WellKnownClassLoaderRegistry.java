@@ -19,6 +19,8 @@ package org.gradle.tooling.internal.provider.serialization;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderUtils;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -91,6 +93,18 @@ public class WellKnownClassLoaderRegistry implements PayloadClassLoaderRegistry 
                 return delegateSession.resolveClass(classLoaderDetails, className);
             }
         };
+    }
+
+    static boolean isKnownClassLoaderSpec(ClassLoaderSpec spec) {
+        return spec instanceof KnownClassLoaderSpec;
+    }
+
+    static void writeKnownClassLoaderSpec(Encoder encoder, ClassLoaderSpec spec) throws Exception {
+        encoder.writeSmallInt(((KnownClassLoaderSpec) spec).id);
+    }
+
+    static ClassLoaderSpec readKnownClassLoaderSpec(Decoder decoder) throws Exception {
+        return new KnownClassLoaderSpec((short) decoder.readSmallInt());
     }
 
     private static class KnownClassLoaderSpec extends ClassLoaderSpec {

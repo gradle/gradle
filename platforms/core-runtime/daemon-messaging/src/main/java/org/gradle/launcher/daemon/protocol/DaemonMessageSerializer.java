@@ -30,6 +30,7 @@ import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
+import org.jspecify.annotations.NullMarked;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -61,6 +62,12 @@ public class DaemonMessageSerializer {
         registry.register(Success.class, new SuccessSerializer(throwableSerializer));
         registry.register(Finished.class, new FinishedSerializer());
 
+        // Commands
+        registry.register(Stop.class, new CommandSerializer<Stop>(Stop::new));
+        registry.register(StopWhenIdle.class, new CommandSerializer<StopWhenIdle>(StopWhenIdle::new));
+        registry.register(ReportStatus.class, new CommandSerializer<ReportStatus>(ReportStatus::new));
+        registry.register(InvalidateVirtualFileSystemAfterChange.class, new InvalidateVirtualFileSystemAfterChangeSerializer());
+
         // Build events
         registry.register(BuildEvent.class, new BuildEventSerializer());
 
@@ -72,9 +79,6 @@ public class DaemonMessageSerializer {
         // Output events
         OutputEventSerializer.registerTypes(registry);
         registry.register(OutputMessage.class, new OutputMessageSerializer(registry.build(OutputEvent.class)));
-
-        // Default for everything else
-        registry.useJavaSerialization(Message.class);
 
         return registry.build(Message.class);
     }
@@ -231,6 +235,59 @@ public class DaemonMessageSerializer {
         @Override
         public OutputMessage read(Decoder decoder) throws Exception {
             return new OutputMessage(eventSerializer.read(decoder));
+        }
+    }
+
+    @NullMarked
+    private interface CommandFactory<T extends Command> {
+        T create(UUID identifier, byte[] token);
+    }
+
+    private static void writeCommandHeader(Encoder encoder, Command command) throws Exception {
+        encoder.writeLong(command.getIdentifier().getMostSignificantBits());
+        encoder.writeLong(command.getIdentifier().getLeastSignificantBits());
+        encoder.writeBinary(command.getToken());
+    }
+
+    private static UUID readIdentifier(Decoder decoder) throws Exception {
+        return new UUID(decoder.readLong(), decoder.readLong());
+    }
+
+    @NullMarked
+    private static class CommandSerializer<T extends Command> implements Serializer<T> {
+        private final CommandFactory<T> factory;
+
+        CommandSerializer(CommandFactory<T> factory) {
+            this.factory = factory;
+        }
+
+        @Override
+        public void write(Encoder encoder, T value) throws Exception {
+            writeCommandHeader(encoder, value);
+        }
+
+        @Override
+        public T read(Decoder decoder) throws Exception {
+            UUID identifier = readIdentifier(decoder);
+            return factory.create(identifier, decoder.readBinary());
+        }
+    }
+
+    @NullMarked
+    private static class InvalidateVirtualFileSystemAfterChangeSerializer implements Serializer<InvalidateVirtualFileSystemAfterChange> {
+        private final Serializer<List<String>> pathsSerializer = new ListSerializer<String>(BaseSerializerFactory.STRING_SERIALIZER);
+
+        @Override
+        public void write(Encoder encoder, InvalidateVirtualFileSystemAfterChange value) throws Exception {
+            writeCommandHeader(encoder, value);
+            pathsSerializer.write(encoder, value.getChangedPaths());
+        }
+
+        @Override
+        public InvalidateVirtualFileSystemAfterChange read(Decoder decoder) throws Exception {
+            UUID identifier = readIdentifier(decoder);
+            byte[] token = decoder.readBinary();
+            return new InvalidateVirtualFileSystemAfterChange(pathsSerializer.read(decoder), identifier, token);
         }
     }
 
