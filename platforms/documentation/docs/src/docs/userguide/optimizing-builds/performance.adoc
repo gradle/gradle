@@ -739,7 +739,7 @@ image::performance/tests-longest.png[title="Tests screen, with tests by project,
 
 The image above shows the interactive test report from a Build Scan, sorted by test duration.
 
-TIP: For large test suites, Develocity offers two more options: link:https://docs.develocity.ai/current/guides/predictive-test-selection/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=performance-callout-predictive-test-selection[Predictive Test Selection] runs only the tests relevant to a given change, and link:https://docs.develocity.ai/test-distribution/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=performance-callout-test-distribution[Test Distribution] runs tests across remote build agents.
+TIP: For large test suites, Develocity offers two more options: link:https://docs.develocity.ai/current/guides/predictive-test-selection/[Predictive Test Selection] runs only the tests relevant to a given change, and link:https://docs.develocity.ai/test-distribution/[Test Distribution] runs tests across remote build agents.
 
 Gradle offers several strategies to speed up test execution:
 

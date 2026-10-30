@@ -220,6 +220,6 @@ You can monitor the detected network setup and the connection requests in the da
 If you didn't find a fix for your issue here, please reach out to the Gradle community on the link:https://discuss.gradle.org/c/help-discuss[help forum] or search relevant developer resources using link:https://help.gradle.org/[help.gradle.org].
 
 TIP: When you ask for help, run the failing build with `--scan` and share the <<build_scans.adoc#build_scans,Build Scan>> link.
-For failures that recur across many builds, link:https://develocity.ai/product/failure-analytics/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=troubleshooting-callout-failure-analytics[Develocity Failure Analytics] groups them by root cause.
+For failures that recur across many builds, link:https://develocity.ai/product/failure-analytics/[Develocity Failure Analytics] groups them by root cause.
 
 If you believe you've found a bug in Gradle, please link:https://github.com/gradle/gradle/issues[file an issue] on GitHub.

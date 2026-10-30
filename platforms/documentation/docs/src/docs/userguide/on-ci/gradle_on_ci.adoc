@@ -155,7 +155,7 @@ Useful starting points are:
 Compare cold and warm runs separately.
 A cache restore can improve one phase while adding overhead to another, so measure the complete CI job rather than only the Gradle command.
 
-TIP: With link:https://develocity.ai/?utm_source=gradle-docs&utm_medium=cta&utm_campaign=gradle-org-to-develocity&utm_content=gradle-on-ci-callout-develocity[Develocity], every CI job can publish a Build Scan, so you can compare a slow run with a fast one and track Build Cache hit rates over time.
+TIP: With link:https://develocity.ai/[Develocity], every CI job can publish a Build Scan, so you can compare a slow run with a fast one and track Build Cache hit rates over time.
 
 [[gradle_on_ci_recipes]]
 == Recipes
