@@ -236,7 +236,14 @@ public class DependencyGraphBuilder {
             }
         }
         if (!unknown.isEmpty()) {
-            throw new AssertionError("Inherited strict versions are unknown for " + unknown);
+            StringBuilder message = new StringBuilder("Inherited strict versions are unknown for " + unknown);
+            for (NodeState node : unknown) {
+                message.append("\n").append(node).append(node.describeStrictVersionsState());
+                for (EdgeState edge : node.getIncomingEdges()) {
+                    message.append("\n    from ").append(edge.getFrom()).append(edge.getFrom().describeStrictVersionsState());
+                }
+            }
+            throw new AssertionError(message.toString());
         }
         return true;
     }

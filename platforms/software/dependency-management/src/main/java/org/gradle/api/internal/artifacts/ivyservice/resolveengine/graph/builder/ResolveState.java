@@ -87,6 +87,10 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
      * Nodes whose inherited strict versions must be reset, drained before the next node is visited.
      */
     private final Deque<NodeState> strictVersionResets = new ArrayDeque<>();
+    /**
+     * Incoming edges removed since the last reset, which may make the strict versions of their target grow.
+     */
+    private final Deque<RemovedIncomingEdge> removedIncomingEdges = new ArrayDeque<>();
     private final ConflictResolution conflictResolution;
     private final ImmutableAttributes consumerAttributes;
     private final ImmutableAttributesSchema consumerSchema;
@@ -265,6 +269,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     /**
      * Called when a change is made to a configuration node, such that its dependency graph <em>may</em> now be larger than it previously was, and the node should be visited.
      */
+
     public void onMoreSelected(NodeState node) {
         // Add to the end of the queue, so that we traverse the graph in breadth-wise order to pick up as many conflicts as
         // possible before attempting to resolve them
@@ -297,9 +302,35 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
      * while a reset is pending could compute its value from a value that is about to be reset, and keep it.
      */
     public void processStrictVersionResets() {
+        RemovedIncomingEdge removed;
+        while ((removed = removedIncomingEdges.pollFirst()) != null) {
+            // Edges from the same source pass on the same strict versions. If such an edge is still there,
+            // for example because the source replaced the edge with a new one, the target's value cannot grow.
+            if (!removed.target.hasIncomingEdgeLike(removed.edge)) {
+                strictVersionResets.addLast(removed.target);
+            }
+        }
         NodeState node;
         while ((node = strictVersionResets.pollFirst()) != null) {
             node.resetAncestorsStrictVersions();
+        }
+    }
+
+    /**
+     * Called when an incoming edge is removed from a node, which may make the strict versions the node inherits
+     * larger. Decided before the next node is visited, see {@link #processStrictVersionResets()}.
+     */
+    public void onIncomingEdgeRemoved(NodeState target, EdgeState edge) {
+        removedIncomingEdges.addLast(new RemovedIncomingEdge(target, edge));
+    }
+
+    private static final class RemovedIncomingEdge {
+        private final NodeState target;
+        private final EdgeState edge;
+
+        private RemovedIncomingEdge(NodeState target, EdgeState edge) {
+            this.target = target;
+            this.edge = edge;
         }
     }
 

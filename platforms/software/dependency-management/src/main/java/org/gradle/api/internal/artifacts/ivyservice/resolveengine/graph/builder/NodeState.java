@@ -733,7 +733,7 @@ public class NodeState implements DependencyGraphNode {
             }
             requeueEndorsingParent(dependencyEdge);
             // Without this edge, our value can grow
-            resolveState.resetStrictVersions(this);
+            resolveState.onIncomingEdgeRemoved(this, dependencyEdge);
             resolveState.onFewerSelected(this);
         }
     }
@@ -757,8 +757,8 @@ public class NodeState implements DependencyGraphNode {
 
         for (EdgeState incomingEdge : removedEdges) {
             requeueEndorsingParent(incomingEdge);
+            resolveState.onIncomingEdgeRemoved(this, incomingEdge);
         }
-        resolveState.resetStrictVersions(this);
         resolveState.onFewerSelected(this);
 
         return removedEdges;
@@ -1200,6 +1200,28 @@ public class NodeState implements DependencyGraphNode {
                 resolveState.resetStrictVersions(targetNode);
             }
         }
+    }
+
+    /**
+     * Whether this node has an incoming edge from the same source as the given one, which endorses it alike.
+     * Such an edge passes on the same strict versions.
+     */
+    boolean hasIncomingEdgeLike(EdgeState edge) {
+        boolean endorsing = edge.getDependencyMetadata().isEndorsingStrictVersions();
+        for (EdgeState incomingEdge : incomingEdges) {
+            if (incomingEdge.getFrom() == edge.getFrom() && incomingEdge.getDependencyMetadata().isEndorsingStrictVersions() == endorsing) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Describes the strict version state of this node, for diagnostics.
+     */
+    String describeStrictVersionsState() {
+        return " [selected=" + isSelected() + ", queued=" + queued + ", ancestors=" + ancestorsStrictVersions + ", own=" + ownStrictVersions
+            + ", endorsed=" + cachedEndorsedStrictVersions + ", passedOn=" + passedOnStrictVersions + ", visited=" + visitedDependencies + "]";
     }
 
     /**
