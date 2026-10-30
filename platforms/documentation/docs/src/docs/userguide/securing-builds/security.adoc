@@ -64,7 +64,7 @@ a|
 * Poisoned local or remote caches
 * Credentials leaked through plain-text `gradle.properties` or the configuration cache
 a|
-Pin and verify the Gradle Wrapper and distribution, protect the Gradle User Home, guard init scripts and `buildSrc`, protect caches and the daemon, and stay on a supported Gradle release.
+Pin and verify the Gradle Wrapper and distribution, protect the Gradle User Home, guard init scripts and `buildSrc`, protect caches and the daemon, and stay on a supported Gradle release or use the <<securing_build_tool.adoc#sec:extended_support,Gradle Security Subscription>>.
 
 See <<securing_build_tool.adoc#securing_build_tool,Securing the Build Tool>>.
 |===
