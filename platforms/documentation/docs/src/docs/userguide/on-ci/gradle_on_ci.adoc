@@ -147,13 +147,15 @@ When a CI build is slow, record whether the cause is Daemon startup, dependency 
 Useful starting points are:
 
 * `--info` for additional execution and cache information
-* `--scan` when build scans are enabled for the project
+* `--scan` when <<build_scans.adoc#build_scans,Build Scans>> are enabled for the project
 * the Configuration Cache report when configuration-cache problems are reported
 * the Build Cache debugging guidance when task outputs are not reused
 * the CI provider's cache and workspace logs
 
 Compare cold and warm runs separately.
 A cache restore can improve one phase while adding overhead to another, so measure the complete CI job rather than only the Gradle command.
+
+TIP: With link:https://develocity.ai/[Develocity], every CI job can publish a Build Scan, so you can compare a slow run with a fast one and track Build Cache hit rates over time.
 
 [[gradle_on_ci_recipes]]
 == Recipes

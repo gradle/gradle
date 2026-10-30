@@ -33,6 +33,7 @@ toc::[leveloffset=+2]
 
 include::userguide.adoc[leveloffset=+2]
 include::getting_started.adoc[leveloffset=+2]
+include::troubleshooting.adoc[leveloffset=+2]
 
 [[part:releases]]
 == RELEASES

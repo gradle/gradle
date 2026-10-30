@@ -694,7 +694,7 @@ Set log level to warn.
 Set log level to info.
 
 `-d`, `--debug`::
-Log in debug mode (includes normal stacktrace).
+Log in debug mode. Does not print stacktraces for build errors; add `--stacktrace` for those.
 
 _Lifecycle_ is the default log level.
 

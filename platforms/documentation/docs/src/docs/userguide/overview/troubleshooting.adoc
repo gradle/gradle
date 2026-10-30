@@ -1,0 +1,341 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[troubleshooting]]
+= Troubleshooting builds
+
+This page covers how to diagnose failing builds, installation problems, slow builds, and IDE and daemon issues.
+
+[[sec:troubleshooting_build_failures]]
+== Troubleshooting build failures
+
+When a build fails, Gradle prints a failure report at the end of the console output.
+Read the report first.
+If it doesn't explain the failure, add detail with <<sec:getting_more_failure_detail,command-line options>> or <<sec:investigating_failures_build_scan,publish a Build Scan>>.
+
+[[sec:reading_the_failure_report]]
+=== Reading the failure report
+
+The following report comes from a build script that reads a missing project property:
+
+[source,text]
+----
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file '/home/user/my-project/build.gradle.kts' line: 6
+
+* What went wrong:
+null cannot be cast to non-null type kotlin.String
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 818ms
+----
+
+The report has up to four parts:
+
+`Where`::
+The build script and line number that caused the failure.
+Gradle only shows this part when it can trace the failure to a script.
+
+`What went wrong`::
+The error message.
+Each underlying cause appears on its own line, prefixed with `>`.
+A message that starts with `Execution failed for task` means the failure happened while running that task, not while configuring the build.
+
+`Try`::
+Suggested next steps.
+Gradle and plugins can add suggestions specific to the failure.
+When a reported problem includes its own solution, Gradle shows it in `What went wrong` and omits the generic `--stacktrace` and logging suggestions.
+
+`Exception is`::
+The stack trace.
+Gradle only shows this part when you run with `--stacktrace` or `--full-stacktrace`.
+
+If you run with <<command_line_interface.adoc#sec:continue_build_on_failure,`--continue`>> and several tasks fail, the report starts with `Build completed with N failures.` and lists each failure separately.
+
+[[sec:getting_more_failure_detail]]
+=== Getting more detail in the console
+
+Add these options to the failing command to get more information:
+
+`--stacktrace` or `-s`::
+Prints the stack trace with Groovy runtime frames removed.
+Use this option first; the remaining frames usually point to the failing code.
+
+`--full-stacktrace` or `-S`::
+Prints the unfiltered stack trace.
+
+`--info` or `--debug`::
+Increases the log level so you can see what Gradle and your build logic did before the failure.
+`--debug` output is very large and can <<logging.adoc#sec:debug_security,expose sensitive information>>.
+
+[source,bash]
+----
+$ ./gradlew build --stacktrace
+----
+
+To always print stack traces, set `org.gradle.logging.stacktrace=all` in `gradle.properties`.
+See <<logging.adoc#stacktraces,stacktrace options>> for details.
+
+[[sec:investigating_failures_build_scan]]
+=== Investigating failures with Build Scan
+
+A <<build_scans.adoc#build_scans,Build Scan>> records the failure together with the context you need to diagnose it.
+Add `--scan` to the failing command:
+
+[source,bash]
+----
+$ ./gradlew build --scan
+----
+
+Gradle publishes the Build Scan when the build finishes, including when it fails, and prints a link to it.
+The Build Scan includes:
+
+* Each failure with its full stack trace, whether or not you ran with `--stacktrace`.
+* The console log, so you don't need to rerun the build to see output that scrolled away.
+* The tasks that ran, their outcomes, and the order they ran in.
+* Test results, including which tests failed.
+* The build environment: Gradle version, JDK, operating system, and build options such as <<performance.adoc#sec:enable_parallel_execution,parallel execution>> or the <<configuration_cache.adoc#config_cache,configuration cache>>.
+
+The build environment details help when a build fails on CI but passes locally: publish a Build Scan from each and compare their environments.
+
+A Build Scan link also replaces copying error messages and environment details when you ask for help.
+
+If your organization runs a link:https://develocity.ai/[Develocity] server, publish to it with `--develocity-url` as described in <<build_scans.adoc#sec:enable_build_scan,Enable Build Scan>>.
+When the link:https://docs.develocity.ai/gradle/current/gradle-plugin/[Develocity Gradle plugin] is already applied to your build, Gradle doesn't show the `--scan` suggestion in the failure report.
+For failures that recur across many builds, link:https://develocity.ai/product/failure-analytics/[Develocity Failure Analytics] groups similar failures together.
+
+[[sec:failure_problems_report]]
+=== Checking the Problems report
+
+If build logic reported problems through the <<reporting_problems.adoc#sec:reporting_problems,Problems API>>, Gradle writes an <<reporting_problems.adoc#sec:generated_html_report,HTML Problems report>> to `build/reports/problems/problems-report.html` and prints its location in the console.
+The report groups problems by category and can include details and suggested solutions that the failure report doesn't show.
+
+[[sec:isolating_the_failing_phase]]
+=== Finding the phase that fails
+
+Gradle configures the build before it runs any tasks.
+To check whether a failure comes from configuration, run the `help` task:
+
+[source,bash]
+----
+$ ./gradlew help
+----
+
+The `help` task does no work of its own, so if it fails, the problem is in your build scripts, settings, init scripts, or plugins.
+If `help` succeeds, the failure happens while running one of the tasks you requested.
+See <<build_lifecycle.adoc#build_phases,build phases>> for how Gradle configures and runs a build.
+
+[[sec:troubleshooting_installation]]
+== Troubleshooting the installation
+
+If you followed the <<installation.adoc#installation,installation instructions>>, and can't run your Gradle build, try the following.
+
+If you installed Gradle outside of just invoking the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>>, you can check your Gradle installation by running `gradle --version` in a terminal.
+
+You should see something like this:
+
+[source,bash]
+----
+$ gradle --version
+----
+[source,text]
+----
+------------------------------------------------------------
+Gradle {gradleVersion}
+------------------------------------------------------------
+
+Build time:    2025-05-13 06:56:13 UTC
+Revision:      3c890746756262d3778e12eaa5155d661d7cbdf2
+
+Kotlin:        2.1.21
+Groovy:        4.0.28
+Ant:           Apache Ant(TM) version 1.10.15 compiled on August 25 2024
+Launcher JVM:  22.0.1 (Oracle Corporation 22.0.1+8-16)
+Daemon JVM:    Compatible with Java 17, any vendor, nativeImageCapable=false (from gradle/gradle-daemon-jvm.properties)
+OS:            Mac OS X 15.5 aarch64
+----
+
+If not, here are some things you might see instead.
+
+=== Command not found: gradle
+
+If you get "command not found: gradle", add the Gradle `bin` directory to your `PATH`.
+
+=== JAVA_HOME is set to an invalid directory
+
+If you get an error like:
+
+[source,text]
+----
+ERROR: JAVA_HOME is set to an invalid directory: /path/to/java
+----
+
+Set the JAVA_HOME variable in your environment to match the location of your Java installation:
+
+[source,bash]
+----
+$ export JAVA_HOME=/Users/user/Library/Java/JavaVirtualMachines/corretto-22.0.1/Contents/Home
+$ echo $JAVA_HOME
+----
+[source,text]
+----
+/Users/user/Library/Java/JavaVirtualMachines/corretto-22.0.1/Contents/Home
+----
+
+Make sure that a link:{jdkDownloadUrl}[Java Development Kit] version {minJdkVersion} or higher is link:https://www.java.com/en/download/help/index_installing.html[properly installed], the `JAVA_HOME` environment variable is set, and Java is on your `PATH`.
+
+=== Permission denied
+
+If you get "permission denied", Gradle is likely in the correct place but isn't executable.
+On Linux and macOS, fix this with `chmod +x path/to/executable`.
+
+=== Other installation failures
+
+If `gradle --version` works, but all of your builds fail with the same error, one of your build scripts may be broken.
+See <<sec:isolating_the_failing_phase>> to check whether the failure comes from configuration.
+
+[[sec:troubleshooting_dependency_resolution]]
+== Debugging dependency resolution
+
+In a <<build_scans.adoc#build_scans,Build Scan>>, you can see a dependency tree and see which resolved dependency versions differed from what was requested by clicking the _Dependencies_ view and using the search functionality, specifying the resolution reason.
+
+image::troubleshooting-dependency-management-build-scan.png[]
+
+The actual link:https://scans.gradle.com/s/sample/troubleshooting-userguide/dependencies?expandAll&filters=WzFd&toggled=W1swXSxbMF0sWzAsMF0sWzAsMV1d[Build Scan] with these filters applied is available to explore.
+
+[[sec:troubleshooting_performance]]
+== Troubleshooting slow builds
+
+For build performance issues (including "slow sync time"), see <<performance.adoc#performance_gradle,improving the Performance of Gradle Builds>>.
+
+Android developers can find Android-specific tips in the Android Studio user guide link:https://developer.android.com/build/optimize-your-build[on optimizing build speed].
+
+[[sec:troubleshooting_build_logic]]
+== Debugging build logic
+
+=== Attaching a debugger to your build
+
+You can set breakpoints and debug <<plugins.adoc#custom_plugins,`buildSrc` and standalone plugins>> in your Gradle build itself by setting the `org.gradle.debug` property to "true" and then attaching a remote debugger to port 5005.
+You can change the port number by setting the `org.gradle.debug.port` property to the desired port number.
+
+To attach the debugger remotely over the network, set the `org.gradle.debug.host` property to the machine's IP address or `*` (listen on all interfaces).
+
+[source,bash]
+----
+$ ./gradlew help -Dorg.gradle.debug=true
+----
+
+Using the Kotlin DSL, you can debug the build scripts themselves.
+
+The following video demonstrates how to debug an example build using IntelliJ IDEA.
+
+image::remote-debug-gradle.gif[]
+
+=== Adding and changing logging
+
+In addition to <<command_line_interface.adoc#sec:command_line_logging,controlling logging verbosity>>, you can also control display of task outcomes (for example, "UP-TO-DATE") in lifecycle logging using the <<command_line_interface.adoc#sec:command_line_customizing_log_format,`--console=verbose` flag>>.
+
+You can also <<logging.adoc#sec:external_tools,control logging from external tools>>, making them more verbose to debug their execution.
+
+NOTE: The <<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>> writes additional logs to `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/daemon/{gradleVersion}/`.
+
+=== Task executed when it should have been UP-TO-DATE
+
+`--info` logs explain why a task was executed, though a <<build_scans.adoc#build_scans,Build Scan>> does this in a searchable, visual way by going to the _Timeline_ view and clicking on the task you want to inspect.
+
+.Debugging incremental build with Build Scan
+image::troubleshooting-task-execution-build-scan.png[]
+
+You can learn what the task outcomes mean from <<more_about_tasks.adoc#sec:task_outcomes,this listing>>.
+
+[[sec:troubleshooting_ide_integration]]
+== Debugging IDE integration
+
+Refreshing (syncing) the Gradle project fixes many intermittent IDE errors.
+For more on working with Gradle, see the documentation link:https://www.jetbrains.com/help/idea/gradle.html[in IntelliJ IDEA] and link:https://www.vogella.com/tutorials/EclipseGradle/article.html[in Eclipse].
+
+=== Refreshing IntelliJ IDEA
+
+NOTE: This only works for Gradle projects link:https://www.jetbrains.com/help/idea/gradle.html#link_gradle_project[linked to IntelliJ].
+
+From the main menu, go to `View` > `Tool Windows` > `Gradle`.
+Then click the _Sync All Gradle Projects_ button on the tool window's toolbar.
+
+.Refreshing a Gradle project in IntelliJ IDEA
+image::troubleshooting-refresh-intellij.png[]
+
+=== Refreshing Eclipse (using Buildship)
+
+If you're using link:https://projects.eclipse.org/projects/tools.buildship[Buildship] for the Eclipse IDE, you can re-synchronize your Gradle build by opening the "Gradle Tasks" view and clicking the "Refresh" icon, or by executing the `Gradle` > `Refresh Gradle Project` command from the context menu while editing a Gradle script.
+
+.Refreshing a Gradle project in Eclipse Buildship
+image::troubleshooting-refresh-eclipse.png[]
+
+[[network_connection]]
+== Troubleshooting daemon connection issues
+
+If your Gradle build fails before running any tasks, you may be encountering network configuration problems.
+When Gradle is unable to communicate with the <<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>> process, the build fails immediately with a message similar to this:
+
+[source,bash]
+----
+$ ./gradlew help
+----
+[source,text]
+----
+Starting a Gradle Daemon, 1 stopped Daemon could not be reused, use --status for details
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+A new daemon was started but could not be connected to: pid=DaemonInfo{pid=55913, address=[7fb34c82-1907-4c32-afda-888c9b6e2279 port:42751, addresses:[/127.0.0.1]], state=Busy, ...
+----
+
+This can occur when network address translation (NAT) masquerade is used.
+When NAT masquerade is enabled, connections that should be considered local to the machine are masked to appear from external IP addresses.
+Gradle refuses to connect to any external IP address as a security precaution.
+
+The solution to this problem is to adjust your network configuration such that local connections are not modified to appear as from external addresses.
+
+You can monitor the detected network setup and the connection requests in the daemon log file (`$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/daemon/<Gradle version>/daemon-<PID>.out.log`).
+
+[source,text]
+----
+2021-08-12T12:01:50.755+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface enp0s3
+2021-08-12T12:01:50.759+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2021-08-12T12:01:50.769+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding remote address /fe80:0:0:0:85ba:3f3e:1b88:c0e1%enp0s3
+2021-08-12T12:01:50.770+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding remote address /10.0.2.15
+2021-08-12T12:01:50.770+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface lo
+2021-08-12T12:01:50.771+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? true
+2021-08-12T12:01:50.771+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding loopback address /0:0:0:0:0:0:0:1%lo
+2021-08-12T12:01:50.771+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding loopback address /127.0.0.1
+2021-08-12T12:01:50.775+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.TcpIncomingConnector] Listening on [7fb34c82-1907-4c32-afda-888c9b6e2279 port:42751, addresses:[localhost/127.0.0.1]].
+...
+2021-08-12T12:01:50.797+0200 [INFO] [org.gradle.launcher.daemon.server.DaemonRegistryUpdater] Advertising the daemon address to the clients: [7fb34c82-1907-4c32-afda-888c9b6e2279 port:42751, addresses:[localhost/127.0.0.1]]
+...
+2021-08-12T12:01:50.923+0200 [ERROR] [org.gradle.internal.remote.internal.inet.TcpIncomingConnector] Cannot accept connection from remote address /10.0.2.15.
+----
+
+== Getting additional help
+
+If you didn't find a fix for your issue here, ask the Gradle community on the link:https://discuss.gradle.org/c/help-discuss[Gradle forum] or join our link:https://gradle.org/slack-invite[Community Slack Channel].
+
+If you believe you've found a bug in Gradle, link:https://github.com/gradle/gradle/issues[file an issue] on GitHub.
