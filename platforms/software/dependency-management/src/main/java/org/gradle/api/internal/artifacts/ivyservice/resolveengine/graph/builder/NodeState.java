@@ -1130,8 +1130,11 @@ public class NodeState implements DependencyGraphNode {
         // not be the source of that strict version.
         StrictVersionConstraints filteredEndorsedStrictVersions;
         if (dependencyEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
-            // The source's endorsed strict versions are only known once ours are
-            assert ownStrictVersions != null;
+            if (ownStrictVersions == null) {
+                // The source endorses our strict versions, which we have not computed yet. It may know an endorsed
+                // set from before this edge reached us, if the edge was retargeted since its last visit.
+                return null;
+            }
             filteredEndorsedStrictVersions = parentEndorsedStrictVersions.minus(ownStrictVersions);
         } else {
             filteredEndorsedStrictVersions = parentEndorsedStrictVersions;
