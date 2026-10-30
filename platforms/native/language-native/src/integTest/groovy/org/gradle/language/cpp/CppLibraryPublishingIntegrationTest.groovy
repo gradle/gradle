@@ -32,6 +32,7 @@ import spock.lang.Issue
 
 import static org.gradle.nativeplatform.MachineArchitecture.X86
 import static org.gradle.nativeplatform.MachineArchitecture.X86_64
+import static org.gradle.nativeplatform.MachineArchitecture.ARM64
 import static org.gradle.nativeplatform.OperatingSystemFamily.LINUX
 import static org.gradle.nativeplatform.OperatingSystemFamily.MACOS
 import static org.gradle.nativeplatform.OperatingSystemFamily.WINDOWS
@@ -824,7 +825,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
     @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can publish a library and its dependencies to a Maven repository when multiple target architectures are specified"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
-        def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64)]
+        def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64), machine(currentOsFamilyName, ARM64)]
 
         given:
         createDirs("deck", "card", "shuffle")
@@ -841,7 +842,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
                 }
 
                 components.withType(CppComponent) {
-                    targetMachines = [machines.host().x86, machines.host().x86_64]
+                    targetMachines = [machines.host().x86, machines.host().x86_64, machines.host().AARCH_64]
                 }
             }
             project(':deck') {
