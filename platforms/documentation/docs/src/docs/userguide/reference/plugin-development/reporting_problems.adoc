@@ -338,7 +338,7 @@ The Problems API enhances this by allowing you to throw exceptions tied to detai
 include::sample[dir="snippets/reference/plugin-development/problems-api-usage/common/reporters/standard-plugin/src/main/java/reporters",files="FailingTask.java[tags=problems-api-fail-the-build]"]
 ====
 
-This ensures build failures are clearly associated with their underlying issues and are visible across all Gradle clients (CLI, Build Scan, IDEs, Tooling API).
+This ensures build failures are clearly associated with their underlying issues and are visible across all Gradle clients (CLI, <<build_scans.adoc#build_scans,Build Scan>>, IDEs, Tooling API).
 
 [[command_line_interface_problems]]
 === Command-line Interface
