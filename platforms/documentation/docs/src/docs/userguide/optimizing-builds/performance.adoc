@@ -739,13 +739,13 @@ image::performance/tests-longest.png[title="Tests screen, with tests by project,
 
 The image above shows the interactive test report from a Build Scan, sorted by test duration.
 
-TIP: For large test suites, Develocity offers two more options: link:https://docs.develocity.ai/current/guides/predictive-test-selection/[Predictive Test Selection] runs only the tests relevant to a given change, and link:https://docs.develocity.ai/test-distribution/[Test Distribution] runs tests across remote build agents.
-
 Gradle offers several strategies to speed up test execution:
 
 * A. Run tests in parallel
 * B. Fork tests into multiple processes
 * C. Disable test reports when not needed
+
+TIP: For large test suites, Develocity offers two more options: link:https://docs.develocity.ai/current/guides/predictive-test-selection/[Predictive Test Selection] runs only the tests relevant to a given change, and link:https://docs.develocity.ai/test-distribution/[Test Distribution] runs tests across remote build agents.
 
 Let’s take a closer look at each option.
 
