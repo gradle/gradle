@@ -17,12 +17,14 @@
 package org.gradle.integtests.resolve.constraints
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 /**
  * A node cut off from the root, but kept in the graph by a cycle, may still be the provider of a pending
  * constraint. A module waiting for that constraint must still be selected.
  */
 class ConstraintsFromNodesCutOffFromTheRootIntegrationTest extends AbstractIntegrationSpec {
+    def resolve = new ResolveTestFixture(testDirectory)
 
     def "selects a module whose pending constraint comes from a node cut off from the root"() {
         given:
@@ -37,6 +39,10 @@ class ConstraintsFromNodesCutOffFromTheRootIntegrationTest extends AbstractInteg
         m3v1.dependsOn(m2v2).dependsOn(m1v3).publish()
         module("M0", "1").dependsOn(m3v1).publish()
 
+        settingsFile << """
+            rootProject.name = "test"
+            enableFeaturePreview("ENHANCED_GRAPH_ORDERING")
+        """
         buildFile << """
             ${mavenTestRepository()}
             configurations {
@@ -45,15 +51,24 @@ class ConstraintsFromNodesCutOffFromTheRootIntegrationTest extends AbstractInteg
             dependencies {
                 conf("org:M0:1")
             }
+            ${resolve.configureProject("conf")}
         """
 
         when:
-        succeeds("dependencies", "--configuration", "conf")
+        succeeds(":checkDeps")
 
         then:
-        outputContains("org:M0:1 -> 2")
-        outputContains("org:M4:1")
-        outputDoesNotContain("FAILED")
+        // M0:2 is only selected because of the constraint of M1:3, which is cut off from the root. The cycle keeps
+        // M1:3 in the graph, but its constraint on M4 is never applied.
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:M0:1", "org:M0:2") {
+                    byConstraint()
+                    byConflictResolution("between versions 2 and 1")
+                    module("org:M4:1")
+                }
+            }
+        }
     }
 
     private def module(String name, String version) {
