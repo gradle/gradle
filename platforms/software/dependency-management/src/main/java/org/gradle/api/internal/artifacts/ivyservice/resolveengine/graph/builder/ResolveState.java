@@ -285,7 +285,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
 
     /**
      * Called when a change may make the strict versions a node inherits from its ancestors larger. The node and
-     * its descendants forget theirs, before any other node is visited: see {@link #processStrictVersionResets()}.
+     * its descendants forget theirs, before any other node is visited. See {@link #processStrictVersionResets()}.
      */
     public void resetStrictVersions(NodeState node) {
         strictVersionResets.addLast(node);
@@ -293,7 +293,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
 
     /**
      * Resets the inherited strict versions of the nodes queued by {@link #resetStrictVersions(NodeState)}, and
-     * of their descendants, one node at a time. Must be called before visiting the next node: a node visited
+     * of their descendants, one node at a time. Must be called before visiting the next node. A node visited
      * while a reset is pending could compute its value from a value that is about to be reset, and keep it.
      */
     public void processStrictVersionResets() {

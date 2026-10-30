@@ -26,17 +26,17 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class StrictVersionsPropagationIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
-        // Each module version and what it depends on: "~" for a constraint, "^" for an endorsing dependency,
-        // and "!" for a strict version.
+        // Each module version and what it depends on. "~" marks a constraint, "^" an endorsing dependency,
+        // and "!" a strict version.
         publish(
             // An endorsed platform pins x:1 below a library requesting x:2, directly or one level down
             'ql:1': ['x:2'], 'qm:1': ['qn:1'], 'qn:1': ['x:2'], 'qp:1': ['~x:!1'],
             // A library in a cycle with its BOM, through a constraint or a dependency
             'jh:1': ['x:2', 'jbh:1'], 'jbh:1': ['~jh:1'],
             'jh3:1': ['x:2', 'jbh3:1'], 'jbh3:1': ['jh3:1'],
-            // The Jackson shape: the library endorses its BOM, which constrains the library back
+            // The Jackson shape, where the library endorses its BOM, which constrains the library back
             'jd:1': ['x:2', '^jb:1'], 'jb:1': ['~jd:1', '~x:2'],
-            // A library with a BOM that only constrains x: no cycle
+            // A library with a BOM that only constrains x, with no cycle
             'jh2:1': ['x:2', 'jbh2:1'], 'jbh2:1': ['~x:2'],
             // A three-node cycle, a self-loop, and a cycle entered at both of its nodes
             'h1:1': ['h2:1'], 'h2:1': ['h3:1'], 'h3:1': ['h1:1', 'x:2'],

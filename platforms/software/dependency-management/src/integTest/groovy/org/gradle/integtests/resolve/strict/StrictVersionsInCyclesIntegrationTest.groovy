@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 /**
  * A strict version applies to every node that all paths from the root reach through its declarer, including
- * nodes in a cycle: their requests for the module are ignored, which shows as the "By ancestor" selection reason.
+ * nodes in a cycle. Their requests for the module are ignored, which shows as the "By ancestor" selection reason.
  */
 class StrictVersionsInCyclesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -33,7 +33,7 @@ class StrictVersionsInCyclesIntegrationTest extends AbstractIntegrationSpec {
         def m5v2 = module("m5", "2")
         def m5v3 = module("m5", "3")
         // The cycle m4:3 -> m3:1 -> m0:1 -> m4:3 is only reached through m4:3, which the root strictly constrains.
-        // m2:2 also reaches m0:1 for a moment: it leaves the graph once m5 is upgraded to 3.
+        // m2:2 also reaches m0:1 for a moment, and leaves the graph once m5 is upgraded to 3.
         m0v1.dependsOn(m4v3).publish()
         m2v2.dependsOn(m5v3).dependsOn(m0v1).publish()
         m3v1.dependsOn(m0v1).publish()

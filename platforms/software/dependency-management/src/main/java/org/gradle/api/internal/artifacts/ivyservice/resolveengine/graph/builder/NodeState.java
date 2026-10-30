@@ -143,9 +143,9 @@ public class NodeState implements DependencyGraphNode {
     private @Nullable StrictVersionConstraints previousAncestorsStrictVersions;
 
     /**
-     * The transitive strict versions inherited from parents, or {@code null} while unknown: before our first
-     * visit, after a reset, or while none of our parents passes on a known value. A known value can only be
-     * larger than the final one, never smaller: it shrinks as parents become known, and it is reset when a
+     * The transitive strict versions inherited from parents, or null while unknown. They are unknown before our
+     * first visit, after a reset, and while none of our parents passes on a known value. A known value can only be
+     * larger than the final one, never smaller. It shrinks as parents become known, and it is reset when a
      * change could make it grow.
      */
     @VisibleForTesting
@@ -158,14 +158,14 @@ public class NodeState implements DependencyGraphNode {
     @Nullable StrictVersionConstraints ownStrictVersions;
 
     /**
-     * The strict versions endorsed by this node, as of its last visit, or {@code null} while unknown.
+     * The strict versions endorsed by this node, as of its last visit, or null while unknown.
      * This node is queued whenever an outgoing endorsing edge is added or removed, or the target endorsed
      * node's own strict versions change.
      */
     private @Nullable StrictVersionConstraints cachedEndorsedStrictVersions;
 
     /**
-     * What this node passed on to its children at the end of its last visit, or {@code null} if unknown.
+     * What this node passed on to its children at the end of its last visit, or null if unknown.
      */
     private @Nullable StrictVersionConstraints passedOnStrictVersions;
 
@@ -319,7 +319,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     /**
-     * Completes the visit of this node, once the edges it discovered are attached: recomputes the strict versions
+     * Completes the visit of this node, once the edges it discovered are attached. Recomputes the strict versions
      * it endorses, and queues its children if what it passes on to them changed.
      */
     void updatePassedOnStrictVersions() {
@@ -719,7 +719,7 @@ public class NodeState implements DependencyGraphNode {
             }
             requeueEndorsingParent(dependencyEdge);
 
-            // A new incoming edge can only make our value smaller: recompute it when visited
+            // A new incoming edge can only make our value smaller, so it is recomputed when we are visited
             resolveState.onMoreSelected(this);
         }
     }
@@ -766,7 +766,7 @@ public class NodeState implements DependencyGraphNode {
 
     /**
      * Whenever an incoming edge that endorses our strict versions is added or removed, the strict versions
-     * endorsed by its source change: the source is queued to recompute them, and what it passes on.
+     * endorsed by its source change. The source is queued to recompute them, and what it passes on.
      */
     private void requeueEndorsingParent(EdgeState incomingEdge) {
         if (incomingEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
@@ -1013,7 +1013,7 @@ public class NodeState implements DependencyGraphNode {
 
     @VisibleForTesting
     void collectOwnStrictVersions(ExcludeSpec moduleResolutionFilter) {
-        // Not cached: the filter may still change before this node's first full visit
+        // Not cached, as the filter may still change before this node's first full visit
         PersistentSet<ModuleIdentifier> constraintsSet = PersistentSet.of();
         for (EdgeState edge : computeFilteredEdges(moduleResolutionFilter)) {
             constraintsSet = maybeCollectStrictVersions(constraintsSet, edge.getDependencyMetadata().getSelector());
@@ -1054,7 +1054,7 @@ public class NodeState implements DependencyGraphNode {
 
         if (endorsed && existingOwnStrictVersions != null) {
             // We inherit the strict versions of the nodes that endorse us, except our own. With fewer of our
-            // own, we may inherit more: our value can grow, which needs a reset. With more, it can shrink.
+            // own, we may inherit more, so our value can grow, which needs a reset. With more, it can shrink.
             if (!existingOwnStrictVersions.minus(newStrictVersions).isEmpty()) {
                 resolveState.resetStrictVersions(this);
             } else {
@@ -1064,8 +1064,8 @@ public class NodeState implements DependencyGraphNode {
     }
 
     /**
-     * The strict versions inherited from all incoming edges: the intersection of what each of them passes on,
-     * or {@code null} if none of them passes on a known value yet. The root inherits nothing.
+     * The strict versions inherited from all incoming edges, which is the intersection of what each of them passes on.
+     * Returns null if none of them passes on a known value yet. The root inherits nothing.
      */
     private @Nullable StrictVersionConstraints computeAncestorsStrictVersions() {
         if (isRoot()) {
@@ -1086,7 +1086,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     /**
-     * Determine the strict versions inherited through a given edge, or {@code null} if its source does not
+     * Determine the strict versions inherited through a given edge, or null if its source does not
      * pass on a known value yet.
      */
     private @Nullable StrictVersionConstraints getStrictVersionsForEdge(EdgeState dependencyEdge) {
@@ -1118,7 +1118,7 @@ public class NodeState implements DependencyGraphNode {
     /**
      * Get the strong strict versions of this node -- the strict versions that are sourced from higher up
      * in the graph. These strong strict versions take precedence over endorsed strict versions.
-     * {@code null} if not known yet.
+     * Returns null if not known yet.
      */
     private @Nullable StrictVersionConstraints getStrongStrictVersions() {
         if (ownStrictVersions == null || ancestorsStrictVersions == null) {
@@ -1129,7 +1129,7 @@ public class NodeState implements DependencyGraphNode {
 
     /**
      * Everything this node passes on to its children, before the filtering of endorsing edges,
-     * or {@code null} if not known yet.
+     * or null if not known yet.
      */
     private @Nullable StrictVersionConstraints getPassedOnStrictVersions() {
         StrictVersionConstraints strongStrictVersions = getStrongStrictVersions();
@@ -1140,10 +1140,10 @@ public class NodeState implements DependencyGraphNode {
     }
 
     /**
-     * Determine all strict versions endorsed by this node: the own strict versions of the targets of our
-     * endorsing edges, or {@code null} while a target has not computed them yet, which it does at its next visit.
-     * An edge without a target yet endorses nothing for now: its selection can depend on constraints from our own
-     * descendants, which must not wait for it. When it gets a target, this node is queued again, and what it
+     * Determine all strict versions endorsed by this node, which are the own strict versions of the targets of our
+     * endorsing edges. Returns null while a target has not computed them yet, which it does at its next visit.
+     * An edge without a target yet endorses nothing for now, because its selection can depend on constraints from
+     * our own descendants, which must not wait for it. When it gets a target, this node is queued again, and what it
      * passes on grows.
      */
     private @Nullable StrictVersionConstraints computeEndorsedStrictVersions() {
@@ -1162,8 +1162,8 @@ public class NodeState implements DependencyGraphNode {
     }
 
     /**
-     * Queues our children after a change of what we pass on: when it shrinks, or becomes known, they only need
-     * to recompute their value; when it grows, or becomes unknown, values they derived from ours may be too
+     * Queues our children after a change of what we pass on. When it shrinks, or becomes known, they only need
+     * to recompute their value. When it grows, or becomes unknown, values they derived from ours may be too
      * small, in a cycle in particular, so they are reset.
      */
     private void onPassedOnStrictVersionsChanged(@Nullable StrictVersionConstraints before, @Nullable StrictVersionConstraints after) {
@@ -1185,13 +1185,15 @@ public class NodeState implements DependencyGraphNode {
     /**
      * Forgets the strict versions inherited from our ancestors, after a change that may make them larger,
      * and resets our children, whose values may derive from ours. A node that was already unknown stops the
-     * reset: nothing was derived from its value. Called from the reset queue, which is drained before any visit.
+     * reset, as nothing was derived from its value. Called from the reset queue, which is drained before any visit.
      */
     void resetAncestorsStrictVersions() {
         if (isRoot() || ancestorsStrictVersions == null) {
             return;
         }
         ancestorsStrictVersions = null;
+        // Our children are reset too, so once we are known again, they must hear from us
+        passedOnStrictVersions = null;
         resolveState.onMoreSelected(this);
         for (EdgeState outgoingEdge : outgoingEdges) {
             for (NodeState targetNode : outgoingEdge.getTargetNodes()) {

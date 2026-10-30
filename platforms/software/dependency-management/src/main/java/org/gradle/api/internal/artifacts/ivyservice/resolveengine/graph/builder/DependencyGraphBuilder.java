@@ -215,7 +215,7 @@ public class DependencyGraphBuilder {
     }
 
     /**
-     * Every node reachable from the root must end with known inherited strict versions: a node that is still
+     * Every node reachable from the root must end with known inherited strict versions. A node that is still
      * unknown never had its dependencies visited.
      */
     private static boolean strictVersionsKnownForReachableNodes(ResolveState resolveState) {

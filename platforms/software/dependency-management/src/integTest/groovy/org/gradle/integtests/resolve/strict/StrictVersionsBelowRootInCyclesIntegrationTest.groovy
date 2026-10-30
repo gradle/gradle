@@ -30,7 +30,7 @@ class StrictVersionsBelowRootInCyclesIntegrationTest extends AbstractIntegration
         def b2 = module("B", "2").publish()
         def c0 = module("C0", "1")
         def c1 = module("C1", "1")
-        // C0 <-> C1 is a cycle; C0 asks for M:2
+        // C0 <-> C1 is a cycle, and C0 asks for M:2
         c0.dependsOn(m2).dependsOn(c1).publish()
         c1.dependsOn(c0).publish()
         // D leads into the cycle and strictly requires M:1
