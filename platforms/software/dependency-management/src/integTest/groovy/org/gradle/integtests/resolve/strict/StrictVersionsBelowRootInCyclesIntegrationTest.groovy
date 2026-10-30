@@ -17,11 +17,13 @@
 package org.gradle.integtests.resolve.strict
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 /**
  * A strict version declared below the root applies to a cycle once every path to the cycle goes through its declarer.
  */
 class StrictVersionsBelowRootInCyclesIntegrationTest extends AbstractIntegrationSpec {
+    def resolve = new ResolveTestFixture(testDirectory)
 
     def "a strict version of a transitive dependency applies to a cycle once the other path to the cycle is evicted"() {
         given:
@@ -43,6 +45,9 @@ class StrictVersionsBelowRootInCyclesIntegrationTest extends AbstractIntegration
         def r1 = module("R1", "1").dependsOn(r2).publish()
         module("R0", "1").dependsOn(r1).publish()
 
+        settingsFile << """
+            rootProject.name = "test"
+        """
         buildFile << """
             ${mavenTestRepository()}
             configurations {
@@ -53,15 +58,38 @@ class StrictVersionsBelowRootInCyclesIntegrationTest extends AbstractIntegration
                 conf("org:R0:1")
                 conf("org:B:1")
             }
+            ${resolve.configureProject("conf")}
         """
 
         when:
-        succeeds("dependencies", "--configuration", "conf")
+        succeeds(":checkDeps")
 
         then:
-        outputContains("org:B:1 -> 2")
-        outputContains("org:M:2 -> 1")
-        outputDoesNotContain("FAILED")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:D:1") {
+                    module("org:C0:1") {
+                        edge("org:M:2", "org:M:1") {
+                            byAncestor()
+                        }
+                        module("org:C1:1") {
+                            module("org:C0:1")
+                        }
+                    }
+                    edge("org:M:{strictly 1}", "org:M:1")
+                }
+                module("org:R0:1") {
+                    module("org:R1:1") {
+                        module("org:R2:1") {
+                            module("org:B:2")
+                        }
+                    }
+                }
+                edge("org:B:1", "org:B:2") {
+                    byConflictResolution("between versions 2 and 1")
+                }
+            }
+        }
     }
 
     private def module(String name, String version) {

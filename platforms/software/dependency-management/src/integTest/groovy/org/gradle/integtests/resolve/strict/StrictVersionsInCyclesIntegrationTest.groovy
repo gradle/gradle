@@ -17,12 +17,14 @@
 package org.gradle.integtests.resolve.strict
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 /**
  * A strict version applies to every node that all paths from the root reach through its declarer, including
  * nodes in a cycle. Their requests for the module are ignored, which shows as the "By ancestor" selection reason.
  */
 class StrictVersionsInCyclesIntegrationTest extends AbstractIntegrationSpec {
+    def resolve = new ResolveTestFixture(testDirectory)
 
     def "a request in a cycle below a strict constraint of the root is ignored"() {
         given:
@@ -41,6 +43,9 @@ class StrictVersionsInCyclesIntegrationTest extends AbstractIntegrationSpec {
         m5v2.dependsOn(m2v2).publish()
         m5v3.publish()
 
+        settingsFile << """
+            rootProject.name = "test"
+        """
         buildFile << """
             ${mavenTestRepository()}
             configurations {
@@ -61,13 +66,30 @@ class StrictVersionsInCyclesIntegrationTest extends AbstractIntegrationSpec {
                 conf("org:m4:3")
                 conf("org:m5:2")
             }
+            ${resolve.configureProject("conf")}
         """
 
         when:
-        succeeds("dependencyInsight", "--configuration", "conf", "--dependency", "org:m4")
+        succeeds(":checkDeps")
 
         then:
-        outputContains("By ancestor")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                constraint("org:m4:{strictly 3}", "org:m4:3")
+                module("org:m4:3") {
+                    byConstraint()
+                    byAncestor()
+                    module("org:m3:1") {
+                        module("org:m0:1") {
+                            module("org:m4:3")
+                        }
+                    }
+                }
+                edge("org:m5:2", "org:m5:3") {
+                    byConflictResolution("between versions 3 and 2")
+                }
+            }
+        }
     }
 
     private def module(String name, String version) {
