@@ -96,6 +96,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         Compilers compilers = incremental.compilers(scalaInstance, ClasspathOptionsUtil.boot(), Option.apply(Jvm.current().getJavaHome().toPath()), scalaCompiler);
 
         List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
+        addSourceRoot(spec, scalacOptions);
         List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).noEmptySourcePath().build();
 
         List<VirtualFile> classpath = new LinkedList<>();
@@ -168,6 +169,22 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         }
         LOGGER.info("Completed Scala compilation: {}", timer.getElapsed());
         return WorkResults.didWork(true);
+    }
+
+    // Scala 3 relativizes source paths against -sourceroot when writing SemanticDB files. It defaults to the working
+    // directory of the compiler daemon, which is not the project directory. We add it here rather than in the task
+    // inputs, so that the absolute path does not affect build cache keys.
+    private void addSourceRoot(ScalaJavaJointCompileSpec spec, List<String> scalacOptions) {
+        if (!ZincScalaCompilerFactory.isScala3(scalaInstance.actualVersion())) {
+            return;
+        }
+        for (String option : scalacOptions) {
+            if (option.equals("-sourceroot") || option.startsWith("-sourceroot:")) {
+                return;
+            }
+        }
+        scalacOptions.add("-sourceroot");
+        scalacOptions.add(spec.getWorkingDir().getAbsolutePath());
     }
 
     // Scala 3 emits a .tasty file next to each top-level class, which Zinc has to delete along with the class files
