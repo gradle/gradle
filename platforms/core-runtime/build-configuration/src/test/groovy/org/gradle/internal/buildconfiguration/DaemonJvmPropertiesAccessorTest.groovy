@@ -93,4 +93,31 @@ class DaemonJvmPropertiesAccessorTest extends Specification {
         e.message == "Invalid toolchain URL property name: toolchainUrl.InvalidBsdX86_64"
         e.cause == null
     }
+
+    def "Given unknown architecture in toolchain URL When parse properties Then fails with meaningful message"() {
+        given:
+        def properties = [
+            "toolchainUrl.LINUX.UNKNOWNARCH": "https://server?os=LINUX&architecture=UNKNOWNARCH",
+        ]
+
+        when:
+        new DaemonJvmPropertiesAccessor(properties).toolchainDownloadUrls
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.contains("Unknown architecture 'UNKNOWNARCH'")
+    }
+
+    def "Given e2k toolchain URL When parse properties Then E2K platform is recognized"() {
+        given:
+        def properties = [
+            "toolchainUrl.LINUX.E2K": "https://server?os=LINUX&architecture=E2K",
+        ]
+
+        when:
+        def urls = new DaemonJvmPropertiesAccessor(properties).toolchainDownloadUrls
+
+        then:
+        urls.keySet().any { it.architecture == Architecture.E2K && it.operatingSystem == OperatingSystem.LINUX }
+    }
 }

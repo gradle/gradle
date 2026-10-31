@@ -49,4 +49,11 @@ class ArchitecturesTest extends Specification {
         where:
         architecture << [ "aarch64", "arm-v8" ]
     }
+
+    def "test E2K aliases"() {
+        expect:
+        Architectures.forInput(architecture).isE2k()
+        where:
+        architecture << [ "e2k" ]
+    }
 }
