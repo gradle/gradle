@@ -85,6 +85,15 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
         primitiveType.appendTo(hasher, array);
     }
 
+    /**
+     * Appends the array such that arrays that are {@link #equals(Object) equal} hash alike:
+     * the element type is included and NaNs are canonicalized like {@link Arrays#equals(float[], float[])} does.
+     */
+    void appendCanonicalContentToHasher(Hasher hasher) {
+        hasher.putInt(primitiveType.ordinal());
+        primitiveType.appendCanonicalTo(hasher, array);
+    }
+
     @Override
     public ValueSnapshot snapshot(@Nullable Object value, ValueSnapshotter snapshotter) {
         PrimitiveType valueType = PrimitiveType.maybeOfValue(value);
@@ -297,6 +306,15 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             }
 
             @Override
+            public void appendCanonicalTo(Hasher hasher, Object array) {
+                float[] floats = (float[]) array;
+                hasher.putInt(floats.length);
+                for (float f : floats) {
+                    hasher.putInt(Float.floatToIntBits(f));
+                }
+            }
+
+            @Override
             public void encode(Encoder encoder, Object array) throws IOException {
                 EncoderExtensions.writeLengthPrefixedFloats(encoder, (float[]) array);
             }
@@ -330,6 +348,15 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             @Override
             public void appendTo(Hasher hasher, Object array) {
                 HasherExtensions.putDoubles(hasher, (double[]) array);
+            }
+
+            @Override
+            public void appendCanonicalTo(Hasher hasher, Object array) {
+                double[] doubles = (double[]) array;
+                hasher.putInt(doubles.length);
+                for (double d : doubles) {
+                    hasher.putLong(Double.doubleToLongBits(d));
+                }
             }
 
             @Override
@@ -430,6 +457,13 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
         public abstract String toString(Object array);
 
         public abstract void appendTo(Hasher hasher, Object array);
+
+        /**
+         * Like {@link #appendTo(Hasher, Object)}, but all NaN bit patterns hash alike, as {@link Arrays#equals} treats them.
+         */
+        public void appendCanonicalTo(Hasher hasher, Object array) {
+            appendTo(hasher, array);
+        }
 
         public abstract void encode(Encoder encoder, Object array) throws IOException;
 

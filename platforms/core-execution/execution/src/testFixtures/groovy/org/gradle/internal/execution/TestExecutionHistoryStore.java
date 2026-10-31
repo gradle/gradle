@@ -24,6 +24,7 @@ import org.gradle.internal.execution.history.impl.DefaultPreviousExecutionState;
 import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.snapshot.impl.ValueSnapshotHasher;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +32,7 @@ import java.util.Optional;
 
 import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
 import static com.google.common.collect.Maps.transformValues;
+
 
 public class TestExecutionHistoryStore implements ExecutionHistoryStore {
 
@@ -48,7 +50,7 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
             executionState.getCacheKey(),
             executionState.getImplementation(),
             executionState.getAdditionalImplementations(),
-            executionState.getInputProperties(),
+            ValueSnapshotHasher.hashAll(executionState.getInputProperties()),
             prepareForSerialization(executionState.getInputFileProperties()),
             executionState.getOutputFilesProducedByWork(),
             executionState.isSuccessful()

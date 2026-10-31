@@ -382,6 +382,64 @@ task someTask {
         "file('1')"          | "files('1')"
         "123"                | "123L"
         "123"                | "123 as short"
+        "[123]"              | "[123 as short]"
+        "[123] as Set"       | "[123 as short] as Set"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35338")
+    def "task is up-to-date when the iteration order of a set input property changes"() {
+        buildFile << """
+task someTask {
+    inputs.property("a", ['first', 'second', 'third'] as LinkedHashSet)
+    outputs.file "out"
+    doLast ${Actions.name}.doNothing() // attach an action that is not defined by the build script
+}
+"""
+        given:
+        succeeds "someTask"
+
+        when:
+        buildFile.replace("['first', 'second', 'third']", "['third', 'first', 'second']")
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35338")
+    def "task is out of date when the type of a managed input property changes"() {
+        buildFile << """
+interface FirstInput {
+    Property<String> getValue()
+}
+interface SecondInput {
+    Property<String> getValue()
+}
+def input = objects.newInstance(FirstInput)
+input.value = "same"
+task someTask {
+    inputs.property("a", input)
+    outputs.file "out"
+    doLast ${Actions.name}.doNothing() // attach an action that is not defined by the build script
+}
+"""
+        given:
+        succeeds "someTask"
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        when:
+        buildFile.replace("objects.newInstance(FirstInput)", "objects.newInstance(SecondInput)")
+        executer.withArgument("-i")
+        run "someTask"
+
+        then:
+        executedAndNotSkipped(":someTask")
+        outputContains("Value of input property 'a' has changed for task ':someTask'")
     }
 
     @Requires(TestExecutionPreconditions.IsEmbeddedExecutor)

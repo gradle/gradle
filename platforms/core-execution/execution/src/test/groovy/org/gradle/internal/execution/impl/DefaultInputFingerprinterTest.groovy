@@ -122,7 +122,6 @@ class DefaultInputFingerprinterTest extends Specification {
         when:
         def result = fingerprintInputProperties(
             ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
             ImmutableSortedMap.of("input", inputSnapshot),
             ImmutableSortedMap.of("file", fileInputFingerprint)
         ) { visitor ->
@@ -138,23 +137,6 @@ class DefaultInputFingerprinterTest extends Specification {
 
         then:
         result.valueSnapshots as Map == [:]
-        result.fileFingerprints as Map == [:]
-    }
-
-    def "reuses previous input snapshots when visiting input properties"() {
-        def previousSnapshot = Mock(ValueSnapshot)
-
-        when:
-        def result = fingerprintInputProperties(ImmutableSortedMap.of("identity", previousSnapshot)) { visitor ->
-            visitor.visitInputProperty("identity") { input }
-        }
-
-        then:
-        1 * valueSnapshotter.snapshot(input, previousSnapshot) >> inputSnapshot
-        0 * _
-
-        then:
-        result.valueSnapshots as Map == ["identity": inputSnapshot]
         result.fileFingerprints as Map == [:]
     }
 
@@ -200,12 +182,11 @@ class DefaultInputFingerprinterTest extends Specification {
     }
 
     private Result fingerprintInputProperties(
-        ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots = ImmutableSortedMap.of(),
         ImmutableSortedMap<String, FileCollectionFingerprint> previousFingerprints = ImmutableSortedMap.of(),
         ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots = ImmutableSortedMap.of(),
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints = ImmutableSortedMap.of(),
         Consumer<InputVisitor> inputs
     ) {
-        inputFingerprinter.fingerprintInputProperties(previousValueSnapshots, previousFingerprints, knownCurrentValueSnapshots, knownCurrentFingerprints, inputs, FileCollectionStructureVisitor.NO_OP)
+        inputFingerprinter.fingerprintInputProperties(previousFingerprints, knownCurrentValueSnapshots, knownCurrentFingerprints, inputs, FileCollectionStructureVisitor.NO_OP)
     }
 }

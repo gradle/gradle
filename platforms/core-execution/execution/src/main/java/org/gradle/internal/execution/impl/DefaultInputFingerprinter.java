@@ -58,7 +58,6 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
 
     @Override
     public Result fingerprintInputProperties(
-        ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
         ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousFingerprints,
         ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints,
@@ -66,7 +65,6 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         FileCollectionStructureVisitor validatingVisitor
     ) {
         InputCollectingVisitor visitor = new InputCollectingVisitor(
-            previousValueSnapshots,
             previousFingerprints,
             snapshotter,
             fingerprinterRegistry,
@@ -79,7 +77,6 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
     }
 
     private static class InputCollectingVisitor implements InputVisitor {
-        private final ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots;
         private final ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousFingerprints;
         private final FileCollectionSnapshotter snapshotter;
         private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
@@ -93,7 +90,6 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         private final ImmutableSet.Builder<String> propertiesRequiringIsEmptyCheck = ImmutableSet.builder();
 
         public InputCollectingVisitor(
-            ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
             ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousFingerprints,
             FileCollectionSnapshotter snapshotter,
             FileCollectionFingerprinterRegistry fingerprinterRegistry,
@@ -102,7 +98,6 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints,
             FileCollectionStructureVisitor validatingVisitor
         ) {
-            this.previousValueSnapshots = previousValueSnapshots;
             this.previousFingerprints = previousFingerprints;
             this.snapshotter = snapshotter;
             this.fingerprinterRegistry = fingerprinterRegistry;
@@ -119,12 +114,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             }
             Object actualValue = value.getValue();
             try {
-                ValueSnapshot previousSnapshot = previousValueSnapshots.get(propertyName);
-                if (previousSnapshot == null) {
-                    valueSnapshotsBuilder.put(propertyName, valueSnapshotter.snapshot(actualValue));
-                } else {
-                    valueSnapshotsBuilder.put(propertyName, valueSnapshotter.snapshot(actualValue, previousSnapshot));
-                }
+                valueSnapshotsBuilder.put(propertyName, valueSnapshotter.snapshot(actualValue));
             } catch (Exception e) {
                 throw new InputFingerprintingException(
                     propertyName,
