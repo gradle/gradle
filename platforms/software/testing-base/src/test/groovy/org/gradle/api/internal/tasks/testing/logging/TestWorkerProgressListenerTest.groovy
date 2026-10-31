@@ -185,7 +185,7 @@ class TestWorkerProgressListenerTest extends Specification {
     }
 
     static TestResult createTestResult() {
-        new DefaultTestResult(TestResult.ResultType.SUCCESS, new Date().time, new Date().time, 2L, 2L, 0L, [], null)
+        new DefaultTestResult(TestResult.ResultType.SUCCESS, new Date().time, new Date().time, 2L, 2L, 0L, [], null, null)
     }
 
     static TestCompleteEvent createTestCompleteEvent() {
