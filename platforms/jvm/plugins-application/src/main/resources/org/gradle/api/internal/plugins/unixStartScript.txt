@@ -161,6 +161,9 @@ if [ -n "\$JAVA_HOME" ] ; then
         JAVACMD=\$JAVA_HOME/jre/sh/java
     else
         JAVACMD=\$JAVA_HOME/bin/java
+        if [ ! -x "\$JAVACMD" ] ; then
+            JAVACMD=\$JAVACMD.exe
+        fi
     fi
     if [ ! -x "\$JAVACMD" ] ; then
         die "ERROR: JAVA_HOME is set to an invalid directory: \$JAVA_HOME
@@ -206,7 +209,7 @@ fi
 #   * --module-path (only if needed)
 #   * DEFAULT_JVM_OPTS, JAVA_OPTS, and ${optsEnvironmentVar} environment variables.
 
-# For Cygwin or MSYS, switch paths to Windows format before running java
+# For Cygwin or MSYS, switch paths to Windows format before running java.
 if "\$cygwin" || "\$msys" ; then
     APP_HOME=\$( cygpath --path --mixed "\$APP_HOME" )
 <% if ( classpath ) {%>\
@@ -237,10 +240,38 @@ if "\$cygwin" || "\$msys" ; then
         shift                   # remove old arg
         set -- "\$@" "\$arg"      # push replacement arg
     done
+elif [ -n "\${WSL_DISTRO_NAME:-}" ] &&
+     [ "\${JAVACMD%.exe}" != "\$JAVACMD" ] &&
+     command -v wslpath >/dev/null 2>&1
+then
+    # When running a Windows JDK from WSL, switch paths to Windows format.
+    APP_HOME=\$( wslpath -m "\$APP_HOME" )
+
+    wslpath_path_list () (
+        path_list=\$1
+        converted_path_list=
+        while [ -n "\$path_list" ] ; do
+            case \$path_list in #(
+              *:*) path=\${path_list%%:*}; path_list=\${path_list#*:} ;; #(
+              *)   path=\$path_list; path_list= ;;
+            esac
+            converted_path=\$( wslpath -m "\$path" )
+            if [ -z "\$converted_path_list" ] ; then
+                converted_path_list=\$converted_path
+            else
+                converted_path_list="\$converted_path_list;\$converted_path"
+            fi
+        done
+        printf '%s\\n' "\$converted_path_list"
+    )
+<% if ( classpath ) {%>\
+    CLASSPATH=\$( wslpath_path_list "\$CLASSPATH" )
+<% } %>\
+<% if ( mainClassName.startsWith('--module ') ) { %>    MODULE_PATH=\$( wslpath_path_list "\$MODULE_PATH" )<% } %>
 fi
 
 <% /*
-# The DEFAULT_JVM_OPTS variable is intentionally defined here to allow using cygwin-processed APP_HOME.
+# The DEFAULT_JVM_OPTS variable is intentionally defined here to allow using the Windows-formatted APP_HOME.
 # So far the only way to inject APP_HOME reference into DEFAULT_JVM_OPTS is to post-process the start script; the declaration is a good anchor to do that.
 */ %>
 # Add default JVM options here. You can also use JAVA_OPTS and ${optsEnvironmentVar} to pass JVM options to this script.
