@@ -135,7 +135,127 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
 
     def "HTML report is correct when test group is re-emitted without children"() {
         given:
+        buildFile reemitsGroupWithoutChildren("succeeded(Instant.now())")
+
+        when:
+        succeeds("reemitted")
+
+        then:
+        def results = aggregateResults()
+        results
+            .testPath(":reemitted suite")
+            .onlyRoot()
+            .assertChildCount(1, 0)
+            .assertSummaryCounts(1, 0, 0)
+        results
+            .testPath(":")
+            .onlyRoot()
+            .assertSummaryCounts(1, 0, 0)
+    }
+
+    def "HTML report shows failure of test group re-emitted without children as an execution error"() {
+        given:
+        buildFile reemitsGroupWithoutChildren("failed(Instant.now(), \"lost worker\")", "failed(Instant.now())")
+
+        when:
+        fails("reemitted")
+
+        then:
+        def results = aggregateResults()
+        results
+            .testPath(":reemitted suite")
+            .onlyRoot()
+            .assertOnlyChildrenExecuted("reemitted test", "executionError")
+            .assertChildrenFailed("executionError")
+            .assertSummaryCounts(2, 1, 0)
+            .assertChildrenInTab("Failed", "executionError")
+        results
+            .testPath(":reemitted suite:executionError")
+            .onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsText("lost worker"))
+        results
+            .testPath(":")
+            .onlyRoot()
+            .assertSummaryCounts(2, 1, 0)
+            .assertChildrenInTab("Failed", "reemitted suite")
+    }
+
+    def "HTML report does not count test group skipped when re-emitted without children"() {
+        given:
+        buildFile reemitsGroupWithoutChildren("skipped(Instant.now())")
+
+        when:
+        succeeds("reemitted")
+
+        then:
+        def results = aggregateResults()
+        results
+            .testPath(":reemitted suite")
+            .onlyRoot()
+            .assertChildCount(1, 0)
+            .assertSummaryCounts(1, 0, 0)
+        results
+            .testPath(":")
+            .onlyRoot()
+            .assertSummaryCounts(1, 0, 0)
+            .assertChildrenInTab("Skipped")
+    }
+
+    def "HTML report shows test group that fails with only passing children as failed"() {
+        given:
         buildFile """
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @Inject
+                abstract ProjectLayout getLayout()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        name,
+                        getLayout().getBuildDirectory().dir("test-results/" + name).get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/" + name).get()
+                    )) {
+                       reporter.started(Instant.now())
+                       try (def mySuite = reporter.reportTestGroup(name + " suite")) {
+                            mySuite.started(Instant.now())
+                            try (def myTest = mySuite.reportTest(name + " test", name + " test")) {
+                                 myTest.started(Instant.now())
+                                 myTest.succeeded(Instant.now())
+                            }
+                            mySuite.failed(Instant.now(), "teardown failed")
+                       }
+                       reporter.failed(Instant.now())
+                   }
+                }
+            }
+            tasks.register("failing", CustomTestTask)
+        """
+
+        when:
+        fails("failing")
+
+        then:
+        def results = aggregateResults()
+        results
+            .testPath(":failing suite")
+            .onlyRoot()
+            .assertSummaryCounts(1, 0, 0)
+        results
+            .testPath(":")
+            .onlyRoot()
+            .assertSummaryCounts(1, 0, 0)
+            .assertChildrenInTab("Failed", "failing suite")
+    }
+
+    /**
+     * A task that reports a test group with a single passing test, then reports the same group again without any children.
+     */
+    private static String reemitsGroupWithoutChildren(String secondRunOutcome, String rootOutcome = "succeeded(Instant.now())") {
+        return """
             abstract class CustomTestTask extends DefaultTask {
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
@@ -161,24 +281,14 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
                        }
                        try (def mySuite = reporter.reportTestGroup(name + " suite")) {
                             mySuite.started(Instant.now())
-                            mySuite.succeeded(Instant.now())
+                            mySuite.${secondRunOutcome}
                        }
-                       reporter.succeeded(Instant.now())
+                       reporter.${rootOutcome}
                    }
                 }
             }
             tasks.register("reemitted", CustomTestTask)
         """
-
-        when:
-        succeeds("reemitted")
-
-        then:
-        def results = aggregateResults()
-        results
-            .testPath(":reemitted suite")
-            .onlyRoot()
-            .assertChildCount(1, 0)
     }
 
     def "emits test results in error exception message when test fails"() {
