@@ -128,7 +128,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     public void addCollection(DomainObjectCollection<? extends T> collection) {
         if (!getStore().containsCollection(collection)) {
             getStore().addComposited((DomainObjectCollectionInternal<? extends T>) collection);
-            collection.all((InternalAction<T>) t -> getDelegate().getEventRegister().fireObjectAdded(t));
+            forwardElements(collection);
             collection.whenObjectRemoved((Action<T>) t -> getDelegate().getEventRegister().fireObjectRemoved(t));
         }
     }
@@ -136,10 +136,14 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     public void addCollectionProvider(Provider<DomainObjectCollection<? extends T>> collectionProvider) {
         if (!getStore().containsCollectionProvider(collectionProvider)) {
             getStore().addComposited(collectionProvider, collection -> {
-                collection.all((InternalAction<T>) t -> getDelegate().getEventRegister().fireObjectAdded(t));
+                forwardElements(collection);
                 collection.whenObjectRemoved((Action<T>) t -> getDelegate().getEventRegister().fireObjectRemoved(t));
             });
         }
+    }
+
+    private void forwardElements(DomainObjectCollection<? extends T> collection) {
+        ((DomainObjectCollectionInternal<? extends T>) collection).forwardElements((InternalAction<T>) t -> getDelegate().getEventRegister().fireObjectAdded(t));
     }
 
     public void removeCollection(DomainObjectCollection<? extends T> collection) {
@@ -190,6 +194,12 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
             callbackActionDecorator.decorate(action).execute(t);
         }
         whenObjectAdded(action);
+    }
+
+    @Override
+    public void forwardElements(Action<? super T> action) {
+        // Elements are forwarded only once even if several composited collections have them, and a composite has no pending elements of its own
+        all(action);
     }
 
     private final static class DomainObjectCompositeCollection<T> implements ElementSource<T> {
