@@ -73,7 +73,7 @@ public abstract class AbstractBuildableComponentSpec extends AbstractComponentSp
 
     @Override
     public boolean hasBuildDependencies() {
-        return !TaskDependencyUtil.newTaskResolver().getDependencies(buildTask, buildTaskDependencies).isEmpty();
+        return !TaskDependencyUtil.getDependencies(buildTask, buildTaskDependencies).isEmpty();
     }
 
     @Nullable

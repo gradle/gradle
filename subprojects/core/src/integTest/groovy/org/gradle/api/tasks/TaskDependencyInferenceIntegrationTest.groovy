@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
@@ -280,6 +281,27 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
 
         then:
         result.assertTasksScheduled(":b")
+    }
+
+    @ToBeImplemented("orElse is known when either side is known, so an unknown original value is never unpacked as a dependency")
+    def "dependency declared using orElse provider whose original value is a task and alternative value is task output file property implies dependency on the task"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            tasks.create("a")
+            def taskB = tasks.create("b", FileProducer) {
+                output = file("b.txt")
+            }
+            tasks.register("c") {
+                dependsOn provider { tasks.a }.orElse(taskB.output)
+            }
+        """
+
+        when:
+        run("c")
+
+        then:
+        // TODO: should schedule ":a"
+        result.assertTasksScheduled(":c")
     }
 
     def "dependency declared using provider that returns task name implies dependency on task"() {
@@ -712,6 +734,35 @@ The following types/formats are supported:
         then:
         result.assertTasksScheduled(":c")
         file("out.txt").text == "b"
+    }
+
+    @ToBeImplemented("orElse only schedules the alternative when the original value is missing at configuration time")
+    def "input file property with value of orElse provider whose original value is missing only at execution time implies dependency on the alternative task"() {
+        taskTypeWithOutputFileProperty()
+        taskTypeWithInputFileProperty()
+        buildFile << """
+            def taskA = tasks.create("a", FileProducer) {
+                output = file("a.txt")
+                content = "a"
+            }
+            def taskB = tasks.create("b", FileProducer) {
+                output = file("b.txt")
+                content = "b"
+            }
+            tasks.register("c", InputFileTask) {
+                inFile = taskA.output.map { null }.orElse(taskB.output)
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        fails("c")
+
+        then:
+        // TODO: should schedule ":b", and ":c" should read "b"
+        failure.assertTasksScheduled(":a", ":c")
+        failure.assertHasDescription("A problem was found with the configuration of task ':c' (type 'InputFileTask').")
+        failure.assertHasErrorOutput("property 'inFile' specifies file '${file("b.txt")}' which doesn't exist")
     }
 
     def "input file collection containing mapped task output property implies dependency on a specific output of the task"() {
