@@ -1007,7 +1007,8 @@ class ConfigurationCacheFingerprintWriter(
         propertyName: String,
         propertyValue: Any?
     ) {
-        if (!Workarounds.isIgnoredStartParameterProperty(propertyName)
+        if (!isInputTrackingDisabled()
+            && !Workarounds.isIgnoredStartParameterProperty(propertyName)
             && propertyTracking.shouldTrackPropertyAccess(propertyScope, propertyName)
         ) {
             // TODO:isolated could tracking per project
