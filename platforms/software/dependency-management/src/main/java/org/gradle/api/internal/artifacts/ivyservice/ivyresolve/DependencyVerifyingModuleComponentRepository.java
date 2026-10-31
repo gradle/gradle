@@ -170,7 +170,11 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
             if (artifact instanceof DefaultModuleComponentArtifactIdentifier) {
                 signatureArtifactId = createSignatureArtifactIdFromIvyArtifactName(artifact.getComponentIdentifier(), ((DefaultModuleComponentArtifactIdentifier) artifact).getName());
             } else {
-                signatureArtifactId = new ModuleComponentFileArtifactIdentifier(artifact.getComponentIdentifier(), artifact.getFileName() + ".asc");
+                signatureArtifactId = new ModuleComponentFileArtifactIdentifier(
+                    artifact.getComponentIdentifier(),
+                    artifact.getDestinationFileName() + ".asc",
+                    artifact.getFilePath() + ".asc"
+                );
             }
             SignatureArtifactMetadata signatureArtifactMetadata = new SignatureArtifactMetadata(signatureArtifactId);
             return maybeFetchSignatureFile(moduleSources, signatureArtifactMetadata);
@@ -279,7 +283,7 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                     return ((DefaultModuleComponentArtifactIdentifier) artifactIdentifier).getName();
                 }
                 // This is a bit hackish but the mapping from file names to ivy artifact names is completely broken
-                String fileName = artifactIdentifier.getFileName().replace("-" + artifactIdentifier.getComponentIdentifier().getVersion(), "");
+                String fileName = artifactIdentifier.getDestinationFileName().replace("-" + artifactIdentifier.getComponentIdentifier().getVersion(), "");
                 fileName = Files.getNameWithoutExtension(fileName); // removes the .asc
                 IvyArtifactName base = DefaultIvyArtifactName.forFileName(fileName, null);
                 return new DefaultIvyArtifactName(

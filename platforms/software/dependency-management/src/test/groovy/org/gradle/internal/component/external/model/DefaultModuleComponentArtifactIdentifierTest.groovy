@@ -19,6 +19,7 @@ package org.gradle.internal.component.external.model
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.util.Matchers
+import spock.lang.Issue
 import spock.lang.Specification
 
 class DefaultModuleComponentArtifactIdentifierTest extends Specification {
@@ -66,21 +67,21 @@ class DefaultModuleComponentArtifactIdentifierTest extends Specification {
 
     //ComponentFileArtifactIdentifier
 
-    def "calculates a file name from attributes"() {
+    def "calculates a destination file name from attributes"() {
         def componentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
 
         expect:
         def noClassifier = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext")
-        noClassifier.fileName == "name-version.ext"
+        noClassifier.destinationFileName == "name-version.ext"
 
         def withClassifier = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext", 'classifier')
-        withClassifier.fileName == "name-version-classifier.ext"
+        withClassifier.destinationFileName == "name-version-classifier.ext"
 
         def noExtension = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", null, 'classifier')
-        noExtension.fileName == "name-version-classifier"
+        noExtension.destinationFileName == "name-version-classifier"
 
         def nameOnly = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", null, null)
-        nameOnly.fileName == "name-version"
+        nameOnly.destinationFileName == "name-version"
     }
 
     def "is equal when all attributes and module version are the same"() {
@@ -108,5 +109,79 @@ class DefaultModuleComponentArtifactIdentifierTest extends Specification {
 
         emptyParts Matchers.strictlyEqual(emptyPartsSame)
         emptyParts != withClassifier
+    }
+
+    def "calculates a file path from attributes"() {
+        def componentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
+
+        expect:
+        new DefaultModuleComponentArtifactIdentifier(componentId, name, type, ext, classifier).filePath == filePath
+
+        where:
+        name   | type     | ext   | classifier   | filePath
+        "name" | "jar"    | "jar" | null         | "name-version.jar"
+        "name" | "jar"    | "jar" | "classifier" | "name-version-classifier.jar"
+        "name" | "bundle" | "jar" | null         | "bundles/name-version.jar"
+        "name" | "jar"    | null  | null         | "jars/name-version"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38831")
+    def "is equal to a file identifier only with the same component, file path and destination file name"() {
+        def componentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
+        def otherComponentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "2")
+
+        def id = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "jar", "jar", "classifier")
+        def sameFile = new ModuleComponentFileArtifactIdentifier(componentId, "name-version-classifier.jar")
+        def samePathDifferentName = new ModuleComponentFileArtifactIdentifier(componentId, "other.jar", "name-version-classifier.jar")
+        def sameNameDifferentPath = new ModuleComponentFileArtifactIdentifier(componentId, "name-version-classifier.jar", "dir/name-version-classifier.jar")
+        def differentModule = new ModuleComponentFileArtifactIdentifier(otherComponentId, "name-version-classifier.jar")
+
+        expect:
+        id Matchers.strictlyEqual(sameFile)
+        id != samePathDifferentName
+        id != sameNameDifferentPath
+        id != differentModule
+    }
+
+    def "is equal when different attributes produce the same file path"() {
+        def componentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
+
+        expect:
+        def id = new DefaultModuleComponentArtifactIdentifier(componentId, "name", type, ext, classifier)
+        def other = new DefaultModuleComponentArtifactIdentifier(componentId, "name", otherType, otherExt, otherClassifier)
+        id.name != other.name
+        id.filePath == filePath
+        id Matchers.strictlyEqual(other)
+
+        where:
+        type     | ext      | classifier | otherType | otherExt | otherClassifier | filePath
+        "jar"    | "jar"    | null       | "jar"     | "jar"    | ""              | "name-version.jar"
+        "jar"    | null     | null       | "jar"     | ""       | null            | "jars/name-version"
+        "gz"     | "gz"     | "x.tar"    | "tar.gz"  | "tar.gz" | "x"             | "name-version-x.tar.gz"
+    }
+
+    def "destination file name keeps path separators from the artifact name"() {
+        def componentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
+
+        expect:
+        def id = new DefaultModuleComponentArtifactIdentifier(componentId, "name", type, ext, null)
+        id.filePath == filePath
+        id.destinationFileName == destinationFileName
+
+        where:
+        type      | ext       | filePath                | destinationFileName
+        "/../x"   | "/../x"   | "name-version./../x"    | "name-version./../x"
+        "jar"     | "jar/.."  | "jars/name-version.jar/.." | "name-version.jar/.."
+    }
+
+    def "artifacts that differ only by type are not equal"() {
+        def componentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
+
+        def jar = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "jar", "jar")
+        def bundle = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "bundle", "jar")
+
+        expect:
+        jar.destinationFileName == bundle.destinationFileName
+        jar != bundle
     }
 }

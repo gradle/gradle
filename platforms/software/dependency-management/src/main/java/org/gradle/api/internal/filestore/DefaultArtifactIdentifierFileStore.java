@@ -46,7 +46,7 @@ public class DefaultArtifactIdentifierFileStore extends GroupedAndNamedUniqueFil
         }
     };
 
-    private static final Namer<ModuleComponentArtifactIdentifier> NAMER = ModuleComponentArtifactIdentifier::getFileName;
+    private static final Namer<ModuleComponentArtifactIdentifier> NAMER = ModuleComponentArtifactIdentifier::getDestinationFileName;
 
     private DefaultArtifactIdentifierFileStore(File baseDir, TemporaryFileProvider temporaryFileProvider, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
         super(baseDir, temporaryFileProvider, fileAccessTimeJournal, GROUPER, NAMER, checksumService);
