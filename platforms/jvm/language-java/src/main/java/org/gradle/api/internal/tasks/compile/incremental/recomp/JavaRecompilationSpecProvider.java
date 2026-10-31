@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.internal.file.Deleter;
 import org.gradle.work.FileChange;
 
@@ -45,7 +44,7 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     }
 
     @Override
-    protected void processCompilerSpecificDependencies(JavaCompileSpec spec, RecompilationSpec recompilationSpec, SourceFileChangeProcessor sourceFileChangeProcessor, SourceFileClassNameConverter sourceFileClassNameConverter) {
+    protected void processCompilerSpecificDependencies(RecompilationSpec recompilationSpec, SourceFileChangeProcessor sourceFileChangeProcessor, SourceFileClassNameConverter sourceFileClassNameConverter) {
         // Nothing to do for Java compiler here
     }
 

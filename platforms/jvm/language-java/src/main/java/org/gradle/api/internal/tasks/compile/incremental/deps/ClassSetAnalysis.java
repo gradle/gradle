@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -135,6 +136,37 @@ public class ClassSetAnalysis {
         privateDependents.removeAll(classes);
         accessibleDependents.removeAll(classes);
         return DependentsSet.dependents(privateDependents, accessibleDependents, dependentResources);
+    }
+
+    /**
+     * The given classes that a class outside the set refers to, directly or through other classes of the set. Loading such
+     * an outside class, as the Groovy compiler does with classes of the previous output, resolves them as they were.
+     */
+    public Set<String> findClassesReferencedFromOutside(Set<String> classes) {
+        Map<String, List<String>> referencedClassesOf = new HashMap<>();
+        Deque<String> remaining = new ArrayDeque<>();
+        for (String cls : classes) {
+            DependentsSet dependents = classAnalysis.getDependents(cls);
+            if (dependents.isDependencyToAll()) {
+                remaining.add(cls);
+                continue;
+            }
+            for (String dependent : dependents.getAllDependentClasses()) {
+                if (classes.contains(dependent)) {
+                    referencedClassesOf.computeIfAbsent(dependent, k -> new ArrayList<>()).add(cls);
+                } else {
+                    remaining.add(cls);
+                }
+            }
+        }
+        Set<String> referenced = new HashSet<>();
+        while (!remaining.isEmpty()) {
+            String cls = remaining.pop();
+            if (referenced.add(cls)) {
+                remaining.addAll(referencedClassesOf.getOrDefault(cls, Collections.emptyList()));
+            }
+        }
+        return referenced;
     }
 
     /**
