@@ -1240,6 +1240,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         if (!disablePluginRepositoryMirror) {
             properties.put(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY, gradlePluginRepositoryMirrorUrl());
         }
+        String locallyBuiltKotlinDslPluginsVersion = RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsVersion();
+        if (locallyBuiltKotlinDslPluginsVersion != null && !extraRepositoriesDisabled) {
+            properties.put(RepoScriptBlockUtil.KOTLIN_DSL_PLUGINS_VERSION_OVERRIDE_PROPERTY, locallyBuiltKotlinDslPluginsVersion);
+        }
 
         properties.put("file.encoding", getDefaultCharacterEncoding());
         if (getJavaVersionFromJavaHome() == JavaVersion.VERSION_18) {

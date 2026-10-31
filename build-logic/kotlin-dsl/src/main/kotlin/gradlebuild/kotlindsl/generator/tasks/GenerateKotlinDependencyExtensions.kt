@@ -53,7 +53,14 @@ package org.gradle.kotlin.dsl.support
  */
 @Suppress("unused")
 val expectedKotlinDslPluginsVersion: String
-    get() = "$kotlinDslPluginsVersion"
+    get() = System.getProperty(KOTLIN_DSL_PLUGINS_VERSION_OVERRIDE_PROPERTY) ?: "$kotlinDslPluginsVersion"
+
+
+/**
+ * A system property for the tests of a Gradle whose Kotlin DSL plugins are not published yet.
+ * The tests publish the plugins built from source to a local repository, and set this property to their version.
+ */
+const val KOTLIN_DSL_PLUGINS_VERSION_OVERRIDE_PROPERTY = "org.gradle.internal.kotlin.dsl.plugins.version.override"
 """
         )
 
@@ -64,6 +71,7 @@ val expectedKotlinDslPluginsVersion: String
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -129,7 +137,7 @@ fun PluginDependenciesSpec.kotlin(module: String): PluginDependencySpec =
  * @see org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
  */
 val PluginDependenciesSpec.`embedded-kotlin`: PluginDependencySpec
-    get() = id("org.gradle.kotlin.embedded-kotlin") version "$kotlinDslPluginsVersion"
+    get() = id("org.gradle.kotlin.embedded-kotlin") version expectedKotlinDslPluginsVersion
 
 
 /**
@@ -140,7 +148,7 @@ val PluginDependenciesSpec.`embedded-kotlin`: PluginDependencySpec
  * @see org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
  */
 val PluginDependenciesSpec.`kotlin-dsl`: PluginDependencySpec
-    get() = id("org.gradle.kotlin.kotlin-dsl") version "$kotlinDslPluginsVersion"
+    get() = id("org.gradle.kotlin.kotlin-dsl") version expectedKotlinDslPluginsVersion
 
 
 /**
@@ -151,7 +159,7 @@ val PluginDependenciesSpec.`kotlin-dsl`: PluginDependencySpec
  * @see org.gradle.kotlin.dsl.plugins.base.KotlinDslBasePlugin
  */
 val PluginDependenciesSpec.`kotlin-dsl-base`: PluginDependencySpec
-    get() = id("org.gradle.kotlin.kotlin-dsl.base") version "$kotlinDslPluginsVersion"
+    get() = id("org.gradle.kotlin.kotlin-dsl.base") version expectedKotlinDslPluginsVersion
 
 
 /**
@@ -162,7 +170,7 @@ val PluginDependenciesSpec.`kotlin-dsl-base`: PluginDependencySpec
  * @see org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
  */
 val PluginDependenciesSpec.`kotlin-dsl-precompiled-script-plugins`: PluginDependencySpec
-    get() = id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "$kotlinDslPluginsVersion"
+    get() = id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version expectedKotlinDslPluginsVersion
 """
         )
     }

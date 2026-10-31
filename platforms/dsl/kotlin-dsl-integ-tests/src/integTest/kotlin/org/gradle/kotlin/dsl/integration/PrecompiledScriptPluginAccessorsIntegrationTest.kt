@@ -133,7 +133,7 @@ class PrecompiledScriptPluginAccessorsIntegrationTest : AbstractKotlinIntegratio
                     "build.gradle.kts",
                     """
                     plugins {
-                        id("org.gradle.kotlin.kotlin-dsl")
+                        `kotlin-dsl`
                     }
 
                     // Forces dependencies to be visible as jars

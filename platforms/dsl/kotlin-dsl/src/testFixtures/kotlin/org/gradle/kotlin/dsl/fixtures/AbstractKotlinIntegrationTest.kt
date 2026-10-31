@@ -22,10 +22,10 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.kotlin.dsl.resolver.GradleInstallation
+import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.junit.Before
 import java.io.File
-import java.util.Properties
 
 
 /**
@@ -42,13 +42,9 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     protected
     open val injectLocalTestRepositories = true
 
-    protected
-    open val forceLocallyBuiltKotlinDslPlugins = true
-
     @Before
     fun injectLocallyBuiltKotlinDslPluginsRepositories() {
         if (injectLocalTestRepositories) doInjectLocallyBuiltKotlinDslPluginsRepositories()
-        if (forceLocallyBuiltKotlinDslPlugins) doForceLocallyBuiltKotlinDslPlugins()
     }
 
     protected
@@ -72,30 +68,6 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
         }
     }
 
-    protected
-    fun doForceLocallyBuiltKotlinDslPlugins() {
-        file(".integTest/force-local-plugins.init.gradle").apply {
-            parentFile.mkdirs()
-            writeText(
-                """
-                beforeSettings { settings ->
-                    settings.pluginManagement {
-                        resolutionStrategy {
-                            eachPlugin {
-                                $futurePluginRules
-                            }
-                        }
-                    }
-                }
-                """
-            )
-        }.let { setupScript ->
-            executer.beforeExecute {
-                usingInitScript(setupScript)
-            }
-        }
-    }
-
     @Before
     fun setUpDefaultSettings() {
         withDefaultSettings()
@@ -107,32 +79,6 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
             """
                 maven { url = uri(file("$it")) }
             """
-        }
-
-    private
-    val futurePluginRules: String
-        get() = futurePluginVersions.entries.joinLines { (id, version) ->
-            """
-                if (requested.id.id == "$id") {
-                    useVersion("$version")
-                }
-            """
-        }
-
-    private
-    val futurePluginVersions by lazy {
-        loadPropertiesFromResource("/future-plugin-versions.properties")
-            ?: error("/future-plugin-versions.properties resource not found.")
-    }
-
-    protected
-    val futureKotlinDslPluginVersion: String =
-        futurePluginVersions["org.gradle.kotlin.kotlin-dsl"] as String
-
-    private
-    fun loadPropertiesFromResource(name: String): Properties? =
-        javaClass.getResourceAsStream(name)?.use {
-            Properties().apply { load(it) }
         }
 
     private
@@ -150,6 +96,14 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     protected
     open val defaultSettingsScript
         get() = ""
+
+    /**
+     * The version of the `kotlin-dsl` plugin that the builds of this test expect.
+     * The executer makes them expect the locally built plugins, when there are any (see [RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsVersion]).
+     */
+    protected
+    val expectedKotlinDslPluginsVersionUnderTest: String
+        get() = RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsVersion() ?: expectedKotlinDslPluginsVersion
 
     protected
     val repositoriesBlock

@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -81,8 +82,17 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
         result = runner.buildAndFail()
     }
 
+    // The nested build uses the Kotlin DSL plugins built from this checkout (see embedded-kotlin.settings.gradle.kts)
+    private static List<String> kotlinDslPluginsArgs() {
+        def repository = IntegrationTestBuildContext.INSTANCE.localRepository
+        if (repository == null) {
+            return []
+        }
+        return ["-Pgradlebuild.kotlinDslPluginsRepository=${repository.absolutePath}" as String] + RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsArguments()
+    }
+
     SmokeTestGradleRunner runner(String... tasks) {
-        List<String> args = GRADLE_BUILD_TEST_ARGS + (tasks as List<String>);
+        List<String> args = GRADLE_BUILD_TEST_ARGS + kotlinDslPluginsArgs() + (tasks as List<String>);
         return super.runner(*args)
     }
 
