@@ -303,7 +303,7 @@ public class ApacheCommonsHttpClient implements HttpClient {
     /**
      * Extracts error detail from the HTTP response.
      * Supports RFC9457 (Problem Details for HTTP APIs) format.
-     * Falls back to the HTTP reason phrase when RFC9457 is not available.
+     * Falls back to the HTTP reason phrase when RFC9457 is not available, including for HEAD requests, whose responses have no body.
      *
      * @param response the HTTP response
      * @return the error detail message, or empty if none is available
@@ -311,7 +311,8 @@ public class ApacheCommonsHttpClient implements HttpClient {
     @VisibleForTesting
     Optional<String> extractErrorDetail(HttpClient.Response response) {
         String contentType = response.getHeader("Content-Type");
-        if (contentType != null && contentType.toLowerCase(Locale.ROOT).contains("application/problem+json")) {
+        boolean mayHaveBody = !HttpHead.METHOD_NAME.equals(response.getMethod());
+        if (mayHaveBody && contentType != null && contentType.toLowerCase(Locale.ROOT).contains("application/problem+json")) {
             LOGGER.debug("RFC9457 content type detected: {}", contentType);
             Optional<String> rfc9457Detail = parseRFC9457Response(response);
             if (rfc9457Detail.isPresent()) {
