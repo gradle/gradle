@@ -37,7 +37,6 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.TestExecutionResult;
-import org.junit.platform.engine.discovery.DirectorySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.support.descriptor.DirectorySource;
 import org.junit.platform.engine.support.descriptor.FileSource;
@@ -243,29 +242,45 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
             return requestBuilder.build();
         }
 
+        /**
+         * Builds the post-discovery filter that applies this task's include and exclude patterns, and
+         * adds it to the discovery request. Nothing is added when there are no patterns to apply.
+         * <p>
+         * Every descriptor is routed by the type of its {@link org.junit.platform.engine.TestSource}:
+         * <p>
+         * <ul>
+         *   <li>A {@link FileSource} or {@link DirectorySource} goes to {@link FilePathFilter}, which
+         *       matches it by its path relative to whichever of this task's test definition directories
+         *       contains it. That need not be the directory the file was selected from: a suite that
+         *       selects a directory of its own contributes no test definition directory.
+         *   <li>Everything else, including a descriptor with no source at all, goes to
+         *       {@link ClassMethodNameFilter}, which matches it by class and method name, or by its
+         *       enclosing class when the engine did not declare it as a method.
+         * </ul>
+         * <p>
+         * The two are chained rather than kept separate: a file-based test that lies under none of the
+         * test definition directories has no path to be matched by, and {@link FilePathFilter} hands it to
+         * the class filter instead of excluding it. That is why the file filter is registered whether or
+         * not this run has any directory selectors — whether it has an opinion is now settled per
+         * descriptor, rather than once for the whole run by how the task happens to be configured.
+         *
+         * @see FilePathFilter
+         * @see ClassMethodNameFilter
+         */
         private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
             TestFilterSpec filterSpec = spec.getFilter();
             if (isNotEmpty(filterSpec)) {
                 TestSelectionMatcher matcher = new TestSelectionMatcher(filterSpec, testDefinitionDirs);
 
-                DelegatingByTypeFilter delegatingFilter = new DelegatingByTypeFilter(new ClassMethodNameFilter(matcher));
-                // FilePathFilter matches a file against the directories it was selected from, and excludes any
-                // file that lies under none of them. Those directories only exist when there are directory
-                // selectors, so registering it unconditionally would exclude every file-based test in a
-                // class-based run. Without it, file-based descriptors fall to ClassMethodNameFilter and are
-                // matched by their enclosing class, like any other test not declared as a method.
-                if (hasDirectorySelectors()) {
-                    FilePathFilter fileFilter = new FilePathFilter(matcher);
-                    delegatingFilter.addDelegate(FileSource.class, fileFilter);
-                    delegatingFilter.addDelegate(DirectorySource.class, fileFilter);
-                }
+                ClassMethodNameFilter classFilter = new ClassMethodNameFilter(matcher);
+                DelegatingByTypeFilter delegatingFilter = new DelegatingByTypeFilter(classFilter);
+
+                FilePathFilter fileFilter = new FilePathFilter(matcher, classFilter);
+                delegatingFilter.addDelegate(FileSource.class, fileFilter);
+                delegatingFilter.addDelegate(DirectorySource.class, fileFilter);
 
                 requestBuilder.filters(delegatingFilter);
             }
-        }
-
-        private boolean hasDirectorySelectors() {
-            return selectors.stream().anyMatch(it -> it instanceof DirectorySelector);
         }
 
         private void addEnginesFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
