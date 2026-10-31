@@ -69,7 +69,25 @@ public interface FileWatcherRegistry extends Closeable {
      * For example, this method checks if watched hierarchies are where we left them after the previous build.
      */
     @CheckReturnValue
-    SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems);
+    SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems, WatcherVerificationResult verification);
+
+    /**
+     * Checks whether the watcher is still delivering, without holding the virtual file system lock.
+     *
+     * <p>Re-arms every probe and walks the retained state of the probed hierarchies, abandoning the walk
+     * as soon as a probe event arrives. The caller applies the result under the lock.</p>
+     */
+    WatcherVerificationResult verifyWatcherIsCurrent(SnapshotHierarchy root);
+
+    /**
+     * Returns whether the path is a watch probe file, of any generation.
+     */
+    boolean isProbeFile(String path);
+
+    /**
+     * Returns whether the path is the probe directory of any watched hierarchy.
+     */
+    boolean isProbeDirectory(String path);
 
     /**
      * Updates the VFS and the watchers before the build finishes.
