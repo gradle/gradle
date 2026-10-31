@@ -26,9 +26,9 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.model.DomainObjectContext;
 import org.jspecify.annotations.Nullable;
 
@@ -72,7 +72,7 @@ public class TransformStep implements TaskDependencyContainer, Describable {
         return null;
     }
 
-    public Deferrable<Try<TransformStepSubject>> createInvocation(TransformStepSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
+    public Lazy<Try<TransformStepSubject>> createInvocation(TransformStepSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
         InputFingerprinter inputFingerprinter = context != null ? context.getService(InputFingerprinter.class) : globalInputFingerprinter;
 
         Try<TransformDependencies> resolvedDependencies = upstreamDependencies.computeArtifacts();
@@ -80,9 +80,9 @@ public class TransformStep implements TaskDependencyContainer, Describable {
             .map(dependencies -> {
                 ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();
                 if (inputArtifacts.isEmpty()) {
-                    return Deferrable.completed(Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of())));
+                    return Lazy.fixed(Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of())));
                 } else if (inputArtifacts.size() > 1) {
-                    return Deferrable.deferred(() ->
+                    return Lazy.locking().of(() ->
                         doTransform(subjectToTransform, inputFingerprinter, dependencies, inputArtifacts)
                     );
                 } else {
@@ -91,7 +91,7 @@ public class TransformStep implements TaskDependencyContainer, Describable {
                         .map(result -> result.map(subjectToTransform::createSubjectFromResult));
                 }
             })
-            .getOrMapFailure(failure -> Deferrable.completed(Try.failure(failure)));
+            .getOrMapFailure(failure -> Lazy.fixed(Try.failure(failure)));
     }
 
     private Try<TransformStepSubject> doTransform(TransformStepSubject subjectToTransform, InputFingerprinter inputFingerprinter, TransformDependencies dependencies, ImmutableList<File> inputArtifacts) {
@@ -99,7 +99,7 @@ public class TransformStep implements TaskDependencyContainer, Describable {
         for (File inputArtifact : inputArtifacts) {
             Try<ImmutableList<File>> result = transformInvocationFactory
                 .createInvocation(transform, inputArtifact, dependencies, subjectToTransform, inputFingerprinter)
-                .completeAndGet();
+                .get();
 
             if (result.getFailure().isPresent()) {
                 return Cast.uncheckedCast(result);
