@@ -196,7 +196,7 @@ Requesting a framework the build type does not support fails the build and lists
 
 |`java-gradle-plugin`
 |`junit-jupiter`
-|None
+|`spock`
 
 |`kotlin-application`, `kotlin-library`
 |`kotlintest`
@@ -204,7 +204,7 @@ Requesting a framework the build type does not support fails the build and lists
 
 |`kotlin-gradle-plugin`
 |`kotlintest`
-|None
+|`spock`
 
 |`groovy-application`, `groovy-library`, `groovy-gradle-plugin`
 |`spock`
@@ -346,6 +346,10 @@ It has the following features:
 * Has directories in the conventional locations for source code
 * Contains a sample class and unit test, if there are no existing source or test files
 
+An alternative test framework can be specified by supplying a `--test-framework` argument value:
+
+* `gradle init --type java-gradle-plugin --test-framework spock`: Uses https://spockframework.org[Spock] for testing instead of JUnit Jupiter
+
 [[sec:kotlin_application]]
 === `kotlin-application` build type
 
@@ -395,6 +399,10 @@ It has the following features:
 * Uses https://kotlinlang.org/api/latest/kotlin.test/index.html[Kotlin test library] and TestKit for testing
 * Has directories in the conventional locations for source code
 * Contains a sample class and unit test, if there are no existing source or test files
+
+An alternative test framework can be specified by supplying a `--test-framework` argument value:
+
+* `gradle init --type kotlin-gradle-plugin --test-framework spock`: Uses https://spockframework.org[Spock] for testing instead of the Kotlin test library
 
 [[sec:scala_application]]
 === `scala-application` build type
