@@ -160,7 +160,7 @@ fun addDependencies() {
         testRuntimeOnly(testLibs.findLibrary("junitPlatform").get())
 
         // use a separate configuration for the platform dependency that does not get published as part of 'apiElements' or 'runtimeElements'
-        val platformImplementation = configurations.create("platformImplementation")
+        val platformImplementation = configurations.dependencyScope("platformImplementation").get()
         configurations["compileClasspath"].extendsFrom(platformImplementation)
         configurations["runtimeClasspath"].extendsFrom(platformImplementation)
         configurations["testCompileClasspath"].extendsFrom(platformImplementation)

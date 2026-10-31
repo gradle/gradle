@@ -11,9 +11,15 @@ sourceSets {
     }
 }
 
-val reports = configurations.create("reports")
-val flamegraph = configurations.create("flamegraph")
-configurations.compileOnly { extendsFrom(flamegraph) }
+val reports = configurations.dependencyScope("reports")
+val reportsPath = configurations.resolvable("reportsPath") {
+    extendsFrom(reports.get())
+    // flot comes from Maven, whose derived variants only offer Java usages
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+    }
+}
 
 dependencies {
     reports(variantOf(libs.jquery) { artifactType("js") })
@@ -69,19 +75,11 @@ dependencies {
 val reportResources = tasks.register<Copy>("reportResources") {
     group = "build"
     description = "Copies the JavaScript resources used by performance test reports into the generated resources directory."
-    from(reports)
+    from(reportsPath)
     into(layout.buildDirectory.file("generated-resources/report-resources/org/gradle/reporting"))
 }
 
 sourceSets.main {
     output.dir(reportResources.map { it.destinationDir.parentFile.parentFile.parentFile })
-}
-
-tasks.jar {
-    inputs.files(flamegraph)
-        .withPropertyName("flamegraph")
-        .withPathSensitivity(PathSensitivity.RELATIVE)
-
-    from(files(provider{ flamegraph.map { zipTree(it) } }))
 }
 

@@ -43,6 +43,8 @@ dependencies {
 }
 
 configurations.testRuntimeClasspath {
+    // Configuration-level on purpose: the plugin is a direct dependency above and also arrives
+    // through most project dependencies, so only the resolved classpath can drop it everywhere.
     // https://youtrack.jetbrains.com/issue/KT-87492/KGP-jar-bundles-a-partial-and-unshaded-copy-of-org.jetbrains.kotlin.com.intellij.-classes-that-collide-with-kotlin-compiler
     exclude(group = "org.jetbrains.kotlin", module = "kotlin-gradle-plugin")
 }

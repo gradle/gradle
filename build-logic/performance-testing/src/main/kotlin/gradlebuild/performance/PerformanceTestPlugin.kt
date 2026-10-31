@@ -41,6 +41,7 @@ import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.configureTestSourceSetInIde
 import gradlebuild.integrationtests.ide.IdeProvisioningPlugin
 import gradlebuild.integrationtests.ide.androidStudioSystemProperties
+import gradlebuild.configureAsRuntimeJarClasspath
 import gradlebuild.jvm.JvmCompileExtension
 import gradlebuild.performance.Config.performanceTestAndroidStudioJvmArgs
 import gradlebuild.performance.generator.tasks.AbstractProjectGeneratorTask
@@ -95,6 +96,8 @@ object Config {
 @Suppress("unused")
 class PerformanceTestPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
+        pluginManager.apply("java")
+        pluginManager.apply("gradlebuild.jvm-compile")
         val performanceTestSourceSet = createPerformanceTestSourceSet()
         configureTestSourceSetInIde(performanceTestSourceSet)
         addPerformanceTestConfigurationAndDependencies()
@@ -147,7 +150,11 @@ class PerformanceTestPlugin : Plugin<Project> {
         addDependenciesAndConfigurations("performance")
 
         val testLibs = project.the<VersionCatalogsExtension>().named("testLibs")
-        val junit = configurations.create("junit")
+        val junit = configurations.dependencyScope("junit").get()
+        configurations.resolvable("junitClasspath") {
+            extendsFrom(junit)
+            configureAsRuntimeJarClasspath(objects)
+        }
         dependencies {
             if (project.name != "enterprise-plugin-performance") {
                 "performanceTestImplementation"(project(":internal-performance-testing"))
@@ -170,7 +177,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         tasks.withType<JvmProjectGeneratorTask>().configureEach {
-            testDependencies = configurations["junit"]
+            testDependencies = configurations["junitClasspath"]
         }
 
         tasks.withType<TemplateProjectGeneratorTask>().configureEach {

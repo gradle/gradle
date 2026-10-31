@@ -16,9 +16,13 @@
 
 package gradlebuild.docs;
 
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ResolvableConfiguration;
+import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
@@ -74,8 +78,16 @@ public class GradleDslReferencePlugin implements Plugin<Project> {
             task.getDestFile().convention(dslReference.getStagingRoot().file("index.xml"));
         });
 
-        Configuration userGuideTask = project.getConfigurations().create("userGuideTask");
-        Configuration userGuideStyleSheetConf = project.getConfigurations().create("userGuideStyleSheets");
+        Configuration userGuideTask = project.getConfigurations().dependencyScope("userGuideTask").get();
+        Configuration userGuideStyleSheets = project.getConfigurations().dependencyScope("userGuideStyleSheets").get();
+        NamedDomainObjectProvider<ResolvableConfiguration> userGuideTaskClasspath = project.getConfigurations().resolvable("userGuideTaskClasspath", conf -> {
+            conf.extendsFrom(userGuideTask);
+            requestRuntimeLibrary(conf, objects);
+        });
+        NamedDomainObjectProvider<ResolvableConfiguration> userGuideStyleSheetsPath = project.getConfigurations().resolvable("userGuideStyleSheetsPath", conf -> {
+            conf.extendsFrom(userGuideStyleSheets);
+            requestRuntimeLibrary(conf, objects);
+        });
 
         TaskProvider<Docbook2Xhtml> dslHtml = tasks.register("dslHtml", Docbook2Xhtml.class, task -> {
             task.setGroup("documentation");
@@ -85,9 +97,9 @@ public class GradleDslReferencePlugin implements Plugin<Project> {
             task.source(dslStandaloneDocbook);
             task.getStylesheetDirectory().convention(dslReference.getStylesheetDirectory());
             task.getStylesheetHighlightFile().convention(dslReference.getHighlightStylesheet());
-            task.getDocbookStylesheets().from(userGuideStyleSheetConf);
+            task.getDocbookStylesheets().from(userGuideStyleSheetsPath);
 
-            task.getClasspath().from(userGuideTask);
+            task.getClasspath().from(userGuideTaskClasspath);
 
             task.getDestinationDirectory().convention(dslReference.getStagingRoot().dir("dsl"));
         });
@@ -111,6 +123,14 @@ public class GradleDslReferencePlugin implements Plugin<Project> {
 
             dslRef.getRenderedDocumentation().from(dslRef.getResources());
             dslRef.getRenderedDocumentation().from(dslHtml.flatMap(Docbook2Xhtml::getDestinationDirectory));
+        });
+    }
+
+    // The XSLT tools and stylesheets come from Maven, whose derived variants only offer Java usages
+    private static void requestRuntimeLibrary(ResolvableConfiguration conf, ObjectFactory objects) {
+        conf.attributes(a -> {
+            a.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME));
+            a.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.LIBRARY));
         });
     }
 }

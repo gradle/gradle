@@ -19,6 +19,7 @@ import gradlebuild.kotlindsl.generator.tasks.GenerateKotlinDslPluginsExtensions
 
 plugins {
     java
+    kotlin("jvm")
 }
 
 val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin")

@@ -44,12 +44,14 @@ plugins.withId("java-base") {
             }
         }
     }
-    afterEvaluate {
-        // Without afterEvaluate, configurations.all runs before the configurations' roles are set.
-        // This is yet another reason we need configuration factory methods.
-        val jspecify = versionCatalogs.named("libs").findLibrary("jspecify").get().get()
-        configurations.all {
-            if (isCanBeResolved && !isCanBeConsumed) {
+    // Not every context that applies this plugin has the libs catalog
+    versionCatalogs.find("libs").flatMap { it.findLibrary("jspecify") }.ifPresent { jspecifyProvider ->
+        val jspecify = jspecifyProvider.get()
+        configurations.configureEach {
+            // Legacy configurations only lose roles after creation, so this covers every configuration that
+            // ends up resolvable-only; the rest are never resolved. jmh, shadow and gr8Gr are left consumable
+            // and resolvable by third-party plugins, so they are skipped by name.
+            if (isCanBeResolved && name != "jmh" && name != "shadow" && name != "gr8Gr") {
                 resolutionStrategy.dependencySubstitution {
                     substitute(module("${jspecify.group}:${jspecify.name}")).using(variant(module("${jspecify.group}:${jspecify.name}:${jspecify.versionConstraint.requiredVersion}")) {
                         attributes {
