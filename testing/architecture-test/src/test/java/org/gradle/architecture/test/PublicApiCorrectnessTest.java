@@ -27,30 +27,17 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
-import kotlin.Pair;
-import kotlin.Unit;
-import kotlin.jvm.functions.Function1;
-import kotlin.reflect.KClass;
-import kotlin.reflect.KProperty;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
-import org.slf4j.Marker;
-import org.w3c.dom.Element;
 
-import javax.xml.namespace.QName;
-import java.math.BigDecimal;
-import java.net.URI;
-import java.net.URL;
-import java.time.Duration;
-import java.util.function.BiFunction;
+import java.util.List;
 
 import static com.tngtech.archunit.base.DescribedPredicate.describe;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.implement;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
@@ -70,34 +57,27 @@ import static org.gradle.architecture.test.ArchUnitFixture.overrideMethod;
 import static org.gradle.architecture.test.ArchUnitFixture.primitive;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
 import static org.gradle.architecture.test.ArchUnitFixture.useJSpecifyNullable;
+import static org.gradle.architecture.test.PermittedPublicApiTypes.*;
 
 @AnalyzeClasses(packages = "org.gradle")
 public class PublicApiCorrectnessTest {
 
+    // The permitted non-Gradle types are the source of truth in PermittedPublicApiTypes.
     private static final DescribedPredicate<JavaClass> allowed_types_for_public_api =
         gradlePublicApi()
             .or(primitive)
-            // NOTE: we don't want to include java.util.function here because Gradle public API uses custom types like org.gradle.api.Action and org.gradle.api.Spec
-            // Mixing these custom types with java.util.function types would make the public API harder to use, especially for plugin authors.
-            .or(resideInAnyPackage("java.lang", "java.util", "java.util.concurrent", "java.util.regex", "java.lang.reflect", "java.io", "java.nio.file", "java.time")
-                .or(type(byte[].class))
-                .or(type(URI.class))
-                .or(type(URL.class))
-                .or(type(Duration.class))
-                .or(type(BigDecimal.class))
-                .or(type(Element.class))
-                .or(type(QName.class))
-                .or(type(BiFunction.class))
+            .or(resideInAnyPackage(PERMITTED_JDK_PACKAGES.toArray(new String[0]))
+                .or(anyOf(PERMITTED_JDK_TYPES))
                 .as("built-in JDK classes"))
-            .or(type(Function1.class)
-                .or(type(KClass.class))
-                .or(type(KClass[].class))
-                .or(type(KProperty.class))
-                .or(type(Pair.class))
-                .or(type(Pair[].class))
-                .or(type(Unit.class))
-                .as("Kotlin classes"))
-            .or(type(Marker.class).as("slf4j classes"));
+            .or(anyOf(PERMITTED_KOTLIN_TYPES).as("Kotlin classes"))
+            .or(anyOf(PERMITTED_SLF4J_TYPES).as("slf4j classes"));
+
+    private static DescribedPredicate<JavaClass> anyOf(List<Class<?>> types) {
+        return types.stream()
+            .map(JavaClass.Predicates::type)
+            .reduce((left, right) -> left.or(right))
+            .orElseThrow(() -> new IllegalArgumentException("At least one type must be provided"));
+    }
 
     private static final DescribedPredicate<JavaClass> public_api_tasks_or_plugins =
             gradlePublicApi().and(assignableTo(Task.class).or(assignableTo(Plugin.class)));
