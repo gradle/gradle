@@ -247,6 +247,7 @@ class KnownProblemIds {
         'Gradle:Build Logic:Unsupported vararg type': ['Unsupported vararg type'],
 
         // dependency resolution failures
+        'Dependencies:Graph Resolution:Project coordinate collision': ['Project coordinate collision'],
         'Dependencies:Graph Resolution:Configuration selected by name is not compatible': ['Configuration selected by name is not compatible'],
         'Dependencies:Graph Resolution:Configuration selected by name is not consumable': ['Configuration selected by name is not consumable'],
         'Dependencies:Graph Resolution:Configuration selected by name does not exist': ['Configuration selected by name does not exist'],
