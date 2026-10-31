@@ -28,7 +28,7 @@ All examples on this page target the current major version, `v6`.
 | Action | Purpose
 
 | link:https://github.com/gradle/actions/tree/main/setup-gradle[`gradle/actions/setup-gradle`]
-| Configures the runner for Gradle builds. Restores and saves the Gradle User Home cache, validates the Gradle Wrapper, and captures Build Scan® links in the job summary.
+| Configures the runner for Gradle builds. Restores and saves the Gradle User Home cache, validates the Gradle Wrapper, and captures <<build_scans.adoc#build_scans,Build Scan®>> links in the job summary.
 
 | link:https://github.com/gradle/actions/tree/main/dependency-submission[`gradle/actions/dependency-submission`]
 | Generates a dependency graph for the project and submits it to the GitHub Dependency Submission API, enabling Dependabot alerts and supply-chain security features.
@@ -112,7 +112,7 @@ jobs:
 | Required when `build-scan-publish` is enabled. Set the URL to `https://gradle.com/terms-of-service` and agreement to `yes`.
 
 | `develocity-access-key`
-| Access key for publishing Build Scans to a private Develocity server. Provide via `secrets`.
+| Access key for publishing Build Scans to a private link:https://develocity.ai/[Develocity] server. Provide via `secrets`.
 
 | `add-job-summary`
 | Controls the GitHub Actions job summary produced by the action: `always` (default), `on-failure`, or `never`.
@@ -219,7 +219,7 @@ See the link:https://github.com/gradle/actions/blob/main/docs/dependency-submiss
 [[github_actions_build_scans]]
 == Build Scans in job summaries
 
-When `setup-gradle` or `dependency-submission` detects a published Build Scan, it appends the scan link and a task-execution summary to the GitHub Actions job summary. Use `add-job-summary-as-pr-comment: on-failure` to surface the same information on the pull request when a build fails.
+When `setup-gradle` or `dependency-submission` detects a published <<build_scans.adoc#build_scans,Build Scan>>, it appends the scan link and a task-execution summary to the GitHub Actions job summary. Use `add-job-summary-as-pr-comment: on-failure` to surface the same information on the pull request when a build fails.
 
 [[github_actions_matrix_builds]]
 == Matrix builds
