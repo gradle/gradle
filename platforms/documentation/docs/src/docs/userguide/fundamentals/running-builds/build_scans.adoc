@@ -46,11 +46,11 @@ $ ./gradlew build --scan
 
 You may be prompted to agree to the terms to use Build Scan.
 
-Visit link:https://scans.gradle.com/[Develocity at gradle.com] to learn more.
+Visit link:https://scans.gradle.com/[Develocity] to learn more.
 
 === Publishing to a specific Develocity server
 
-If you have a Develocity server, you can publish your Build Scan reports to that server instead of link:https://scans.gradle.com/[Develocity at gradle.com].
+If you have a Develocity server, you can publish your Build Scan reports to that server instead of link:https://scans.gradle.com/[Develocity].
 
 You enable this with the `--develocity-url` command line option:
 
