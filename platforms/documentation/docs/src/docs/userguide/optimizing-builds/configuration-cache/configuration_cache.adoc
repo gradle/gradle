@@ -164,15 +164,6 @@ A Configuration Cache entry stores:
 
 For the precise contents and how they're written to disk, see <<config_cache:intro:serialization, Serialization>>.
 
-[TIP]
-.Using the Configuration Cache on CI?
-====
-Ephemeral agents start cold on every run.
-Develocity Setup Cache restores Gradle's configuration phase on each agent, with no changes to build scripts.
-
-link:https://develocity.ai/product/setup-cache/[How Setup Cache works]
-====
-
 [[config_cache:intro:build_configuration_inputs]]
 === Build Configuration Inputs
 
@@ -421,3 +412,11 @@ To enable it for a specific run configuration:
 3. Navigate to `Project Settings`, check `Override project settings`, and add the same system property as a `JVM argument`.
 
 Using these methods together, you can enable the Configuration Cache globally while disabling it for certain run configurations, or vice versa.
+
+[[config_cache:ci]]
+== Using the Configuration Cache on CI
+
+Ephemeral CI runners start each build without the Configuration Cache entries from previous builds, so every build runs the configuration phase.
+On these runners, consider <<configuration_cache_enabling.adoc#config_cache:usage:read_only,making the Configuration Cache read-only>>, since an entry stored on a miss is discarded with the runner.
+
+link:https://develocity.ai/product/setup-cache/[Develocity Setup Cache] restores Configuration Cache entries on fresh CI runners, with no changes to build scripts.

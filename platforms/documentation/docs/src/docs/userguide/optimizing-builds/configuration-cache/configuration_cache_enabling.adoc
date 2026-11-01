@@ -133,6 +133,8 @@ NOTE: While incubating, this option delivers less than its full benefit unless p
 
 In some builds, such as CI builds running in ephemeral environments, it may be desirable for Gradle to use the Configuration Cache only when there's a cache hit.
 If there's a miss, caching offers no benefit since the disk state won't be preserved across builds.
+To restore Configuration Cache entries on fresh CI machines, use link:https://develocity.ai/product/setup-cache/[Develocity Setup Cache].
+See <<configuration_cache.adoc#config_cache:ci,Using the Configuration Cache on CI>>.
 
 To enable read-only configuration caching at build time, use:
 
@@ -161,15 +163,6 @@ Read-only mode is intended for environments where the cache directory is not pre
 It is *not* a mechanism for catching Configuration Cache problems in build logic.
 On a cache miss, read-only mode skips serialization entirely so the build runs as fast as possible, which means any execution-time Configuration Cache violations in your build logic will not be detected.
 Use the default mode if your goal is to verify that your build is Configuration Cache compatible.
-====
-
-[TIP]
-.Using the Configuration Cache on CI?
-====
-Ephemeral agents start cold on every run.
-Develocity Setup Cache restores Gradle's configuration phase on each agent, with no changes to build scripts.
-
-link:https://develocity.ai/product/setup-cache/[How Setup Cache works]
 ====
 
 [[config_cache:stable]]

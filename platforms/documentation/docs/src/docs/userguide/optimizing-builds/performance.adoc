@@ -276,6 +276,7 @@ You can use:
 * A local Build Cache to speed up repeated builds on the same machine.
 * A shared Build Cache to accelerate builds across multiple machines.
 ** https://develocity.ai/product/build-cache/[Develocity provides] a shared Cache solution for CI and developer builds.
+Develocity link:https://develocity.ai/product/universal-cache/[Universal Cache] also caches dependencies and build setup across CI runs.
 
 When the build cache flag is used on our reference project, the build (`./gradlew clean build --build-cache`) time is *5 seconds*:
 
@@ -283,14 +284,6 @@ image::performance/performance-5.png[]
 
 For more information about the Build Cache, check out the
 <<build_cache_use_cases.adoc#use_cases_cache,Build Cache documentation>>.
-
-[TIP]
-.Speeding up builds for a whole team?
-====
-Develocity caches dependencies, build setup and task outputs across every CI run, so work done once is not repeated.
-
-link:https://develocity.ai/product/universal-cache/[Explore Universal Cache]
-====
 
 [[visualize_build_cache_with_build_scan]]
 === Visualize the Build Cache with Build Scan
@@ -792,7 +785,8 @@ Tests that share state or resources may fail intermittently due to race conditio
 [TIP]
 .Test parallelism capped by a single machine?
 ====
-Develocity Test Distribution runs the tests of a single build across a shared pool of remote agents, both locally and on CI.
+`maxParallelForks` is limited to the cores of one machine.
+Develocity Test Distribution removes that limit by running the tests of a single build across a shared pool of machines, both locally and on CI.
 
 link:https://develocity.ai/product/test-distribution/[Learn about Test Distribution]
 ====
