@@ -19,6 +19,9 @@
 This chapter provides the information you need to migrate your Gradle 9.x.y builds to the latest.
 For migrating to Gradle 9.0.0, see the <<upgrading_major_version_9.adoc#upgrading_major_version_9, older migration guide>> first.
 
+NOTE: As soon as Gradle 11.0.0 ships, no security or bug fixes will be made on any release of Gradle 9.
+If you want to receive fixes for these versions, take a look at the https://gradle.org/security-subscription/[Gradle Security Subscription].
+
 We recommend the following steps for all users:
 
 . Try running `gradle help --scan` and view the https://docs.develocity.ai/gradle/current/getting-started/#identifying-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
