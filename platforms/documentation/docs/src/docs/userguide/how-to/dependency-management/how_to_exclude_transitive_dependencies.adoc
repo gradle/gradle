@@ -109,9 +109,6 @@ Now `commons-collections` AND `commons-collections4` are **fully excluded** from
 include::sample[dir="snippets/how-to/dependency-management/dependency-management/exclude-transitives/tests",files="dependencies-extra-excluded.out"]
 ====
 
-TIP: A link:https://develocity.ai/product/build-scan/[Build Scan] shows the same dependency tree in a browser, including version conflicts.
-See <<viewing_debugging_dependencies.adoc#sec:dependencies-build-scans,Get a holistic view using Build Scan>>.
-
 [[sec:exclude_summary]]
 == Summary
 

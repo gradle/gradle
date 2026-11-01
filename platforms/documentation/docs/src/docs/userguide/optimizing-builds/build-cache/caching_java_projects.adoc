@@ -18,9 +18,6 @@
 As of Gradle 4.0, the build tool fully supports caching plain Java projects.
 Built-in tasks for compiling, testing, documenting and checking the quality of Java code support the build cache out of the box.
 
-TIP: When a Java task misses the cache unexpectedly, a link:https://develocity.ai/product/build-scan/[Build Scan] comparison shows which input changed.
-See <<build_cache_debugging.adoc#diagnosing_cache_miss,Diagnosing the reasons for a cache miss>>.
-
 [[java_compilation]]
 == Java compilation
 
@@ -89,6 +86,9 @@ If this happens to be a zip or tar archive, then adding it as an input to the in
 This is because, as described in <<build_cache_concepts.adoc#concepts_repeatable_task_outputs,repeatable task outputs>>, rebuilding an archive often changes the metadata in the archive.
 You can depend on the exploded contents of the archive instead.
 See also the section on dealing with <<common_caching_problems.adoc#volatile_outputs,non-repeatable outputs>>.
+
+TIP: When a Java task misses the cache unexpectedly, a link:https://develocity.ai/product/build-scan/[Build Scan] comparison shows which input changed.
+See <<build_cache_debugging.adoc#diagnosing_cache_miss,Diagnosing the reasons for a cache miss>>.
 
 [[dealing_with_file_paths]]
 === Dealing with file paths
