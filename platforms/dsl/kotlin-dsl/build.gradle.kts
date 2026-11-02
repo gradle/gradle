@@ -190,7 +190,7 @@ configurations.testImplementation {
 }
 tasks.shadowJar {
     archiveClassifier = ""
-    configurations = setOf(project.configurations.shadow.get())
+    configurations = project.configurations.shadow.map { setOf(it) }
     relocate("kotlin.metadata", "org.gradle.kotlin.dsl.internal.relocated.kotlin.metadata")
     relocate("kotlinx.metadata", "org.gradle.kotlin.dsl.internal.relocated.kotlinx.metadata")
 
