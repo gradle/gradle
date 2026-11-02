@@ -27,21 +27,21 @@ If it doesn't explain the failure, add detail with <<sec:getting_more_failure_de
 [[sec:reading_the_failure_report]]
 === Reading the failure report
 
-In the following build, the `packageApp` task zips a file that the `generateVersion` task writes, but doesn't declare a dependency on `generateVersion`:
+The following build registers a `packageApp` task:
 
 ====
-include::sample[dir="snippets/troubleshooting/implicitDependency/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/troubleshooting/implicitDependency/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/troubleshooting/taskNotFound/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/troubleshooting/taskNotFound/groovy",files="build.gradle[]"]
 ====
 
-Running both tasks fails with this report:
+Running it with a misspelled task name fails with this report:
 
 [source,bash]
 ----
-$ ./gradlew generateVersion packageApp
+$ ./gradlew pakageApp
 ----
 ====
-include::sample[dir="snippets/troubleshooting/implicitDependency/tests",files="implicitDependency.out"]
+include::sample[dir="snippets/troubleshooting/taskNotFound/tests",files="taskNotFound.out"]
 ====
 
 The report has up to three parts:
@@ -58,6 +58,7 @@ A message that starts with `Execution failed for task` means the failure happene
 `Try`::
 Suggested next steps.
 Gradle and plugins can add suggestions specific to the failure.
+In the report above, the first two suggestions are specific to the missing task.
 When a reported problem includes its own solution, Gradle shows it in `What went wrong` and omits the generic `--stacktrace` and logging suggestions.
 
 If you run with <<command_line_interface.adoc#sec:continue_build_on_failure,`--continue`>> and several tasks fail, the report starts with `Build completed with N failures.` and lists each failure separately.
