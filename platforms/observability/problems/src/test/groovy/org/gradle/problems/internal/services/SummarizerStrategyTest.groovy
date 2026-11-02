@@ -24,7 +24,6 @@ import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DefaultProblem
 import org.gradle.api.problems.internal.DefaultProblemDefinition
 import org.gradle.api.problems.internal.DefaultStackTraceLocation
-import org.gradle.api.problems.internal.DefaultTaskLocation
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.util.ConcurrentSpecification
 
@@ -47,16 +46,11 @@ class SummarizerStrategyTest extends ConcurrentSpecification {
         )
     }
 
-    // Builds problems that are equal in content (no exception, so hashCode collides) but differ only
-    // by the task location. This isolates the task path as the distinguishing factor for deduplication.
-    private static createTestProblemFromTask(String id, String taskPath) {
-        createTestProblemWithContextualLocations(id, [new DefaultTaskLocation(taskPath)])
-    }
-
-    private static createTestProblemWithContextualLocations(String id, List<ProblemLocation> contextualLocations) {
+    // No exception, so the hash codes of problems with the same details collide.
+    private static createProblemWithoutException(String details = 'description', List<ProblemLocation> contextualLocations = []) {
         new DefaultProblem(
             new DefaultProblemDefinition(
-                ProblemId.create('message', "displayName", ProblemGroup.create(id, "Generic")),
+                ProblemId.create('message', "displayName", ProblemGroup.create("id", "Generic")),
                 Severity.ERROR,
                 Documentation.userManual('id')
             ),
@@ -64,7 +58,7 @@ class SummarizerStrategyTest extends ConcurrentSpecification {
             [],
             [],
             contextualLocations,
-            'description',
+            details,
             null,
             null,
             false
@@ -83,7 +77,7 @@ class SummarizerStrategyTest extends ConcurrentSpecification {
         repeatitions.times {
             def problem = createTestProblem("$it")
             startSynchronizedNTimes(parallelExecutions) {
-                results.add(strategy.shouldEmit(problem))
+                results.add(strategy.shouldEmit(problem, null))
             }
             finished()
         }
@@ -97,33 +91,77 @@ class SummarizerStrategyTest extends ConcurrentSpecification {
     def "identical problems reported from different tasks are both emitted"() {
         given:
         def strategy = new SummarizerStrategy(4)
-        def fromDebug = createTestProblemFromTask("id", ":compileDebugKotlin")
-        def fromRelease = createTestProblemFromTask("id", ":compileReleaseKotlin")
+        def problem = createProblemWithoutException()
 
         expect:
-        strategy.shouldEmit(fromDebug)
-        strategy.shouldEmit(fromRelease)
+        strategy.shouldEmit(problem, ":compileDebugKotlin")
+        strategy.shouldEmit(problem, ":compileReleaseKotlin")
     }
 
     def "identical problems reported from the same task are deduplicated"() {
         given:
         def strategy = new SummarizerStrategy(4)
-        def first = createTestProblemFromTask("id", ":compileDebugKotlin")
-        def second = createTestProblemFromTask("id", ":compileDebugKotlin")
 
         expect:
-        strategy.shouldEmit(first)
-        !strategy.shouldEmit(second)
+        strategy.shouldEmit(createProblemWithoutException(), ":compileDebugKotlin")
+        !strategy.shouldEmit(createProblemWithoutException(), ":compileDebugKotlin")
     }
 
     def "identical problems reached through different stack traces are deduplicated"() {
         given:
         def strategy = new SummarizerStrategy(4)
-        def first = createTestProblemWithContextualLocations("id", [new DefaultStackTraceLocation(null, [new StackTraceElement("Outer", "report", "Outer.java", 1)])])
-        def second = createTestProblemWithContextualLocations("id", [new DefaultStackTraceLocation(null, [new StackTraceElement("Included", "report", "Included.java", 2)])])
+        def first = createProblemWithoutException('description', [new DefaultStackTraceLocation(null, [new StackTraceElement("Outer", "report", "Outer.java", 1)])])
+        def second = createProblemWithoutException('description', [new DefaultStackTraceLocation(null, [new StackTraceElement("Included", "report", "Included.java", 2)])])
 
         expect:
-        strategy.shouldEmit(first)
-        !strategy.shouldEmit(second)
+        strategy.shouldEmit(first, null)
+        !strategy.shouldEmit(second, null)
+    }
+
+    def "the threshold applies per task"() {
+        given:
+        def strategy = new SummarizerStrategy(1)
+        def problem = createProblemWithoutException()
+        def otherProblem = createProblemWithoutException('other')
+
+        expect: "any number of tasks can report the same problem"
+        strategy.shouldEmit(problem, ":a")
+        strategy.shouldEmit(problem, ":b")
+        strategy.shouldEmit(problem, ":c")
+        strategy.getCutOffProblems().empty
+
+        and: "a task is cut off at the threshold"
+        !strategy.shouldEmit(otherProblem, ":a")
+
+        and: "another task is not affected"
+        strategy.shouldEmit(otherProblem, ":d")
+    }
+
+    def "problems reported outside a task share one threshold"() {
+        given:
+        def strategy = new SummarizerStrategy(1)
+
+        expect:
+        strategy.shouldEmit(createProblemWithoutException(), null)
+        !strategy.shouldEmit(createProblemWithoutException('other'), null)
+    }
+
+    def "the summary adds up what was cut off across tasks"() {
+        given:
+        def strategy = new SummarizerStrategy(1)
+        def problem = createProblemWithoutException()
+
+        when:
+        [":a", ":b"].each { task ->
+            strategy.shouldEmit(problem, task)
+            strategy.shouldEmit(createProblemWithoutException('other'), task)
+            strategy.shouldEmit(createProblemWithoutException('another'), task)
+        }
+        def cutOff = strategy.getCutOffProblems()
+
+        then:
+        cutOff.size() == 1
+        cutOff.first().problemId == problem.definition.id
+        cutOff.first().count == 4
     }
 }

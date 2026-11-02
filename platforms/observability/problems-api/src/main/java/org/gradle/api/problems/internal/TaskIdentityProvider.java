@@ -31,5 +31,5 @@ public interface TaskIdentityProvider {
      * @return the task identity or {@code null}, if the operation is not running in the context  of a task
      */
     @Nullable
-    TaskIdentity taskIdentityFor(OperationIdentifier id);
+    TaskIdentity taskIdentityFor(@Nullable OperationIdentifier id);
 }

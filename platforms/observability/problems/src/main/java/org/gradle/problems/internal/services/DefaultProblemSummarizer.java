@@ -78,9 +78,9 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
 
     @Override
     public void emit(ProblemInternal problem, @Nullable OperationIdentifier id) {
-        // Attach the task location before the deduplication check so that identical problems reported by different tasks are not treated as duplicates.
-        problem = maybeAddTaskLocation(problem, id);
-        if (summarizerStrategy.shouldEmit(problem)) {
+        String taskPath = getTaskPath(id);
+        if (summarizerStrategy.shouldEmit(problem, taskPath)) {
+            problem = maybeAddTaskLocation(problem, taskPath);
             problemReportCreator.addProblem(problem);
             for (ProblemEmitter problemEmitter : problemEmitters) {
                 problemEmitter.emit(problem, id);
@@ -88,10 +88,14 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         }
     }
 
-    private ProblemInternal maybeAddTaskLocation(ProblemInternal problem, @Nullable OperationIdentifier id) {
+    private @Nullable String getTaskPath(@Nullable OperationIdentifier id) {
         TaskIdentity taskIdentity = taskProvider.taskIdentityFor(id);
-        if (taskIdentity != null) {
-            problem = problem.toBuilder(new ProblemsInfrastructure(null, null, null, null, null, null, null)).taskLocation(taskIdentity.getTaskPath()).build();
+        return taskIdentity == null ? null : taskIdentity.getTaskPath();
+    }
+
+    private static ProblemInternal maybeAddTaskLocation(ProblemInternal problem, @Nullable String taskPath) {
+        if (taskPath != null) {
+            problem = problem.toBuilder(new ProblemsInfrastructure(null, null, null, null, null, null, null)).taskLocation(taskPath).build();
         }
         return problem;
     }
