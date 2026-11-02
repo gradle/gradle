@@ -43,6 +43,7 @@ import gradlebuild.integrationtests.ide.IdeProvisioningPlugin
 import gradlebuild.integrationtests.ide.androidStudioSystemProperties
 import gradlebuild.configureAsRuntimeJarClasspath
 import gradlebuild.jvm.JvmCompileExtension
+import gradlebuild.jvm.argumentproviders.lazySystemProperty
 import gradlebuild.performance.Config.performanceTestAndroidStudioJvmArgs
 import gradlebuild.performance.generator.tasks.AbstractProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask
@@ -245,9 +246,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             inputs.files(performanceSourceSet.runtimeClasspath).withNormalizer(ClasspathNormalizer::class)
             inputs.file(performanceScenarioJson.absolutePath)
             inputs.file(tmpPerformanceScenarioJson.absolutePath)
-            project.toolchainInstallationPaths.orNull?.apply {
-                systemProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY, this)
-            }
+            lazySystemProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY).set(project.toolchainInstallationPaths)
         }
     }
 
@@ -265,9 +264,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             systemProperty("org.gradle.performance.scenario.json", outputJson.absolutePath)
             systemProperty("org.gradle.performance.develocity.plugin.infoDir", projectDir.absolutePath)
 
-            project.toolchainInstallationPaths.orNull?.apply {
-                systemProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY, this)
-            }
+            lazySystemProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY).set(project.toolchainInstallationPaths)
 
             outputs.cacheIf { false }
             outputs.file(outputJson)
