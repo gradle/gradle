@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.execution
 
-import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.jetbrains.kotlin.lexer.KtTokens.DOT
 import org.jetbrains.kotlin.lexer.KtTokens.LBRACE
 import org.jetbrains.kotlin.lexer.KtTokens.RBRACE
@@ -150,8 +149,8 @@ val pluginsBlockParser = run {
             zip(symbol("`kotlin-dsl`"), optionalApply) { _, a ->
                 ResidualProgram.PluginRequestSpec(
                     "org.gradle.kotlin.kotlin-dsl",
-                    expectedKotlinDslPluginsVersion,
-                    apply = a ?: true
+                    apply = a ?: true,
+                    expectedKotlinDslPluginsVersion = true
                 )
             }
         }

@@ -33,6 +33,7 @@ import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.SetupEmbedded
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
+import org.gradle.kotlin.dsl.support.KOTLIN_DSL_PLUGINS_VERSION_OVERRIDE_PROPERTY
 import org.gradle.plugin.management.internal.PluginRequests
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -309,6 +310,42 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
                 listOf(ResidualProgram.PluginRequestSpec("stage-1")),
                 source = Program.Plugins(fragment)
             )
+        )
+    }
+
+    @Test
+    fun `Static(ApplyPluginRequests(kotlin-dsl)) requests the kotlin-dsl version that is expected when the program runs`() {
+        val fragment = fragmentAtLine(1, "plugins", """`kotlin-dsl`""")
+        val scriptHost = scriptHostWith(target = mock<Project>())
+        val capturedPluginRequests = mutableListOf<PluginRequests>()
+        val programHost = safeMockProgramHost {
+            on { applyPluginsTo(same(scriptHost), any()) } doAnswer {
+                capturedPluginRequests.add(it.getArgument(1))
+                Unit
+            }
+        }
+
+        withExecutableProgramFor(
+            Static(
+                ApplyPluginRequests(
+                    listOf(ResidualProgram.PluginRequestSpec("org.gradle.kotlin.kotlin-dsl", expectedKotlinDslPluginsVersion = true)),
+                    source = Program.Plugins(fragment)
+                ),
+                ApplyBasePlugins
+            ),
+            programTarget = ProgramTarget.Project
+        ) {
+            val previous = System.setProperty(KOTLIN_DSL_PLUGINS_VERSION_OVERRIDE_PROPERTY, "1.2.3")
+            try {
+                execute(programHost, scriptHost)
+            } finally {
+                if (previous == null) System.clearProperty(KOTLIN_DSL_PLUGINS_VERSION_OVERRIDE_PROPERTY) else System.setProperty(KOTLIN_DSL_PLUGINS_VERSION_OVERRIDE_PROPERTY, previous)
+            }
+        }
+
+        assertThat(
+            capturedPluginRequests.single().single().version,
+            equalTo("1.2.3")
         )
     }
 
