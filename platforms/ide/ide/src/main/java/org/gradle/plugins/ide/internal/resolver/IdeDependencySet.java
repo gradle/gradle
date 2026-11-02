@@ -91,7 +91,8 @@ public class IdeDependencySet {
 
     /**
      * Visits the resolved artifacts of the given plus configurations, without artifacts
-     * present in the given minus configurations. Artifacts resolved only from test
+     * present in the given minus configurations and without any artifact of a project
+     * present in them. Artifacts resolved only from test
      * configurations are marked as test-only.
      */
     public void visit(
@@ -162,8 +163,14 @@ public class IdeDependencySet {
             for (Configuration configuration : minusConfigurations) {
                 ArtifactCollection artifacts = getResolvedArtifacts(configuration, visitor);
                 for (ResolvedArtifactResult resolvedArtifact : artifacts) {
-                    resolvedArtifacts.remove(resolvedArtifact.getId());
-                    configurations.removeAll(resolvedArtifact.getId());
+                    ComponentIdentifier componentIdentifier = resolvedArtifact.getId().getComponentIdentifier();
+                    if (componentIdentifier instanceof ProjectComponentIdentifier) {
+                        resolvedArtifacts.keySet().removeIf(id -> id.getComponentIdentifier().equals(componentIdentifier));
+                        configurations.keySet().removeIf(id -> id.getComponentIdentifier().equals(componentIdentifier));
+                    } else {
+                        resolvedArtifacts.remove(resolvedArtifact.getId());
+                        configurations.removeAll(resolvedArtifact.getId());
+                    }
                 }
                 if (artifacts.getFailures().isEmpty()) {
                     continue;
