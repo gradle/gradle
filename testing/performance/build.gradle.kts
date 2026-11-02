@@ -29,6 +29,9 @@ dependencies {
     performanceTestLocalRepository(projects.toolingApi) {
         because("IDE tests use the Tooling API.")
     }
+    performanceTestLocalRepository(projects.kotlinDslPlugins) {
+        because("Builds that apply kotlin-dsl need the plugins built against the Kotlin under test.")
+    }
 }
 
 dependencyAnalysis {
