@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.jvm.toolchain.JdkRepository
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.InstalledJdkTestPreconditions
@@ -82,7 +83,7 @@ org.gradle.java.installations.auto-detect=false
 
             repositories {
                 ${mavenCentralRepository()}
-                maven { url = '${buildContext.localRepository.toURI()}' }
+                ${RepoScriptBlockUtil.localRepositoriesDefinition()}
             }
 
             tasks.register('runToolingApiClient', JavaExec) {
