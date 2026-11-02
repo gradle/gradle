@@ -83,6 +83,10 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     private final DependencyToComponentIdResolver idResolver;
     private final ComponentMetaDataResolver metaDataResolver;
     private final Deque<NodeState> queue;
+    /**
+     * Nodes whose inherited strict versions must be reset before the next node is visited.
+     */
+    private final Deque<NodeState> strictVersionResets = new ArrayDeque<>();
     private final ConflictResolution conflictResolution;
     private final ImmutableAttributes consumerAttributes;
     private final ImmutableAttributesSchema consumerSchema;
@@ -277,6 +281,21 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         if (node.enqueue()) {
             queue.addFirst(node);
         }
+    }
+
+    /**
+     * Called when a change may make the strict versions a node inherits from its ancestors larger.
+     * Queues the node to have them reset before the next node is visited.
+     */
+    public void resetStrictVersions(NodeState node) {
+        strictVersionResets.addLast(node);
+    }
+
+    /**
+     * Takes the next node queued by {@link #resetStrictVersions(NodeState)}, or returns null if there is none.
+     */
+    public @Nullable NodeState pollStrictVersionReset() {
+        return strictVersionResets.pollFirst();
     }
 
     public ImmutableAttributes getConsumerAttributes() {

@@ -56,7 +56,7 @@ import java.util.function.Consumer;
  */
 public class ModuleResolveState implements CandidateModule {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModuleResolveState.class);
-    private static final int MAX_SELECTION_CHANGE = 1000;
+    private static final int MAX_SELECTION_CHANGE = 50;
 
     private final ResolveState resolveState;
     private final ModuleIdentifier id;

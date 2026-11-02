@@ -130,6 +130,10 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
                 expectGetMetadata()
                 expectGetArtifact()
             }
+            id("org:foo:1.0") {
+                // Selected while bar's request for foo is still ignored for the strict version of platform:1.0
+                expectGetMetadata()
+            }
             'org:foo:2.0' {
                 expectGetMetadata()
                 expectGetArtifact()
