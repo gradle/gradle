@@ -7,34 +7,38 @@ version = "2026.1"
 
 /*
 
-Master (buildTypeId: Gradle_Master)
- |----- Check (buildTypeId: Gradle_Master_Check)
- |        |---- QuickFeedbackLinux (buildTypeId: Gradle_Master_Check_QuickFeedbackLinux)
+Master (projectId: Gradle_Master)
+ |----- Check (projectId: Gradle_Master_Check)
+ |        |---- QuickFeedbackLinuxOnly (projectId: Gradle_Master_Check_Stage_QuickFeedbackLinuxOnly)
  |        |---- QuickFeedback
  |        |---- ...
- |        |---- ReadyForRelease
+ |        |---- ReadyforRelease
  |
- |----- Promotion (buildTypeId: Gradle_Master_Promotion)
+ |----- Promotion (projectId: Gradle_Master_Promotion)
  |        |----- Nightly Snapshot
  |        |----- ...
  |
  |----- Util
-         |----- WarmupEc2Agent
-         |----- AdHocPerformanceTest
+ |        |----- WarmupEc2Agent
+ |
+ |----- Performance
+         |----- AdHocPerformanceScenarioLinux
 
-Release (buildTypeId: Gradle_Release)
- |----- Check (buildTypeId: Gradle_Release_Check)
- |        |---- QuickFeedbackLinux (buildTypeId: Gradle_Release_Check_QuickFeedbackLinux)
+Release (projectId: Gradle_Release)
+ |----- Check (projectId: Gradle_Release_Check)
+ |        |---- QuickFeedbackLinuxOnly (projectId: Gradle_Release_Check_Stage_QuickFeedbackLinuxOnly)
  |        |---- QuickFeedback
  |        |---- ...
- |        |---- ReadyForRelease
+ |        |---- ReadyforRelease
  |
- |----- Promotion (buildTypeId: Gradle_Release_Promotion)
+ |----- Promotion (projectId: Gradle_Release_Promotion)
  |        |----- Nightly Snapshot
  |        |----- ...
  |
  |----- Util
-         |----- WarmupEc2Agent
-         |----- AdHocPerformanceTest
+ |        |----- WarmupEc2Agent
+ |
+ |----- Performance
+         |----- AdHocPerformanceScenarioLinux
  */
 project(GradleBuildToolRootProject(VersionedSettingsBranch.fromDslContext()))
