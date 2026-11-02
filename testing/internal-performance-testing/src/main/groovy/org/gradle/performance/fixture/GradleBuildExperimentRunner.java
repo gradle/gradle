@@ -229,7 +229,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             cleanTasks.isEmpty()
                 ? BuildAction.NO_OP
                 : new RunTasksAction(cleanTasks),
-            withExtraRepositories(invocationSpec.getArgs()),
+            withExtraRepositories(invocationSpec.getArgs(), gradleDistribution.getVersion().equals(IntegrationTestBuildContext.INSTANCE.getVersion())),
             invocationSettings.getSystemProperties(),
             collectMutators(invocationSettings, experimentSpec),
             invocationSettings.getWarmUpCount(),
@@ -241,13 +241,16 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         );
     }
 
-    private static List<String> withExtraRepositories(List<String> args) {
+    private static List<String> withExtraRepositories(List<String> args, boolean versionUnderTest) {
         ImmutableList.Builder<String> result = ImmutableList.<String>builder().addAll(args);
         File initScript = RepoScriptBlockUtil.extraRepositoriesInitScriptFile();
         if (initScript != null) {
             result.add("--init-script=" + initScript.getAbsolutePath());
         }
-        result.addAll(RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsArguments());
+        // Only the Gradle version under development expects the locally built Kotlin DSL plugins
+        if (versionUnderTest) {
+            result.addAll(RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsArguments());
+        }
         return result.build();
     }
 
