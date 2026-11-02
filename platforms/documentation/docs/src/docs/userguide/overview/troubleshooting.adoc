@@ -27,32 +27,28 @@ If it doesn't explain the failure, add detail with <<sec:getting_more_failure_de
 [[sec:reading_the_failure_report]]
 === Reading the failure report
 
-The following report comes from a build script that reads a missing project property:
+In the following build, the `packageApp` task zips a file that the `generateVersion` task writes, but doesn't declare a dependency on `generateVersion`:
 
-[source,text]
+====
+include::sample[dir="snippets/troubleshooting/implicitDependency/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/troubleshooting/implicitDependency/groovy",files="build.gradle[]"]
+====
+
+Running both tasks fails with this report:
+
+[source,bash]
 ----
-FAILURE: Build failed with an exception.
-
-* Where:
-Build file '/home/user/my-project/build.gradle.kts' line: 6
-
-* What went wrong:
-null cannot be cast to non-null type kotlin.String
-
-* Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
-> Run with --scan to get full insights from a Build Scan (powered by Develocity).
-> Get more help at https://help.gradle.org.
-
-BUILD FAILED in 818ms
+$ ./gradlew generateVersion packageApp
 ----
+====
+include::sample[dir="snippets/troubleshooting/implicitDependency/tests",files="implicitDependency.out"]
+====
 
-The report has up to four parts:
+The report has up to three parts:
 
 `Where`::
 The build script and line number that caused the failure.
-Gradle only shows this part when it can trace the failure to a script.
+Gradle only shows this part when it can trace the failure to a line in a script, so the report above doesn't have it.
 
 `What went wrong`::
 The error message.
@@ -64,10 +60,6 @@ Suggested next steps.
 Gradle and plugins can add suggestions specific to the failure.
 When a reported problem includes its own solution, Gradle shows it in `What went wrong` and omits the generic `--stacktrace` and logging suggestions.
 
-`Exception is`::
-The stack trace.
-Gradle only shows this part when you run with `--stacktrace` or `--full-stacktrace`.
-
 If you run with <<command_line_interface.adoc#sec:continue_build_on_failure,`--continue`>> and several tasks fail, the report starts with `Build completed with N failures.` and lists each failure separately.
 
 [[sec:getting_more_failure_detail]]
@@ -76,11 +68,8 @@ If you run with <<command_line_interface.adoc#sec:continue_build_on_failure,`--c
 Add these options to the failing command to get more information:
 
 `--stacktrace` or `-s`::
-Prints the stack trace with Groovy runtime frames removed.
-Use this option first; the remaining frames usually point to the failing code.
-
-`--full-stacktrace` or `-S`::
-Prints the unfiltered stack trace.
+Adds the stack trace to the report, in an `Exception is` section.
+Use this option first; the stack trace usually points to the failing code.
 
 `--info` or `--debug`::
 Increases the log level so you can see what Gradle and your build logic did before the failure.
@@ -150,7 +139,7 @@ If you followed the <<installation.adoc#installation,installation instructions>>
 
 If you installed Gradle outside of just invoking the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>>, you can check your Gradle installation by running `gradle --version` in a terminal.
 
-You should see something like this:
+You should see something like this, followed by details about the Gradle build, the JVM, and your operating system:
 
 [source,bash]
 ----
@@ -161,16 +150,6 @@ $ gradle --version
 ------------------------------------------------------------
 Gradle {gradleVersion}
 ------------------------------------------------------------
-
-Build time:    2025-05-13 06:56:13 UTC
-Revision:      3c890746756262d3778e12eaa5155d661d7cbdf2
-
-Kotlin:        2.1.21
-Groovy:        4.0.28
-Ant:           Apache Ant(TM) version 1.10.15 compiled on August 25 2024
-Launcher JVM:  22.0.1 (Oracle Corporation 22.0.1+8-16)
-Daemon JVM:    Compatible with Java 17, any vendor, nativeImageCapable=false (from gradle/gradle-daemon-jvm.properties)
-OS:            Mac OS X 15.5 aarch64
 ----
 
 If not, here are some things you might see instead.
