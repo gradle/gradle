@@ -134,6 +134,9 @@ NOTE: While incubating, this option delivers less than its full benefit unless p
 In some builds, such as CI builds running in ephemeral environments, it may be desirable for Gradle to use the Configuration Cache only when there's a cache hit.
 If there's a miss, caching offers no benefit since the disk state won't be preserved across builds.
 
+TIP: To restore Configuration Cache entries on fresh CI machines, use link:https://develocity.ai/product/setup-cache/[Develocity Setup Cache].
+See <<configuration_cache.adoc#config_cache:ci,Using the Configuration Cache on CI>>.
+
 To enable read-only configuration caching at build time, use:
 
 [source,bash]

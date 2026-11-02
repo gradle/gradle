@@ -276,6 +276,7 @@ You can use:
 * A local Build Cache to speed up repeated builds on the same machine.
 * A shared Build Cache to accelerate builds across multiple machines.
 ** https://develocity.ai/product/build-cache/[Develocity provides] a shared Cache solution for CI and developer builds.
+Develocity link:https://develocity.ai/product/universal-cache/[Universal Cache] also caches dependencies and build setup across CI runs.
 
 When the build cache flag is used on our reference project, the build (`./gradlew clean build --build-cache`) time is *5 seconds*:
 
@@ -305,6 +306,14 @@ image::performance/timeline-not-cacheable.png[title="Timeline screen with 'not c
 
 To identify optimization opportunities, sort tasks by duration in the timeline view.
 The Build Scan above reveals that `:task1` and `:task3` could be improved and made cacheable, while also explaining why Gradle didn’t cache them.
+
+[TIP]
+.Too many cache misses to fix by hand?
+====
+Develocity Build Caching Optimizer diagnoses cache misses from Build Scan data and opens a pull request with the fix.
+
+link:https://develocity.ai/product/build-caching-optimizer/[See Build Caching Optimizer]
+====
 
 [[enable_configuration_cache]]
 == 5. Enable the Configuration Cache
@@ -739,6 +748,15 @@ image::performance/tests-longest.png[title="Tests screen, with tests by project,
 
 The image above shows the interactive test report from a Build Scan, sorted by test duration.
 
+[TIP]
+.Running the full test suite on every change?
+====
+Develocity Predictive Test Selection runs only the tests relevant to a change and skips the rest.
+A model trained on your build history selects the tests, and recently failed or flaky tests always run.
+
+link:https://develocity.ai/product/predictive-test-selection/[How Predictive Test Selection works]
+====
+
 Gradle offers several strategies to speed up test execution:
 
 * A. Run tests in parallel
@@ -763,6 +781,15 @@ include::sample[dir="snippets/optimizing-builds/parallelTestExecution/groovy",fi
 Parallel test execution assumes that tests are isolated.
 Avoid shared resources such as file systems, databases, or external services.
 Tests that share state or resources may fail intermittently due to race conditions or resource conflicts.
+
+[TIP]
+.Test parallelism capped by a single machine?
+====
+`maxParallelForks` is limited to the cores of one machine.
+Develocity Test Distribution removes that limit by running the tests of a single build across a shared pool of machines, both locally and on CI.
+
+link:https://develocity.ai/product/test-distribution/[Learn about Test Distribution]
+====
 
 [[fork_tests_into_multiple_processes]]
 ==== B. Fork tests into multiple processes
