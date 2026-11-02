@@ -565,7 +565,7 @@ enum class TestType(
     QUICK_FEEDBACK_CROSS_VERSION(false, false, true),
 
     // Cross version tests select all versions to cover when run as part of this stage
-    ALL_VERSIONS_CROSS_VERSION(false, false, true, 240),
+    ALL_VERSIONS_CROSS_VERSION(false, false, true, 300),
 
     // run integMultiVersionTest with all version to cover
     ALL_VERSIONS_INTEG_MULTI_VERSION(false, true, false),
