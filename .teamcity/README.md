@@ -8,20 +8,20 @@ In your IDEA, `File` - `Open`, select `.teamcity/pom.xml`, `import as project`, 
 
 Mostly a standard Maven project structure. The entry point `settings.kts` defines the TeamCity project.
 
-There are 3 subprojects in the TeamCity project hierarchy: `Check` for Gradle builds, `Promotion` for releasing Gradle versions, `Util` for miscellaneous utilities.
+There are 4 subprojects in the TeamCity project hierarchy: `Check` for Gradle builds, `Promotion` for releasing Gradle versions, `Util` for miscellaneous utilities, `Performance` for ad-hoc performance tests.
 
 ## Develop and verify
 
 After you make a change, you can run `mvn clean teamcity-configs:generate` to generate and verify the generated TeamCity configuration XMLs.
 
-You also need to run `mvn clean verify` with Java 8 before committing changes.
+You also need to run `mvn clean verify` with Java 21 before committing changes.
 
-If you have ktlint errors, you can automatically fix them by running `mvn com.github.gantsign.maven:ktlint-maven-plugin:1.1.1:format`.
+If you have ktlint errors, you can automatically fix them by running `mvn ktlint:format`.
 
 ## How the configuration works
 
 We use Kotlin portable DSL to store TeamCity configuration, which means you can easily create a new pipeline
-based on a specific branch. Currently, we have two pipelines: `master` and `release`, but you can easily create
+based on a specific branch. Currently, we have pipelines for `master`, `release`, and a few other branches, but you can easily create
 and test another isolated pipeline from any branch. 
 
 We'll explain everything via an example. Let's say you make some changes on your branch `myTestBranch`
@@ -38,7 +38,7 @@ test these changes without affecting `master`/`release` pipeline. Here are the i
 - Click `Versioned Settings` on the left sidebar.
   - Select `Synchronization enabled` - `use settings from VCS` - `MyNewVcsRoot`(the one you just created) - `Settings format: Kotlin`, then `Apply`.
 - At the popup window, click `Import Settings from VCS`. Wait a few seconds. 
-  - If the error says "Context Parameter 'Branch' missing", it's ok. Click into the error and add a context parameter `Branch` with value `myTestBranch`. Go back and it automatically reloads.
+  - If the error says "Context Parameter 'branch' missing", it's ok. Click into the error and add a context parameter `branch` with value `myTestBranch`. Go back and it automatically reloads.
   - If there are any errors, read the error and fix your code.
   - IMPORTANT NOTE: if the first import fails, you have to select and apply `Synchronization disabled`, then repeat the step above.
     Otherwise, TeamCity complains "Can't find the previous revision, please commit current settings first".
@@ -56,17 +56,20 @@ Gradle
 |                
 |------ MyTestBranch
         |---------- Check
-        |           |--------- QuickFeedbackLinux
-        |           |--------- QuickFeedback
+        |           |--------- Quick Feedback - Linux Only
+        |           |--------- Quick Feedback
         |           |--------- ...
-        |           |--------- ReadyForRelease
+        |           |--------- Ready for Release
         |
         |---------- Promotion
-        |           |--------- Publish Nightly Snapshot
-        |           |--------- Publish Branch Snapshot
+        |           |--------- Nightly Snapshot
+        |           |--------- Publish Branch Snapshot (from Quick Feedback)
         |           |--------- ...
         |
         |---------- Util
+        |           |--------- ...
+        |
+        |---------- Performance
                     |--------- ...
 ```
 
