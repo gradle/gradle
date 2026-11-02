@@ -46,7 +46,6 @@ with(layout.rootDirectory) {
         buildEnvironmentExtension.gitBranch = service.flatMap { it.gitBranch }
         buildEnvironmentExtension.scriptTemplateCommitId = service.flatMap { it.scriptTemplateCommitId }
         buildEnvironmentExtension.buildTimestamp = service.flatMap { it.buildTimestamp }
-        buildEnvironmentExtension.repoRoot = this@with
         buildEnvironmentExtension.rootProjectBuildDir = service.flatMap { it.parameters.rootProjectBuildDir }
     }
 }
