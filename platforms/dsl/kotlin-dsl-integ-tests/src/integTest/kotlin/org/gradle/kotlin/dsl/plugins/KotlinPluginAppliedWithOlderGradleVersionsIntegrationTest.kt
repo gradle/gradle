@@ -209,6 +209,8 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
             .noDeprecationChecks() // KGP emits deprecation warnings that vary by version and are not what we test here.
             .withStackTraceChecksDisabled() // The Kotlin compiler daemon intermittently crashes and logs a stack trace before falling back; that's not what we test here.
             .run()
+
+        pluginsDirectoryProvider.testDirectory.file("maven-repo/com/example/plugin/$pluginVersion/plugin-$pluginVersion.jar").assertIsFile()
     }
 
     private fun applyPlugin(jdk: Jvm): ExecutionResult {
