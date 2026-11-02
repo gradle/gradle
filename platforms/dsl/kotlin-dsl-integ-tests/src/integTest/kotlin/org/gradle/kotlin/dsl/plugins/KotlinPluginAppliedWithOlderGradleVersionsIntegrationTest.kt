@@ -116,7 +116,7 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
         val result = applyPlugin(applyJdk)
 
         result.assertOutputContains("My Kotlin plugin applied!")
-        result.assertOutputContains("My task executed!")
+        result.assertOutputContains("My task executed with message: Hello from the consumer")
     }
 
     private fun buildPlugin(jdk: Jvm) {
@@ -185,12 +185,18 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
 
             import org.gradle.api.Plugin
             import org.gradle.api.Project
+            import org.gradle.api.provider.Property
+
+            abstract class MyExtension {
+                abstract val message: Property<String>
+            }
 
             class MyPlugin : Plugin<Project> {
                 override fun apply(project: Project) {
                     println("My Kotlin plugin applied!")
+                    val extension = project.extensions.create("myExtension", MyExtension::class.java)
                     project.tasks.register("myTask") { task ->
-                        task.doLast { println("My task executed!") }
+                        task.doLast { println("My task executed with message: " + extension.message.get()) }
                     }
                 }
             }
@@ -221,6 +227,11 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
             """
             plugins {
                 id("my-plugin") version "$pluginVersion"
+            }
+
+            // Makes the older Gradle compile against the plugin's types, which reads their Kotlin metadata.
+            myExtension {
+                message.set("Hello from the consumer")
             }
             """
         )
