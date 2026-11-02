@@ -161,6 +161,7 @@ include::{snippetsPath}/best-practices/useBuildCache-do/tests/useBuildCache-do.s
 === References
 
 - <<build_cache.adoc#sec:build_cache_intro,Build Cache Overview>>
+- link:https://develocity.ai/product/build-cache/[Develocity Build Cache]
 
 === Tags
 
