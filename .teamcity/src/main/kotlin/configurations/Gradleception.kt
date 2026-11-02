@@ -89,7 +89,7 @@ class Gradleception(
         val buildWithBuiltGradleParameters =
             "-Pgradle_installPath=dogfood-second -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp2 $defaultParameters"
         val verifyCacheHits = buildJvm == BuildToolBuildJvm && bundleGroovyMajor == null
-        val cacheHitVerificationDir = "%teamcity.build.tempDir%/gradleception-cache-hit-verification"
+        val cacheHitVerificationDir = "%system.teamcity.build.tempDir%/gradleception-cache-hit-verification"
         val cacheHitVerificationParameters =
             "--init-script gradle/gradleception-cache-hits.init.gradle.kts -Dgradleception.buildCacheDir=$cacheHitVerificationDir/build-cache"
 
