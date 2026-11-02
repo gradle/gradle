@@ -45,9 +45,9 @@ import org.junit.runners.Parameterized
  * Building the plugin targets the Kotlin language version of the older Gradle versions.
  * The consumer script uses the plugin's types, so the older Gradle must read the plugin's Kotlin metadata.
  *
- * Gradle versions: the oldest and the latest released minor of each group, each with its latest patch, from Gradle 7.2 on.
+ * Gradle versions: the oldest and the latest released minor of each group, each with its latest patch, from Gradle 7.0 on.
  * A group is the Gradle versions of one major that target the same Kotlin language version.
- * With 9.8.2 as the latest release, this gives 7.2, 7.6.6, 8.0.2, 8.14.6, 9.0.0 and 9.8.2.
+ * With 9.8.2 as the latest release, this gives 7.0.2, 7.6.6, 8.0.2, 8.14.6, 9.0.0 and 9.8.2.
  * The oldest minor of a group embeds the oldest Kotlin of that group, so it is the most likely to fail.
  * The latest minor covers the other end.
  * The minors in between add little, because changes on the consumer side happen mostly at major boundaries.
@@ -73,7 +73,7 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
 
         private val builtPluginVersions = mutableSetOf<String>()
 
-        private val oldestTestedGradleVersion = GradleVersion.version("7.2")
+        private val oldestTestedGradleVersion = GradleVersion.version("7.0")
 
         // The newest KGP that can still target the given Kotlin language version.
         private val kgpVersionByKotlinLanguageVersion = mapOf(
