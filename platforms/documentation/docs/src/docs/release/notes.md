@@ -25,6 +25,7 @@ In [CLI, logging, and problem reporting](#cli-logging-and-problem-reporting), th
 Finally, the [User Manual](#documentation-and-training) is now available as Markdown, so AI agents and other tools can read it directly, and includes a new chapter on securing Gradle builds.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Aurimas](https://github.com/liutikas),
 [devareddy05](https://github.com/devareddy05),
 [DragonFSKY](https://github.com/DragonFSKY),
 [fru1tworld](https://github.com/fru1tworld),
@@ -32,6 +33,7 @@ We would like to thank the following community members for their contributions t
 [Jeremy Schoemaker](https://github.com/shoemoney),
 [John Burns](https://github.com/wakingrufus),
 [Labh R Jethe](https://github.com/itsCodeTide),
+[Marcin Mycek](https://github.com/Herudaio),
 [monkey](https://github.com/Develop-KIM),
 [Nelson Osacky](https://github.com/runningcode),
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
