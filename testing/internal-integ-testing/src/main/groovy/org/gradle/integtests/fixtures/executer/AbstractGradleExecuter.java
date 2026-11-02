@@ -1218,6 +1218,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         properties.put(DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY, "" + (daemonIdleTimeoutSecs * 1000));
         properties.put(DaemonBuildOptions.BaseDirOption.GRADLE_PROPERTY, daemonBaseDir.getAbsolutePath());
+
+        // The Kotlin Build Tools API reads its default daemon run dir from user.home only once per class loader,
+        // and KGP keeps that class loader across the builds of a Gradle daemon, which can have different user homes.
+        // One shared dir outside all test dirs stops a build from starting a Kotlin daemon in the deleted user home of an earlier test.
+        // See: https://youtrack.jetbrains.com/issue/KT-91113/
+        properties.put("kotlin.daemon.custom.run.files.path.for.tests", buildContext.getDaemonBaseDir().file("kotlin").getAbsolutePath());
+
         if (!noExplicitNativeServicesDir) {
             properties.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
         }
