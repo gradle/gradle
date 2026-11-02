@@ -19,6 +19,7 @@ package model
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import configurations.ParallelizationMethod
 import java.io.File
 
 /**
@@ -34,13 +35,15 @@ import java.io.File
  * are simply not matched against, they never fail the generation.
  */
 class PreviousBucketLayout(
-    private val slotsByCoverageUuid: Map<Int, List<Set<String>>>,
+    private val bucketsByCoverageUuid: Map<Int, List<FunctionalTestBucket>>,
 ) {
     /**
      * The subprojects of each bucket of the given test coverage, in slot order.
      * Empty when the coverage did not appear in the previous layout, which means "no constraint".
      */
-    fun slotsFor(testCoverageUuid: Int): List<Set<String>> = slotsByCoverageUuid[testCoverageUuid] ?: emptyList()
+    fun slotsFor(testCoverageUuid: Int): List<Set<String>> = bucketsFor(testCoverageUuid).map { it.subprojects }
+
+    fun bucketsFor(testCoverageUuid: Int): List<FunctionalTestBucket> = bucketsByCoverageUuid[testCoverageUuid] ?: emptyList()
 
     companion object {
         val EMPTY = PreviousBucketLayout(emptyMap())
@@ -51,25 +54,31 @@ class PreviousBucketLayout(
             }
             return try {
                 val coverages: List<Map<String, Any>> = ObjectMapper().registerKotlinModule().readValue(jsonFile.readText())
-                val slotsByCoverageUuid = mutableMapOf<Int, List<Set<String>>>()
+                val bucketsByCoverageUuid = mutableMapOf<Int, List<FunctionalTestBucket>>()
                 coverages.forEach { coverage ->
                     val uuid = coverage["testCoverageUuid"]?.toString()?.toIntOrNull()
                     val buckets = coverage["buckets"] as? List<*>
                     if (uuid != null && buckets != null) {
-                        slotsByCoverageUuid[uuid] =
-                            buckets.map { bucket ->
-                                ((bucket as? Map<*, *>)?.get("subprojects") as? List<*>)
-                                    ?.map { it.toString() }
-                                    ?.toSet()
-                                    ?: emptySet()
-                            }
+                        bucketsByCoverageUuid[uuid] = buckets.map { readBucket(it as? Map<*, *>) }
                     }
                 }
-                PreviousBucketLayout(slotsByCoverageUuid)
+                PreviousBucketLayout(bucketsByCoverageUuid)
             } catch (e: Exception) {
                 println("Ignoring unreadable previous bucket layout in ${jsonFile.absolutePath}: $e")
                 EMPTY
             }
+        }
+
+        private fun readBucket(bucket: Map<*, *>?): FunctionalTestBucket {
+            val subprojects = (bucket?.get("subprojects") as? List<*>)?.map { it.toString() } ?: emptyList()
+            val parallelizationMethod =
+                try {
+                    @Suppress("UNCHECKED_CAST")
+                    ParallelizationMethod.fromJson((bucket ?: emptyMap<String, Any>()) as Map<String, Any>)
+                } catch (e: Exception) {
+                    ParallelizationMethod.None
+                }
+            return FunctionalTestBucket(subprojects, parallelizationMethod)
         }
     }
 }
