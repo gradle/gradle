@@ -419,4 +419,4 @@ Using these methods together, you can enable the Configuration Cache globally wh
 Ephemeral CI runners start each build without the Configuration Cache entries from previous builds, so every build runs the configuration phase.
 On these runners, consider <<configuration_cache_enabling.adoc#config_cache:usage:read_only,making the Configuration Cache read-only>>, since an entry stored on a miss is discarded with the runner.
 
-link:https://develocity.ai/product/setup-cache/[Develocity Setup Cache] restores Configuration Cache entries on fresh CI runners, with no changes to build scripts.
+TIP: link:https://develocity.ai/product/setup-cache/[Develocity Setup Cache] restores Configuration Cache entries on fresh CI runners, with no changes to build scripts.
