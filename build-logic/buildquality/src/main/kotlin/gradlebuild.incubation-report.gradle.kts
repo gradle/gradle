@@ -31,8 +31,8 @@ val reportTask = tasks.register<IncubatingApiReportTask>("incubationReport") {
     title = project.name
     versionFile = repoRoot().file("version.txt")
     releasedVersionsFile = releasedVersionsFile()
-    sources.from(sourceSets.main.get().java.sourceDirectories)
-    sources.from(sourceSets.main.get().groovy.sourceDirectories)
+    sources.from(sourceSets.main.map { it.java.sourceDirectories })
+    sources.from(sourceSets.main.map { it.groovy.sourceDirectories })
     htmlReportFile = file(layout.buildDirectory.file("reports/incubation/${project.name}.html"))
     textReportFile = file(layout.buildDirectory.file("reports/incubation/${project.name}.txt"))
 }

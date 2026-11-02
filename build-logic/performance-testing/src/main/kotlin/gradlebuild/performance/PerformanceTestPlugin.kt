@@ -352,10 +352,11 @@ class PerformanceTestPlugin : Plugin<Project> {
 private
 fun Project.performanceReportZipTaskFor(performanceReport: TaskProvider<out PerformanceTestReport>): TaskProvider<Zip> =
     tasks.register("${performanceReport.name}ResultsZip", Zip::class) {
-        from(performanceReport.get().reportDir.locationOnly) {
+        from(performanceReport.flatMap { it.reportDir.locationOnly }) {
             into("report")
         }
-        from(performanceReport.get().performanceResults) {
+        from(performanceReport.flatMap { it.performanceResultsDirectory }) {
+            include("**/*.json")
             into("perf-results")
         }
         destinationDirectory = layout.buildDirectory
@@ -518,7 +519,7 @@ class PerformanceTestExtension(
     private
     fun Project.testResultsZipTaskFor(performanceTest: TaskProvider<out PerformanceTest>): TaskProvider<Zip> =
         tasks.register("${performanceTest.name}ResultsZip", Zip::class) {
-            val junitXmlDir = performanceTest.get().reports.junitXml.outputLocation.asFile.get()
+            val junitXmlDir = performanceTest.flatMap { it.reports.junitXml.outputLocation.locationOnly }
             from(junitXmlDir) {
                 include("**/TEST-*.xml")
                 includeEmptyDirs = false
@@ -538,7 +539,7 @@ class PerformanceTestExtension(
                 rename(Config.performanceTestResultsJsonName, "perf-results-${performanceTest.name}.json")
             }
             destinationDirectory = project.layout.buildDirectory
-            archiveFileName = "test-results-${junitXmlDir.name}.zip"
+            archiveFileName = junitXmlDir.map { "test-results-${it.asFile.name}.zip" }
             isZip64 = true
         }
 }
