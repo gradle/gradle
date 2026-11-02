@@ -34,7 +34,7 @@ val reportTask = tasks.register<NextMajorRemovalReportTask>("nextMajorRemovalRep
     description = "Generates a report of deprecations scheduled for removal / to become an error in the next major Gradle version"
     title = project.name
     targetMajorVersion = nextMajor
-    sources.from(sourceSets.main.get().java.sourceDirectories)
+    sources.from(sourceSets.main.map { it.java.sourceDirectories })
     htmlReportFile = file(layout.buildDirectory.file("reports/removal/${project.name}.html"))
     textReportFile = file(layout.buildDirectory.file("reports/removal/${project.name}.txt"))
 }

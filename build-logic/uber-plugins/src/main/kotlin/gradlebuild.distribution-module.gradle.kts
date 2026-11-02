@@ -63,7 +63,7 @@ pluginManager.withPlugin("gradlebuild.java-library") {
     }
 
     val extractJavaAbi = tasks.register<ExtractJavaAbi>("extractJavaAbi") {
-        classesDirectories = sourceSets.main.get().output.classesDirs
+        classesDirectories.from(sourceSets.main.map { it.output.classesDirs })
         outputDirectory = layout.buildDirectory.dir("generated/java-abi")
         extractorClasspath.from(extractorClasspathConfig)
     }

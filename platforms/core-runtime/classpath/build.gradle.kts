@@ -9,8 +9,8 @@ description = "Classpath manipulation, instrumentation, and bytecode transformat
 // Instrumentation interceptors for tests
 // Separated from the test source set since we don't support incremental annotation processor with Java/Groovy joint compilation
 val testInterceptors = sourceSets.create("testInterceptors") {
-    compileClasspath += sourceSets.main.get().output
-    runtimeClasspath += sourceSets.main.get().output
+    compileClasspath += files(sourceSets.main.map { it.output })
+    runtimeClasspath += files(sourceSets.main.map { it.output })
 }
 
 configureTestSourceSetInIde(testInterceptors)
