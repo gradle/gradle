@@ -104,9 +104,10 @@ val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsIn
 
 val copyTestedVersionsInfo = tasks.register<Copy>("copyTestedVersionsInfo") {
     group = "build"
-    description = "Copies the AGP, Kotlin and smoke-tested plugin version properties into the generated resources directory."
+    description = "Copies the AGP, Kotlin, embedded Kotlin and smoke-tested plugin version files into the generated resources directory."
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties"))
+    from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/embedded-kotlin-versions.csv"))
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/smoke-tested-plugins.properties"))
     into(layout.buildDirectory.dir("generated-resources/tested-versions"))
 }

@@ -108,6 +108,9 @@ gradleDocumentation {
         groovyApi = libs.versions.groovy.map { v -> project.uri("https://docs.groovy-lang.org/docs/groovy-$v/html/gapi") }
         groovyPackageListSrc = libs.versions.groovy.map { v -> "org.apache.groovy:groovy-all:$v:groovydoc" }
     }
+    userManual {
+        resources.from(repoRoot().file("gradle/dependency-management/embedded-kotlin-versions.csv"))
+    }
 }
 
 // Use the version of Gradle being built, not the version of Gradle used to build,

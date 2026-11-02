@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
+import org.gradle.integtests.fixtures.versions.EmbeddedKotlinVersions
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
@@ -52,46 +53,45 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
 
         private val builtPluginVersions = mutableSetOf<String>()
 
-        // Gradle versions grouped by the Kotlin language version their own kotlin-dsl targets.
-        private val gradleVersionsByKotlinLanguageVersion = mapOf(
-            "1.4" to listOf("7.2", "7.6"),
-            "1.8" to listOf("8.0", "8.7", "8.9", "8.10", "8.11", "8.12", "8.13", "8.14"),
-            "2.2" to latestReleasedPatchOfEachMinor(9),
-        )
+        private val oldestTestedGradleVersion = GradleVersion.version("7.2")
 
         // The newest KGP that can still target the given Kotlin language version.
         private val kgpVersionByKotlinLanguageVersion = mapOf(
             "1.4" to "1.9.22",
             "1.8" to "2.2.21",
-            "2.2" to embeddedKotlinVersion,
+            KOTLIN_DSL_LANGUAGE_VERSION to embeddedKotlinVersion,
         )
 
         @Parameterized.Parameters(name = "KGP {1} targeting Kotlin {2} applied on Gradle {0}")
         @JvmStatic
         fun scenarios(): List<Array<Any>> {
-            checkScenariosDoNotNeedManualFixing()
-            return gradleVersionsByKotlinLanguageVersion.flatMap { (kotlinLanguageVersion, gradleVersions) ->
-                gradleVersions.map { gradleVersion ->
-                    arrayOf(gradleVersion, kgpVersionByKotlinLanguageVersion.getValue(kotlinLanguageVersion), kotlinLanguageVersion)
+            val embeddedKotlinVersions = EmbeddedKotlinVersions()
+            checkCompatibilityMatrixMatchesKotlinDsl(embeddedKotlinVersions)
+            return latestReleasedPatchOfEachMinorSince(oldestTestedGradleVersion).map { gradleVersion ->
+                val kotlinLanguageVersion = embeddedKotlinVersions.kotlinLanguageVersionOf(gradleVersion)
+                val kgpVersion = checkNotNull(kgpVersionByKotlinLanguageVersion[kotlinLanguageVersion]) {
+                    "Gradle ${gradleVersion.version} targets Kotlin $kotlinLanguageVersion. " +
+                        "Add the newest KGP version that can still target Kotlin $kotlinLanguageVersion to kgpVersionByKotlinLanguageVersion."
                 }
+                arrayOf(gradleVersion.version, kgpVersion, kotlinLanguageVersion)
             }
         }
 
-        private fun checkScenariosDoNotNeedManualFixing() {
-            check(GradleVersion.current().majorVersion == 9 && KOTLIN_DSL_LANGUAGE_VERSION == "2.2") {
-                "Gradle ${GradleVersion.current().version} targets Kotlin $KOTLIN_DSL_LANGUAGE_VERSION, " +
-                        "but the Kotlin 2.2 scenarios are derived from all released Gradle 9 versions."
+        private fun checkCompatibilityMatrixMatchesKotlinDsl(embeddedKotlinVersions: EmbeddedKotlinVersions) {
+            val documented = embeddedKotlinVersions.kotlinLanguageVersionOf(GradleVersion.current())
+            check(documented == KOTLIN_DSL_LANGUAGE_VERSION) {
+                "The compatibility matrix says that Gradle ${GradleVersion.current().version} targets Kotlin $documented, " +
+                    "but the Kotlin DSL targets Kotlin $KOTLIN_DSL_LANGUAGE_VERSION. Update gradle/dependency-management/embedded-kotlin-versions.csv."
             }
         }
 
-        private fun latestReleasedPatchOfEachMinor(major: Int): List<String> =
+        private fun latestReleasedPatchOfEachMinorSince(oldest: GradleVersion): List<GradleVersion> =
             ReleasedVersionDistributions().all
                 .map { it.version }
-                .filter { it.majorVersion == major && it == it.baseVersion }
-                .groupBy { VersionNumber.parse(it.version).minor }
+                .filter { it == it.baseVersion && it >= oldest }
+                .groupBy { it.majorVersion to VersionNumber.parse(it.version).minor }
                 .map { (_, versions) -> versions.max() }
                 .sorted()
-                .map { it.version }
     }
 
     private val pluginVersion = "1.0-kgp$kgpVersion-kotlin$kotlinLanguageVersion"
