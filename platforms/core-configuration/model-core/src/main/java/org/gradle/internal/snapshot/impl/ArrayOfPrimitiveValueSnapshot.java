@@ -82,7 +82,7 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        hasher.putString(getClass().getName());
+        ValueSnapshotType.ARRAY_OF_PRIMITIVE.appendTo(hasher);
         hasher.putInt(primitiveType.ordinal());
         primitiveType.appendTo(hasher, array);
     }

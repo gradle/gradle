@@ -26,7 +26,7 @@ public class HashCodeSnapshot extends AbstractIsolatableScalarValue<HashCode> {
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        hasher.putString(getClass().getName());
+        ValueSnapshotType.HASH_CODE.appendTo(hasher);
         hasher.putHash(getValue());
     }
 }

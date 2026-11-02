@@ -65,7 +65,7 @@ public class FileValueSnapshot extends AbstractScalarValueSnapshot<String> imple
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        hasher.putString(getClass().getName());
+        ValueSnapshotType.FILE.appendTo(hasher);
         SnapshotHashing.putString(hasher, getValue());
     }
 }

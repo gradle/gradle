@@ -25,7 +25,7 @@ public class StringValueSnapshot extends AbstractIsolatableScalarValue<String> {
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        hasher.putString(getClass().getName());
+        ValueSnapshotType.STRING.appendTo(hasher);
         SnapshotHashing.putString(hasher, getValue());
     }
 }

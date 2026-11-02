@@ -25,7 +25,7 @@ public class IntegerValueSnapshot extends AbstractIsolatableScalarValue<Integer>
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        hasher.putString(getClass().getName());
+        ValueSnapshotType.INTEGER.appendTo(hasher);
         hasher.putInt(getValue());
     }
 }

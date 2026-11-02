@@ -31,7 +31,7 @@ public class AttributeDefinitionSnapshot extends AbstractIsolatableScalarValue<A
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        hasher.putString(getClass().getName());
+        ValueSnapshotType.ATTRIBUTE.appendTo(hasher);
         SnapshotHashing.putString(hasher, getValue().getName());
         Class<?> type = getValue().getType();
         ImplementationSnapshot.of(type, classLoaderHasher).appendToHasher(hasher);

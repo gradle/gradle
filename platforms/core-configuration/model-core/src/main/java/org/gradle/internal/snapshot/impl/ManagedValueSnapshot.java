@@ -62,7 +62,7 @@ public class ManagedValueSnapshot extends AbstractManagedValueSnapshot<ValueSnap
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        hasher.putString(getClass().getName());
+        ValueSnapshotType.MANAGED.appendTo(hasher);
         SnapshotHashing.putString(hasher, className);
         state.appendToHasher(hasher);
     }
