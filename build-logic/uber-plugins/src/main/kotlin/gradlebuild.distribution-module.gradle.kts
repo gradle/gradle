@@ -23,10 +23,14 @@ import org.jetbrains.kotlin.gradle.tasks.BaseKotlinCompile
 
 // Common configuration for everything that belongs to the Gradle distribution
 plugins {
+    id("gradlebuild.module-identity")
     id("gradlebuild.minify")
     id("gradlebuild.task-properties-validation")
     id("gradlebuild.dependency-modules")
 }
+
+// Distribution modules opt out of the public API jars with `gradleModule { publicApiStubs = false }`
+// rather than by removing apiStubElements, which would realize it first.
 
 // Disallow Groovy production code in distribution modules
 pluginManager.withPlugin("groovy") {
@@ -66,7 +70,7 @@ pluginManager.withPlugin("gradlebuild.java-library") {
 
     configurations {
         named("apiStubElements") {
-            outgoing.artifact(extractJavaAbi)
+            outgoing.artifacts(gradleModule.publicApiStubs.map { if (it) listOf(extractJavaAbi) else emptyList() })
         }
     }
 }
@@ -109,7 +113,7 @@ pluginManager.withPlugin("gradlebuild.kotlin-library") {
 
         configurations {
             named("apiStubElements") {
-                outgoing.artifact(abiClassesDirectory) {
+                outgoing.artifacts(gradleModule.publicApiStubs.map { if (it) listOf(abiClassesDirectory) else emptyList() }) {
                     builtBy(target.compilations.named("main").flatMap { it.compileTaskProvider })
                 }
             }

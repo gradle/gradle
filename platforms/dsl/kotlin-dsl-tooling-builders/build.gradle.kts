@@ -56,6 +56,9 @@ dependencies {
 }
 
 gradleModule {
+    // Kotlin DSL tooling builders should not be part of the public API
+    publicApiStubs = false
+
     requiredRuntimes {
         daemon = true
     }
@@ -66,7 +69,3 @@ gradleModule {
 }
 
 testFilesCleanup.reportOnly = true
-
-// Kotlin DSL tooling builders should not be part of the public API
-// TODO Find a way to not register this and the task instead
-configurations.remove(configurations.apiStubElements.get())
