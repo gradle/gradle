@@ -16,6 +16,7 @@
 
 package gradlebuild.nomoduleannotation
 
+import gradlebuild.basics.classanalysis.zipEntryBaseTimestamp
 import org.gradle.api.artifacts.transform.CacheableTransform
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
@@ -75,7 +76,7 @@ abstract class NoModuleAnnotation : TransformAction<NoModuleAnnotation.Parameter
         JarFile(inputFile).use { inputJar ->
             JarOutputStream(outputFile.outputStream().buffered()).use { outputJar ->
                 inputJar.entries().iterator().forEach { entry ->
-                    outputJar.putNextEntry(JarEntry(entry.name))
+                    outputJar.putNextEntry(JarEntry(entry.name).apply { time = zipEntryBaseTimestamp })
                     inputJar.getInputStream(entry).use { entryInput ->
                         if (entry.name.endsWith(".class")) {
                             transformClass(entryInput, outputJar)
