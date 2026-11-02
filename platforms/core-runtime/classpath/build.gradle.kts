@@ -29,7 +29,7 @@ jvmCompile {
 }
 
 val testInterceptorsImplementation = configurations.getByName("testInterceptorsImplementation") {
-    extendsFrom(configurations.implementation.get())
+    extendsFrom(configurations.implementation)
 }
 
 dependencies {

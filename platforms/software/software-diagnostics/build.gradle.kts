@@ -11,7 +11,7 @@ dependency management types should be included here."""
 
 val implementationResources = configurations.dependencyScope("implementationResources")
 val implementationResourcesPath = configurations.resolvable("implementationResourcesPath") {
-    extendsFrom(implementationResources.get())
+    extendsFrom(implementationResources)
     // jquery comes from the googleApisJs Ivy repository, which has no metadata, so its only variant carries no
     // attributes and this request does not change what is selected. It is declared so the resolvable states what
     // it wants, and so it keeps resolving if jquery moves to a Maven repository, as flot already has.

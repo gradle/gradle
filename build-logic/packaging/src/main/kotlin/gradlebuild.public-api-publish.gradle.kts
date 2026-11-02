@@ -46,15 +46,15 @@ val externalRuntimeOnly = configurations.dependencyScope("externalRuntimeOnly") 
     dependencies.add(project.dependencies.create(project.dependencies.platform(project(":distributions-dependencies"))))
 }
 val externalRuntimeClasspath = configurations.resolvable("externalRuntimeClasspath") {
-    extendsFrom(externalApi.get())
-    extendsFrom(externalRuntimeOnly.get())
+    extendsFrom(externalApi)
+    extendsFrom(externalRuntimeOnly)
     configureAsRuntimeJarClasspath(objects)
 }
 
 // The legacy variant inherits everything in the public API, minus the relocated impldeps qdox and javaparser-core.
 val legacyExternalApi = configurations.dependencyScope("legacyExternalApi") {
     description = "External dependencies that the legacy public Gradle API depends on"
-    extendsFrom(externalApi.get())
+    extendsFrom(externalApi)
     exclude(module = "qdox")
     exclude(module = "javaparser-core")
 }
@@ -62,8 +62,8 @@ val legacyExternalRuntimeOnly = configurations.dependencyScope("legacyExternalRu
     dependencies.add(project.dependencies.create(project.dependencies.platform(project(":distributions-dependencies"))))
 }
 val legacyExternalRuntimeClasspath = configurations.resolvable("legacyExternalRuntimeClasspath") {
-    extendsFrom(legacyExternalApi.get())
-    extendsFrom(legacyExternalRuntimeOnly.get())
+    extendsFrom(legacyExternalApi)
+    extendsFrom(legacyExternalRuntimeOnly)
     configureAsRuntimeJarClasspath(objects)
 }
 
@@ -86,14 +86,14 @@ val apiJarTask = tasks.register<Jar>("jarGradleApi") {
 
 // The consumable configuration containing the public Gradle API artifact and its external dependencies.
 val gradleApiElements = configurations.consumable("gradleApiElements") {
-    extendsFrom(externalApi.get())
+    extendsFrom(externalApi)
     outgoing.artifact(apiJarTask)
     outgoing.capability(internalBaseName.map { "$group:$it:$version" })
     configureAsApiElements(objects)
 }
 
 val legacyGradleApiElements = configurations.consumable("legacyGradleApiElements") {
-    extendsFrom(legacyExternalApi.get())
+    extendsFrom(legacyExternalApi)
     outgoing.artifact(tasks.named("jarGradleApiLegacy"))
     outgoing.capability(legacyBaseName.map { "$group:$it:$version" })
     configureAsApiElements(objects)

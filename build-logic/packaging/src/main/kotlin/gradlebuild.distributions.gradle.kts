@@ -189,7 +189,7 @@ val runtimeApiInfoJar = tasks.register<Jar>("runtimeApiInfoJar") {
 
 val kotlinDslSharedRuntime = configurations.dependencyScope("kotlinDslSharedRuntime")
 val kotlinDslSharedRuntimeClasspath = configurations.resolvable("kotlinDslSharedRuntimeClasspath") {
-    extendsFrom(kotlinDslSharedRuntime.get())
+    extendsFrom(kotlinDslSharedRuntime)
 }
 val libs = project.versionCatalogs.named("libs")
 dependencies {
