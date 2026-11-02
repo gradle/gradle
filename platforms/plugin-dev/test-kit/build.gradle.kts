@@ -54,6 +54,9 @@ dependencies {
 }
 
 gradleModule {
+    // Test kit should not be part of the public API
+    publicApiStubs = false
+
     requiredRuntimes {
         client = true
     }
@@ -62,10 +65,6 @@ gradleModule {
         client = true
     }
 }
-
-// Test kit should not be part of the public API
-// TODO Find a way to not register this and the task instead
-configurations.remove(configurations.apiStubElements.get())
 
 val runtimeApiInfoDir = layout.buildDirectory.dir("generated-resources/runtime-api-info")
 val generateTestKitPackageList = tasks.register<PackageListGenerator>("generateTestKitPackageList") {
