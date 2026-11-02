@@ -67,14 +67,18 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
         fun scenarios(): List<Array<Any>> {
             val embeddedKotlinVersions = EmbeddedKotlinVersions()
             checkCompatibilityMatrixMatchesKotlinDsl(embeddedKotlinVersions)
-            return latestReleasedPatchOfEachMinorSince(oldestTestedGradleVersion).map { gradleVersion ->
-                val kotlinLanguageVersion = embeddedKotlinVersions.kotlinLanguageVersionOf(gradleVersion)
-                val kgpVersion = checkNotNull(kgpVersionByKotlinLanguageVersion[kotlinLanguageVersion]) {
-                    "Gradle ${gradleVersion.version} targets Kotlin $kotlinLanguageVersion. " +
-                        "Add the newest KGP version that can still target Kotlin $kotlinLanguageVersion to kgpVersionByKotlinLanguageVersion."
+            return latestReleasedPatchOfEachMinorSince(oldestTestedGradleVersion)
+                .groupBy { it.majorVersion to embeddedKotlinVersions.kotlinLanguageVersionOf(it) }
+                .flatMap { (majorAndKotlinLanguageVersion, gradleVersions) ->
+                    val kotlinLanguageVersion = majorAndKotlinLanguageVersion.second
+                    val kgpVersion = checkNotNull(kgpVersionByKotlinLanguageVersion[kotlinLanguageVersion]) {
+                        "Gradle ${gradleVersions.first().version} targets Kotlin $kotlinLanguageVersion. " +
+                            "Add the newest KGP version that can still target Kotlin $kotlinLanguageVersion to kgpVersionByKotlinLanguageVersion."
+                    }
+                    setOf(gradleVersions.min(), gradleVersions.max()).map { gradleVersion ->
+                        arrayOf(gradleVersion.version, kgpVersion, kotlinLanguageVersion)
+                    }
                 }
-                arrayOf(gradleVersion.version, kgpVersion, kotlinLanguageVersion)
-            }
         }
 
         private fun checkCompatibilityMatrixMatchesKotlinDsl(embeddedKotlinVersions: EmbeddedKotlinVersions) {
@@ -90,7 +94,7 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
                 .map { it.version }
                 .filter { it == it.baseVersion && it >= oldest }
                 .groupBy { it.majorVersion to VersionNumber.parse(it.version).minor }
-                .map { (_, versions) -> versions.max() }
+                .map { (_, patches) -> patches.max() }
                 .sorted()
     }
 
