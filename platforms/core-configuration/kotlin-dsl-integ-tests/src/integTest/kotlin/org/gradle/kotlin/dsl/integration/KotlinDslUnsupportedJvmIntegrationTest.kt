@@ -20,15 +20,15 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.util.GradleVersion
-import org.junit.Assume.assumeNotNull
 import org.junit.Test
 
 
 class KotlinDslUnsupportedJvmIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `reports an unsupported JVM when the embedded Kotlin compiler cannot run on it`() {
-        val jdk25 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_25)
-        assumeNotNull(jdk25)
+        val jdk25 = checkNotNull(AvailableJavaHomes.getJdk(JavaVersion.VERSION_25)) {
+            "Java 25 is required to run this test"
+        }
 
         withBuildScript("""plugins { base }""")
         executer.withJvm(jdk25)
