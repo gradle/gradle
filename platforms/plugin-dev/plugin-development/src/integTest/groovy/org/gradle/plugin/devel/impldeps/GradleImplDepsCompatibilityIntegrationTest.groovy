@@ -18,6 +18,7 @@ package org.gradle.plugin.devel.impldeps
 
 import groovy.transform.TupleConstructor
 import org.gradle.api.Action
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.internal.ErroringAction
 import org.gradle.internal.IoActions
 import org.gradle.test.precondition.Requires
@@ -114,7 +115,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
             }
 
             repositories {
-                maven { url = '${buildContext.localRepository.toURI()}' }
+                ${RepoScriptBlockUtil.localRepositoriesDefinition()}
             }
         """
 

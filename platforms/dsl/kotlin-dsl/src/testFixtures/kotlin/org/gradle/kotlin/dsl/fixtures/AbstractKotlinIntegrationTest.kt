@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.kotlin.dsl.resolver.GradleInstallation
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -84,7 +83,6 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     private
     val testRepositoryPaths: List<String>
         get() = listOfNotNull(
-            IntegrationTestBuildContext().localRepository,
             System.getProperty("kotlinDslTestsExtraRepo")?.let(::File)
         ).map(File::normalisedPath)
 
