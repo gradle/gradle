@@ -90,8 +90,7 @@ class Gradleception(
             "-Pgradle_installPath=dogfood-second -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp2 $defaultParameters"
         val verifyCacheHits = buildJvm == BuildToolBuildJvm && bundleGroovyMajor == null
         val cacheHitVerificationDir = "%system.teamcity.build.tempDir%/gradleception-cache-hit-verification"
-        val cacheHitVerificationParameters =
-            "--init-script gradle/gradleception-cache-hits.init.gradle.kts -Dgradleception.buildCacheDir=$cacheHitVerificationDir/build-cache"
+        val cacheHitVerificationParameters = "--init-script gradle/gradleception-cache-hits.init.gradle.kts"
 
         params {
             // Override the default commit id so the build steps produce reproducible distribution
@@ -144,7 +143,8 @@ class Gradleception(
                         scriptContent =
                             """
                             for home in $cacheHitVerificationDir/user-home-1 $cacheHitVerificationDir/user-home-2; do
-                              mkdir -p "${'$'}home"
+                              mkdir -p "${'$'}home/caches" $cacheHitVerificationDir/build-cache
+                              ln -s $cacheHitVerificationDir/build-cache "${'$'}home/caches/build-cache-1"
                               cp "${'$'}HOME/.gradle/gradle.properties" "${'$'}home/" 2>/dev/null || true
                               cp -r "${'$'}HOME/.gradle/init.d" "${'$'}home/" 2>/dev/null || true
                             done

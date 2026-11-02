@@ -12,7 +12,6 @@ import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType
 import java.util.concurrent.ConcurrentLinkedQueue
 
-val buildCacheDir = File(System.getProperty("gradleception.buildCacheDir"))
 val verifyCacheHits: String? = System.getProperty("gradleception.verifyCacheHits")
 
 if (gradle.parent == null) {
@@ -20,7 +19,6 @@ if (gradle.parent == null) {
         buildCache {
             local {
                 isEnabled = true
-                directory = buildCacheDir
             }
             if (verifyCacheHits != null) {
                 remote?.isEnabled = false
