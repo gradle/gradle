@@ -407,9 +407,10 @@ Prefer these over third-party rebuilds, pin them by digest rather than by tag, a
 Combining these gives one straightforward workflow that fits most projects: a Wrapper with a pinned distribution URL and a `distributionSha256Sum`, running against a container image pinned by digest, on a Gradle version that is still in support.
 
 [[sec:extended_support]]
-=== Gradle Security Subscription
+=== Extended Security Support
 
 Some organizations need to stay on a Gradle major line beyond its community support window, either because a migration is genuinely infeasible on the required timeline or because a customer contract locks the toolchain.
 Running an unsupported Gradle is a security risk in its own right.
 For those situations, Gradle Inc. offers a paid https://gradle.org/security-subscription/[Security Subscription] that delivers security-patched builds of older Gradle majors after community support has ended.
 It is the sanctioned way to keep receiving fixes when upgrading is not possible in time.
+The subscription also includes security fixes under an SLA and advance notice of embargoed vulnerabilities.

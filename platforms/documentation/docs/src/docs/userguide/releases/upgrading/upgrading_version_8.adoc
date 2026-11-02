@@ -20,7 +20,7 @@ This chapter provides the information you need to migrate your Gradle 8.x builds
 For migrating from Gradle 7.x, see the <<upgrading_version_7.adoc#upgrading_version_7, older migration guide>> first.
 
 NOTE: As soon as Gradle 10.0.0 ships, no security or bug fixes will be made on any release of Gradle 8.
-If you want to receive fixes for these versions, take a look at the https://gradle.org/security-subscription/[Gradle Security Subscription].
+To receive fixes for these versions, see https://gradle.org/security-subscription/[Gradle Security Subscription].
 
 We recommend the following steps for all users:
 
