@@ -300,13 +300,17 @@ class ResidualProgramCompiler(
                 "id",
                 "(Ljava/lang/String;)Lorg/gradle/plugin/use/PluginDependencySpec;"
             )
-            if (spec.version != null) {
-                LDC(spec.version)
-                INVOKEINTERFACE(
-                    InternalName("org/gradle/plugin/use/PluginDependencySpec"),
-                    "version",
-                    "(Ljava/lang/String;)Lorg/gradle/plugin/use/PluginDependencySpec;"
+            if (spec.expectedKotlinDslPluginsVersion) {
+                // A constant would stay in the cached program, so emit the lookup of the expected version instead
+                INVOKESTATIC(
+                    InternalName("org/gradle/kotlin/dsl/support/KotlinDslPluginsKt"),
+                    "getExpectedKotlinDslPluginsVersion",
+                    "()Ljava/lang/String;"
                 )
+                emitPluginRequestVersion()
+            } else if (spec.version != null) {
+                LDC(spec.version)
+                emitPluginRequestVersion()
             }
             if (!spec.apply) {
                 ICONST_0()
@@ -319,6 +323,15 @@ class ResidualProgramCompiler(
             POP()
         }
         POP()
+    }
+
+    private
+    fun MethodVisitor.emitPluginRequestVersion() {
+        INVOKEINTERFACE(
+            InternalName("org/gradle/plugin/use/PluginDependencySpec"),
+            "version",
+            "(Ljava/lang/String;)Lorg/gradle/plugin/use/PluginDependencySpec;"
+        )
     }
 
     /**
