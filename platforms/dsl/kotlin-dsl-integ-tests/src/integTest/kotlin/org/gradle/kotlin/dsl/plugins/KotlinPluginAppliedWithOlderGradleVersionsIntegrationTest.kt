@@ -54,10 +54,11 @@ import org.junit.runners.Parameterized
  * The Kotlin language version of each Gradle version comes from `gradle/dependency-management/embedded-kotlin-versions.csv`,
  * which is also the source of the compatibility matrix.
  *
- * KGP versions: for each Kotlin language version, the newest KGP that can still target it.
+ * KGP versions: for each Kotlin language version, the newest KGP that supports it without deprecation.
  * Its compiler and standard library are the most different from the Kotlin embedded in the older Gradle,
  * so it is the most likely to break.
- * For example, KGP 1.9.22 for Kotlin 1.4 and KGP 2.2.21 for Kotlin 1.8.
+ * For example, KGP 2.1.21 for Kotlin 1.8.
+ * Kotlin 1.4 is the exception: every KGP that runs on current Gradle deprecates it, so the test uses the newest KGP that still accepts it.
  */
 @RunWith(Parameterized::class)
 class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
@@ -75,10 +76,10 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
 
         private val oldestTestedGradleVersion = GradleVersion.version("7.0")
 
-        // The newest KGP that can still target the given Kotlin language version.
+        // The newest KGP that supports the given Kotlin language version` without deprecation.
         private val kgpVersionByKotlinLanguageVersion = mapOf(
-            "1.4" to "1.9.22",
-            "1.8" to "2.2.21",
+            "1.4" to "2.0.21", // Every KGP that runs on current Gradle deprecates Kotlin 1.4; this is the newest one that still accepts it.
+            "1.8" to "2.1.21",
             KOTLIN_DSL_LANGUAGE_VERSION to embeddedKotlinVersion,
         )
 
@@ -93,7 +94,7 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
                     val kotlinLanguageVersion = majorAndKotlinLanguageVersion.second
                     val kgpVersion = checkNotNull(kgpVersionByKotlinLanguageVersion[kotlinLanguageVersion]) {
                         "Gradle ${gradleVersions.first().version} targets Kotlin $kotlinLanguageVersion. " +
-                            "Add the newest KGP version that can still target Kotlin $kotlinLanguageVersion to kgpVersionByKotlinLanguageVersion."
+                            "Add the newest KGP version that supports Kotlin $kotlinLanguageVersion without deprecation to kgpVersionByKotlinLanguageVersion."
                     }
                     setOf(gradleVersions.min(), gradleVersions.max()).map { gradleVersion ->
                         arrayOf(gradleVersion.version, kgpVersion, kotlinLanguageVersion)
@@ -191,12 +192,6 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
             publishing {
                 repositories { maven { url = uri("$pluginRepoUri") } }
             }
-            """
-        )
-        pluginDir.file("gradle.properties").setText(
-            """
-            # KGP 1.9.x registers its build statistics (FUS) listener via an unsupported provider, which is a configuration cache problem.
-            enable_kotlin_performance_profile=false
             """
         )
         pluginDir.file("src/main/kotlin/com/example/MyPlugin.kt").setText(
