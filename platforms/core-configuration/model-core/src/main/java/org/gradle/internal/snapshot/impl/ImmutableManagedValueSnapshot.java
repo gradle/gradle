@@ -71,12 +71,9 @@ public class ImmutableManagedValueSnapshot implements ValueSnapshot {
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        hasher.putString(className);
-        if (value != null) {
-            hasher.putString(value);
-        } else {
-            hasher.putNull();
-        }
+        hasher.putString(getClass().getName());
+        SnapshotHashing.putString(hasher, className);
+        SnapshotHashing.putNullableString(hasher, value);
     }
 
     @Override

@@ -24,7 +24,7 @@ import org.gradle.internal.execution.history.impl.DefaultPreviousExecutionState;
 import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.snapshot.impl.ValueSnapshotHasher;
+import org.gradle.internal.hash.Hashing;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -50,7 +50,7 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
             executionState.getCacheKey(),
             executionState.getImplementation(),
             executionState.getAdditionalImplementations(),
-            ValueSnapshotHasher.hashAll(executionState.getInputProperties()),
+            copyOfSorted(transformValues(executionState.getInputProperties(), Hashing::hashHashable)),
             prepareForSerialization(executionState.getInputFileProperties()),
             executionState.getOutputFilesProducedByWork(),
             executionState.isSuccessful()

@@ -62,8 +62,9 @@ public class EnumValueSnapshot implements ValueSnapshot {
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        hasher.putString(className);
-        hasher.putString(name);
+        hasher.putString(getClass().getName());
+        SnapshotHashing.putString(hasher, className);
+        SnapshotHashing.putString(hasher, name);
     }
 
     @Override

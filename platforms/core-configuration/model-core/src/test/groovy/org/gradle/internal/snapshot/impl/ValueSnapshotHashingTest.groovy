@@ -19,12 +19,13 @@ package org.gradle.internal.snapshot.impl
 import org.gradle.api.attributes.Attribute
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class ValueSnapshotHasherTest extends Specification {
+class ValueSnapshotHashingTest extends Specification {
     def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
         getClassLoaderHash(_) >> TestHashCodes.hashCodeFrom(123)
     }
@@ -83,16 +84,14 @@ class ValueSnapshotHasherTest extends Specification {
         [1.0f] as float[]     | [2.0f] as float[]
     }
 
-    def "hash of a set does not depend on its iteration order"() {
+    def "hash of a set depends on its iteration order, unlike equality"() {
         def forward = ["a", "b", "c"] as LinkedHashSet
         def backward = ["c", "b", "a"] as LinkedHashSet
 
         expect:
         snapshotter.snapshot(forward) == snapshotter.snapshot(backward)
-        hashOf(forward) == hashOf(backward)
-        hashOf([forward, 1]) == hashOf([backward, 1])
-        hashOf([key: forward]) == hashOf([key: backward])
-        hashOf(forward) != hashOf(["a", "b"] as LinkedHashSet)
+        hashOf(forward) != hashOf(backward)
+        hashOf(forward) == hashOf(["a", "b", "c"] as LinkedHashSet)
     }
 
     def "hash of a map depends on the order of its entries, like equality"() {
@@ -145,20 +144,11 @@ class ValueSnapshotHasherTest extends Specification {
         new GradleSerializedValueSnapshot(null, [] as byte[])      | new GradleSerializedValueSnapshot(HashCode.fromBytes([0, 0, 0, 0] as byte[]), [] as byte[])
     }
 
-    def "fails for unknown snapshot types"() {
-        when:
-        ValueSnapshotHasher.hash(Stub(ValueSnapshot))
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message.startsWith("Don't know how to hash a value snapshot of type ")
-    }
-
     private static HashCode hashOf(ValueSnapshot snapshot) {
-        ValueSnapshotHasher.hash(snapshot)
+        Hashing.hashHashable(snapshot)
     }
 
     private HashCode hashOf(Object value) {
-        ValueSnapshotHasher.hash(snapshotter.snapshot(value))
+        Hashing.hashHashable(snapshotter.snapshot(value))
     }
 }

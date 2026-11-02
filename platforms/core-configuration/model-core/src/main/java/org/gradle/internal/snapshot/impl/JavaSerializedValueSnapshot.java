@@ -60,11 +60,8 @@ public class JavaSerializedValueSnapshot implements ValueSnapshot {
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        if (implementationHash == null) {
-            hasher.putNull();
-        } else {
-            hasher.putHash(implementationHash);
-        }
+        hasher.putString(getClass().getName());
+        SnapshotHashing.putNullableHash(hasher, implementationHash);
         hasher.putBytes(serializedValue);
     }
 

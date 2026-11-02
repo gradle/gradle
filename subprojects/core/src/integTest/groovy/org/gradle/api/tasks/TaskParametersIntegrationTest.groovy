@@ -387,7 +387,7 @@ task someTask {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/35338")
-    def "task is up-to-date when the iteration order of a set input property changes"() {
+    def "task is out of date when the iteration order of a set input property changes"() {
         buildFile << """
 task someTask {
     inputs.property("a", ['first', 'second', 'third'] as LinkedHashSet)
@@ -400,10 +400,12 @@ task someTask {
 
         when:
         buildFile.replace("['first', 'second', 'third']", "['third', 'first', 'second']")
+        executer.withArgument("-i")
         run "someTask"
 
         then:
-        skipped(":someTask")
+        executedAndNotSkipped(":someTask")
+        outputContains("Value of input property 'a' has changed for task ':someTask'")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/35338")

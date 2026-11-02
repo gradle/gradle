@@ -82,16 +82,9 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        primitiveType.appendTo(hasher, array);
-    }
-
-    /**
-     * Appends the array such that arrays that are {@link #equals(Object) equal} hash alike:
-     * the element type is included and NaNs are canonicalized like {@link Arrays#equals(float[], float[])} does.
-     */
-    void appendCanonicalContentToHasher(Hasher hasher) {
+        hasher.putString(getClass().getName());
         hasher.putInt(primitiveType.ordinal());
-        primitiveType.appendCanonicalTo(hasher, array);
+        primitiveType.appendTo(hasher, array);
     }
 
     @Override
@@ -302,11 +295,7 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
 
             @Override
             public void appendTo(Hasher hasher, Object array) {
-                HasherExtensions.putFloats(hasher, (float[]) array);
-            }
-
-            @Override
-            public void appendCanonicalTo(Hasher hasher, Object array) {
+                // Canonical NaN bits, as Arrays.equals(float[], float[]) treats all NaNs as equal
                 float[] floats = (float[]) array;
                 hasher.putInt(floats.length);
                 for (float f : floats) {
@@ -347,11 +336,7 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
 
             @Override
             public void appendTo(Hasher hasher, Object array) {
-                HasherExtensions.putDoubles(hasher, (double[]) array);
-            }
-
-            @Override
-            public void appendCanonicalTo(Hasher hasher, Object array) {
+                // Canonical NaN bits, as Arrays.equals(double[], double[]) treats all NaNs as equal
                 double[] doubles = (double[]) array;
                 hasher.putInt(doubles.length);
                 for (double d : doubles) {
@@ -457,13 +442,6 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
         public abstract String toString(Object array);
 
         public abstract void appendTo(Hasher hasher, Object array);
-
-        /**
-         * Like {@link #appendTo(Hasher, Object)}, but all NaN bit patterns hash alike, as {@link Arrays#equals} treats them.
-         */
-        public void appendCanonicalTo(Hasher hasher, Object array) {
-            appendTo(hasher, array);
-        }
 
         public abstract void encode(Encoder encoder, Object array) throws IOException;
 

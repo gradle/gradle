@@ -20,9 +20,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-import org.gradle.internal.snapshot.impl.ValueSnapshotHasher;
 
 import java.util.Map;
 
@@ -37,7 +37,7 @@ class InputValueChanges implements ChangeContainer {
             ValueSnapshot currentSnapshot = entry.getValue();
             HashCode previousHash = previousHashes.get(propertyName);
             if (previousHash != null) {
-                if (!ValueSnapshotHasher.hash(currentSnapshot).equals(previousHash)) {
+                if (!Hashing.hashHashable(currentSnapshot).equals(previousHash)) {
                     changedBuilder.put(
                         propertyName,
                         currentSnapshot instanceof ImplementationSnapshot ? "Implementation" : "Value");

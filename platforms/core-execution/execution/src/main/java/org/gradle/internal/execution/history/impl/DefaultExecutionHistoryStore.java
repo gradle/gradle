@@ -28,8 +28,8 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.serialize.HashCodeSerializer;
-import org.gradle.internal.snapshot.impl.ValueSnapshotHasher;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -71,7 +71,7 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
             executionState.getCacheKey(),
             executionState.getImplementation(),
             executionState.getAdditionalImplementations(),
-            ValueSnapshotHasher.hashAll(executionState.getInputProperties()),
+            copyOfSorted(transformValues(executionState.getInputProperties(), Hashing::hashHashable)),
             prepareForSerialization(executionState.getInputFileProperties()),
             executionState.getOutputFilesProducedByWork(),
             executionState.isSuccessful()

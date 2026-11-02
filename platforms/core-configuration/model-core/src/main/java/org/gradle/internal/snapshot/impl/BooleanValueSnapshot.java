@@ -28,6 +28,7 @@ public class BooleanValueSnapshot extends AbstractIsolatableScalarValue<Boolean>
 
     @Override
     public void appendToHasher(Hasher hasher) {
+        hasher.putString(getClass().getName());
         hasher.putBoolean(getValue());
     }
 }

@@ -19,13 +19,13 @@ package org.gradle.internal.execution.history.changes
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.Describable
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.impl.ClassImplementationSnapshot
 import org.gradle.internal.snapshot.impl.IntegerValueSnapshot
 import org.gradle.internal.snapshot.impl.ShortValueSnapshot
 import org.gradle.internal.snapshot.impl.StringValueSnapshot
-import org.gradle.internal.snapshot.impl.ValueSnapshotHasher
 import spock.lang.Specification
 
 class InputValueChangesTest extends Specification {
@@ -91,7 +91,7 @@ class InputValueChangesTest extends Specification {
     }
 
     private static HashCode hashOf(ValueSnapshot snapshot) {
-        ValueSnapshotHasher.hash(snapshot)
+        Hashing.hashHashable(snapshot)
     }
 
     private static ValueSnapshot value(String value) {
