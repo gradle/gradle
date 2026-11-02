@@ -15,7 +15,7 @@ sourceSets {
 
 val reports = configurations.dependencyScope("reports")
 val reportsPath = configurations.resolvable("reportsPath") {
-    extendsFrom(reports.get())
+    extendsFrom(reports)
     requestRuntimeLibrary(objects)
 }
 

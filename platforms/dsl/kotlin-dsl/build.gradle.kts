@@ -183,10 +183,10 @@ gradleModule {
 
 // Relocate kotlin-metadata-jvm
 configurations.compileOnly {
-    extendsFrom(configurations.shadow.get())
+    extendsFrom(configurations.shadow)
 }
 configurations.testImplementation {
-    extendsFrom(configurations.shadow.get())
+    extendsFrom(configurations.shadow)
 }
 tasks.shadowJar {
     archiveClassifier = ""

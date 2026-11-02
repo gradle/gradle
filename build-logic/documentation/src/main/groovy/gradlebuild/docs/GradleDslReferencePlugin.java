@@ -19,7 +19,7 @@ package gradlebuild.docs;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.DependencyScopeConfiguration;
 import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
@@ -78,8 +78,8 @@ public class GradleDslReferencePlugin implements Plugin<Project> {
             task.getDestFile().convention(dslReference.getStagingRoot().file("index.xml"));
         });
 
-        Configuration userGuideTask = project.getConfigurations().dependencyScope("userGuideTask").get();
-        Configuration userGuideStyleSheets = project.getConfigurations().dependencyScope("userGuideStyleSheets").get();
+        NamedDomainObjectProvider<DependencyScopeConfiguration> userGuideTask = project.getConfigurations().dependencyScope("userGuideTask");
+        NamedDomainObjectProvider<DependencyScopeConfiguration> userGuideStyleSheets = project.getConfigurations().dependencyScope("userGuideStyleSheets");
         NamedDomainObjectProvider<ResolvableConfiguration> userGuideTaskClasspath = project.getConfigurations().resolvable("userGuideTaskClasspath", conf -> {
             conf.extendsFrom(userGuideTask);
             requestRuntimeLibrary(conf, objects);

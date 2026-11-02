@@ -152,7 +152,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         addDependenciesAndConfigurations("performance")
 
         val testLibs = project.the<VersionCatalogsExtension>().named("testLibs")
-        val junit = configurations.dependencyScope("junit").get()
+        val junit = configurations.dependencyScope("junit")
         val junitClasspath = configurations.resolvable("junitClasspath") {
             extendsFrom(junit)
             configureAsRuntimeJarClasspath(objects)

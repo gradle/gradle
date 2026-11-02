@@ -26,7 +26,7 @@ val resolveTestRepo = configurations.resolvable("resolveTestRepo") {
     attributes {
         attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named("gradle-local-repository"))
     }
-    extendsFrom(testRepo.get())
+    extendsFrom(testRepo)
 }
 
 dependencies {
