@@ -143,6 +143,9 @@ class M2Installation implements Action<GradleExecuter> {
     void execute(GradleExecuter gradleExecuter) {
         init()
         gradleExecuter.withUserHomeDir(userHomeDir)
+        gradleExecuter.beforeExecute {
+            it.withArgument("-Pkotlin.compiler.execution.strategy=in-process")
+        }
         // if call `using m2`, then we disable the automatic isolation of m2
         isolateMavenLocal = false
         if (globalMavenDirectory?.exists()) {
