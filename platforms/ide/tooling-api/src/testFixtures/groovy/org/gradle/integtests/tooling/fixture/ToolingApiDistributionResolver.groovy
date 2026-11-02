@@ -69,8 +69,7 @@ class ToolingApiDistributionResolver {
     private File locateToolingApi(String version) {
         def relativePath = "org/gradle/gradle-tooling-api/$version/gradle-tooling-api-${version}.jar"
 
-        File localRepository = buildContext.localRepository
-        if (localRepository) {
+        for (File localRepository : buildContext.localRepositories) {
             Path jarFile = localRepository.toPath().resolve(relativePath)
             if (Files.exists(jarFile)) {
                 return jarFile.toFile()

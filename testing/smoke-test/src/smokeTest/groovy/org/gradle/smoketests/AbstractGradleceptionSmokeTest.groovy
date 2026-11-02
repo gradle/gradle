@@ -84,7 +84,7 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
     // The nested build uses the Kotlin DSL plugins built from this checkout (see embedded-kotlin.settings.gradle.kts)
     private static List<String> kotlinDslPluginsArgs() {
-        def repository = IntegrationTestBuildContext.INSTANCE.localRepository
+        def repository = RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsRepository()
         if (repository == null) {
             return []
         }

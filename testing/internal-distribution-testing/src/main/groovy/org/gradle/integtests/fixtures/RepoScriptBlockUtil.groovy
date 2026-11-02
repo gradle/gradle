@@ -148,7 +148,7 @@ class RepoScriptBlockUtil {
         // Only that version: other Gradle versions expect other versions, which the repository can have from an earlier build.
         // Only the projects that publish these plugins to their local test repository have this entry.
         locallyBuiltKotlinDslPluginsVersion() ?
-            new ExtraRepository("LOCALLY_BUILT_KOTLIN_DSL_PLUGINS", IntegrationTestBuildContext.INSTANCE.localRepository.toURI().toString(), [/org\.gradle\.kotlin(\..+)?/], Pattern.quote(locallyBuiltKotlinDslPluginsVersion()))
+            new ExtraRepository("LOCALLY_BUILT_KOTLIN_DSL_PLUGINS", locallyBuiltKotlinDslPluginsRepository().toURI().toString(), [/org\.gradle\.kotlin(\..+)?/], Pattern.quote(locallyBuiltKotlinDslPluginsVersion()))
             : null,
     ].findAll() as List<ExtraRepository>).asImmutable()
 
@@ -172,19 +172,34 @@ class RepoScriptBlockUtil {
     }
 
     /**
-     * The version of the Kotlin DSL plugins in the local test repository, or {@code null} when the repository has none.
+     * Declarations of the local repositories of the test task, one {@code maven} block for each (see {@link IntegrationTestBuildContext#getLocalRepositories()}).
+     */
+    static String localRepositoriesDefinition(GradleDsl dsl = GROOVY) {
+        IntegrationTestBuildContext.INSTANCE.localRepositories.collect {
+            dsl == KOTLIN ? "maven { url = uri(\"${it.toURI()}\") }" : "maven { url = '${it.toURI()}' }"
+        }.join("\n")
+    }
+
+    private static final String KOTLIN_DSL_PLUGINS_METADATA = "org/gradle/kotlin/gradle-kotlin-dsl-plugins/maven-metadata.xml"
+
+    /**
+     * The local test repository that has the Kotlin DSL plugins, or {@code null} when no local test repository has them.
+     * A test task can have several local repositories, one for each project that it declares as a local repository.
+     */
+    static File locallyBuiltKotlinDslPluginsRepository() {
+        IntegrationTestBuildContext.INSTANCE.localRepositories.find { new File(it, KOTLIN_DSL_PLUGINS_METADATA).file }
+    }
+
+    /**
+     * The version of the Kotlin DSL plugins in the local test repository, or {@code null} when no local test repository has them.
      * A repository from an earlier build can have older versions too, so the metadata decides.
      */
     static String locallyBuiltKotlinDslPluginsVersion() {
-        File localRepository = IntegrationTestBuildContext.INSTANCE.localRepository
-        if (localRepository == null) {
+        File repository = locallyBuiltKotlinDslPluginsRepository()
+        if (repository == null) {
             return null
         }
-        File metadata = new File(localRepository, "org/gradle/kotlin/gradle-kotlin-dsl-plugins/maven-metadata.xml")
-        if (!metadata.file) {
-            return null
-        }
-        def latest = metadata.text =~ /<latest>(.+)<\/latest>/
+        def latest = new File(repository, KOTLIN_DSL_PLUGINS_METADATA).text =~ /<latest>(.+)<\/latest>/
         return latest.find() ? latest.group(1) : null
     }
 
