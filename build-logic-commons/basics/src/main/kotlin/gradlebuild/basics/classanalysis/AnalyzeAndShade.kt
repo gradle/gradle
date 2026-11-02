@@ -44,7 +44,6 @@ val ignoredPackagePatterns = PackagePatterns(setOf("java"))
 
 
 // See explanation in `org.gradle.api.internal.file.archive.ZipEntryConstants#CONSTANT_TIME_FOR_ZIP_ENTRIES`
-private
 val zipEntryBaseTimestamp = LocalDateTime.of(1980, 2, 1, 0, 0, 0)
     .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
