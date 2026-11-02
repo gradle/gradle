@@ -39,6 +39,26 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 
+/**
+ * Checks that a plugin built with current Gradle and KGP can still be applied with older Gradle versions.
+ *
+ * Building the plugin targets the Kotlin language version of the older Gradle versions.
+ * The consumer script uses the plugin's types, so the older Gradle must read the plugin's Kotlin metadata.
+ *
+ * Gradle versions: the oldest and the latest released minor of each group, each with its latest patch, from Gradle 7.2 on.
+ * A group is the Gradle versions of one major that target the same Kotlin language version.
+ * With 9.8.2 as the latest release, this gives 7.2, 7.6.6, 8.0.2, 8.14.6, 9.0.0 and 9.8.2.
+ * The oldest minor of a group embeds the oldest Kotlin of that group, so it is the most likely to fail.
+ * The latest minor covers the other end.
+ * The minors in between add little, because changes on the consumer side happen mostly at major boundaries.
+ * The Kotlin language version of each Gradle version comes from `gradle/dependency-management/embedded-kotlin-versions.csv`,
+ * which is also the source of the compatibility matrix.
+ *
+ * KGP versions: for each Kotlin language version, the newest KGP that can still target it.
+ * Its compiler and standard library are the most different from the Kotlin embedded in the older Gradle,
+ * so it is the most likely to break.
+ * For example, KGP 1.9.22 for Kotlin 1.4 and KGP 2.2.21 for Kotlin 1.8.
+ */
 @RunWith(Parameterized::class)
 class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
     private val gradleVersion: String,
