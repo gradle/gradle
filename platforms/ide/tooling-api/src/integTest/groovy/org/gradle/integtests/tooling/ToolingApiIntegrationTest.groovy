@@ -225,7 +225,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec implements Other
             apply plugin: 'application'
 
             repositories {
-                maven { url = "${buildContext.localRepository.toURI()}" }
+                ${RepoScriptBlockUtil.localRepositoriesDefinition()}
                 ${RepoScriptBlockUtil.gradleRepositoryDefinition()}
             }
 

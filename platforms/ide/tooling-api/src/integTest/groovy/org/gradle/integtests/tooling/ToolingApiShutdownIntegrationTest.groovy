@@ -16,6 +16,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import spock.lang.Retry
 import spock.lang.Timeout
 
@@ -33,7 +34,7 @@ class ToolingApiShutdownIntegrationTest extends AbstractIntegrationSpec {
 
             repositories {
                 ${mavenCentralRepository()}
-                maven { url = '${buildContext.localRepository.toURI()}' }
+                ${RepoScriptBlockUtil.localRepositoriesDefinition()}
             }
 
             tasks.register('runGradleBuildWithUnstableDaemon', JavaExec) {

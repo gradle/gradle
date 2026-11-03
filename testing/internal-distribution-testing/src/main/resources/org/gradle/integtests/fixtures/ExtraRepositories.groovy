@@ -10,7 +10,7 @@ import org.gradle.util.GradleVersion
 
 // The build only copies this file.
 // RepoScriptBlockUtil.extraRepositoriesInitScript reads the file as text and adds a call to declareIn with the extra repositories.
-// Each repository is a map with the keys 'name', 'url' and 'groupRegexes'.
+// Each repository is a map with the keys 'name', 'url', 'groupRegexes' and 'versionRegex'.
 // All methods are static and get the repositories as an argument: Gradle isolates the actions for projects, so they must not capture an object.
 @SuppressWarnings("unused") // Only the generated init script calls this class.
 class ExtraRepositories {
@@ -87,7 +87,13 @@ class ExtraRepositories {
                 maven.url = repository.url
                 if (ExtraRepositories.SUPPORTS_CONTENT_FILTERING) {
                     maven.content { descriptor ->
-                        repository.groupRegexes.each { descriptor.includeGroupByRegex(it as String) }
+                        repository.groupRegexes.each {
+                            if (repository.versionRegex != null) {
+                                descriptor.includeVersionByRegex(it as String, ".*", repository.versionRegex as String)
+                            } else {
+                                descriptor.includeGroupByRegex(it as String)
+                            }
+                        }
                     }
                 }
             }
