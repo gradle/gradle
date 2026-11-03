@@ -45,6 +45,40 @@ You can find the existing helpers [here](../testing/internal-integ-testing/src/m
 
 [Data-driven tables](https://spockframework.org/spock/docs/2.4/data_driven_testing.html#data-tables) are a great way to test multiple scenarios in a single test.
 
+## Use property-based tests for code with large input spaces
+
+For unit tests of code like parsers or comparators, where you want to check that a property holds for any input, use [Hegel](https://hegel.dev)'s `@HegelTest`.
+It runs a test many times with generated inputs and shrinks a failing input to a minimal one.
+Note that hegel only supports JUnit Jupiter, so these can't be Spock or JUnit 4 tests.
+Apply the `gradlebuild.property-based-testing` plugin.
+Then write a test that takes a `dev.hegel.TestCase`:
+
+```groovy
+@HegelTest
+void sortingIsIdempotent(TestCase tc) {
+    def xs = tc.draw(lists(integers()))
+    assert xs.sort(false) == xs.sort(false).sort(false)
+}
+```
+
+Locally, each run uses new random inputs and saves failing ones in `build/hegel`, to try them first next time.
+On regular CI builds, the inputs are derandomized.
+Hegel derives the seed from the name of the test, thus each build tests the same inputs.
+
+A weekly build explores random inputs for the tests on CI.
+It runs `test` with only the `@HegelTest` tests, with the TeamCity build id as the seed and 10,000 cases per test.
+You can do the same locally with these properties:
+
+- `-PpropertyBasedTests=only` runs only `@HegelTest` tests. `-PpropertyBasedTests=exclude` does the opposite.
+- `-PpropertyBasedTestSeed=<n>` sets the seed of tests that don't declare it explicitly.
+- `-PpropertyBasedCaseCount=<n>` sets the number of cases of tests that don't declare it explicitly.
+
+To reproduce a failure from the weekly build, pass the seed from its build scan and `-PpropertyBasedCaseCount=10000`.
+Alternatively, put the failure blob that Hegel prints in `@HegelTest(reproduceFailure = "...")`.
+This must not be committed, nor a fixed `seed` or `testCases` for a failure, since the annotation wins over the properties.
+
+Hegel has native libraries only for glibc Linux, Apple Silicon macOS and Windows, so the build excludes these tests on Intel macOS and on Alpine Test Distribution agents.
+
 ## Don't use assertions in Gradle build scripts under test
 
 Assertions in Gradle build scripts under test have plenty of caveats.

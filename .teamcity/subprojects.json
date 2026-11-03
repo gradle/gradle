@@ -896,6 +896,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "internal-property-based-testing",
+    "path": "testing/internal-property-based-testing",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "internal-testing",
     "path": "testing/internal-testing",
     "unitTests": true,

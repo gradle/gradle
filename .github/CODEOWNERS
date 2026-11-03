@@ -23,6 +23,7 @@ testing/distributions-core/                 @gradle/bt-developer-productivity
 testing/internal-distribution-testing/      @gradle/bt-developer-productivity
 testing/internal-integ-testing/             @gradle/bt-developer-productivity
 testing/internal-performance-testing/       @gradle/bt-developer-productivity
+testing/internal-property-based-testing/    @gradle/bt-developer-productivity
 testing/internal-testing/                   @gradle/bt-developer-productivity
 testing/precondition-tester                 @gradle/bt-developer-productivity
 

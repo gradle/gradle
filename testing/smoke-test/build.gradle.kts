@@ -1,5 +1,5 @@
 import gradlebuild.basics.BuildEnvironment
-import gradlebuild.basics.FlakyTestStrategy
+import gradlebuild.basics.TestSelectionStrategy
 import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
@@ -7,7 +7,7 @@ import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
 import gradlebuild.integrationtests.configureTestSourceSetInIde
 import gradlebuild.integrationtests.tasks.SmokeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
-import gradlebuild.testing.skipWhenNoFlakyTests
+import gradlebuild.testing.skipWhenNoSelectedTests
 
 plugins {
     id("gradlebuild.internal.java")
@@ -121,7 +121,7 @@ tasks {
         group = "Verification"
         testClassesDirs = smokeTestSourceSet.output.classesDirs
         classpath = smokeTestSourceSet.runtimeClasspath
-        skipWhenNoFlakyTests(smokeTestSourceSet)
+        skipWhenNoSelectedTests(smokeTestSourceSet)
         inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
         inputs.property("androidSdkRootIsSet", System.getenv("ANDROID_SDK_ROOT") != null)
 
@@ -133,7 +133,7 @@ tasks {
         }
         useJUnitPlatform {
             filter {
-                isFailOnNoMatchingTests = (flakyTestStrategy != FlakyTestStrategy.ONLY)
+                isFailOnNoMatchingTests = (flakyTestStrategy != TestSelectionStrategy.ONLY)
                 includes.forEach { includeTestsMatching(it) }
                 excludes.forEach { excludeTestsMatching(it) }
             }

@@ -346,6 +346,7 @@ testing {
     subproject("internal-distribution-testing")
     subproject("internal-integ-testing")
     subproject("internal-performance-testing")
+    subproject("internal-property-based-testing")
     subproject("internal-testing")
     subproject("performance")
     subproject("precondition-tester")

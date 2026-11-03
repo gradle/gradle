@@ -55,6 +55,9 @@ import gradlebuild.basics.BuildParams.PERFORMANCE_STAGE_ENV
 import gradlebuild.basics.BuildParams.PERFORMANCE_TEST_VERBOSE
 import gradlebuild.basics.BuildParams.PREDICTIVE_TEST_SELECTION_ENABLED
 import gradlebuild.basics.BuildParams.PREDICTIVE_TEST_SELECTION_SERVER_URL
+import gradlebuild.basics.BuildParams.PROPERTY_BASED_CASE_COUNT
+import gradlebuild.basics.BuildParams.PROPERTY_BASED_TESTS
+import gradlebuild.basics.BuildParams.PROPERTY_BASED_TEST_SEED
 import gradlebuild.basics.BuildParams.RERUN_ALL_TESTS
 import gradlebuild.basics.BuildParams.RUN_BROKEN_CONFIGURATION_CACHE_DOCS_TESTS
 import gradlebuild.basics.BuildParams.RUN_IDE_IN_HEADLESS_MODE
@@ -78,7 +81,10 @@ import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier.JAVA_I
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 
-enum class FlakyTestStrategy {
+/**
+ * Selection strategy for tests.
+ */
+enum class TestSelectionStrategy {
     INCLUDE, EXCLUDE, ONLY
 }
 
@@ -126,6 +132,27 @@ object BuildParams {
     const val PERFORMANCE_MAX_PROJECTS = "maxProjects"
     const val PERFORMANCE_STAGE_ENV = "PERFORMANCE_STAGE"
     const val PERFORMANCE_DEPENDENCY_BUILD_IDS = "org.gradle.performance.dependencyBuildIds"
+
+    /**
+     * Specify which tests the test tasks run, for `@HegelTest` property-based tests:
+     *
+     * -PpropertyBasedTests=include: run all tests, including property-based tests.
+     * -PpropertyBasedTests=exclude: run all tests, excluding property-based tests.
+     * -PpropertyBasedTests=only: run property-based tests only, skipping test tasks without any.
+     *
+     * Default value (if absent) is "include".
+     */
+    const val PROPERTY_BASED_TESTS = "propertyBasedTests"
+
+    /**
+     * The seed for `@HegelTest` property-based tests that don't set one.
+     */
+    const val PROPERTY_BASED_TEST_SEED = "propertyBasedTestSeed"
+
+    /**
+     * The number of cases for `@HegelTest` property-based tests that don't set one.
+     */
+    const val PROPERTY_BASED_CASE_COUNT = "propertyBasedCaseCount"
     const val RERUN_ALL_TESTS = "rerunAllTests"
     const val PREDICTIVE_TEST_SELECTION_ENABLED = "enablePredictiveTestSelection"
     const val PREDICTIVE_TEST_SELECTION_SERVER_URL = "predictiveTestSelectionServerUrl"
@@ -286,14 +313,27 @@ val Project.maxTestDistributionLocalExecutors: Int?
 val Project.toolchainInstallationPaths: Provider<String>
     get() = gradleProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY)
 
-val Project.flakyTestStrategy: FlakyTestStrategy
-    get() = gradleProperty(FLAKY_TEST).let {
-        if (it.getOrElse("").isEmpty()) {
-            return FlakyTestStrategy.INCLUDE
-        } else {
-            return FlakyTestStrategy.valueOf(it.get().toUpperCaseAsciiOnly())
-        }
+val Project.flakyTestStrategy: TestSelectionStrategy
+    get() = annotatedTestStrategy(FLAKY_TEST)
+
+val Project.propertyBasedTestStrategy: TestSelectionStrategy
+    get() = annotatedTestStrategy(PROPERTY_BASED_TESTS)
+
+private
+fun Project.annotatedTestStrategy(propertyName: String): TestSelectionStrategy {
+    val value = gradleProperty(propertyName).getOrElse("")
+    return if (value.isEmpty()) {
+        TestSelectionStrategy.INCLUDE
+    } else {
+        TestSelectionStrategy.valueOf(value.toUpperCaseAsciiOnly())
     }
+}
+
+val Project.propertyBasedTestSeed: Provider<String>
+    get() = gradleProperty(PROPERTY_BASED_TEST_SEED)
+
+val Project.propertyBasedCaseCount: Provider<String>
+    get() = gradleProperty(PROPERTY_BASED_CASE_COUNT)
 
 
 val Project.ignoreIncomingBuildReceipt: Provider<Boolean>

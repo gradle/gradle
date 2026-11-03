@@ -15,7 +15,7 @@
  */
 
 import gradlebuild.basics.BuildEnvironment
-import gradlebuild.basics.FlakyTestStrategy
+import gradlebuild.basics.TestSelectionStrategy
 import gradlebuild.basics.flakyTestStrategy
 import java.time.Duration
 
@@ -61,7 +61,7 @@ fun setupTimeoutMonitorOnCI() {
 }
 
 fun determineTimeoutMillis() = when {
-    isRequestedTask(compileAllBuild) || isRequestedTask(sanityCheck) || isRequestedTask(quickTest) || flakyTestStrategy == FlakyTestStrategy.ONLY -> Duration.ofMinutes(30).toMillis()
+    isRequestedTask(compileAllBuild) || isRequestedTask(sanityCheck) || isRequestedTask(quickTest) || flakyTestStrategy == TestSelectionStrategy.ONLY -> Duration.ofMinutes(30).toMillis()
     isRequestedTask(smokeTest) -> Duration.ofHours(1).plusMinutes(30).toMillis()
     isRequestedTask(docsTest) -> Duration.ofMinutes(45).toMillis()
     else -> Duration.ofHours(2).plusMinutes(45).toMillis()

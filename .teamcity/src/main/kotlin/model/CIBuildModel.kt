@@ -22,6 +22,7 @@ import configurations.FunctionalTest
 import configurations.Gradleception
 import configurations.LightweightChecks
 import configurations.OsAwareBaseGradleBuildType
+import configurations.PropertyBasedTests
 import configurations.SanityCheck
 import configurations.SmokeIdeTests
 import configurations.SmokeTests
@@ -312,6 +313,7 @@ data class CIBuildModel(
                     listOf(
                         SpecificBuild.GradleceptionWithMaxJdk,
                         SpecificBuild.GradleceptionWithGroovy5,
+                        SpecificBuild.PropertyBasedTests,
                     ),
                 functionalTests =
                     listOf(
@@ -647,6 +649,13 @@ enum class SpecificBuild {
             stage: Stage,
             flakyTestStrategy: FlakyTestStrategy,
         ): OsAwareBaseGradleBuildType = Gradleception(model, stage, BuildToolBuildJvm, "Default", bundleGroovyMajor = 5)
+    },
+    PropertyBasedTests {
+        override fun create(
+            model: CIBuildModel,
+            stage: Stage,
+            flakyTestStrategy: FlakyTestStrategy,
+        ): OsAwareBaseGradleBuildType = PropertyBasedTests(model, stage)
     },
     CheckLinks {
         override fun create(

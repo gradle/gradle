@@ -419,6 +419,7 @@
          <trusted-key id="BE685132AFD2740D9095F9040CC0B712FEE75827" group="org.assertj" name="assertj-core"/>
          <trusted-key id="C0612048F3393B80B22639B4F067A2FD751AE3E4" group="io.github.davidburstrom.contester" name="contester-breakpoint"/>
          <trusted-key id="C0822D185FBFD963C33ACBFEA318A06284D602D5" group="com.tngtech.archunit"/>
+         <trusted-key id="C186BF0E8891449F3B1C17A9A73C7B80C255320A" group="dev.hegel"/>
          <trusted-key id="C3259D20DAEC4ACE6D57CC83340B090F727518D8" group="com.google.j2objc" name="j2objc-annotations"/>
          <trusted-key id="C328250FE23A2420814521EC0EB69F76FD171538" group="io.airlift" name="slice"/>
          <trusted-key id="C3EB67E869C31CC00755038F0A07E0E55E45F65B" group="jcifs" name="jcifs"/>

@@ -15,6 +15,7 @@ flot = "0.8.1" # performance test reports
 gradleProfiler = "0.26.0!!"
 guice = "5.1.0!!"
 hamcrest = "3.0!!"
+hegel = "0.10.4!!"
 hikariCP = "6.3.0!!" # 5.x requires Java 11+
 httpmime = "4.5.10!!"
 intellijPlatform = "2.17.0!!"
@@ -63,6 +64,7 @@ gradleProfilerBuildOperationsMeasuring = { group = "org.gradle.profiler", name =
 groovyTest = { group = "org.apache.groovy", name = "groovy-test", version.ref = "groovy" }
 guice = { group = "com.google.inject", name = "guice", version.ref = "guice" }
 hamcrest = { group = "org.hamcrest", name = "hamcrest", version.ref = "hamcrest" }
+hegelJna = { group = "dev.hegel", name = "hegel-jna", version.ref = "hegel" }
 hikariCP = { group = "com.zaxxer", name = "HikariCP", version.ref = "hikariCP" }
 httpmime = { group = "org.apache.httpcomponents", name = "httpmime", version.ref = "httpmime" }
 intellijPlatform = { group = "org.jetbrains.intellij.platform", name = "intellij-platform-gradle-plugin", version.ref = "intellijPlatform" }
@@ -76,7 +78,9 @@ junit5Vintage = { group = "org.junit.vintage", name = "junit-vintage-engine", ve
 junitBom = { group = "org.junit", name = "junit-bom", version.ref = "junit5ForTests" }
 junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit5ForTests" }
 junitPlatform = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junitPlatformForTests" }
+junitPlatformCommons = { group = "org.junit.platform", name = "junit-platform-commons", version.ref = "junitPlatformForTests" }
 junitPlatformEngine = { group = "org.junit.platform", name = "junit-platform-engine", version.ref = "junitPlatformForTests" }
+junitPlatformTestkit = { group = "org.junit.platform", name = "junit-platform-testkit", version.ref = "junitPlatformForTests" }
 kotlinxCoroutinesDebug = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-debug", version.ref = "kotlinCoroutines" }
 littleproxy = { group = "io.github.littleproxy", name = "littleproxy", version.ref = "littleproxy" }
 lz4 = { group = "at.yawk.lz4", name = "lz4-java", version.ref = "lz4" }

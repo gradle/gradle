@@ -18,7 +18,7 @@ import com.gradle.develocity.agent.gradle.internal.test.PredictiveTestSelectionC
 import com.gradle.develocity.agent.gradle.internal.test.TestDistributionConfigurationInternal
 import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.BuildEnvironment
-import gradlebuild.basics.FlakyTestStrategy
+import gradlebuild.basics.TestSelectionStrategy
 import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
@@ -29,7 +29,6 @@ import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.predictiveTestSelectionServerUrl
 import gradlebuild.basics.rerunAllTests
 import gradlebuild.basics.testDistributionDogfoodingTag
-import gradlebuild.basics.testDistributionEnabled
 import gradlebuild.basics.testDistributionServerUrl
 import gradlebuild.basics.testJavaVendor
 import gradlebuild.basics.testJavaVersion
@@ -40,7 +39,11 @@ import gradlebuild.identity.extension.GradleModuleExtension
 import gradlebuild.identity.extension.DEFAULT_TARGET_JVM_VERSION
 import gradlebuild.jvm.JvmCompileExtension
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
-import gradlebuild.testing.configureFlakyTestSelection
+import gradlebuild.testing.configurePropertyBasedTests
+import gradlebuild.testing.configureTestSelection
+import gradlebuild.testing.isPerformanceProject
+import gradlebuild.testing.isUnitTest
+import gradlebuild.testing.usesTestDistribution
 import org.gradle.internal.jvm.JpmsConfiguration
 import org.gradle.internal.os.OperatingSystem
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -79,7 +82,7 @@ configureCompileDefaults()
 addCompileAllTasks()
 configureSourcesVariant()
 configureTests()
-configureFlakyTestSelection()
+configureTestSelection()
 
 tasks.registerCITestDistributionLifecycleTasks()
 
@@ -197,13 +200,13 @@ fun Test.configureSpock() {
 
 fun Test.configureFlakyTest() {
     when (project.flakyTestStrategy) {
-        FlakyTestStrategy.INCLUDE -> {}
-        FlakyTestStrategy.EXCLUDE -> {
+        TestSelectionStrategy.INCLUDE -> {}
+        TestSelectionStrategy.EXCLUDE -> {
             excludeSpockAnnotation("org.gradle.test.fixtures.Flaky")
             (options as JUnitPlatformOptions).excludeTags("org.gradle.test.fixtures.Flaky")
         }
 
-        FlakyTestStrategy.ONLY -> {
+        TestSelectionStrategy.ONLY -> {
             // Note there is an issue: https://github.com/spockframework/spock/issues/1288
             // JUnit Platform `includeTags` works before Spock engine, thus excludes all spock tests.
             // As a workaround, we tag all non-spock integration tests and use `includeTags(none() | Flaky)` here.
@@ -250,8 +253,6 @@ fun Test.addOsAsInputs() {
     inputs.property("operatingSystem", "${OperatingSystem.current().name} ${System.getProperty("os.arch")}")
 }
 
-fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "writeTmpPerformanceScenarioDefinitions").contains(name)
-
 /**
  * If enabled, test JVM will inherit the DEVELOCITY_ACCESS_TOKEN
  * environment variable. This allows build scans to be published for integration tests.
@@ -270,12 +271,12 @@ fun Test.configureRerun() {
 }
 
 fun Test.determineMaxRetries() = when {
-    project.flakyTestStrategy == FlakyTestStrategy.ONLY -> 4
+    project.flakyTestStrategy == TestSelectionStrategy.ONLY -> 4
     else -> 2
 }
 
 fun Test.determineMaxFailures() = when {
-    project.flakyTestStrategy == FlakyTestStrategy.ONLY -> Integer.MAX_VALUE
+    project.flakyTestStrategy == TestSelectionStrategy.ONLY -> Integer.MAX_VALUE
     else -> 10
 }
 
@@ -310,12 +311,13 @@ fun configureTests() {
         useJUnitPlatform()
         configureSpock()
         configureFlakyTest()
+        configurePropertyBasedTests()
 
         extensions.findByType<DevelocityTestConfiguration>()?.testDistribution {
             this as TestDistributionConfigurationInternal
             server = uri(testDistributionServerUrl.orElse("https://gbt-td.grdev.net"))
 
-            if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject() && !isNativeProject() && !isKotlinDslToolingBuilders()) {
+            if (usesTestDistribution()) {
                 enabled = true
                 project.maxTestDistributionPartitionSecond?.apply {
                     preferredMaxDuration = Duration.ofSeconds(this)
@@ -358,12 +360,6 @@ fun configureTests() {
         }
     }
 }
-
-fun Project.isPerformanceProject() = setOf("build-scan-performance", "performance").contains(name)
-
-fun Project.isNativeProject() = name.contains("native")
-
-fun Project.isKotlinDslToolingBuilders() = name.contains("kotlin-dsl-tooling-builders")
 
 /**
  * Whether the project supports running with predictive test selection.
