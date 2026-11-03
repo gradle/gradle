@@ -19,10 +19,16 @@ import org.gradle.cache.FileAccess
 import org.gradle.cache.ObjectHolder
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.serialize.DefaultSerializer
+import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.Serializer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
+
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermissions
 
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.createOnDemandFileLock
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.isIntegrityViolated
@@ -65,14 +71,40 @@ class FileBackedObjectHolderTest extends Specification {
         1 * fileAccess.readFile(!null) >> { it[0].get() }
     }
 
-    def "makes file accessable only to user on write"() {
+    @Requires(UnitTestPreconditions.NotWindows)
+    def "makes file accessible only to user on write"() {
         when:
         cache.set('some value')
 
         then:
         1 * fileAccess.writeFile(!null) >> { it[0].run() }
-        1 * chmod.chmod(file.parentFile, 0700)
-        1 * chmod.chmod(file, 0600)
+        PosixFilePermissions.toString(Files.getPosixFilePermissions(file.toPath())) == "rw-------"
+    }
+
+    @Requires(UnitTestPreconditions.NotWindows)
+    def "a stream opened before a write does not see the new value"() {
+        given:
+        fileAccess.writeFile(!null) >> { it[0].run() }
+        cache.set('old value')
+        def earlierStream = new FileInputStream(file)
+
+        when:
+        cache.set('new value')
+
+        then:
+        new DefaultSerializer().read(new InputStreamBackedDecoder(earlierStream)) == 'old value'
+
+        cleanup:
+        earlierStream?.close()
+    }
+
+    def "restricts the directory before creating the file"() {
+        when:
+        cache.set('some value')
+
+        then:
+        1 * fileAccess.writeFile(!null) >> { it[0].run() }
+        1 * chmod.chmod(file.parentFile, 0700) >> { assert !file.exists() }
     }
 
     def "update provides access to cached value"() {

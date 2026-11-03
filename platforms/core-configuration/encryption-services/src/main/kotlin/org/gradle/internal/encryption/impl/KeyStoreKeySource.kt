@@ -20,6 +20,7 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.extensions.stdlib.useToRun
+import org.gradle.internal.file.nio.OwnerOnlyFiles
 import java.io.File
 import java.security.KeyStore
 import javax.crypto.KeyGenerator
@@ -82,8 +83,8 @@ class KeyStoreKeySource(
         logger.debug("Generated key")
         val entry = KeyStore.SecretKeyEntry(newKey)
         keyStore.setEntry(alias, entry, keyProtection)
-        keyStoreFile.outputStream().use { fos ->
-            keyStore.store(fos, KEYSTORE_PASSWORD)
+        OwnerOnlyFiles.newOutputStream(keyStoreFile).use { output ->
+            keyStore.store(output, KEYSTORE_PASSWORD)
         }
         return newKey
     }

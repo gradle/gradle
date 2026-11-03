@@ -15,13 +15,13 @@
  */
 package org.gradle.launcher.daemon.bootstrap;
 
-import com.google.common.io.Files;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.file.nio.OwnerOnlyFiles;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -51,7 +51,6 @@ import org.gradle.process.internal.shutdown.ShutdownHooks;
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -165,19 +164,7 @@ public class DaemonMain extends EntryPoint {
     }
 
     protected void initialiseLogging(LoggingManagerInternal loggingManager, File daemonLog) {
-        // create log file
-        PrintStream result;
-        try {
-            Files.createParentDirs(daemonLog);
-            // Note that DaemonDiagnostics class reads this log.
-            result = new PrintStream(new FileOutputStream(daemonLog), true, "UTF-8");
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to create daemon log file", e);
-        }
-
-        reducePermissionsOnDaemonLog(daemonLog);
-
-        final PrintStream log = result;
+        PrintStream log = createLogFile(daemonLog);
 
         ShutdownHooks.addShutdownHook(new Runnable() {
             @Override
@@ -202,16 +189,14 @@ public class DaemonMain extends EntryPoint {
         loggingManager.start();
     }
 
-    /**
-     * Set the permissions for the daemon log to be only readable/writable by the current user.
-     */
-    private void reducePermissionsOnDaemonLog(File daemonLog) {
-        //noinspection ResultOfMethodCallIgnored
-        daemonLog.setReadable(false, false);
-        //noinspection ResultOfMethodCallIgnored
-        daemonLog.setReadable(true);
-        //noinspection ResultOfMethodCallIgnored
-        daemonLog.setExecutable(false);
+    private static PrintStream createLogFile(File daemonLog) {
+        try {
+            OwnerOnlyFiles.createDirectory(daemonLog.getParentFile());
+            // Note that DaemonDiagnostics class reads this log.
+            return new PrintStream(OwnerOnlyFiles.newOutputStream(daemonLog), true, "UTF-8");
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to create daemon log file", e);
+        }
     }
 
     private void redirectOutputsAndInput(PrintStream printStream) {

@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.cache.FileAccess;
 import org.gradle.cache.ObjectHolder;
 import org.gradle.internal.file.Chmod;
+import org.gradle.internal.file.nio.OwnerOnlyFiles;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.serialize.OutputStreamBackedEncoder;
 import org.gradle.internal.serialize.Serializer;
@@ -28,7 +29,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.util.function.Supplier;
 
 public class FileBackedObjectHolder<T> implements ObjectHolder<T> {
@@ -108,12 +108,8 @@ public class FileBackedObjectHolder<T> implements ObjectHolder<T> {
 
     private void serialize(T newValue) {
         try {
-            if (!cacheFile.isFile()) {
-                cacheFile.createNewFile();
-            }
-            chmod.chmod(cacheFile.getParentFile(), 0700); // read-write-execute for user only
-            chmod.chmod(cacheFile, 0600); // read-write for user only
-            OutputStreamBackedEncoder encoder = new OutputStreamBackedEncoder(new BufferedOutputStream(new FileOutputStream(cacheFile)));
+            chmod.chmod(cacheFile.getParentFile(), 0700);
+            OutputStreamBackedEncoder encoder = new OutputStreamBackedEncoder(new BufferedOutputStream(OwnerOnlyFiles.newOutputStream(cacheFile)));
             try {
                 serializer.write(encoder, newValue);
             } finally {

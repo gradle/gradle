@@ -25,7 +25,6 @@ dependencies {
     api(projects.logging)
     api(projects.messaging)
 
-    implementation(libs.guava)
 
     implementation(projects.classloaders)
     implementation(projects.concurrent)
@@ -37,4 +36,5 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.core)
     implementation(projects.daemonProtocol)
+    implementation(projects.files)
 }
