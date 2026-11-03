@@ -66,7 +66,7 @@ inline val <T : Any, C : NamedDomainObjectContainer<T>> C.registering: Registeri
             .nagUser()
         return DeprecationLogger.whileDisabled(Factory {
             RegisteringDomainObjectDelegateProvider.of(this)
-        })!!
+        })
     }
 
 
@@ -97,7 +97,7 @@ fun <T : Any, C : NamedDomainObjectContainer<T>> C.registering(action: T.() -> U
         .nagUser()
     return DeprecationLogger.whileDisabled(Factory {
         RegisteringDomainObjectDelegateProviderWithAction.of(this, action)
-    })!!
+    })
 }
 
 
@@ -122,7 +122,7 @@ fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> C.registering(type
         .nagUser()
     return DeprecationLogger.whileDisabled(Factory {
         RegisteringDomainObjectDelegateProviderWithType.of(this, type)
-    })!!
+    })
 }
 
 
@@ -152,7 +152,7 @@ fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> C.registering(
         .nagUser()
     return DeprecationLogger.whileDisabled(Factory {
         RegisteringDomainObjectDelegateProviderWithTypeAndAction.of(this, type, action)
-    })!!
+    })
 }
 
 
@@ -170,7 +170,7 @@ operator fun <T : Any, C : NamedDomainObjectContainer<T>> RegisteringDomainObjec
     ExistingDomainObjectDelegate.of(
         delegateProvider.register(property.name)
     )
-})!!
+})
 
 
 /**
@@ -187,7 +187,7 @@ operator fun <T : Any, C : NamedDomainObjectContainer<T>> RegisteringDomainObjec
     ExistingDomainObjectDelegate.of(
         delegateProvider.register(property.name, action)
     )
-})!!
+})
 
 
 /**
@@ -204,7 +204,7 @@ operator fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> Registeri
     ExistingDomainObjectDelegate.of(
         delegateProvider.register(property.name, type.java)
     )
-})!!
+})
 
 
 /**
@@ -221,7 +221,7 @@ operator fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> Registeri
     ExistingDomainObjectDelegate.of(
         delegateProvider.register(property.name, type.java, action)
     )
-})!!
+})
 
 
 /**
@@ -447,7 +447,7 @@ internal constructor(
 @Suppress("DEPRECATION")
 @Deprecated("Use 'val element = create(name)' instead. See the Gradle 9.6 upgrading guide.")
 val <T : Any> NamedDomainObjectContainer<T>.creating
-    get() = DeprecationLogger.whileDisabled(Factory { NamedDomainObjectContainerCreatingDelegateProvider.of(this) })!!.also {
+    get() = DeprecationLogger.whileDisabled(Factory { NamedDomainObjectContainerCreatingDelegateProvider.of(this) }).also {
         DeprecationLogger.deprecate("The 'val name by creating' property delegate syntax")
             .withAdvice("Use 'val element = create(name)' instead.")
             .willBeRemovedInGradle10()
@@ -466,7 +466,7 @@ val <T : Any> NamedDomainObjectContainer<T>.creating
 @Suppress("DEPRECATION")
 @Deprecated("Use 'val element = create(name) { }' instead. See the Gradle 9.6 upgrading guide.")
 fun <T : Any> NamedDomainObjectContainer<T>.creating(configuration: T.() -> Unit) =
-    DeprecationLogger.whileDisabled(Factory { NamedDomainObjectContainerCreatingDelegateProvider.of(this, configuration) })!!.also {
+    DeprecationLogger.whileDisabled(Factory { NamedDomainObjectContainerCreatingDelegateProvider.of(this, configuration) }).also {
         DeprecationLogger.deprecate("The 'val name by creating { }' property delegate syntax")
             .withAdvice("Use 'val element = create(name) { }' instead.")
             .willBeRemovedInGradle10()
@@ -518,7 +518,7 @@ private constructor(
                     else -> container.create(property.name, configuration)
                 }
             )
-        })!!
+        })
 }
 
 
@@ -532,7 +532,7 @@ private constructor(
 fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: KClass<U>) =
     DeprecationLogger.whileDisabled(Factory {
         PolymorphicDomainObjectContainerCreatingDelegateProvider.of(this, type.java)
-    })!!.also {
+    }).also {
         DeprecationLogger.deprecate("The 'val name by creating(Type::class)' property delegate syntax")
             .withAdvice("Use 'val element = create<Type>(name)' instead.")
             .willBeRemovedInGradle10()
@@ -563,7 +563,7 @@ fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: KClass<U
 fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: Class<U>, configuration: U.() -> Unit) =
     DeprecationLogger.whileDisabled(Factory {
         PolymorphicDomainObjectContainerCreatingDelegateProvider.of(this, type, configuration)
-    })!!.also {
+    }).also {
         DeprecationLogger.deprecate("The 'val name by creating(Type::class) { }' property delegate syntax")
             .withAdvice("Use 'val element = create<Type>(name) { }' instead.")
             .willBeRemovedInGradle10()
@@ -614,7 +614,7 @@ private constructor(
                     else -> container.create(property.name, type, configuration)
                 }
             )
-        })!!
+        })
 }
 
 
@@ -628,7 +628,7 @@ private constructor(
 fun <T : Any, U : T> NamedDomainObjectContainer<T>.getting(type: KClass<U>, configuration: U.() -> Unit) =
     DeprecationLogger.whileDisabled(Factory {
         PolymorphicDomainObjectContainerGettingDelegateProvider.of(this, type, configuration)
-    })!!.also {
+    }).also {
         DeprecationLogger.deprecate("The 'val name by getting(Type::class) { }' property delegate syntax")
             .withAdvice("Use 'val element = getByName<Type>(name) { }' instead.")
             .willBeRemovedInGradle10()
@@ -647,7 +647,7 @@ fun <T : Any, U : T> NamedDomainObjectContainer<T>.getting(type: KClass<U>, conf
 fun <T : Any, U : T> NamedDomainObjectContainer<T>.getting(type: KClass<U>) =
     DeprecationLogger.whileDisabled(Factory {
         PolymorphicDomainObjectContainerGettingDelegateProvider.of(this, type)
-    })!!.also {
+    }).also {
         DeprecationLogger.deprecate("The 'val name by getting(Type::class)' property delegate syntax")
             .withAdvice("Use 'val element = getByName<Type>(name)' instead.")
             .willBeRemovedInGradle10()
@@ -699,5 +699,5 @@ private constructor(
                     else -> container.getByName(property.name, type, configuration)
                 }
             )
-        })!!
+        })
 }

@@ -325,7 +325,7 @@ fun receiverTypeForDefaults(impl: ProjectFeatureImplementation<*, *>): TypeOf<*>
     when (val target = impl.targetDefinitionType) {
         is TargetTypeInformation.DefinitionTargetTypeInformation<*> ->
             if (target.definitionType == Project::class.java) typeOfModelDefaults
-            else TypeOf.typeOf(target.definitionType as Class<*>)
+            else TypeOf.typeOf(target.definitionType)
 
         is TargetTypeInformation.BuildModelTargetTypeInformation<*> ->
             // Definition<out U> — matches exactly the set of definitions whose

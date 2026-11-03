@@ -17,7 +17,6 @@
 package org.gradle.internal.declarativedsl.schemaBuidler
 
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.internal.declarativedsl.assertFailsWith
@@ -56,7 +55,7 @@ class FunctionExtractorTest {
     @Test
     fun `adding function with no lambda is accepted if it returns Unit`() {
         val schema = schemaFromTypes(ReceiverThree::class, listOf(ReceiverThree::class))
-        val dataClass = schema.typeFor<ReceiverThree>() as DataClass
+        val dataClass = schema.typeFor<ReceiverThree>()
         val function = dataClass.memberFunctions.single()
         assertIs<FunctionSemantics.AddAndConfigure>(function.semantics)
     }

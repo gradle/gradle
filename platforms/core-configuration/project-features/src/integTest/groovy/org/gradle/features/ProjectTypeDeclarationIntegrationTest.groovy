@@ -25,8 +25,6 @@ import org.gradle.features.internal.TestScenarioFixture
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
 import static org.gradle.features.internal.builders.Language.KOTLIN
 import static org.gradle.features.internal.builders.PluginType.NO_PLUGIN
@@ -142,7 +140,6 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         outputDoesNotContain("Applying AnotherProjectTypeImplPlugin")
     }
 
-    @Requires(JdkVersionTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
     def 'can declare and configure a custom project type using reified Kotlin binding'() {
         given:
         PluginBuilder pluginBuilder = testScenario {
