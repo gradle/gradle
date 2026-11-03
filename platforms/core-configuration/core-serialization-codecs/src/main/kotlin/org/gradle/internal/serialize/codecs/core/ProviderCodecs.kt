@@ -31,6 +31,7 @@ import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
+import org.gradle.api.internal.provider.ProducerBackedProvider
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
@@ -63,6 +64,7 @@ import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.decodePreservingSharedIdentity
 import org.gradle.internal.serialize.graph.encodeBean
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
+import org.gradle.internal.state.ModelObject
 import org.gradle.internal.serialize.graph.encodePreservingSharedIdentityOf
 import org.gradle.internal.serialize.graph.logPropertyProblem
 import org.gradle.internal.serialize.graph.readClassOf
@@ -217,6 +219,36 @@ object RegisteredFlowActionCodec : Codec<RegisteredFlowAction> {
 /**
  * Handles Provider instances seen in the object graph, and delegates to another codec that handles the value.
  */
+/**
+ * Handles plain providers declared as task outputs, which Gradle decorates with the producing task.
+ *
+ * Within the isolate of the producing task the decorator is preserved, so that the output property of the deserialized
+ * task still knows its producer. Anywhere else the value is flattened like any other provider: the dependency on the
+ * producing task is already part of the stored work graph, and a reference to another task cannot be serialized.
+ */
+class ProducerBackedProviderCodec(
+    private val providerCodec: FixedValueReplacingProviderCodec
+) : Codec<ProviderInternal<*>> {
+
+    override suspend fun WriteContext.encode(value: ProviderInternal<*>) {
+        val output = value as ProducerBackedProvider<*>
+        val ownedByThisTask = output.producerTask === isolate.owner.delegate
+        writeBoolean(ownedByThisTask)
+        providerCodec.run { encodeProvider(if (ownedByThisTask) output.delegate else output) }
+    }
+
+    override suspend fun ReadContext.decode(): ProviderInternal<*> {
+        val ownedByThisTask = readBoolean()
+        val provider = providerCodec.run { decodeProvider() }
+        return if (ownedByThisTask) {
+            ProducerBackedProvider.of(provider.uncheckedCast<ProviderInternal<Any>>(), isolate.owner.delegate as ModelObject)
+        } else {
+            provider
+        }
+    }
+}
+
+
 class ProviderCodec(
     private val providerCodec: FixedValueReplacingProviderCodec
 ) : Codec<ProviderInternal<*>> {

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
@@ -29,6 +30,7 @@ import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.properties.InputFilePropertyType;
+import org.gradle.internal.properties.OutputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.bean.PropertyWalker;
@@ -60,6 +62,7 @@ public class DefaultTaskProperties implements TaskProperties {
         GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(beanName, fileCollectionFactory);
         GetServiceReferencesVisitor serviceReferencesVisitor = new GetServiceReferencesVisitor();
         ValidationVisitor validationVisitor = new ValidationVisitor();
+        OutputProviderValidationVisitor outputProviderValidationVisitor = new OutputProviderValidationVisitor();
         OutputFilesCollector outputFilesCollector = new OutputFilesCollector();
         OutputUnpacker outputUnpacker = new OutputUnpacker(
             beanName,
@@ -72,7 +75,7 @@ public class DefaultTaskProperties implements TaskProperties {
         GetDestroyablesVisitor destroyablesVisitor = new GetDestroyablesVisitor(beanName, fileCollectionFactory);
         ReplayingTypeValidationContext validationContext = new ReplayingTypeValidationContext();
         try {
-            TaskPropertyUtils.visitProperties(propertyWalker, task, validationContext, new CompositePropertyVisitor(
+            CompositePropertyVisitor visitor = new CompositePropertyVisitor(
                 inputPropertiesVisitor,
                 inputFilesVisitor,
                 outputUnpacker,
@@ -80,7 +83,9 @@ public class DefaultTaskProperties implements TaskProperties {
                 destroyablesVisitor,
                 localStateVisitor,
                 serviceReferencesVisitor
-            ));
+            );
+            TaskPropertyUtils.visitAnnotatedProperties(propertyWalker, task, validationContext, new CompositePropertyVisitor(visitor, outputProviderValidationVisitor));
+            TaskPropertyUtils.visitRegisteredProperties(task, visitor);
         } catch (Exception e) {
             throw new TaskExecutionException(task, e);
         }
@@ -93,7 +98,10 @@ public class DefaultTaskProperties implements TaskProperties {
             outputUnpacker.hasDeclaredOutputs(),
             localStateVisitor.getFiles(),
             destroyablesVisitor.getFiles(),
-            validationVisitor.getTaskPropertySpecs(),
+            ImmutableList.<ValidatingProperty>builder()
+                .addAll(validationVisitor.getTaskPropertySpecs())
+                .addAll(outputProviderValidationVisitor.getTaskPropertySpecs())
+                .build(),
             validationContext);
     }
 
@@ -209,6 +217,24 @@ public class DefaultTaskProperties implements TaskProperties {
 
         public FileCollection getFiles() {
             return fileCollectionFactory.resolvingLeniently(beanName + " destroy files", destroyables);
+        }
+    }
+
+    /**
+     * Validates that output providers carry their producing task. Visits annotated properties only: only an annotated
+     * property exposes its value to consumers through a getter that Gradle can decorate. A value registered via the
+     * runtime API is only reachable through {@code TaskOutputs.getFiles()}, which already carries the task.
+     */
+    private static class OutputProviderValidationVisitor implements PropertyVisitor {
+        private final List<ValidatingProperty> taskPropertySpecs = new ArrayList<>();
+
+        @Override
+        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+            taskPropertySpecs.add(new OutputProviderWithoutProducerValidatingProperty(propertyName, value));
+        }
+
+        public List<ValidatingProperty> getTaskPropertySpecs() {
+            return taskPropertySpecs;
         }
     }
 

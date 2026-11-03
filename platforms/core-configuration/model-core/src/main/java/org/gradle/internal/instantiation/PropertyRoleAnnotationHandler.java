@@ -29,5 +29,12 @@ import java.util.Set;
 public interface PropertyRoleAnnotationHandler {
     Set<Class<? extends Annotation>> getAnnotationTypes();
 
-    void applyRoleTo(ModelObject owner, Object target);
+    /**
+     * Applies the role to the given property value of the given owner.
+     *
+     * @return the value to expose as the property value. This is usually {@code target} itself, but an implementation
+     * may return a decorated value when the target cannot record the role on its own, e.g. a plain {@code Provider}
+     * that is declared as a task output. Must not be {@code null}.
+     */
+    Object applyRoleTo(ModelObject owner, Object target);
 }

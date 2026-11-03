@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.provider.ProducerAware;
+import org.gradle.api.internal.provider.ProducerBackedProvider;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
 import org.gradle.internal.state.ModelObject;
 
@@ -25,6 +27,14 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Records the task that owns a model object as the producer of the values of its output properties.
+ *
+ * <p>Values that can record the producer themselves, lazy properties and configurable file collections, are attached in place.
+ * Any other provider is decorated with a {@link ProducerBackedProvider}, which the generated getter returns instead of the
+ * original value. Only values returned from overridable getters can be decorated; a final getter returning a plain provider
+ * keeps its value and is reported by task validation.</p>
+ */
 public class OutputPropertyRoleAnnotationHandler implements PropertyRoleAnnotationHandler {
     private final ImmutableSet<Class<? extends Annotation>> annotations;
 
@@ -42,9 +52,13 @@ public class OutputPropertyRoleAnnotationHandler implements PropertyRoleAnnotati
     }
 
     @Override
-    public void applyRoleTo(ModelObject owner, Object target) {
+    public Object applyRoleTo(ModelObject owner, Object target) {
+        if (target instanceof ProviderInternal) {
+            return ProducerBackedProvider.of((ProviderInternal<?>) target, owner);
+        }
         if (target instanceof ProducerAware) {
             ((ProducerAware) target).attachProducer(owner);
         }
+        return target;
     }
 }
