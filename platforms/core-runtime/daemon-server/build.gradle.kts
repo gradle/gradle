@@ -25,7 +25,6 @@ dependencies {
     api(projects.logging)
     api(projects.messaging)
 
-    implementation(libs.guava)
 
     implementation(projects.concurrent)
     implementation(projects.instrumentationAgentServices)
@@ -36,6 +35,7 @@ dependencies {
     implementation(projects.daemonMessaging)
     implementation(projects.daemonProtocol)
     implementation(projects.daemonLogging)
+    implementation(projects.files)
 }
 
 gradleModule {
