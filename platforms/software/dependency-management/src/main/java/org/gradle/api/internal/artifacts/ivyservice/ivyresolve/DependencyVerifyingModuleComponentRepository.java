@@ -37,15 +37,19 @@ import org.gradle.internal.component.external.model.ModuleComponentFileArtifactI
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
+import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
+import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactFileResolveResult;
+import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
 import org.jspecify.annotations.Nullable;
 
@@ -58,12 +62,19 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
     private final ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> localAccess;
     private final ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> remoteAccess;
     private final ArtifactVerificationOperation operation;
+    private final ComponentMetaDataResolver parentModuleResolver;
 
-    public DependencyVerifyingModuleComponentRepository(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate, ArtifactVerificationOperation operation, boolean verifySignatures) {
+    public DependencyVerifyingModuleComponentRepository(
+        ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate,
+        ArtifactVerificationOperation operation,
+        boolean verifySignatures,
+        ComponentMetaDataResolver parentModuleResolver
+    ) {
         this.delegate = delegate;
         this.localAccess = new VerifyingModuleComponentRepositoryAccess(delegate.getLocalAccess(), verifySignatures);
         this.remoteAccess = new VerifyingModuleComponentRepositoryAccess(delegate.getRemoteAccess(), verifySignatures);
         this.operation = operation;
+        this.parentModuleResolver = parentModuleResolver;
     }
 
     @Override
@@ -145,9 +156,18 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                                 if (!changingModule) {
                                     File artifactFile = metadataFileSource.getArtifactFile();
                                     if (artifactFile != null && artifactFile.exists()) {
-                                        // it's possible that the file is null if it has been removed from the cache for example
-                                        Factory<File> signatureFileFactory = () -> maybeFetchComponentMetadataSignatureFile(sources, artifact);
-                                        operation.onArtifact(ArtifactVerificationOperation.ArtifactKind.METADATA, artifact, artifactFile, signatureFileFactory, getName(), getId());
+                                        if (artifact.getComponentIdentifier().equals(moduleComponentIdentifier)) {
+                                            // it's possible that the file is null if it has been removed from the cache for example
+                                            Factory<File> signatureFileFactory = () -> maybeFetchComponentMetadataSignatureFile(sources, artifact);
+                                            operation.onArtifact(ArtifactVerificationOperation.ArtifactKind.METADATA, artifact, artifactFile, signatureFileFactory, getName(), getId());
+                                        } else {
+                                            BuildableComponentResolveResult parentResolveResult = new DefaultBuildableComponentResolveResult();
+                                            parentModuleResolver.resolve(artifact.getComponentIdentifier(), DefaultComponentOverrideMetadata.EMPTY, parentResolveResult);
+                                            if (parentResolveResult.getFailure() != null) {
+                                                Factory<File> signatureFileFactory = () -> maybeFetchComponentMetadataSignatureFile(sources, artifact);
+                                                operation.onArtifact(ArtifactVerificationOperation.ArtifactKind.METADATA, artifact, artifactFile, signatureFileFactory, getName(), getId());
+                                            }
+                                        }
                                     } else {
                                         ignore.set(true);
                                     }

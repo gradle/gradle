@@ -176,7 +176,7 @@ public class ExternalModuleComponentResolverFactory {
 
             moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryDisabler);
             moduleComponentRepository = filterRepository(repository, moduleComponentRepository);
-            moduleComponentRepository = maybeApplyDependencyVerification(moduleComponentRepository, dependencyVerificationEnabled);
+            moduleComponentRepository = maybeApplyDependencyVerification(moduleComponentRepository, dependencyVerificationEnabled, parentModuleResolver);
 
             moduleResolver.add(moduleComponentRepository);
             parentModuleResolver.add(moduleComponentRepository);
@@ -203,14 +203,15 @@ public class ExternalModuleComponentResolverFactory {
 
     private ModuleComponentRepository<ExternalModuleComponentGraphResolveState> maybeApplyDependencyVerification(
         ModuleComponentRepository<ExternalModuleComponentGraphResolveState> moduleComponentRepository,
-        boolean dependencyVerificationEnabled
+        boolean dependencyVerificationEnabled,
+        ComponentMetaDataResolver parentModuleResolver
     ) {
         if (!dependencyVerificationEnabled) {
             LOGGER.warn("Dependency verification has been disabled.");
             return moduleComponentRepository;
         }
 
-        return dependencyVerificationOverride.overrideDependencyVerification(moduleComponentRepository);
+        return dependencyVerificationOverride.overrideDependencyVerification(moduleComponentRepository, parentModuleResolver);
     }
 
     public ArtifactResult verifiedArtifact(DefaultResolvedArtifactResult defaultResolvedArtifactResult) {

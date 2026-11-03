@@ -59,6 +59,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.security.internal.Fingerprint;
 import org.gradle.security.internal.PGPUtils;
 import org.gradle.security.internal.PublicKeyResultBuilder;
@@ -178,8 +179,8 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     @Override
-    public ModuleComponentRepository<ExternalModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> original) {
-        return new DependencyVerifyingModuleComponentRepository(original, this, generatePgpInfo);
+    public ModuleComponentRepository<ExternalModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> original, ComponentMetaDataResolver parentModuleResolver) {
+        return new DependencyVerifyingModuleComponentRepository(original, this, generatePgpInfo, parentModuleResolver);
     }
 
     private void maybeCleanupDryRunFiles() {
