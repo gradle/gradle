@@ -44,9 +44,9 @@ plugins.withId("java-base") {
             }
         }
     }
-    // Not every context that applies this plugin has the libs catalog
-    versionCatalogs.find("libs").flatMap { it.findLibrary("jspecify") }.ifPresent { jspecifyProvider ->
-        val jspecify = jspecifyProvider.get()
+    // Not every context that applies this plugin has the libs catalog, but one that does must declare jspecify
+    versionCatalogs.find("libs").ifPresent { libs ->
+        val jspecify = libs.findLibrary("jspecify").get().get()
         configurations.configureEach {
             // Legacy configurations only lose roles after creation, so this covers every configuration that
             // ends up resolvable-only; the rest are never resolved. jmh, shadow and gr8Gr are left consumable
