@@ -35,9 +35,9 @@ androidHomeWarmup {
 configurations {
     consumable("gradleFullDocsElements") {
         attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-documentation"))
+            attribute(Usage.USAGE_ATTRIBUTE, named(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, named(Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, named("gradle-documentation"))
         }
     }
 }
@@ -107,6 +107,14 @@ gradleDocumentation {
         javaPackageListLoc = jvmVersion.map { v -> project.layout.projectDirectory.dir("src/docs/javaPackageList/$v/") }
         groovyApi = libs.versions.groovy.map { v -> project.uri("https://docs.groovy-lang.org/docs/groovy-$v/html/gapi") }
         groovyPackageListSrc = libs.versions.groovy.map { v -> "org.apache.groovy:groovy-all:$v:groovydoc" }
+    }
+}
+
+dokka {
+    dokkaSourceSets {
+        named("javaMain") {
+            suppress = true
+        }
     }
 }
 

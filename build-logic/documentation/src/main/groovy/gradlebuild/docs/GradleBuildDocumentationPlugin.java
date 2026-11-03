@@ -200,9 +200,9 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
         Configuration runtimeClasspath = project.getConfigurations().getByName("runtimeClasspath");
         Configuration sourcesPath = project.getConfigurations().create("sourcesPath");
         sourcesPath.attributes(a -> {
-            a.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME));
-            a.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.DOCUMENTATION));
-            a.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, "gradle-source-folders"));
+            a.attribute(Usage.USAGE_ATTRIBUTE, a.named(Usage.class, Usage.JAVA_RUNTIME));
+            a.attribute(Category.CATEGORY_ATTRIBUTE, a.named(Category.class, Category.DOCUMENTATION));
+            a.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, a.named(DocsType.class, "gradle-source-folders"));
         });
         sourcesPath.setCanBeConsumed(false);
         sourcesPath.setCanBeResolved(true);
