@@ -31,7 +31,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 /**
  * Decides which problems reach the consumers.
  * <p>
- * Each distinct problem is emitted once per reporting task. The reporting task is the only context that makes a problem distinct: others, like stack traces, only describe how the problem was reached.
+ * Each distinct problem is emitted once per reporting task. Contextual locations do not make a problem distinct, so the same problem reached through different call stacks counts once, unless it records its stack as an origin location.
  * <p>
  * Each task may emit at most {@code threshold} distinct problems per {@link ProblemId}, so a problem that many tasks report cannot use up the limit of the others.
  * Problems reported outside a task share one limit. Problems over the limit appear only as a count in the summary.
