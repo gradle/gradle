@@ -33,6 +33,8 @@ import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.UnknownServiceException;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.process.ExecOperations;
 
 /**
@@ -40,6 +42,7 @@ import org.gradle.process.ExecOperations;
  *
  * <p>Listeners can only inject a curated set of services.</p>
  */
+@ServiceScope(Scope.ProjectExecution.class)
 public class TaskLifecycleListenerInstantiator {
 
     /**
