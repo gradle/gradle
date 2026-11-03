@@ -192,6 +192,14 @@ To help with this scenario, Gradle provides a couple of options:
 - <<sec:cache-copy,copying the dependency cache>> into each container
 - <<sec:shared-readonly-cache,sharing a read-only dependency cache>> between multiple containers
 
+[TIP]
+.Every CI runner downloading the same dependencies?
+====
+Develocity Artifact Cache serves dependencies from cache instead of the remote repository on every run.
+
+link:https://develocity.ai/product/artifact-cache/[Learn about Artifact Cache]
+====
+
 [[sec:cache-copy]]
 === Copying and reusing the cache
 
