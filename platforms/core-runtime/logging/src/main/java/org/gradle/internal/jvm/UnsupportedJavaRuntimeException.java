@@ -16,15 +16,33 @@
 
 package org.gradle.internal.jvm;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.util.GradleVersion;
+
+import javax.annotation.Nonnull;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * An exception thrown when using an invalid JVM for running Gradle.
  */
-public class UnsupportedJavaRuntimeException extends RuntimeException {
+public class UnsupportedJavaRuntimeException extends RuntimeException implements ResolutionProvider {
+    private final ImmutableList<String> resolutions;
 
     public UnsupportedJavaRuntimeException(String message) {
+        this(message, Collections.<String>emptyList());
+    }
+
+    public UnsupportedJavaRuntimeException(String message, List<String> resolutions) {
         super(message);
+        this.resolutions = ImmutableList.copyOf(resolutions);
+    }
+
+    @Nonnull
+    @Override
+    public List<String> getResolutions() {
+        return resolutions;
     }
 
     /**

@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.util.GradleVersion
@@ -532,9 +533,14 @@ fun assertEmbeddedKotlinSupportsCurrentJvm() {
     try {
         org.jetbrains.kotlin.com.intellij.util.lang.JavaVersion.current()
     } catch (e: IllegalArgumentException) {
+        val gradleVersion = GradleVersion.current().version
+        val javaVersion = Jvm.current().javaVersionMajor
         throw UnsupportedJavaRuntimeException(
-            "Gradle ${GradleVersion.current().version} cannot compile Kotlin DSL scripts on Java ${JavaVersion.current().majorVersion}. " +
-                "Run Gradle with Java 24 or earlier, or upgrade to Gradle 9.1.0 or later to run on Java >= ${JavaVersion.current().majorVersion}."
+            "Gradle $gradleVersion cannot compile Kotlin DSL scripts on Java $javaVersion.",
+            listOf(
+                "Run Gradle with a Java version that Gradle $gradleVersion supports, or upgrade to a Gradle version that supports Java $javaVersion.",
+                "See https://docs.gradle.org/current/userguide/compatibility.html for the Java versions each Gradle version supports."
+            )
         ).apply { initCause(e) }
     }
 }

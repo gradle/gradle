@@ -33,9 +33,11 @@ class KotlinDslUnsupportedJvmIntegrationTest : AbstractKotlinIntegrationTest() {
         withBuildScript("""plugins { base }""")
         executer.withJvm(jdk25)
 
-        buildAndFail("help").assertHasCause(
-            "Gradle ${GradleVersion.current().version} cannot compile Kotlin DSL scripts on Java 25. " +
-                "Run Gradle with Java 24 or earlier, or upgrade to Gradle 9.1.0 or later to run on Java >= 25."
+        val gradleVersion = GradleVersion.current().version
+        buildAndFail("help")
+            .assertHasCause("Gradle $gradleVersion cannot compile Kotlin DSL scripts on Java 25.")
+            .assertHasResolution("Run Gradle with a Java version that Gradle $gradleVersion supports, or upgrade to a Gradle version that supports Java 25.")
+            .assertHasResolution("See https://docs.gradle.org/current/userguide/compatibility.html for the Java versions each Gradle version supports."
         )
     }
 }
