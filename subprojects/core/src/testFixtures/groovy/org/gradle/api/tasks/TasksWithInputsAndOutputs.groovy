@@ -146,6 +146,19 @@ trait TasksWithInputsAndOutputs {
         """
     }
 
+    def taskTypeWithOutputFileCollection() {
+        buildFile << """
+            abstract class FilesProducer extends DefaultTask {
+                @OutputFiles
+                abstract ConfigurableFileCollection getOutputFiles()
+                @TaskAction
+                def go() {
+                    outputFiles.files.each { it.text = it.name - '.txt' }
+                }
+            }
+        """
+    }
+
     def taskTypeWithIntInputProperty() {
         buildFile << """
             class InputTask extends DefaultTask {

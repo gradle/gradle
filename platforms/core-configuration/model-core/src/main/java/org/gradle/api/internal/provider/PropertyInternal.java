@@ -18,15 +18,9 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.internal.provider.support.LazyGroovySupport;
 import org.gradle.api.provider.SupportsConvention;
-import org.gradle.internal.state.ModelObject;
 import org.gradle.internal.state.OwnerAware;
 
-public interface PropertyInternal<T> extends ProviderInternal<T>, HasConfigurableValueInternal, OwnerAware, LazyGroovySupport, SupportsConvention {
-    /**
-     * Associates this property with the task that produces its value.
-     */
-    void attachProducer(ModelObject owner);
-
+public interface PropertyInternal<T> extends ProviderInternal<T>, HasConfigurableValueInternal, OwnerAware, ProducerAware, LazyGroovySupport, SupportsConvention {
     /**
      * A simple getter that checks if this property has been finalized.
      *

@@ -23,7 +23,6 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.ModelObject;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -128,18 +127,8 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public void attachProducer(ModelObject owner) {
-        if (this.producer == null) {
-            this.producer = owner;
-        } else if (this.producer != owner) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node(getDisplayName().getCapitalizedDisplayName());
-            formatter.append(" is already declared as an output property of ");
-            format(this.producer, formatter);
-            formatter.append(". Cannot also declare it as an output property of ");
-            format(owner, formatter);
-            formatter.append(".");
-            throw new IllegalStateException(formatter.toString());
-        }
+        OutputProperties.assertCanAttachProducer(producer, owner, getDisplayName());
+        producer = owner;
     }
 
     protected final S getSupplier(EvaluationScopeContext ignored) {
@@ -404,36 +393,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Nullable
     private Task getProducerTask() {
-        if (producer == null) {
-            return null;
-        }
-        Task task = producer.getTaskThatOwnsThisObject();
-        if (task == null) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node(getDisplayName().getCapitalizedDisplayName());
-            formatter.append(" is declared as an output property of ");
-            format(producer, formatter);
-            formatter.append(" but does not have a task associated with it.");
-            throw new IllegalStateException(formatter.toString());
-        }
-        return task;
-    }
-
-    private void format(ModelObject modelObject, TreeFormatter formatter) {
-        if (modelObject.getModelIdentityDisplayName() != null) {
-            formatter.append(modelObject.getModelIdentityDisplayName().getDisplayName());
-            formatter.append(" (type ");
-            formatter.appendType(modelObject.getClass());
-            formatter.append(")");
-        } else if (modelObject.hasUsefulDisplayName()) {
-            formatter.append(modelObject.toString());
-            formatter.append(" (type ");
-            formatter.appendType(modelObject.getClass());
-            formatter.append(")");
-        } else {
-            formatter.append("an object with type ");
-            formatter.appendType(modelObject.getClass());
-        }
+        return OutputProperties.producerTaskOf(producer, getDisplayName());
     }
 
     @Contextual
