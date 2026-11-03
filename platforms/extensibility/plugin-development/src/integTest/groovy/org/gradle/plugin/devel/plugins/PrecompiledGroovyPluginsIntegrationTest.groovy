@@ -1176,6 +1176,136 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         configurationCacheFixture.assertStateLoaded()
     }
 
+    def "can recompile after a statically imported class from #description changes in a warm daemon"() {
+        given:
+        executer.requireDaemon().requireIsolatedDaemons()
+        settingsFile("""
+            $settingsLine
+        """)
+        file("lib/settings.gradle") << ""
+        file("lib/build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+            group = 'test'
+        """
+        file("$javaDir/lib/Util.java") << """
+            package lib;
+            public class Util {
+                public static String hello() { return "hello"; }
+                public static Old other() { return null; }
+            }
+        """
+        file("$javaDir/lib/Old.java") << """
+            package lib;
+            public class Old {}
+        """
+        buildFile("""
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+            dependencies {
+                $dependency
+            }
+        """)
+        file("src/main/groovy/foo.gradle") << """
+            import static lib.Util.hello
+            tasks.register("greet") {
+                doLast { println(hello()) }
+            }
+        """
+
+        when:
+        succeeds("compileGroovyPlugins")
+
+        and:
+        // Same classpath entry path, new content: Old is gone from the entry and from Util's signatures
+        file("$javaDir/lib/Old.java").delete()
+        file("$javaDir/lib/New.java") << """
+            package lib;
+            public class New {}
+        """
+        file("$javaDir/lib/Util.java").text = """
+            package lib;
+            public class Util {
+                public static String hello() { return "hello"; }
+                public static New other() { return null; }
+            }
+        """
+
+        then:
+        succeeds("compileGroovyPlugins")
+
+        where:
+        description              | settingsLine          | dependency                        | javaDir
+        "an included build"      | 'includeBuild("lib")' | 'implementation("test:lib")'      | "lib/src/main/java"
+        "a project in the build" | 'include("lib")'      | 'implementation(project(":lib"))' | "lib/src/main/java"
+        "the same project"       | ''                    | ''                                | "src/main/java"
+    }
+
+    def "can recompile after a statically imported class from a jar rebuilt in place changes in a warm daemon"() {
+        given:
+        executer.requireDaemon().requireIsolatedDaemons()
+        settingsFile("""
+            include("lib")
+        """)
+        file("lib/build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+            tasks.named('jar') {
+                destinationDirectory = rootProject.layout.projectDirectory.dir('libs')
+                archiveFileName = 'lib.jar'
+            }
+        """
+        file("lib/src/main/java/lib/Util.java") << """
+            package lib;
+            public class Util {
+                public static String hello() { return "hello"; }
+                public static Old other() { return null; }
+            }
+        """
+        file("lib/src/main/java/lib/Old.java") << """
+            package lib;
+            public class Old {}
+        """
+        buildFile("""
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+            dependencies {
+                implementation(files("libs/lib.jar").builtBy(":lib:jar"))
+            }
+        """)
+        file("src/main/groovy/foo.gradle") << """
+            import static lib.Util.hello
+            tasks.register("greet") {
+                doLast { println(hello()) }
+            }
+        """
+
+        when:
+        succeeds("compileGroovyPlugins")
+
+        and:
+        // Same jar path, new content: Old is gone from the jar and from Util's signatures
+        file("lib/src/main/java/lib/Old.java").delete()
+        file("lib/src/main/java/lib/New.java") << """
+            package lib;
+            public class New {}
+        """
+        file("lib/src/main/java/lib/Util.java").text = """
+            package lib;
+            public class Util {
+                public static String hello() { return "hello"; }
+                public static New other() { return null; }
+            }
+        """
+
+        then:
+        succeeds("compileGroovyPlugins")
+    }
+
     private String packagePrecompiledPlugin(String pluginFile, String pluginContent = REGISTER_SAMPLE_TASK) {
         return packagePrecompiledPlugins(Collections.singletonMap(pluginFile, pluginContent))
     }
