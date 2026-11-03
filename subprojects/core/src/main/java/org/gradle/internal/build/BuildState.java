@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.operations.BuildOperationOwner;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
@@ -35,12 +36,18 @@ import java.util.function.Function;
  * Implementations are not yet entirely thread-safe, but should be.
  */
 @ServiceScope(Scope.Build.class)
-public interface BuildState {
+public interface BuildState extends BuildOperationOwner {
 
     /**
      * Returns the immutable identity of this build.
      */
     BuildIdentity getBuildIdentity();
+
+    @Override
+    @Nullable
+    default String getOwnerToShow() {
+        return getBuildIdentity().getOwnerToShow();
+    }
 
     /**
      * Returns the display name of this build.

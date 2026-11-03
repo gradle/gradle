@@ -58,7 +58,8 @@ class ValidationProblemSerializationTest extends Specification {
             Mock(PayloadSerializer),
             Mock(IsolatableFactory),
             Mock(IsolatableToBytesSerializer),
-            Mock(ProblemStream)
+            Mock(ProblemStream),
+            null
         )
     )
 

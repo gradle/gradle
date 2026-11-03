@@ -30,7 +30,7 @@ assert gradle.startParameter.taskNames.contains(SCHEDULE_ALL_TASK) : "A task req
 def excludedTaskNames = [
     // This happens on a simple build, but not on gradle/gradle:
     // Configuration cache state could not be cached: field `__toolchainDownloadUrls__` of task `:updateDaemonJvm` of type `org.gradle.buildconfiguration.tasks.UpdateDaemonJvm`: error writing value of type 'org.gradle.api.internal.provider.DefaultMapProperty'
-    //   > Invalid task configuration
+    //   > No toolchain download repositories configured
     //     Toolchain download repositories have not been configured.
     "updateDaemonJvm",
 

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.remote.internal.inet
 
+import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 
 class InetAddressFactoryTest extends Specification {
@@ -95,9 +96,9 @@ class InetAddressFactoryTest extends Specification {
         factory.localBindingAddress
 
         then:
-        def e = thrown(RuntimeException)
-        e.cause.message.contains("OPENSHIFT_FOO_IP")
-        e.cause.message.contains("256.0.0.1")
+        def e = thrown(InvalidUserDataException)
+        e.message.contains("OPENSHIFT_FOO_IP")
+        e.message.contains("256.0.0.1")
     }
 
     def "GRADLE_DAEMON_BIND_ADDRESS skips auto-detection and uses the provided address"() {
@@ -125,9 +126,9 @@ class InetAddressFactoryTest extends Specification {
         factory.localBindingAddress
 
         then:
-        def e = thrown(RuntimeException)
-        e.cause.message.contains("GRADLE_DAEMON_BIND_ADDRESS")
-        e.cause.message.contains("256.0.0.1")
+        def e = thrown(InvalidUserDataException)
+        e.message.contains("GRADLE_DAEMON_BIND_ADDRESS")
+        e.message.contains("256.0.0.1")
     }
 
     private defaultAddresses() {

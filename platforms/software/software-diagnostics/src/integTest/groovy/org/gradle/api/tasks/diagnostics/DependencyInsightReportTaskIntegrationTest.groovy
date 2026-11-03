@@ -58,6 +58,27 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         failure.assertHasCause("Dependency insight report cannot be generated because the input configuration was not specified.")
     }
 
+    def "requires use of dependency flag if only the configuration is specified"() {
+        given:
+        buildFile << """
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+        """
+
+        when:
+        def failure = runAndFail("dependencyInsight", "--configuration", "conf")
+
+        then:
+        failure.assertHasCause("Dependency insight report cannot be generated because the dependency to show was not specified.")
+    }
+
     def "indicates that requested dependency cannot be found for default configuration"() {
         given:
         mavenRepo.module("org", "leaf1").publish()

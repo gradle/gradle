@@ -35,9 +35,9 @@ androidHomeWarmup {
 configurations {
     consumable("gradleFullDocsElements") {
         attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-documentation"))
+            attribute(Usage.USAGE_ATTRIBUTE, named(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, named(Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, named("gradle-documentation"))
         }
     }
 }
@@ -107,6 +107,14 @@ gradleDocumentation {
         javaPackageListLoc = jvmVersion.map { v -> project.layout.projectDirectory.dir("src/docs/javaPackageList/$v/") }
         groovyApi = libs.versions.groovy.map { v -> project.uri("https://docs.groovy-lang.org/docs/groovy-$v/html/gapi") }
         groovyPackageListSrc = libs.versions.groovy.map { v -> "org.apache.groovy:groovy-all:$v:groovydoc" }
+    }
+}
+
+dokka {
+    dokkaSourceSets {
+        named("javaMain") {
+            suppress = true
+        }
     }
 }
 
@@ -181,6 +189,11 @@ tasks.named<Test>("docsTest") {
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_27)) {
             // PMD doesn't support Java 27
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-core-plugins-code-quality*")
+        }
+
+        if (libs.versions.kotlin.get().matches(Regex(".+-\\d+"))) {
+            // The init script of the sample resolves the embedded Kotlin from repositories that do not have dev builds
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-plugin-development-init-kotlin_*")
         }
 
         if (OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64") {

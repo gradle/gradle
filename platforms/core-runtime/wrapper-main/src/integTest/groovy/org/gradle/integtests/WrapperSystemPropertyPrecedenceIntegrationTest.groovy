@@ -61,4 +61,22 @@ class WrapperSystemPropertyPrecedenceIntegrationTest extends AbstractWrapperInte
         null      | 'user' | null  | 'user'
         null      | null   | 'cli' | 'cli'
     }
+
+    def 'reports which gradle.properties file contains a malformed escape sequence (#location)'() {
+        given:
+        prepareWrapper().run()
+        def gradleUserHome = testDirectory.file('some-custom-user-home')
+        def propertiesFile = (location == 'project' ? testDirectory : gradleUserHome).file('gradle.properties')
+        propertiesFile << 'org.gradle.java.home=D:\\tools\\util\\jdk\n'
+
+        when:
+        def failure = wrapperExecuter.withGradleUserHomeDir(gradleUserHome).withStackTraceChecksDisabled().runWithFailure()
+
+        then:
+        failure.error.contains("Error when loading properties file=$propertiesFile")
+        failure.error.contains('Malformed \\uxxxx encoding.')
+
+        where:
+        location << ['project', 'user']
+    }
 }

@@ -33,6 +33,8 @@ import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.api.problems.internal.ProblemsInfrastructure
 import org.gradle.api.problems.internal.StackTraceLocation
 import org.gradle.api.problems.internal.TaskLocation
+import org.gradle.internal.Factory
+import org.gradle.internal.deprecation.DeprecationLogger
 
 /*
  * A deserialized representation of a problem received from the build operation trace.
@@ -223,13 +225,19 @@ class ReceivedProblem implements ProblemInternal {
         throw new UnsupportedOperationException("Not implemented")
     }
 
+    @Override
+    ProblemInternal withId(ProblemId id) {
+        throw new UnsupportedOperationException("Not implemented")
+    }
+
     static class ReceivedProblemDefinition implements ProblemDefinition {
         private final ReceivedProblemId id
         private final Severity severity
         private final ReceivedDocumentationLink documentationLink
 
         ReceivedProblemDefinition(Map<String, Object> definition) {
-            id = new ReceivedProblemId(definition['id'] as Map<String, Object>)
+            // the fixture subclasses ProblemId and ProblemGroup, which nags when the test runs the build in-process
+            id = DeprecationLogger.whileDisabled({ new ReceivedProblemId(definition['id'] as Map<String, Object>) } as Factory<ReceivedProblemId>)
             severity = Severity.valueOf(definition['severity'] as String)
             documentationLink = definition['documentationLink'] ==  null ? null : new ReceivedDocumentationLink(definition['documentationLink'] as Map<String, Object>)
         }

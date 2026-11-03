@@ -43,8 +43,8 @@ class MultipleBuildFilesIntegrationTest extends AbstractIntegrationSpec {
         then:
         // Verify that a problem was reported
         verifyAll(receivedProblem) {
-            definition.id.fqid == 'scripts:multiple-scripts'
-            definition.id.displayName == 'Multiple scripts'
+            definition.id.fqid == 'Gradle:Build Definition:Multiple script files in one directory'
+            definition.id.displayName == 'Multiple script files in one directory'
             contextualLabel == "Multiple build script files were found in directory '${testDirectory}'"
             details.contains("Selected 'build.gradle'")
             details.contains("ignoring 'build.gradle.kts'")
@@ -86,8 +86,8 @@ class MultipleBuildFilesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem) {
-            definition.id.fqid == 'scripts:multiple-scripts'
-            definition.id.displayName == 'Multiple scripts'
+            definition.id.fqid == 'Gradle:Build Definition:Multiple script files in one directory'
+            definition.id.displayName == 'Multiple script files in one directory'
             contextualLabel == "Multiple build script files were found in directory '${testDirectory}'"
             details.contains("Selected 'build.gradle'")
             details.contains("'build.gradle.kts'")
@@ -125,7 +125,7 @@ class MultipleBuildFilesIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         // Still reports the problem
-        receivedProblem.definition.id.fqid == 'scripts:multiple-scripts'
+        receivedProblem.definition.id.fqid == 'Gradle:Build Definition:Multiple script files in one directory'
     }
 
     def "warns in composite build when included build has multiple build files"() {
@@ -153,8 +153,8 @@ class MultipleBuildFilesIntegrationTest extends AbstractIntegrationSpec {
         then:
         // Should have a problem for the included build
         verifyAll(receivedProblem) {
-            definition.id.fqid == 'scripts:multiple-scripts'
-            definition.id.displayName == 'Multiple scripts'
+            definition.id.fqid == 'Gradle:Build Definition:Multiple script files in one directory'
+            definition.id.displayName == 'Multiple script files in one directory'
             contextualLabel.contains("Multiple build script files were found in directory")
             contextualLabel.contains("included")
             details.contains("Selected 'build.gradle'")

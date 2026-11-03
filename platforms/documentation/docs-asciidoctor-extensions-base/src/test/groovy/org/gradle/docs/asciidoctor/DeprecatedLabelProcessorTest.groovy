@@ -16,17 +16,12 @@
 
 package org.gradle.docs.asciidoctor
 
-import org.asciidoctor.Asciidoctor
 import org.asciidoctor.Options
 import org.asciidoctor.extension.JavaExtensionRegistry
-import spock.lang.Specification
 
-class DeprecatedLabelProcessorTest extends Specification {
-
-    Asciidoctor asciidoctor
+class DeprecatedLabelProcessorTest extends AbstractAsciidoctorTest {
 
     def setup() {
-        asciidoctor = Asciidoctor.Factory.create()
         JavaExtensionRegistry extensionRegistry = asciidoctor.javaExtensionRegistry()
         extensionRegistry.inlineMacro(DeprecatedLabelProcessor.class)
     }

@@ -204,14 +204,14 @@
   },
   {
     "name": "build-operations",
-    "path": "platforms/core-runtime/build-operations",
+    "path": "platforms/observability/build-operations",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "build-operations-trace",
-    "path": "platforms/core-runtime/build-operations-trace",
+    "path": "platforms/observability/build-operations-trace",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
@@ -735,6 +735,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "groovy-dsl",
+    "path": "platforms/dsl/groovy-dsl",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "groovy-loader",
     "path": "platforms/core-runtime/groovy-loader",
     "unitTests": false,
@@ -988,49 +995,49 @@
   },
   {
     "name": "kotlin-dsl",
-    "path": "platforms/core-configuration/kotlin-dsl",
+    "path": "platforms/dsl/kotlin-dsl",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "kotlin-dsl-integ-tests",
-    "path": "platforms/core-configuration/kotlin-dsl-integ-tests",
+    "path": "platforms/dsl/kotlin-dsl-integ-tests",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
     "name": "kotlin-dsl-plugins",
-    "path": "platforms/core-configuration/kotlin-dsl-plugins",
+    "path": "platforms/dsl/kotlin-dsl-plugins",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "kotlin-dsl-provider-plugins",
-    "path": "platforms/core-configuration/kotlin-dsl-provider-plugins",
+    "path": "platforms/dsl/kotlin-dsl-provider-plugins",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "kotlin-dsl-tooling-builders",
-    "path": "platforms/core-configuration/kotlin-dsl-tooling-builders",
+    "path": "platforms/dsl/kotlin-dsl-tooling-builders",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": true
   },
   {
     "name": "kotlin-dsl-tooling-model-impls",
-    "path": "platforms/core-configuration/kotlin-dsl-tooling-model-impls",
+    "path": "platforms/dsl/kotlin-dsl-tooling-model-impls",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "kotlin-dsl-tooling-models",
-    "path": "platforms/core-configuration/kotlin-dsl-tooling-models",
+    "path": "platforms/dsl/kotlin-dsl-tooling-models",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -1072,14 +1079,14 @@
   },
   {
     "name": "logging",
-    "path": "platforms/core-runtime/logging",
+    "path": "platforms/observability/logging",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "logging-api",
-    "path": "platforms/core-runtime/logging-api",
+    "path": "platforms/observability/logging-api",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -1394,7 +1401,7 @@
   },
   {
     "name": "report-rendering",
-    "path": "platforms/core-runtime/report-rendering",
+    "path": "platforms/observability/report-rendering",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false

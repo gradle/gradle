@@ -22,10 +22,9 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.api.tasks.util.internal.IntersectionPatternSet;
-import org.gradle.api.tasks.util.internal.PatternSetAntBuilderDelegate;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
@@ -41,7 +40,8 @@ import java.util.Set;
  * @since 0.7
  */
 @NotToBeMigratedToLazy
-public class PatternSet implements AntBuilderAware, PatternFilterable {
+@SuppressWarnings("deprecation")
+public class PatternSet implements org.gradle.api.tasks.AntBuilderAware, PatternFilterable {
 
     private static final NotationParser<Object, String> PARSER = NotationParserBuilder.toType(String.class).fromCharSequence().toComposite();
     private final PatternSpecFactory patternSpecFactory;
@@ -424,12 +424,17 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     @Override
+    @Deprecated
     public Object addToAntBuilder(Object node, String childNodeName) {
+        DeprecationLogger.deprecateMethod(PatternSet.class, "addToAntBuilder(Object, String)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_ant_builder")
+            .nagUser();
 
         if (!nullToEmpty(includeSpecs).isEmpty() || !nullToEmpty(excludeSpecs).isEmpty()) {
             throw new UnsupportedOperationException("Cannot add include/exclude specs to Ant node. Only include/exclude patterns are currently supported.");
         }
 
-        return new PatternSetAntBuilderDelegate(getIncludesView(), getExcludesView(), isCaseSensitive()).addToAntBuilder(node, childNodeName);
+        return new org.gradle.api.tasks.util.internal.PatternSetAntBuilderDelegate(getIncludesView(), getExcludesView(), isCaseSensitive()).addToAntBuilder(node, childNodeName);
     }
 }

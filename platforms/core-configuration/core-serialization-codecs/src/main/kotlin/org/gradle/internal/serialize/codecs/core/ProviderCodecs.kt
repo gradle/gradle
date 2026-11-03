@@ -160,7 +160,7 @@ object FlowProvidersCodec : Codec<BuildWorkResultProvider> {
 
     override suspend fun WriteContext.encode(value: BuildWorkResultProvider) {
         if (isolate.owner !is IsolateOwners.OwnerFlowAction) {
-            logPropertyProblem("serialize") {
+            logPropertyProblem("serialize", "Build work result used outside a flow action") {
                 reference(BuildWorkResultProvider::class)
                 text(" can only be used as input to flow actions.")
             }

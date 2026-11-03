@@ -16,7 +16,6 @@
 package org.gradle.internal.scripts;
 
 import org.gradle.scripts.ScriptingLanguage;
-import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,10 +26,12 @@ import java.util.List;
  */
 public final class ScriptingLanguages {
 
+    private static final ScriptingLanguage GROOVY = scriptingLanguage(".gradle", "org.gradle.configuration.GroovyScriptPluginFactory");
+
     private static final List<ScriptingLanguage> ALL =
         Collections.unmodifiableList(
             Arrays.asList(
-                scriptingLanguage(".gradle", null),
+                GROOVY,
                 scriptingLanguage(".gradle.kts", "org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory"),
                 scriptingLanguage(".gradle.dcl", "org.gradle.internal.declarativedsl.provider.DeclarativeDslScriptPluginFactory")
             )
@@ -40,7 +41,14 @@ public final class ScriptingLanguages {
         return ALL;
     }
 
-    private static ScriptingLanguage scriptingLanguage(final String extension, @Nullable final String scriptPluginFactory) {
+    /**
+     * The language used for scripts whose file name matches no known extension.
+     */
+    public static ScriptingLanguage defaultLanguage() {
+        return GROOVY;
+    }
+
+    private static ScriptingLanguage scriptingLanguage(final String extension, final String scriptPluginFactory) {
         return new ScriptingLanguage() {
             @Override
             public String getExtension() {
@@ -48,7 +56,7 @@ public final class ScriptingLanguages {
             }
 
             @Override
-            public @Nullable String getProvider() {
+            public String getProvider() {
                 return scriptPluginFactory;
             }
         };

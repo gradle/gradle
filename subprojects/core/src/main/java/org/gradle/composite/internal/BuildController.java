@@ -18,10 +18,10 @@ package org.gradle.composite.internal;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
+import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.ExecutionResult;
-import org.gradle.internal.build.ExportedTaskNode;
 import org.gradle.internal.concurrent.Stoppable;
 
 import java.util.concurrent.ExecutorService;
@@ -45,9 +45,9 @@ public interface BuildController extends Stoppable {
     void addFinalization(BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization);
 
     /**
-     * Queues the given task for execution. Does not schedule the task, use {@link #scheduleQueuedTasks()} for this.
+     * Queues the given node for execution. Does not schedule the task, use {@link #scheduleQueuedTasks()} for this.
      */
-    void queueForExecution(ExportedTaskNode taskNode);
+    void queueForExecution(Node node);
 
     /**
      * Schedules any queued tasks. When this method returns true, then some tasks where scheduled for this build and

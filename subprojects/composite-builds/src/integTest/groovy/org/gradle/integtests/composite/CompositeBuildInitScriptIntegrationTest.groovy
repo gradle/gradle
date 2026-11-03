@@ -25,6 +25,7 @@ class CompositeBuildInitScriptIntegrationTest extends AbstractCompositeBuildInte
     BuildTestFile buildB
 
     def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
         dependency 'org.test:buildB:1.0'
 
         buildB = singleProjectBuild("buildB") {

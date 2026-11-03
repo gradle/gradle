@@ -36,9 +36,10 @@ public interface ProblemGroupInternal {
     String getName();
 
     /**
-     * The display name of the group, see {@code ProblemGroup#getDisplayName()}.
+     * The display name of the group, see {@code ProblemGroup#getDisplayName()}. Unlike the public method, reading it does
+     * not emit a deprecation warning.
      */
-    String getDisplayName();
+    String getDisplayNameInternal();
 
     /**
      * The parent group, or {@code null} for root groups. The parent of a Gradle-owned group is always Gradle-owned:
@@ -73,6 +74,29 @@ public interface ProblemGroupInternal {
     }
 
     /**
+     * Returns the display name of {@code group} without emitting a deprecation warning.
+     * A foreign group is asked through the public method, which is the plugin's own code.
+     */
+    @SuppressWarnings("deprecation") // a foreign group keeps its display name until Gradle 10
+    static String displayNameOf(ProblemGroup group) {
+        return group instanceof ProblemGroupInternal ? ((ProblemGroupInternal) group).getDisplayNameInternal() : group.getDisplayName();
+    }
+
+    /**
+     * Returns the parent of {@code group} without emitting a deprecation warning.
+     * A foreign group is asked through the public method, which is the plugin's own code.
+     */
+    @Nullable
+    @SuppressWarnings("deprecation") // a foreign group keeps its parent until Gradle 10
+    static ProblemGroup parentOf(ProblemGroup group) {
+        if (group instanceof ProblemGroupInternal) {
+            // every Gradle-owned implementation extends ProblemGroup
+            return (ProblemGroup) ((ProblemGroupInternal) group).getParentInternal();
+        }
+        return group.getParent();
+    }
+
+    /**
      * Structural equality shared by all implementations: two groups are equal if their names and parents are equal.
      */
     static boolean structurallyEquals(ProblemGroup self, @Nullable Object o) {
@@ -83,13 +107,13 @@ public interface ProblemGroupInternal {
             return false;
         }
         ProblemGroup that = (ProblemGroup) o;
-        return self.getName().equals(that.getName()) && Objects.equals(self.getParent(), that.getParent());
+        return self.getName().equals(that.getName()) && Objects.equals(parentOf(self), parentOf(that));
     }
 
     /**
      * Hash code consistent with {@link #structurallyEquals(ProblemGroup, Object)}.
      */
-    static int structuralHashCode(ProblemGroup self) {
-        return Objects.hash(self.getName(), self.getParent());
+    static int structuralHashCode(ProblemGroupInternal self) {
+        return Objects.hash(self.getName(), self.getParentInternal());
     }
 }

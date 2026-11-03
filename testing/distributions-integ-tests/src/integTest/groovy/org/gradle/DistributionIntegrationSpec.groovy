@@ -113,6 +113,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "functional",
         "gradle-cli",
         "gradle-cli-main",
+        "groovy-dsl",
         "groovy-loader",
         "hashing",
         "hashing-services",

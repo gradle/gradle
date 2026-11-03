@@ -795,8 +795,15 @@ select { width: 100%; }
 }
 
 @media screen and (min-width: 64rem) {
+    /* Ancestors must not be scroll containers, or the sticky nav won't stick */
+    .layout { overflow: clip; }
+    .main-content { overflow: visible; }
+
     .docs-navigation {
         flex: 0 0 auto;
+        position: sticky;
+        top: 0;
+        height: 100vh;
     }
 
     .main-content > .appendix,

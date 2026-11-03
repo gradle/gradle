@@ -41,6 +41,7 @@ public class DefaultProblemGroup implements ProblemGroup {
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
         return displayName;
     }

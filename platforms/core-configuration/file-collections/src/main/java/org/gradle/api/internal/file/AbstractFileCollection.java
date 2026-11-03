@@ -38,6 +38,7 @@ import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.GUtil;
@@ -235,7 +236,18 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     @Override
+    @Deprecated
     public void addToAntBuilder(Object builder, String nodeName, AntType type) {
+        DeprecationLogger.deprecateMethod(FileCollection.class, "addToAntBuilder(Object, String, AntType)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_ant_builder")
+            .nagUser();
+
+        DeprecationLogger.whileDisabled(() -> doAddToAntBuilder(builder, nodeName, type));
+    }
+
+    @Deprecated
+    private void doAddToAntBuilder(Object builder, String nodeName, AntType type) {
         if (type == AntType.ResourceCollection) {
             addAsResourceCollection(builder, nodeName);
         } else if (type == AntType.FileSet) {
@@ -245,14 +257,17 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         }
     }
 
+    @Deprecated
     protected void addAsMatchingTask(Object builder, String nodeName) {
         new AntFileCollectionMatchingTaskBuilder(getAsDirectoryTrees()).addToAntBuilder(builder, nodeName);
     }
 
+    @Deprecated
     protected void addAsFileSet(Object builder, String nodeName) {
         new AntFileSetBuilder(getAsDirectoryTrees()).addToAntBuilder(builder, nodeName);
     }
 
+    @Deprecated
     protected void addAsResourceCollection(Object builder, String nodeName) {
         new AntFileCollectionBuilder(this).addToAntBuilder(builder, nodeName);
     }
@@ -322,8 +337,14 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     @Override
+    @Deprecated
     public Object addToAntBuilder(Object node, String childNodeName) {
-        addToAntBuilder(node, childNodeName, AntType.ResourceCollection);
+        DeprecationLogger.deprecateMethod(FileCollection.class, "addToAntBuilder(Object, String)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_ant_builder")
+            .nagUser();
+
+        DeprecationLogger.whileDisabled(() -> doAddToAntBuilder(node, childNodeName, AntType.ResourceCollection));
         return this;
     }
 

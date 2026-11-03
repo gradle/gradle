@@ -38,7 +38,8 @@ public class AntTargetTest {
     private final Target antTarget = new Target();
     private final File baseDir = testDir.getTestDirectory();
     private final ProjectInternal project = TestUtil.create(testDir).rootProject();
-    private final AntTarget task = TestUtil.createTask(AntTarget.class, project);
+    @SuppressWarnings("deprecation")
+    private final org.gradle.api.tasks.ant.AntTarget task = TestUtil.createTask(org.gradle.api.tasks.ant.AntTarget.class, project);
 
     @Before
     public void setUp() {

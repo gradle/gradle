@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import org.gradle.api.Action;
-import org.gradle.api.AntBuilder;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
@@ -675,25 +674,29 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public AntBuilder getAnt() {
+    @Deprecated
+    public org.gradle.api.AntBuilder getAnt() {
         onMutableStateAccess("ant");
         return delegate.getAnt();
     }
 
     @Override
-    public AntBuilder createAntBuilder() {
+    @Deprecated
+    public org.gradle.api.AntBuilder createAntBuilder() {
         onMutableStateAccess("antBuilder");
         return delegate.createAntBuilder();
     }
 
     @Override
-    public AntBuilder ant(Closure configureClosure) {
+    @Deprecated
+    public org.gradle.api.AntBuilder ant(Closure configureClosure) {
         onMutableStateAccess("ant");
         return delegate.ant(configureClosure);
     }
 
     @Override
-    public AntBuilder ant(Action<? super AntBuilder> configureAction) {
+    @Deprecated
+    public org.gradle.api.AntBuilder ant(Action<? super org.gradle.api.AntBuilder> configureAction) {
         onMutableStateAccess("ant");
         return delegate.ant(configureAction);
     }

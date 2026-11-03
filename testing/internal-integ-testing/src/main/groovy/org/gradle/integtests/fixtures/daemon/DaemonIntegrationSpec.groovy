@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit
 @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
         executer.requireDaemon()
         executer.requireIsolatedDaemons()
     }

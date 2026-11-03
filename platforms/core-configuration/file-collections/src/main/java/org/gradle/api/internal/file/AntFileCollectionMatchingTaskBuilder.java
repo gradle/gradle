@@ -21,13 +21,13 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.file.DirectoryTree;
-import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 
 import java.util.Collections;
 
-public class AntFileCollectionMatchingTaskBuilder implements AntBuilderAware {
+@Deprecated
+public class AntFileCollectionMatchingTaskBuilder implements org.gradle.api.tasks.AntBuilderAware {
 
     private final Iterable<DirectoryTree> fileTrees;
 
@@ -36,6 +36,7 @@ public class AntFileCollectionMatchingTaskBuilder implements AntBuilderAware {
     }
 
     @Override
+    @Deprecated
     public Object addToAntBuilder(final Object node, final String childNodeName) {
         final DynamicObject dynamicObject = new BeanDynamicObject(node);
 

@@ -28,7 +28,6 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -104,18 +103,14 @@ import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.caching.internal.BuildCacheServices;
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer;
 import org.gradle.configuration.BuildTreePreparingProjectsPreparer;
-import org.gradle.configuration.CompileOperationFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.DefaultInitScriptProcessor;
 import org.gradle.configuration.DefaultProjectsPreparer;
-import org.gradle.configuration.DefaultScriptPluginFactory;
-import org.gradle.configuration.ImportsReader;
 import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactorySelector;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.BuiltInCommand;
-import org.gradle.configuration.project.DefaultCompileOperationFactory;
 import org.gradle.configuration.project.PluginsProjectConfigureActions;
 import org.gradle.execution.BuildTaskScheduler;
 import org.gradle.execution.BuildWorkExecutor;
@@ -139,16 +134,6 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.features.internal.initialization.SharedModelDefaultsSettingsProcessor;
-import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
-import org.gradle.groovy.scripts.ScriptCompilerFactory;
-import org.gradle.groovy.scripts.internal.BuildOperationBackedScriptCompilationHandler;
-import org.gradle.groovy.scripts.internal.BuildScopeInMemoryCachingScriptClassCompiler;
-import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
-import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler;
-import org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory;
-import org.gradle.groovy.scripts.internal.GroovyDslWorkspaceProvider;
-import org.gradle.groovy.scripts.internal.GroovyScriptClassCompiler;
-import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
 import org.gradle.groovy.scripts.internal.ScriptSourceListener;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.BuildOperationSettingsProcessor;
@@ -195,9 +180,6 @@ import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.IntermediateBuildActionRunner;
-import org.gradle.internal.classpath.CachedClasspathTransformer;
-import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
-import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.composite.BuildIncludeListener;
@@ -207,17 +189,12 @@ import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReport
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
-import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.file.RelativeFilePathResolver;
-import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
-import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
 import org.gradle.internal.isolation.IsolatableFactory;
-import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.management.ToolchainManagementInternal;
 import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.model.DomainObjectContext;
@@ -234,7 +211,6 @@ import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.internal.scripts.ScriptExecutionListener;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
@@ -242,8 +218,6 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.invocation.DefaultGradle;
-import org.gradle.plugin.management.internal.PluginHandler;
-import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.process.internal.DefaultExecOperations;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
@@ -502,76 +476,20 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected ScriptCompilerFactory createScriptCompileFactory(
-        GroovyScriptClassCompiler scriptCompiler,
-        CrossBuildInMemoryCachingScriptClassCache cache,
-        ScriptRunnerFactory scriptRunnerFactory
-    ) {
-        return new DefaultScriptCompilerFactory(
-            new BuildScopeInMemoryCachingScriptClassCompiler(cache, scriptCompiler),
-            scriptRunnerFactory
-        );
-    }
-
-    @Provides
-    protected GroovyScriptClassCompiler createFileCacheBackedScriptClassCompiler(
-        BuildOperationRunner buildOperationRunner,
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        DefaultScriptCompilationHandler scriptCompilationHandler,
-        CachedClasspathTransformer classpathTransformer,
-        ExecutionEngine executionEngine,
-        FileCollectionFactory fileCollectionFactory,
-        InputFingerprinter inputFingerprinter,
-        GroovyDslWorkspaceProvider groovyDslWorkspaceProvider,
-        ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
-        GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry,
-        PropertyUpgradeReportConfig propertyUpgradeReportConfig
-    ) {
-        return new GroovyScriptClassCompiler(
-            new BuildOperationBackedScriptCompilationHandler(scriptCompilationHandler, buildOperationRunner),
-            classLoaderHierarchyHasher,
-            classpathTransformer,
-            executionEngine,
-            fileCollectionFactory,
-            inputFingerprinter,
-            groovyDslWorkspaceProvider.getWorkspace(),
-            transformFactoryForLegacy,
-            gradleCoreTypeRegistry,
-            propertyUpgradeReportConfig
-        );
-    }
-
-    @Provides
     protected ScriptPluginFactory createScriptPluginFactory(
         InstantiatorFactory instantiatorFactory,
         ServiceRegistry buildScopedServices,
-        ScriptCompilerFactory scriptCompilerFactory,
-        LoggingManagerFactory loggingManagerFactory,
-        PluginHandler pluginHandler,
-        PluginRequestApplicator pluginRequestApplicator,
-        CompileOperationFactory compileOperationFactory,
         BuildOperationRunner buildOperationRunner,
         UserCodeApplicationContext userCodeApplicationContext,
         ScriptSourceListener scriptSourceListener
     ) {
         ScriptPluginFactorySelector.ProviderInstantiator instantiator = ScriptPluginFactorySelector.defaultProviderInstantiatorFor(instantiatorFactory.inject(buildScopedServices));
-        DefaultScriptPluginFactory defaultScriptPluginFactory = new DefaultScriptPluginFactory(
-            buildScopedServices,
-            scriptCompilerFactory,
-            loggingManagerFactory,
-            pluginHandler,
-            pluginRequestApplicator,
-            compileOperationFactory
-        );
-        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(
-            defaultScriptPluginFactory,
+        return new ScriptPluginFactorySelector(
             instantiator,
             buildOperationRunner,
             userCodeApplicationContext,
             scriptSourceListener
         );
-        defaultScriptPluginFactory.setScriptPluginFactory(scriptPluginFactorySelector);
-        return scriptPluginFactorySelector;
     }
 
     @Provides
@@ -755,27 +673,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected CompileOperationFactory createCompileOperationFactory(DocumentationRegistry documentationRegistry) {
-        return new DefaultCompileOperationFactory(documentationRegistry);
-    }
-
-    @Provides
-    protected DefaultScriptCompilationHandler createScriptCompilationHandler(ImportsReader importsReader, ObjectFactory objectFactory) {
-        return objectFactory.newInstance(DefaultScriptCompilationHandler.class, importsReader);
-    }
-
-    @Provides
-    protected ScriptRunnerFactory createScriptRunnerFactory(
-        ScriptExecutionListener scriptExecutionListener,
-        InstantiatorFactory instantiatorFactory
-    ) {
-        return new DefaultScriptRunnerFactory(
-            scriptExecutionListener,
-            instantiatorFactory.inject()
-        );
-    }
-
-    @Provides
     protected ToolchainManagementInternal createToolchainManagement(ObjectFactory objectFactory) {
         return objectFactory.newInstance(DefaultToolchainManagement.class);
     }
@@ -797,7 +694,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         SharedResourceLeaseRegistry sharedResourceLeaseRegistry,
         FeatureFlags featureFlags,
         IsolatedProjectsProblemsReporter ipProblems,
-        BuildModelParameters buildModelParameters
+        BuildModelParameters buildModelParameters,
+        BuildOperationRunner buildOperationRunner
     ) {
         // TODO:configuration-cache remove this hack
         // HACK: force the instantiation of FlowScope so its listeners are registered before DefaultBuildServicesRegistry's
@@ -817,7 +715,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
                 ? new BuildServiceProviderNagger(services.get(WorkExecutionTracker.class))
                 : BuildServiceProvider.Listener.EMPTY,
             ipProblems,
-            buildModelParameters
+            buildModelParameters,
+            buildOperationRunner
         );
     }
 

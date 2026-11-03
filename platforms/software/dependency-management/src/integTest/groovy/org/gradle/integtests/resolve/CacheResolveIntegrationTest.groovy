@@ -28,6 +28,11 @@ import spock.lang.Issue
 import java.nio.file.Files
 
 class CacheResolveIntegrationTest extends AbstractHttpDependencyResolutionTest implements CachingIntegrationFixture {
+
+    def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/16179")
     void "cache handles manual deletion of cached artifacts"() {
         given:

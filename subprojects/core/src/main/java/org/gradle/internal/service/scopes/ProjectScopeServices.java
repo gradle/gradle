@@ -88,7 +88,7 @@ import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.ManagedServiceRegistry;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -115,7 +115,7 @@ import java.util.List;
  */
 public class ProjectScopeServices implements ServiceRegistrationProvider {
 
-    public static CloseableServiceRegistry create(
+    public static ManagedServiceRegistry create(
         ServiceRegistry buildServices,
         ProjectInternal project,
         LoggingManagerFactory loggingManagerInternalFactory

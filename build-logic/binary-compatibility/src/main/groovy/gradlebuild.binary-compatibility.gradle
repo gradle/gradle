@@ -48,6 +48,12 @@ repositories {
     }
 }
 
+normalization {
+    runtimeClasspath {
+        ignore("org/gradle/build-receipt.properties")
+    }
+}
+
 // We support multiple accepted public api changes JSON files, but "accepted-public-api-changes.json"
 // is the "main" one that is also shown in HTML report
 def apiChangesJsonDirectory = layout.projectDirectory.dir("src/changes/accepted-changes")
@@ -132,6 +138,8 @@ def configureCommonJapicmpInputs = { task ->
         inputs.property("currentVersion", baseVersion)
         inputs.files("apiSourceFolders", apiSourceFolders)
         inputs.files(currentClasspath)
+            .withPropertyName("currentClasspath")
+            .withNormalizer(ClasspathNormalizer)
         inputs.files(extractGradleApiInfo)
 
         newClasspath.from(currentClasspath)

@@ -17,8 +17,8 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
-import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.QueryableExecutionPlan;
@@ -57,9 +57,10 @@ public interface BuildTreeWorkGraph {
         void withWorkGraph(BuildState target, Consumer<? super BuildLifecycleController.WorkGraphBuilder> action);
 
         /**
-         * Adds the given tasks and their dependencies to the work graph.
+         * Queues the given tasks for execution. The tasks and their dependencies are added to the work graph
+         * when the work graph is populated.
          */
-        void scheduleTasks(Collection<TaskIdentifier> tasksToBuild);
+        void queueTasks(Collection<TaskInternal> tasksToBuild);
 
         /**
          * Adds add task filter to the given build.

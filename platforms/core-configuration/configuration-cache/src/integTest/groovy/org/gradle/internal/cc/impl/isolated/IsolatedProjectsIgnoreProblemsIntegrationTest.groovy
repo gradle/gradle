@@ -95,7 +95,7 @@ class IsolatedProjectsIgnoreProblemsIntegrationTest extends AbstractIsolatedProj
         assertIgnoreProblemsBannerShownAtStartAndEnd("> Task :ok")
         receivedProblems.size() == 1
         verifyAll(receivedProblem) {
-            fqid == 'validation:configuration-cache:isolated-projects-dangerously-ignoring-problems'
+            fqid == 'Gradle:Isolated Projects:Isolated Projects problems are dangerously ignored'
             contextualLabel == 'Isolated Projects dangerously-ignore-problems is ENABLED. ' +
                 'Isolated Projects violations are being ignored. ' +
                 'Build outputs may be incorrect and the build may crash unexpectedly. ' +

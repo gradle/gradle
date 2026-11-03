@@ -33,7 +33,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
@@ -256,11 +255,7 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     @TaskAction
     public void generate() {
         if (getSignatory() == null) {
-            ProblemId problemId = ProblemId.create(
-                "no-configured-signatory",
-                "No configured signatory",
-                GradleCoreProblemGroup.packaging().signing()
-            );
+            ProblemId problemId = getProblems().getGroups().getPackaging().getSigning().problemId("No configured signatory");
             throw getProblems().getReporter().throwing(
                 new InvalidUserDataException(),
                 problemId,

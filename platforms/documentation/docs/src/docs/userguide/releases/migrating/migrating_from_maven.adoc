@@ -603,17 +603,7 @@ These often provide a more elegant solution for handling integration tests or ge
 === Ant goals
 
 Many Maven builds rely on the AntRun plugin to customize the build without the overhead of implementing a custom Maven plugin.
-Gradle has no equivalent plugin because Ant is a first-class citizen in Gradle builds, via the `ant` object.
-For example, you can use Ant's Echo task like this:
-
-.Invoking Ant tasks
-====
-include::sample[dir="snippets/releases/migrating/ant/kotlin",files="build.gradle.kts"]
-include::sample[dir="snippets/releases/migrating/ant/groovy",files="build.gradle"]
-====
-
-Even Ant properties and filesets are supported natively.
-To learn more, see <<ant#ant,Using Ant from Gradle>>.
+To migrate the Ant tasks they run, see <<migrating_from_ant.adoc#migrating_from_ant,Migrating Builds From Apache Ant>>.
 
 [TIP]
 ====

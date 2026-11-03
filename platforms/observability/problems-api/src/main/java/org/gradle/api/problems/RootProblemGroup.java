@@ -37,6 +37,7 @@ public abstract class RootProblemGroup extends ProblemGroup {
      *
      * @since 9.9.0
      */
+    @SuppressWarnings("deprecation") // only Gradle may subclass
     protected RootProblemGroup() {
     }
 

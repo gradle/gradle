@@ -26,6 +26,7 @@ class Helper(private val providers: ProviderFactory) {
         "gradle-enterprise-rc" to "https://repo.gradle.org/gradle/enterprise-libs-release-candidates",
         "android-studio-installers" to "https://redirector.gvt1.com/edgedl/android/studio",
         "jetbrains-ide-installers" to "https://download.jetbrains.com",
+        "kotlindev" to "https://packages.jetbrains.team/maven/p/kt/dev",
     )
 
     val mirrorUrls: Map<String, String> =

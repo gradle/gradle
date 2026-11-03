@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleResolveState;
@@ -29,6 +31,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,8 +56,13 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     private final Deque<String> conflicts = new ArrayDeque<>();
 
-    public DefaultCapabilitiesConflictHandler(ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> rules, ResolveState resolveState) {
-        this.resolver = new CapabilityConflictResolver(rules);
+    public DefaultCapabilitiesConflictHandler(
+        ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> rules,
+        Comparator<Version> versionComparator,
+        VersionParser versionParser,
+        ResolveState resolveState
+    ) {
+        this.resolver = new CapabilityConflictResolver(rules, versionComparator, versionParser);
         this.resolveState = resolveState;
     }
 

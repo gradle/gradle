@@ -567,7 +567,7 @@ class ProblemReportingCrossProjectModelAccess(
             buildAdditionalMessage: StructuredMessage.Builder.() -> Unit = {}
         ) {
             ipProblems.report {
-                problem {
+                problem("Cross-project model access") {
                     text("Project ")
                     reference(referrer)
                     text(" cannot access ")

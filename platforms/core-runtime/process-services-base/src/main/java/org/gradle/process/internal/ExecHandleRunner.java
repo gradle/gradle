@@ -28,6 +28,7 @@ import org.gradle.process.internal.jvm.JvmProcessSupport;
 import org.gradle.process.internal.streams.FinishNotifyingStreamsHandler;
 
 import java.io.InputStreamReader;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -94,6 +95,14 @@ public class ExecHandleRunner implements Runnable {
         } finally {
             lock.unlock();
         }
+    }
+
+    Optional<Integer> getProcessExitValue() {
+        Process process = this.process;
+        if (process == null || process.isAlive()) {
+            return Optional.empty();
+        }
+        return Optional.of(process.exitValue());
     }
 
     public void abortProcess() {

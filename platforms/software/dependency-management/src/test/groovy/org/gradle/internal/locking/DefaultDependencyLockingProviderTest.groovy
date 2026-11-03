@@ -36,12 +36,14 @@ import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.model.DomainObjectContext
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.gradle.util.Path
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -64,6 +66,7 @@ class DefaultDependencyLockingProviderTest extends Specification {
     DependencyManagementInstanceIdentity instanceIdentity = new DependencyManagementInstanceIdentity(Describables.of("root project 'root'"))
     DependencySubstitutionRules dependencySubstitutionRules = Mock()
     FileResourceListener listener = Mock()
+    TestBuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
     PropertyFactory propertyFactory = new DefaultPropertyFactory(Stub(PropertyHost))
     FilePropertyFactory filePropertyFactory = TestFiles.filePropertyFactory()
 
@@ -99,9 +102,31 @@ empty=
 
     }
 
-    def 'can load lockfile as strict constraints (Unique: #unique)'() {
+    @Issue("https://github.com/gradle/gradle/issues/39528")
+    def 'writes the lock state in a build operation named after its owner, which names the build of the owner'() {
         given:
-        writeLockFile(['org:bar:1.3', 'org:foo:1.0'], unique)
+        context = Mock(ProjectDomainObjectContext) {
+            getIdentity() >> ProjectIdentity.forSubproject(Path.path(":included"), Path.path(":sub"))
+        }
+        instanceIdentity = new DependencyManagementInstanceIdentity(Describables.of("project ':included:sub'"))
+        tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) << "empty=conf"
+        startParameter.isWriteDependencyLocks() >> true
+        provider = newProvider()
+        provider.loadLockState('conf', owner)
+        provider.persistResolvedDependencies('conf', owner, [module('org', 'foo', '1.0')] as Set, emptySet())
+
+        when:
+        provider.buildFinished()
+
+        then:
+        def write = buildOperationRunner.log.descriptors.last()
+        write.displayName == "Write dependency locks for project ':included:sub'"
+        write.progressDisplayName.text == "Write dependency locks for project ':included:sub'"
+    }
+
+    def 'can load lockfile as strict constraints'() {
+        given:
+        writeLockFile(['org:bar:1.3', 'org:foo:1.0'], true)
 
         when:
         def result = provider.loadLockState('conf', owner)
@@ -111,21 +136,15 @@ empty=
         result.getLockedDependencies() == [newId(DefaultModuleIdentifier.newId('org', 'bar'), '1.3'), newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.0')] as Set
 
         1 * listener.fileObserved(_)
-        if (!unique) {
-            1 * listener.fileObserved(_)
-        }
-
-        where:
-        unique << [true, false]
     }
 
-    def 'can load lockfile as prefer constraints in update mode (Unique: #unique)'() {
+    def 'can load lockfile as prefer constraints in update mode'() {
         given:
         startParameter = Mock()
         startParameter.isWriteDependencyLocks() >> true
         startParameter.getLockedDependenciesToUpdate() >> ['org:foo']
         provider = newProvider()
-        writeLockFile(['org:bar:1.3', 'org:foo:1.0'], unique)
+        writeLockFile(['org:bar:1.3', 'org:foo:1.0'], true)
 
         when:
         def result = provider.loadLockState('conf', owner)
@@ -133,18 +152,15 @@ empty=
         then:
         !result.mustValidateLockState()
         result.getLockedDependencies() == [newId(DefaultModuleIdentifier.newId('org', 'bar'), '1.3')] as Set
-
-        where:
-        unique << [true, false]
     }
 
-    def 'can filter lock entries using module update patterns (Unique: #unique)'() {
+    def 'can filter lock entries using module update patterns'() {
         given:
         startParameter = Mock()
         startParameter.isWriteDependencyLocks() >> true
         startParameter.getLockedDependenciesToUpdate() >> ['org:*']
         provider = newProvider()
-        writeLockFile(['org:bar:1.3', 'org:foo:1.0'], unique)
+        writeLockFile(['org:bar:1.3', 'org:foo:1.0'], true)
 
         when:
         def result = provider.loadLockState('conf', owner)
@@ -152,18 +168,15 @@ empty=
         then:
         !result.mustValidateLockState()
         result.getLockedDependencies() == [] as Set
-
-        where:
-        unique << [true, false]
     }
 
-    def 'can filter lock entries using group update patterns (Unique: #unique)'() {
+    def 'can filter lock entries using group update patterns'() {
         given:
         startParameter = Mock()
         startParameter.isWriteDependencyLocks() >> true
         startParameter.getLockedDependenciesToUpdate() >> ['org.*:foo']
         provider = newProvider()
-        writeLockFile(['org.bar:foo:1.3', 'com:foo:1.0'], unique)
+        writeLockFile(['org.bar:foo:1.3', 'com:foo:1.0'], true)
 
         when:
         def result = provider.loadLockState('conf', owner)
@@ -171,12 +184,9 @@ empty=
         then:
         !result.mustValidateLockState()
         result.getLockedDependencies() == [newId(DefaultModuleIdentifier.newId('com', 'foo'), '1.0')] as Set
-
-        where:
-        unique << [true, false]
     }
 
-    def 'can filter lock entries impacted by dependency substitutions (Unique: #unique)'() {
+    def 'can filter lock entries impacted by dependency substitutions'() {
         given:
         dependencySubstitutionRules.rulesMayAddProjectDependency() >> true
         Action< DependencySubstitution> substitutionAction = Mock()
@@ -187,21 +197,18 @@ empty=
             }
         }
         provider = newProvider()
-        writeLockFile(['org:bar:1.1', 'org:foo:1.1'], unique)
+        writeLockFile(['org:bar:1.1', 'org:foo:1.1'], true)
 
         when:
         def result = provider.loadLockState('conf', owner)
 
         then:
         result.getLockedDependencies() == [newId(DefaultModuleIdentifier.newId('org', 'bar'), '1.1')] as Set
-
-        where:
-        unique << [true, false]
     }
 
-    def 'fails with invalid content in lock file (Unique: #unique)'() {
+    def 'fails with invalid content in lock file'() {
         given:
-        writeLockFile(["invalid"], unique)
+        writeLockFile(["invalid"], true)
 
         when:
         provider.loadLockState('conf', owner)
@@ -211,16 +218,13 @@ empty=
         1 * owner.getDisplayName() >> "owner"
         ex.message == 'Invalid lock state for owner'
         ex.cause.message == 'The module notation does not respect the lock file format of \'group:name:version\' - received \'invalid\''
-
-        where:
-        unique << [true, false]
     }
 
     private ModuleComponentIdentifier module(String org, String name, String version) {
         return new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(org, name), version)
     }
 
-    def 'fails with missing lockfile in strict mode (Unique: #unique)'() {
+    def 'fails with missing lockfile in strict mode'() {
         given:
         provider.getLockMode().set(LockMode.STRICT)
 
@@ -233,9 +237,6 @@ empty=
         ex.message == 'Locking strict mode: Owner is locked but does not have lock state.'
         ex.resolutions == ["To create the lock state, run a task that performs dependency resolution and add '--write-locks' to the command line.",
                             "For more information on generating lock state, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/dependency_locking.html#generating_and_updating_dependency_locks in the Gradle documentation."]
-
-        where:
-        unique << [true, false]
     }
 
     def 'fails with invalid ignored dependencies notation #notation'() {
@@ -285,7 +286,7 @@ empty=
     }
 
     private DefaultDependencyLockingProvider newProvider() {
-        new DefaultDependencyLockingProvider(resolver, startParameter, context, instanceIdentity, "", dependencySubstitutionRules, propertyFactory, filePropertyFactory, listener)
+        new DefaultDependencyLockingProvider(resolver, startParameter, context, instanceIdentity, "", dependencySubstitutionRules, propertyFactory, filePropertyFactory, listener, buildOperationRunner)
     }
 
     def writeLockFile(List<String> modules, boolean unique = true, String lockFileId = 'conf') {

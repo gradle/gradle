@@ -92,6 +92,10 @@ public final class OutputRanges {
 
     private static final OutputRanges NO_OUTPUT_RANGES = new OutputRanges(NO_OUTPUT, NO_OUTPUT, NO_OUTPUT);
 
+    public static OutputRanges none() {
+        return NO_OUTPUT_RANGES;
+    }
+
     public static OutputRanges of(long startStdout, long startStderr, long end) {
         validateRange("stdout", startStdout, end);
         validateRange("stderr", startStderr, end);

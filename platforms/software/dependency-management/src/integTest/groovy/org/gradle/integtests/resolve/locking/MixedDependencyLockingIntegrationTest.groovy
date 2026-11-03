@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class MixedDependencyLockingIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -26,7 +27,7 @@ class MixedDependencyLockingIntegrationTest extends AbstractDependencyResolution
         settingsFile << "rootProject.name = 'mixedDepLock'"
     }
 
-    def 'can resolve locked and unlocked configurations'() {
+    def 'can resolve locked and unlocked configurations (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
@@ -51,9 +52,14 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], false)
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
+        // Without CC, DependencyInsightReportTask's getter resolves the configuration while DefaultPropertyWalker
+        // has deprecation warnings disabled. With the configuration cache, resolution happens while storing the task.
+        if (!unique && GradleContextualExecuter.isConfigCache()) {
+            executer.expectDocumentedDeprecationWarning(lockfileFixture.legacyLockfileDeprecation("configuration ':lockedConf'", 'lockedConf'))
+        }
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
 
         then:
@@ -67,9 +73,11 @@ dependencies {
         outputContains('org:foo:1.1')
         outputDoesNotContain('constraint')
 
+        where:
+        unique << [true, false]
     }
 
-    def 'ignores the lockfile of a parent configuration when resolving an unlocked child configuration'() {
+    def 'ignores the lockfile of a parent configuration when resolving an unlocked child configuration (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
@@ -93,7 +101,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], false)
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
         succeeds 'dependencyInsight', '--configuration', 'unlockedConf', '--dependency', 'foo'
@@ -101,9 +109,12 @@ dependencies {
         then:
         outputContains('org:foo:1.1')
         outputDoesNotContain('constraint')
+
+        where:
+        unique << [true, false]
     }
 
-    def 'applies the lock file to inherited dependencies'() {
+    def 'applies the lock file to inherited dependencies (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
@@ -128,14 +139,22 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], false)
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
+        // Without CC, DependencyInsightReportTask's getter resolves the configuration while DefaultPropertyWalker
+        // has deprecation warnings disabled. With the configuration cache, resolution happens while storing the task.
+        if (!unique && GradleContextualExecuter.isConfigCache()) {
+            executer.expectDocumentedDeprecationWarning(lockfileFixture.legacyLockfileDeprecation("configuration ':lockedConf'", 'lockedConf'))
+        }
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
 
         then:
         outputContains('org:foo:1.0')
         outputContains('Dependency version enforced by Dependency Locking')
+
+        where:
+        unique << [true, false]
     }
 
     def 'writes lock file entries for inherited dependencies'() {

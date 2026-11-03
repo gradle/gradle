@@ -43,8 +43,9 @@ interface ProblemsListener {
      *
      * Implementations typically wrap the error into a [PropertyProblem] and decide whether to
      * re-throw or record it depending on the error type.
+     * The [name] becomes the [PropertyProblem.name].
      */
-    fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder)
+    fun onError(trace: PropertyTrace, name: String, error: Exception, message: StructuredMessageBuilder)
 
     /**
      * Execution-time problems are treated as [interrupting][org.gradle.internal.cc.impl.problems.ProblemSeverity.Interrupting]

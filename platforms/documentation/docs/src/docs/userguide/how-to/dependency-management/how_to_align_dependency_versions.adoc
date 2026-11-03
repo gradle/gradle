@@ -46,6 +46,9 @@ include::sample[dir="snippets/how-to/dependency-management/dependency-management
 
 This mismatch can lead to **incompatibility issues** and unexpected failures.
 
+TIP: A link:https://develocity.ai/product/build-scan/[Build Scan] shows the same dependency tree in a browser, including version conflicts.
+See <<viewing_debugging_dependencies.adoc#sec:dependencies-build-scans,Get a holistic view using Build Scan>>.
+
 Gradle provides **dependency version alignment** through <<platforms.adoc#platforms,**platforms**>>, ensuring related modules use **consistent versions**.
 
 [[sec:align_bom_platform]]

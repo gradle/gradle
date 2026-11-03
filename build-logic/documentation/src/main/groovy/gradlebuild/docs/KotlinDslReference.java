@@ -22,17 +22,17 @@ import org.gradle.api.provider.Property;
 /**
  * Configuration for generating Dokka based Kotlin DSL docs.
  */
-public abstract class KotlinDslReference {
+public interface KotlinDslReference {
 
     /**
      * The location of the final rendered Dokka content.
      */
-    public abstract DirectoryProperty getRenderedDocumentation();
+    DirectoryProperty getRenderedDocumentation();
 
     /**
      * The Dokka version to use instead of the default one the Dokka Gradle Plugin is configured with.
      * Will use the Dokka default, if not specified.
      */
-    public abstract Property<String> getDokkaVersionOverride();
+    Property<String> getDokkaVersionOverride();
 
 }

@@ -18,7 +18,9 @@ package org.gradle.api.file
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MinimalFileTree
+import org.gradle.internal.deprecation.DeprecationLogger
 
+import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.hasItem
 import static org.junit.Assert.assertEquals
@@ -88,6 +90,11 @@ class FileVisitorUtil {
         }
 
         assertThat(files, equalTo(expectedFiles + expectedDirs as Set))
+
+        // TODO: Remove in Gradle 10, together with the Ant integration
+        DeprecationLogger.whileDisabled({
+            assertSetContainsForAllTypes(tree, expectedFiles)
+        } as Runnable)
     }
 
     static void assertVisits(FileTree tree, Map<String, File> files) {

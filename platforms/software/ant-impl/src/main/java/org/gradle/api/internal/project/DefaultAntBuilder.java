@@ -33,8 +33,8 @@ import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.ant.BasicAntBuilder;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.ant.AntTarget;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+@Deprecated
 public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
 
     private final Project gradleProject;
@@ -148,13 +149,12 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
             final Target target = getAntProject().getTargets().get(name);
             String taskName = taskNamer.transform(target.getName());
             TaskContainer taskContainer = gradleProject.getTasks();
-            @SuppressWarnings("deprecation")
-            final AntTarget task = taskContainer.create(taskName, AntTarget.class);
+            final org.gradle.api.tasks.ant.AntTarget task = DeprecationLogger.whileDisabled(() -> taskContainer.create(taskName, org.gradle.api.tasks.ant.AntTarget.class));
             configureTask(taskContainer, target, task, baseDir, taskNamer);
         }
     }
 
-    private void configureTask(TaskContainer taskContainer, Target target, AntTarget task, File baseDir, Transformer<? extends String, ? super String> taskNamer) {
+    private void configureTask(TaskContainer taskContainer, Target target, org.gradle.api.tasks.ant.AntTarget task, File baseDir, Transformer<? extends String, ? super String> taskNamer) {
         task.setTarget(target);
         task.setBaseDir(baseDir);
         final List<String> taskDependencyNames = getTaskDependencyNames(target, taskNamer);

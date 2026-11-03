@@ -35,6 +35,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
     private final static String HELLO_WORLD_PLUGIN_VERSION = "0.2"
 
     def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
         requireOwnGradleUserHomeDir()
     }
 

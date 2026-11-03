@@ -166,7 +166,7 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
-    public String toString() {
+    public String getDisplayName() {
         return task.getIdentityPath().toString();
     }
 

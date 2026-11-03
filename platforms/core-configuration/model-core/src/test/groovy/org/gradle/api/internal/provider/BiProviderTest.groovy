@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider
 import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularChainEvaluationSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularFunctionEvaluationSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.UsesStringProperty
+import spock.lang.Specification
 
 import java.util.function.BiFunction
 import java.util.function.Consumer
@@ -27,6 +28,28 @@ import static org.gradle.api.internal.provider.CircularEvaluationSpec.ProviderCo
 import static org.gradle.api.internal.provider.CircularEvaluationSpec.ProviderConsumer.TO_STRING
 
 class BiProviderTest {
+    static class BiProviderExecutionTimeValueTest extends Specification {
+        def "combines with changing content in #changingContent"() {
+            given:
+            def provider = new BiProvider(String, left, right, { a, b -> a + b })
+
+            when:
+            def value = provider.calculateExecutionTimeValue()
+
+            then:
+            value.isChangingValue() == deferred
+            value.hasChangingContent() == deferred
+            value.toProvider().get() == "AB"
+
+            where:
+            deferred | changingContent | left                                                     | right
+            false    | "none"          | Providers.of("A")                                        | Providers.of("B")
+            true     | "left"          | new Providers.FixedValueWithChangingContentProvider("A") | Providers.of("B")
+            true     | "right"         | Providers.of("A")                                        | new Providers.FixedValueWithChangingContentProvider("B")
+            true     | "both"          | new Providers.FixedValueWithChangingContentProvider("A") | new Providers.FixedValueWithChangingContentProvider("B")
+        }
+    }
+
     static class BiProviderCircularFunctionEvaluationTest extends CircularFunctionEvaluationSpec<String> {
         @Override
         ProviderInternal<String> providerWithSelfReference() {

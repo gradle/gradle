@@ -24,7 +24,6 @@ import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.Action;
-import org.gradle.api.AntBuilder;
 import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -73,6 +72,7 @@ import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -251,8 +251,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     @Internal
-    public AntBuilder getAnt() {
-        return project.getAnt();
+    @Deprecated
+    public org.gradle.api.AntBuilder getAnt() {
+        DeprecationLogger.deprecateMethod(Task.class, "getAnt()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_ant_builder")
+            .nagUser();
+
+        return DeprecationLogger.whileDisabled(project::getAnt);
     }
 
     @Internal

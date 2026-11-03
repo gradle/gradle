@@ -37,4 +37,13 @@ public interface ProblemGroupsInternal extends ProblemGroups {
      * cannot exist at that place, or ends in a group that cannot hold problems
      */
     ProblemId problemId(List<String> groupPath, String name);
+
+    /**
+     * Returns the id with its group resolved against the predefined hierarchy, or {@code id} itself if nothing changes.
+     * <p>
+     * Groups created through {@code ProblemGroup.create} whose names match a predefined group at the same place are
+     * replaced by that predefined group, so that a problem carries the same group, including its description, whichever
+     * API created it. Groups below the first unmatched one are kept and attached to the replaced parents.
+     */
+    ProblemId canonical(ProblemId id);
 }

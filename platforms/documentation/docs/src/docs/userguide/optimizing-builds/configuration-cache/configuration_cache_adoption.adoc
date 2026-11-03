@@ -620,12 +620,12 @@ When filing a bug report, include:
 
 Once CC is enabled, the metric to watch is the **cache hit rate**: the fraction of builds that reuse an existing entry rather than recomputing one.
 A near-100% hit rate on the inner dev loop signals a healthy adoption; a degrading rate over time signals new untracked inputs creeping in.
-link:https://develocity.ai/[Develocity] and link:https://scans.gradle.com[Build Scans] expose per-task and per-build CC hit/miss telemetry.
+link:https://develocity.ai/[Develocity] and link:https://scans.gradle.com[Build Scans] expose per-build CC hit/miss telemetry.
 When hit rates drop, open the CC report's "build configuration inputs" list and look for inputs that change every run but are not actually used.
 Each is either a candidate for switching to a `provider` (so the input is dropped if unused) or for one of the temporary opt-outs in <<configuration_cache_enabling.adoc#config_cache:usage:input_opt_outs, Temporary Opt-Outs for Configuration Cache Behavior>>.
 
 The next performance step beyond plain CC is typically **Parallel Configuration Cache** (`org.gradle.configuration-cache.parallel=true`), which parallelizes the storing of CC entries themselves (loading is always parallel).
 It is still incubating; see <<configuration_cache_enabling.adoc#config_cache:usage:parallel, Enabling Parallel Configuration Caching>>.
 
-Looking further ahead, Isolated Projects builds on CC's per-project isolation to enable parallel project configuration, but it is pre-alpha and depends on CC being fully adopted first.
+Looking further ahead, <<isolated_projects.adoc#isolated_projects,Isolated Projects>> builds on CC's per-project isolation to enable parallel project configuration, and it requires CC to be fully adopted first.
 For the current state of the Configuration Cache itself, see <<configuration_cache_status.adoc#config_cache_status, Configuration Cache Status>>.

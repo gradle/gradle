@@ -96,6 +96,8 @@ You can also enable this behavior by using the `--test-dry-run` command-line opt
 
 See link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] for details on all the available configuration options.
 
+TIP: For large test suites, Develocity link:https://develocity.ai/product/test-distribution/[Test Distribution] runs tests across multiple machines instead of local forks, and link:https://develocity.ai/product/predictive-test-selection/[Predictive Test Selection] runs only the tests relevant to a given change.
+
 [[test_filtering]]
 == Test filtering
 
@@ -127,6 +129,8 @@ NOTE: Not all test frameworks play well with filtering. Some advanced, synthetic
 However, the vast majority of tests and use cases work perfectly well with Gradle's filtering mechanism.
 
 [[filtering_non_method_tests]]
+=== Filtering non-method tests
+
 Not every JUnit Platform test is declared as a method, and how a test is declared affects how you can select it.
 Engines such as https://www.archunit.org/[ArchUnit] declare tests on fields, for example a rule annotated with `@ArchTest`.
 Gradle matches these by their enclosing class and the name they are reported with, in the same way it matches methods by class and method name.
@@ -335,7 +339,7 @@ If the test does not succeed (i.e. it fails for every retry), it will be indicat
 
 When `mergeReruns` is disabled (the default), each execution of a test will be listed as a separate test case.
 
-If you are using link:https://scans.gradle.com[Build Scan] or link:https://develocity.ai/[Develocity],
+TIP: If you are using link:https://scans.gradle.com[Build Scan] or link:https://develocity.ai/product/flaky-tests-detection/[Develocity],
 flaky tests will be detected regardless of this setting.
 
 Enabling this option is especially useful when using a CI tool that uses the XML test results to determine build failure instead of relying on Gradle's determination of whether the build failed or not,

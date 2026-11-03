@@ -455,7 +455,7 @@ task someTask {
         }
         verifyAll(receivedProblem(2)) {
             severity == Severity.WARNING
-            fqid == 'root:test-problem'
+            fqid == 'Gradle:Plugin Validation:test problem'
             definition.id.displayName == 'test problem'
             contextualLabel == "Type 'InvalidTask' property 'inputFile' test problem"
             details == 'This is a test.'

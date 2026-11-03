@@ -68,7 +68,8 @@ To disable configuration cache (needed for some tasks like docs): `--no-configur
 
 The project is organized into **platforms** under `platforms/`:
 - `core-runtime/` - Core runtime components
-- `core-configuration/` - Configuration handling (includes `configuration-cache`, `kotlin-dsl`, `model-core`)
+- `core-configuration/` - Configuration handling (includes `configuration-cache`, `model-core`)
+- `dsl/` - Groovy and Kotlin DSLs (`groovy-dsl`, `kotlin-dsl`, `kotlin-dsl-plugins`, `kotlin-dsl-tooling-builders`)
 - `core-execution/` - Execution and caching
 - `software/` - Software platform (`dependency-management`, `testing-base`, `maven`, `ivy`)
 - `jvm/` - JVM platform (`java`, `groovy`, `scala`, `jacoco`)
