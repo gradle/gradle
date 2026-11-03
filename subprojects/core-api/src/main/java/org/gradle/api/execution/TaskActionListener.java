@@ -23,6 +23,9 @@ import org.gradle.internal.service.scopes.Scope;
 /**
  * <p>A {@code TaskActionListener} is notified of the actions that a task performs.</p>
  *
+ * <p>This listener type is not supported when the configuration cache is enabled.
+ * To run code right before and after a task executes, use a {@link org.gradle.api.tasks.TaskLifecycleListener}.</p>
+ *
  * @deprecated This type is not supported when configuration caching is enabled.
  * @since 0.9
  */

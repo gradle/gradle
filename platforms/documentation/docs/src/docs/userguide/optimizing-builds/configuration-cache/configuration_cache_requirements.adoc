@@ -551,7 +551,7 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/buildService
 <4> `BuildEventsListenerRegistry.onTaskCompletion(provider)` is the supported way to subscribe an `OperationCompletionListener`-implementing service to task-completion events. Gradle instantiates the service lazily when the first event is dispatched, so nothing about the service has to be materialized at configuration time.
 
 [[config_cache:requirements:task_lifecycle_listeners]]
-=== Replacing `taskGraph.beforeTask` and `TaskExecutionListener` with a Task Lifecycle Listener
+=== Replacing `taskGraph.beforeTask`, `TaskExecutionListener`, and `TaskActionListener` with a Task Lifecycle Listener incubating-label:[]
 
 An `OperationCompletionListener` receives task events asynchronously, after the task has finished.
 Some use cases need code that runs on the task's thread right before and after the task executes, for example to enrich task failures with task-specific details, to release resources even when the task fails, or to veto a task before it runs.
@@ -583,9 +583,10 @@ The listener methods are called as follows:
 
 * `beforeExecution` is called before the task inputs are snapshotted, for every scheduled task, including tasks that are later up-to-date, skipped, or loaded from the build cache.
 It can change the values of task inputs, and the changed values are fingerprinted.
-It cannot change the outputs of the task, including values that determine which outputs the task has, such as whether a report is enabled, and it cannot otherwise change the task, for example by adding dependencies or actions.
+It cannot change the task's outputs, including values that determine which outputs exist, such as whether a report is enabled.
+It also cannot change the task in other ways, such as adding dependencies or actions.
 Changing an input value does not add task dependencies, so tasks producing files used by the changed input must be wired at configuration time.
-* If `beforeExecution` fails, the task fails without running its actions. Listeners that were already notified are still notified after execution.
+* If `beforeExecution` fails, the task fails without running its actions. `afterExecution` is still called on listeners whose `beforeExecution` already ran. The same applies when a listener cannot be created.
 * `afterExecution` is called after the task outputs are recorded. If it fails, the task fails in the current build, but later builds can still consider the task up-to-date or load it from the build cache. Listeners must not produce task outputs.
 
 Listeners can inject `ObjectFactory`, `ProviderFactory`, `FileSystemOperations`, `ArchiveOperations`, `ExecOperations`, `ProjectLayout`, and `Problems` via `@Inject`.

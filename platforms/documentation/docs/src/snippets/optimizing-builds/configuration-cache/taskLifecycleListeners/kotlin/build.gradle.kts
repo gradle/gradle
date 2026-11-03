@@ -26,7 +26,7 @@ abstract class TaskTimingListener : TaskLifecycleListener<Task> {
 
 abstract class CopyReporter : TaskLifecycleListener<Copy> {
     override fun afterExecution(task: Copy, state: TaskState) {
-        println("${task.name} copied files to ${task.destinationDir.name}")
+        println("${task.name} copied files to ${task.destinationDirectory.get().asFile.name}")
     }
 }
 
