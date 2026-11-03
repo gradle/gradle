@@ -26,7 +26,6 @@ import gradlebuild.basics.testSplitOnlyTestGradleVersion
 import gradlebuild.basics.testing.TestType
 import gradlebuild.integrationtests.extension.IntegrationTestExtension
 import gradlebuild.integrationtests.tasks.DistributionTest
-import gradlebuild.jvm.argumentproviders.lazySystemProperty
 import gradlebuild.integrationtests.tasks.GenerateAutoTestedSamplesTestTask
 import gradlebuild.integrationtests.tasks.IntegrationTest
 import gradlebuild.testing.services.BuildBucketProvider
@@ -211,9 +210,11 @@ fun IntegrationTest.setUpAgentIfNeeded(testType: TestType, executer: String) {
     }
 
     val integTestUseAgentSysPropName = "org.gradle.integtest.agent.allowed"
-    lazySystemProperty(integTestUseAgentSysPropName).set(
-        project.providers.gradleProperty(integTestUseAgentSysPropName).map { it.toBoolean().toString() }
-    )
+    val integtestAgentAllowed = project.providers.gradleProperty(integTestUseAgentSysPropName);
+    if (integtestAgentAllowed.isPresent) {
+        val shouldUseAgent = integtestAgentAllowed.get().toBoolean()
+        systemProperties[integTestUseAgentSysPropName] = shouldUseAgent.toString()
+    }
 }
 
 
@@ -232,14 +233,14 @@ fun IntegrationTest.addDebugProperties() {
 
 fun DistributionTest.setSystemPropertiesOfTestJVM(defaultVersions: String) {
     // use -PtestVersions=all or -PtestVersions=1.2,1.3…
-    // A convention, so a task targeting one version can set it outright (see cross-version-tests).
-    lazySystemProperty(INTEG_TEST_VERSIONS_SYS_PROP).convention(
-        project.providers.gradleProperty("testVersions").orElse(defaultVersions)
-    )
+    val integTestVersionsSysProp = "org.gradle.integtest.versions"
+    val testVersions = project.providers.gradleProperty("testVersions")
+    if (testVersions.isPresent) {
+        systemProperties[integTestVersionsSysProp] = testVersions.get()
+    } else {
+        systemProperties[integTestVersionsSysProp] = defaultVersions
+    }
 }
-
-
-const val INTEG_TEST_VERSIONS_SYS_PROP = "org.gradle.integtest.versions"
 
 fun Project.configureTestSourceSetInIde(sourceSet: SourceSet) {
     plugins.withType<EclipsePlugin> {

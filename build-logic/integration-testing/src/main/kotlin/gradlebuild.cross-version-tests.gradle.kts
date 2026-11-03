@@ -18,14 +18,12 @@ import gradlebuild.basics.capitalize
 import gradlebuild.basics.testing.TestType
 import gradlebuild.identity.extension.ReleasedVersionsDetails
 import gradlebuild.integrationtests.CROSSVERSION_TEST_MODELS
-import gradlebuild.integrationtests.INTEG_TEST_VERSIONS_SYS_PROP
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.configureTestSourceSetInIde
 import gradlebuild.integrationtests.createTestTask
 import gradlebuild.integrationtests.crossVersionTestModels
 import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
 import gradlebuild.integrationtests.tasks.IntegrationTest
-import gradlebuild.jvm.argumentproviders.lazySystemProperty
 
 plugins {
     java
@@ -173,7 +171,7 @@ fun createAggregateTasks(sourceSet: SourceSet, releasedVersions: ReleasedVersion
     releasedVersions?.allTestedVersions?.forEach { targetVersion ->
         val crossVersionTest = createTestTask("gradle${targetVersion.version}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION) {
             this.description = "Runs the cross-version tests against Gradle ${targetVersion.version}"
-            this.lazySystemProperty(INTEG_TEST_VERSIONS_SYS_PROP).set(targetVersion.version)
+            this.systemProperties["org.gradle.integtest.versions"] = targetVersion.version
             this.systemProperties["org.gradle.integtest.crossVersion"] = "true"
             this.systemProperties["org.gradle.integtest.crossVersion.lowestTestedVersion"] = releasedVersions.lowestTestedVersion.version
             this.useJUnitPlatform {
