@@ -428,8 +428,10 @@ NOTE: This configuration precedence does not apply to <<composite_builds.adoc#in
 [[sec:build_cache_setup_http_backend]]
 == How to set up an HTTP build cache backend
 
-Gradle provides a Docker image for a link:https://hub.docker.com/r/gradle/build-cache-node/[build cache node], which can connect with Develocity for centralized management.
-The cache node can also be used without a Develocity installation with restricted functionality.
+Any HTTP server that implements the requests described in <<#sec:build_cache_configure_remote,Remote HTTP build cache>> can act as a build cache backend.
+
+link:https://docs.develocity.ai/edge/current/user-manual/[Develocity Edge] provides the build cache backend for Develocity installations.
+The standalone Build Cache Node Docker image is discontinued, and its support ends on December 31, 2026.
 
 [[sec:build_cache_implement]]
 == Implement your own Build Cache
