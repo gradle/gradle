@@ -155,7 +155,7 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    TaskLifecycleListenerInstantiator createTaskLifecycleListenerInstantiator(InstantiatorFactory instantiatorFactory, ServiceRegistry projectServices) {
+    TaskLifecycleListenerInstantiator createTaskLifecycleListenerInstantiator(InstantiatorFactory instantiatorFactory) {
         return new TaskLifecycleListenerInstantiator(instantiatorFactory, projectServices);
     }
 
