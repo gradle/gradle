@@ -1,3 +1,5 @@
+import gradlebuild.requestRuntimeLibrary
+
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.instrumented-java-project")
@@ -10,11 +12,7 @@ dependency management types should be included here."""
 val implementationResources = configurations.dependencyScope("implementationResources")
 val implementationResourcesPath = configurations.resolvable("implementationResourcesPath") {
     extendsFrom(implementationResources.get())
-    // jquery is served as an attribute-less Ivy variant; request what Maven-hosted JS needs too
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-    }
+    requestRuntimeLibrary(objects)
 }
 
 dependencies {

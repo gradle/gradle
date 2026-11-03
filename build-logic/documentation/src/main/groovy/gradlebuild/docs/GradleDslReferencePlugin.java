@@ -126,7 +126,8 @@ public class GradleDslReferencePlugin implements Plugin<Project> {
         });
     }
 
-    // The XSLT tools and stylesheets come from Maven, whose derived variants only offer Java usages
+    // The XSLT tools and stylesheets come from Maven, whose derived variants only offer Java usages.
+    // Mirrors gradlebuild.requestRuntimeLibrary in build-logic/jvm, which this module does not depend on.
     private static void requestRuntimeLibrary(ResolvableConfiguration conf, ObjectFactory objects) {
         conf.attributes(a -> {
             a.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME));

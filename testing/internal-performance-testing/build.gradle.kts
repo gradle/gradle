@@ -1,3 +1,5 @@
+import gradlebuild.requestRuntimeLibrary
+
 plugins {
     id("gradlebuild.internal.java")
 }
@@ -14,11 +16,7 @@ sourceSets {
 val reports = configurations.dependencyScope("reports")
 val reportsPath = configurations.resolvable("reportsPath") {
     extendsFrom(reports.get())
-    // flot comes from Maven, whose derived variants only offer Java usages
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-    }
+    requestRuntimeLibrary(objects)
 }
 
 dependencies {
