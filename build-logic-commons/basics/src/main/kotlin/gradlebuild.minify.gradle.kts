@@ -217,7 +217,7 @@ val libraryDependencies = configurations.resolvable("minifierLibraries") {
 val minifier = configurations.resolvable("minifier") {
     versionCatalogs.find("buildLibs").flatMap { it.findLibrary("proguard") }.ifPresent { proguard ->
         dependencies.addLater(proguard.map { dependency ->
-            (project.dependencies.create(dependency) as ExternalModuleDependency).apply {
+            dependency.copy().apply {
                 exclude(group = "org.json", module = "json")
             }
         })
