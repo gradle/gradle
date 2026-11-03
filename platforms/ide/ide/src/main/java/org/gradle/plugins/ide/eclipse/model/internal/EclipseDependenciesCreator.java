@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -46,7 +45,6 @@ import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
-import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,10 +52,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class EclipseDependenciesCreator {
@@ -87,8 +82,6 @@ public class EclipseDependenciesCreator {
     private class EclipseDependenciesVisitor implements IdeDependencyVisitor {
 
         private final List<AbstractClasspathEntry> projects = new ArrayList<>();
-        private final Map<ProjectComponentIdentifier, Boolean> projectJarsUsedByMain = new HashMap<>();
-        private final Map<ProjectComponentIdentifier, ProjectArtifact> nonJarProjectArtifacts = new LinkedHashMap<>();
         private final List<AbstractClasspathEntry> modules = new ArrayList<>();
         private final List<AbstractClasspathEntry> files = new ArrayList<>();
         private final Multimap<String, String> pathToSourceSets = collectLibraryToSourceSetMapping();
@@ -120,18 +113,9 @@ public class EclipseDependenciesCreator {
             if (componentIdentifier.equals(currentProjectId)) {
                 return;
             }
-            if (isNotJar(artifact)) {
-                ProjectArtifact previous = nonJarProjectArtifacts.get(componentIdentifier);
-                if (previous == null || (previous.testDependency && !testDependency)) {
-                    nonJarProjectArtifacts.put(componentIdentifier, new ProjectArtifact(artifact, testDependency, asJavaModule));
-                }
+            if (!IdeDependencySet.isJar(artifact) && !IdeDependencySet.isClassesDirectory(artifact)) {
                 return;
             }
-            projectJarsUsedByMain.merge(componentIdentifier, !testDependency, Boolean::logicalOr);
-            projects.add(createProjectDependency(componentIdentifier, artifact, testDependency, asJavaModule));
-        }
-
-        private AbstractClasspathEntry createProjectDependency(ProjectComponentIdentifier componentIdentifier, ResolvedArtifactResult artifact, boolean testDependency, boolean asJavaModule) {
             ComponentArtifactIdentifier artifactId = artifact.getId();
             TaskDependencyContainer buildDependencies = null;
             if (artifactId instanceof ComponentArtifactMetadata) {
@@ -143,7 +127,7 @@ public class EclipseDependenciesCreator {
                     asJavaModule = modulePathResolver.isInferModulePath(artifactProject);
                 }
             }
-            return projectDependencyBuilder.build(componentIdentifier, classpath.getFileReferenceFactory().fromFile(artifact.getFile()), buildDependencies, testDependency, asJavaModule);
+            projects.add(projectDependencyBuilder.build(componentIdentifier, classpath.getFileReferenceFactory().fromFile(artifact.getFile()), buildDependencies, testDependency, asJavaModule));
         }
 
         @Override
@@ -181,14 +165,8 @@ public class EclipseDependenciesCreator {
          * that, so defer that until later.
          */
         public List<AbstractClasspathEntry> getDependencies() {
-            List<AbstractClasspathEntry> dependencies = new ArrayList<>(projects.size() + nonJarProjectArtifacts.size() + modules.size() + files.size());
+            List<AbstractClasspathEntry> dependencies = new ArrayList<>(projects.size() + modules.size() + files.size());
             dependencies.addAll(projects);
-            nonJarProjectArtifacts.forEach((componentIdentifier, nonJar) -> {
-                Boolean jarUsedByMain = projectJarsUsedByMain.get(componentIdentifier);
-                if (jarUsedByMain == null || (!jarUsedByMain && !nonJar.testDependency)) {
-                    dependencies.add(createProjectDependency(componentIdentifier, nonJar.artifact, nonJar.testDependency, nonJar.asJavaModule));
-                }
-            });
             dependencies.addAll(modules);
             dependencies.addAll(files);
             return dependencies;
@@ -274,24 +252,5 @@ public class EclipseDependenciesCreator {
 
             return out;
         }
-    }
-
-    @NullMarked
-    private static final class ProjectArtifact {
-        private final ResolvedArtifactResult artifact;
-        private final boolean testDependency;
-        private final boolean asJavaModule;
-
-        private ProjectArtifact(ResolvedArtifactResult artifact, boolean testDependency, boolean asJavaModule) {
-            this.artifact = artifact;
-            this.testDependency = testDependency;
-            this.asJavaModule = asJavaModule;
-        }
-    }
-
-    private static boolean isNotJar(ResolvedArtifactResult artifact) {
-        LibraryElements libraryElements = artifact.getVariant().getAttributes().getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
-        return libraryElements == null
-            || !libraryElements.getName().equals(LibraryElements.JAR);
     }
 }
