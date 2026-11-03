@@ -19,9 +19,11 @@ package org.gradle.cache
 import spock.lang.Specification
 import spock.lang.Timeout
 
+import java.util.concurrent.Callable
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Supplier
 
 class ManualEvictionInMemoryCacheTest extends Specification {
@@ -57,5 +59,102 @@ class ManualEvictionInMemoryCacheTest extends Specification {
 
         where:
         concurrency << [8, 16, 32]
+    }
+
+    @Timeout(value = 5, unit = TimeUnit.SECONDS)
+    def "computing a key does not block another key in the same hash bin"() {
+        def started = new CountDownLatch(1)
+        def release = new CountDownLatch(1)
+        def executor = Executors.newFixedThreadPool(2)
+        def cache = new ManualEvictionInMemoryCache<Integer, String>()
+
+        when:
+        def first = executor.submit({
+            cache.get(1, {
+                started.countDown()
+                release.await()
+                "one"
+            } as Supplier<String>)
+        } as Callable<String>)
+        started.await()
+        def second = executor.submit({
+            cache.get(513, { "five-thirteen" } as Supplier<String>)
+        } as Callable<String>)
+
+        then:
+        second.get(1, TimeUnit.SECONDS) == "five-thirteen"
+
+        when:
+        release.countDown()
+
+        then:
+        first.get() == "one"
+
+        cleanup:
+        release.countDown()
+        executor.shutdownNow()
+    }
+
+    @Timeout(value = 5, unit = TimeUnit.SECONDS)
+    def "computes a key once when requested concurrently"() {
+        def started = new CountDownLatch(1)
+        def release = new CountDownLatch(1)
+        def calls = new AtomicInteger()
+        def executor = Executors.newFixedThreadPool(2)
+        def cache = new ManualEvictionInMemoryCache<String, String>()
+
+        when:
+        def first = executor.submit({
+            cache.get("key", {
+                calls.incrementAndGet()
+                started.countDown()
+                release.await()
+                "value"
+            } as Supplier<String>)
+        } as Callable<String>)
+        started.await()
+        def inFlight = cache.getIfPresent("key")
+        def second = executor.submit({
+            cache.get("key", {
+                calls.incrementAndGet()
+                "other"
+            } as Supplier<String>)
+        } as Callable<String>)
+        release.countDown()
+
+        then:
+        inFlight == null
+        first.get() == "value"
+        second.get() == "value"
+        calls.get() == 1
+
+        cleanup:
+        executor.shutdownNow()
+    }
+
+    def "recomputes a key after the factory fails"() {
+        def cache = new ManualEvictionInMemoryCache<String, String>()
+
+        when:
+        cache.get("key", { throw new RuntimeException("boom") } as Supplier<String>)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "boom"
+        cache.getIfPresent("key") == null
+
+        and:
+        cache.get("key", { "value" } as Supplier<String>) == "value"
+    }
+
+    def "fails on recursive computation of the same key"() {
+        def cache = new ManualEvictionInMemoryCache<String, String>()
+
+        when:
+        cache.get("key", { cache.get("key", { "inner" } as Supplier<String>) } as Supplier<String>)
+
+        then:
+        thrown(IllegalStateException)
+        cache.getIfPresent("key") == null
     }
 }
