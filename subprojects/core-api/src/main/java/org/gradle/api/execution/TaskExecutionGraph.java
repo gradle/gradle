@@ -110,7 +110,7 @@ public interface TaskExecutionGraph {
      * parameter.</p>
      *
      * @param closure The closure to execute when a task is about to be executed.
-     * @deprecated This method is not supported when configuration caching is enabled.
+     * @deprecated This method is not supported when configuration caching is enabled. Use a {@link org.gradle.api.tasks.TaskLifecycleListener} instead.
      * @since 0.7
      */
     @Deprecated
@@ -121,7 +121,7 @@ public interface TaskExecutionGraph {
      * parameter.</p>
      *
      * @param action The action to execute when a task is about to be executed.
-     * @deprecated This method is not supported when configuration caching is enabled.
+     * @deprecated This method is not supported when configuration caching is enabled. Use a {@link org.gradle.api.tasks.TaskLifecycleListener} instead.
      *
      * @since 3.1
      */
@@ -134,7 +134,7 @@ public interface TaskExecutionGraph {
      * optional.</p>
      *
      * @param closure The closure to execute when a task has been executed
-     * @deprecated This method is not supported when configuration caching is enabled.
+     * @deprecated This method is not supported when configuration caching is enabled. Use a {@link org.gradle.api.tasks.TaskLifecycleListener} instead.
      * @since 0.7
      */
     @Deprecated
@@ -145,7 +145,7 @@ public interface TaskExecutionGraph {
      * first parameter.</p>
      *
      * @param action The action to execute when a task has been executed
-     * @deprecated This method is not supported when configuration caching is enabled.
+     * @deprecated This method is not supported when configuration caching is enabled. Use a {@link org.gradle.api.tasks.TaskLifecycleListener} instead.
      *
      * @since 3.1
      */
