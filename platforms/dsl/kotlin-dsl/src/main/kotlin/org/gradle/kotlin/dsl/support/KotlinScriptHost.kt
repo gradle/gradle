@@ -60,11 +60,11 @@ class KotlinScriptHost<out T : Any> internal constructor(
     internal
     val buildTreeScriptPath: String by unsafeLazy {
         val location = scriptSource.resource.location
-        location.file?.toPath()?.toAbsolutePath()
+        location.file?.toPath()?.toAbsolutePath()?.normalize()
             ?.let { path ->
-                // Relative path inside the build-tree root
-                if (path.startsWith(buildTreeRootDir)) path.relativeTo(buildTreeRootDir).invariantSeparatorsPathString
-                // Absolute path outside the build-tree root, non-relocatable
+                // Relative path to the build-tree root, also for scripts outside of it, e.g. `../included/settings.gradle.kts`
+                if (path.root == buildTreeRootDir.root) path.relativeTo(buildTreeRootDir).invariantSeparatorsPathString
+                // Absolute path on another file system root, e.g. another Windows drive, non-relocatable
                 else path.invariantSeparatorsPathString
             }
             ?: location.uri?.toASCIIString() // URI, relocatable when external
