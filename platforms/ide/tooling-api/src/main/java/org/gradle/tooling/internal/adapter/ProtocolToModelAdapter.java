@@ -52,6 +52,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -427,7 +428,8 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 new WeakIdentityHashMap.AbsentValueProvider<Map<ViewKey, WeakReference<Object>>>() {
                     @Override
                     public Map<ViewKey, WeakReference<Object>> provide() {
-                        return new HashMap<>();
+                        // Views of the same source object can be created concurrently from multiple threads
+                        return new ConcurrentHashMap<>();
                     }
                 });
 
@@ -802,6 +804,10 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
     }
 
+    /**
+     * Views can be shared between threads, e.g. by nested build actions running in parallel, so the caches are guarded by this invoker's monitor.
+     * The monitor is not held while invoking the next invoker.
+     */
     private static class PropertyCachingMethodInvoker implements MethodInvoker {
         private Map<String, Object> properties = Collections.emptyMap();
         private Set<String> unknown = Collections.emptySet();
@@ -814,22 +820,29 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         @Override
         public void invoke(MethodInvocation method) throws Throwable {
             if (method.isGetter()) {
-                if (properties.containsKey(method.getName())) {
-                    method.setResult(properties.get(method.getName()));
-                    return;
-                }
-                if (unknown.contains(method.getName())) {
-                    return;
+                String name = method.getName();
+                synchronized (this) {
+                    if (properties.containsKey(name)) {
+                        method.setResult(properties.get(name));
+                        return;
+                    }
+                    if (unknown.contains(name)) {
+                        return;
+                    }
                 }
 
-                Object value;
                 next.invoke(method);
-                if (!method.found()) {
-                    markUnknown(method.getName());
-                    return;
+
+                synchronized (this) {
+                    if (!method.found()) {
+                        markUnknown(name);
+                    } else if (properties.containsKey(name)) {
+                        // Another thread cached the property first, use its value so that all callers see the same view
+                        method.setResult(properties.get(name));
+                    } else {
+                        cachePropertyValue(name, method.getResult());
+                    }
                 }
-                value = method.getResult();
-                cachePropertyValue(method.getName(), value);
                 return;
             }
 
@@ -843,7 +856,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             unknown.add(methodName);
         }
 
-        private void cachePropertyValue(String methodName, Object value) {
+        private void cachePropertyValue(String methodName, @Nullable Object value) {
             if (properties.isEmpty()) {
                 properties = new HashMap<String, Object>();
             }
