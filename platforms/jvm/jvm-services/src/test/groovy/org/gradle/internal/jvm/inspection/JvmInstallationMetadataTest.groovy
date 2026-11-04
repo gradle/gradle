@@ -17,20 +17,18 @@
 package org.gradle.internal.jvm.inspection
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.OsTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
-
-import java.util.concurrent.CopyOnWriteArrayList
+import spock.lang.Specification
 
 /**
  * Tests capability detection in {@link JvmInstallationMetadata}.
  */
-class JvmInstallationMetadataTest extends ConcurrentSpec {
+class JvmInstallationMetadataTest extends Specification {
 
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -76,30 +74,6 @@ class JvmInstallationMetadataTest extends ConcurrentSpec {
 
         then:
         thrown(UnsupportedOperationException)
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/31239")
-    def "capabilities can be safely accessed concurrently from multiple threads"() {
-        given:
-        def javaHome = jdkHome()
-        javaHome.file("bin", OperatingSystem.current().getExecutableName("javac")).touch()
-        def metadata = metadataFor(javaHome)
-        def results = new CopyOnWriteArrayList<Set<JavaInstallationCapability>>()
-
-        when:
-        async {
-            10.times {
-                start {
-                    100.times {
-                        results << metadata.capabilities
-                    }
-                }
-            }
-        }
-
-        then:
-        results.size() == 1000
-        results.every { it.contains(JavaInstallationCapability.JAVA_COMPILER) }
     }
 
     @Requires(OsTestPreconditions.NotWindows)

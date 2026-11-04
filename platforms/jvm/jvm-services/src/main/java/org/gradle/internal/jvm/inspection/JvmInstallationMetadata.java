@@ -21,6 +21,7 @@ import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.internal.os.OperatingSystem;
 import org.jspecify.annotations.Nullable;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -115,6 +116,7 @@ public interface JvmInstallationMetadata {
 
     boolean isValidInstallation();
 
+    @ThreadSafe
     class DefaultJvmInstallationMetadata implements JvmInstallationMetadata {
 
         private final Path javaHome;
@@ -128,7 +130,6 @@ public interface JvmInstallationMetadata {
         private final String jvmVersion;
         private final String jvmVendor;
         private final String architecture;
-
         private final Set<JavaInstallationCapability> capabilities;
 
         private DefaultJvmInstallationMetadata(
