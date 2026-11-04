@@ -283,6 +283,189 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
         war.assertFileContent('WEB-INF/web.xml', 'good')
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/3200")
+    def "#property takes precedence over web.xml in the web app directory when pointing to #description"() {
+        given:
+        file("settings.gradle") << "rootProject.name = 'test'"
+        file('src/main/webapp/WEB-INF/web.xml') << 'default'
+        file('config/custom-web.xml') << 'custom'
+
+        and:
+        buildFile << """
+            plugins {
+                id 'war'
+            }
+
+            war {
+                $property = file('$webXmlPath')
+            }
+        """
+
+        when:
+        run "war"
+
+        then:
+        def war = new JarTestFixture(file('build/libs/test.war'))
+        war.assertContainsFile('WEB-INF/web.xml', 1)
+        war.content('WEB-INF/web.xml') == expectedContent
+
+        where:
+        property     | webXmlPath                        | description        | expectedContent
+        'webXml'     | 'src/main/webapp/WEB-INF/web.xml' | 'the default file' | 'default'
+        'webXml'     | 'config/custom-web.xml'           | 'another file'     | 'custom'
+        'webXmlFile' | 'src/main/webapp/WEB-INF/web.xml' | 'the default file' | 'default'
+        'webXmlFile' | 'config/custom-web.xml'           | 'another file'     | 'custom'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3200")
+    def "webXml takes precedence over web.xml added with webInf"() {
+        given:
+        file("settings.gradle") << "rootProject.name = 'test'"
+        file('extra-web-inf/web.xml') << 'from webInf'
+        file('config/custom-web.xml') << 'custom'
+
+        and:
+        buildFile << """
+            plugins {
+                id 'war'
+            }
+
+            war {
+                webInf {
+                    from 'extra-web-inf'
+                }
+                webXml = file('config/custom-web.xml')
+            }
+        """
+
+        when:
+        run "war"
+
+        then:
+        def war = new JarTestFixture(file('build/libs/test.war'))
+        war.assertContainsFile('WEB-INF/web.xml', 1)
+        war.content('WEB-INF/web.xml') == 'custom'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3200")
+    def "web.xml in the web app directory can still be moved when webXml is set"() {
+        given:
+        file("settings.gradle") << "rootProject.name = 'test'"
+        file('src/main/webapp/WEB-INF/web.xml') << 'default'
+        file('config/custom-web.xml') << 'custom'
+
+        and:
+        buildFile << """
+            plugins {
+                id 'war'
+            }
+
+            war {
+                webXml = file('config/custom-web.xml')
+                filesMatching('WEB-INF/web.xml') {
+                    path = 'WEB-INF/web-default.xml'
+                }
+            }
+        """
+
+        when:
+        run "war"
+
+        then:
+        def war = new JarTestFixture(file('build/libs/test.war'))
+        war.assertContainsFile('WEB-INF/web.xml', 1)
+        war.content('WEB-INF/web.xml') == 'custom'
+        war.assertContainsFile('WEB-INF/web-default.xml', 1)
+        war.content('WEB-INF/web-default.xml') == 'default'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3200")
+    def "webXml takes precedence over web.xml in the web app directory with duplicates strategy #strategy"() {
+        given:
+        file("settings.gradle") << "rootProject.name = 'test'"
+        file('src/main/webapp/WEB-INF/web.xml') << 'default'
+        file('config/custom-web.xml') << 'custom'
+
+        and:
+        buildFile << """
+            plugins {
+                id 'war'
+            }
+
+            war {
+                webXml = file('config/custom-web.xml')
+                duplicatesStrategy = DuplicatesStrategy.${strategy}
+            }
+        """
+
+        when:
+        run "war"
+
+        then:
+        def war = new JarTestFixture(file('build/libs/test.war'))
+        war.assertContainsFile('WEB-INF/web.xml', 1)
+        war.content('WEB-INF/web.xml') == 'custom'
+
+        where:
+        strategy << ['INCLUDE', 'EXCLUDE', 'WARN', 'FAIL']
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3200")
+    def "war is rebuilt when webXml is set after the web app directory provided web.xml"() {
+        given:
+        file("settings.gradle") << "rootProject.name = 'test'"
+        file('src/main/webapp/WEB-INF/web.xml') << 'default'
+        file('config/custom-web.xml') << 'custom'
+        buildFile << """
+            plugins {
+                id 'war'
+            }
+        """
+
+        when:
+        run "war"
+
+        then:
+        executedAndNotSkipped ':war'
+        new JarTestFixture(file('build/libs/test.war')).content('WEB-INF/web.xml') == 'default'
+
+        when:
+        buildFile << """
+            war {
+                webXml = file('config/custom-web.xml')
+            }
+        """
+        run "war"
+
+        then:
+        executedAndNotSkipped ':war'
+        def war = new JarTestFixture(file('build/libs/test.war'))
+        war.assertContainsFile('WEB-INF/web.xml', 1)
+        war.content('WEB-INF/web.xml') == 'custom'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3200")
+    def "web.xml in the web app directory is added when webXml is not set"() {
+        given:
+        file("settings.gradle") << "rootProject.name = 'test'"
+        file('src/main/webapp/WEB-INF/web.xml') << 'default'
+
+        and:
+        buildFile << """
+            plugins {
+                id 'war'
+            }
+        """
+
+        when:
+        run "war"
+
+        then:
+        def war = new JarTestFixture(file('build/libs/test.war'))
+        war.assertContainsFile('WEB-INF/web.xml', 1)
+        war.content('WEB-INF/web.xml') == 'default'
+    }
+
     @Issue("GRADLE-3522")
     @ToBeFixedForConfigurationCache(because = "early dependency resolution")
     def "war task doesn't trigger dependency resolution early"() {
