@@ -21,6 +21,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeDependencyResolver;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -28,9 +29,11 @@ import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateLookup;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
 import org.gradle.internal.service.Provides;
@@ -48,7 +51,29 @@ class DependencyManagementProjectScopeServices implements ServiceRegistrationPro
         registration.add(DefaultArtifactIdentifierFileStore.Factory.class);
         registration.add(TransformStepNodeDependencyResolver.class);
         registration.add(DependencyManagementManagedTypesFactory.class);
-        registration.add(DefaultProjectDependencyFactory.class);
+    }
+
+    @Provides
+    DefaultProjectDependencyFactory createProjectDependencyFactory(
+        Instantiator instantiator,
+        CapabilityNotationParser capabilityNotationParser,
+        ObjectFactory objectFactory,
+        AttributesFactory attributesFactory,
+        ProjectStateLookup projectStateLookup,
+        ProjectFinder projectFinder,
+        ProjectInternal project,
+        IsolatedProjectsProblemsReporter ipProblems
+    ) {
+        return new DefaultProjectDependencyFactory(
+            instantiator,
+            capabilityNotationParser,
+            objectFactory,
+            attributesFactory,
+            projectStateLookup,
+            projectFinder,
+            project.getProjectIdentity(),
+            ipProblems
+        );
     }
 
     @Provides

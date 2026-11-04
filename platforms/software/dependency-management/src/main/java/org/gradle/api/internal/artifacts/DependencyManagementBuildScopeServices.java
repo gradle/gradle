@@ -85,6 +85,7 @@ import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -179,7 +180,8 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         CapabilityNotationParser capabilityNotationParser,
         ObjectFactory objectFactory,
         AttributesFactory attributesFactory,
-        ProjectStateLookup projectStateLookup
+        ProjectStateLookup projectStateLookup,
+        IsolatedProjectsProblemsReporter ipProblems
     ) {
         return new DefaultProjectDependencyFactory(
             instantiator,
@@ -187,7 +189,9 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
             objectFactory,
             attributesFactory,
             projectStateLookup,
-            new UnknownProjectFinder("Project dependencies cannot be declared here.")
+            new UnknownProjectFinder("Project dependencies cannot be declared here."),
+            null,
+            ipProblems
         );
     }
 
@@ -425,7 +429,6 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         ObjectFactory objectFactory,
         ClassPathRegistry registry,
         DependenciesAccessorsWorkspaceProvider workspace,
-        DefaultProjectDependencyFactory factory,
         ExecutionEngine executionEngine,
         FeatureFlags featureFlags,
         FileCollectionFactory fileCollectionFactory,
@@ -433,7 +436,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         CapabilityNotationParser capabilityNotationParser,
         InputFingerprinter inputFingerprinter
     ) {
-        return objectFactory.newInstance(DefaultDependenciesAccessors.class, registry, workspace, factory, featureFlags, executionEngine, fileCollectionFactory, inputFingerprinter, attributesFactory, capabilityNotationParser);
+        return objectFactory.newInstance(DefaultDependenciesAccessors.class, registry, workspace, featureFlags, executionEngine, fileCollectionFactory, inputFingerprinter, attributesFactory, capabilityNotationParser);
     }
 
     @Provides
