@@ -224,6 +224,7 @@ val software = platform("software") {
     subproject("platform-base")
     subproject("plugins-version-catalog")
     subproject("publish")
+    subproject("publish-jvm")
     subproject("resources")
     subproject("resources-http")
     subproject("resources-gcs")

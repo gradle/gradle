@@ -20,6 +20,7 @@ dependencies {
     api(projects.messaging)
     api(projects.modelCore)
     api(projects.publish)
+    api(projects.publishJvm)
     api(projects.resources)
 
     api(libs.guava)

@@ -54,6 +54,10 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
         assertPublished(null, "jar")
     }
 
+    void assertPublished(Set<String> expectedVariantNames) {
+        assertPublished(null, "jar", expectedVariantNames)
+    }
+
     static String variantName(String featureName, String baseName) {
         if (featureName == MAIN_FEATURE) {
             baseName
@@ -67,13 +71,19 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
     }
 
     void assertPublished(String pomPackaging, String artifactFileExtension) {
+        assertPublished(pomPackaging, artifactFileExtension, ['apiElements', 'runtimeElements'] as Set)
+    }
+
+    void assertPublished(String pomPackaging, String artifactFileExtension, Set<String> expectedVariantNames) {
         super.assertPublished()
         assertArtifactsPublished(artifactFileExtension)
 
         // Verify Gradle metadata particulars
         def expectedVariants = [] as TreeSet
         features.each { feature ->
-            expectedVariants.addAll([variantName(feature, 'apiElements'), variantName(feature, 'runtimeElements')])
+            expectedVariantNames.each { expectedVariantName ->
+                expectedVariants.add(variantName(feature, expectedVariantName))
+            }
             if (withDocumentation) {
                 expectedVariants.addAll([variantName(feature, 'javadocElements'), variantName(feature, 'sourcesElements')])
             }

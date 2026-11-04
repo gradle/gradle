@@ -17,6 +17,7 @@ dependencies {
     api(projects.logging)
     api(projects.modelCore)
     api(projects.publish)
+    api(projects.publishJvm)
     api(projects.resources)
 
     api(libs.jspecify)

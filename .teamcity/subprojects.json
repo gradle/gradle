@@ -1393,6 +1393,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "publish-jvm",
+    "path": "platforms/software/publish-jvm",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "reflection-services",
     "path": "platforms/core-runtime/reflection-services",
     "unitTests": false,

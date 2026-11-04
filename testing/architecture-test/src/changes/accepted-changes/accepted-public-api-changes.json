@@ -1,3 +1,20 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.publish.ivy.IvyPublication",
+            "member": "Class org.gradle.api.publish.ivy.IvyPublication",
+            "acceptation": "Experimental: IvyPublication extends the new incubating JvmPublication",
+            "changes": [
+                "org.gradle.api.publish.jvm.JvmPublication"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.MavenPublication",
+            "member": "Class org.gradle.api.publish.maven.MavenPublication",
+            "acceptation": "Experimental: MavenPublication extends the new incubating JvmPublication",
+            "changes": [
+                "org.gradle.api.publish.jvm.JvmPublication"
+            ]
+        }
+    ]
 }

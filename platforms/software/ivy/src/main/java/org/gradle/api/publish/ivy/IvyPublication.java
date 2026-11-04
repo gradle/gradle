@@ -18,8 +18,8 @@ package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Action;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.VersionMappingStrategy;
+import org.gradle.api.publish.jvm.JvmPublication;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
@@ -103,7 +103,7 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
  * @since 1.3
  */
 @HasInternalProtocol
-public interface IvyPublication extends Publication {
+public interface IvyPublication extends JvmPublication {
 
     /**
      * The module descriptor that will be published.

@@ -22,17 +22,14 @@ import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
-import org.gradle.api.publish.tasks.GenerateModuleMetadata;
-import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.publish.jvm.internal.JvmPublicationInternal;
 
-public interface IvyPublicationInternal extends IvyPublication, PublicationInternal<IvyArtifact> {
+public interface IvyPublicationInternal extends IvyPublication, PublicationInternal<IvyArtifact>, JvmPublicationInternal {
 
     @Override
     IvyModuleDescriptorSpecInternal getDescriptor();
 
     void setIvyDescriptorGenerator(Provider<RegularFile> descriptorFile, Provider<Boolean> generatorEnabled);
-
-    void setModuleDescriptorGenerator(TaskProvider<? extends GenerateModuleMetadata> descriptorGenerator);
 
     IvyNormalizedPublication asNormalisedPublication();
 
