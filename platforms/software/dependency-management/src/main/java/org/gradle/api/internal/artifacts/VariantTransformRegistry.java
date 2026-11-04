@@ -41,6 +41,19 @@ public interface VariantTransformRegistry {
     <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
     /**
+     * Register an artifact transform with a name used to identify it in reports and error messages.
+     * <p>
+     * Names must be unique within a project, must be valid Gradle names, and must not contain {@code unnamedTransform}.
+     *
+     * @param name the name of the transform
+     * @param actionType the type of the transform action
+     * @param registrationAction an action used to configure the transform
+     *
+     * @see TransformAction
+     */
+    <T extends TransformParameters> void registerTransform(String name, Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
+
+    /**
      * Returns a set of all the registered transforms.
      *
      * @return the set of registered transforms

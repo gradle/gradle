@@ -23,14 +23,16 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
  */
 public final class ReportArtifactTransform {
     private final String displayName;
+    private final boolean automaticallyNamed;
     private final Class<?> transformClass;
     private final ImmutableAttributes fromAttributes;
     private final ImmutableAttributes toAttributes;
 
     private final boolean cacheable;
 
-    public ReportArtifactTransform(String displayName, Class<?> transformClass, ImmutableAttributes fromAttributes, ImmutableAttributes toAttributes, boolean cacheable) {
+    public ReportArtifactTransform(String displayName, boolean automaticallyNamed, Class<?> transformClass, ImmutableAttributes fromAttributes, ImmutableAttributes toAttributes, boolean cacheable) {
         this.displayName = displayName;
+        this.automaticallyNamed = automaticallyNamed;
         this.transformClass = transformClass;
         this.fromAttributes = fromAttributes;
         this.toAttributes = toAttributes;
@@ -39,6 +41,13 @@ public final class ReportArtifactTransform {
 
     public String getDisplayName() {
         return displayName;
+    }
+
+    /**
+     * Whether the transform was registered without a name, in which case its display name is the simple name of its type.
+     */
+    public boolean isAutomaticallyNamed() {
+        return automaticallyNamed;
     }
 
     public Class<?> getTransformClass() {

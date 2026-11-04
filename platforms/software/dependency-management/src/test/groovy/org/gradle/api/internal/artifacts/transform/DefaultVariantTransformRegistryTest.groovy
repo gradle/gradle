@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableSet
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.artifacts.transform.TransformAction
@@ -308,6 +309,136 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def e = thrown(VariantTransformConfigurationException)
         e.message == "Could not register artifact transform DefaultVariantTransformRegistryTest.TestTransform (from {TEST=from, from2=from} to {TEST=to, other=12})."
         e.cause.message == "Each 'to' attribute must be included as a 'from' attribute."
+    }
+
+    def "records the supplied name when registering a named transform"() {
+        when:
+        registry.registerTransform("myTransform", TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+        }
+
+        then:
+        def registration = registry.registrations.first()
+        registration.name == "myTransform"
+        !registration.automaticallyNamed
+    }
+
+    def "generates distinct names when registering unnamed transforms"() {
+        when:
+        registry.registerTransform(TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+        }
+        registry.registerTransform(TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from2")
+            it.to.attribute(TEST_ATTRIBUTE, "to2")
+        }
+
+        then:
+        registry.registrations.size() == 2
+        registry.registrations.every { it.automaticallyNamed }
+        registry.registrations*.name.toSet().size() == 2
+    }
+
+    def "includes the supplied name when registration of a named transform fails"() {
+        when:
+        registry.registerTransform("myTransform", TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+        }
+
+        then:
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == "Could not register artifact transform 'myTransform' DefaultVariantTransformRegistryTest.TestTransform (from {TEST=from})."
+        e.cause.message == "At least one 'to' attribute must be provided."
+    }
+
+    def "fails when using duplicate name when registering transform"() {
+        when:
+        registry.registerTransform("test", TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+        }
+
+        registry.registerTransform("test", TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from2")
+            it.to.attribute(TEST_ATTRIBUTE, "to2")
+        }
+
+        then:
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == "There is already a transform registered with the name 'test' in this project.  Transform names, if provided, must be unique within a project."
+    }
+
+    def "fails when using duplicate name when registering transform even if using separate types"() {
+        when:
+        registry.registerTransform("test", TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+        }
+
+        registry.registerTransform("test", ParameterlessTestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from2")
+            it.to.attribute(TEST_ATTRIBUTE, "to2")
+        }
+
+        then:
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == "There is already a transform registered with the name 'test' in this project.  Transform names, if provided, must be unique within a project."
+    }
+
+    def "fails when providing null name when registering transform"() {
+        when:
+        registry.registerTransform(null, TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+        }
+
+        then:
+        def e = thrown(NullPointerException)
+        e.message == "When providing a name for a transform, it must be non-null."
+    }
+
+    def "fails when providing empty name when registering transform"() {
+        when:
+        registry.registerTransform("", TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+        }
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "The transform name must not be empty. Please use a valid Gradle name."
+    }
+
+    def "fails when providing invalid identifier for name when registering transform: #identifier"() {
+        when:
+        registry.registerTransform(identifier, TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+        }
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "The transform name '$identifier' must not contain any of the following characters: [/, \\, :, <, >, \", ?, *, |]. Please use a valid Gradle name."
+
+        where:
+        identifier << ["?", "<id>", "\\name", "not/allowed"]
+    }
+
+    def "fails when including 'unnamedTransform' in name when registering transform: #identifier"() {
+        when:
+        registry.registerTransform(identifier, TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+        }
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "The provided name for a transform must not contain 'unnamedTransform'."
+
+        where:
+        identifier << ["unnamedTransform", "unnamedTransform34", "myUnnamedTransform", "someUNNAMEDTransform"]
     }
 
     static abstract class TestTransform implements TransformAction<Parameters> {

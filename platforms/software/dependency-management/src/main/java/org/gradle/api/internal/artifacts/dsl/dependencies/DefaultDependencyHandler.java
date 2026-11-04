@@ -330,6 +330,11 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     }
 
     @Override
+    public <T extends TransformParameters> void registerTransform(String name, Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
+        transforms.registerTransform(name, actionType, registrationAction);
+    }
+
+    @Override
     public Dependency platform(Object notation) {
         Dependency dependency = create(notation);
         if (dependency instanceof ModuleDependency) {

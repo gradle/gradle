@@ -25,5 +25,11 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Project.class)
 public interface TransformRegistrationFactory {
-    TransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, TransformParameters parameterObject);
+    /**
+     * Creates a new transform registration.
+     *
+     * @param name the name of the transform
+     * @param isAutomaticallyNamed {@code true} if the name was generated automatically; {@code false} if it was supplied when registering the transform
+     */
+    TransformRegistration create(String name, boolean isAutomaticallyNamed, ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, TransformParameters parameterObject);
 }

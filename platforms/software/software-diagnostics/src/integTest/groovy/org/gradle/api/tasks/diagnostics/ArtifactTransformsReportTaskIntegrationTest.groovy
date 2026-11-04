@@ -23,6 +23,7 @@ import org.gradle.util.GradleVersion
  * Integration tests for the {@link ArtifactTransformsReportTask}.
  */
 class ArtifactTransformsReportTaskIntegrationTest extends AbstractIntegrationSpec {
+    private static final String UNNAMED_NUDGE = "Some artifact transforms are unnamed.  Passing a name as the first argument to registerTransform() makes them easier to identify in reports and error messages."
     private static final String CACHEABILITY_NUDGE = "Some artifact transforms are not cacheable.  This can have negative performance impacts.  See more documentation here: https://docs.gradle.org/${GradleVersion.current().version}/userguide/artifact_transforms.html#sec:caching-transforms."
 
     def setup() {
@@ -70,6 +71,62 @@ To Attributes:
     - color = red
     - shape = circle
 """)
+    }
+
+    def "if named transform is registered by buildscript, task reports it by name"() {
+        given:
+        buildFile << """
+            ${defineAttributes()}
+            ${defineTransform()}
+
+            dependencies {
+                registerTransform("squareToCircle", EmptyTransform) {
+                    from.attribute(color, "blue")
+                    to.attribute(color, "red")
+                    from.attribute(shape, "square")
+                    to.attribute(shape, "circle")
+                }
+            }
+        """
+
+        when:
+        succeeds ':artifactTransforms'
+
+        then:
+        result.groupedOutput.task(":artifactTransforms").assertOutputContains("""--------------------------------------------------
+squareToCircle
+--------------------------------------------------
+Type: EmptyTransform
+Cacheable: No
+From Attributes:
+    - color = blue
+    - shape = square
+To Attributes:
+    - color = red
+    - shape = circle
+""")
+        outputDoesNotContain(UNNAMED_NUDGE)
+    }
+
+    def "if unnamed transform is registered by buildscript, task suggests naming it"() {
+        given:
+        buildFile << """
+            ${defineAttributes()}
+            ${defineTransform()}
+
+            dependencies {
+                registerTransform(EmptyTransform) {
+                    from.attribute(color, "blue")
+                    to.attribute(color, "red")
+                }
+            }
+        """
+
+        when:
+        succeeds ':artifactTransforms'
+
+        then:
+        outputContains(UNNAMED_NUDGE)
     }
 
     def "if cacheable transform is registered by buildscript, task reports it"() {

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.transform.TransformAction;
@@ -34,14 +35,20 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.service.ServiceLookup;
+import org.gradle.util.internal.NameValidator;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
-    private final Set<TransformRegistration> registeredTransforms = new LinkedHashSet<>();
+    private static final String UNNAMED_TRANSFORM_RESERVED_NAME_SUBSTRING = "unnamedTransform";
+
+    private final Map<String, TransformRegistration> registeredTransforms = new LinkedHashMap<>();
+    private int unnamedTransformCount = 0;
 
     private final AttributesFactory attributesFactory;
     private final ServiceLookup services;
@@ -70,15 +77,36 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
     @Override
     public <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
-        doRegisterTransform(actionType, registrationAction);
+        doRegisterTransform(generateAutomaticName(), true, actionType, registrationAction);
+    }
+
+    @Override
+    public <T extends TransformParameters> void registerTransform(String name, Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
+        validateSuppliedName(name);
+        doRegisterTransform(name, false, actionType, registrationAction);
     }
 
     @Override
     public Set<TransformRegistration> getRegistrations() {
-        return ImmutableSet.copyOf(registeredTransforms);
+        return ImmutableSet.copyOf(registeredTransforms.values());
     }
 
-    private <T extends TransformParameters> void doRegisterTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
+    private String generateAutomaticName() {
+        return UNNAMED_TRANSFORM_RESERVED_NAME_SUBSTRING + unnamedTransformCount++;
+    }
+
+    private void validateSuppliedName(String name) {
+        Objects.requireNonNull(name, "When providing a name for a transform, it must be non-null.");
+        if (StringUtils.containsIgnoreCase(name, UNNAMED_TRANSFORM_RESERVED_NAME_SUBSTRING)) {
+            throw new IllegalArgumentException("The provided name for a transform must not contain '" + UNNAMED_TRANSFORM_RESERVED_NAME_SUBSTRING + "'.");
+        }
+        NameValidator.validate(name, "transform name", "Please use a valid Gradle name.");
+        if (registeredTransforms.containsKey(name)) {
+            throw new VariantTransformConfigurationException("There is already a transform registered with the name '" + name + "' in this project.  Transform names, if provided, must be unique within a project.", documentationRegistry);
+        }
+    }
+
+    private <T extends TransformParameters> void doRegisterTransform(String name, boolean isAutomaticallyNamed, Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
         validateActionType((Class<? extends TransformAction<?>>) actionType);
 
         TypedRegistration<T> registration = null;
@@ -89,16 +117,19 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
             registrationAction.execute(registration);
             registration.validateAttributes();
 
-            TransformRegistration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject);
-            registeredTransforms.add(finalizedRegistration);
+            TransformRegistration finalizedRegistration = registrationFactory.create(name, isAutomaticallyNamed, registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject);
+            registeredTransforms.put(name, finalizedRegistration);
         } catch (Exception e) {
-            throw new VariantTransformConfigurationException(buildFailureToRegisterMsg(registration, actionType), e, documentationRegistry);
+            throw new VariantTransformConfigurationException(buildFailureToRegisterMsg(isAutomaticallyNamed ? null : name, registration, actionType), e, documentationRegistry);
         }
     }
 
-    private String buildFailureToRegisterMsg(@Nullable TypedRegistration<?> registration, Class<? extends TransformAction<?>> actionType) {
+    private String buildFailureToRegisterMsg(@Nullable String suppliedName, @Nullable TypedRegistration<?> registration, Class<? extends TransformAction<?>> actionType) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("Could not register artifact transform ");
+        if (suppliedName != null) {
+            formatter.append("'").append(suppliedName).append("' ");
+        }
         formatter.appendType(actionType);
         if (registration != null && !(registration.from.isEmpty() && registration.to.isEmpty())) {
             formatter.append(" (");

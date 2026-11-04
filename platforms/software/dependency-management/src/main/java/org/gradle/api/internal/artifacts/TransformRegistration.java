@@ -24,6 +24,18 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
  */
 public interface TransformRegistration {
     /**
+     * Name of the transform, either supplied when it was registered or generated automatically.
+     */
+    String getName();
+
+    /**
+     * Whether the name of this transform was generated automatically.
+     *
+     * @return {@code true} if no name was supplied when registering this transform; {@code false} if it was explicitly named
+     */
+    boolean isAutomaticallyNamed();
+
+    /**
      * Attributes that match the variant that is consumed.
      */
     ImmutableAttributes getFrom();

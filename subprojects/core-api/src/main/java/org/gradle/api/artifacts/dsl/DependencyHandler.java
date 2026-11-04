@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
@@ -517,11 +518,28 @@ public interface DependencyHandler extends ExtensionAware {
      *     }
      * }
      * </pre>
+     * Prefer {@link #registerTransform(String, Class, Action)}, which names the transform so it can be identified in reports and error messages.
      *
      * @see TransformAction
      * @since 5.2
      */
     <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
+
+    /**
+     * Registers an <a href="https://docs.gradle.org/current/userguide/artifact_transforms.html">artifact transform</a> as in
+     * {@link #registerTransform(Class, Action)}, additionally supplying a name used to identify the transform in reports and error messages.
+     * <p>
+     * Names must be unique within a project, must be valid Gradle names, and must not contain {@code unnamedTransform}.
+     *
+     * @param name the name of the transform
+     * @param actionType the type of the transform action class to register
+     * @param registrationAction an action used to configure the transform
+     *
+     * @see TransformAction
+     * @since 9.10.0
+     */
+    @Incubating
+    <T extends TransformParameters> void registerTransform(String name, Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
     /**
      * Declares a dependency on a platform. If the target coordinates represent multiple

@@ -112,6 +112,9 @@ public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifa
         if (transforms.stream().anyMatch(t -> !t.isCacheable())) {
             output.println("Some artifact transforms are not cacheable.  This can have negative performance impacts.  See more documentation here: " + documentationRegistry.getDocumentationFor("artifact_transforms", "sec:caching-transforms") + ".");
         }
+        if (transforms.stream().anyMatch(ReportArtifactTransform::isAutomaticallyNamed)) {
+            output.println("Some artifact transforms are unnamed.  Passing a name as the first argument to registerTransform() makes them easier to identify in reports and error messages.");
+        }
     }
 
     private void writeCompleteAbsenceOfResults(ArtifactTransformReportModel model, boolean searchingByType) {
