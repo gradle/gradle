@@ -44,7 +44,7 @@ $ ./gradlew pakageApp
 include::sample[dir="snippets/troubleshooting/taskNotFound/tests",files="taskNotFound.out"]
 ====
 
-The report has up to three parts:
+The report has up to three parts, plus an `Exception is` section when you run with <<sec:getting_more_failure_detail,`--stacktrace`>>:
 
 `Where`::
 The build script and line number that caused the failure.
@@ -52,14 +52,14 @@ Gradle only shows this part when it can trace the failure to a line in a script,
 
 `What went wrong`::
 The error message.
-Each underlying cause appears on its own line, prefixed with `>`.
+Underlying causes appear on the following lines, indented, or prefixed with `>` when one failure wraps another.
 A message that starts with `Execution failed for task` means the failure happened while running that task, not while configuring the build.
 
 `Try`::
 Suggested next steps.
 Gradle and plugins can add suggestions specific to the failure.
 In the report above, the first two suggestions are specific to the missing task.
-When a reported problem includes its own solution, Gradle shows it in `What went wrong` and omits the generic `--stacktrace` and logging suggestions.
+When a reported problem includes its own solution, Gradle shows that solution and omits the `--stacktrace`, logging, and help.gradle.org suggestions.
 
 If you run with <<command_line_interface.adoc#sec:continue_build_on_failure,`--continue`>> and several tasks fail, the report starts with `Build completed with N failures.` and lists each failure separately.
 
@@ -107,6 +107,7 @@ The Build Scan includes:
 The build environment details help when a build fails on CI but passes locally: publish a Build Scan from each and compare their environments.
 
 A Build Scan link also replaces copying error messages and environment details when you ask for help.
+Anyone with the link can see the console log and build environment, so check <<build_scans.adoc#sec:captured-information,what a Build Scan captures>> before you share it.
 
 If your organization runs a link:https://develocity.ai/[Develocity] server, publish to it with `--develocity-url` as described in <<build_scans.adoc#sec:enable_build_scan,Enable Build Scan>>.
 When the link:https://docs.develocity.ai/gradle/current/gradle-plugin/[Develocity Gradle plugin] is already applied to your build, Gradle doesn't show the `--scan` suggestion in the failure report.
