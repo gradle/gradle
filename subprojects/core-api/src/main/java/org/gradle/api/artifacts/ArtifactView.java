@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 
 /**
@@ -133,5 +134,17 @@ public interface ArtifactView extends HasAttributes {
          */
         @Incubating
         ViewConfiguration withVariantReselection();
+
+        /**
+         * A human-readable name for this view, used to identify it in error messages.
+         * <p>
+         * When set, failures to resolve the files or artifacts of this view are reported against the named view
+         * rather than only against the configuration it was created from.  When not set, failures are reported
+         * against the configuration.
+         *
+         * @since 9.10.0
+         */
+        @Incubating
+        Property<String> getDisplayName();
     }
 }

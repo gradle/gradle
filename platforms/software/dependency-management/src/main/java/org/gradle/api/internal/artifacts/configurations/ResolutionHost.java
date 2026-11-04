@@ -55,6 +55,35 @@ public interface ResolutionHost {
     }
 
     /**
+     * Returns a host for the same resolution whose failures are reported under the given display name,
+     * for example a named {@link org.gradle.api.artifacts.ArtifactView ArtifactView}.
+     * <p>
+     * The default implementation only changes {@link #displayName()}; failures are still consolidated by this host.
+     *
+     * @param displayName the display name to report failures under
+     * @return a host reporting failures under the given display name
+     */
+    default ResolutionHost withDisplayName(DisplayName displayName) {
+        ResolutionHost delegate = this;
+        return new ResolutionHost() {
+            @Override
+            public DisplayName displayName() {
+                return displayName;
+            }
+
+            @Override
+            public ProblemsInternal getProblems() {
+                return delegate.getProblems();
+            }
+
+            @Override
+            public Optional<TypedResolveException> consolidateFailures(String resolutionType, Collection<Throwable> failures) {
+                return delegate.consolidateFailures(resolutionType, failures);
+            }
+        };
+    }
+
+    /**
      * Returns the problems service this host can use for reporting failures.
      *
      * @return the problems service

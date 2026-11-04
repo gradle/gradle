@@ -25,7 +25,9 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultArtifactCollection;
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProviderBackedSelectedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
@@ -36,12 +38,19 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.internal.ProblemsInternal;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
+import java.util.Collection;
+import java.util.Optional;
 
 /**
  * Default implementation of {@link ResolutionOutputsInternal}. This class is in charge of
@@ -102,10 +111,11 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
 
     private DefaultArtifactView doGetArtifactView(Action<? super ArtifactView.ViewConfiguration> action) {
         // We use the instantiator to generate closure-accepting methods.
-        DefaultArtifactViewConfiguration viewConfiguration = objectFactory.newInstance(DefaultArtifactViewConfiguration.class, attributesFactory);
+        DefaultArtifactViewConfiguration viewConfiguration = objectFactory.newInstance(DefaultArtifactViewConfiguration.class, attributesFactory, objectFactory.property(String.class));
         action.execute(viewConfiguration);
 
         return new DefaultArtifactView(
+            viewConfiguration.displayName.getOrNull(),
             viewConfiguration.lenient,
             viewConfiguration.componentFilter,
             viewConfiguration.reselectVariants,
@@ -123,6 +133,8 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
     public static class DefaultArtifactView implements ArtifactView {
 
         // View configuration
+        @Nullable
+        private final String name;
         private final boolean lenient;
         private final Spec<? super ComponentIdentifier> componentFilter;
         private final boolean reselectVariants;
@@ -136,6 +148,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         private final AttributeDesugaring attributeDesugaring;
 
         public DefaultArtifactView(
+            @Nullable String name,
             boolean lenient,
             Spec<? super ComponentIdentifier> componentFilter,
             boolean reselectVariants,
@@ -147,6 +160,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             AttributesFactory attributesFactory,
             AttributeDesugaring attributeDesugaring
         ) {
+            this.name = name;
             this.lenient = lenient;
             this.componentFilter = componentFilter;
             this.reselectVariants = reselectVariants;
@@ -165,10 +179,11 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
                 resolutionAccess.getResults().map(this::selectArtifacts)
             );
 
+            ResolutionHost host = name == null ? resolutionAccess.getHost() : new NamedArtifactViewResolutionHost(resolutionAccess.getHost(), name);
             return new DefaultArtifactCollection(
                 selectedArtifacts,
                 lenient,
-                resolutionAccess.getHost(),
+                host,
                 taskDependencyFactory,
                 calculatedValueContainerFactory,
                 attributeDesugaring
@@ -216,15 +231,56 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         }
     }
 
+    /**
+     * A {@link ResolutionHost} for an artifact view that was given a name.
+     * <p>
+     * Failures to select the files or artifacts of the view are reported against the named view.  Failures to resolve
+     * the dependency graph are reported against the original host, since they would also occur when resolving it directly.
+     */
+    private static final class NamedArtifactViewResolutionHost implements ResolutionHost {
+        private final ResolutionHost delegate;
+        private final ResolutionHost renamed;
+
+        NamedArtifactViewResolutionHost(ResolutionHost delegate, String viewName) {
+            this.delegate = delegate;
+            this.renamed = delegate.withDisplayName(Describables.of("artifact view '" + viewName + "' for", delegate.displayName()));
+        }
+
+        @Override
+        public DisplayName displayName() {
+            return renamed.displayName();
+        }
+
+        @Override
+        public ProblemsInternal getProblems() {
+            return delegate.getProblems();
+        }
+
+        @Override
+        public Optional<TypedResolveException> consolidateFailures(String resolutionType, Collection<Throwable> failures) {
+            if ("dependencies".equals(resolutionType)) {
+                return delegate.consolidateFailures(resolutionType, failures);
+            }
+            return renamed.consolidateFailures(resolutionType, failures);
+        }
+    }
+
     public static class DefaultArtifactViewConfiguration implements ArtifactView.ViewConfiguration {
+        private final Property<String> displayName;
         private final AttributeContainerInternal viewAttributes;
         private Spec<? super ComponentIdentifier> componentFilter = Specs.satisfyAll();
         private boolean lenient;
         private boolean reselectVariants;
 
         @Inject
-        public DefaultArtifactViewConfiguration(AttributesFactory attributesFactory) {
+        public DefaultArtifactViewConfiguration(AttributesFactory attributesFactory, Property<String> displayName) {
             this.viewAttributes = attributesFactory.mutable();
+            this.displayName = displayName;
+        }
+
+        @Override
+        public Property<String> getDisplayName() {
+            return displayName;
         }
 
         @Override

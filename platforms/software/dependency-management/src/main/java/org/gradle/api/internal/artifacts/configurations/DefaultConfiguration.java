@@ -1832,6 +1832,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         @Override
+        public ResolutionHost withDisplayName(DisplayName displayName) {
+            return new DefaultResolutionHost(buildTreePath, displayName, problems, exceptionMapper);
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
