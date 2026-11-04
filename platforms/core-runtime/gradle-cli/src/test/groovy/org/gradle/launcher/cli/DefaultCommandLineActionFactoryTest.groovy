@@ -331,15 +331,18 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         ['--show-version'] | true                | 1
     }
 
-    def "sets suppressHelpOnFailure flag help if suppress flag is set"() {
+    def "suppresses help on failure and still runs the build when --suppress-help is set"() {
         when:
-        def commandLineExecution = factory.convert([option])
+        def commandLineExecution = factory.convert(["--suppress-help", "-p${tmpDir.getTestDirectory()}".toString()])
         commandLineExecution.execute(executionListener)
 
         then:
-        commandLineExecution.reporter.suppressHelpOnFailure == true
+        commandLineExecution.reporter.suppressHelpOnFailure
+        outputs.stdOut.contains("build action")
 
-        where:
-        option << ['-S', '--suppress-help']
+        and:
+        1 * actionFactory1.createAction(!null, !null, !null) >> {
+            { println "build action" } as Action<ExecutionListener>
+        }
     }
 }
