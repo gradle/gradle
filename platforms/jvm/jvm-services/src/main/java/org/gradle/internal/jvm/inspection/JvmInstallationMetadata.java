@@ -16,6 +16,7 @@
 
 package org.gradle.internal.jvm.inspection;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.internal.os.OperatingSystem;
@@ -154,7 +155,7 @@ public interface JvmInstallationMetadata {
             this.jvmVersion = jvmVersion;
             this.jvmVendor = jvmVendor;
             this.architecture = architecture;
-            this.capabilities = Collections.unmodifiableSet(gatherCapabilities());
+            this.capabilities = Sets.immutableEnumSet(gatherCapabilities());
         }
 
         @Override
