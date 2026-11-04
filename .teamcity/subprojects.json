@@ -700,6 +700,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "gmm-publish",
+    "path": "platforms/software/gmm-publish",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "gradle-cli",
     "path": "platforms/core-runtime/gradle-cli",
     "unitTests": true,

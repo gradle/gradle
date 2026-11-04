@@ -14,6 +14,7 @@ dependencies {
     api(projects.domainObjectCollections)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
+    api(projects.gmmPublish)
     api(projects.logging)
     api(projects.modelCore)
     api(projects.publish)

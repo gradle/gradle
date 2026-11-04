@@ -16,6 +16,7 @@ dependencies {
     api(projects.dependencyManagement)
     api(projects.dependencyManagementResources)
     api(projects.fileCollections)
+    api(projects.gmmPublish)
     api(projects.logging)
     api(projects.messaging)
     api(projects.modelCore)
