@@ -1,6 +1,4 @@
 plugins {
-    id("gradlebuild.collect-failed-tasks")
-    id("gradlebuild.cache-miss-monitor")
     id("gradlebuild.ci-reporting")
 }
 

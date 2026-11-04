@@ -31,7 +31,6 @@ class GradleBuildToolRootProject(
         }
 
         params {
-            param("enableIsolatedProjects", "false") // TODO: remove as soon as CI is compatible with enabling IP
             param("env.GRADLE_OPTS", "-Dorg.gradle.isolated-projects=false")
         }
     })

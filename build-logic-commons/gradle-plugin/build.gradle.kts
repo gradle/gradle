@@ -9,8 +9,6 @@ group = "gradlebuild"
 description = "Provides plugins used to create a Gradle plugin with Groovy or Kotlin DSL within build-logic builds"
 
 dependencies {
-    compileOnly(buildLibs.develocityPlugin)
-
     api(platform(projects.buildPlatform))
 
     implementation("gradlebuild:build-platform-plugin")

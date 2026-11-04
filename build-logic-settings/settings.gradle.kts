@@ -48,6 +48,7 @@ apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 include("architecture-docs")
 include("build-environment")
+include("build-scan-info")
 include("configuration-cache-compatibility")
 include("default-settings-plugins")
 include("version-catalogs")
