@@ -48,15 +48,8 @@ plugins.withId("java-base") {
     versionCatalogs.find("libs").ifPresent { libs ->
         val jspecify = libs.findLibrary("jspecify").get().get()
         configurations.configureEach {
-            // Legacy configurations only lose roles after creation, so this covers every configuration that
-            // ends up resolvable-only; the rest are never resolved.
-            // The roles cannot be checked here: a legacy configuration is still consumable when this runs, so
-            // checking isCanBeConsumed would skip all of them, including the distribution and tooling API
-            // classpaths. A check against final roles has to run at resolution, which needs either an all {}
-            // rule, forcing early graph resolution, or a beforeResolve mutation, which Gradle plans to reject.
-            // Instead, the configurations third-party plugins leave consumable and resolvable are skipped by name.
-            // No more are expected: none of this build's own configurations stay both consumable and resolvable.
-            // If one appears, it only receives jspecify without the MODULE annotation target.
+            // A legacy configuration is still consumable when this runs, so its final roles cannot be checked here.
+            // jmh, shadow and gr8Gr are the configurations third-party plugins leave both consumable and resolvable.
             if (isCanBeResolved && name != "jmh" && name != "shadow" && name != "gr8Gr") {
                 resolutionStrategy.dependencySubstitution {
                     substitute(module("${jspecify.group}:${jspecify.name}")).using(variant(module("${jspecify.group}:${jspecify.name}:${jspecify.versionConstraint.requiredVersion}")) {

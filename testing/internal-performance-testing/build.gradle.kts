@@ -1,4 +1,4 @@
-import gradlebuild.requestRuntimeLibrary
+import gradlebuild.configureAsRuntimeLibrary
 
 plugins {
     id("gradlebuild.internal.java")
@@ -16,7 +16,7 @@ sourceSets {
 val reports = configurations.dependencyScope("reports")
 val reportsPath = configurations.resolvable("reportsPath") {
     extendsFrom(reports)
-    requestRuntimeLibrary(objects)
+    configureAsRuntimeLibrary(objects)
 }
 
 dependencies {
