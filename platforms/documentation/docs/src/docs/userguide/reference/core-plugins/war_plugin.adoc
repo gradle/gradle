@@ -118,7 +118,8 @@ The `war` plugin sets the default value to `sourceSets.main.runtimeClasspath` mi
 
 `webXml` — `File`::
 The `web.xml` file to copy to `WEB-INF/web.xml`.
-When not set, no `web.xml` file is included in the archive.
+When set, it takes precedence over a `WEB-INF/web.xml` file in the `webAppDirectory` or in other content of the archive.
+When not set, the archive only contains a `web.xml` if one is part of its other content, such as the `webAppDirectory`.
 +
 [NOTE]
 ====
