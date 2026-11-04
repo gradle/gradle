@@ -42,6 +42,7 @@ dependencies {
         isTransitive = false
     }
     implementation(libs.kotlinCompilerEmbeddable)
+    implementation(libs.jetbrainsAnnotations)
     implementation(libs.slf4jApi)
 
     compileOnly(libs.kotlinReflect)
