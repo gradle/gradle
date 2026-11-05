@@ -147,6 +147,7 @@ import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
 import org.gradle.internal.serialize.graph.codecs.BeanSpecCodec
+import org.gradle.internal.serialize.graph.codecs.BindingTags
 import org.gradle.internal.serialize.graph.codecs.Bindings
 import org.gradle.internal.serialize.graph.codecs.BindingsBackedCodec
 import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
@@ -355,23 +356,34 @@ class DefaultConfigurationCacheCodecs(
         }
     }
 
+    // Codecs are created anew for every write and read context, for instance, for every project when storing in parallel.
+    // Codecs created by the same method share the binding selected for each type, so it is only computed once per build.
+    private
+    val userTypesTags = BindingTags()
+
+    private
+    val fingerprintTypesTags = BindingTags()
+
+    private
+    val internalTypesTags = BindingTags()
+
     /**
      * Finalizes the bindings by adding stateful codecs and returns a fresh `BindingsBackedCodec` instance.
      *
      * Stateful codecs maintain state that cannot be shared across different reading/writing contexts.
      */
     private
-    fun Bindings.completeWithStatefulCodecs(): BindingsBackedCodec = append {
+    fun Bindings.completeWithStatefulCodecs(tags: BindingTags): BindingsBackedCodec = append {
         // This protects the BeanCodec against StackOverflowErrors, but
         // we can still get them for the other codecs, for instance,
         // with deeply nested Lists, deeply nested Maps, etc.
         // The reentrant codec is stateful, and cannot be cached because of it.
         bind(reentrant(BeanCodec))
-    }.build()
+    }.build(tags)
 
-    override fun userTypesCodec(): Codec<Any?> = userTypesBindings.completeWithStatefulCodecs()
+    override fun userTypesCodec(): Codec<Any?> = userTypesBindings.completeWithStatefulCodecs(userTypesTags)
 
-    override fun fingerprintTypesCodec(): Codec<Any?> = fingerprintUserTypesBindings.completeWithStatefulCodecs()
+    override fun fingerprintTypesCodec(): Codec<Any?> = fingerprintUserTypesBindings.completeWithStatefulCodecs(fingerprintTypesTags)
 
     private
     val internalTypesBindings = Bindings.of {
@@ -394,7 +406,7 @@ class DefaultConfigurationCacheCodecs(
         bind(OrdinalNodeCodec)
 
         bind(NotImplementedCodec)
-    }.build()
+    }.build(internalTypesTags)
 
     private
     fun BindingsBuilder.providerTypes(
