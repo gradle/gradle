@@ -25,6 +25,10 @@ class SftpClientReuseIntegrationTest extends AbstractIntegrationSpec {
     @Rule final SFTPServer sftpServer = new SFTPServer(temporaryFolder)
     @Rule final BlockingHttpServer coordinator = new BlockingHttpServer()
 
+    def setup() {
+        sftpServer.trustHostKey(executer)
+    }
+
     def "does not attempt to reuse a client that has been disconnected"() {
         coordinator.start()
 

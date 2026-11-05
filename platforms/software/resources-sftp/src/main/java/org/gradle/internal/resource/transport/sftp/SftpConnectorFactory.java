@@ -50,9 +50,10 @@ public class SftpConnectorFactory implements ResourceConnectorFactory {
     @Override
     public ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails) {
         PasswordCredentials passwordCredentials = connectionDetails.getCredentials(PasswordCredentials.class);
-        SftpResourceAccessor accessor = new SftpResourceAccessor(sftpClientFactory, passwordCredentials);
-        SftpResourceLister lister = new SftpResourceLister(sftpClientFactory, passwordCredentials);
-        SftpResourceUploader uploader = new SftpResourceUploader(sftpClientFactory, passwordCredentials);
+        SftpClientFactory clientFactory = connectionDetails.isAllowInsecureProtocol() ? sftpClientFactory.allowingInsecureProtocol() : sftpClientFactory;
+        SftpResourceAccessor accessor = new SftpResourceAccessor(clientFactory, passwordCredentials);
+        SftpResourceLister lister = new SftpResourceLister(clientFactory, passwordCredentials);
+        SftpResourceUploader uploader = new SftpResourceUploader(clientFactory, passwordCredentials);
         return new DefaultExternalResourceConnector(accessor, lister, uploader);
     }
 }

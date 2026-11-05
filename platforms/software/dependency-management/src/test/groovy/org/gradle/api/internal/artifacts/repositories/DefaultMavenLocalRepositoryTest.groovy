@@ -77,7 +77,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
         def file = new File('repo')
         def uri = file.toURI()
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createTransport('file', 'repo', _, _) >> transport()
+        transportFactory.createTransport({ it == ['file'] as Set }, 'repo', _, _, _) >> transport()
 
         and:
         repository.name = 'repo'

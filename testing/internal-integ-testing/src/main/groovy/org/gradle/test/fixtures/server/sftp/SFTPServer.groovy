@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.server.sftp
 
 import org.apache.commons.io.FileUtils
 import org.apache.sshd.common.NamedFactory
+import org.apache.sshd.common.config.keys.PublicKeyEntry
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory
 import org.apache.sshd.common.keyprovider.AbstractKeyPairProvider
 import org.apache.sshd.common.session.SessionContext
@@ -34,6 +35,7 @@ import org.apache.sshd.sftp.common.SftpConstants
 import org.apache.sshd.sftp.server.SftpSubsystem
 import org.apache.sshd.sftp.server.SftpSubsystemConfigurator
 import org.apache.sshd.sftp.server.SftpSubsystemFactory
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.RemoteIvyRepository
@@ -47,13 +49,13 @@ import org.slf4j.LoggerFactory
 import java.security.GeneralSecurityException
 import java.security.KeyPair
 import java.security.KeyPairGenerator
+import java.security.MessageDigest
 import java.security.PublicKey
-import java.security.SecureRandom
 
 class SFTPServer extends ServerWithExpectations implements RepositoryServer {
 
     private final static Logger logger = LoggerFactory.getLogger(SFTPServer)
-    final String hostAddress
+    String hostAddress
     int port
 
     private final TestDirectoryProvider testDirectoryProvider
@@ -65,6 +67,9 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     Map<String, Integer> openingRequestIdForPath = [:]
     List<SftpExpectation> expectations = []
     private boolean passwordAuthenticationEnabled = true
+    private final KeyPair hostKeyPair = generateHostKeyPair()
+    private TestFile knownHostsFile
+    private PublicKey listedHostKey
 
     SFTPServer(TestDirectoryProvider testDirectoryProvider) {
         this.testDirectoryProvider = testDirectoryProvider
@@ -103,7 +108,63 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         sshd = setupConfiguredTestSshd(0)
         sshd.start()
         port = sshd.getPort()
+        writeKnownHosts()
         allowInit()
+    }
+
+    /**
+     * Points the build's {@code user.home} at a test directory whose {@code .ssh/known_hosts} lists this server's host key,
+     * and keeps the entry current when the server restarts on another port.
+     */
+    void trustHostKey(GradleExecuter executer) {
+        TestFile userHome = testDirectoryProvider.testDirectory.file("ssh-user-home")
+        executer.withUserHomeDir(userHome)
+        knownHostsFile = userHome.file(".ssh/known_hosts")
+        listedHostKey = hostKeyPair.public
+        writeKnownHosts()
+    }
+
+    TestFile getKnownHostsFile() {
+        knownHostsFile
+    }
+
+    /**
+     * In the format OpenSSH prints, {@code SHA256:<unpadded base64>}.
+     */
+    String getHostKeyFingerprint() {
+        byte[] blob = Base64.decoder.decode(PublicKeyEntry.toString(hostKeyPair.public).split(' ')[1])
+        "SHA256:" + Base64.encoder.withoutPadding().encodeToString(MessageDigest.getInstance("SHA-256").digest(blob))
+    }
+
+    void useIpv6Loopback() {
+        hostAddress = "::1"
+        restart()
+    }
+
+    String getUriHost() {
+        hostAddress.contains(":") ? "[${hostAddress}]" : hostAddress
+    }
+
+    void listDifferentHostKey() {
+        listedHostKey = generateHostKeyPair().public
+        writeKnownHosts()
+    }
+
+    void unlistHostKey() {
+        listedHostKey = null
+        writeKnownHosts()
+    }
+
+    private void writeKnownHosts() {
+        if (knownHostsFile != null) {
+            knownHostsFile.text = listedHostKey == null ? "" : "[${hostAddress}]:${port} ${PublicKeyEntry.toString(listedHostKey)}\n"
+        }
+    }
+
+    private static KeyPair generateHostKeyPair() {
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA")
+        generator.initialize(2048)
+        generator.generateKeyPair()
     }
 
     void stop(boolean immediately = true) {
@@ -133,6 +194,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         FileUtils.copyURLToFile(fileUrl, new File(configDir, "test-dsa.key"))
 
         SshServer sshServer = SshServer.setUpDefaultServer()
+        sshServer.setHost(hostAddress)
         sshServer.setPort(sshPort)
         sshServer.setFileSystemFactory(new TestVirtualFileSystemFactory())
         sshServer.setSubsystemFactories(Arrays.<NamedFactory<Command>> asList(new SftpSubsystemFactory() {
@@ -141,7 +203,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
             }
         }))
         sshServer.setCommandFactory(new ScpCommandFactory())
-        sshServer.setKeyPairProvider(new GeneratingKeyPairProvider())
+        sshServer.setKeyPairProvider(new FixedKeyPairProvider(hostKeyPair))
 
         if (passwordAuthenticationEnabled) {
             sshServer.setPasswordAuthenticator(new DummyPasswordAuthenticator())
@@ -165,7 +227,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     }
 
     URI getUri() {
-        return new URI("sftp://${hostAddress}:${port}")
+        return new URI("sftp://${uriHost}:${port}")
     }
 
     void allowAll() {
@@ -501,14 +563,12 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         }
     }
 
-    class GeneratingKeyPairProvider extends AbstractKeyPairProvider {
+    static class FixedKeyPairProvider extends AbstractKeyPairProvider {
 
-        KeyPair keyPair
+        final KeyPair keyPair
 
-        GeneratingKeyPairProvider() {
-            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA")
-            generator.initialize(1024, SecureRandom.getInstance("SHA1PRNG"))
-            keyPair = generator.generateKeyPair()
+        FixedKeyPairProvider(KeyPair keyPair) {
+            this.keyPair = keyPair
         }
 
         @Override

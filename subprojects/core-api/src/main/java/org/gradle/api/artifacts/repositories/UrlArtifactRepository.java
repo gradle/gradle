@@ -53,6 +53,9 @@ public interface UrlArtifactRepository {
     /**
      * Specifies whether it is acceptable to communicate with a repository over an insecure HTTP connection.
      * <p>
+     * For an SFTP repository, specifies whether it is acceptable to communicate with a server whose host key is not listed,
+     * or does not match the key listed, in {@code ~/.ssh/known_hosts} or {@code /etc/ssh/ssh_known_hosts} ({@code %ProgramData%\ssh\ssh_known_hosts} on Windows).
+     * <p>
      * For security purposes this intentionally requires a user to opt-in to using insecure protocols on case by case basis.
      * <p>
      * Gradle intentionally does not offer a global system/gradle property that allows a universal disable of this check.
@@ -69,7 +72,8 @@ public interface UrlArtifactRepository {
     boolean isAllowInsecureProtocol();
 
     /**
-     * Specifies whether it is acceptable to communicate with a repository over an insecure HTTP connection.
+     * Specifies whether it is acceptable to communicate with a repository over an insecure HTTP connection,
+     * or with an SFTP server whose host key cannot be verified.
      *
      * @see #isAllowInsecureProtocol()
      */
