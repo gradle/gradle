@@ -83,4 +83,81 @@ class NdocSupportIntegrationSpec extends AbstractIntegrationSpec implements Test
         outputContains("Foo(name = one, x = 111, y = 1111)")
         outputContains("Foo(name = two, x = 222, y = 2222)")
     }
+
+    def "can inject name in NDOC with nested definition and BuildModel extending Named"() {
+        /*
+        interface MainDefinition : Definition<MainBuildModel> {
+          val foos: NDOC<Foo>
+        }
+        interface MainBuildModel : BuildModel {
+          val foos: NDOC<FooBuildModel>
+        }
+
+        interface Foo : Definition<FooBuildModel>, Named {
+          Property<Integer> x
+          Property<Integer> y
+        }
+        interface FooBuildModel : BuildModel, Named {
+          Property<Integer> x
+          Property<Integer> y
+        }
+        */
+
+        given:
+        testScenario {
+            projectType("testProjectType") {
+                definition {
+                    ndoc("foos", "Foo") {
+                        implementsDefinition("FooBuildModel") {
+                            property "x", Integer
+                            property "y", Integer
+                        }
+                        property "x", Integer
+                        property "y", Integer
+                    }
+                    buildModel {
+                        ndoc("foos", "Foo.FooBuildModel")
+                        //language=java
+                        mapping("model.getFoos().addAll(definition.getFoos().stream().map(foo -> { return context.getBuildModel(foo); }).collect(java.util.stream.Collectors.toList()));\n")
+                    }
+                }
+
+                plugin {
+                    //language=java
+                    applyActionCode("""getTaskRegistrar().register("printTestProjectTypeBuildModelConfiguration", DefaultTask.class, task -> {
+                task.doLast("print restricted extension content", t -> {
+                    for (TestProjectTypeDefinition.Foo.FooBuildModel fooBuildModel : model.getFoos()) {
+                        System.out.println("buildModel foo: " + fooBuildModel.getName());
+                    }
+                });
+            });""")
+                }
+            }
+        }.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << """
+            testProjectType {
+
+                foos {
+                    foo("one") {
+                        x = 111
+                        y = 1111
+                    }
+                    foo("two") {
+                        x = 222
+                        y = 2222
+                    }
+                }
+            }
+        """
+
+        when:
+        run(":printTestProjectTypeBuildModelConfiguration")
+
+        then:
+        outputContains("buildModel foo: one")
+        outputContains("buildModel foo: two")
+    }
 }
