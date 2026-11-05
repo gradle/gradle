@@ -23,11 +23,13 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.project.ProjectDomainObjectContext;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateLookup;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -53,7 +55,7 @@ public class DefaultProjectDependencyFactory {
         AttributesFactory attributesFactory,
         ProjectStateLookup projectStateLookup,
         ProjectFinder projectFinder,
-        @Nullable ProjectIdentity referrer,
+        DomainObjectContext owner,
         IsolatedProjectsProblemsReporter ipProblems
     ) {
         this.instantiator = instantiator;
@@ -62,7 +64,7 @@ public class DefaultProjectDependencyFactory {
         this.attributesFactory = attributesFactory;
         this.projectStateLookup = projectStateLookup;
         this.projectFinder = projectFinder;
-        this.referrer = referrer;
+        this.referrer = owner instanceof ProjectDomainObjectContext project ? project.getIdentity() : null;
         this.ipProblems = ipProblems;
     }
 

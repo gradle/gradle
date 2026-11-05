@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateLookup
 import org.gradle.internal.configuration.problems.NoOpIsolatedProjectsProblemsReporter
+import org.gradle.internal.model.DomainObjectContext
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -50,7 +51,7 @@ class ProjectDependencyFactoryTest extends Specification {
         AttributeTestUtil.attributesFactory(),
         projectStateLookup,
         projectFinder,
-        null,
+        DomainObjectContext.NONE,
         new NoOpIsolatedProjectsProblemsReporter()
     )
     def factory = new ProjectDependencyFactory(depFactory)

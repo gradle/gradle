@@ -55,7 +55,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public String getGroup() {
-        return unsafeGetProject("ProjectDependency.getGroup()", message -> message
+        return accessTargetProject("ProjectDependency.getGroup()", message -> message
             .text(", as the value comes from that project's ").reference("group").text(" property")
         ).getGroup().toString();
     }
@@ -67,7 +67,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public String getVersion() {
-        return unsafeGetProject("ProjectDependency.getVersion()", message -> message
+        return accessTargetProject("ProjectDependency.getVersion()", message -> message
             .text(", as the value comes from that project's ").reference("version").text(" property")
         ).getVersion().toString();
     }
@@ -92,7 +92,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
                 if (c instanceof SpecificCapabilitySelector) {
                     return ((DefaultSpecificCapabilitySelector) c).getBackingCapability();
                 } else if (c instanceof FeatureCapabilitySelector) {
-                    Project project = unsafeGetProject("ModuleDependency.getRequestedCapabilities()", message -> message
+                    Project project = accessTargetProject("ModuleDependency.getRequestedCapabilities()", message -> message
                         .text(" that requires a feature, as the capability comes from that project's ")
                         .reference("group").text(" and ").reference("version").text(" properties. Use ")
                         .reference("ModuleDependency.getCapabilitySelectors()").text(" instead")
@@ -134,16 +134,14 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     /**
-     * Any code which depends on this method should be deprecated and removed.
+     * Returns the target project's model, reporting cross-project access against {@code api}.
      * <p>
+     * Any code which depends on this method should be deprecated and removed.
      * A project dependency should be a simple wrapper around the _identity_ of a given
      * project, and should not retain any reference to the actual project instance.
-     * <p>
-     * For a dependency declared in one project on another, this is an Isolated Projects
-     * violation, reported against the public API that was called.
      */
     @Deprecated
-    private Project unsafeGetProject(String api, Action<StructuredMessage.Builder> explanation) {
+    private Project accessTargetProject(String api, Action<StructuredMessage.Builder> explanation) {
         ProjectIdentity referrer = this.referrer;
         ProjectIdentity target = getTargetProjectIdentity();
         if (referrer != null && !referrer.equals(target)) {

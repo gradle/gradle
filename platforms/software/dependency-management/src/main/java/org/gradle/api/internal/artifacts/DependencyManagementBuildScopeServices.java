@@ -95,6 +95,7 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
@@ -181,6 +182,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         ObjectFactory objectFactory,
         AttributesFactory attributesFactory,
         ProjectStateLookup projectStateLookup,
+        DomainObjectContext owner,
         IsolatedProjectsProblemsReporter ipProblems
     ) {
         return new DefaultProjectDependencyFactory(
@@ -190,7 +192,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
             attributesFactory,
             projectStateLookup,
             new UnknownProjectFinder("Project dependencies cannot be declared here."),
-            null,
+            owner,
             ipProblems
         );
     }
