@@ -33,15 +33,16 @@ fun main() {
     // The layout to preserve always comes from the checked-in file, never from the output path: writing
     // the split elsewhere (a dry run, say) must still produce the order the checked-in file has, otherwise
     // that output cannot be compared against it.
-    FunctionalTestBucketGenerator(model, testClassDataJson).generate(generatedBucketsJson, File("./test-buckets.json"))
+    val fullRebalance = System.getProperty("fullRebalance")?.toBoolean() ?: false
+    FunctionalTestBucketGenerator(model, testClassDataJson, fullRebalance).generate(generatedBucketsJson, File("./test-buckets.json"))
 }
 
 class FunctionalTestBucketGenerator(
     private val model: CIBuildModel,
-    testTimeDataJson: File,
+    private val testTimeDataJson: File,
+    private val fullRebalance: Boolean = false,
 ) {
     private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
-    private val buckets: Map<TestCoverage, List<SmallSubprojectBucket>> = buildBuckets(testTimeDataJson, model)
 
     /**
      * Writes the new split to [jsonFile], keeping every bucket at the position its predecessor in
@@ -57,31 +58,28 @@ class FunctionalTestBucketGenerator(
     ) {
         val previousLayout = PreviousBucketLayout.readFrom(previousBucketsJson)
         val output =
-            buckets.map { (testCoverage, testCoverageBuckets) ->
-                val orderedBuckets =
-                    assignToPreviousSlots(
-                        testCoverageBuckets,
-                        previousLayout.slotsFor(testCoverage.uuid),
-                    ) { bucket -> bucket.subprojects.map { it.name }.toSet() }
-                TestCoverageAndBucketSplits(testCoverage.uuid, orderedBuckets.map { it.toJsonBucket() })
+            buildBuckets(previousLayout).map { (testCoverage, testCoverageBuckets) ->
+                TestCoverageAndBucketSplits(testCoverage.uuid, testCoverageBuckets)
             }
         jsonFile.writeText(gson.toJson(output))
     }
 
-    private fun buildBuckets(
-        buildClassTimeJson: File,
-        model: CIBuildModel,
-    ): Map<TestCoverage, List<SmallSubprojectBucket>> {
+    private fun buildBuckets(previousLayout: PreviousBucketLayout): Map<TestCoverage, List<FunctionalTestBucket>> {
         val sType = object : TypeToken<BuildProjectToSubprojectTestClassTimes>() {}.type
-        val buildProjectClassTimes = gson.fromJson<BuildProjectToSubprojectTestClassTimes>(buildClassTimeJson.readText(), sType)
+        val buildProjectClassTimes = gson.fromJson<BuildProjectToSubprojectTestClassTimes>(testTimeDataJson.readText(), sType)
 
-        val result = mutableMapOf<TestCoverage, List<SmallSubprojectBucket>>()
+        val result = mutableMapOf<TestCoverage, List<FunctionalTestBucket>>()
         for (stage in model.stages) {
             for (testCoverage in stage.functionalTests) {
                 if (testCoverage.testType !in
                     listOf(TestType.ALL_VERSIONS_CROSS_VERSION, TestType.QUICK_FEEDBACK_CROSS_VERSION, TestType.SOAK)
                 ) {
-                    result[testCoverage] = splitBucketsByTestClassesForBuildProject(testCoverage, buildProjectClassTimes)
+                    result[testCoverage] =
+                        splitBucketsByTestClassesForBuildProject(
+                            testCoverage,
+                            buildProjectClassTimes,
+                            previousLayout.bucketsFor(testCoverage.uuid),
+                        )
                 }
             }
         }
@@ -91,13 +89,14 @@ class FunctionalTestBucketGenerator(
     private fun splitBucketsByTestClassesForBuildProject(
         testCoverage: TestCoverage,
         buildProjectClassTimes: BuildProjectToSubprojectTestClassTimes,
-    ): List<SmallSubprojectBucket> {
+        previousBuckets: List<FunctionalTestBucket>,
+    ): List<FunctionalTestBucket> {
         val validSubprojects = model.subprojects.getSubprojectsForFunctionalTest(testCoverage)
 
         // Build project not found, don't split into buckets
         val subProjectToClassTimes: MutableMap<String, List<TestClassTime>> =
             determineSubProjectClassTimes(testCoverage, buildProjectClassTimes)?.toMutableMap()
-                ?: return validSubprojects.map { SmallSubprojectBucket(it, ParallelizationMethod.None) }
+                ?: return validSubprojects.map { FunctionalTestBucket(listOf(it.name), ParallelizationMethod.None) }
 
         validSubprojects.forEach {
             if (!subProjectToClassTimes.containsKey(it.name)) {
@@ -120,13 +119,26 @@ class FunctionalTestBucketGenerator(
                 }.sortedBy { -it.totalTime }
                 .filter { onlyNativeSubprojectsForIntelMacs(testCoverage, it.subProject.name) }
 
-        return parallelize(subProjectTestClassTimes, testCoverage) { numberOfBatches ->
+        val parallelization = { numberOfBatches: Int ->
             when (testCoverage.os) {
                 Os.LINUX -> ParallelizationMethod.TestDistribution
                 Os.ALPINE -> ParallelizationMethod.TestDistributionAlpine
                 else -> ParallelizationMethod.TeamCityParallelTests(numberOfBatches)
             }
         }
+
+        if (!fullRebalance && previousBuckets.isNotEmpty()) {
+            return rebalanceIncrementally(
+                previousBuckets,
+                subProjectTestClassTimes.associate { it.subProject.name to it.totalTime },
+                parallelization(1),
+            )
+        }
+
+        return assignToPreviousSlots(
+            parallelize(subProjectTestClassTimes, testCoverage, parallelization),
+            previousBuckets.map { it.subprojects },
+        ) { bucket -> bucket.subprojects.map { it.name }.toSet() }.map { it.toJsonBucket() }
     }
 
     private fun parallelize(
