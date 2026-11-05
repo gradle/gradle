@@ -232,11 +232,11 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
     }
 
     // Some runners treat any filter() call as "only a subset of my tests are running" and change
-    // behavior accordingly, even if the filter wouldn't have excluded anything.
+    // behavior accordingly, even if the filter didn't exclude anything.
     // See https://github.com/gradle/gradle/issues/10694.
     private boolean excludesAnything(Description description, Filter filter) {
-        if (!filter.shouldRun(description)) {
-            return true;
+        if (description.getChildren().isEmpty()) {
+            return !filter.shouldRun(description);
         }
         for (Description child : description.getChildren()) {
             if (excludesAnything(child, filter)) {
