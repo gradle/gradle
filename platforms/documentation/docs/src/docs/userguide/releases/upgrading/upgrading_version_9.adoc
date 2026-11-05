@@ -1603,12 +1603,16 @@ See the <<variant_attributes.adoc#sec:creating-attributes, variant attributes do
 [[kgp_native_bundle_attribute_enum]]
 ==== Deprecation of using `KotlinNativeBundleArtifactsTypes` as an attribute value type
 
-The Kotlin Gradle Plugin (KGP) 2.0.x line registers an attribute of type `org.jetbrains.kotlin.gradle.targets.native.toolchain.KotlinNativeBundleArtifactFormat.KotlinNativeBundleArtifactsTypes` — a plain Java `Enum` that does not implement `org.gradle.api.Named`.
+Kotlin Gradle Plugin (KGP) versions before 2.5.0 register an attribute of type `org.jetbrains.kotlin.gradle.targets.native.toolchain.KotlinNativeBundleArtifactFormat.KotlinNativeBundleArtifactsTypes` — a plain Java `Enum` that does not implement `org.gradle.api.Named`.
+KGP 2.0.x triggers this deprecation with or without Kotlin/Native targets, while later versions trigger it only in builds with Kotlin/Native targets.
 
 This deprecation is a specialized variant of the general <<#unsupported_attribute_value_type, unsupported attribute value type>> deprecation, called out separately so users can identify KGP as the source and remediate by upgrading the plugin.
 
-To fix builds affected by this deprecation, upgrade the Kotlin Gradle Plugin to 2.1.0 or later.
-KGP 2.1.0 and newer do not use a plain enum for this attribute and are unaffected.
+To fix builds affected by this deprecation, upgrade the Kotlin Gradle Plugin to 2.5.0 or later.
+KGP 2.5.0 and newer do not use a plain enum for this attribute and are unaffected (link:https://youtrack.jetbrains.com/issue/KT-89265[KT-89265]).
+
+No stable KGP release has this fix yet.
+Until KGP 2.5.0 is stable, the warning cannot be avoided on stable KGP.
 
 Like the general case, this deprecation will become an error in Gradle 10.
 
