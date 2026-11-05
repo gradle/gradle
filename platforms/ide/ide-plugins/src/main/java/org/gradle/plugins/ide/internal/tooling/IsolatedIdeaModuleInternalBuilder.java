@@ -17,17 +17,22 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
+import org.gradle.plugins.ide.idea.internal.GenerateIdeaModuleModel;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleInternal;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.gradle.plugins.ide.internal.tooling.idea.IsolatedIdeaModuleInternal;
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
+import java.io.File;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -48,12 +53,41 @@ public class IsolatedIdeaModuleInternalBuilder implements ParameterizedToolingMo
 
     @Override
     public IsolatedIdeaModuleInternal buildAll(String modelName, IdeaModelParameter parameter, Project project) {
-        return build(project, parameter.getOfflineDependencyResolution());
+        boolean offlineDependencyResolution = parameter.getOfflineDependencyResolution();
+        if (!offlineDependencyResolution) {
+            File modelFile = modelTaskOutput(project);
+            if (modelFile != null) {
+                return GenerateIdeaModuleModel.readModel(modelFile);
+            }
+        }
+        return build(project, offlineDependencyResolution);
     }
 
     @Override
     public IsolatedIdeaModuleInternal buildAll(String modelName, Project project) {
+        File modelFile = modelTaskOutput(project);
+        if (modelFile != null) {
+            return GenerateIdeaModuleModel.readModel(modelFile);
+        }
         return build(project, false);
+    }
+
+    /**
+     * Returns the output of the {@link GenerateIdeaModuleModel} task, if the task was requested in this build.
+     * Tasks run before models are built, so the output is up to date.
+     */
+    @Nullable
+    private static File modelTaskOutput(Project project) {
+        Task task = project.getTasks().findByName(GenerateIdeaModuleModel.TASK_NAME);
+        if (!(task instanceof GenerateIdeaModuleModel)) {
+            return null;
+        }
+        List<String> requestedTasks = project.getGradle().getStartParameter().getTaskNames();
+        if (!requestedTasks.contains(GenerateIdeaModuleModel.TASK_NAME) && !requestedTasks.contains(task.getPath())) {
+            return null;
+        }
+        File modelFile = ((GenerateIdeaModuleModel) task).getOutputFile().get().getAsFile();
+        return modelFile.isFile() ? modelFile : null;
     }
 
     private static IsolatedIdeaModuleInternal build(Project project, boolean offlineDependencyResolution) {

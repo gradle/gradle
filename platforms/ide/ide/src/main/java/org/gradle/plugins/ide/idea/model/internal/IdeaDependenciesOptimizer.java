@@ -48,7 +48,7 @@ import java.util.Map;
  *
  * This results is much closer to what a user would do by hand. Having less dependencies also makes IntelliJ faster.
  */
-class IdeaDependenciesOptimizer {
+public class IdeaDependenciesOptimizer {
     public void optimizeDeps(Collection<Dependency> deps) {
         Multimap<Object, GeneratedIdeaScope> scopesByDependencyKey = collectScopesByDependency(deps);
         optimizeScopes(scopesByDependencyKey);
