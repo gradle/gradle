@@ -79,6 +79,9 @@ A report no one reads has the same protective value as no report at all.
 Some vulnerabilities have no fix, or the fix is not yet compatible with your code.
 An explicit, time-boxed acceptance is far safer than a permanent, silent exclusion.
 
+NOTE: Screening and verification protect what your build consumes, not the Gradle version that runs it.
+For security fixes to Gradle itself, including versions past the <<feature_lifecycle.adoc#eol_support,end-of-life policy>> and with contractual fix timelines, see the https://gradle.org/security-subscription/[Gradle Security Subscription].
+
 Screening addresses vulnerabilities in the code an author *intended* to publish.
 The rest of this page addresses whether the artifact you receive is the one the author actually published.
 
