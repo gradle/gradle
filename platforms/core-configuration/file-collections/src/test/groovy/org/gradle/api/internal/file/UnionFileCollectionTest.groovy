@@ -18,6 +18,7 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.Task
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
 import static org.gradle.api.internal.file.AbstractFileCollectionTest.TestFileCollection
@@ -103,19 +104,35 @@ class UnionFileCollectionTest extends Specification {
         def replaced = collection.replace(source3, {})
 
         then:
-        1 * source1.replace(source3, _) >> source1
-        1 * source2.replace(source3, _) >> source2
-
         replaced.is(collection)
 
         when:
-        def replaced2 = collection.replace(source3, {})
+        def replaced2 = collection.replace(source2, { source4 })
 
         then:
-        1 * source1.replace(source3, _) >> source1
-        1 * source2.replace(source3, _) >> source4
-
         replaced2 != collection
         replaced2.sourceCollections == [source1, source4]
+        0 * _
+    }
+
+    def "replacement preserves shared collection nodes and creates replacement once"() {
+        def source = new TestFileCollection(file1)
+        def replacement = new TestFileCollection(file2)
+        def firstFilter = source.filter(Stub(Spec))
+        def secondFilter = firstFilter.filter(Stub(Spec))
+        def collection = newUnionFileCollection(firstFilter, secondFilter)
+        def replacementCount = 0
+
+        when:
+        def replaced = collection.replace(source) {
+            replacementCount++
+            replacement
+        }
+        def replacedSources = replaced.sourceCollections as List
+
+        then:
+        replacementCount == 1
+        replacedSources[0].collection.is(replacement)
+        replacedSources[1].collection.is(replacedSources[0])
     }
 }

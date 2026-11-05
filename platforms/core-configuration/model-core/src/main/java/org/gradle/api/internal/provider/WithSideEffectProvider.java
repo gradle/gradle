@@ -19,7 +19,7 @@ package org.gradle.api.internal.provider;
 
 import org.jspecify.annotations.Nullable;
 
-public class WithSideEffectProvider<T> extends AbstractMinimalProvider<T> {
+public class WithSideEffectProvider<T> extends AbstractMinimalProvider<T> implements StructuralProvider<T> {
 
     public static <T> ProviderInternal<T> of(ProviderInternal<T> provider, @Nullable SideEffect<? super T> sideEffect) {
         return sideEffect == null ? provider : new WithSideEffectProvider<>(provider, sideEffect);
@@ -66,6 +66,15 @@ public class WithSideEffectProvider<T> extends AbstractMinimalProvider<T> {
         }
 
         return of(provider, SideEffect.composite(this.sideEffect, sideEffect));
+    }
+
+    @Override
+    public ProviderInternal<T> substitute(ProviderSubstitution substitution) {
+        ProviderInternal<T> substituted = substitution.substitute(provider);
+        if (substituted == provider) {
+            return this;
+        }
+        return new WithSideEffectProvider<>(substituted, sideEffect);
     }
 
     @Override

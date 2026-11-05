@@ -109,10 +109,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
-        if (original == this) {
-            return supplier.get();
-        }
-        return this;
+        return new FileCollectionSubstitution(original, supplier).substitute(this);
     }
 
     @Override

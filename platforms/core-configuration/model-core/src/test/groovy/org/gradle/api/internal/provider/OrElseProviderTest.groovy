@@ -16,18 +16,18 @@
 
 package org.gradle.api.internal.provider
 
-import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularChainEvaluationSpec
+import org.gradle.api.internal.provider.CircularEvaluationSpec.StructuralProviderSelfReferenceSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.UsesStringProperty
 
 class OrElseProviderTest {
-    static class OrElseProviderLeftCircularChainEvaluationTest extends CircularChainEvaluationSpec<String> implements UsesStringProperty {
+    static class OrElseProviderLeftCircularChainEvaluationTest extends StructuralProviderSelfReferenceSpec<String> implements UsesStringProperty {
         @Override
         ProviderInternal<String> wrapProviderWithProviderUnderTest(ProviderInternal<String> baseProvider) {
             return new OrElseProvider<String>(baseProvider, Providers.of("B"))
         }
     }
 
-    static class OrElseProviderRightCircularChainEvaluationTest extends CircularChainEvaluationSpec<String> implements UsesStringProperty {
+    static class OrElseProviderRightCircularChainEvaluationTest extends StructuralProviderSelfReferenceSpec<String> implements UsesStringProperty {
         @Override
         ProviderInternal<String> wrapProviderWithProviderUnderTest(ProviderInternal<String> baseProvider) {
             return new OrElseProvider<String>(Providers.notDefined(), baseProvider)

@@ -274,7 +274,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void set(final Provider<? extends Iterable<? extends T>> provider) {
-        setSupplier(newSupplierOf(new ElementsFromCollectionProvider<>(checkCollectionProvider("value", provider))));
+        ProviderInternal<? extends Iterable<? extends T>> p = checkCollectionProvider("value", provider);
+        if (p == this) {
+            assertCanMutate();
+            return;
+        }
+        p = Cast.uncheckedCast(substituteSelfReference(p));
+        setSupplier(newSupplierOf(new ElementsFromCollectionProvider<>(p)));
     }
 
     private ProviderInternal<? extends Iterable<? extends T>> checkCollectionProvider(String valueKind, @Nullable Provider<? extends Iterable<? extends T>> provider) {
@@ -352,7 +358,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public HasMultipleValues<T> convention(Provider<? extends Iterable<? extends T>> provider) {
-        setConvention(newSupplierOf(new ElementsFromCollectionProvider<>(checkCollectionProvider("convention", provider))));
+        ProviderInternal<? extends Iterable<? extends T>> p = checkCollectionProvider("convention", provider);
+        assertNoSelfReference(p);
+        setConvention(newSupplierOf(new ElementsFromCollectionProvider<>(p)));
         return this;
     }
 

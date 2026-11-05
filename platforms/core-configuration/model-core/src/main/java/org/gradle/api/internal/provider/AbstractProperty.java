@@ -464,6 +464,41 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         return new ShallowCopyProvider();
     }
 
+    /**
+     * Replaces structurally visible reads of this property with a provider representing the
+     * value immediately before the assignment. Providers hidden behind opaque computations are
+     * deliberately not inspected.
+     */
+    protected <V> ProviderInternal<? extends V> substituteSelfReference(ProviderInternal<? extends V> provider) {
+        return new ProviderSubstitution(this, this::previousValue).substitute(provider);
+    }
+
+    /**
+     * Rejects a convention that is derived from this property itself. A convention states a default; deriving it
+     * from the property would make the result depend on the order in which plugins configure the property.
+     */
+    protected void assertNoSelfReference(ProviderInternal<?> convention) {
+        new ProviderSubstitution(this, () -> {
+            throw new IllegalArgumentException(String.format(
+                "Cannot set the convention of %s using a provider derived from the property itself. Use set() to derive a value from the previous value of the property.",
+                getDisplayName().getDisplayName()));
+        }).substitute(convention);
+    }
+
+    private ProviderInternal<T> previousValue() {
+        if (isExplicit()) {
+            return shallowCopy();
+        }
+        return new ConventionReadProvider();
+    }
+
+    /**
+     * The value this property would have if it had no explicit value: the convention when one is set, otherwise the default.
+     */
+    private S conventionOrDefault() {
+        return isDefaultConvention() ? getDefaultValue() : getConventionSupplier();
+    }
+
     private class ShallowCopyProvider extends AbstractMinimalProvider<T> {
         // the value of "value" is immutable but the field is not, so copy it
         // (but use a different owner)
@@ -494,6 +529,45 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         @Nullable
         public Class<T> getType() {
             return AbstractProperty.this.getType();
+        }
+    }
+
+    /**
+     * A live read of this property's convention which deliberately bypasses explicit-value
+     * selection. This is used as the previous value when a property is self-assigned while it is
+     * still implicit, so conventions installed or replaced later remain observable.
+     */
+    private class ConventionReadProvider extends AbstractMinimalProvider<T> {
+        @Override
+        public ValueProducer getProducer() {
+            try (EvaluationScopeContext ignored = openScope()) {
+                return conventionOrDefault().getProducer();
+            }
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+            try (EvaluationScopeContext context = openScope()) {
+                return calculateOwnExecutionTimeValue(context, conventionOrDefault());
+            }
+        }
+
+        @Override
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+            try (EvaluationScopeContext context = openScope()) {
+                return calculateValueFrom(context, conventionOrDefault(), consumer);
+            }
+        }
+
+        @Override
+        @Nullable
+        public Class<T> getType() {
+            return AbstractProperty.this.getType();
+        }
+
+        @Override
+        protected String toStringNoReentrance() {
+            return "convention(" + AbstractProperty.this.getDisplayName().getDisplayName() + ")";
         }
     }
 }

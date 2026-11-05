@@ -20,7 +20,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.Nullable;
 
-class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
+class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> implements StructuralProvider<T> {
     private final ProviderInternal<? extends T> provider;
     private final T fallbackValue;
 
@@ -74,5 +74,14 @@ class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
                 return value;
             }
         }
+    }
+
+    @Override
+    public ProviderInternal<T> substitute(ProviderSubstitution substitution) {
+        ProviderInternal<? extends T> substituted = substitution.substitute(provider);
+        if (substituted == provider) {
+            return this;
+        }
+        return new OrElseFixedValueProvider<>(substituted, fallbackValue);
     }
 }

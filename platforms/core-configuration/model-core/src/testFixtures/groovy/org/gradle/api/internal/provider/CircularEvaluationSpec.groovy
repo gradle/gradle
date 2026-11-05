@@ -169,6 +169,75 @@ abstract class CircularEvaluationSpec<T> extends Specification {
     }
 
     /**
+     * Base class for structurally inspectable providers whose direct property input is rebound to
+     * the property's previous value when assigned back to that property.
+     */
+    static abstract class StructuralProviderSelfReferenceSpec<T> extends CircularEvaluationSpec<T> {
+        abstract ProviderInternal<T> wrapProviderWithProviderUnderTest(ProviderInternal<T> baseProvider)
+
+        abstract PropertyInternal<T> property()
+
+        def "calling #consumer does not form a circular evaluation for a structural self-reference"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            def provider = wrapProviderWithProviderUnderTest(property)
+            property.set(provider)
+
+            when:
+            Throwable failure = null
+            try {
+                consumer.accept(provider)
+            } catch (Throwable throwable) {
+                failure = throwable
+            }
+
+            then:
+            !(failure instanceof CircularEvaluationException)
+
+            where:
+            consumer << throwingConsumers()
+        }
+
+        def "calling #consumer still reports a cycle when the property read is hidden by an opaque provider"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            def provider = wrapProviderWithProviderUnderTest(new ProducerDiscardingProvider(property))
+            property.set(provider)
+
+            when:
+            consumer.accept(provider)
+
+            then:
+            thrown(CircularEvaluationException)
+
+            where:
+            consumer << throwingConsumers() - [GET_PRODUCER]
+        }
+
+        def "calling #consumer is safe for a structural self-reference"(
+            Consumer<ProviderInternal<?>> consumer
+        ) {
+            given:
+            def property = property()
+            def provider = wrapProviderWithProviderUnderTest(property)
+            property.set(provider)
+
+            when:
+            consumer.accept(provider)
+
+            then:
+            noExceptionThrown()
+
+            where:
+            consumer << safeConsumers()
+        }
+    }
+
+    /**
      * A mixin for CircularChainEvaluationSpec<String> that provides implementation of the property() method.
      * Intended for tests of providers which aren't properties.
      */

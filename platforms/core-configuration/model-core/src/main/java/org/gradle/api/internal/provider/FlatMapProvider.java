@@ -21,7 +21,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.Nullable;
 
-public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
+public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> implements StructuralProvider<S> {
     private final ProviderInternal<? extends T> provider;
     private final Transformer<? extends Provider<? extends S>, ? super T> transformer;
 
@@ -88,6 +88,15 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
         try (EvaluationScopeContext context = openScope()) {
             return backingProvider(context, ValueConsumer.IgnoreUnsafeRead).calculateExecutionTimeValue();
         }
+    }
+
+    @Override
+    public ProviderInternal<S> substitute(ProviderSubstitution substitution) {
+        ProviderInternal<? extends T> substituted = substitution.substitute(provider);
+        if (substituted == provider) {
+            return this;
+        }
+        return new FlatMapProvider<>(substituted, transformer);
     }
 
     @Override

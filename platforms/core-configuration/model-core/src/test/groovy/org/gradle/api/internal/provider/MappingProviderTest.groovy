@@ -17,7 +17,7 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
-import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularChainEvaluationSpec
+import org.gradle.api.internal.provider.CircularEvaluationSpec.StructuralProviderSelfReferenceSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularFunctionEvaluationSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.UsesStringProperty
 import org.gradle.api.provider.Provider
@@ -106,7 +106,7 @@ class MappingProviderTest extends ProviderSpec<String> {
         }
     }
 
-    static class MappingProviderCircularChainEvaluationTest extends CircularChainEvaluationSpec<String> implements UsesStringProperty {
+    static class MappingProviderCircularChainEvaluationTest extends StructuralProviderSelfReferenceSpec<String> implements UsesStringProperty {
         @Override
         ProviderInternal<String> wrapProviderWithProviderUnderTest(ProviderInternal<String> baseProvider) {
             return new MappingProvider(String, baseProvider, { it })

@@ -116,6 +116,11 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     public void set(Provider<? extends T> provider) {
         requireNonNull(provider, "Cannot set the value of a property using a null provider.");
         ProviderInternal<? extends T> p = Providers.internal(provider);
+        if (p == this) {
+            assertCanMutate();
+            return;
+        }
+        p = substituteSelfReference(p);
         setSupplier(p.asSupplier(getValidationDisplayName(), type, sanitizer));
     }
 
@@ -132,7 +137,9 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     @Override
     public Property<T> convention(Provider<? extends T> provider) {
         requireNonNull(provider, "Cannot set the convention of a property using a null provider.");
-        setConvention(Providers.internal(provider).asSupplier(getValidationDisplayName(), type, sanitizer));
+        ProviderInternal<? extends T> p = Providers.internal(provider);
+        assertNoSelfReference(p);
+        setConvention(p.asSupplier(getValidationDisplayName(), type, sanitizer));
         return this;
     }
 

@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.provider
 
-import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularChainEvaluationSpec
+import org.gradle.api.internal.provider.CircularEvaluationSpec.StructuralProviderSelfReferenceSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.UsesStringProperty
 
 import java.util.function.Consumer
 
 class OrElseFixedValueProviderTest {
-    static class OrElseFixedValueProviderCircularChainEvaluationTest extends CircularChainEvaluationSpec<String> implements UsesStringProperty {
+    static class OrElseFixedValueProviderCircularChainEvaluationTest extends StructuralProviderSelfReferenceSpec<String> implements UsesStringProperty {
         @Override
         ProviderInternal<String> wrapProviderWithProviderUnderTest(ProviderInternal<String> baseProvider) {
             return new OrElseFixedValueProvider<String>(baseProvider, "B")

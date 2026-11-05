@@ -127,6 +127,65 @@ include::{snippetsPath}/reference/task-development/connectProperties/tests/conne
 This example calls the link:{javadocPath}/org/gradle/api/provider/Property.html#set(org.gradle.api.provider.Provider)[Property.set(Provider)] method to attach a `Provider` to a `Property` to supply the value of the property.
 In this case, the `Provider` happens to be a `Property` as well, but you can connect any `Provider` implementation, for example one created using `Provider.map()`
 
+[[deriving_from_current_value]]
+== Deriving a value from the current value
+
+A property can be set from a provider that is derived from the property itself.
+Reads of the property inside the argument of `set()` (or of an assignment) mean the property's previous value:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.named<JavaExec>("run") {
+    jvmArguments = jvmArguments.map { it + "-Dfeature=true" }
+}
+tasks.jacocoTestReport {
+    classDirectories.setFrom(classDirectories.filter { !it.name.endsWith("Generated.class") })
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.named("run", JavaExec) {
+    jvmArguments = jvmArguments.map { it + "-Dfeature=true" }
+}
+tasks.named("jacocoTestReport", JacocoReport) {
+    classDirectories.setFrom(classDirectories.filter { !it.name.endsWith("Generated.class") })
+}
+----
+=====
+====
+
+The transformation is applied lazily, so a value that depends on a task output stays a task dependency.
+All provider operations are supported: `map`, `flatMap`, `zip`, `orElse`, `filter`, and `plus`, `minus` and `filter` on file collections.
+
+When the property has no explicit value, the previous value is a live read of its convention.
+A plugin default installed or changed after the self-reference is still used, so the result does not depend on configuration order:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+args.set(args.map { it + "-Dfeature=true" })  // the user's edit runs first
+args.convention(listOf("-Xmx1g"))              // the plugin installs its default later
+println(args.get())                            // [-Xmx1g, -Dfeature=true]
+----
+=====
+====
+
+Calling `set(null)` or `unset()` removes the edit and reveals the untouched convention again.
+
+Reads of the property that are hidden inside a callback, such as `provider { p.get() }` or `p.map { p.get() }`, are not substituted and fail with a circular evaluation error.
+A convention cannot be derived from the property itself: `p.convention(p.map { ... })` is rejected.
+
 [[working_with_files_in_lazy_properties]]
 == Working with files
 

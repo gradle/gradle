@@ -29,7 +29,7 @@ import org.jspecify.annotations.Nullable;
  * the provider's value when calling {@link #calculatePresence(ValueConsumer)}, and therefore
  * avoid eagerly realizing that value before it is actually needed.
  */
-public class DelegatingProviderWithValue<T> extends AbstractProviderWithValue<T> {
+public class DelegatingProviderWithValue<T> extends AbstractProviderWithValue<T> implements StructuralProvider<T> {
 
     private final ProviderInternal<T> delegate;
     private final String nonPresentMessage;
@@ -56,6 +56,15 @@ public class DelegatingProviderWithValue<T> extends AbstractProviderWithValue<T>
     @Override
     public Class<T> getType() {
         return delegate.getType();
+    }
+
+    @Override
+    public ProviderInternal<T> substitute(ProviderSubstitution substitution) {
+        ProviderInternal<T> substituted = substitution.substitute(delegate);
+        if (substituted == delegate) {
+            return this;
+        }
+        return new DelegatingProviderWithValue<>(substituted, nonPresentMessage);
     }
 
 }
