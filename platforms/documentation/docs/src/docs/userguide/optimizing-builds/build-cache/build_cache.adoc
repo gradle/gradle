@@ -452,7 +452,7 @@ It is served by link:https://docs.develocity.ai/edge/current/user-manual/[Develo
 Edge handles the operational concerns listed above:
 
 * Nodes replicate entries between locations, so a result built in one region is available everywhere.
-* Builds authenticate with access keys, and access can be controlled per project.
+* Builds authenticate with access keys, and Develocity controls which users can read from or write to the cache.
 * Every Build Scan shows cache hits, misses and transfer times for each task, so you can find and fix cacheability problems. Develocity also reports cache performance across all of your builds.
 * Edge can proxy Build Scan uploads and other Develocity traffic, so agents in restricted networks only need to reach one endpoint.
 
@@ -467,4 +467,4 @@ If your backend cannot speak the HTTP protocol above, for example a native objec
 Implement link:{javadocPath}/org/gradle/caching/BuildCacheService.html[BuildCacheService] and link:{javadocPath}/org/gradle/caching/BuildCacheServiceFactory.html[BuildCacheServiceFactory], then register them with link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#registerBuildCacheService(java.lang.Class,java.lang.Class)[BuildCacheConfiguration.registerBuildCacheService(java.lang.Class, java.lang.Class)].
 You can then configure the new type as the `remote` cache, just like `HttpBuildCache`.
 
-A custom connector still has to deal with eviction, access control and latency, as described in <<#sec:build_cache_setup_http_backend,Set up a remote HTTP Build Cache backend>>.
+A custom connector still has to deal with eviction, access control and latency, as described in <<#sec:build_cache_setup_http_backend,Set up a Remote Build Cache>>.

@@ -115,7 +115,7 @@ Four factors determine how much a remote cache helps:
 
 Latency:: Every cache lookup is at least one HTTP round trip, whether it hits or misses. A build with hundreds of cacheable tasks makes hundreds of requests, so high latency adds up even when entries are small.
 Bandwidth:: On a hit, the full entry is downloaded. Tasks with large outputs, such as packaged archives or generated sources, are the most sensitive to bandwidth.
-Reliability:: Gradle retries a failed request up to three times. If it still fails, Gradle disables the remote cache for the rest of the build, and every remaining task runs from scratch. An unstable link can cost more than a slow one.
+Reliability:: Gradle retries requests that fail mid-transfer, such as dropped connections, timeouts and connection resets. If a request still fails, Gradle disables the remote cache for the rest of the build, and every remaining task runs from scratch. An unstable link can cost more than a slow one.
 Uploads:: Storing entries adds time to the builds that push. Pushing only from CI, as recommended in <<build_cache.adoc#sec:build_cache_configure_use_cases,Configuration use cases>>, keeps that cost off developer builds.
 
 === Measure before you optimize
@@ -134,7 +134,7 @@ Those tasks gain little from the remote cache on your current network.
 === Distributed teams
 
 If developers or CI agents work from several locations, one cache can't be close to all of them.
-A common approach is to run a cache node in each location and point builds at the nearest one, for example by setting the cache URL in an <<build_cache.adoc#sec:build_cache_configure_use_cases,init script>> or through an environment variable.
+A common approach is to run a cache node in each location and point builds at the nearest one, for example by setting the cache URL in an <<init_scripts.adoc#sec:using_an_init_script,init script>> or through an environment variable.
 Each node fills independently unless your backend replicates entries between them.
 
 For Develocity installations, link:https://docs.develocity.ai/edge/current/user-manual/[Develocity Edge] provides cache nodes that can be deployed in multiple locations and replicate entries between them.
