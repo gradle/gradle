@@ -180,6 +180,7 @@ include::sample[dir="snippets/reference/dependency-management/dependency-managem
 
 - The substitution only occurs if a local project matching the dependency name is found.
 - The local project must already be included in the multi-project build (via `settings.gradle`).
+- `withProject` keeps the attributes and capabilities of the requested dependency, so a `platform(...)` or `testFixtures(...)` dependency stays one. See <<#sec:substitution-keeping-variant,Changing the target while keeping the requested variant>>.
 
 [[sec:variant-aware-substitutions]]
 === Substituting a dependency with another variant
@@ -249,6 +250,29 @@ The `requireCapability` function specifies that the new variant must have the `c
 Capabilities within the substitution rule are used to precisely match dependencies, and Gradle only substitutes dependencies that match the required capabilities.
 
 Refer to the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.html#variant(org.gradle.api.artifacts.component.ComponentSelector,org.gradle.api.Action)[DependencySubstitutions API] for a complete reference of the variant substitution API.
+
+[[sec:substitution-keeping-variant]]
+==== Changing the target while keeping the requested variant
+
+A rule that redirects a dependency with `useTarget` replaces the requested dependency entirely, including its attributes and capabilities.
+A `platform(...)` dependency then no longer resolves as a platform, and a `testFixtures(...)` dependency resolves to the main variant of the new target.
+
+To change only which component a dependency resolves to, create the target with `withModule` or `withProject`.
+Both keep the attributes and capability selectors of the requested dependency, the parts of a dependency that choose a variant.
+
+This is useful for rules that apply to many dependencies at once.
+For example, the following rule moves every request for `com.example` to another group, whether it is a regular, platform or test fixtures dependency:
+
+====
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-keepVariantSubstitutionRule/kotlin",files="build.gradle.kts[tags=keep_variant_substitution]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-keepVariantSubstitutionRule/groovy",files="build.gradle[tags=keep_variant_substitution]"]
+====
+
+- `withModule` takes the group, name and version of the new target. The version is interpreted as in dependency notation, so `1.0!!` is a strict version. An overload accepts an action that configures a rich version.
+- `withProject` takes the path of the new target project, as `project(path)` does.
+- Capabilities requested by feature, such as those of `testFixtures(...)`, follow the new target. Capabilities requested by explicit coordinates are kept as they are.
+
+Refer to the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.html[DependencySubstitutions API] for details.
 
 [[sec:substitution-with-classifier]]
 === Substituting a dependency with a classifier or artifact
