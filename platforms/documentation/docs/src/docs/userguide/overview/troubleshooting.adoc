@@ -52,7 +52,8 @@ Gradle only shows this part when it can trace the failure to a line in a script,
 
 `What went wrong`::
 The error message.
-Underlying causes appear on the following lines, indented, or prefixed with `>` when one failure wraps another.
+For a reported problem, Gradle shows the problem's name, then its message and details indented on the following lines.
+When one failure wraps another, the underlying cause is prefixed with `>`.
 A message that starts with `Execution failed for task` means the failure happened while running that task, not while configuring the build.
 
 `Try`::
@@ -107,7 +108,7 @@ The Build Scan includes:
 The build environment details help when a build fails on CI but passes locally: publish a Build Scan from each and compare their environments.
 
 A Build Scan link also replaces copying error messages and environment details when you ask for help.
-Anyone with the link can see the console log and build environment, so check <<build_scans.adoc#sec:captured-information,what a Build Scan captures>> before you share it.
+On scans.gradle.com, anyone with the link can see the console log and build environment, so check <<build_scans.adoc#sec:captured-information,what a Build Scan captures>> before you share it.
 
 If your organization runs a link:https://develocity.ai/[Develocity] server, publish to it with `--develocity-url` as described in <<build_scans.adoc#sec:enable_build_scan,Enable Build Scan>>.
 When the link:https://docs.develocity.ai/gradle/current/gradle-plugin/[Develocity Gradle plugin] is already applied to your build, Gradle doesn't show the `--scan` suggestion in the failure report.
@@ -287,7 +288,8 @@ Starting a Gradle Daemon, 1 stopped Daemon could not be reused, use --status for
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-A new daemon was started but could not be connected to: pid=DaemonInfo{pid=55913, address=[7fb34c82-1907-4c32-afda-888c9b6e2279 port:42751, addresses:[/127.0.0.1]], state=Busy, ...
+A new daemon was started but could not be connected to. This is unexpected.
+diagnostics: DaemonInfo{pid=55913, address=[7fb34c82-1907-4c32-afda-888c9b6e2279 port:42751, addresses:[/127.0.0.1]], state=Busy, ...
 ----
 
 This can occur when network address translation (NAT) masquerade is used.
