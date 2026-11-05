@@ -221,7 +221,7 @@ buildCache {
         isEnabled = true
     }
     remote<HttpBuildCache> {
-        url = uri("https://my-cache-node.example.com/cache/")
+        url = uri("https://my-build-cache.example.com/cache/")
         isPush = System.getenv("CI") != null
     }
 }
