@@ -33,7 +33,6 @@ import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.process.ExecOperations;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.function.Function;
@@ -148,11 +147,6 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
                 return notFound(serviceType);
             }
             return result;
-        }
-
-        @Override
-        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
-            return notFound(serviceType);
         }
 
         private Object notFound(Type serviceType) {

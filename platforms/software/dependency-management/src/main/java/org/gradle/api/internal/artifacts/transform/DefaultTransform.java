@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
@@ -455,7 +454,7 @@ public class DefaultTransform implements Transform {
         public TransformServiceLookup(Provider<FileSystemLocation> inputFileProvider, @Nullable TransformDependencies transformDependencies, @Nullable InputChanges inputChanges, ServiceLookup delegate) {
             this.delegate = delegate;
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
-            builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));
+            builder.add(new InjectionPoint(FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));
             if (transformDependencies != null) {
                 builder.add(InjectionPoint.injectedByAnnotation(InputArtifactDependencies.class, () -> transformDependencies.getFiles().orElseThrow(() -> new IllegalStateException("Transform does not use artifact dependencies."))));
             }
@@ -466,22 +465,13 @@ public class DefaultTransform implements Transform {
         }
 
         @Nullable
-        private Object find(Type serviceType, @Nullable Class<? extends Annotation> annotatedWith) {
-            TypeToken<?> serviceTypeToken = TypeToken.of(serviceType);
-            for (InjectionPoint injectionPoint : injectionPoints) {
-                if (annotatedWith == injectionPoint.getAnnotation() && serviceTypeToken.isSupertypeOf(injectionPoint.getInjectedType())) {
-                    return injectionPoint.getValueToInject();
-                }
-            }
-            return null;
-        }
-
-        @Nullable
         @Override
         public Object find(Type serviceType) throws ServiceLookupException {
-            Object result = find(serviceType, null);
-            if (result != null) {
-                return result;
+            TypeToken<?> serviceTypeToken = TypeToken.of(serviceType);
+            for (InjectionPoint injectionPoint : injectionPoints) {
+                if (serviceTypeToken.isSupertypeOf(injectionPoint.getInjectedType())) {
+                    return injectionPoint.getValueToInject();
+                }
             }
             return delegate.find(serviceType);
         }
@@ -495,34 +485,19 @@ public class DefaultTransform implements Transform {
             return result;
         }
 
-        @Override
-        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
-            Object result = find(serviceType, annotatedWith);
-            if (result != null) {
-                return result;
-            }
-            return delegate.get(serviceType, annotatedWith);
-        }
-
         private static class InjectionPoint {
-            private final Class<? extends Annotation> annotation;
             private final Type injectedType;
             private final Supplier<Object> valueToInject;
 
             public static InjectionPoint injectedByAnnotation(Class<? extends Annotation> annotation, Supplier<Object> valueToInject) {
-                return new InjectionPoint(annotation, determineTypeFromAnnotation(annotation), valueToInject);
-            }
-
-            public static InjectionPoint injectedByAnnotation(Class<? extends Annotation> annotation, Type injectedType, Supplier<Object> valueToInject) {
-                return new InjectionPoint(annotation, injectedType, valueToInject);
+                return new InjectionPoint(determineTypeFromAnnotation(annotation), valueToInject);
             }
 
             public static InjectionPoint injectedByType(Class<?> injectedType, Supplier<Object> valueToInject) {
-                return new InjectionPoint(null, injectedType, valueToInject);
+                return new InjectionPoint(injectedType, valueToInject);
             }
 
-            private InjectionPoint(@Nullable Class<? extends Annotation> annotation, Type injectedType, Supplier<Object> valueToInject) {
-                this.annotation = annotation;
+            InjectionPoint(Type injectedType, Supplier<Object> valueToInject) {
                 this.injectedType = injectedType;
                 this.valueToInject = valueToInject;
             }
@@ -533,11 +508,6 @@ public class DefaultTransform implements Transform {
                     throw new IllegalArgumentException("Cannot determine supported type for annotation " + annotation.getName());
                 }
                 return supportedTypes[0];
-            }
-
-            @Nullable
-            public Class<? extends Annotation> getAnnotation() {
-                return annotation;
             }
 
             public Type getInjectedType() {
