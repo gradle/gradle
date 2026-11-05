@@ -185,20 +185,43 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
             public interface UnrelatedCategory {
             }
         '''.stripIndent()
+        file('src/test/java/FilterSensitiveRunner.java') << '''
+            import org.junit.runner.manipulation.Filter;
+            import org.junit.runner.manipulation.NoTestsRemainException;
+            import org.junit.runner.notification.Failure;
+            import org.junit.runner.notification.RunNotifier;
+            import org.junit.runners.BlockJUnit4ClassRunner;
+            import org.junit.runners.model.InitializationError;
+
+            public class FilterSensitiveRunner extends BlockJUnit4ClassRunner {
+                private boolean filtered;
+
+                public FilterSensitiveRunner(Class<?> klass) throws InitializationError {
+                    super(klass);
+                }
+
+                @Override
+                public void filter(Filter filter) throws NoTestsRemainException {
+                    filtered = true;
+                    super.filter(filter);
+                }
+
+                @Override
+                public void run(RunNotifier notifier) {
+                    if (filtered) {
+                        notifier.fireTestFailure(new Failure(getDescription(), new AssertionError("filter() was called")));
+                    }
+                    super.run(notifier);
+                }
+            }
+        '''.stripIndent()
         file('src/test/java/MyTest.java') << """
             ${testFrameworkImports}
-            import org.mockito.Mock;
-            import org.mockito.Mockito;
-            import org.mockito.junit.MockitoJUnitRunner;
 
-            @RunWith(MockitoJUnitRunner.class)
+            @RunWith(FilterSensitiveRunner.class)
             public class MyTest {
-                @Mock
-                private Runnable mock;
-
                 @Test
                 public void testMyMethod() {
-                    Mockito.when(mock.toString()).thenReturn("never used");
                 }
             }
         """.stripIndent()
@@ -209,7 +232,6 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
 
             dependencies {
                 ${testFrameworkDependencies}
-                testImplementation "org.mockito:mockito-core:2.24.5"
             }
 
             test {
@@ -218,10 +240,10 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         """.stripIndent()
 
         when:
-        fails('test')
+        succeeds('test')
 
         then:
-        outputContains('MyTest > unnecessary Mockito stubbings FAILED')
+        new DefaultTestExecutionResult(testDirectory).testClass('MyTest').assertTestPassed('testMyMethod')
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4924')
