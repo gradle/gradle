@@ -75,7 +75,7 @@ class FilePathFilterTest extends Specification {
         given:
         def outside = temp.createDir("elsewhere").file("hello.feature").touch()
 
-        when: "nothing names this test, so an including fallback must not be allowed to run it"
+        when: "no pattern can name this test"
         def result = apply([commandLine: ['anything']], leaf(FileSource.from(outside)), temp.createDir("definitions"), ALWAYS)
 
         then:
@@ -119,7 +119,7 @@ class FilePathFilterTest extends Specification {
         when: "its real path cannot be read, so it cannot be placed under the root"
         def result = apply([commandLine: ['hello']], underClass(leaf(FileSource.from(missing))), root, NEVER)
 
-        then: "the fallback decides, rather than the filter claiming a match it cannot substantiate"
+        then: "the fallback decides"
         !result.included()
         result.reason.get() == NEVER_REASON
     }

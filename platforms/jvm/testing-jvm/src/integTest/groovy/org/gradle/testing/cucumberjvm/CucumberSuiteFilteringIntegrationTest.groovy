@@ -22,13 +22,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 /**
  * Filtering of Cucumber scenarios reached through a JUnit Platform {@code @Suite} entry point.
  * <p>
- * The suite class is the only thing Gradle selects, so the feature files below it lie under none of the
- * task's test definition directories — there are none to begin with, unless the build configures them for
- * something else. The scenario descriptors therefore have no path to be matched by: a
- * {@code ClasspathResourceSource} never had one, and a {@code FileSource} has one only relative to a
- * definition directory that contains it. Both end up judged by {@code ClassMethodNameFilter} against the
- * suite class that encloses them, a {@code FileSource} by way of {@code FilePathFilter}'s fallback.
- * Selecting or excluding the suite class therefore selects or excludes its scenarios as a group.
+ * Gradle selects only the suite class, so its feature files lie under none of the task's test definition
+ * directories and the scenarios have no path to be matched by. They are matched by the enclosing suite
+ * class instead, so selecting or excluding it selects or excludes them as a group.
  */
 class CucumberSuiteFilteringIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     private static final String RAN_MARKER = "RAN SCENARIO: "
@@ -82,8 +78,7 @@ Feature: Goodbye World
             import io.cucumber.java.en.Then;
 
             public class HelloStepdefs {
-                // Names every scenario that actually executes, so a test can verify execution without
-                // depending on the name the scenario is reported under.
+                // Names every scenario that executes, so tests need not rely on reported test paths.
                 @Before
                 public void announce(Scenario scenario) {
                     System.out.println("$RAN_MARKER" + scenario.getName());
@@ -182,9 +177,8 @@ Feature: Goodbye World
     }
 
     /**
-     * A file-based test selected by a class-based entry point must not be excluded just because the task
-     * also has test definition directories configured for unrelated features. Its path lies under none
-     * of them, so it cannot be matched by path, and the enclosing suite class decides instead.
+     * A suite's features must stay selectable by the suite class when the task also has test definition
+     * directories configured for unrelated features.
      */
     def "scenarios selected from a directory survive a filter when unrelated definition dirs are configured"() {
         given:
@@ -194,22 +188,19 @@ Feature: Goodbye World
         when:
         succeeds("test", "--tests", "RunCukesTest")
 
-        then: "the suite's own features have no path to be matched by, so its class selects them"
+        then: "matched by the suite class, having no path"
         assertRanScenarios("Say hello", "Say goodbye")
 
-        and: "the definition dir feature does have a path, and this filter names none that matches it"
+        and: "matched by path, which this filter does not name"
         outputDoesNotContain("${RAN_MARKER}Unrelated scenario")
     }
 
     /**
-     * The other tier of the rule: a feature that does lie under a test definition directory is still
-     * selected by its path there. This passes before the filters were chained as well as after, and is
-     * here to catch the chaining breaking path matching, not to demonstrate the fix.
+     * The path tier of the rule. Passes with or without the fallback, and guards the fallback breaking
+     * path matching.
      * <p>
-     * It deliberately does not also assert that the suite's scenarios stay out. They would, but not for
-     * any reason to do with these filters: {@code --tests "unrelated"} does not match {@code RunCukesTest},
-     * so the suite class is pruned before a worker is given it and its scenarios are never discovered.
-     * Asserting their absence here would pass no matter what the post-discovery filters did.
+     * Does not assert the suite's scenarios stay out: {@code --tests "unrelated"} prunes
+     * {@code RunCukesTest} before a worker sees it, so that would pass whatever the filters did.
      */
     def "a filter naming a definition dir feature selects it by path"() {
         given:
@@ -224,13 +215,12 @@ Feature: Goodbye World
     }
 
     /**
-     * A feature under a configured test definition directory, so that it is matched by its path relative
-     * to that directory rather than by an enclosing class.
+     * A feature under a configured test definition directory, so it is matched by path rather than by an
+     * enclosing class.
      * <p>
-     * The Cucumber engine has to be included at the top level for this to be discovered at all. The
-     * suite's {@code @IncludeEngines("cucumber")} only applies to the suite's own nested discovery, so
-     * without this the directory selector that {@code testDefinitionDirs} contributes reaches no engine
-     * that reads {@code .feature} files and the feature is silently never found.
+     * The Cucumber engine must be included at the top level or the directory selector that
+     * {@code testDefinitionDirs} contributes reaches no engine that reads {@code .feature} files and the
+     * feature is silently never found. The suite's {@code @IncludeEngines} covers only its own discovery.
      */
     private definitionDirFeature() {
         file("src/test/definitions/unrelated.feature") << """
@@ -251,8 +241,8 @@ Feature: Unrelated
     }
 
     /**
-     * Features reached by classpath resource, as {@code @SelectClasspathResource} is the idiomatic way to
-     * point a suite at a Cucumber feature directory. The descriptors carry a {@code ClasspathResourceSource}.
+     * Features reached by classpath resource, the idiomatic way to point a suite at a Cucumber feature
+     * directory. The descriptors carry a {@code ClasspathResourceSource}.
      */
     private classpathResourceSuite() {
         file("src/test/java/RunCukesTest.java") << """
@@ -269,17 +259,12 @@ Feature: Unrelated
     }
 
     /**
-     * The same features reached by directory instead, which is what gives the descriptors a
-     * {@code FileSource}. The directory is the suite's own selector, not the task's, so the features
-     * still lie under none of the task's test definition directories. These descriptors do reach
-     * {@code FilePathFilter}, and reach {@code ClassMethodNameFilter} through its fallback.
+     * The same features reached by directory, giving the descriptors a {@code FileSource}. The directory
+     * is the suite's own selector, not the task's, so these exercise {@code FilePathFilter}'s fallback.
      * <p>
-     * Scenarios reached this way are verified through the marker the step definitions print rather than
-     * through their reported test path. A file-based test is reported under its path relative to the
-     * task's {@code testDefinitionDirs}, and these features lie under none of them, so the name falls
-     * back to the absolute file URL of the feature, which differs on every machine. Pointing
-     * {@code testDefinitionDirs} at the suite's own directory to make it relative would make the
-     * features matchable by path and stop exercising the fallback these tests are here for.
+     * Verified through the step definitions' marker rather than the reported test path: with no
+     * {@code testDefinitionDirs} to relativize against, a file-based test is reported under its absolute
+     * file URL, which differs per machine.
      */
     private directorySuite() {
         file("src/test/java/RunCukesTest.java") << """

@@ -243,26 +243,19 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
         }
 
         /**
-         * Builds the post-discovery filter that applies this task's include and exclude patterns, and
-         * adds it to the discovery request. Nothing is added when there are no patterns to apply.
+         * Builds the post-discovery filter applying this task's include and exclude patterns. Nothing is
+         * added to the request when there are no patterns.
          * <p>
-         * Every descriptor is routed by the type of its {@link org.junit.platform.engine.TestSource}:
-         * <p>
+         * Descriptors are routed by {@link org.junit.platform.engine.TestSource} type:
          * <ul>
-         *   <li>A {@link FileSource} or {@link DirectorySource} goes to {@link FilePathFilter}, which
-         *       matches it by its path relative to whichever of this task's test definition directories
-         *       contains it. That need not be the directory the file was selected from: a suite that
-         *       selects a directory of its own contributes no test definition directory.
-         *   <li>Everything else, including a descriptor with no source at all, goes to
-         *       {@link ClassMethodNameFilter}, which matches it by class and method name, or by its
-         *       enclosing class when the engine did not declare it as a method.
+         *   <li>{@link FileSource} and {@link DirectorySource} to {@link FilePathFilter}, matched by path
+         *       relative to this task's test definition directories.
+         *   <li>Everything else, including descriptors with no source, to {@link ClassMethodNameFilter},
+         *       matched by class and method name.
          * </ul>
          * <p>
-         * The two are chained rather than kept separate: a file-based test that lies under none of the
-         * test definition directories has no path to be matched by, and {@link FilePathFilter} hands it to
-         * the class filter instead of excluding it. That is why the file filter is registered whether or
-         * not this run has any directory selectors — whether it has an opinion is now settled per
-         * descriptor, rather than once for the whole run by how the task happens to be configured.
+         * {@link FilePathFilter} falls back to the class filter for a file under none of those
+         * directories, so it is registered whether or not the run has directory selectors.
          *
          * @see FilePathFilter
          * @see ClassMethodNameFilter

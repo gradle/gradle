@@ -85,7 +85,7 @@ class FileTestSelectionMatcher {
                 }
             }
         } catch (IOException e) {
-            // A file whose real path cannot be read cannot be placed under a root, so it effectively has no name
+            // An unreadable real path cannot be placed under a root, so there is no name
         }
         return Optional.empty();
     }

@@ -332,12 +332,12 @@ class FileTestSelectionMatcherTest extends Specification {
         def missingUnderRoot = root.file("does-not-exist.test")
         def missingOutsideRoot = temp.testDirectory.file("elsewhere/does-not-exist.test")
 
-        expect: "a path that cannot be resolved cannot be placed under a root, so there is no name"
+        expect: "an unresolvable path cannot be placed under a root"
         def matcher = createMatcher([], [], root)
         !matcher.nameFor(missingUnderRoot).isPresent()
         !matcher.nameFor(missingOutsideRoot).isPresent()
 
-        and: "so the file is not matched by path, and is left for a caller's fallback to judge"
+        and: "so it is not matched by path"
         !matcher.matchesFile(missingUnderRoot)
         !matcher.matchesFile(missingOutsideRoot)
     }
