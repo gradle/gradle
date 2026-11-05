@@ -20,7 +20,9 @@ import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemTaskIdentityTracker;
 import org.gradle.api.problems.internal.ProblemsInternal;
+import org.gradle.api.problems.internal.TaskIdentity;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.WorkValidationUtils;
@@ -46,7 +48,7 @@ public class DefaultNodeValidator implements NodeValidator {
         List<? extends ProblemInternal> warnings = validationContext.getWarnings();
         List<? extends ProblemInternal> errors = validationContext.getErrors();
         WorkValidationUtils.reportAsDeprecation(warnings);
-        reportErrors(warnings, errors, node.getTask(), validationContext);
+        reportErrorsTrackingTaskIdentity(warnings, errors, node.getTask(), validationContext);
         return !warnings.isEmpty() || !errors.isEmpty();
     }
 
@@ -57,6 +59,23 @@ public class DefaultNodeValidator implements NodeValidator {
         TypeValidationContext typeValidationContext = validationContext.forType(taskType, false);
         node.getTaskProperties().validateType(typeValidationContext);
         return validationContext;
+    }
+
+    /**
+     * Attributes the problems to the validated task, so they match the ones reported again when the task executes.
+     */
+    private void reportErrorsTrackingTaskIdentity(List<? extends ProblemInternal> warnings, List<? extends ProblemInternal> errors, TaskInternal task, WorkValidationContext validationContext) {
+        TaskIdentity previous = ProblemTaskIdentityTracker.getTaskIdentity();
+        try {
+            ProblemTaskIdentityTracker.setTaskIdentity(new TaskIdentity(task.getTaskIdentity().getBuildTreePath().asString()));
+            reportErrors(warnings, errors, task, validationContext);
+        } finally {
+            if (previous == null) {
+                ProblemTaskIdentityTracker.clear();
+            } else {
+                ProblemTaskIdentityTracker.setTaskIdentity(previous);
+            }
+        }
     }
 
     private void reportErrors(List<? extends ProblemInternal> warnings, List<? extends ProblemInternal> errors, TaskInternal task, WorkValidationContext validationContext) {

@@ -16,12 +16,13 @@
 
 package org.gradle.internal.jvm.inspection;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.serialization.Cached;
 import org.jspecify.annotations.Nullable;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -116,6 +117,7 @@ public interface JvmInstallationMetadata {
 
     boolean isValidInstallation();
 
+    @ThreadSafe
     class DefaultJvmInstallationMetadata implements JvmInstallationMetadata {
 
         private final Path javaHome;
@@ -129,8 +131,7 @@ public interface JvmInstallationMetadata {
         private final String jvmVersion;
         private final String jvmVendor;
         private final String architecture;
-
-        private final Cached<Set<JavaInstallationCapability>> capabilities = Cached.of(this::gatherCapabilities);
+        private final Set<JavaInstallationCapability> capabilities;
 
         private DefaultJvmInstallationMetadata(
             File javaHome,
@@ -154,6 +155,7 @@ public interface JvmInstallationMetadata {
             this.jvmVersion = jvmVersion;
             this.jvmVendor = jvmVendor;
             this.architecture = architecture;
+            this.capabilities = Sets.immutableEnumSet(gatherCapabilities());
         }
 
         @Override
@@ -237,7 +239,7 @@ public interface JvmInstallationMetadata {
 
         @Override
         public Set<JavaInstallationCapability> getCapabilities() {
-            return capabilities.get();
+            return capabilities;
         }
 
         private Set<JavaInstallationCapability> gatherCapabilities() {

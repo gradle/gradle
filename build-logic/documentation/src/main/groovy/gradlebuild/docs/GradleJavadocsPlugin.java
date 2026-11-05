@@ -143,6 +143,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
         // TODO: destinationDirectory should be part of Javadoc
         javadocs.getRenderedDocumentation().from(javadocAll.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
 
+        project.getPluginManager().apply("checkstyle");
         CheckstyleExtension checkstyle = project.getExtensions().getByType(CheckstyleExtension.class);
         tasks.register("checkstyleApi", Checkstyle.class, task -> {
             task.source(extension.getDocumentedSource());
