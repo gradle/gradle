@@ -43,13 +43,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 public class DependencyVerifierBuilder {
     private static final Comparator<ModuleComponentIdentifier> MODULE_COMPONENT_IDENTIFIER_COMPARATOR = Comparator.comparing(ModuleComponentIdentifier::getGroup)
         .thenComparing(ModuleComponentIdentifier::getModule)
         .thenComparing(ModuleComponentIdentifier::getVersion);
-    private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = new HashMap<>();
+    // Keyed like DependencyVerifier, by group:module:version, as the artifacts of a unique snapshot
+    // do not all carry the timestamped identifier.
+    private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = new TreeMap<>(MODULE_COMPONENT_IDENTIFIER_COMPARATOR);
     private final List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts = new ArrayList<>();
     private final Set<DependencyVerificationConfiguration.TrustedKey> trustedKeys = new LinkedHashSet<>();
     private final List<URI> keyServers = new ArrayList<>();
