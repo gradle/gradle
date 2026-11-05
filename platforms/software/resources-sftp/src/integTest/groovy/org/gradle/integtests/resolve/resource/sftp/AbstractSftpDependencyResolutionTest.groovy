@@ -26,6 +26,7 @@ abstract class AbstractSftpDependencyResolutionTest extends AbstractDependencyRe
     @Rule final SFTPServer server = new SFTPServer(temporaryFolder)
 
     def setup() {
+        server.trustHostKey(executer)
         // SFTP test fixture does not handle parallel resolution requests
         executer.beforeExecute {
             it.withArgument("--max-workers=1")

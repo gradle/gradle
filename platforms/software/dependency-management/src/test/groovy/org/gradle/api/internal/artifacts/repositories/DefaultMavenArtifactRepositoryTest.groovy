@@ -67,7 +67,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         def file = new File('repo')
         def uri = file.toURI()
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createTransport('file', 'repo', _, _) >> transport()
+        transportFactory.createTransport({ it == ['file'] as Set }, 'repo', _, _, _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -85,7 +85,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         given:
         def uri = new URI("https://localhost:9090/repo")
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createTransport('https', 'repo', _, _) >> transport()
+        transportFactory.createTransport({ it == ['https'] as Set }, 'repo', _, _, _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -108,7 +108,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * resolver.resolveUri('repo1') >> uri1
         _ * resolver.resolveUri('repo2') >> uri2
-        transportFactory.createTransport('https', 'repo', _, _) >> transport()
+        transportFactory.createTransport({ it == ['https'] as Set }, 'repo', _, _, _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -134,7 +134,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         def uri1 = new URI("https://localhost:9090/repo1")
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * resolver.resolveUri(uri1) >> uri1
-        transportFactory.createTransport('https', 'repo', _, _) >> transport()
+        transportFactory.createTransport({ it == ['https'] as Set }, 'repo', _, _, _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -158,7 +158,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         def uri1 = new URI("https://localhost:9090/repo1")
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * resolver.resolveUri('repo1') >> uri1
-        transportFactory.createTransport('https', 'repo', _, _) >> transport()
+        transportFactory.createTransport({ it == ['https'] as Set }, 'repo', _, _, _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -179,7 +179,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         given:
         def uri = new URI("s3://localhost:9090/repo")
         _ * resolver.resolveUri(_) >> uri
-        transportFactory.createTransport(_, 'repo', _, _) >> transport()
+        transportFactory.createTransport(_, 'repo', _, _, _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -207,7 +207,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         given:
         def uri = new URI("https://localhost:9090/repo")
         _ * resolver.resolveUri(_) >> uri
-        transportFactory.createTransport(_, 'repo', _, _) >> transport()
+        transportFactory.createTransport(_, 'repo', _, _, _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -225,7 +225,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.name = 'name'
         repository.url = 'https://host'
         resolver.resolveUri('https://host') >> new URI('https://host/')
-        transportFactory.createTransport('https', 'name', _, _) >> transport()
+        transportFactory.createTransport({ it == ['https'] as Set }, 'name', _, _, _) >> transport()
 
         given:
         repository.setMetadataSupplier(CustomMetadataSupplier)
@@ -243,7 +243,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.name = 'name'
         repository.url = 'https://host'
         resolver.resolveUri('https://host') >> new URI('https://host/')
-        transportFactory.createTransport('https', 'name', _, _) >> transport()
+        transportFactory.createTransport({ it == ['https'] as Set }, 'name', _, _, _) >> transport()
 
         given:
         repository.setMetadataSupplier(CustomMetadataSupplierWithParams) { it.params("a", 12, [1, 2, 3]) }
@@ -261,7 +261,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.name = 'name'
         repository.url = 'https://host'
         resolver.resolveUri('https://host') >> new URI('https://host/')
-        transportFactory.createTransport('https', 'name', _, _) >> transport()
+        transportFactory.createTransport({ it == ['https'] as Set }, 'name', _, _, _) >> transport()
 
         given:
         repository.setComponentVersionsLister(CustomVersionLister)
@@ -278,7 +278,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.name = 'name'
         repository.url = 'https://host'
         resolver.resolveUri('https://host') >> new URI('https://host/')
-        transportFactory.createTransport('https', 'name', _, _) >> transport()
+        transportFactory.createTransport({ it == ['https'] as Set }, 'name', _, _, _) >> transport()
 
         given:
         repository.setComponentVersionsLister(CustomVersionListerWithParams) { it.params("a", 12, [1, 2, 3]) }
@@ -295,7 +295,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.name = 'name'
         repository.url = 'https://host'
         resolver.resolveUri('https://host') >> new URI('https://host/')
-        transportFactory.createTransport('https', 'name', _, _) >> transport()
+        transportFactory.createTransport({ it == ['https'] as Set }, 'name', _, _, _) >> transport()
 
         given:
         repository.metadataSources(new Action<MavenArtifactRepository.MetadataSources>() {

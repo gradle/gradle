@@ -14,9 +14,10 @@ dependencies {
     api(libs.jsch)
 
     runtimeOnly(projects.core)
-    runtimeOnly(projects.coreApi)
 
+    implementation(projects.coreApi)
     implementation(projects.credentials)
+    implementation(projects.logging)
 
     implementation(libs.commonsIo)
     implementation(libs.guava)

@@ -69,6 +69,10 @@ include::sample[dir="snippets/reference/dependency-management/declaring-reposito
 include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy",files="build.gradle[tags=maven-ivy-repository-auth]"]
 ====
 
+Gradle verifies the identity of an SFTP server against the host keys listed in `~/.ssh/known_hosts` and `/etc/ssh/ssh_known_hosts` (`%ProgramData%\ssh\ssh_known_hosts` on Windows), in the format OpenSSH uses.
+The connection fails if the server's host is not listed or its key does not match.
+Host certificates (`@cert-authority` entries) are not supported, and for a server on a port other than 22, the entries for its host name without a port also apply.
+
 .Declaring an S3-Backed Maven and Ivy Repository
 ====
 include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-s3-repository]"]
