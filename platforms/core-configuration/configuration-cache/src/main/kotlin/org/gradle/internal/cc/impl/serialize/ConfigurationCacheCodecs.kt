@@ -148,6 +148,7 @@ import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
 import org.gradle.internal.serialize.graph.codecs.BeanSpecCodec
+import org.gradle.internal.serialize.graph.codecs.BindingTags
 import org.gradle.internal.serialize.graph.codecs.Bindings
 import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 import org.gradle.internal.serialize.graph.codecs.DelegatingCodec
@@ -350,8 +351,19 @@ class DefaultConfigurationCacheCodecs(
         }
     }
 
+    // Codecs are created anew for every write and read context, for instance, for every project when storing in parallel.
+    // Codecs created by the same method share the binding selected for each type, so it is only computed once per build.
     private
-    fun Bindings.completeWithStatefulCodecs() = append {
+    val userTypesTags = BindingTags()
+
+    private
+    val fingerprintTypesTags = BindingTags()
+
+    private
+    val internalTypesTags = BindingTags()
+
+    private
+    fun Bindings.completeWithStatefulCodecs(tags: BindingTags) = append {
         bind(KotlinObjectCodec)
         bind(ExternalizableCodec)
         bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup, objectOpener))
@@ -362,11 +374,11 @@ class DefaultConfigurationCacheCodecs(
         // with deeply nested Lists, deeply nested Maps, etc.
         // The reentrant codec is stateful, and cannot be cached because of it.
         bind(reentrant(BeanCodec))
-    }.build()
+    }.build(tags)
 
-    override fun userTypesCodec(): Codec<Any?> = userTypesBindings.completeWithStatefulCodecs()
+    override fun userTypesCodec(): Codec<Any?> = userTypesBindings.completeWithStatefulCodecs(userTypesTags)
 
-    override fun fingerprintTypesCodec(): Codec<Any?> = fingerprintUserTypesBindings.completeWithStatefulCodecs()
+    override fun fingerprintTypesCodec(): Codec<Any?> = fingerprintUserTypesBindings.completeWithStatefulCodecs(fingerprintTypesTags)
 
     private
     val internalTypesBindings = Bindings.of {
@@ -389,7 +401,7 @@ class DefaultConfigurationCacheCodecs(
         bind(OrdinalNodeCodec)
 
         bind(NotImplementedCodec)
-    }.build()
+    }.build(internalTypesTags)
 
     private
     fun BindingsBuilder.providerTypes(
