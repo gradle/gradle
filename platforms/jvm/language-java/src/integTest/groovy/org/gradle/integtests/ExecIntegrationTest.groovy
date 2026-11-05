@@ -29,6 +29,7 @@ import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.process.ShellScript
 import org.gradle.process.TestExecHttpServer
 import org.gradle.process.TestJavaMain
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.OsTestPreconditions
 
@@ -503,11 +504,18 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         client.kill()
-        callGet("http://127.0.0.1:$port/test")
 
         then:
-        def e = thrown(ConnectException)
-        e.message.contains("Connection refused")
+        // The daemon notices the client disconnect, cancels the build and stops the child
+        // process asynchronously after the client has exited, so wait for the server to go away.
+        ConcurrentTestUtil.poll(30) {
+            try {
+                callGet("http://127.0.0.1:$port/test")
+                assert false: "Process started by execOperations.$method is still running after the build was cancelled"
+            } catch (ConnectException e) {
+                assert e.message.contains("Connection refused")
+            }
+        }
 
         where:
         method     | configuration
