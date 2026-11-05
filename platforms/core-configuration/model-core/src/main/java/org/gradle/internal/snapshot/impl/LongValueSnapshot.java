@@ -25,6 +25,7 @@ public class LongValueSnapshot extends AbstractIsolatableScalarValue<Long> {
 
     @Override
     public void appendToHasher(Hasher hasher) {
+        ValueSnapshotType.LONG.appendTo(hasher);
         hasher.putLong(getValue());
     }
 }

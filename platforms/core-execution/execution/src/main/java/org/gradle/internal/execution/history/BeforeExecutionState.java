@@ -20,11 +20,17 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.steps.AfterExecutionResult;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.ValueSnapshot;
 
 /**
  * Captures the state of a {@link org.gradle.internal.execution.UnitOfWork} before execution.
  */
 public interface BeforeExecutionState extends ExecutionInputState {
+    /**
+     * The non-file inputs.
+     */
+    ImmutableSortedMap<String, ValueSnapshot> getInputProperties();
+
     /**
      * {@inheritDoc}
      */

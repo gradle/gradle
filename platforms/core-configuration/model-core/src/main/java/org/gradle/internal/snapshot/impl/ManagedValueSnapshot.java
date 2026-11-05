@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
@@ -57,5 +58,12 @@ public class ManagedValueSnapshot extends AbstractManagedValueSnapshot<ValueSnap
     @Override
     public String toString() {
         return "(" + className + ") " + state;
+    }
+
+    @Override
+    public void appendToHasher(Hasher hasher) {
+        ValueSnapshotType.MANAGED.appendTo(hasher);
+        SnapshotHashing.putString(hasher, className);
+        state.appendToHasher(hasher);
     }
 }

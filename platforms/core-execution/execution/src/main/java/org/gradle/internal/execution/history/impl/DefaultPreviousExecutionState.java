@@ -23,10 +23,10 @@ import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 public class DefaultPreviousExecutionState extends AbstractInputExecutionState<FileCollectionFingerprint> implements PreviousExecutionState {
+    private final ImmutableSortedMap<String, HashCode> inputPropertyHashes;
     private final ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork;
     private final OriginMetadata originMetadata;
     private final boolean successful;
@@ -37,16 +37,22 @@ public class DefaultPreviousExecutionState extends AbstractInputExecutionState<F
         HashCode cacheKey,
         ImplementationSnapshot implementation,
         ImmutableList<ImplementationSnapshot> additionalImplementations,
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
+        ImmutableSortedMap<String, HashCode> inputPropertyHashes,
         ImmutableSortedMap<String, FileCollectionFingerprint> inputFileProperties,
         ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork,
         boolean successful
     ) {
-        super(implementation, additionalImplementations, inputProperties, inputFileProperties);
+        super(implementation, additionalImplementations, inputFileProperties);
+        this.inputPropertyHashes = inputPropertyHashes;
         this.outputFilesProducedByWork = outputFilesProducedByWork;
         this.originMetadata = originMetadata;
         this.successful = successful;
         this.cacheKey = cacheKey;
+    }
+
+    @Override
+    public ImmutableSortedMap<String, HashCode> getInputPropertyHashes() {
+        return inputPropertyHashes;
     }
 
     @Override

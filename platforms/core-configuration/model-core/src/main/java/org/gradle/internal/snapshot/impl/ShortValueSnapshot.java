@@ -25,6 +25,7 @@ public class ShortValueSnapshot extends AbstractIsolatableScalarValue<Short> {
 
     @Override
     public void appendToHasher(Hasher hasher) {
+        ValueSnapshotType.SHORT.appendTo(hasher);
         hasher.putInt(getValue());
     }
 }
