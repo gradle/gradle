@@ -111,11 +111,15 @@ public class DefaultProviderFactory implements ProviderFactory {
 
     @Override
     public Provider<String> environmentVariable(String variableName) {
-        return environmentVariable(Providers.of(variableName));
+        return environmentVariableValueSource(Providers.of(variableName));
     }
 
     @Override
     public Provider<String> environmentVariable(Provider<String> variableName) {
+        return WithProducerProvider.of(environmentVariableValueSource(variableName), variableName);
+    }
+
+    private Provider<String> environmentVariableValueSource(Provider<String> variableName) {
         return of(
             EnvironmentVariableValueSource.class,
             spec -> spec.getParameters().getVariableName().set(variableName)
@@ -124,11 +128,15 @@ public class DefaultProviderFactory implements ProviderFactory {
 
     @Override
     public Provider<Map<String, String>> environmentVariablesPrefixedBy(String variableNamePrefix) {
-        return environmentVariablesPrefixedBy(Providers.of(variableNamePrefix));
+        return environmentVariablesPrefixedByValueSource(Providers.of(variableNamePrefix));
     }
 
     @Override
     public Provider<Map<String, String>> environmentVariablesPrefixedBy(Provider<String> variableNamePrefix) {
+        return WithProducerProvider.of(environmentVariablesPrefixedByValueSource(variableNamePrefix), variableNamePrefix);
+    }
+
+    private Provider<Map<String, String>> environmentVariablesPrefixedByValueSource(Provider<String> variableNamePrefix) {
         return of(
             EnvironmentVariablesPrefixedByValueSource.class,
             spec -> spec.getParameters().getPrefix().set(variableNamePrefix)
@@ -137,11 +145,15 @@ public class DefaultProviderFactory implements ProviderFactory {
 
     @Override
     public Provider<String> systemProperty(String propertyName) {
-        return systemProperty(Providers.of(propertyName));
+        return systemPropertyValueSource(Providers.of(propertyName));
     }
 
     @Override
     public Provider<String> systemProperty(Provider<String> propertyName) {
+        return WithProducerProvider.of(systemPropertyValueSource(propertyName), propertyName);
+    }
+
+    private Provider<String> systemPropertyValueSource(Provider<String> propertyName) {
         return of(
             SystemPropertyValueSource.class,
             spec -> spec.getParameters().getPropertyName().set(propertyName)
@@ -150,11 +162,15 @@ public class DefaultProviderFactory implements ProviderFactory {
 
     @Override
     public Provider<Map<String, String>> systemPropertiesPrefixedBy(String variableNamePrefix) {
-        return systemPropertiesPrefixedBy(Providers.of(variableNamePrefix));
+        return systemPropertiesPrefixedByValueSource(Providers.of(variableNamePrefix));
     }
 
     @Override
     public Provider<Map<String, String>> systemPropertiesPrefixedBy(Provider<String> variableNamePrefix) {
+        return WithProducerProvider.of(systemPropertiesPrefixedByValueSource(variableNamePrefix), variableNamePrefix);
+    }
+
+    private Provider<Map<String, String>> systemPropertiesPrefixedByValueSource(Provider<String> variableNamePrefix) {
         return of(
             SystemPropertiesPrefixedByValueSource.class,
             spec -> spec.getParameters().getPrefix().set(variableNamePrefix)
@@ -215,32 +231,42 @@ public class DefaultProviderFactory implements ProviderFactory {
 
     @Override
     public FileContents fileContents(RegularFile file) {
-        return fileContents(property -> property.set(file));
+        return fileContents(property -> property.set(file), null);
     }
 
     @Override
     public FileContents fileContents(Provider<RegularFile> file) {
-        return fileContents(property -> property.set(file));
+        return fileContents(property -> property.set(file), file);
     }
 
-    private FileContents fileContents(Action<RegularFileProperty> setFileProperty) {
+    private FileContents fileContents(Action<RegularFileProperty> setFileProperty, @Nullable Provider<RegularFile> fileProvider) {
         return new FileContents() {
             @Override
             public Provider<String> getAsText() {
-                return of(
-                    FileTextValueSource.class,
-                    spec -> setFileProperty.execute(spec.getParameters().getFile())
+                return withProducerOf(
+                    fileProvider,
+                    of(
+                        FileTextValueSource.class,
+                        spec -> setFileProperty.execute(spec.getParameters().getFile())
+                    )
                 );
             }
 
             @Override
             public Provider<byte[]> getAsBytes() {
-                return of(
-                    FileBytesValueSource.class,
-                    spec -> setFileProperty.execute(spec.getParameters().getFile())
+                return withProducerOf(
+                    fileProvider,
+                    of(
+                        FileBytesValueSource.class,
+                        spec -> setFileProperty.execute(spec.getParameters().getFile())
+                    )
                 );
             }
         };
+    }
+
+    private static <T> Provider<T> withProducerOf(@Nullable Provider<?> producerSource, Provider<T> provider) {
+        return producerSource == null ? provider : WithProducerProvider.of(provider, producerSource);
     }
 
     @Override
