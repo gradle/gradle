@@ -60,3 +60,7 @@ sourceSets {
         errorprone.enabled = false
     }
 }
+
+errorprone {
+    nullawayEnabled = true
+}

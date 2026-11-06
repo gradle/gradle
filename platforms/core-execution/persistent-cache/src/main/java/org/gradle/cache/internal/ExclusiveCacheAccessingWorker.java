@@ -34,6 +34,8 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import static java.util.Objects.requireNonNull;
+
 public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, AsyncCacheAccess {
     private final BlockingQueue<Runnable> workQueue;
     private final String displayName;
@@ -79,7 +81,7 @@ public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, Async
         try {
             return futureTask.get();
         } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
+            throw UncheckedException.throwAsUncheckedException(requireNonNull(e.getCause()));
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

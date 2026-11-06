@@ -20,6 +20,7 @@ import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -27,7 +28,7 @@ import java.util.function.Supplier;
 public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSafeIndexedCache<K, V> {
     private final FileAccess fileAccess;
     private final Supplier<BTreePersistentIndexedCache<K, V>> factory;
-    private BTreePersistentIndexedCache<K, V> cache;
+    private @Nullable BTreePersistentIndexedCache<K, V> cache;
 
     public DefaultMultiProcessSafeIndexedCache(Supplier<BTreePersistentIndexedCache<K, V>> factory, FileAccess fileAccess) {
         this.factory = factory;
@@ -39,11 +40,12 @@ public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSa
         return fileAccess.toString();
     }
 
+    @Nullable
     @Override
     public V getIfPresent(final K key) {
         final BTreePersistentIndexedCache<K, V> cache = getCache();
         try {
-            return fileAccess.readFile((Supplier<V>) () -> cache.get(key));
+            return fileAccess.readFile((Supplier<@Nullable V>) () -> cache.get(key));
         } catch (FileIntegrityViolationException e) {
             return null;
         }
@@ -81,11 +83,12 @@ public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSa
 
     @Override
     public void finishWork() {
+        BTreePersistentIndexedCache<K, V> cache = this.cache;
         if (cache != null) {
             try {
                 fileAccess.writeFile(() -> cache.close());
             } finally {
-                cache = null;
+                this.cache = null;
             }
         }
     }
@@ -94,6 +97,8 @@ public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSa
     public void beforeLockRelease(FileLock.State currentCacheState) {
     }
 
+    // The action passed to writeFile() runs synchronously and initializes the cache, which NullAway cannot follow
+    @SuppressWarnings("NullAway")
     private BTreePersistentIndexedCache<K, V> getCache() {
         if (cache == null) {
             // Use writeFile because the cache can internally recover from datafile

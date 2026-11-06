@@ -19,9 +19,10 @@ package org.gradle.process.internal.health.memory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.ManagedScheduledExecutor;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +48,7 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     private final Object holdersLock = new Object();
     private final Object memoryLock = new Object();
     private final List<MemoryHolder> holders = new ArrayList<MemoryHolder>();
-    private OsMemoryStatus currentOsMemoryStatus;
+    private @Nullable OsMemoryStatus currentOsMemoryStatus;
     private final OsMemoryStatusListener osMemoryStatusListener;
 
     @SuppressWarnings("this-escape")

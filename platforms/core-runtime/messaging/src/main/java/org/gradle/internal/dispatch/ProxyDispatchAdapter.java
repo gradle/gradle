@@ -18,6 +18,7 @@ package org.gradle.internal.dispatch;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Adapts from interface T to a {@link Dispatch}
@@ -66,6 +67,7 @@ public class ProxyDispatchAdapter<T> {
         }
 
         @Override
+        @Nullable
         public Object invoke(Object target, Method method, Object[] parameters) {
             switch (method.getName()) {
                 case "equals":

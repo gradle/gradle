@@ -18,6 +18,8 @@ package org.gradle.internal.buildoption;
 
 import java.util.Map;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * A boolean build option with a deprecated property alias where an explicit disable
  * through either property name wins: when both names are set, the option is enabled
@@ -56,7 +58,7 @@ public abstract class DeprecatedAliasDisableWinsBooleanBuildOption<T> extends Bo
         if (value != null && deprecatedValue != null
             && BooleanOptionUtil.isTrue(value) && !BooleanOptionUtil.isTrue(deprecatedValue)) {
             // The deprecated name carries an explicit disable that the main property would otherwise mask
-            return new OptionValue<String>(deprecatedValue, Origin.forGradleProperty(deprecatedProperty));
+            return new OptionValue<String>(deprecatedValue, Origin.forGradleProperty(requireNonNull(deprecatedProperty)));
         }
         return super.getFromProperties(properties);
     }

@@ -17,6 +17,7 @@ package org.gradle.cache;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
+import org.jspecify.annotations.Nullable;
 
 @Contextual
 public class CacheOpenException extends GradleException {
@@ -24,7 +25,7 @@ public class CacheOpenException extends GradleException {
         super(message);
     }
 
-    public CacheOpenException(String message, Throwable cause) {
+    public CacheOpenException(String message, @Nullable Throwable cause) {
         super(message, cause);
     }
 }

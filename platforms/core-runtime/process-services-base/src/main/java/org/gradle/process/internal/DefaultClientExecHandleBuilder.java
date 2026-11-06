@@ -37,6 +37,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 
+import static java.util.Objects.requireNonNull;
+
 @NullMarked
 public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
 
@@ -48,16 +50,16 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     private final ProcessArgumentsSpec argumentsSpec;
     private final PathToFileResolver fileResolver;
 
-    private Map<String, Object> environment;
+    private @Nullable Map<String, Object> environment;
     private StreamsHandler inputHandler = DEFAULT_STDIN;
-    private String displayName;
+    private @Nullable String displayName;
     private boolean redirectErrorStream;
-    private StreamsHandler streamsHandler;
+    private @Nullable StreamsHandler streamsHandler;
     private int timeoutMillis = Integer.MAX_VALUE;
     protected boolean daemon;
     private final Executor executor;
-    private String executable;
-    private File workingDir;
+    private @Nullable String executable;
+    private @Nullable File workingDir;
 
     @SuppressWarnings("this-escape")
     public DefaultClientExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
@@ -156,18 +158,19 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
         return this;
     }
 
+    @Nullable
     @Override
     public String getExecutable() {
         return executable;
     }
 
     @Override
-    public void setExecutable(Object executable) {
+    public void setExecutable(@Nullable Object executable) {
         setExecutable(Objects.toString(executable));
     }
 
     @Override
-    public ClientExecHandleBuilder setExecutable(String executable) {
+    public ClientExecHandleBuilder setExecutable(@Nullable String executable) {
         this.executable = executable;
         return this;
     }
@@ -180,7 +183,8 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
 
     @Override
     public OutputStream getErrorOutput() {
-        return streamsSpec.getErrorOutput();
+        // Always set by the constructor
+        return requireNonNull(streamsSpec.getErrorOutput());
     }
 
     @Override
@@ -190,7 +194,8 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
 
     @Override
     public OutputStream getStandardOutput() {
-        return streamsSpec.getStandardOutput();
+        // Always set by the constructor
+        return requireNonNull(streamsSpec.getStandardOutput());
     }
 
     @Override
@@ -208,7 +213,7 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
         if (environment == null) {
             setEnvironment(System.getenv());
         }
-        return environment;
+        return requireNonNull(environment);
     }
 
     @Override
@@ -229,12 +234,17 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
 
     @Override
     public InputStream getStandardInput() {
-        return streamsSpec.getStandardInput();
+        // Always set by the constructor
+        return requireNonNull(streamsSpec.getStandardInput());
     }
 
     @Nullable
     @Override
     public File getWorkingDir() {
+        return resolveWorkingDir();
+    }
+
+    private File resolveWorkingDir() {
         if (workingDir == null) {
             workingDir = fileResolver.resolve(".");
         }
@@ -266,9 +276,10 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
             return streamsHandler;
         }
         boolean shouldReadErrorStream = !redirectErrorStream;
+        // Both streams are always set by the constructor
         return new OutputStreamsForwarder(
-            streamsSpec.getStandardOutput(),
-            streamsSpec.getErrorOutput(),
+            requireNonNull(streamsSpec.getStandardOutput()),
+            requireNonNull(streamsSpec.getErrorOutput()),
             shouldReadErrorStream
         );
     }
@@ -294,7 +305,7 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
         StreamsHandler effectiveOutputHandler = getEffectiveStreamsHandler(streamsHandler, streamsSpec, effectiveRedirectErrorStream);
         return new DefaultExecHandle(
             displayName,
-            getWorkingDir(),
+            resolveWorkingDir(),
             executable,
             effectiveArguments,
             effectiveEnvironment,

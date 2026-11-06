@@ -46,3 +46,7 @@ gradleModule {
 jvmCompile {
     addMultiReleaseVersion(9, 17)
 }
+
+errorprone {
+    nullawayEnabled = true
+}

@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Provides a basic infrastructure for build option implementations.
@@ -100,7 +101,8 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
     protected OptionValue<String> getFromProperties(Map<String, String> properties) {
         String value = properties.get(property);
         if (value != null) {
-            return new OptionValue<String>(value, Origin.forGradleProperty(property));
+            // A value can only be found if the property name is present
+            return new OptionValue<String>(value, Origin.forGradleProperty(requireNonNull(property)));
         }
         if (deprecatedProperty != null) {
             value = properties.get(deprecatedProperty);

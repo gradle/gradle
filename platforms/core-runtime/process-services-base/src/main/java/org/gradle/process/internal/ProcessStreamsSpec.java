@@ -18,15 +18,16 @@ package org.gradle.process.internal;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import org.jspecify.annotations.Nullable;
 
 
 public class ProcessStreamsSpec {
 
-    private InputStream standardInput;
-    private OutputStream standardOutput;
-    private OutputStream errorOutput;
+    private @Nullable InputStream standardInput;
+    private @Nullable OutputStream standardOutput;
+    private @Nullable OutputStream errorOutput;
 
-    public ProcessStreamsSpec setStandardInput(InputStream inputStream) {
+    public ProcessStreamsSpec setStandardInput(@Nullable InputStream inputStream) {
         if (inputStream == null) {
             throw new IllegalArgumentException("inputStream == null!");
         }
@@ -34,11 +35,12 @@ public class ProcessStreamsSpec {
         return this;
     }
 
+    @Nullable
     public InputStream getStandardInput() {
         return standardInput;
     }
 
-    public ProcessStreamsSpec setStandardOutput(OutputStream outputStream) {
+    public ProcessStreamsSpec setStandardOutput(@Nullable OutputStream outputStream) {
         if (outputStream == null) {
             throw new IllegalArgumentException("outputStream == null!");
         }
@@ -46,11 +48,12 @@ public class ProcessStreamsSpec {
         return this;
     }
 
+    @Nullable
     public OutputStream getStandardOutput() {
         return standardOutput;
     }
 
-    public ProcessStreamsSpec setErrorOutput(OutputStream outputStream) {
+    public ProcessStreamsSpec setErrorOutput(@Nullable OutputStream outputStream) {
         if (outputStream == null) {
             throw new IllegalArgumentException("outputStream == null!");
         }
@@ -58,6 +61,7 @@ public class ProcessStreamsSpec {
         return this;
     }
 
+    @Nullable
     public OutputStream getErrorOutput() {
         return errorOutput;
     }

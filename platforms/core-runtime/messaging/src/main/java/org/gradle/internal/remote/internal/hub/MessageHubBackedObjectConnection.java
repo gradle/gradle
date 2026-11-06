@@ -37,6 +37,7 @@ import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.serialize.StatefulSerializer;
 import org.gradle.internal.serialize.kryo.TypeSafeSerializer;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,12 +46,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static java.util.Objects.requireNonNull;
+
 public class MessageHubBackedObjectConnection implements ObjectConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageHubBackedObjectConnection.class);
     private final MessageHub hub;
     private final List<Action<Throwable>> unrecoverableErrorHandlers = new ArrayList<Action<Throwable>>();
-    private ConnectCompletion completion;
-    private RemoteConnection<InterHubMessage> connection;
+    private @Nullable ConnectCompletion completion;
+    private @Nullable RemoteConnection<InterHubMessage> connection;
     //    private ClassLoader methodParamClassLoader;
     private List<SerializerRegistry> paramSerializers = new ArrayList<SerializerRegistry>();
     private Set<ClassLoader> methodParamClassLoaders = new HashSet<ClassLoader>();
@@ -134,7 +137,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
                     methodParamClassLoader,
                     argsSerializer)));
 
-        connection = completion.create(serializer);
+        connection = requireNonNull(completion, "Already connected").create(serializer);
         hub.addConnection(connection);
         hub.noFurtherConnections();
         completion = null;

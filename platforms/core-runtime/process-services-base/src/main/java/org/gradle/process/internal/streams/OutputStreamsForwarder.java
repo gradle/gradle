@@ -34,8 +34,12 @@ public class OutputStreamsForwarder implements FinishNotifyingStreamsHandler {
     private final boolean readErrorStream;
     private final AtomicInteger pendingStreams;
     private final CompletableFuture<Void> streamsFinished = new CompletableFuture<>();
+    // The following fields are initialized by connectStreams(), which is called before start()
+    @SuppressWarnings("NullAway.Init")
     private Executor executor;
+    @SuppressWarnings("NullAway.Init")
     private volatile ExecOutputHandleRunner standardOutputReader;
+    @SuppressWarnings("NullAway.Init") // only set when readErrorStream is true, and only used in that case
     private volatile ExecOutputHandleRunner standardErrorReader;
 
     public OutputStreamsForwarder(OutputStream standardOutput, OutputStream errorOutput, boolean readErrorStream) {

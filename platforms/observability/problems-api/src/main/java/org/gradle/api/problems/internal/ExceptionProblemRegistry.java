@@ -58,7 +58,7 @@ public class ExceptionProblemRegistry {
     private static class DefaultProblemLocator implements ProblemLocator {
 
         private final Multimap<Throwable, ProblemInternal> problemsForThrowables;
-        private Multimap<String, Throwable> exceptionLookup = null;
+        private @Nullable Multimap<String, Throwable> exceptionLookup = null;
 
         DefaultProblemLocator(Multimap<Throwable, ProblemInternal> problemsForThrowables) {
             this.problemsForThrowables = ImmutableMultimap.copyOf(problemsForThrowables);
@@ -118,7 +118,7 @@ public class ExceptionProblemRegistry {
             return null;
         }
 
-        private boolean deepEquals(Throwable t1, Throwable t2, List<Throwable> seen) {
+        private boolean deepEquals(@Nullable Throwable t1, @Nullable Throwable t2, List<Throwable> seen) {
             if (seen.contains(t1) || seen.contains(t2)) {
                 return false; // drop self-references to avoid infinite recursion
             }

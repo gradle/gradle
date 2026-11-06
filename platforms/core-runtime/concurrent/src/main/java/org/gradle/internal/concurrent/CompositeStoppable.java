@@ -40,7 +40,7 @@ public class CompositeStoppable implements Stoppable {
     }
 
     @CheckReturnValue
-    public static CompositeStoppable stoppable(Object... elements) {
+    public static CompositeStoppable stoppable(@Nullable Object... elements) {
         return new CompositeStoppable().add(elements);
     }
 
@@ -63,14 +63,14 @@ public class CompositeStoppable implements Stoppable {
         return this;
     }
 
-    public CompositeStoppable add(Object... elements) {
+    public CompositeStoppable add(@Nullable Object... elements) {
         for (Object closeable : elements) {
             add(closeable);
         }
         return this;
     }
 
-    public CompositeStoppable add(Object closeable) {
+    public CompositeStoppable add(@Nullable Object closeable) {
         Stoppable stoppable = toStoppable(closeable);
         if (stoppable != null) {
             add(stoppable);
@@ -84,7 +84,7 @@ public class CompositeStoppable implements Stoppable {
     }
 
     @Nullable
-    private static Stoppable toStoppable(final Object object) {
+    private static Stoppable toStoppable(final @Nullable Object object) {
         if (object instanceof Stoppable) {
             return (Stoppable) object;
         }

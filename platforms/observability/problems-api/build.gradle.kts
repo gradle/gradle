@@ -36,10 +36,10 @@ dependencies {
     api(projects.snapshots)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.guava)
     api(libs.inject)
     api(libs.jspecify)
 
+    implementation(libs.guava)
     implementation(libs.jsr305)
 
     testImplementation(projects.logging)
@@ -73,4 +73,8 @@ jvmCompile {
             targetJvmVersion = 8
         }
     }
+}
+
+errorprone {
+    nullawayEnabled = true
 }

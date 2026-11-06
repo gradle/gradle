@@ -47,7 +47,11 @@ public class CGroupMemoryInfo implements OsMemoryInfo {
 
     private static String readStringFromFile(File file) {
         try {
-            return Files.asCharSource(file, Charset.defaultCharset()).readFirstLine();
+            String firstLine = Files.asCharSource(file, Charset.defaultCharset()).readFirstLine();
+            if (firstLine == null) {
+                throw new UnsupportedOperationException("Unable to read system memory from " + file.getAbsoluteFile() + ": the file is empty");
+            }
+            return firstLine;
         } catch (IOException e) {
             throw new UnsupportedOperationException("Unable to read system memory from " + file.getAbsoluteFile(), e);
         }

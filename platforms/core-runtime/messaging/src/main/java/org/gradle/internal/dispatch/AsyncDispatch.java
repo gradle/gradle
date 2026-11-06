@@ -19,6 +19,7 @@ package org.gradle.internal.dispatch;
 import org.gradle.internal.concurrent.AsyncStoppable;
 import org.gradle.internal.concurrent.InterruptibleRunnable;
 import org.gradle.internal.operations.CurrentBuildOperationPreservingRunnable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -52,7 +53,7 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
     }
 
     @SuppressWarnings("this-escape")
-    public AsyncDispatch(Executor executor, final Dispatch<? super T> dispatch, int maxQueueSize) {
+    public AsyncDispatch(Executor executor, final @Nullable Dispatch<? super T> dispatch, int maxQueueSize) {
         this.executor = executor;
         this.maxQueueSize = maxQueueSize;
         state = State.Init;
@@ -89,6 +90,7 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
         }
     }
 
+    @Nullable
     private T waitForNextMessage() {
         lock.lock();
         try {

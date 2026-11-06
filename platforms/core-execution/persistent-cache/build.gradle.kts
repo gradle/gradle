@@ -54,3 +54,7 @@ gradleModule {
 }
 
 
+
+errorprone {
+    nullawayEnabled = true
+}
