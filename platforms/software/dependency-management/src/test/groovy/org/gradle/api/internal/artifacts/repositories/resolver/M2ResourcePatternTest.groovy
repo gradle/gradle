@@ -15,14 +15,16 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.resolver
+
+import org.apache.commons.lang3.StringUtils
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Specification
-
-import static org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId
 
 class M2ResourcePatternTest extends Specification {
     def "can construct from URI and pattern"() {
@@ -101,27 +103,56 @@ class M2ResourcePatternTest extends Specification {
     }
 
     def "can build module version path"() {
-        def pattern = new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN)
-        def component1 = newId(DefaultModuleIdentifier.newId("group", "projectA"), "1.2")
-        def component2 = newId(DefaultModuleIdentifier.newId("org.group", "projectA"), "1.2")
+        def m2Pattern = new M2ResourcePattern(pattern)
+        def component = newModuleComponentIdentifier(id)
 
         expect:
-        pattern.toModuleVersionPath(component1).path == 'prefix/group/projectA/1.2'
-        pattern.toModuleVersionPath(component2).path == 'prefix/org/group/projectA/1.2'
+        m2Pattern.toModuleVersionPath(component).path == expectedPath
+
+        where:
+        id                             | pattern                                         | expectedPath
+        "group:projectA:1.2"           | "prefix/" + MavenPattern.M2_PATTERN             | "prefix/group/projectA/1.2"
+        "group:projectA:1.3"           | "prefix/[organization]/[module]/[revision]/foo" | "prefix/group/projectA/1.3"
+        "org.group:projectA:1.5"       | "prefix/" + MavenPattern.M2_PATTERN             | "prefix/org/group/projectA/1.5"
+        "x.y.z:foo-lib:9.9.9-SNAPSHOT" | "prefix/" + MavenPattern.M2_PATTERN             | "prefix/x/y/z/foo-lib/9.9.9-SNAPSHOT"
+        "org.group:foo-lib:1.6"        | "prefix/[organisation]/[module]/[revision]/foo" | "prefix/org/group/foo-lib/1.6"
+        "org.group:foo-lib:1.7"        | "prefix/[revision]/[module]/[organisation]/bar" | "prefix/1.7/foo-lib/org/group"
     }
 
-    def "throws UnsupportedOperationException for non M2 compatible pattern"() {
-        def pattern = new M2ResourcePattern("/non/m2/pattern")
+    def "cannot compute module version path if pattern is missing required attributes"() {
+        def m2Pattern = new M2ResourcePattern(pattern)
+        def component = newModuleComponentIdentifier("org.group:foo-lib:1.2")
 
         when:
-        pattern.toModulePath(DefaultModuleIdentifier.newId("group", "module"))
+        m2Pattern.toModuleVersionPath(component)
 
         then:
-        thrown(UnsupportedOperationException)
+        UnsupportedOperationException e = thrown()
+        e.message == "M2 layout pattern $pattern is missing required tokens: $missingTokens"
+
+        where:
+        pattern                                                                                            | missingTokens
+        "/non/m2/pattern"                                                                                  | "[organisation, module, revision]"
+        "a/b/c/foo"                                                                                        | "[organisation, module, revision]"
+        "no-org/[module]/[revision]/foo"                                                                   | "[organisation]"
+        "[organisation]/no-module/[revision]/foo"                                                          | "[module]"
+        "[organisation]/[module]/no-revision/foo"                                                          | "[revision]"
+        "(x-[organisation])/[module]/[revision]/foo"                                                       | "[organisation]"
+        "[organisation]/(optional-[module])/[revision]/foo"                                                | "[module]"
+        "[organisation]/[module]/(optional-[revision])/foo"                                                | "[revision]"
+        "(optional-[organisation])/(optional-[module])/(optional-[revision])/foo"                          | "[organisation, module, revision]"
+        "prefix/(-[organisation]-[module])/(b/[revision])/(x[artifact])-[revision](-[classifier])(.[ext])" | "[organisation, module, revision]"
+        "prefix/(-[organisation])/[revision]/bar-[artifact]-foo"                                           | "[organisation, module]"
+        "prefix/[orgPath]/[module]/[revision]/foo"                                                         | "[organisation]"
+    }
+
+    private static ModuleComponentIdentifier newModuleComponentIdentifier(String groupArtifactVersion) {
+        def gav = StringUtils.split(groupArtifactVersion, ':')
+        return DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(gav[0], gav[1]), gav[2])
     }
 
     private static ModuleComponentArtifactMetadata artifact(String group, String name, String version) {
-        final moduleVersionId = newId(DefaultModuleIdentifier.newId(group, name), version)
+        final moduleVersionId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, name), version)
         return new DefaultModuleComponentArtifactMetadata(new DefaultModuleComponentArtifactIdentifier(moduleVersionId, "ivy", "ivy", "xml"))
     }
 }
