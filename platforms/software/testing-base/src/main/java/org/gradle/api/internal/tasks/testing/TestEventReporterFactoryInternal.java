@@ -42,10 +42,6 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
      *     <li>
      *         {@code closeThrowsOnTestFailures} can be set to {@code false} to prevent throwing on close.
      *     </li>
-     *     <li>
-     *         {@code addToAggregateReports} can be set to control if the results are automatically registered with the
-     *         aggregate reporting facilities.
-     *     </li>
      * </ul>
      *
      * @param rootDescriptor a function to create the root test descriptor
@@ -57,7 +53,7 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
      * @return the test event reporter
      * @apiNote This API is used by {@link org.gradle.api.tasks.testing.AbstractTestTask} to support various extra features.
      * It may be worth considering these for public API in the future.
-     * @since 9.3.0
+     * @since 9.10.0
      */
     GroupTestEventReporterInternal createInternalTestEventReporter(
         LongFunction<TestDescriptorInternal> rootDescriptor,
@@ -65,7 +61,6 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
         @Nullable TestReportGenerator reportGenerator,
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster,
         int diskSkipLevels,
-        boolean closeThrowsOnTestFailures,
-        boolean addToAggregateReports
+        boolean closeThrowsOnTestFailures
     );
 }

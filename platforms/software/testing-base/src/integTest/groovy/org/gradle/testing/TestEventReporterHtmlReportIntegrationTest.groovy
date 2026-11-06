@@ -17,6 +17,7 @@
 package org.gradle.testing
 
 import com.google.common.collect.ImmutableListMultimap
+import org.gradle.api.internal.tasks.testing.report.AggregateTestReportFixture
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -38,11 +39,10 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         outputDoesNotContain("See the test results for more details")
         outputDoesNotContain("Aggregate test results")
 
-        // Aggregate results are still emitted even if we don't print the URL to console
-        aggregateResults()
-            .testPath(":passing suite")
-            .onlyRoot()
-            .assertChildCount(1, 0)
+        // Aggregate report is still emitted even if we don't print the URL to console
+        def aggregateReport = AggregateTestReportFixture.of(testDirectory)
+        aggregateReport.rows == [new AggregateTestReportFixture.Row("passing", "../tests/passing/index.html", "passed", 1, 1, 0, 0)]
+        aggregateReport.linkedReport("passing") == file("build/reports/tests/passing/index.html")
     }
 
     def "HTML report contains output at task level only"() {
@@ -53,7 +53,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         succeeds("passing")
 
         then:
-        def results = aggregateResults()
+        def results = resultsFor("tests/passing")
         results
             .testPath(":passing suite")
             .onlyRoot()
@@ -74,7 +74,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         fails("failing")
 
         then:
-        def results = aggregateResults()
+        def results = resultsFor("tests/failing")
         results
             .testPath(":failing suite:failing test")
             .onlyRoot()
@@ -122,7 +122,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         fails("doubled")
 
         then:
-        def results = aggregateResults()
+        def results = resultsFor("tests/doubled")
         results
             .testPath(":doubled suite")
             .onlyRoot()
@@ -141,7 +141,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         succeeds("reemitted")
 
         then:
-        def results = aggregateResults()
+        def results = resultsFor("tests/reemitted")
         results
             .testPath(":reemitted suite")
             .onlyRoot()
@@ -161,7 +161,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         fails("reemitted")
 
         then:
-        def results = aggregateResults()
+        def results = resultsFor("tests/reemitted")
         results
             .testPath(":reemitted suite")
             .onlyRoot()
@@ -189,7 +189,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         succeeds("reemitted")
 
         then:
-        def results = aggregateResults()
+        def results = resultsFor("tests/reemitted")
         results
             .testPath(":reemitted suite")
             .onlyRoot()
@@ -239,7 +239,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         fails("failing")
 
         then:
-        def results = aggregateResults()
+        def results = resultsFor("tests/failing")
         results
             .testPath(":failing suite")
             .onlyRoot()
@@ -308,10 +308,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
 
         // Aggregate results are still emitted even if we don't print the URL to console
         outputDoesNotContain("Aggregate test results")
-        aggregateResults()
-            .testPath(":failing suite")
-            .onlyRoot()
-            .assertChildCount(1, 1)
+        AggregateTestReportFixture.of(testDirectory).rows == [new AggregateTestReportFixture.Row("failing", "../tests/failing/index.html", "failed", 1, 0, 1, 0)]
     }
 
     def "does not print aggregate test results URL if only one test task fails"() {
@@ -327,13 +324,10 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
 
         // Aggregate results are still emitted even if we don't print the URL to console
         outputDoesNotContain("Aggregate test results")
-        def aggregateResults = aggregateResults()
-        aggregateResults.testPath(":passing suite")
-            .onlyRoot()
-            .assertChildCount(1, 0)
-        aggregateResults.testPath(":failing suite")
-            .onlyRoot()
-            .assertChildCount(1, 1)
+        def aggregateReport = AggregateTestReportFixture.of(testDirectory)
+        aggregateReport.totals == [tests: "2", failures: "1", skipped: "0", successful: "50%"]
+        aggregateReport.rows*.name() == ["failing", "passing"]
+        aggregateReport.failedRows*.name() == ["failing"]
     }
 
     def "prints aggregate test results URL if multiple test tasks fail"() {
@@ -359,16 +353,31 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
             .onlyRoot()
             .assertChildCount(1, 1)
 
-        def aggregateReportFile = file("build/reports/aggregate-test-results/index.html")
-        def renderedUrl = new ConsoleRenderer().asClickableFileUrl(aggregateReportFile);
-        outputContains("Aggregate test results: " + renderedUrl)
-        def aggregateResults = aggregateResults()
-        aggregateResults.testPath(":failing1 suite")
-            .onlyRoot()
-            .assertChildCount(1, 1)
-        aggregateResults.testPath(":failing2 suite")
-            .onlyRoot()
-            .assertChildCount(1, 1)
+        def aggregateReport = AggregateTestReportFixture.of(testDirectory)
+        outputContains("Aggregate test results: " + new ConsoleRenderer().asClickableFileUrl(aggregateReport.indexFile))
+        aggregateReport.rows*.name() == ["failing1", "failing2"]
+        aggregateReport.linkedReport("failing1") == file("build/reports/tests/failing1/index.html")
+        aggregateReport.linkedReport("failing2") == file("build/reports/tests/failing2/index.html")
+    }
+
+    def "aggregate report shows test executions that failed without failed tests as failed"() {
+        given:
+        buildFile << failingWithoutFailedTestsTask("broken1")
+        buildFile << failingWithoutFailedTestsTask("broken2")
+
+        when:
+        fails("broken1", "broken2", "--continue")
+
+        then:
+        failure.assertHasFailures(2)
+
+        def aggregateReport = AggregateTestReportFixture.of(testDirectory)
+        outputContains("Aggregate test results: " + new ConsoleRenderer().asClickableFileUrl(aggregateReport.indexFile))
+        aggregateReport.rows == [
+            new AggregateTestReportFixture.Row("broken1", "../tests/broken1/index.html", "failed", 1, 1, 0, 0),
+            new AggregateTestReportFixture.Row("broken2", "../tests/broken2/index.html", "failed", 1, 1, 0, 0)
+        ]
+        aggregateReport.failedRows*.name() == ["broken1", "broken2"]
     }
 
     def "stale aggregate reports are deleted if no tests were executed"() {
@@ -390,7 +399,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         aggregateReportFile.assertDoesNotExist()
     }
 
-    def "aggregate test results has roots in order by path to roots"() {
+    def "aggregate report lists test executions by name"() {
         given:
         buildFile << passingTask("aFirst")
         buildFile << failingTask("bSecond")
@@ -403,11 +412,11 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         then:
         failure.assertHasFailures(2)
 
-        def aggregateResults = aggregateResults('')
-        assert aggregateResults.testPath(":").rootNames == ["aFirst", "bSecond", "cThird", "dFourth"]
+        AggregateTestReportFixture.of(testDirectory).rows*.name() == ["aFirst", "bSecond", "cThird", "dFourth"]
+        AggregateTestReportFixture.of(testDirectory).failedRows*.name() == ["bSecond", "cThird"]
     }
 
-    def "aggregate report with roots of same name disambiguates the roots and has both results"() {
+    def "aggregate report disambiguates test executions with the same name and links to each of their reports"() {
         given:
         buildFile <<
             """
@@ -455,17 +464,8 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
 
 
         then:
-        def results = aggregateResults()
-        results
-            .testPath(":TheSameName suite")
-            .root("TheSameName (1)")
-            .assertChildCount(1, 0)
-            .assertOnlyChildrenExecuted("theSameName1 test")
-        results
-            .testPath(":TheSameName suite")
-            .root("TheSameName (2)")
-            .assertChildCount(1, 0)
-            .assertOnlyChildrenExecuted("theSameName2 test")
+        AggregateTestReportFixture.of(testDirectory).rows*.name() == ["TheSameName (1)", "TheSameName (2)"]
+        AggregateTestReportFixture.of(testDirectory).rows*.href() == ["../tests/theSameName1/index.html", "../tests/theSameName2/index.html"]
     }
 
     def "child results are sorted lexicographically ignoring case"() {
@@ -530,7 +530,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         succeeds("passing")
 
         then:
-        def results = aggregateResults()
+        def results = resultsFor("tests/passing")
         // Table is marked sortable and its data rows live inside a <tbody>
         results.assertHtml("table.test-results.sortable > tbody > tr") {
             assert !it.isEmpty()
@@ -617,6 +617,42 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
                             mySuite.failed(Instant.now())
                        }
                        reporter.failed(Instant.now())
+                   }
+                }
+            }
+
+            tasks.register("${name}", ${name}CustomTestTask)
+        """
+    }
+
+    def failingWithoutFailedTestsTask(String name) {
+        assert !name.toCharArray().any { it.isWhitespace() }
+
+        """
+            abstract class ${name}CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @Inject
+                abstract ProjectLayout getLayout()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "${name}",
+                        getLayout().getBuildDirectory().dir("test-results/${name}").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/${name}").get()
+                    )) {
+                       reporter.started(Instant.now())
+                       try (def mySuite = reporter.reportTestGroup("${name} suite")) {
+                            mySuite.started(Instant.now())
+                            try (def myTest = mySuite.reportTest("${name} test", "passing test")) {
+                                 myTest.started(Instant.now())
+                                 myTest.succeeded(Instant.now())
+                            }
+                            mySuite.succeeded(Instant.now())
+                       }
+                       reporter.failed(Instant.now(), "execution failed")
                    }
                 }
             }

@@ -16,6 +16,7 @@
 
 package org.gradle.testing
 
+import org.gradle.api.internal.tasks.testing.report.AggregateTestReportFixture
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
@@ -87,14 +88,8 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
             .onlyRoot()
             .assertMetadata([testkey: 'testvalue', testkey2: "2", testkey3: "3"])
 
-        and: "Also in the aggregate report"
-        def aggregateResults = aggregateResults()
-        aggregateResults.testPath(":failing suite")
-            .onlyRoot()
-            .assertChildCount(1, 1)
-        aggregateResults.testPath(":failing suite:failing test")
-            .onlyRoot()
-            .assertMetadata([testkey: 'testvalue', testkey2: "2", testkey3: "3"])
+        and: "The aggregate report links to that report"
+        AggregateTestReportFixture.of(testDirectory).linkedReport("failing") == file("build/reports/tests/failing/index.html")
     }
 
     def "emits test report with metadata with multiple values in metadata event"() {
@@ -236,35 +231,41 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         failure.assertHasCause("Test(s) failed.")
         failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("integration-tests"))
 
-        and: "Verify the metadata is present in the aggregate report"
-        def aggregateResults = aggregateResults()
+        and: "The aggregate report links to both reports"
+        def aggregateReport = AggregateTestReportFixture.of(testDirectory)
+        aggregateReport.linkedReport("Unit Tests") == file("build/reports/tests/failing/index.html")
+        aggregateReport.linkedReport("Integration Tests") == file("build/reports/tests/integration-tests/index.html")
 
-        aggregateResults.testPath(":Unit Tests Suite")
+        and: "Verify the metadata is present in the reports"
+        def unitTestResults = resultsFor("tests/failing")
+        def integrationTestResults = resultsFor("tests/integration-tests")
+
+        unitTestResults.testPath(":Unit Tests Suite")
             .onlyRoot()
             .assertChildCount(2, 0)
-        aggregateResults.testPath(":Unit Tests Suite:test1")
+        unitTestResults.testPath(":Unit Tests Suite:test1")
             .onlyRoot()
             .assertMetadataKeys(["key1"])
-        aggregateResults.testPath(":Unit Tests Suite:test2")
+        unitTestResults.testPath(":Unit Tests Suite:test2")
             .onlyRoot()
             .assertMetadataKeys(["key2"])
 
-        aggregateResults.testPath(":Slow Integration Tests Suite")
+        integrationTestResults.testPath(":Slow Integration Tests Suite")
             .onlyRoot()
             .assertChildCount(1, 0)
             .assertMetadataKeys(["suitekey1"])
-        aggregateResults.testPath(":Slow Integration Tests Suite:intTest1")
+        integrationTestResults.testPath(":Slow Integration Tests Suite:intTest1")
             .onlyRoot()
             .assertMetadataKeys(["ikey1"])
 
-        aggregateResults.testPath(":Slower Integration Tests Suite")
+        integrationTestResults.testPath(":Slower Integration Tests Suite")
             .onlyRoot()
             .assertChildCount(2, 1)
             .assertMetadataKeys(["suitekey2", "suitekey2-another"])
-        aggregateResults.testPath(":Slower Integration Tests Suite:intTest2")
+        integrationTestResults.testPath(":Slower Integration Tests Suite:intTest2")
             .onlyRoot()
             .assertMetadataKeys(["ikey2"])
-        aggregateResults.testPath(":Slower Integration Tests Suite:intTest3")
+        integrationTestResults.testPath(":Slower Integration Tests Suite:intTest3")
             .onlyRoot()
             .assertMetadataKeys(["ikey3"])
     }

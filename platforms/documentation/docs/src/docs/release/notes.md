@@ -76,6 +76,14 @@ Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that
 ### Test reporting and execution
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 
+#### Test execution summary
+
+When a build runs several test tasks, each one writes its own test report, and finding the failures required opening them one by one.
+
+Gradle now writes a summary page of all test executions to a single aggregate report in the build's root directory.
+It aggregates every test executed, including custom test tasks that use the [test event reporting API](userguide/test_reporting_api.html), and provides links to their HTML test reports.
+When more than one test task fails, Gradle prints the link to this page at the end of the build.
+
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 
