@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
+import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -26,14 +27,14 @@ import java.io.File;
 
 @ServiceScope(Scope.Build.class)
 public interface DependencyVerificationOverride {
-    DependencyVerificationOverride NO_VERIFICATION = original -> original;
+    DependencyVerificationOverride NO_VERIFICATION = (original, parentModuleResolver) -> original;
     String VERIFICATION_METADATA_XML = "verification-metadata.xml";
 
     static File dependencyVerificationsFile(File gradleDirectory) {
         return new File(gradleDirectory, VERIFICATION_METADATA_XML);
     }
 
-    ModuleComponentRepository<ExternalModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> original);
+    ModuleComponentRepository<ExternalModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> original, ComponentMetaDataResolver parentModuleResolver);
 
     default void buildFinished(GradleInternal model) {
     }
