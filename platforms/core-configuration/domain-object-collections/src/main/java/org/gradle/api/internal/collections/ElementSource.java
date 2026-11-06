@@ -20,9 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * The heart of any domain object collection. This source is able to track eager and lazy (pending)
@@ -91,6 +93,16 @@ public interface ElementSource<T> extends Iterable<T> {
     boolean addPending(ProviderInternal<? extends T> provider);
 
     boolean removePending(ProviderInternal<? extends T> provider);
+
+    /**
+     * Removes the element added by the given provider if it was realized when added for an eager listener, without querying the provider again.
+     *
+     * @return the values that are no longer in this source, or {@code null} if this source has no such element added by the provider
+     */
+    @Nullable
+    default List<T> removeRealized(ProviderInternal<? extends T> provider) {
+        return null;
+    }
 
     boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider);
 

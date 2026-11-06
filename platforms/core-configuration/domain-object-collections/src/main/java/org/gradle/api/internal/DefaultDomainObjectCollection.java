@@ -167,8 +167,17 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     @Override
     public void all(Action<? super T> action) {
         assertEagerContext("all(Action)");
-        Action<? super T> decoratedAction = addEagerAction(action);
+        executeForAllElements(addEagerAction(action));
+    }
 
+    @Override
+    public void forwardElements(Action<? super T> action) {
+        assertEagerContext("forwardElements(Action)");
+        store.realizePending(type);
+        executeForAllElements(eventRegister.registerForwardingAddAction(type, decorate(action)));
+    }
+
+    private void executeForAllElements(Action<? super T> decoratedAction) {
         if (store.constantTimeIsEmpty()) {
             return;
         }
@@ -378,6 +387,15 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             if (getStore().removePending(providerInternal)) {
                 // NOTE: When removing provider, we don't need to fireObjectRemoved as they were never added in the first place.
                 didRemove(providerInternal);
+                return true;
+            }
+            List<T> removedValues = getStore().removeRealized(providerInternal);
+            if (removedValues != null) {
+                didRemove(providerInternal);
+                for (T value : removedValues) {
+                    didRemove(value);
+                    eventRegister.fireObjectRemoved(value);
+                }
                 return true;
             } else if (getType().isAssignableFrom(providerInternal.getType()) && providerInternal.isPresent()) {
                 // The provider is of compatible type and the element was either already realized or we are removing a provider to the element
