@@ -189,7 +189,7 @@ A rule that redirects a dependency with `useTarget` replaces the requested depen
 A `platform(...)` dependency then no longer resolves as a platform, and a `testFixtures(...)` dependency resolves to the main variant of the new target.
 
 To change only which component a dependency resolves to, create the target with `withModule` or `withProject`.
-Both keep the attributes and capability selectors of the requested dependency.
+Both keep the attributes and capabilities of the requested dependency.
 These determine which variant Gradle selects.
 
 This is useful for rules that apply to many dependencies at once.

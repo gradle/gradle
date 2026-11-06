@@ -90,7 +90,7 @@ Gradle provides a flexible [dependency management](userguide/getting_started_dep
 A [dependency substitution](userguide/resolution_rules.html#sec:dependency-substitution-rules) rule that redirects a dependency with `useTarget` replaces the requested dependency entirely, including its attributes and requested capabilities.
 Previously, substituting a `platform(...)` dependency dropped its attributes and substituting a `testFixtures(...)` dependency dropped its requested capabilities, so both resolved to the main variant.
 
-The new `withModule` and `withProject` methods on [`DependencySubstitutions`](javadoc/org/gradle/api/artifacts/DependencySubstitutions.html) create a target that keeps the attributes and capability selectors of the requested dependency:
+The new `withModule` and `withProject` methods on [`DependencySubstitutions`](javadoc/org/gradle/api/artifacts/DependencySubstitutions.html) create a target that keeps the attributes and capabilities of the requested dependency:
 
 ```kotlin
 configurations.runtimeClasspath {
