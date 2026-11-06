@@ -18,6 +18,7 @@
 package org.gradle.test.fixtures.maven
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 
@@ -143,6 +144,11 @@ class M2Installation implements Action<GradleExecuter> {
     void execute(GradleExecuter gradleExecuter) {
         init()
         gradleExecuter.withUserHomeDir(userHomeDir)
+        gradleExecuter.beforeExecute {
+            def kotlinStateDir = IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir.file("kotlin-daemon-state").createDir()
+            it.withEnvironmentVar("XDG_DATA_HOME", kotlinStateDir)
+            it.withEnvironmentVar("LOCALAPPDATA", kotlinStateDir)
+        }
         // if call `using m2`, then we disable the automatic isolation of m2
         isolateMavenLocal = false
         if (globalMavenDirectory?.exists()) {

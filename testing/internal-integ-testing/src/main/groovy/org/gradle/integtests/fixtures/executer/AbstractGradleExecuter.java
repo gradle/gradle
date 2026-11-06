@@ -793,6 +793,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
+    public GradleExecuter withEnvironmentVar(String name, Object value) {
+        Preconditions.checkArgument(!name.equals("JAVA_HOME"), "Cannot provide JAVA_HOME to withEnvironmentVar, use withJavaHome instead");
+        environmentVars.put(name, value.toString());
+        return this;
+    }
+
+    @Override
     public GradleExecuter withEnvironmentVarsIncludingJavaHome(Map<String, ?> environment) {
         environmentVars.clear();
         for (Map.Entry<String, ?> entry : environment.entrySet()) {
