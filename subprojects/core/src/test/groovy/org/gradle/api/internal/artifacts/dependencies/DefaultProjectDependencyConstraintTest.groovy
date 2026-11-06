@@ -22,6 +22,8 @@ import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateLookup
+import org.gradle.internal.configuration.problems.NoOpIsolatedProjectsProblemsReporter
+import org.gradle.internal.model.DomainObjectContext
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -89,7 +91,9 @@ class DefaultProjectDependencyConstraintTest extends Specification {
             TestUtil.objectFactory(),
             AttributeTestUtil.attributesFactory(),
             projectStateLookup,
-            new UnknownProjectFinder("")
+            new UnknownProjectFinder(""),
+            DomainObjectContext.NONE,
+            new NoOpIsolatedProjectsProblemsReporter()
         )
 
         def projectDependency = dependencyFactory.create(Path.ROOT)

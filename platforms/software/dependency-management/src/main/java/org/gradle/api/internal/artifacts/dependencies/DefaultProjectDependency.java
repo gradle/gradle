@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.capabilities.Capability;
@@ -26,15 +27,25 @@ import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
+import org.gradle.internal.configuration.problems.StructuredMessage;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
 
     private final ProjectState projectState;
+    private final @Nullable ProjectIdentity referrer;
+    private final IsolatedProjectsProblemsReporter ipProblems;
 
-    public DefaultProjectDependency(ProjectState projectState) {
+    /**
+     * @param referrer the project that declares this dependency, if any
+     */
+    public DefaultProjectDependency(ProjectState projectState, @Nullable ProjectIdentity referrer, IsolatedProjectsProblemsReporter ipProblems) {
         this.projectState = projectState;
+        this.referrer = referrer;
+        this.ipProblems = ipProblems;
     }
 
     @Override
@@ -44,7 +55,9 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public String getGroup() {
-        return unsafeGetProject().getGroup().toString();
+        return accessTargetProject("ProjectDependency.getGroup()", message -> message
+            .text(", as the value comes from that project's ").reference("group").text(" property")
+        ).getGroup().toString();
     }
 
     @Override
@@ -54,7 +67,9 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public String getVersion() {
-        return unsafeGetProject().getVersion().toString();
+        return accessTargetProject("ProjectDependency.getVersion()", message -> message
+            .text(", as the value comes from that project's ").reference("version").text(" property")
+        ).getVersion().toString();
     }
 
     @Override
@@ -64,7 +79,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public ProjectDependency copy() {
-        DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(projectState);
+        DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(projectState, referrer, ipProblems);
         copyTo(copiedProjectDependency);
         return copiedProjectDependency;
     }
@@ -77,7 +92,12 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
                 if (c instanceof SpecificCapabilitySelector) {
                     return ((DefaultSpecificCapabilitySelector) c).getBackingCapability();
                 } else if (c instanceof FeatureCapabilitySelector) {
-                    return new ProjectDerivedCapability(unsafeGetProject(), ((FeatureCapabilitySelector) c).getFeatureName());
+                    Project project = accessTargetProject("ModuleDependency.getRequestedCapabilities()", message -> message
+                        .text(" that requires a feature, as the capability comes from that project's ")
+                        .reference("group").text(" and ").reference("version").text(" properties. Use ")
+                        .reference("ModuleDependency.getCapabilitySelectors()").text(" instead")
+                    );
+                    return new ProjectDerivedCapability(project, ((FeatureCapabilitySelector) c).getFeatureName());
                 } else {
                     throw new UnsupportedOperationException("Unsupported capability selector type: " + c.getClass().getName());
                 }
@@ -114,13 +134,26 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     /**
-     * Any code which depends on this method should be deprecated and removed.
+     * Returns the target project's model, reporting cross-project access against {@code api}.
      * <p>
+     * Any code which depends on this method should be deprecated and removed.
      * A project dependency should be a simple wrapper around the _identity_ of a given
      * project, and should not retain any reference to the actual project instance.
      */
     @Deprecated
-    private Project unsafeGetProject() {
+    private Project accessTargetProject(String api, Action<StructuredMessage.Builder> explanation) {
+        ProjectIdentity referrer = this.referrer;
+        ProjectIdentity target = getTargetProjectIdentity();
+        if (referrer != null && !referrer.equals(target)) {
+            ipProblems.report(factory ->
+                factory.problem("Cross-project model access", message -> {
+                    message.text("Project ").reference(referrer.getBuildTreePath())
+                        .text(" cannot access ").reference(api)
+                        .text(" of a dependency on another project ").reference(target.getBuildTreePath());
+                    explanation.execute(message);
+                }).build()
+            );
+        }
         return projectState.getMutableModel();
     }
 

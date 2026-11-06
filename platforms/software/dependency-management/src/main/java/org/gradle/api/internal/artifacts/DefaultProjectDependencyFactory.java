@@ -23,14 +23,19 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.project.ProjectDomainObjectContext;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateLookup;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 @ServiceScope({Scope.Build.class, Scope.Project.class})
 public class DefaultProjectDependencyFactory {
@@ -40,6 +45,8 @@ public class DefaultProjectDependencyFactory {
     private final AttributesFactory attributesFactory;
     private final ProjectStateLookup projectStateLookup;
     private final ProjectFinder projectFinder;
+    private final @Nullable ProjectIdentity referrer;
+    private final IsolatedProjectsProblemsReporter ipProblems;
 
     public DefaultProjectDependencyFactory(
         Instantiator instantiator,
@@ -47,7 +54,9 @@ public class DefaultProjectDependencyFactory {
         ObjectFactory objectFactory,
         AttributesFactory attributesFactory,
         ProjectStateLookup projectStateLookup,
-        ProjectFinder projectFinder
+        ProjectFinder projectFinder,
+        DomainObjectContext owner,
+        IsolatedProjectsProblemsReporter ipProblems
     ) {
         this.instantiator = instantiator;
         this.capabilityNotationParser = capabilityNotationParser;
@@ -55,10 +64,12 @@ public class DefaultProjectDependencyFactory {
         this.attributesFactory = attributesFactory;
         this.projectStateLookup = projectStateLookup;
         this.projectFinder = projectFinder;
+        this.referrer = owner instanceof ProjectDomainObjectContext project ? project.getIdentity() : null;
+        this.ipProblems = ipProblems;
     }
 
     public ProjectDependency create(ProjectState projectState) {
-        DefaultProjectDependency projectDependency = instantiator.newInstance(DefaultProjectDependency.class, projectState);
+        DefaultProjectDependency projectDependency = instantiator.newInstance(DefaultProjectDependency.class, projectState, referrer, ipProblems);
         injectServices(projectDependency);
         return projectDependency;
     }
