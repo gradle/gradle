@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
@@ -102,6 +103,7 @@ public class DependencyGraphResolver {
         ResolutionParameters.SortOrder sortOrder,
         boolean failingOnDynamicVersions,
         boolean failingOnChangingVersions,
+        DisplayName resolution,
         ResolutionParameters.FailureResolutions failureResolutions,
         DependencyGraphVisitor modelVisitor
     ) {
@@ -124,6 +126,7 @@ public class DependencyGraphResolver {
             conflictResolution,
             failingOnDynamicVersions,
             failingOnChangingVersions,
+            resolution,
             failureResolutions,
             modelVisitor
         );

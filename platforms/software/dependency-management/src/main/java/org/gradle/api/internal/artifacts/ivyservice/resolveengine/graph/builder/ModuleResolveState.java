@@ -45,6 +45,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +86,11 @@ public class ModuleResolveState implements CandidateModule {
     private boolean replaced = false;
     private boolean inConflict;
     private int selectionChangedCounter;
+
+    /**
+     * The distinct projects seen resolving as this module. Null until a project component appears.
+     */
+    private @Nullable Set<ProjectComponentIdentifier> allProjectComponents;
 
     ModuleResolveState(
         ResolveState resolveState,
@@ -302,6 +308,8 @@ public class ModuleResolveState implements CandidateModule {
             new ComponentState(resolveState.getIdGenerator().nextGraphNodeId(), this, id, componentIdentifier, metaDataResolver)
         );
 
+        recordProjectComponent(componentIdentifier);
+
         // Starting in Gradle 10, the root component's module identity will no longer
         // be the module identity of the project performing dependency resolution.
         // In Gradle 10, attempting to resolve the root component using its old module coordinates will no
@@ -316,6 +324,27 @@ public class ModuleResolveState implements CandidateModule {
         }
 
         return componentState;
+    }
+
+    /**
+     * Records a project resolving as this module.
+     */
+    private void recordProjectComponent(ComponentIdentifier candidate) {
+        if (!(candidate instanceof ProjectComponentIdentifier project)) {
+            return;
+        }
+        if (allProjectComponents == null) {
+            allProjectComponents = new LinkedHashSet<>(2);
+        }
+        allProjectComponents.add(project);
+    }
+
+    /**
+     * The projects resolving as this module when more than one does, which means resolution cannot
+     * tell them apart. Null otherwise.
+     */
+    @Nullable Set<ProjectComponentIdentifier> getCollidingProjects() {
+        return allProjectComponents != null && allProjectComponents.size() > 1 ? allProjectComponents : null;
     }
 
     void addSelector(SelectorState selector, boolean deferSelection) {

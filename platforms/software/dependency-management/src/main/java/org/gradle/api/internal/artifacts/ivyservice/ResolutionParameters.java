@@ -299,7 +299,7 @@ public class ResolutionParameters {
     }
 
     /**
-     * Details about this resolution to provide additional context during failure cases.
+     * Details about this resolution to provide additional context when reporting failures and warnings.
      */
     public interface FailureResolutions {
 
@@ -308,6 +308,12 @@ public class ResolutionParameters {
          * version conflict.
          */
         List<String> forVersionConflict(Conflict conflict);
+
+        /**
+         * Provide resolutions to add to a warning about several projects resolving as the given
+         * module, to assist the user in seeing which project each dependency resolved to.
+         */
+        List<String> forProjectCoordinateCollision(ModuleIdentifier module);
 
     }
 

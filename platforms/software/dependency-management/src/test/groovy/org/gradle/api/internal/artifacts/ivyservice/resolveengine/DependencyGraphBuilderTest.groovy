@@ -150,7 +150,8 @@ class DependencyGraphBuilderTest extends Specification {
         new ComponentIdGenerator(),
         new VersionParser(),
         variantSelector,
-        buildOperationProcessor
+        buildOperationProcessor,
+        TestUtil.problemsService()
     )
 
     def root = rootProject()
@@ -158,7 +159,7 @@ class DependencyGraphBuilderTest extends Specification {
     private TestGraphVisitor resolve(Spec<? super DependencyMetadata> edgeFilter = { true }) {
         def graphVisitor = new TestGraphVisitor()
 
-        ResolutionParameters.FailureResolutions failureResolutions = () -> []
+        def failureResolutions = Stub(ResolutionParameters.FailureResolutions)
 
         builder.resolve(
             root.component,
@@ -176,6 +177,7 @@ class DependencyGraphBuilderTest extends Specification {
             ConflictResolution.latest,
             false,
             false,
+            Describables.of("configuration ':root:root'"),
             failureResolutions,
             graphVisitor
         )
