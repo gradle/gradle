@@ -187,6 +187,52 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         ["org:commons:3.2.1", "commons-3.2.1.jar"] | ["org.test:included", "included-1.0.jar"]
     }
 
+    def "order of entries in the effective classpath stays the same when a project has two artifacts with the same file name"() {
+        given:
+        withIncludedBuild()
+        file("included/build.gradle") << """
+            java {
+                registerFeature("extra") {
+                    usingSourceSet(sourceSets.create("extra"))
+                }
+            }
+            tasks.named("extraJar") {
+                archiveFileName = "included-1.0.jar"
+                destinationDirectory = layout.buildDirectory.dir("extra-libs")
+            }
+        """
+        file("included/src/main/resources/marker.txt") << "main"
+        file("included/src/extra/resources/marker.txt") << "extra"
+        javaBuild("between")
+        settingsFile << """
+            includeBuild("./between")
+        """
+        file("between/src/main/resources/marker.txt") << "between"
+        buildFile << """
+            buildscript {
+                dependencies {
+                    classpath "org.test:included"
+                    classpath "org.test:between"
+                    classpath("org.test:included") {
+                        capabilities {
+                            requireCapability("org.test:included-extra")
+                        }
+                    }
+                }
+            }
+
+            println "classpath==" + buildscript.configurations.classpath.files*.name
+            println "markers==" + Thread.currentThread().getContextClassLoader().getResources("marker.txt").collect { it.text }
+        """
+
+        when:
+        run("help")
+
+        then:
+        outputContains("classpath==[included-1.0.jar, included-1.0.jar, between-1.0.jar]")
+        outputContains("markers==[main, extra, between]")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/28114")
     def "buildSrc can monkey patch external plugins even after instrumentation"() {
         given:
@@ -575,7 +621,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         """
     }
 
-    def javaBuild(String projectName = "included", Action<String> init) {
+    def javaBuild(String projectName = "included") {
         file("$projectName/build.gradle") << """
             plugins {
                 id("java-library")
@@ -586,7 +632,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         file("$projectName/settings.gradle") << """
             rootProject.name = '$projectName'
         """
-        init(projectName)
     }
 
     def multiProjectJavaBuild(String projectName = "included", Action<String> init) {

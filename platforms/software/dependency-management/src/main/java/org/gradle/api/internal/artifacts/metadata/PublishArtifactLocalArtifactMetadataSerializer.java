@@ -57,9 +57,9 @@ public class PublishArtifactLocalArtifactMetadataSerializer implements Serialize
         componentIdentifierSerializer.write(encoder, value.getComponentIdentifier());
         PublishArtifact publishArtifact = value.getPublishArtifact();
         encoder.writeString(publishArtifact.getName());
-        encoder.writeString(publishArtifact.getType());
         encoder.writeString(publishArtifact.getExtension());
+        encoder.writeString(publishArtifact.getType());
         encoder.writeNullableString(publishArtifact.getClassifier());
-        encoder.writeString(publishArtifact.getFile().getCanonicalPath());
+        encoder.writeString(publishArtifact.getFile().getPath());
     }
 }
