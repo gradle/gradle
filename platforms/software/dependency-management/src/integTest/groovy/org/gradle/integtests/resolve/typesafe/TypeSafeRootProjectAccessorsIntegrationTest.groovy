@@ -16,6 +16,11 @@
 
 package org.gradle.integtests.resolve.typesafe
 
+import spock.lang.Issue
+
+import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
+import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
+
 class TypeSafeRootProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAccessorsIntegrationTest {
     def "generates type-safe accessors for a root project with name = #root)"() {
         given:
@@ -42,5 +47,30 @@ class TypeSafeRootProjectAccessorsIntegrationTest extends AbstractTypeSafeProjec
         'kebab-case' | 'kebabCase'
         'camelCase'  | 'camelCase'
 
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19254")
+    def "can use accessor for root-level project named #name in #dsl DSL"() {
+        given:
+        createDirs(name)
+        settingsFile << """
+            rootProject.name = 'test'
+            include '$name'
+        """
+        getBuildFile(dsl) << """
+            println("Dependency path: [" + projects.${name}.path + "]")
+        """
+
+        when:
+        succeeds 'help'
+
+        then:
+        outputContains "Dependency path: [:$name]"
+
+        where:
+        name                | dsl
+        'extensions'        | GROOVY
+        'conventionMapping' | GROOVY
+        'extensions'        | KOTLIN
     }
 }
