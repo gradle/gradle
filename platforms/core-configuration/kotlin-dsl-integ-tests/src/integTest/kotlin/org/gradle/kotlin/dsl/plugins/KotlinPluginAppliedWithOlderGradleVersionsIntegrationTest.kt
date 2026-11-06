@@ -163,13 +163,14 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
             .withStackTraceChecksDisabled() // The Kotlin compiler daemon intermittently crashes and logs a stack trace before falling back; that's not what we test here.
             .run()
 
-        // The KGP 2.0.x line registers an attribute whose type is a plain enum
+        // KGP before 2.5.0 registers an attribute whose type is a plain enum
         // (KotlinNativeBundleArtifactFormat.KotlinNativeBundleArtifactsTypes). That plain
         // enum type would normally trigger the generic unsupported-attribute-value-type
         // deprecation, but Attribute.of recognizes its fully-qualified name and instead
-        // emits a KGP-specific deprecation identifying the plugin as the source. Verify
-        // that KGP-specific message is present for the 2.0.x rows in this matrix and
-        // absent from KGP 2.1.0+ (which no longer uses the plain enum for this attribute).
+        // emits a KGP-specific deprecation identifying the plugin as the source. KGP 2.0.x
+        // always registers it, but later versions register it only for Kotlin/Native targets,
+        // which this build does not use. Verify that KGP-specific message is present for the
+        // 2.0.x rows in this matrix and absent from all later rows.
         val kgpEnumDeprecationSummary =
             "Using the enum type KotlinNativeBundleArtifactsTypes as an attribute value type has been deprecated."
         if (kgpVersion.startsWith("2.0.")) {
@@ -177,8 +178,8 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
         } else {
             check(!result.output.contains(kgpEnumDeprecationSummary)) {
                 "KGP $kgpVersion unexpectedly emitted the KotlinNativeBundleArtifactsTypes deprecation. " +
-                    "If a post-2.0.x KGP started re-using the plain enum, the special case in Attribute.of " +
-                    "and the 'upgrade to KGP 2.1.0 or later' guidance in the upgrade guide need to be revisited."
+                    "If a post-2.0.x KGP started registering the plain enum without Kotlin/Native targets, " +
+                    "the description of this deprecation in the upgrade guide needs to be revisited."
             }
         }
     }

@@ -64,7 +64,7 @@ public class Attribute<T> implements Named {
             // handling downstream (serialization, desugaring, coercion, publishing) can be scrubbed.
             if (AttributeTypeValidator.isKGPSpecialCase(type)) {
                 DeprecationLogger.deprecate("Using the enum type " + type.getSimpleName() + " as an attribute value type")
-                    .withContext("This enum does not implement Named. All Enums used as Attribute values should implement Named. This enum type is used by the Kotlin Gradle Plugin 2.0.x line. Upgrade to KGP 2.1.0 or later, in which the plugin no longer uses a plain enum for this attribute.")
+                    .withContext("This enum does not implement Named. All Enums used as Attribute values should implement Named. This enum type is used by Kotlin Gradle Plugin versions before 2.5.0. Upgrade to KGP 2.5.0 or later, in which the plugin no longer uses a plain enum for this attribute.")
                     .willBecomeAnErrorInGradle10()
                     .withUpgradeGuideSection(9, "kgp_native_bundle_attribute_enum")
                     .nagUser();
