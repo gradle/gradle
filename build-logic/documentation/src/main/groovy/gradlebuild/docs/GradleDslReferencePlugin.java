@@ -19,7 +19,7 @@ package gradlebuild.docs;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.DependencyScopeConfiguration;
 import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
@@ -78,15 +78,15 @@ public class GradleDslReferencePlugin implements Plugin<Project> {
             task.getDestFile().convention(dslReference.getStagingRoot().file("index.xml"));
         });
 
-        Configuration userGuideTask = project.getConfigurations().dependencyScope("userGuideTask").get();
-        Configuration userGuideStyleSheets = project.getConfigurations().dependencyScope("userGuideStyleSheets").get();
+        NamedDomainObjectProvider<DependencyScopeConfiguration> userGuideTask = project.getConfigurations().dependencyScope("userGuideTask");
+        NamedDomainObjectProvider<DependencyScopeConfiguration> userGuideStyleSheets = project.getConfigurations().dependencyScope("userGuideStyleSheets");
         NamedDomainObjectProvider<ResolvableConfiguration> userGuideTaskClasspath = project.getConfigurations().resolvable("userGuideTaskClasspath", conf -> {
             conf.extendsFrom(userGuideTask);
-            requestRuntimeLibrary(conf, objects);
+            configureAsRuntimeLibrary(conf, objects);
         });
         NamedDomainObjectProvider<ResolvableConfiguration> userGuideStyleSheetsPath = project.getConfigurations().resolvable("userGuideStyleSheetsPath", conf -> {
             conf.extendsFrom(userGuideStyleSheets);
-            requestRuntimeLibrary(conf, objects);
+            configureAsRuntimeLibrary(conf, objects);
         });
 
         TaskProvider<Docbook2Xhtml> dslHtml = tasks.register("dslHtml", Docbook2Xhtml.class, task -> {
@@ -127,8 +127,8 @@ public class GradleDslReferencePlugin implements Plugin<Project> {
     }
 
     // The XSLT tools and stylesheets come from Maven, whose derived variants only offer Java usages.
-    // Mirrors gradlebuild.requestRuntimeLibrary in build-logic/jvm, which this module does not depend on.
-    private static void requestRuntimeLibrary(ResolvableConfiguration conf, ObjectFactory objects) {
+    // Mirrors gradlebuild.configureAsRuntimeLibrary in build-logic/jvm, which this module does not depend on.
+    private static void configureAsRuntimeLibrary(ResolvableConfiguration conf, ObjectFactory objects) {
         conf.attributes(a -> {
             a.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME));
             a.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.LIBRARY));

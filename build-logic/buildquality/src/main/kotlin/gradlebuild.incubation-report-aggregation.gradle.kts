@@ -29,8 +29,8 @@ tasks.register<Zip>("allIncubationReportsZip") {
     group = "verification"
     destinationDirectory = layout.buildDirectory.dir("reports/incubation")
     archiveBaseName = "incubating-apis"
-    from(allIncubationReports.get().htmlReportFile)
-    from(allIncubationReports.get().csvReportFile)
+    from(allIncubationReports.flatMap { it.htmlReportFile })
+    from(allIncubationReports.flatMap { it.csvReportFile })
     from(resolver("html"))
 }
 

@@ -31,7 +31,7 @@ jvmCompile {
 
 configurations {
     jmhImplementation {
-        extendsFrom(configurations.implementation.get())
+        extendsFrom(configurations.implementation)
         configurations.findByName("platformImplementation")?.let {
             extendsFrom(it)
         }

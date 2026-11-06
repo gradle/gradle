@@ -27,8 +27,8 @@ val packageInfoData = tasks.register<GeneratePackageInfoDataTask>("packageInfoDa
     description = "Collects the packages this project owns and the package-info.java files that apply to them"
     projectPath = project.path
     projectBaseDir = layout.projectDirectory.asFile.relativeTo(layout.settingsDirectory.asFile).invariantSeparatorsPath
-    sourceRoots.from(sourceSets.main.get().java.sourceDirectories)
-    sourceRoots.from(sourceSets.main.get().groovy.sourceDirectories)
+    sourceRoots.from(sourceSets.main.map { it.java.sourceDirectories })
+    sourceRoots.from(sourceSets.main.map { it.groovy.sourceDirectories })
     outputFile = layout.buildDirectory.file("architecture/project-package-info.json")
 }
 

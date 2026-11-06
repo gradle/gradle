@@ -61,7 +61,7 @@ fun Configuration.configureAsRuntimeJarClasspath(objects: ObjectFactory) {
  * Requests a runtime library, for non-Java artifacts such as JavaScript. Maven derives only Java usages
  * for such modules, so a more specific usage would not match them; attribute-less Ivy variants match anything.
  */
-fun Configuration.requestRuntimeLibrary(objects: ObjectFactory) {
+fun ResolvableConfiguration.configureAsRuntimeLibrary(objects: ObjectFactory) {
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))

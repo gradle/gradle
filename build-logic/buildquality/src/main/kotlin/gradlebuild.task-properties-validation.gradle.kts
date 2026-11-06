@@ -22,9 +22,9 @@ val validateTaskName = "validatePlugins"
 val reportFileName = "task-properties/report.txt"
 
 tasks.register<ValidatePlugins>(validateTaskName) {
-    val main = project.sourceSets.main.get()
-    classes.from(main.output)
-    classpath.from(main.runtimeClasspath)
+    val main = project.sourceSets.main
+    classes.from(main.map { it.output })
+    classpath.from(main.map { it.runtimeClasspath })
     outputFile = project.reporting.baseDirectory.file(reportFileName)
     enableStricterValidation = true
 }
