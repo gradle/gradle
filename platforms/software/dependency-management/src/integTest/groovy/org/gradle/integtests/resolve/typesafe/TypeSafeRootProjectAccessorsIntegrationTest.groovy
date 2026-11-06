@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.resolve.typesafe
 
+import spock.lang.Issue
+
 class TypeSafeRootProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAccessorsIntegrationTest {
     def "generates type-safe accessors for a root project with name = #root)"() {
         given:
@@ -42,5 +44,30 @@ class TypeSafeRootProjectAccessorsIntegrationTest extends AbstractTypeSafeProjec
         'kebab-case' | 'kebabCase'
         'camelCase'  | 'camelCase'
 
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22095")
+    def "regenerates type-safe accessors when the root project is renamed"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'first'
+        """
+        buildFile << """
+            println('Dependency path: [' + projects.first.path + ']')
+        """
+
+        when:
+        succeeds 'help'
+
+        then:
+        outputContains 'Dependency path: [:]'
+
+        when:
+        settingsFile.text = settingsFile.text.replace("rootProject.name = 'first'", "rootProject.name = 'second'")
+        buildFile.text = buildFile.text.replace("projects.first", "projects.second")
+        succeeds 'help'
+
+        then:
+        outputContains 'Dependency path: [:]'
     }
 }
