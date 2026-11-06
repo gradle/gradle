@@ -34,6 +34,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
+
 public class DefaultDependencyConstraint extends AbstractDependencyConstraint {
 
     private final static Logger LOG = Logging.getLogger(DefaultDependencyConstraint.class);
@@ -46,6 +48,7 @@ public class DefaultDependencyConstraint extends AbstractDependencyConstraint {
     private AttributeContainerInternal attributes;
     private boolean force;
 
+    @Inject
     public DefaultDependencyConstraint(String group, String name, String version) {
         this.moduleIdentifier = DefaultModuleIdentifier.newId(group, name);
         this.versionConstraint = new DefaultMutableVersionConstraint(version);
