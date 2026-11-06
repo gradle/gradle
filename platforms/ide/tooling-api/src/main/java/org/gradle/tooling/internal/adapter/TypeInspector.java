@@ -24,16 +24,17 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @ThreadSafe
 class TypeInspector {
     private final Set<Class<?>> stopAt = new HashSet<Class<?>>();
-    private final Map<Class<?>, Set<Class<?>>> inspected = new HashMap<Class<?>, Set<Class<?>>>();
+    // Queried concurrently, e.g. by nested build actions running in parallel
+    private final Map<Class<?>, Set<Class<?>>> inspected = new ConcurrentHashMap<Class<?>, Set<Class<?>>>();
 
     public TypeInspector() {
         stopAt.add(List.class);

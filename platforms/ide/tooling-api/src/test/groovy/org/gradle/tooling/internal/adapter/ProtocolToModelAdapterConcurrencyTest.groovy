@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import spock.lang.Issue
 import spock.lang.Specification
 
+import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -48,6 +49,32 @@ class ProtocolToModelAdapterConcurrencyTest extends Specification {
 
         then:
         failures.isEmpty()
+
+        cleanup:
+        pool?.shutdownNow()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39657")
+    def "views shared across threads resolve the same source object to the same view"() {
+        def parents = 2000
+        def sources = (0..<parents).collect { new TestParentImpl() }
+        def pool = Executors.newFixedThreadPool(2)
+        List<Integer> mismatches = []
+
+        when:
+        for (int round = 0; round < 20 && mismatches.isEmpty(); round++) {
+            def graph = adapter.newGraph()
+            List<TestParent> views = sources.collect { graph.adapt(TestParent, it) }
+            def arrived = new AtomicIntegerArray(parents)
+            def viaA = pool.submit({ TestParentAccess.readChildren(views, arrived, true) } as Callable<List<TestChild>>)
+            def viaB = pool.submit({ TestParentAccess.readChildren(views, arrived, false) } as Callable<List<TestChild>>)
+            def childrenViaA = viaA.get(1, TimeUnit.MINUTES)
+            def childrenViaB = viaB.get(1, TimeUnit.MINUTES)
+            mismatches = (0..<parents).findAll { !childrenViaA[it].is(childrenViaB[it]) }
+        }
+
+        then:
+        mismatches.isEmpty()
 
         cleanup:
         pool?.shutdownNow()
@@ -209,6 +236,53 @@ class TestWideModelAccess {
         if (actual != expected) {
             failures.add("view " + index + ": expected " + expected + " but got " + actual)
         }
+    }
+}
+
+interface TestParent {
+    TestChild getA()
+
+    TestChild getB()
+}
+
+interface TestChild {
+    String getName()
+}
+
+class TestParentImpl {
+    private final TestChildImpl child = new TestChildImpl()
+
+    TestChildImpl getA() {
+        return child
+    }
+
+    TestChildImpl getB() {
+        return child
+    }
+}
+
+class TestChildImpl {
+    String getName() {
+        return "child"
+    }
+}
+
+@CompileStatic
+class TestParentAccess {
+    // Waits for the other thread at each parent, so that both threads adapt the shared child at the same time, one through getA() and the other through getB()
+    static List<TestChild> readChildren(List<TestParent> parents, AtomicIntegerArray arrived, boolean viaA) {
+        List<TestChild> children = new ArrayList<>(parents.size())
+        for (int i = 0; i < parents.size(); i++) {
+            TestParent parent = parents.get(i)
+            arrived.incrementAndGet(i)
+            long deadline = TestThreadHandshake.deadline()
+            while (arrived.get(i) < 2) {
+                Thread.onSpinWait()
+                TestThreadHandshake.checkNotTimedOut(deadline, i)
+            }
+            children.add(viaA ? parent.getA() : parent.getB())
+        }
+        return children
     }
 }
 

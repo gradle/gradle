@@ -173,9 +173,8 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         Object proxy = Proxy.newProxyInstance(viewType.getClassLoader(), modelContractInterfaces, handler);
         handler.attachProxy(proxy);
 
-        graphDetails.putViewFor(sourceObject, viewKey, proxy);
-
-        return viewType.cast(proxy);
+        // Another thread may have created a view of the same source concurrently, use the first one so that each source has a single view
+        return viewType.cast(graphDetails.putViewIfAbsent(sourceObject, viewKey, proxy));
     }
 
     private static <T> Class<?>[] getModelContractInterfaces(Class<T> targetType, Object sourceObject, Class<? extends T> viewType) {
@@ -416,24 +415,50 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
     private static class ViewGraphDetails implements Serializable {
         // Transient, don't serialize all the views that happen to have been visited, recreate them when visited via the deserialized view
-        private transient WeakIdentityHashMap<Object, Map<ViewKey, WeakReference<Object>>> views = new WeakIdentityHashMap<>();
+        // Views of the same source object can be created concurrently from multiple threads
+        private transient WeakIdentityHashMap<Object, ConcurrentHashMap<ViewKey, WeakReference<Object>>> views = new WeakIdentityHashMap<>();
         private final TargetTypeProvider typeProvider;
 
         ViewGraphDetails(TargetTypeProvider typeProvider) {
             this.typeProvider = typeProvider;
         }
 
-        private void putViewFor(Object sourceObject, ViewKey key, Object proxy) {
-            Map<ViewKey, WeakReference<Object>> viewsForSource = views.computeIfAbsent(sourceObject,
-                new WeakIdentityHashMap.AbsentValueProvider<Map<ViewKey, WeakReference<Object>>>() {
+        private ConcurrentHashMap<ViewKey, WeakReference<Object>> viewsFor(Object sourceObject) {
+            return views.computeIfAbsent(sourceObject,
+                new WeakIdentityHashMap.AbsentValueProvider<ConcurrentHashMap<ViewKey, WeakReference<Object>>>() {
                     @Override
-                    public Map<ViewKey, WeakReference<Object>> provide() {
-                        // Views of the same source object can be created concurrently from multiple threads
+                    public ConcurrentHashMap<ViewKey, WeakReference<Object>> provide() {
                         return new ConcurrentHashMap<>();
                     }
                 });
+        }
 
-            viewsForSource.put(key, new WeakReference<>(proxy));
+        private void putViewFor(Object sourceObject, ViewKey key, Object proxy) {
+            viewsFor(sourceObject).put(key, new WeakReference<>(proxy));
+        }
+
+        /**
+         * Registers the given view, unless a live view is already registered for the source object and key.
+         *
+         * @return the registered view
+         */
+        private Object putViewIfAbsent(Object sourceObject, ViewKey key, Object proxy) {
+            ConcurrentHashMap<ViewKey, WeakReference<Object>> viewsForSource = viewsFor(sourceObject);
+            WeakReference<Object> proxyRef = new WeakReference<>(proxy);
+            while (true) {
+                WeakReference<Object> existingRef = viewsForSource.putIfAbsent(key, proxyRef);
+                if (existingRef == null) {
+                    return proxy;
+                }
+                Object existing = existingRef.get();
+                if (existing != null) {
+                    return existing;
+                }
+                // The registered view has been garbage collected, replace it
+                if (viewsForSource.replace(key, existingRef, proxyRef)) {
+                    return proxy;
+                }
+            }
         }
 
         @Nullable
@@ -945,7 +970,9 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     private static class ClassMixInMethodInvoker implements MethodInvoker {
-        private Object instance;
+        // Views can be shared between threads, so the mix-in instance is created at most once and safely published
+        @Nullable
+        private volatile Object instance;
         private final Class<?> mixInClass;
         private final MethodInvoker next;
         @SuppressWarnings("ThreadLocalUsage") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
@@ -963,10 +990,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 return;
             }
 
-            if (instance == null) {
-                instance = DirectInstantiator.INSTANCE.newInstance(mixInClass, invocation.getView());
-            }
-            MethodInvocation beanInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), invocation.getParameterTypes(), invocation.getView(), invocation.getViewType(), instance, invocation.getParameters());
+            MethodInvocation beanInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), invocation.getParameterTypes(), invocation.getView(), invocation.getViewType(), getInstance(invocation), invocation.getParameters());
             current.set(beanInvocation);
             try {
                 next.invoke(beanInvocation);
@@ -976,6 +1000,20 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             if (beanInvocation.found()) {
                 invocation.setResult(beanInvocation.getResult());
             }
+        }
+
+        private Object getInstance(MethodInvocation invocation) {
+            Object result = instance;
+            if (result == null) {
+                synchronized (this) {
+                    result = instance;
+                    if (result == null) {
+                        result = DirectInstantiator.INSTANCE.newInstance(mixInClass, invocation.getView());
+                        instance = result;
+                    }
+                }
+            }
+            return result;
         }
     }
 
