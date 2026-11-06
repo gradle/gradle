@@ -28,6 +28,12 @@ public interface Named {
      * The object's name.
      * <p>
      * Must be constant for the life of the object.
+     * <p>
+     * Implementations should not declare a {@link Object#toString()} that returns anything other
+     * than this name. Gradle derives the name from this method wherever it needs one, but renders
+     * the object with {@code toString()} in diagnostics, so the two disagreeing produces output
+     * that contradicts the behavior it describes. This is easy to miss on an {@code enum}, which
+     * inherits a {@code toString()} returning {@link Enum#name()}.
      *
      * @return The name. Never null.
      * @since 1.0

@@ -25,11 +25,11 @@ import org.jspecify.annotations.Nullable;
 public interface TaskIdentityProvider {
 
     /**
-     * Returns the identity of the task under which the target build operation is running.
+     * Returns the identity of the task the current thread is working for, or else of the task running the target build operation.
      *
-     * @param id the id of the target build operation
-     * @return the task identity or {@code null}, if the operation is not running in the context  of a task
+     * @param id the id of the target build operation, or {@code null} if there is none
+     * @return the task identity, or {@code null} if neither is working for a task
      */
     @Nullable
-    TaskIdentity taskIdentityFor(OperationIdentifier id);
+    TaskIdentity taskIdentityFor(@Nullable OperationIdentifier id);
 }

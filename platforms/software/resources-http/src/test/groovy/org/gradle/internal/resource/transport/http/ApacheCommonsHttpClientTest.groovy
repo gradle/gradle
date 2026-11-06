@@ -29,6 +29,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.internal.resource.HttpErrorStatusCodeException
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 class ApacheCommonsHttpClientTest extends Specification {
@@ -189,6 +190,23 @@ class ApacheCommonsHttpClientTest extends Specification {
 
         then:
         result == Optional.of("Weird casing but still problem+json")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39412")
+    def "extractErrorDetail does not read the body of a HEAD response"() {
+        given:
+        def response = Mock(HttpClient.Response) {
+            getMethod() >> "HEAD"
+            getHeader("Content-Type") >> "application/problem+json"
+            getStatusReason() >> "Forbidden"
+        }
+
+        when:
+        def result = client.extractErrorDetail(response)
+
+        then:
+        result == Optional.of("Forbidden")
+        0 * response.getContent()
     }
 
     def "extractErrorDetail falls back to reason phrase for non-RFC9457 responses"() {

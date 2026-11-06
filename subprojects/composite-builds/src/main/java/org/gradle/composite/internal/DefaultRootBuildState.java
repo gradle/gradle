@@ -40,6 +40,7 @@ import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.composite.IncludedRootBuild;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -104,6 +105,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
             Throwable failure = null;
             try {
                 GradleInternal gradle = getBuildController().getGradle();
+                gradle.getServices().get(GradleEnterprisePluginManager.class).registerMissingPluginWarning(gradle);
                 DefaultDeploymentRegistry deploymentRegistry = gradle.getServices().get(DefaultDeploymentRegistry.class);
                 gradle.addBuildListener(new InternalBuildAdapter() {
                     @Override
