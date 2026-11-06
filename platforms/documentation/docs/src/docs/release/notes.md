@@ -88,7 +88,7 @@ Gradle provides a flexible [dependency management](userguide/getting_started_dep
 #### Substitute a dependency without losing its attributes and capabilities
 
 A [dependency substitution](userguide/resolution_rules.html#sec:dependency-substitution-rules) rule that redirects a dependency with `useTarget` replaces the requested dependency entirely, including its attributes and requested capabilities.
-With the current API, substituting a `platform(...)` dependency would lose its requested attributes and a `testFixtures(...)` dependency loses its capability requests, causing them to select the main variant instead.
+Previously, substituting a `platform(...)` dependency dropped its attributes and substituting a `testFixtures(...)` dependency dropped its requested capabilities, so both resolved to the main variant.
 
 The new `withModule` and `withProject` methods on [`DependencySubstitutions`](javadoc/org/gradle/api/artifacts/DependencySubstitutions.html) create a target that keeps the attributes and capability selectors of the requested dependency:
 
@@ -107,7 +107,8 @@ configurations.runtimeClasspath {
 ```
 
 `withModule` accepts a version in dependency notation, such as `1.0!!`, or an action that configures a rich version.
-See [Changing the target while keeping the requested variant](userguide/resolution_rules.html#sec:substitution-keeping-variant) for more.
+
+See the [Changing the target while keeping the requested variant](userguide/resolution_rules.html#sec:substitution-keeping-variant) section in the Gradle User Manual for more details.
 
 ### Platform and toolchain management
 Gradle provides comprehensive support for [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
