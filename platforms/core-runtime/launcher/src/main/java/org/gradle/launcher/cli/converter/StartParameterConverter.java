@@ -18,6 +18,7 @@ package org.gradle.launcher.cli.converter;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
@@ -35,12 +36,33 @@ import java.util.Map;
 
 
 public class StartParameterConverter {
+    /**
+     * Converts the arguments of the command-line client, for which agent mode is fully supported.
+     */
+    public static StartParameterConverter forCommandLine() {
+        return new StartParameterConverter(true);
+    }
+
+    /**
+     * Converts the arguments of a Tooling API client. Agent mode is only recorded as requested, but has no effect,
+     * as such a client owns the output streams and receives the build's outcome as structured events anyway.
+     */
+    public static StartParameterConverter forToolingApi() {
+        return new StartParameterConverter(false);
+    }
+
+    private final boolean agentModeSupported;
+
     private final BuildOptionBackedConverter<WelcomeMessageConfiguration> welcomeMessageConfigurationCommandLineConverter = new BuildOptionBackedConverter<>(new WelcomeMessageBuildOptions());
     private final BuildOptionBackedConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new BuildOptionBackedConverter<>(new LoggingConfigurationBuildOptions());
     private final BuildOptionBackedConverter<ParallelismConfiguration> parallelConfigurationCommandLineConverter = new BuildOptionBackedConverter<>(new ParallelismBuildOptions());
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
     private final BuildOptionBackedConverter<StartParameterInternal> buildOptionsConverter = new BuildOptionBackedConverter<>(new StartParameterBuildOptions());
     private final BuildOptionBackedConverter<StartParameter> toolchainOptionsConverter = new BuildOptionBackedConverter<>(ToolchainBuildOptions.forStartParameter());
+
+    private StartParameterConverter(boolean agentModeSupported) {
+        this.agentModeSupported = agentModeSupported;
+    }
 
     public void configure(CommandLineParser parser) {
         welcomeMessageConfigurationCommandLineConverter.configure(parser);
@@ -69,6 +91,11 @@ public class StartParameterConverter {
         }
 
         buildOptionsConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, startParameter);
+
+        // Agent mode owns the console output
+        if (startParameter.isAgentMode() && agentModeSupported) {
+            startParameter.setConsoleOutput(ConsoleOutput.Plain);
+        }
 
         return startParameter;
     }
