@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.nativeplatform.MachineArchitecture.X86
 import static org.gradle.nativeplatform.MachineArchitecture.X86_64
+import static org.gradle.nativeplatform.MachineArchitecture.ARM64
 import static org.gradle.nativeplatform.OperatingSystemFamily.LINUX
 import static org.gradle.nativeplatform.OperatingSystemFamily.MACOS
 import static org.gradle.nativeplatform.OperatingSystemFamily.WINDOWS
@@ -102,7 +103,7 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
     @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "can publish a library and its dependencies to a Maven repository when multiple target architectures are specified"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
-        def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64)]
+        def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64), machine(currentOsFamilyName, ARM64)]
 
         given:
         createDirs("deck", "card", "shuffle")
