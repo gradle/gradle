@@ -32,21 +32,26 @@ public class TaskMutator {
     }
 
     public void mutate(String method, Runnable action) {
-        if (!task.getState().isConfigurable()) {
-            throw new IllegalStateException(format(method));
-        }
+        assertMutable(method);
         action.run();
     }
 
     public <T> T mutate(String method, Callable<T> action) {
-        if (!task.getState().isConfigurable()) {
-            throw new IllegalStateException(format(method));
-        }
+        assertMutable(method);
         return uncheckedCall(action);
     }
 
+    private void assertMutable(String method) {
+        if (!task.getState().isConfigurable()) {
+            throw new IllegalStateException(format(method));
+        }
+        if (task.getState().isNotifyingBeforeExecution()) {
+            throw new IllegalStateException(formatForLifecycleListener(method));
+        }
+    }
+
     public void assertMutable(String listname, PropertyChangeEvent evt) {
-        if (task.getState().isConfigurable()) {
+        if (task.getState().isConfigurable() && !task.getState().isNotifyingBeforeExecution()) {
             return;
         }
 
@@ -80,10 +85,14 @@ public class TaskMutator {
             return;
         }
 
-        throw new IllegalStateException(format(method));
+        throw new IllegalStateException(task.getState().isConfigurable() ? formatForLifecycleListener(method) : format(method));
     }
 
     private String format(String method) {
         return String.format("Cannot call %s on %s after task has started execution.", method, task);
+    }
+
+    private String formatForLifecycleListener(String method) {
+        return String.format("Cannot call %s on %s from a task lifecycle listener. Only the values of task inputs can be changed.", method, task);
     }
 }

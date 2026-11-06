@@ -96,6 +96,133 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
     }
 
     @ToBeFixedForIsolatedProjects(because = "allprojects")
+    def "tasks are not run in parallel when their lifecycle listener references an exclusive shared service"() {
+        given:
+        withParallelThreads(2)
+
+        buildFile << """
+            gradle.sharedServices.registerIfAbsent("exclusive", EmptyService) {
+                maxParallelUsages = 1
+            }
+
+            abstract class ExclusiveListener implements TaskLifecycleListener<Task> {
+                @ServiceReference("exclusive")
+                abstract Property<EmptyService> getService()
+            }
+
+            allprojects {
+                ping.addLifecycleListener(ExclusiveListener)
+            }
+        """
+
+        expect:
+        blockingServer.expectConcurrent(1, "a", "b")
+
+        run ":a:ping", ":b:ping"
+
+        blockingServer.expectConcurrent(1, "a", "b")
+
+        run ":a:ping", ":b:ping"
+    }
+
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
+    def "lifecycle listener runs while the task holds its exclusive shared service"() {
+        given:
+        withParallelThreads(2)
+
+        buildFile << """
+            gradle.sharedServices.registerIfAbsent("exclusive", EmptyService) {
+                maxParallelUsages = 1
+            }
+
+            abstract class ExclusiveListener implements TaskLifecycleListener<Task> {
+                @ServiceReference("exclusive")
+                abstract Property<EmptyService> getService()
+
+                void beforeExecution(Task task) {
+                    def projectName = task.path.split(':')[1]
+                    ${blockingServer.callFromBuildUsingExpression("projectName")}
+                }
+            }
+
+            allprojects {
+                tasks.register("listened") {
+                    addLifecycleListener(ExclusiveListener)
+                }
+            }
+        """
+
+        expect:
+        blockingServer.expectConcurrent(1, "a", "b")
+
+        run ":a:listened", ":b:listened"
+
+        blockingServer.expectConcurrent(1, "a", "b")
+
+        run ":a:listened", ":b:listened"
+    }
+
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
+    def "lifecycle listener runs after execution while the task holds its exclusive shared service"() {
+        given:
+        withParallelThreads(2)
+
+        buildFile << """
+            gradle.sharedServices.registerIfAbsent("exclusive", EmptyService) {
+                maxParallelUsages = 1
+            }
+
+            abstract class ExclusiveListener implements TaskLifecycleListener<Task> {
+                @ServiceReference("exclusive")
+                abstract Property<EmptyService> getService()
+
+                void afterExecution(Task task, TaskState state) {
+                    def projectName = task.path.split(':')[1]
+                    ${blockingServer.callFromBuildUsingExpression("projectName")}
+                }
+            }
+
+            allprojects {
+                tasks.register("listened") {
+                    addLifecycleListener(ExclusiveListener)
+                }
+            }
+        """
+
+        expect:
+        blockingServer.expectConcurrent(1, "a", "b")
+
+        run ":a:listened", ":b:listened"
+    }
+
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
+    def "exclusive shared service used by both the task and its lifecycle listener is leased once"() {
+        given:
+        withParallelThreads(2)
+
+        buildFile << """
+            def service = gradle.sharedServices.registerIfAbsent("exclusive", EmptyService) {
+                maxParallelUsages = 1
+            }
+
+            abstract class ExclusiveListener implements TaskLifecycleListener<Task> {
+                @ServiceReference("exclusive")
+                abstract Property<EmptyService> getService()
+            }
+
+            allprojects {
+                ping.usesService(service)
+                ping.addLifecycleListener(ExclusiveListener)
+            }
+        """
+
+        expect:
+        blockingServer.expectConcurrent(1, "a", "b")
+
+        run ":a:ping", ":b:ping"
+    }
+
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "tasks run in parallel when sufficient max usages"() {
         given:
         withParallelThreads(2)

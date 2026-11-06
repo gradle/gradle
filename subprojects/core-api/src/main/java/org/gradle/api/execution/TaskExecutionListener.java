@@ -32,6 +32,8 @@ import org.gradle.internal.service.scopes.Scope;
  * use a {@link org.gradle.api.services.BuildService BuildService} that
  * implements {@link org.gradle.tooling.events.OperationCompletionListener}
  * and register it via {@link org.gradle.build.event.BuildEventsListenerRegistry}.
+ * To run code on the task's thread right before and after it executes,
+ * use a {@link org.gradle.api.tasks.TaskLifecycleListener}.
  *
  * @deprecated This type is not supported when configuration caching is enabled.
  * @since 0.7

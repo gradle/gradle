@@ -24,6 +24,7 @@ import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DelegatingNamedDomainObjectSet;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskCollection;
+import org.gradle.api.tasks.TaskLifecycleListener;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
@@ -101,6 +102,11 @@ public class DefaultRealizableTaskCollection<T extends Task> extends DelegatingN
     @Override
     public void whenTaskAdded(Closure closure) {
         getDelegate().whenTaskAdded(closure);
+    }
+
+    @Override
+    public void addLifecycleListener(Class<? extends TaskLifecycleListener<? super T>> listenerType) {
+        getDelegate().addLifecycleListener(listenerType);
     }
 
     @Override

@@ -36,6 +36,9 @@
             <tr>
                 <td>named</td>
             </tr>
+            <tr>
+                <td>addLifecycleListener</td>
+            </tr>
         </table>
     </section>
 </section>
