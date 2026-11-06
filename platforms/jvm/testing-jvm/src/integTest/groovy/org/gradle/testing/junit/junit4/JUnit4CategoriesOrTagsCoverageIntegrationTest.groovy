@@ -178,6 +178,74 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         outputContains('MyTest > testMyMethod FAILED')
     }
 
+    @Issue('https://github.com/gradle/gradle/issues/10694')
+    def "configuring a category or tag that does not apply to a test class does not affect runners sensitive to filtering"() {
+        given:
+        file('src/test/java/UnrelatedCategory.java') << '''
+            public interface UnrelatedCategory {
+            }
+        '''.stripIndent()
+        file('src/test/java/FilterSensitiveRunner.java') << '''
+            import org.junit.runner.manipulation.Filter;
+            import org.junit.runner.manipulation.NoTestsRemainException;
+            import org.junit.runner.notification.Failure;
+            import org.junit.runner.notification.RunNotifier;
+            import org.junit.runners.BlockJUnit4ClassRunner;
+            import org.junit.runners.model.InitializationError;
+
+            public class FilterSensitiveRunner extends BlockJUnit4ClassRunner {
+                private boolean filtered;
+
+                public FilterSensitiveRunner(Class<?> klass) throws InitializationError {
+                    super(klass);
+                }
+
+                @Override
+                public void filter(Filter filter) throws NoTestsRemainException {
+                    filtered = true;
+                    super.filter(filter);
+                }
+
+                @Override
+                public void run(RunNotifier notifier) {
+                    if (filtered) {
+                        notifier.fireTestFailure(new Failure(getDescription(), new AssertionError("filter() was called")));
+                    }
+                    super.run(notifier);
+                }
+            }
+        '''.stripIndent()
+        file('src/test/java/MyTest.java') << """
+            ${testFrameworkImports}
+
+            @RunWith(FilterSensitiveRunner.class)
+            public class MyTest {
+                @Test
+                public void testMyMethod() {
+                }
+            }
+        """.stripIndent()
+        buildFile << """
+            apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+
+            test {
+                ${configureTestFramework} { ${excludeCategoryOrTag('UnrelatedCategory')} }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds('test')
+
+        then:
+        new DefaultTestExecutionResult(testDirectory).testClass('MyTest').assertTestPassed('testMyMethod')
+    }
+
     @Issue('https://github.com/gradle/gradle/issues/4924')
     def "re-executes test when options are changed in #suiteName"() {
         given:
