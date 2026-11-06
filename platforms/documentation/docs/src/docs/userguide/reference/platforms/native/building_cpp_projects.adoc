@@ -184,6 +184,14 @@ To use one of the Macports or Homebrew, you will need to add Macports/Homebrew t
 To build on Linux, install a compatible version of GCC or Clang.
 The {cpp} plugins will discover GCC or Clang using the system PATH.
 
+[[sec:cpp_tool_chain_freebsd]]
+==== FreeBSD
+
+NOTE: FreeBSD support for the native plugins is link:{javadocPath}/org/gradle/api/Incubating.html[incubating].
+
+To build on FreeBSD, install GCC or Clang via the FreeBSD ports collection or `pkg`.
+The {cpp} plugins will discover GCC or Clang using the system PATH.
+
 [[sec:custom_cpp_source_set_paths]]
 === Customizing file and directory locations
 
