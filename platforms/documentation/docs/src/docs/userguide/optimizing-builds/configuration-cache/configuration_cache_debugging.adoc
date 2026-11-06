@@ -197,6 +197,10 @@ It is not exhaustive; it covers the recurring ones.
 | JPMS reflective-access blocked during CC serialization (typically lambdas, `SerializedLambda`). The Gradle daemon supplies the required `--add-opens` directives automatically since Gradle 9.7.0, and TestKit's `GradleRunner` does the same in its default mode. This error is only encountered under `GradleRunner.withDebug(true)`, which runs the build in-process and bypasses TestKit's flag setup.
 | Set `--add-opens` directives as `jvmArgs` on the test task that runs the `withDebug(true)` tests — see <<config_cache:testing,Test your Build Logic>>.
 
+| `third-party Java agents with inactive Gradle's instrumentation agent are not supported`
+| TestKit debug mode plus a second Java agent (a coverage agent, or one the IDE attaches) on the test JVM
+| <<test_kit.adoc#sub:test-kit-debug-config-cache,Debugging with the Configuration Cache or Isolated Projects>>
+
 | `Cannot reference a Gradle script object from a Groovy closure` or `cannot serialize Gradle script object references as these are not supported`
 | A Groovy or Kotlin DSL closure captured a `Project`, `Gradle`, `Settings`, or other script-level reference
 | Extract the values you need at configuration time into local variables; reference those inside the closure.
@@ -396,6 +400,9 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/testKit-addO
 ====
 
 Without these, a `withDebug(true)` test will fail with the reflective-access error shown above.
+
+Debug mode has one further constraint under the Configuration Cache when another Java agent is attached to the test JVM.
+See <<test_kit.adoc#sub:test-kit-debug-config-cache,Debugging with the Configuration Cache or Isolated Projects>>.
 ====
 
 [TIP]
