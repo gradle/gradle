@@ -76,6 +76,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     private final Instantiator instantiator;
     private final Namer<? super T> namer;
     protected final Index<T> index;
+    // Lets a provider of a realized element skip the index lookup on every query, which may run on behalf of another project
+    private int removals;
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
 
@@ -196,11 +198,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     public void clear() {
         super.clear();
         index.clear();
+        removals++;
     }
 
     @Override
     protected void didRemove(T t) {
         index.remove(namer.determineName(t));
+        removals++;
     }
 
     @Override
@@ -931,9 +935,14 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     public abstract class AbstractDomainObjectCreatingProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
         private I object;
+        // Set once the element is added and configured.
+        // object is assigned before that to support circular evaluation, so a thread of another project
+        // that checks object instead would skip the realization and see a partially configured element.
+        private volatile boolean realized;
         private RuntimeException failure;
         protected ImmutableActionSet<I> onCreate;
         private boolean removedBeforeRealized = false;
+        private int removalsBeforeRealization;
 
         @SuppressWarnings("this-escape")
         public AbstractDomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction) {
@@ -947,6 +956,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
+            if (realized && removals == removalsBeforeRealization) {
+                return true;
+            }
             return findDomainObject(getName()) != null;
         }
 
@@ -986,13 +998,25 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             if (failure != null) {
                 throw failure;
             }
-            if (object == null) {
-                object = getType().cast(findByNameWithoutRules(getName()));
-                if (object == null) {
-                    tryCreate();
-                }
+            if (!realized) {
+                getEventRegister().getDecorator().runRealization(this::findOrCreate);
             }
             return Value.of(object);
+        }
+
+        private void findOrCreate() {
+            if (failure != null) {
+                throw failure;
+            }
+            if (object != null) {
+                return;
+            }
+            removalsBeforeRealization = removals;
+            object = getType().cast(findByNameWithoutRules(getName()));
+            if (object == null) {
+                tryCreate();
+            }
+            realized = true;
         }
 
         protected void tryCreate() {
@@ -1039,7 +1063,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         private boolean wasElementRemovedAfterRealized() {
-            return object != null && findByNameWithoutRules(getName()) == null;
+            return object != null && removals != removalsBeforeRealization && findByNameWithoutRules(getName()) == null;
         }
 
         protected RuntimeException domainObjectCreationException(Throwable cause) {

@@ -21,12 +21,29 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scope.CrossBuildSession.class)
+/**
+ * Decorates the callbacks of domain object collections and runs the realization of their lazily registered elements.
+ * <p>
+ * An implementation may run the realization while holding a lock that guards the collections it decorates, see {@link #runRealization(Runnable)}.
+ */
+@ServiceScope({Scope.CrossBuildSession.class, Scope.Project.class})
 public interface CollectionCallbackActionDecorator {
 
     <T> Action<T> decorate(Action<T> action);
 
     <T> Spec<T> decorateSpec(Spec<T> spec);
+
+    /**
+     * Runs the given action, which realizes a lazily registered element of a collection that uses this decorator.
+     * The action runs the callbacks of the collection for the new element.
+     * <p>
+     * Implementations may run the action while holding a lock that guards the collection.
+     *
+     * @param realization the action that realizes the element
+     */
+    default void runRealization(Runnable realization) {
+        realization.run();
+    }
 
     CollectionCallbackActionDecorator NOOP = new CollectionCallbackActionDecorator() {
         @Override
