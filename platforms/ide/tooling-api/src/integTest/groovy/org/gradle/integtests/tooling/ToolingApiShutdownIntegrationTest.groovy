@@ -16,6 +16,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.internal.TextUtil
 import spock.lang.Retry
 import spock.lang.Timeout
 
@@ -61,7 +62,7 @@ class ToolingApiShutdownIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 private static void runHelp(File projectLocation) throws Exception {
-                    GradleConnector connector = GradleConnector.newConnector().useGradleVersion("8.13");
+                    GradleConnector connector = GradleConnector.newConnector().useInstallation(new File("${TextUtil.escapeString(buildContext.distribution("8.13").gradleHomeDir.absolutePath)}"));
                     ProjectConnection connection = connector.forProjectDirectory(projectLocation).connect();
                     connection.newBuild().forTasks("help").run(new ResultHandler<Void>() {
                         public void onComplete(Void result) { }

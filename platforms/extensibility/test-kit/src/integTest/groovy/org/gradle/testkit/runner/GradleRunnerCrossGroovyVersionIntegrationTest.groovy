@@ -43,7 +43,7 @@ class GradleRunnerCrossGroovyVersionIntegrationTest extends BaseGradleRunnerInte
 
         when:
         def result = runner().withArguments("testGroovyVersion")
-            .withGradleVersion("6.8.3")
+            .withGradleInstallation(buildContext.distribution("6.8.3").gradleHomeDir)
             .build()
 
         then:
@@ -116,7 +116,7 @@ ${mavenCentralRepository()}
         when:
         def result = runner()
             .withArguments("test", '--stacktrace', '--info')
-            .withGradleVersion("6.8.3")
+            .withGradleInstallation(buildContext.distribution("6.8.3").gradleHomeDir)
             .build()
 
         then:
