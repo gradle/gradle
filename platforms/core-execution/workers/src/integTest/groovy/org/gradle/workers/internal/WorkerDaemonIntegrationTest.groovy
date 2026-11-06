@@ -25,6 +25,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.precondition.TestPrecondition
 import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
 
 import org.gradle.workers.fixtures.OptionsVerifier
 import org.gradle.workers.fixtures.WorkerExecutorFixture
@@ -244,5 +245,63 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
             """
         }
         return workActionThatVerifiesOptions
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22661")
+    @Requires(OsTestPreconditions.Windows)
+    def "worker processes on Windows inherit temp directory environment variables"() {
+        given:
+        def workAction = fixture.getWorkActionThatCreatesFiles("TempDirVerifyingWorkAction")
+        workAction.with {
+            action += """
+                String tmpDir = System.getenv("TMP");
+                String tempDir = System.getenv("TEMP");
+                String userProfile = System.getenv("USERPROFILE");
+                
+                // Verify that temp directory environment variables are inherited
+                if (tmpDir == null || tmpDir.isEmpty()) {
+                    throw new RuntimeException("TMP environment variable not inherited");
+                }
+                if (tempDir == null || tempDir.isEmpty()) {
+                    throw new RuntimeException("TEMP environment variable not inherited");
+                }
+                if (userProfile == null || userProfile.isEmpty()) {
+                    throw new RuntimeException("USERPROFILE environment variable not inherited");
+                }
+                
+                // Verify that temp directory is NOT C:\\\\windows
+                String javaTmpDir = System.getProperty("java.io.tmpdir");
+                if (javaTmpDir != null && javaTmpDir.toLowerCase().startsWith("c:\\\\\\\\windows")) {
+                    throw new RuntimeException("Worker process is using C:\\\\\\\\windows as temp directory: " + javaTmpDir);
+                }
+                
+                println "TMP: " + tmpDir;
+                println "TEMP: " + tempDir;
+                println "USERPROFILE: " + userProfile;
+                println "java.io.tmpdir: " + javaTmpDir;
+            """
+        }
+        
+        fixture.withWorkActionClassInBuildSrc()
+        workAction.writeToBuildFile()
+        
+        buildFile << """
+            task runInWorker(type: WorkerTask) {
+                isolationMode = 'processIsolation'
+                workActionClass = ${workAction.name}.class
+            }
+        """
+
+        when:
+        succeeds("runInWorker")
+
+        then:
+        assertWorkerExecuted("runInWorker")
+        
+        and:
+        output.contains("TMP:")
+        output.contains("TEMP:")
+        output.contains("USERPROFILE:")
+        output.contains("java.io.tmpdir:")
     }
 }
