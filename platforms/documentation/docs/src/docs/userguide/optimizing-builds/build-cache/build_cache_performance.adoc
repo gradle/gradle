@@ -107,9 +107,34 @@ This is particularly important for assessing the impact of network link quality 
 [[remote_cache_performance]]
 == Remote cache performance
 
-Improving the network link between the build and the remote cache can significantly improve build cache performance.
-How to do this depends on the remote cache in use and your network environment.
+A remote cache hit only saves time if downloading and unpacking the entry is faster than running the task.
+For most compilation and test tasks that is easily true.
+Over a slow or distant network link, though, loading outputs can cost more than it saves, and some tasks end up slower `FROM-CACHE` than they would be if executed.
 
-The multi-node remote build cache provided by Develocity is a fast and efficient, purpose built, remote build cache.
-In particular, if your development team is geographically distributed, its replication features can significantly improve performance by allowing developers to use a cache that they have a good network link to.
-See the https://docs.develocity.ai/current/administration/build-acceleration/build-cache/#remote_nodes["Build Cache Replication" section of the Develocity Admin Manual] for more information.
+Four factors determine how much a remote cache helps:
+
+Latency:: Every cache lookup is at least one HTTP round trip, whether it hits or misses. A build with hundreds of cacheable tasks makes hundreds of requests, so high latency adds up even when entries are small.
+Bandwidth:: On a hit, the full entry is downloaded. Tasks with large outputs, such as packaged archives or generated sources, are the most sensitive to bandwidth.
+Reliability:: Gradle retries requests that fail mid-transfer, such as dropped connections, timeouts and connection resets. If a request still fails, Gradle disables the remote cache for the rest of the build, and every remaining task runs from scratch. An unstable link can cost more than a slow one.
+Uploads:: Storing entries adds time to the builds that push. Pushing only from CI, as recommended in <<build_cache.adoc#sec:build_cache_configure_use_cases,Configuration use cases>>, keeps that cost off developer builds.
+
+=== Measure before you optimize
+
+A Build Scan shows how long each task spent loading from or storing to the remote cache, along with the time the cache saved overall.
+Look for tasks whose remote load time comes close to their execution time.
+Those tasks gain little from the remote cache on your current network.
+
+=== Improve the link to the cache
+
+* Run the cache on the same network, or in the same cloud region, as your CI agents. CI is usually both the largest producer and the largest consumer of cache entries.
+* Keep the local build cache enabled. Gradle checks the local cache before the remote one and copies remote hits into it, so repeated builds on the same machine don't go back to the network.
+* Avoid routing cache traffic through VPNs or proxies that add latency, where your security requirements allow it.
+* For tasks that are cheap to run but produce large outputs, consider turning off caching with link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#doNotCacheIf(java.lang.String,org.gradle.api.specs.Spec)[TaskOutputs.doNotCacheIf()].
+
+=== Distributed teams
+
+If developers or CI agents work from several locations, one cache can't be close to all of them.
+A common approach is to run a cache node in each location and point builds at the nearest one, for example by setting the cache URL in an <<init_scripts.adoc#sec:using_an_init_script,init script>> or through an environment variable.
+Each node fills independently unless your backend replicates entries between them.
+
+For Develocity installations, link:https://docs.develocity.ai/edge/current/user-manual/[Develocity Edge] provides cache nodes that can be deployed in multiple locations and replicate entries between them.

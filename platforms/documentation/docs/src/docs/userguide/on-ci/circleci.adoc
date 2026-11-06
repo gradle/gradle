@@ -202,7 +202,7 @@ The CI dependency cache stores *downloaded artifacts*.
 The link:https://docs.gradle.org/current/userguide/build_cache.html[Gradle build cache] stores *task outputs* — compiled classes, test results, processed resources — and can skip tasks entirely when inputs have not changed.
 
 For a single CircleCI job, the local build cache has limited value because each container starts clean.
-A *remote build cache* (either a Develocity instance or an link:https://docs.gradle.org/current/userguide/build_cache.html#sec:build_cache_setup_http_backend[HTTP build cache node]) provides the biggest speedup by sharing outputs across jobs, branches, and developers.
+A *remote build cache* (either a Develocity instance or an link:https://docs.gradle.org/current/userguide/build_cache.html#sec:build_cache_setup_http_backend[HTTP build cache server]) provides the biggest speedup by sharing outputs across jobs, branches, and developers.
 
 Enable the build cache in `gradle.properties`:
 
@@ -221,7 +221,7 @@ buildCache {
         isEnabled = true
     }
     remote<HttpBuildCache> {
-        url = uri("https://my-cache-node.example.com/cache/")
+        url = uri("https://my-build-cache.example.com/cache/")
         isPush = System.getenv("CI") != null
     }
 }
