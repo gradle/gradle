@@ -34,10 +34,13 @@ import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.attributes.LibraryElements;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.internal.artifacts.DependencyManagementParameters;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Describables;
@@ -52,8 +55,10 @@ import org.jspecify.annotations.NullMarked;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -75,15 +80,18 @@ public class IdeDependencySet {
     private final JavaModuleDetector javaModuleDetector;
     private final ArtifactResolutionQueryFactory resolutionQueryFactory;
     private final GradleApiSourcesResolver gradleApiSourcesResolver;
+    private final LibraryElements jarElements;
 
     @Inject
     public IdeDependencySet(
         JavaModuleDetector javaModuleDetector,
         ArtifactResolutionQueryFactory resolutionQueryFactory,
-        DependencyManagementServices dependencyManagementServices
+        DependencyManagementServices dependencyManagementServices,
+        ObjectFactory objectFactory
     ) {
         this.javaModuleDetector = javaModuleDetector;
         this.resolutionQueryFactory = resolutionQueryFactory;
+        this.jarElements = objectFactory.named(LibraryElements.class, LibraryElements.JAR);
         this.gradleApiSourcesResolver = new GradleApiSourcesResolver(
             dependencyManagementServices.newDetachedResolver(DependencyManagementParameters.forDetachedJvmEnvironment(Describables.of("Gradle API Sources")))
         );
@@ -92,7 +100,9 @@ public class IdeDependencySet {
     /**
      * Visits the resolved artifacts of the given plus configurations, without artifacts
      * present in the given minus configurations. Artifacts resolved only from test
-     * configurations are marked as test-only.
+     * configurations are marked as test-only. Class directories of a project variant
+     * stand for the jar of that variant: they are subtracted with the jar and are
+     * visited only when the jar is not.
      */
     public void visit(
         Collection<Configuration> plusConfigurations,
@@ -124,6 +134,7 @@ public class IdeDependencySet {
 
         private final Map<ComponentArtifactIdentifier, ResolvedArtifactResult> resolvedArtifacts = new LinkedHashMap<>();
         private final SetMultimap<ComponentArtifactIdentifier, Configuration> configurations = MultimapBuilder.hashKeys().linkedHashSetValues().build();
+        private final SetMultimap<ComponentArtifactIdentifier, ComponentArtifactIdentifier> classesOfJars = MultimapBuilder.hashKeys().linkedHashSetValues().build();
         private final Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = new LinkedHashMap<>();
         private final Table<ModuleComponentIdentifier, Class<? extends Artifact>, Set<ResolvedArtifactResult>> auxiliaryArtifacts = HashBasedTable.create();
 
@@ -149,6 +160,7 @@ public class IdeDependencySet {
                     resolvedArtifacts.put(resolvedArtifact.getId(), resolvedArtifact);
                     configurations.put(resolvedArtifact.getId(), configuration);
                 }
+                collectClassesOfJars(configuration, artifacts);
                 if (artifacts.getFailures().isEmpty()) {
                     continue;
                 }
@@ -162,14 +174,43 @@ public class IdeDependencySet {
             for (Configuration configuration : minusConfigurations) {
                 ArtifactCollection artifacts = getResolvedArtifacts(configuration, visitor);
                 for (ResolvedArtifactResult resolvedArtifact : artifacts) {
-                    resolvedArtifacts.remove(resolvedArtifact.getId());
-                    configurations.removeAll(resolvedArtifact.getId());
+                    remove(resolvedArtifact.getId());
+                    for (ComponentArtifactIdentifier classes : classesOfJars.get(resolvedArtifact.getId())) {
+                        remove(classes);
+                    }
                 }
                 if (artifacts.getFailures().isEmpty()) {
                     continue;
                 }
                 for (UnresolvedDependencyResult unresolvedDependency : getUnresolvedDependencies(configuration, visitor)) {
                     unresolvedDependencies.remove(unresolvedDependency.getAttempted());
+                }
+            }
+        }
+
+        private void remove(ComponentArtifactIdentifier id) {
+            resolvedArtifacts.remove(id);
+            configurations.removeAll(id);
+        }
+
+        private void collectClassesOfJars(Configuration configuration, ArtifactCollection artifacts) {
+            SetMultimap<List<Object>, ComponentArtifactIdentifier> classes = MultimapBuilder.hashKeys().linkedHashSetValues().build();
+            for (ResolvedArtifactResult artifact : artifacts) {
+                if (artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier && isClassesDirectory(artifact)) {
+                    classes.put(variantOf(artifact), artifact.getId());
+                }
+            }
+            if (classes.isEmpty()) {
+                return;
+            }
+            ArtifactCollection jars = configuration.getIncoming().artifactView(viewConfiguration -> {
+                viewConfiguration.lenient(true);
+                viewConfiguration.componentFilter(id -> id instanceof ProjectComponentIdentifier);
+                viewConfiguration.attributes(attributes -> attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, jarElements));
+            }).getArtifacts();
+            for (ResolvedArtifactResult jar : jars) {
+                if (isJar(jar)) {
+                    classesOfJars.putAll(jar.getId(), classes.get(variantOf(jar)));
                 }
             }
         }
@@ -252,9 +293,22 @@ public class IdeDependencySet {
         }
 
         private void visitArtifacts(IdeDependencyVisitor visitor) {
+            Set<ComponentArtifactIdentifier> classesOfVisitedJars = new HashSet<>();
+            for (ComponentArtifactIdentifier jar : classesOfJars.keySet()) {
+                if (resolvedArtifacts.containsKey(jar)) {
+                    classesOfVisitedJars.addAll(classesOfJars.get(jar));
+                }
+            }
             for (ResolvedArtifactResult artifact : resolvedArtifacts.values()) {
+                if (classesOfVisitedJars.contains(artifact.getId())) {
+                    continue;
+                }
                 ComponentIdentifier componentIdentifier = artifact.getId().getComponentIdentifier();
-                boolean testOnly = isTestConfiguration(configurations.get(artifact.getId()));
+                Set<Configuration> artifactConfigurations = new HashSet<>(configurations.get(artifact.getId()));
+                for (ComponentArtifactIdentifier classes : classesOfJars.get(artifact.getId())) {
+                    artifactConfigurations.addAll(configurations.get(classes));
+                }
+                boolean testOnly = isTestConfiguration(artifactConfigurations);
                 boolean asModule = isModule(testOnly, artifact.getFile(), inferModulePath);
                 if (componentIdentifier instanceof ProjectComponentIdentifier) {
                     visitor.visitProjectDependency(artifact, testOnly, asModule);
@@ -294,6 +348,25 @@ public class IdeDependencySet {
         // We assume that a test-only dependency is not a module, which corresponds to how Eclipse does test running for modules:
         // It patches the main module with the tests and expects test dependencies to be part of the unnamed module (classpath).
         return javaModuleDetector.isModule(inferModulePath && !testOnly, artifact);
+    }
+
+    private static List<Object> variantOf(ResolvedArtifactResult artifact) {
+        Set<String> capabilities = new HashSet<>();
+        for (Capability capability : artifact.getVariant().getCapabilities()) {
+            capabilities.add(capability.getGroup() + ":" + capability.getName());
+        }
+        return Arrays.asList(artifact.getId().getComponentIdentifier(), capabilities);
+    }
+
+    public static boolean isJar(ResolvedArtifactResult artifact) {
+        LibraryElements libraryElements = artifact.getVariant().getAttributes().getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
+        return libraryElements != null && libraryElements.getName().equals(LibraryElements.JAR);
+    }
+
+    public static boolean isClassesDirectory(ResolvedArtifactResult artifact) {
+        LibraryElements libraryElements = artifact.getVariant().getAttributes().getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
+        return libraryElements != null
+            && (libraryElements.getName().equals(LibraryElements.CLASSES) || libraryElements.getName().equals(LibraryElements.CLASSES_AND_RESOURCES));
     }
 
     private static boolean isLocalGroovyDependency(ResolvedArtifactResult artifact) {
