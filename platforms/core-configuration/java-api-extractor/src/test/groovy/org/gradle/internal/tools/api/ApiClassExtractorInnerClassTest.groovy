@@ -16,6 +16,8 @@
 
 package org.gradle.internal.tools.api
 
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Opcodes
 import spock.lang.Issue
 
@@ -160,6 +162,76 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/31416")
+    def "ignores the inner classes of other classes that a method body refers to"() {
+        given:
+        def without = toApi([
+            'A': 'public class A { public Object foo() { return null; } }',
+            'B': 'public class B { public static class Inner { } }',
+        ])
+        def with = toApi([
+            'A': 'public class A { public Object foo() { return new B.Inner(); } }',
+            'B': 'public class B { public static class Inner { } }',
+        ])
+
+        expect:
+        innerClassesOf(with.classes.A.bytes) == ['B$Inner'] as Set
+        innerClassesOf(with.extractApiClassFrom(with.classes.A)).empty
+        with.extractApiClassFrom(with.classes.A) == without.extractApiClassFrom(without.classes.A)
+    }
+
+    def "keeps its own inner classes and its outer classes"() {
+        given:
+        def api = toApi([
+            'Outer': '''
+                public class Outer {
+                    public static class Inner {
+                        public static class Deep { }
+                    }
+                }
+            ''',
+        ])
+
+        expect:
+        innerClassesOf(api.extractApiClassFrom(api.classes.Outer)) == ['Outer$Inner'] as Set
+        innerClassesOf(api.extractApiClassFrom(api.classes['Outer$Inner'])) == ['Outer$Inner', 'Outer$Inner$Deep'] as Set
+        innerClassesOf(api.extractApiClassFrom(api.classes['Outer$Inner$Deep'])) == ['Outer$Inner', 'Outer$Inner$Deep'] as Set
+    }
+
+    def "can compile against an extracted class whose API mentions an inner class of another class"() {
+        given:
+        def api = toApi([
+            'A': 'public class A { public B.Inner inner() { return new B.Inner(); } }',
+            'B': 'public class B { public static class Inner { public String name() { return "inner"; } } }',
+        ])
+        def apiStubDir = new File(temporaryFolder, "api-stubs")
+        ['A', 'B', 'B$Inner'].each {
+            writeClass(api, it, apiStubDir)
+        }
+
+        when:
+        def consumer = compileTo(new File(temporaryFolder, 'consumer'), [
+            'Main': '''
+                public class Main {
+                    public static String name() { return new A().inner().name(); }
+                }
+            '''
+        ], [apiStubDir])
+
+        then:
+        consumer.classes.Main.clazz.name == "Main"
+    }
+
+    private static Set<String> innerClassesOf(byte[] classBytes) {
+        def names = [] as Set
+        new ClassReader(classBytes).accept(new ClassVisitor(Opcodes.ASM9) {
+            @Override
+            void visitInnerClass(String name, String outerName, String innerName, int access) {
+                names << name
+            }
+        }, ClassReader.SKIP_CODE)
+        return names
+    }
+
     def "can compile against extracted inner class with annotations on its constructor"() {
         given:
         def api = toApi([

@@ -69,6 +69,21 @@ class ClassSetAnalysisTest extends Specification {
         expect: a.findTransitiveDependents(["Foo"], [:]).getAllDependentClasses().isEmpty()
     }
 
+    def "finds the classes of a set that a class outside it refers to"() {
+        def a = analysis([
+            "a": dependentSet(false, ["b"], []), // b, in the set, refers to a
+            "b": dependentSet(false, [], ["c"]), // c, outside, refers to b
+            "d": dependentSet(false, ["x"], []), // x, outside, refers to d
+            "e": dependentSet(false, [], []),    // nothing refers to e
+            "f": dependentSet(false, ["g"], []), // g, in the set, refers to f
+            "g": dependentSet(false, [], []),    // and nothing refers to g
+            "h": dependentSet(true, [], []),     // everything refers to h
+        ])
+
+        expect:
+        a.findClassesReferencedFromOutside(["a", "b", "d", "e", "f", "g", "h"] as Set) == ["a", "b", "d", "h"] as Set
+    }
+
     def "does not recurse private dependencies"() {
         def a = analysis([
             "a": dependentSet(false, ["b"], []),

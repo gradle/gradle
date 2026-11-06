@@ -34,6 +34,8 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
         given:
         // A is a private dependency of B1 and B1 is referenced in E1.isCacheEnabled through inheritance.
         // B1 is also a private dependency of B2 that is referenced in E2.isCacheEnabled through inheritance.
+        // A recompiled B1 with a Java source cannot be resolved by the Groovy compiler until javac has run, and a stale class
+        // with a private member of that type would fail, so all dependents of B1 are recompiled: B2, then C2 and D2.
         File aClass = sourceForLanguageForProject(CompiledLanguage.JAVA, "api", "class A { void m1() {}; }")
         sourceWithFileSuffixForProject(bSuffix, "impl", "$bCompileStatic class B1 { void m1() { A a = new A(); a.m1(); }; }")
         sourceWithFileSuffixForProject("java", "impl", "class C1 extends B1 {}")
@@ -44,6 +46,7 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
         sourceWithFileSuffixForProject("java", "impl", "class C2 extends B2 { }")
         sourceWithFileSuffixForProject("java", "impl", "class D2 extends C2 { static boolean getCache() { return true; } }")
         File e2Class = sourceWithFileSuffixForProject("groovy", "impl", "class E2 { boolean isCacheEnabled = D2.cache }")
+        sourceWithFileSuffixForProject("groovy", "impl", "class Unrelated {}")
 
         run ":impl:compileGroovy"
 
@@ -60,7 +63,7 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
 
         where:
         bSuffix  | bCompileStatic                     | expectedRecompiledClass
-        "java"   | ""                                 | ["B1", "C1", "D1", "E1", "E2"]
+        "java"   | ""                                 | ["B1", "B2", "C1", "C2", "D1", "D2", "E1", "E2"]
         "groovy" | ""                                 | ["B1", "E1", "E2"]
         "groovy" | "@groovy.transform.CompileStatic " | ["B1", "E1", "E2"]
     }
@@ -70,6 +73,8 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
         given:
         // A is a private dependency of B1 and B1 is referenced in E1.isCacheEnabled through inheritance.
         // B1 is also a private dependency of B2 that is referenced in E2.isCacheEnabled through inheritance.
+        // A recompiled B1 with a Java source cannot be resolved by the Groovy compiler until javac has run, and the private
+        // members of a stale B2 or D2 that refer to it would fail, so all dependents of B1 are recompiled.
         File aClass = sourceForLanguageForProject(CompiledLanguage.JAVA, "api", "class A { void m1() {}; }")
         sourceWithFileSuffixForProject("java", "impl", "class B1 { static B1 m2() { return null; }; void m1() { A a = new A(); a.m1(); }; }")
         sourceWithFileSuffixForProject("java", "impl", "class C1 extends B1 {}")
@@ -106,6 +111,7 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
             }
         """)
         File e2Class = sourceWithFileSuffixForProject("groovy", "impl", "class E2 { boolean isCacheEnabled = D2.cache }")
+        sourceWithFileSuffixForProject("groovy", "impl", "class Unrelated {}")
 
         run ":impl:compileGroovy"
 
@@ -118,7 +124,7 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
         run ":impl:compileGroovy"
 
         then:
-        impl.recompiledClasses("B1", "C1", "D1", "E1", "E2")
+        impl.recompiledClasses("B1", "B2", "C1", "C2", "D1", "D2", "E1", "E2")
     }
 
     @ToBeFixedForIsolatedProjects(because = "cross-project incremental compilation")

@@ -45,6 +45,20 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled() //because after earlier change to B, class A is no longer a dependency
     }
 
+    def "doesn't recompile the dependents of a classpath class whose ABI is unchanged"() {
+        source api: ["class A { void foo() { } }", "class B { void bar() { } }"]
+        source impl: ["class ImplA { A a; }", "class ImplB { B b; }"]
+        impl.snapshot { run language.compileTaskName }
+
+        when:
+        // the body of A changes its class file only, the method added to B changes its ABI
+        source api: ["class A { void foo() { int unused = 0; } }", "class B { void bar() { }; void baz() { } }"]
+        run "impl:${language.compileTaskName}"
+
+        then:
+        impl.recompiledClasses("ImplB")
+    }
+
     def "doesn't recompile if external dependency has ABI incompatible change but not on class we use"() {
         given:
         buildFile << """
