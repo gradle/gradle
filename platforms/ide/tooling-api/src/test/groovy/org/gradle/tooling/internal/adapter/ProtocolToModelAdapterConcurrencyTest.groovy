@@ -22,6 +22,7 @@ import spock.lang.Specification
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicIntegerArray
 
 class ProtocolToModelAdapterConcurrencyTest extends Specification {
@@ -41,8 +42,8 @@ class ProtocolToModelAdapterConcurrencyTest extends Specification {
             def phases = new AtomicIntegerArray(views)
             def reader = pool.submit { TestWideModelAccess.readWhileOtherThreadCaches(roundViews, phases, failures) }
             def writer = pool.submit { TestWideModelAccess.cacheMoreProperties(roundViews, phases, failures) }
-            reader.get()
-            writer.get()
+            reader.get(1, TimeUnit.MINUTES)
+            writer.get(1, TimeUnit.MINUTES)
         }
 
         then:
@@ -164,8 +165,10 @@ class TestWideModelAccess {
             TestWideModel view = views.get(i)
             checkFirst12Properties(view, i, failures)
             phases.set(i, POPULATED)
+            long deadline = TestThreadHandshake.deadline()
             while (phases.get(i) != DONE) {
                 checkFirst12Properties(view, i, failures)
+                TestThreadHandshake.checkNotTimedOut(deadline, i)
             }
         }
     }
@@ -174,8 +177,10 @@ class TestWideModelAccess {
     static void cacheMoreProperties(List<TestWideModel> views, AtomicIntegerArray phases, Collection<String> failures) {
         for (int i = 0; i < views.size(); i++) {
             TestWideModel view = views.get(i)
+            long deadline = TestThreadHandshake.deadline()
             while (phases.get(i) != POPULATED) {
                 Thread.onSpinWait()
+                TestThreadHandshake.checkNotTimedOut(deadline, i)
             }
             check(view.getP12(), "p12", i, failures)
             check(view.getP13(), "p13", i, failures)
@@ -203,6 +208,24 @@ class TestWideModelAccess {
     private static void check(String actual, String expected, int index, Collection<String> failures) {
         if (actual != expected) {
             failures.add("view " + index + ": expected " + expected + " but got " + actual)
+        }
+    }
+}
+
+/**
+ * Bounds the spin waits between the test threads, so that a failure in one thread fails the test instead of hanging it.
+ */
+@CompileStatic
+class TestThreadHandshake {
+    private static final long TIMEOUT_NANOS = TimeUnit.SECONDS.toNanos(30)
+
+    static long deadline() {
+        return System.nanoTime() + TIMEOUT_NANOS
+    }
+
+    static void checkNotTimedOut(long deadline, int index) {
+        if (System.nanoTime() - deadline > 0) {
+            throw new IllegalStateException("Timed out waiting for the other thread at view " + index)
         }
     }
 }
