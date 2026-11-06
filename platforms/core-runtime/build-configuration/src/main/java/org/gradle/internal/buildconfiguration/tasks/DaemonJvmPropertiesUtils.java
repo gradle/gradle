@@ -35,6 +35,18 @@ public class DaemonJvmPropertiesUtils {
         if (parts.length != 3) {
             throw new IllegalArgumentException(String.format("Invalid toolchain URL property name: %s", toolchainUrlProperty));
         }
-        return BuildPlatformFactory.of(Architecture.valueOf(parts[2]), OperatingSystem.valueOf(parts[1]));
+        Architecture architecture;
+        try {
+            architecture = Architecture.valueOf(parts[2]);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(String.format("Unknown architecture '%s' in toolchain URL property: %s", parts[2], toolchainUrlProperty), e);
+        }
+        OperatingSystem operatingSystem;
+        try {
+            operatingSystem = OperatingSystem.valueOf(parts[1]);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(String.format("Unknown operating system '%s' in toolchain URL property: %s", parts[1], toolchainUrlProperty), e);
+        }
+        return BuildPlatformFactory.of(architecture, operatingSystem);
     }
 }

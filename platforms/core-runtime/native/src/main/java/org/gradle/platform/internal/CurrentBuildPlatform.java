@@ -67,8 +67,9 @@ public class CurrentBuildPlatform {
                 return Architecture.X86_64;
             case aarch64:
                 return Architecture.AARCH64;
-            case riscv64:
             case e2k:
+                return Architecture.E2K;
+            case riscv64:
                 // Not represented in the public Architecture enum, so they fall through to the exception below.
                 // Keep this switch exhaustive without a default, so that new SystemInfo.Architecture constants
                 // fail the build instead of being silently ignored.

@@ -38,15 +38,17 @@ class DefaultArchitectureTest extends Specification {
         arch.arm == arm || arm64
         arch.arm32 == arm
         arch.arm64 == arm64
+        arch.e2k == e2k
 
         where:
-        name        | i386  | amd64 | ia64  | arm   | arm64
-        "x86"       | true  | false | false | false | false
-        "x86-64"    | false | true  | false | false | false
-        "ia-64"     | false | false | true  | false | false
-        "arm-v7"    | false | false | false | true  | false
-        "aarch64"   | false | false | false | false | true
-        "arbitrary" | false | false | false | false | false
+        name        | i386  | amd64 | ia64  | arm   | arm64 | e2k
+        "x86"       | true  | false | false | false | false | false
+        "x86-64"    | false | true  | false | false | false | false
+        "ia-64"     | false | false | true  | false | false | false
+        "arm-v7"    | false | false | false | true  | false | false
+        "aarch64"   | false | false | false | false | true  | false
+        "e2k"       | false | false | false | false | false | true
+        "arbitrary" | false | false | false | false | false | false
     }
 
     def "can create arbitrary operating system"() {
@@ -55,5 +57,14 @@ class DefaultArchitectureTest extends Specification {
         expect:
         arch.name == "arbitrary"
         arch.toString() == "architecture 'arbitrary'"
+    }
+
+    def "recognises e2k architecture"() {
+        def arch = new DefaultArchitecture("e2k")
+
+        expect:
+        arch.name == "e2k"
+        arch.e2k
+        arch.toString() == "architecture 'e2k'"
     }
 }
