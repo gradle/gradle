@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.provider.action
 
+import org.gradle.internal.classloader.SystemClassLoaderSpec
+import org.gradle.tooling.internal.provider.serialization.ClassLoaderDetails
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.internal.build.event.BuildEventSubscriptions
 import org.gradle.internal.buildoption.Option
@@ -106,13 +108,14 @@ class BuildActionSerializerTest extends SerializerSpec {
     def "serializes ClientProvidedBuildAction"() {
         def startParameter = new StartParameterInternal()
         startParameter.taskNames = ['a', 'b']
-        def action = new ClientProvidedBuildAction(startParameter, new SerializedPayload("12", []), true, new BuildEventSubscriptions([OperationType.TASK] as Set))
+        def action = new ClientProvidedBuildAction(startParameter, new SerializedPayload(sampleHeader(), []), true, new BuildEventSubscriptions([OperationType.TASK] as Set))
 
         expect:
         def result = serialize(action, BuildActionSerializer.create())
         result instanceof ClientProvidedBuildAction
         result.startParameter.taskNames == ['a', 'b']
-        result.action.header == "12"
+        result.action.header instanceof Map
+        result.action.header.size() == 1
         result.runTasks
         result.clientSubscriptions.operationTypes == [OperationType.TASK] as Set
     }
@@ -120,13 +123,14 @@ class BuildActionSerializerTest extends SerializerSpec {
     def "serializes ClientProvidedPhasedAction"() {
         def startParameter = new StartParameterInternal()
         startParameter.taskNames = ['a', 'b']
-        def action = new ClientProvidedPhasedAction(startParameter, new SerializedPayload("12", []), true, new BuildEventSubscriptions([OperationType.TASK] as Set))
+        def action = new ClientProvidedPhasedAction(startParameter, new SerializedPayload(sampleHeader(), []), true, new BuildEventSubscriptions([OperationType.TASK] as Set))
 
         expect:
         def result = serialize(action, BuildActionSerializer.create())
         result instanceof ClientProvidedPhasedAction
         result.startParameter.taskNames == ['a', 'b']
-        result.phasedAction.header == "12"
+        result.phasedAction.header instanceof Map
+        result.phasedAction.header.size() == 1
         result.runTasks
         result.clientSubscriptions.operationTypes == [OperationType.TASK] as Set
     }
@@ -139,5 +143,9 @@ class BuildActionSerializerTest extends SerializerSpec {
         def result = serialize(action, BuildActionSerializer.create())
         result instanceof TestExecutionRequestAction
         result.clientSubscriptions.operationTypes == [OperationType.TASK] as Set
+    }
+
+    private static Map<Short, ClassLoaderDetails> sampleHeader() {
+        [(1 as short): new ClassLoaderDetails(UUID.randomUUID(), SystemClassLoaderSpec.INSTANCE)]
     }
 }

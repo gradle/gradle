@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider.serialization;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.serialize.ExceptionReplacingObjectInputStream;
+import org.gradle.internal.serialize.UnsafeDeserializationClasses;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,6 +61,7 @@ class PayloadSerializerObjectInputStream extends ExceptionReplacingObjectInputSt
     private Class<?> readClass() throws IOException, ClassNotFoundException {
         short id = readShort();
         String className = readUTF();
+        UnsafeDeserializationClasses.checkNotBlocked(className);
         if (id == SAME_CLASSLOADER_TOKEN) {
             return super.lookupClass(className);
         }

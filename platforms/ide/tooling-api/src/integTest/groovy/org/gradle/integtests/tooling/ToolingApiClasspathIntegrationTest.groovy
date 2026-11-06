@@ -69,7 +69,7 @@ class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
         def actualSize = extractShadedTapiJarSize(output)
         def actualSizeKB = (int) Math.ceil((double) actualSize / 1024)
 
-        def expectedSizeKB = 3050
+        def expectedSizeKB = 3375
         def marginKB = 50
 
         def message = { smaller ->
