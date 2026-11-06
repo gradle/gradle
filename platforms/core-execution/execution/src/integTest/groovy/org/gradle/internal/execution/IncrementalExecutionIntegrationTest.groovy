@@ -708,10 +708,10 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         def result = createExecutor().createRequest(unitOfWork)
             .executeDeferred(cache)
 
-        if (result.getCompleted().isPresent()) {
+        if (result.isInitialized()) {
             return "cached"
         } else {
-            result.completeAndGet()
+            result.get()
             return "deferred"
         }
     }

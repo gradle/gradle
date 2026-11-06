@@ -227,7 +227,6 @@ Class <org.gradle.internal.BiActions> is in a generic package in (BiActions.java
 Class <org.gradle.internal.Cast> is in a generic package in (Cast.java:0)
 Class <org.gradle.internal.Combiners> is in a generic package in (Combiners.java:0)
 Class <org.gradle.internal.DefaultTaskExecutionRequest> is in a generic package in (DefaultTaskExecutionRequest.java:0)
-Class <org.gradle.internal.Deferrable> is in a generic package in (Deferrable.java:0)
 Class <org.gradle.internal.DeprecatedInGradleScope> is in a generic package in (DeprecatedInGradleScope.java:0)
 Class <org.gradle.internal.Describables> is in a generic package in (Describables.java:0)
 Class <org.gradle.internal.DisplayName> is in a generic package in (DisplayName.java:0)

@@ -35,6 +35,11 @@ class LockingLazy<T extends @Nullable Object> implements Lazy<T> {
         this.supplier = supplier;
     }
 
+    @Override
+    public boolean isInitialized() {
+        return initialized;
+    }
+
     // NullAway cannot infer the invariants here:
     // !initialized => (supplier != null && value == null)
     // initialized => (supplier == null && value != null)
