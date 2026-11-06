@@ -148,8 +148,16 @@ public class MissingTaskDependencyDetector {
         }
         // This is a performance optimization to short-cut the search for a dependency if there is a direct dependency.
         // We use `getDependencySuccessors()` instead of `getAllDependencySuccessors()`, since the former is a Set while the latter is only an Iterable.
-        if (consumer.getDependencySuccessors().contains(producer)) {
+        Set<Node> directSuccessors = consumer.getDependencySuccessors();
+        if (directSuccessors.contains(producer)) {
             return false;
+        }
+        // A direct dependency on a task in another build is a TaskInAnotherBuild node, so the check above never matches a
+        // producer from another build. Compare with the node it stands for, as the breadth-first search below does.
+        for (Node successor : directSuccessors) {
+            if (successor instanceof TaskInAnotherBuild && ((TaskInAnotherBuild) successor).getTargetNode() == producer) {
+                return false;
+            }
         }
         // Do a breadth first search for any dependency
         Deque<Node> queue = new ArrayDeque<>();
