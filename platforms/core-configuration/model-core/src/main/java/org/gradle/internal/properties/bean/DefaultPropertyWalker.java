@@ -210,8 +210,10 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
         @Override
         public TaskDependencyContainer getTaskDependencies() {
-            // Ignore
-            return TaskDependencyContainer.EMPTY;
+            // The nested value could not be unpacked, so its dependencies are unknown
+            return context -> {
+                throw UncheckedException.throwAsUncheckedException(exception);
+            };
         }
 
         @Override

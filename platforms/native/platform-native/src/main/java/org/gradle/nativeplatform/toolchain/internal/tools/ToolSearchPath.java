@@ -16,12 +16,12 @@
 
 package org.gradle.nativeplatform.toolchain.internal.tools;
 
-import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
+import org.gradle.nativeplatform.toolchain.internal.UnavailableToolException;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -184,7 +184,7 @@ public class ToolSearchPath {
         public File getTool() {
             TreeFormatter formatter = new TreeFormatter();
             explain(formatter);
-            throw new GradleException(formatter.toString());
+            throw new UnavailableToolException(formatter.toString());
         }
 
         @Override

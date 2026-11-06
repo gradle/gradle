@@ -31,6 +31,8 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PCHUtils;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
+import org.gradle.nativeplatform.toolchain.internal.UnavailableCompilerVersion;
+import org.gradle.nativeplatform.toolchain.internal.UnavailableToolException;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
 
@@ -111,7 +113,12 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
         NativeToolChainInternal toolChain = (NativeToolChainInternal) getToolChain().get();
         NativePlatformInternal targetPlatform = (NativePlatformInternal) getTargetPlatform().get();
         PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
-        Compiler<? extends NativeCompileSpec> compiler = toolProvider.newCompiler(createCompileSpec().getClass());
+        Compiler<? extends NativeCompileSpec> compiler;
+        try {
+            compiler = toolProvider.newCompiler(createCompileSpec().getClass());
+        } catch (UnavailableToolException e) {
+            return new UnavailableCompilerVersion(e);
+        }
         if (!(compiler instanceof VersionAwareCompiler)) {
             return null;
         }

@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.api.GradleException;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
@@ -57,7 +56,7 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider, Co
     private RuntimeException failure() {
         TreeFormatter formatter = new TreeFormatter();
         this.explain(formatter);
-        return new GradleException(formatter.toString());
+        return new UnavailableToolException(formatter.toString());
     }
 
     @Override
