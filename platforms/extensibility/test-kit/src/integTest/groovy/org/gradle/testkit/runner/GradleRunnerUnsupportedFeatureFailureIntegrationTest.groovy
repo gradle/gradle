@@ -67,7 +67,7 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRun
 
         when:
         def result = runner('helloWorld')
-            .withGradleVersion(maxUnsupportedVersion)
+            .withGradleInstallation(buildContext.distribution(maxUnsupportedVersion).gradleHomeDir)
             .build()
 
         and:
@@ -88,7 +88,7 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRun
 
         when:
         runner('helloWorld')
-            .withGradleVersion(maxUnsupportedVersion)
+            .withGradleInstallation(buildContext.distribution(maxUnsupportedVersion).gradleHomeDir)
             .withPluginClasspath([file("foo")])
             .build()
 
@@ -108,7 +108,7 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRun
         when:
         plugin.build().exposeMetadata {
             runner('helloWorld')
-                .withGradleVersion(maxUnsupportedVersion)
+                .withGradleInstallation(buildContext.distribution(maxUnsupportedVersion).gradleHomeDir)
                 .withPluginClasspath()
                 .buildAndFail()
         }

@@ -59,7 +59,7 @@ class GradleRunnerUnsupportedGradleVersionFailureIntegrationTest extends BaseGra
 
         when:
         def result = runner('helloWorld')
-            .withGradleVersion(oldGradleVersion)
+            .withGradleInstallation(buildContext.distribution(oldGradleVersion).gradleHomeDir)
             .build()
 
         and:
@@ -85,7 +85,7 @@ class GradleRunnerUnsupportedGradleVersionFailureIntegrationTest extends BaseGra
 
         when:
         def result = runner('helloWorld')
-            .withGradleVersion("1.1")
+            .withGradleInstallation(buildContext.distribution("1.1").gradleHomeDir)
             .build()
 
         and:

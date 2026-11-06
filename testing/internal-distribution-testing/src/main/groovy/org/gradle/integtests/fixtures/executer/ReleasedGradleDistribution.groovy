@@ -34,9 +34,17 @@ class ReleasedGradleDistribution extends DownloadableGradleDistribution {
 
     @Override
     protected URL getDownloadURL() {
-        def uri = new DistributionLocator().getDistributionFor(getVersion())
-        def baseOverride = System.getenv(INTERNAL_TEST_SERVICES_BASE_URL_ENV)?.trim()
-        if (!baseOverride) {
+        return withBaseUrlOverride(new DistributionLocator().getDistributionFor(getVersion()), System.getenv(INTERNAL_TEST_SERVICES_BASE_URL_ENV))
+    }
+
+    @Override
+    protected URL getFallbackDownloadURL() {
+        return new DistributionLocator().getDistributionFor(getVersion()).toURL()
+    }
+
+    static URL withBaseUrlOverride(URI uri, String baseOverride) {
+        def trimmedOverride = baseOverride?.trim()
+        if (!trimmedOverride) {
             return uri.toURL()
         }
         def oldBase = DistributionLocator.getBaseUrl()
@@ -44,7 +52,7 @@ class ReleasedGradleDistribution extends DownloadableGradleDistribution {
         if (!uriString.startsWith(oldBase)) {
             throw new IllegalStateException("Expected distribution URI '$uriString' to start with '$oldBase'")
         }
-        def newBase = baseOverride.replaceAll(/\/+$/, '')
+        def newBase = trimmedOverride.replaceAll(/\/+$/, '')
         return new URL(newBase + uriString.substring(oldBase.length()))
     }
 }

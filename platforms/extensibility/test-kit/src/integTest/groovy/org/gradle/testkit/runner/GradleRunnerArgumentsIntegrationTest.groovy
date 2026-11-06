@@ -86,7 +86,7 @@ class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTe
 
         when:
         runner("writeValue", "--parallel")
-            .withGradleVersion(lowestMajorGradleVersion)
+            .withGradleInstallation(buildContext.distribution(lowestMajorGradleVersion).gradleHomeDir)
             .build()
 
         then:

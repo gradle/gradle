@@ -39,6 +39,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
     }
 
     def createProject(Jvm daemonJvm, @Nullable String targetGradleVersion, String action) {
+        def targetGradleHomeDir = targetGradleVersion != null ? buildContext.distribution(targetGradleVersion).gradleHomeDir : buildContext.gradleHomeDir
         buildFile << """
             plugins {
                 id("java-library")
@@ -117,11 +118,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
                 private void doRun() throws Exception {
                     GradleConnector connector = GradleConnector.newConnector();
-                    if (${targetGradleVersion != null}) {
-                        connector.useGradleVersion("${targetGradleVersion}");
-                    } else {
-                        connector.useInstallation(new File("${TextUtil.escapeString(buildContext.gradleHomeDir.absolutePath)}"));
-                    }
+                    connector.useInstallation(new File("${TextUtil.escapeString(targetGradleHomeDir.absolutePath)}"));
 
                     ProjectConnection connection = null;
                     ByteArrayOutputStream out = new ByteArrayOutputStream();
