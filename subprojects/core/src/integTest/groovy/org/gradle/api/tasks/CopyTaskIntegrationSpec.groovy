@@ -39,6 +39,50 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
     private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
 
+    @Issue("https://github.com/gradle/gradle/issues/38487")
+    def "replaces a destination file when the source changes to a directory"() {
+        given:
+        buildFile '''
+            tasks.register("copy", Copy) {
+                from "source"
+                into "destination"
+            }
+        '''
+        file("source/resource").text = "file content"
+        run "copy"
+
+        when:
+        file("source/resource").delete()
+        file("source/resource/child.txt").text = "directory content"
+        run "copy"
+
+        then:
+        file("destination/resource").assertIsDir()
+        file("destination/resource/child.txt").text == "directory content"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38487")
+    def "replaces a destination directory when the source changes to a file"() {
+        given:
+        buildFile '''
+            tasks.register("copy", Copy) {
+                from "source"
+                into "destination"
+            }
+        '''
+        file("source/resource/child.txt").text = "directory content"
+        run "copy"
+
+        when:
+        file("source/resource").deleteDir()
+        file("source/resource").text = "file content"
+        run "copy"
+
+        then:
+        file("destination/resource").assertIsFile()
+        file("destination/resource").text == "file content"
+    }
+
     def "copies everything by default"() {
         given:
         file("files/sub/a.txt").createFile()
