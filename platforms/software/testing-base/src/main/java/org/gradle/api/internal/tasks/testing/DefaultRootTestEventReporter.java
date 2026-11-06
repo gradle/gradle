@@ -94,8 +94,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
-        // Generate HTML report
-        Path reportIndexFile = testReportGenerator == null
+        GeneratedTestReport report = testReportGenerator == null
             ? null
             : testReportGenerator.generate(Collections.singletonList(binaryResultsDir));
 
@@ -107,11 +106,11 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
 
         // Throw an exception with rendered test results, if necessary
         if (hasTestFailures && closeThrowsOnTestFailures) {
-            if (reportIndexFile == null) {
+            if (report == null) {
                 // No report was requested, just fail with the message we have
                 throw new MarkedVerificationException(failureMessage);
             }
-            String testResultsUrl = new ConsoleRenderer().asClickableFileUrl(reportIndexFile.toFile());
+            String testResultsUrl = new ConsoleRenderer().asClickableFileUrl(report.location().toFile());
             throw new MarkedVerificationException(failureMessage + " See the report at: " + testResultsUrl);
         }
     }

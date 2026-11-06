@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.report.generic;
 
+import org.gradle.api.internal.tasks.testing.GeneratedTestReport;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
 import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
 import org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultOptions;
@@ -53,7 +54,7 @@ public abstract class JunitXmlTestReportGenerator implements TestReportGenerator
     }
 
     @Override
-    public Path generate(List<Path> resultsDirectories) {
+    public GeneratedTestReport.JUnitXml generate(List<Path> resultsDirectories) {
         try {
             Files.createDirectories(reportsDirectory);
         } catch (IOException e) {
@@ -61,7 +62,7 @@ public abstract class JunitXmlTestReportGenerator implements TestReportGenerator
         }
 
         if (resultsDirectories.isEmpty()) {
-            return reportsDirectory;
+            return new GeneratedTestReport.JUnitXml(reportsDirectory);
         }
         if (resultsDirectories.size() > 1) {
             throw new IllegalArgumentException("JunitXmlTestReportGenerator can only generate a report from a single results directory. Found: " + resultsDirectories);
@@ -75,6 +76,6 @@ public abstract class JunitXmlTestReportGenerator implements TestReportGenerator
                     reportsDirectory.toFile(), resultsProvider, xmlResultOptions
                 ).generate()
         );
-        return reportsDirectory;
+        return new GeneratedTestReport.JUnitXml(reportsDirectory);
     }
 }

@@ -28,6 +28,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.exceptions.MarkedVerificationException;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
+import org.gradle.api.internal.tasks.testing.GeneratedTestReport;
 import org.gradle.api.internal.tasks.testing.MultiTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.TestEventReporterFactoryInternal;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -871,7 +872,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         }
 
         @Override
-        public Path generate(List<Path> resultsDirectories) {
+        public GeneratedTestReport.Html generate(List<Path> resultsDirectories) {
             if (resultsDirectories.size() > 1) {
                 throw new IllegalArgumentException("CustomTestReportingGenerator can only generate a report from a single results directory. Found: " + resultsDirectories);
             }
@@ -879,7 +880,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
                 resultsDirectories.get(0),
                 resultsProvider -> testReporter.generateReport(resultsProvider, outputDir)
             );
-            return outputDir.toPath();
+            return new GeneratedTestReport.Html(outputDir.toPath().resolve("index.html"));
         }
     }
 }

@@ -105,7 +105,7 @@ public class AggregateTestEventReporter implements ProblemReporter, TestExecutio
         // Generate a consistent ordering by sorting the Paths
         List<Path> sortedResults = new ArrayList<>(results.values());
         sortedResults.sort(Comparator.naturalOrder());
-        return objectFactory.newInstance(GenericHtmlTestReportGenerator.class, reportDirectory).generate(sortedResults);
+        return objectFactory.newInstance(GenericHtmlTestReportGenerator.class, reportDirectory).generate(sortedResults).indexFile();
     }
 
     /**
