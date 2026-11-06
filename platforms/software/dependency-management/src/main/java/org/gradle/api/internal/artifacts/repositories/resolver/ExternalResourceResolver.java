@@ -104,7 +104,7 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
     private final boolean continueOnConnectionFailure;
 
     private final String id;
-    private ExternalResourceArtifactResolver cachedArtifactResolver;
+    private volatile ExternalResourceArtifactResolver cachedArtifactResolver;
 
     protected ExternalResourceResolver(
         UrlRepositoryDescriptor descriptor,
