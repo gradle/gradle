@@ -21,6 +21,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 
 abstract class DownloadableGradleDistribution extends DefaultGradleDistribution {
+    static final int MAX_DOWNLOAD_ATTEMPTS = 3
+
     private final TestFile versionDir
     private final ExclusiveFileAccessManager fileAccessManager = new ExclusiveFileAccessManager(120000, 200)
 
@@ -43,19 +45,9 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
         def distributionZip = super.getBinDistribution()
         def gradleHomeDir = super.getGradleHomeDir()
         def markerFile = distributionZip.withExtension("ok")
-        def versionDir = this.versionDir
         fileAccessManager.access(distributionZip) {
             if (!markerFile.exists()) {
-                distributionZip.delete()
-                gradleHomeDir.deleteDir()
-
-                URL url = getDownloadURL();
-                System.out.println("downloading $url")
-                distributionZip.copyFrom(url)
-
-                System.out.println("unzipping ${distributionZip} to ${gradleHomeDir}")
-                distributionZip.usingNativeTools().unzipTo(versionDir)
-
+                downloadAndUnzip(distributionZip, gradleHomeDir)
                 markerFile.createFile()
             }
         }
@@ -64,5 +56,37 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
         gradleHomeDir.assertIsDir()
     }
 
-    abstract protected URL getDownloadURL();
+    protected void downloadAndUnzip(TestFile distributionZip, TestFile gradleHomeDir) {
+        Throwable failure = null
+        for (int attempt = 1; attempt <= MAX_DOWNLOAD_ATTEMPTS; attempt++) {
+            URL url = attempt < MAX_DOWNLOAD_ATTEMPTS ? getDownloadURL() : getFallbackDownloadURL()
+            distributionZip.delete()
+            gradleHomeDir.deleteDir()
+            try {
+                System.out.println("downloading $url (attempt $attempt of $MAX_DOWNLOAD_ATTEMPTS)")
+                distributionZip.copyFrom(url)
+
+                System.out.println("unzipping ${distributionZip} to ${gradleHomeDir}")
+                distributionZip.usingNativeTools().unzipTo(versionDir)
+                gradleHomeDir.assertIsDir()
+                return
+            } catch (Exception | AssertionError e) {
+                System.out.println("could not install ${distributionZip} from $url: $e")
+                if (failure == null) {
+                    failure = e
+                } else {
+                    failure.addSuppressed(e)
+                }
+            }
+        }
+        distributionZip.delete()
+        gradleHomeDir.deleteDir()
+        throw failure
+    }
+
+    abstract protected URL getDownloadURL()
+
+    protected URL getFallbackDownloadURL() {
+        getDownloadURL()
+    }
 }
