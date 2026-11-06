@@ -256,50 +256,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
         signatureVerificationService.stop();
     }
 
-    private static class VerificationQuery {
-        private final ModuleComponentArtifactIdentifier artifact;
-        private final String repositoryId;
-        private final int hashCode;
-
-        public VerificationQuery(ModuleComponentArtifactIdentifier artifact, String repositoryId) {
-            this.artifact = artifact;
-            this.repositoryId = repositoryId;
-            this.hashCode = precomputeHashCode(artifact, repositoryId);
-        }
-
-        private int precomputeHashCode(ModuleComponentArtifactIdentifier artifact, String repositoryId) {
-            int hashCode = artifact.getComponentIdentifier().hashCode();
-            hashCode = 31 * hashCode + artifact.getFileName().hashCode();
-            hashCode = 31 * hashCode + repositoryId.hashCode();
-            return hashCode;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            VerificationQuery that = (VerificationQuery) o;
-            if (hashCode != that.hashCode) {
-                return false;
-            }
-            if (!artifact.getComponentIdentifier().equals(that.artifact.getComponentIdentifier())) {
-                return false;
-            }
-            if (!artifact.getFileName().equals(that.artifact.getFileName())) {
-                return false;
-            }
-            return repositoryId.equals(that.repositoryId);
-        }
-
-        @Override
-        public int hashCode() {
-            return hashCode;
-        }
+    private record VerificationQuery(ModuleComponentArtifactIdentifier artifact, String repositoryId) {
     }
 
     private static class VerificationEvent {

@@ -106,7 +106,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
             LOGGER.debug("Loading {}", location);
             LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(artifact);
             try {
-                LocallyAvailableExternalResource resource = resourceAccessor.getResource(location, artifact.getId().getFileName(), getFileStore(artifact), localCandidates);
+                LocallyAvailableExternalResource resource = resourceAccessor.getResource(location, artifact.getId().getDestinationFileName(), getFileStore(artifact), localCandidates);
                 if (resource != null) {
                     return resource;
                 }

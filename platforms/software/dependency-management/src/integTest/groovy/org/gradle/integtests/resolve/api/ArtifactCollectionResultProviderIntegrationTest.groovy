@@ -91,7 +91,7 @@ class ArtifactCollectionResultProviderIntegrationTest extends AbstractHttpDepend
                     assert result.id.componentIdentifier.group == 'org.external'
                     assert result.id.componentIdentifier.module == 'external-lib'
                     assert result.id.componentIdentifier.version == '1.0'
-                    assert result.id.fileName == 'external-lib-1.0.jar'
+                    assert result.id.destinationFileName == 'external-lib-1.0.jar'
 
                     assert result.variant.owner == result.id.componentIdentifier
                     assert result.variant.attributes.getAttribute(org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE) == 'jar'

@@ -16,12 +16,17 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Splitter;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.ArtifactFile;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
+
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
  * An artifact located relative to some module.
@@ -51,7 +56,24 @@ public class UrlBackedArtifactMetadata implements ModuleComponentArtifactMetadat
                 getName()
             );
         }
-        return new ModuleComponentFileArtifactIdentifier(componentIdentifier, fileName);
+        return new ModuleComponentFileArtifactIdentifier(componentIdentifier, fileName, normalizePath(relativeUrl));
+    }
+
+    @VisibleForTesting
+    static String normalizePath(String relativeUrl) {
+        Deque<String> segments = new ArrayDeque<>();
+        for (String segment : Splitter.on('/').split(relativeUrl)) {
+            if (segment.isEmpty() || segment.equals(".")) {
+                continue;
+            }
+            if (segment.equals("..") && !segments.isEmpty() && !"..".equals(segments.peekLast())) {
+                segments.removeLast();
+            } else {
+                segments.addLast(segment);
+            }
+        }
+        String path = String.join("/", segments);
+        return relativeUrl.startsWith("/") ? "/" + path : path;
     }
 
     @Override

@@ -100,7 +100,7 @@ public class DependencyVerifierBuilder {
         boolean droppedAsDuplicate = byComponent.computeIfAbsent(componentIdentifier, ComponentVerificationsBuilder::new)
             .addTrustedKey(artifact, key, origin, reason);
         if (droppedAsDuplicate) {
-            droppedDuplicateTrustEntries.add("trusted PGP key '" + key.toUpperCase(Locale.ROOT) + "' for " + componentIdentifier + " (" + artifact.getFileName() + ")");
+            droppedDuplicateTrustEntries.add("trusted PGP key '" + key.toUpperCase(Locale.ROOT) + "' for " + componentIdentifier + " (" + artifact.getDestinationFileName() + ")");
         }
     }
 
@@ -240,15 +240,15 @@ public class DependencyVerifierBuilder {
         }
 
         void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value, @Nullable String origin, @Nullable String reason) {
-            byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addChecksum(kind, value, origin, reason);
+            byArtifact.computeIfAbsent(artifact.getDestinationFileName(), id -> new ArtifactVerificationBuilder()).addChecksum(kind, value, origin, reason);
         }
 
         boolean addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key, @Nullable String origin, @Nullable String reason) {
-            return byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addTrustedKey(key, origin, reason);
+            return byArtifact.computeIfAbsent(artifact.getDestinationFileName(), id -> new ArtifactVerificationBuilder()).addTrustedKey(key, origin, reason);
         }
 
         void addIgnoredKey(ModuleComponentArtifactIdentifier artifact, IgnoredKey key) {
-            byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addIgnoredKey(key);
+            byArtifact.computeIfAbsent(artifact.getDestinationFileName(), id -> new ArtifactVerificationBuilder()).addIgnoredKey(key);
         }
 
         private static ArtifactVerificationMetadata toArtifactVerification(Map.Entry<String, ArtifactVerificationBuilder> entry) throws InvalidGpgKeyIdsException {

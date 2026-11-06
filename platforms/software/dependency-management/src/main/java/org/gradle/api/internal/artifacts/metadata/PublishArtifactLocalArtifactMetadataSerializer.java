@@ -26,6 +26,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * A thread-safe and reusable serializer for {@link PublishArtifactLocalArtifactMetadata}.
@@ -39,7 +40,7 @@ public class PublishArtifactLocalArtifactMetadataSerializer implements Serialize
     }
 
     @Override
-    public PublishArtifactLocalArtifactMetadata read(Decoder decoder) throws Exception {
+    public PublishArtifactLocalArtifactMetadata read(Decoder decoder) throws IOException {
         ComponentIdentifier identifier = componentIdentifierSerializer.read(decoder);
         String artifactName = decoder.readString();
         String artifactExtension = decoder.readString();
@@ -53,7 +54,7 @@ public class PublishArtifactLocalArtifactMetadataSerializer implements Serialize
     }
 
     @Override
-    public void write(Encoder encoder, PublishArtifactLocalArtifactMetadata value) throws Exception {
+    public void write(Encoder encoder, PublishArtifactLocalArtifactMetadata value) throws IOException {
         componentIdentifierSerializer.write(encoder, value.getComponentIdentifier());
         PublishArtifact publishArtifact = value.getPublishArtifact();
         encoder.writeString(publishArtifact.getName());

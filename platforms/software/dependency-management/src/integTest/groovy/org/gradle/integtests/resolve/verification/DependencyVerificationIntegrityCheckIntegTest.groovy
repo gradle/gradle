@@ -18,8 +18,10 @@ package org.gradle.integtests.resolve.verification
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
+import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
@@ -1202,5 +1204,59 @@ This can indicate that a dependency has been compromised. Please carefully verif
 One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""))
         assertConfigCacheDiscarded()
+    }
+
+    def "verifies artifact with the same file name but stored at a different path"() {
+        def repo = new IvyFileRepository(file("ivy-repo"), false, null, null, "[type]s/[artifact]-[revision](-[classifier])(.[ext])")
+        def module = repo.module("org", "bar", "1.0")
+            .artifact(type: "jar", ext: "jar")
+            .artifact(type: "bundle", ext: "jar")
+            .publish()
+        def jar = module.file(type: "jar", ext: "jar")
+        def bundle = module.file(type: "bundle", ext: "jar")
+        bundle.text = "tampered"
+
+        createMetadataFile {
+            noMetadataVerification()
+            addChecksum("org:bar:1.0", "sha1", Hashing.sha1().hashFile(jar).toString())
+        }
+
+        given:
+        terseConsoleOutput(false)
+        buildFile << """
+            repositories {
+                ivy {
+                    url = "${repo.uri}"
+                    patternLayout {
+                        artifact("${repo.baseArtifactPattern}")
+                        ivy("${repo.baseIvyPattern}")
+                    }
+                }
+            }
+            configurations {
+                dependencyScope("deps")
+                resolvable("res") {
+                    extendsFrom(deps)
+                }
+            }
+            dependencies {
+                deps("org:bar:1.0")
+            }
+            tasks.register("resolve") {
+                def files = configurations.res.incoming.files
+                doLast {
+                    println(files.files)
+                }
+            }
+        """
+
+        when:
+        fails ":resolve"
+
+        then:
+        failure.assertHasCause("""Dependency verification failed for configuration ':res':
+  - On artifact bar-1.0.jar (org:bar:1.0) in repository 'ivy': expected a 'sha1' checksum of '${Hashing.sha1().hashFile(jar)}' but was '${Hashing.sha1().hashFile(bundle)}'
+
+This can indicate that a dependency has been compromised. Please carefully verify the checksums.""")
     }
 }

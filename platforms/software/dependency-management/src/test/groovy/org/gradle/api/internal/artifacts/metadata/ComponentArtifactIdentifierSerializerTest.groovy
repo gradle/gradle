@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.publish.ImmutablePublishArtifact
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.local.model.MissingLocalArtifactMetadata
@@ -52,12 +53,30 @@ class ComponentArtifactIdentifierSerializerTest extends SerializerSpec {
         id << [
             new DefaultModuleComponentArtifactIdentifier(moduleId, "module", "jar", "jar"),
             new ModuleComponentFileArtifactIdentifier(moduleId, "module-1.0.jar"),
+            new ModuleComponentFileArtifactIdentifier(moduleId, "module-1.0.jar", "../dir/module-1.0-all.jar"),
             new ComponentFileArtifactIdentifier(moduleId, "module-1.0.jar"),
             new ComponentFileArtifactIdentifier(projectId, "lib.jar"),
             new OpaqueComponentArtifactIdentifier(new File("/libs/opaque.jar").absoluteFile),
             projectArtifact("/build/libs/lib.jar"),
             new MissingLocalArtifactMetadata(projectId, new DefaultIvyArtifactName("lib", "jar", "jar")),
             new MissingLocalArtifactMetadata(moduleId, new DefaultIvyArtifactName("module", "jar", null, "sources")),
+        ]
+    }
+
+    def "round trips destination file name and file path of #id"() {
+        when:
+        def result = serialize(id, serializer) as ModuleComponentArtifactIdentifier
+
+        then:
+        result.class == id.class
+        result.destinationFileName == id.destinationFileName
+        result.filePath == id.filePath
+
+        where:
+        id << [
+            new DefaultModuleComponentArtifactIdentifier(moduleId, "module", "bundle", "jar"),
+            new ModuleComponentFileArtifactIdentifier(moduleId, "module-1.0.jar"),
+            new ModuleComponentFileArtifactIdentifier(moduleId, "module-1.0.jar", "../dir/module-1.0-all.jar"),
         ]
     }
 

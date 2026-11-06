@@ -34,6 +34,7 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -87,7 +88,7 @@ public class ComponentArtifactIdentifierSerializer extends AbstractSerializer<Co
     }
 
     @Override
-    public ComponentArtifactIdentifier read(Decoder decoder) throws Exception {
+    public ComponentArtifactIdentifier read(Decoder decoder) throws IOException {
         byte tag = decoder.readByte();
         return switch (tag) {
             case MODULE -> moduleSerializer.read(decoder);
@@ -110,7 +111,7 @@ public class ComponentArtifactIdentifierSerializer extends AbstractSerializer<Co
     }
 
     @Override
-    public void write(Encoder encoder, ComponentArtifactIdentifier value) throws Exception {
+    public void write(Encoder encoder, ComponentArtifactIdentifier value) throws IOException {
         if (value instanceof DefaultModuleComponentArtifactIdentifier module) {
             encoder.writeByte(MODULE);
             moduleSerializer.write(encoder, module);
