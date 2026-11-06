@@ -16,42 +16,55 @@
 
 package org.gradle.swiftpm.internal;
 
-import com.google.common.collect.ImmutableSet;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class DefaultTarget implements Serializable {
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
+
+public class DefaultTarget {
     private final String name;
     private final File path;
-    private final Collection<File> sourceFiles;
+    private final FileCollection sourceFiles;
     private final List<String> requiredTargets = new ArrayList<String>();
     private final List<String> requiredProducts = new ArrayList<String>();
     private File publicHeaderDir;
 
-    public DefaultTarget(String name, File path, Iterable<File> sourceFiles) {
+    public DefaultTarget(String name, File path, FileCollection sourceFiles) {
         this.name = name;
         this.path = path;
-        this.sourceFiles = ImmutableSet.copyOf(sourceFiles);
+        this.sourceFiles = sourceFiles;
     }
 
+    @Input
     public String getName() {
         return name;
     }
 
+    @Internal
     public File getPath() {
         return path;
     }
 
-    public Collection<File> getSourceFiles() {
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public FileCollection getSourceFiles() {
         return sourceFiles;
     }
 
     @Nullable
+    @Optional
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     public File getPublicHeaderDir() {
         return publicHeaderDir;
     }
@@ -60,10 +73,12 @@ public class DefaultTarget implements Serializable {
         this.publicHeaderDir = publicHeaderDir;
     }
 
+    @Input
     public Collection<String> getRequiredTargets() {
         return requiredTargets;
     }
 
+    @Input
     public Collection<String> getRequiredProducts() {
         return requiredProducts;
     }
