@@ -26,12 +26,15 @@ import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 import java.util.jar.Attributes
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
+
+import static org.gradle.test.fixtures.archive.ArchiveBuilder.nestedArchive
 
 class ZipHasherTest extends Specification {
 
@@ -146,6 +149,27 @@ class ZipHasherTest extends Specification {
 
         expect:
         hash1 == hash2
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16893")
+    def "archive nested #depth levels deep #outcome"() {
+        given:
+        def fileHash = TestHashCodes.hashCodeFrom(0)
+        def jarfile = tmpDir.file("nested-${depth}.jar")
+        jarfile.bytes = nestedArchive(depth)
+
+        when:
+        def hash = zipHasher.hash(snapshotContext(jarfile))
+
+        then:
+        (hash == fileHash) == fallsBackToFileHash
+
+        where:
+        depth | fallsBackToFileHash | outcome
+        9     | false               | "is fingerprinted"
+        10    | true                | "falls back to the file hash"
+        // Without a depth limit, this one exhausts the stack instead of falling back
+        5000  | true                | "falls back to the file hash"
     }
 
     def createJarWithAttributes(TestFile jarfile, Map<String, String> attributes) {
