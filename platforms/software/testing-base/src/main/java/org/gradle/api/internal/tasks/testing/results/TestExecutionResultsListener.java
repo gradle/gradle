@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing.results;
 
-import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.GeneratedTestReport;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.StatefulListener;
 import org.jspecify.annotations.NullMarked;
-
-import java.nio.file.Path;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Reports final test execution results intended for aggregate reporting.
@@ -33,8 +32,26 @@ import java.nio.file.Path;
 public interface TestExecutionResultsListener {
 
     /**
-     * Called when a test execution is complete and binary results are available for consumption.
+     * The results of a single test execution.
+     *
+     * @param displayName the display name of the root of the test execution
+     * @param failed whether the test execution as a whole failed, which can be true even if no individual test failed
+     * @param report the report generated for the test execution, if any
      */
-    void executionResultsAvailable(TestDescriptorInternal rootDescriptor, Path binaryResultsDir, boolean hasTestFailures);
+    record Execution(
+        String displayName,
+        long startTime,
+        long endTime,
+        long testCount,
+        long failedCount,
+        long skippedCount,
+        boolean failed,
+        @Nullable GeneratedTestReport report
+    ) {}
+
+    /**
+     * Called when a test execution is complete and its reports have been generated.
+     */
+    void executionResultsAvailable(Execution execution);
 
 }

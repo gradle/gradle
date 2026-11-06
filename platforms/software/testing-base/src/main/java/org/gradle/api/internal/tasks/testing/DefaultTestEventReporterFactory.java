@@ -77,8 +77,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
             reportGenerator,
             testListenerInternalBroadcaster,
             0,
-            closeThrowsOnTestFailures,
-            true
+            closeThrowsOnTestFailures
         );
     }
 
@@ -89,8 +88,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         @Nullable TestReportGenerator reportGenerator,
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster,
         int diskSkipLevels,
-        boolean closeThrowsOnTestFailures,
-        boolean addToAggregateReports
+        boolean closeThrowsOnTestFailures
     ) {
         // Record all emitted results to disk
         Path binaryResultsDir = binaryResultsDirectory.getAsFile().toPath();
@@ -113,8 +111,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
             resultsSerializingListener,
             reportGenerator,
             executionResultsListenerBroadcaster,
-            closeThrowsOnTestFailures,
-            addToAggregateReports
+            closeThrowsOnTestFailures
         ));
     }
 }

@@ -48,6 +48,10 @@ class DefaultTestEventReporter implements TestEventReporterInternal {
         this.testResultState = testResultState;
     }
 
+    protected long getStartTime() {
+        return startTime;
+    }
+
     /**
      * Only non-composite test events should be counted in the test result state.
      * @return true if this is a composite test event reporter

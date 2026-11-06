@@ -17,6 +17,9 @@
 
 The Test Report Aggregation plugin (plugin id: `test-report-aggregation`) provides tasks and configurations used to aggregate the results of multiple link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task invocations (potentially spanning multiple Gradle projects) into a single HTML report.
 
+NOTE: Gradle also writes a build-wide summary page that links to the report of each test execution, without merging their results.
+See <<java_testing.adoc#sec:aggregate_test_summary,Build-wide test summary>>.
+
 [[sec:test_report_aggregation_usage]]
 == Usage
 
