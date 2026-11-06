@@ -29,7 +29,9 @@ dependencies {
 
 abstract class MyCustomDisambiguationRule : AttributeDisambiguationRule<String> {
     override fun execute(details: MultipleCandidatesDetails<String>) {
-        details.closestMatch("api")
+        if ("api" in details.candidateValues) {
+            details.closestMatch("api")
+        }
     }
 }
 
@@ -46,8 +48,11 @@ abstract class CustomDisambiguationRule @Inject constructor(
     private val objects: ObjectFactory
 ) : AttributeDisambiguationRule<Usage> {
     override fun execute(details: MultipleCandidatesDetails<Usage>) {
-        // Prefer the JAVA_API usage over others (e.g., JAVA_RUNTIME) when multiple candidates exist
-        details.closestMatch(objects.named(Usage::class.java, Usage.JAVA_API))  // <3>
+        // Prefer the JAVA_API usage over others (e.g., JAVA_RUNTIME) when it is one of the candidates
+        val javaApi = objects.named(Usage::class.java, Usage.JAVA_API)
+        if (javaApi in details.candidateValues) {
+            details.closestMatch(javaApi)  // <3>
+        }
     }
 }
 // end::disambiguation_rule[]
