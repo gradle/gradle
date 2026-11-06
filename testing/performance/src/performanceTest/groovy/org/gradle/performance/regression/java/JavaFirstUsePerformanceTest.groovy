@@ -24,7 +24,6 @@ import org.gradle.profiler.mutations.AbstractScheduledMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
@@ -35,7 +34,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "first use"() {
         given:
         runner.tasksToRun = ['tasks']
-        runner.runs = (runner.testProject == (LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL.projectName) ? 5 : 10)
+        runner.runs = (runner.testProject == 'largeJavaMultiProjectKotlinDsl' ? 5 : 10)
         runner.useDaemon = false
         runner.addBuildMutator { invocationSettings ->
             new RetryingClearGradleUserHomeMutator(invocationSettings.gradleUserHome, AbstractScheduledMutator.Schedule.BUILD)
