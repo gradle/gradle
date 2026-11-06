@@ -36,6 +36,10 @@ class GroupSpec {
         modules.values()*.build(repository)
     }
 
+    void allowAll() {
+        modules.values()*.allowAll()
+    }
+
     void methodMissing(String name, args) {
         def (aid, v) = name.split(':') as List
         Closure spec = {}

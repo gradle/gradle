@@ -39,12 +39,15 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
             }
         }
 
+        def platform = """
+            conf('org:platform:1.0') {
+                endorseStrictVersions()
+            }
+        """
+        def library = "conf('org:bar')"
         buildFile << """
             dependencies {
-                conf('org:platform:1.0') {
-                    endorseStrictVersions()
-                }
-                conf('org:bar')
+                ${platformFirst ? platform + library : library + platform}
             }
         """
 
@@ -81,6 +84,9 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
                 }
             }
         }
+
+        where:
+        platformFirst << [true, false]
     }
 
     void "can deal with platform upgrades"() {
@@ -123,6 +129,10 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
             'org:bar:1.0' {
                 expectGetMetadata()
                 expectGetArtifact()
+            }
+            id("org:foo:1.0") {
+                // Selected while bar's request for foo is still ignored for the strict version of platform:1.0
+                expectGetMetadata()
             }
             'org:foo:2.0' {
                 expectGetMetadata()
@@ -467,6 +477,382 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
 
         then:
         succeeds(":dependencies", "--configuration", "compileClasspath")
+    }
+
+    def "an endorsed platform applies to a library in a cycle with its BOM through a #kind"() {
+        given:
+        repository {
+            id("org:x:1")
+            id("org:x:2")
+            id("org:lib:1") {
+                dependsOn("org:x:2")
+                dependsOn("org:bom:1")
+            }
+            id("org:bom:1") {
+                if (kind == "constraint") {
+                    constraint("org:lib:1")
+                } else {
+                    dependsOn("org:lib:1")
+                }
+            }
+            id("org:platform:1") {
+                asPlatform()
+                constraint(group: "org", artifact: "x", version: "1", strictly: "1")
+            }
+        }
+        buildFile << """
+            dependencies {
+                ${platformAndDependencies(platformFirst, "org:lib:1")}
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            allowAll()
+        }
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:lib:1") {
+                    if (kind == "constraint") {
+                        byConstraint()
+                    }
+                    edge("org:x:2", "org:x:1") {
+                        byAncestor()
+                        byConstraint()
+                        notRequested()
+                    }
+                    module("org:bom:1") {
+                        if (kind == "constraint") {
+                            constraint("org:lib:1")
+                        } else {
+                            module("org:lib:1")
+                        }
+                    }
+                }
+                module("org:platform:1") {
+                    noArtifacts()
+                    constraint("org:x:{strictly 1}", "org:x:1")
+                }
+            }
+        }
+
+        where:
+        kind         | platformFirst
+        "constraint" | true
+        "constraint" | false
+        "dependency" | true
+        "dependency" | false
+    }
+
+    def "an endorsed platform applies to a library with a BOM that only constrains x"() {
+        given:
+        repository {
+            id("org:x:1")
+            id("org:x:2")
+            id("org:lib:1") {
+                dependsOn("org:x:2")
+                dependsOn("org:bom:1")
+            }
+            id("org:bom:1") {
+                constraint("org:x:2")
+            }
+            id("org:platform:1") {
+                asPlatform()
+                constraint(group: "org", artifact: "x", version: "1", strictly: "1")
+            }
+        }
+        buildFile << """
+            dependencies {
+                ${platformAndDependencies(platformFirst, "org:lib:1")}
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            allowAll()
+        }
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:lib:1") {
+                    edge("org:x:2", "org:x:1") {
+                        byAncestor()
+                        byConstraint()
+                        notRequested()
+                    }
+                    module("org:bom:1") {
+                        constraint("org:x:2", "org:x:1")
+                    }
+                }
+                module("org:platform:1") {
+                    noArtifacts()
+                    constraint("org:x:{strictly 1}", "org:x:1")
+                }
+            }
+        }
+
+        where:
+        platformFirst << [true, false]
+    }
+
+    def "an endorsed platform applies to a library endorsing its BOM, which constrains the library back"() {
+        given:
+        repository {
+            id("org:x:1")
+            id("org:x:2")
+            id("org:lib:1") {
+                dependsOn("org:x:2")
+                dependsOn(group: "org", artifact: "bom", version: "1", endorseStrictVersions: true)
+            }
+            id("org:bom:1") {
+                constraint("org:lib:1")
+                constraint("org:x:2")
+            }
+            id("org:platform:1") {
+                asPlatform()
+                constraint(group: "org", artifact: "x", version: "1", strictly: "1")
+            }
+        }
+        buildFile << """
+            dependencies {
+                ${platformAndDependencies(platformFirst, "org:lib:1")}
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            allowAll()
+        }
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:lib:1") {
+                    byConstraint()
+                    edge("org:x:2", "org:x:1") {
+                        byAncestor()
+                        byConstraint()
+                        notRequested()
+                    }
+                    module("org:bom:1") {
+                        constraint("org:lib:1")
+                        constraint("org:x:2", "org:x:1")
+                    }
+                }
+                module("org:platform:1") {
+                    noArtifacts()
+                    constraint("org:x:{strictly 1}", "org:x:1")
+                }
+            }
+        }
+
+        where:
+        platformFirst << [true, false]
+    }
+
+    def "an endorsed platform applies to a three-node cycle"() {
+        given:
+        repository {
+            id("org:x:1")
+            id("org:x:2")
+            id("org:first:1") {
+                dependsOn("org:second:1")
+            }
+            id("org:second:1") {
+                dependsOn("org:third:1")
+            }
+            id("org:third:1") {
+                dependsOn("org:first:1")
+                dependsOn("org:x:2")
+            }
+            id("org:platform:1") {
+                asPlatform()
+                constraint(group: "org", artifact: "x", version: "1", strictly: "1")
+            }
+        }
+        buildFile << """
+            dependencies {
+                ${platformAndDependencies(platformFirst, "org:first:1")}
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            allowAll()
+        }
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:first:1") {
+                    module("org:second:1") {
+                        module("org:third:1") {
+                            module("org:first:1")
+                            edge("org:x:2", "org:x:1") {
+                                byAncestor()
+                                byConstraint()
+                                notRequested()
+                            }
+                        }
+                    }
+                }
+                module("org:platform:1") {
+                    noArtifacts()
+                    constraint("org:x:{strictly 1}", "org:x:1")
+                }
+            }
+        }
+
+        where:
+        platformFirst << [true, false]
+    }
+
+    def "an endorsed platform applies to a module that depends on itself"() {
+        given:
+        repository {
+            id("org:x:1")
+            id("org:x:2")
+            id("org:self:1") {
+                dependsOn("org:self:1")
+                dependsOn("org:x:2")
+            }
+            id("org:platform:1") {
+                asPlatform()
+                constraint(group: "org", artifact: "x", version: "1", strictly: "1")
+            }
+        }
+        buildFile << """
+            dependencies {
+                ${platformAndDependencies(platformFirst, "org:self:1")}
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            allowAll()
+        }
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:self:1") {
+                    module("org:self:1")
+                    edge("org:x:2", "org:x:1") {
+                        byAncestor()
+                        byConstraint()
+                        notRequested()
+                    }
+                }
+                module("org:platform:1") {
+                    noArtifacts()
+                    constraint("org:x:{strictly 1}", "org:x:1")
+                }
+            }
+        }
+
+        where:
+        platformFirst << [true, false]
+    }
+
+    def "an endorsed platform applies to a cycle entered at both of its nodes"() {
+        given:
+        repository {
+            id("org:x:1")
+            id("org:x:2")
+            id("org:first:1") {
+                dependsOn("org:second:1")
+            }
+            id("org:second:1") {
+                dependsOn("org:first:1")
+                dependsOn("org:x:2")
+            }
+            id("org:platform:1") {
+                asPlatform()
+                constraint(group: "org", artifact: "x", version: "1", strictly: "1")
+            }
+        }
+        buildFile << """
+            dependencies {
+                ${platformAndDependencies(platformFirst, "org:first:1", "org:second:1")}
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            allowAll()
+        }
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:first:1") {
+                    module("org:second:1") {
+                        module("org:first:1")
+                        edge("org:x:2", "org:x:1") {
+                            byAncestor()
+                            byConstraint()
+                            notRequested()
+                        }
+                    }
+                }
+                module("org:second:1")
+                module("org:platform:1") {
+                    noArtifacts()
+                    constraint("org:x:{strictly 1}", "org:x:1")
+                }
+            }
+        }
+
+        where:
+        platformFirst << [true, false]
+    }
+
+    def "the strict version of a platform that is not endorsed does not apply to a library"() {
+        given:
+        repository {
+            id("org:x:1")
+            id("org:x:2")
+            id("org:lib:1") {
+                dependsOn("org:x:2")
+            }
+            id("org:platform:1") {
+                constraint(group: "org", artifact: "x", version: "1", strictly: "1")
+            }
+        }
+        buildFile << """
+            dependencies {
+                conf("org:lib:1")
+                conf("org:platform:1")
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            allowAll()
+        }
+        fails(":checkDeps")
+
+        then:
+        failure.assertHasCause("Cannot find a version of 'org:x' that satisfies the version constraints")
+    }
+
+    /**
+     * Returns the declarations of a platform() dependency on org:platform:1 and of the given dependencies, the platform
+     * first or last.
+     */
+    private static String platformAndDependencies(boolean platformFirst, String... dependencies) {
+        def platform = 'conf(platform("org:platform:1"))'
+        def others = dependencies.collect { "conf(\"$it\")" as String }
+        return (platformFirst ? [platform] + others : others + [platform]).join("\n")
     }
 
 }

@@ -176,9 +176,13 @@ public class DependencyGraphBuilder {
         ModuleConflictHandler moduleConflictHandler = resolveState.getModuleConflictHandler();
         CapabilitiesConflictHandler capabilitiesConflictHandler = resolveState.getCapabilitiesConflictHandler();
 
-        while (resolveState.peek() != null || moduleConflictHandler.hasConflicts() || capabilitiesConflictHandler.hasConflicts()) {
-            if (resolveState.peek() != null) {
-                final NodeState node = resolveState.pop();
+        while (true) {
+            NodeState node = resolveState.pollStrictVersionReset();
+            if (node != null) {
+                // Process resets before visits to prevent computing strict versions from stale state
+                node.resetAncestorsStrictVersions();
+            } else if (resolveState.peek() != null) {
+                node = resolveState.pop();
 
                 if (!node.shouldBuildSubgraph()) {
                     node.removeOutgoingEdges();
@@ -196,13 +200,14 @@ public class DependencyGraphBuilder {
                 edges.clear();
                 node.visitOutgoingDependenciesAndCollectEdges(edges);
                 resolveEdges(node, edges, resolveState);
-            } else {
+                node.updateInheritableStrictVersions();
+            } else if (moduleConflictHandler.hasConflicts()) {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
-                if (moduleConflictHandler.hasConflicts()) {
-                    moduleConflictHandler.resolveNextConflict();
-                } else {
-                    capabilitiesConflictHandler.resolveNextConflict();
-                }
+                moduleConflictHandler.resolveNextConflict();
+            } else if (capabilitiesConflictHandler.hasConflicts()) {
+                capabilitiesConflictHandler.resolveNextConflict();
+            } else {
+                break;
             }
         }
     }
@@ -403,6 +408,31 @@ public class DependencyGraphBuilder {
                     }
                 }
             }
+        }
+
+        // Walk all nodes reachable from the root. This differs from above, where we walk all nodes
+        // ever created, even those which are no longer present or are potentially trapped in a
+        // detached subgraph.
+        Set<NodeState> seen = new HashSet<>();
+        Deque<NodeState> queue = new ArrayDeque<>();
+        queue.add(resolveState.getRoot());
+        while (!queue.isEmpty()) {
+            NodeState node = queue.poll();
+            if (seen.add(node)) {
+                validateReachableNode(node);
+                for (EdgeState edge : node.getOutgoingEdges()) {
+                    queue.addAll(edge.getTargetNodes());
+                }
+            }
+        }
+    }
+
+    private static void validateReachableNode(NodeState node) {
+        if (!node.hasKnownAncestorsStrictVersions()) {
+            throw new IllegalStateException(String.format(
+                "Node %s is reachable from the root, but does not know the strict versions it inherits.",
+                node.getDisplayName()
+            ));
         }
     }
 
