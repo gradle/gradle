@@ -121,6 +121,18 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         ex.message.contains 'bogus'
     }
 
+    def "shows nice message for non-positive periodic check interval #value"() {
+        when:
+        converter.convert((DaemonBuildOptions.HealthCheckOption.GRADLE_PROPERTY): value, params)
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "Value '$value' given for org.gradle.daemon.healthcheckinterval Gradle property is invalid (the value should be a positive int)"
+
+        where:
+        value << ["0", "-1"]
+    }
+
     def "explicitly sets daemon usage if daemon system property is specified - #enabled"() {
         when:
         converter.convert((DaemonBuildOptions.DaemonOption.GRADLE_PROPERTY): enabled.toString(), params)
