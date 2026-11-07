@@ -691,6 +691,10 @@ class ResolveTestFixture {
         Set<String> reasons = line.substring(start, idx).split('!!').findAll { String reason ->
             !ignoredPrefixes.any { prefix -> reason.startsWith(prefix) }
         } as Set<String>
+        if (type.startsWith("module:")) {
+            // The type starts with the coordinates of the identifier
+            assert type.startsWith("module:${module},"): "Component '$id' has module version '$module', which differs from the coordinates of its identifier in '$type'"
+        }
         Set<Variant> ownedVariants = variants[id]
         assert ownedVariants != null: "Component '$id' is in the graph, but owns no variant"
         new ParsedComponent(type, id, module, reasons, ownedVariants)

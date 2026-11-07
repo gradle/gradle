@@ -81,6 +81,96 @@ baz:1.0 requested
 """
     }
 
+    def "module version of a project component is the group, name and version of the project"() {
+        settingsFile << """
+            rootProject.name = "app"
+            include("lib")
+            include("util:core")
+            include("substituted")
+            includeBuild("other")
+            includeBuild("explicit") {
+                dependencySubstitution {
+                    substitute(module("org:requested-other:1.0")).using(project(":substituted"))
+                }
+            }
+        """
+        file("lib/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            group = "org.lib"
+            version = "2.0"
+        """
+        file("util/core/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
+        file("substituted/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            group = "com.substituted"
+            version = "4.0"
+        """
+        file("other/settings.gradle") << """
+            rootProject.name = "other"
+            include("lib")
+        """
+        file("explicit/settings.gradle") << """
+            rootProject.name = "explicit"
+            include("substituted")
+        """
+        file("explicit/substituted/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            group = "com.explicit"
+            version = "5.0"
+        """
+        file("other/lib/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            group = "org.other"
+            version = "3.0"
+        """
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation(project(":lib"))
+                implementation(project(":util:core"))
+                implementation("org.other:lib")
+                implementation("org:requested:1.0")
+                implementation("org:requested-other:1.0")
+            }
+            configurations.runtimeClasspath.resolutionStrategy.dependencySubstitution {
+                substitute(module("org:requested:1.0")).using(project(":substituted"))
+            }
+            tasks.register("printModuleVersions") {
+                def root = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
+                doLast {
+                    root.get().dependencies.each {
+                        def component = it.selected
+                        println("\${component.id.buildTreePath} -> \${component.moduleVersion}")
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("printModuleVersions")
+
+        then:
+        outputContains(":lib -> org.lib:lib:2.0")
+        outputContains(":util:core -> app.util:core:unspecified")
+        outputContains(":other:lib -> org.other:lib:3.0")
+        outputContains(":substituted -> com.substituted:substituted:4.0")
+        outputContains(":explicit:substituted -> com.explicit:substituted:5.0")
+    }
+
     def "resolution result API gives access to dependency reasons in case of conflict"() {
         given:
         mavenRepo.with {
