@@ -29,6 +29,12 @@
             <tr>
                 <td>substitute</td>
             </tr>
+            <tr>
+                <td>withModule</td>
+            </tr>
+            <tr>
+                <td>withProject</td>
+            </tr>
         </table>
     </section>
 </section>

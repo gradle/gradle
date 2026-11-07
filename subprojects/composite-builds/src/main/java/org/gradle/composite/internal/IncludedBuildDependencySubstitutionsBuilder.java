@@ -21,6 +21,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.catalog.parser.StrictVersionParser;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
@@ -40,6 +41,7 @@ public class IncludedBuildDependencySubstitutionsBuilder implements GlobalDepend
     private final AttributesFactory attributesFactory;
     private final NotationParser<Object, ComponentSelector> moduleSelectorNotationParser;
     private final NotationParser<Object, Capability> capabilitiesParser;
+    private final StrictVersionParser versionParser;
     private final Set<IncludedBuildState> processed = new HashSet<>();
 
     public IncludedBuildDependencySubstitutionsBuilder(
@@ -48,7 +50,8 @@ public class IncludedBuildDependencySubstitutionsBuilder implements GlobalDepend
         ObjectFactory objectFactory,
         AttributesFactory attributesFactory,
         NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
-        NotationParser<Object, Capability> capabilitiesParser
+        NotationParser<Object, Capability> capabilitiesParser,
+        StrictVersionParser versionParser
     ) {
         this.context = context;
         this.instantiator = instantiator;
@@ -56,6 +59,7 @@ public class IncludedBuildDependencySubstitutionsBuilder implements GlobalDepend
         this.attributesFactory = attributesFactory;
         this.moduleSelectorNotationParser = moduleSelectorNotationParser;
         this.capabilitiesParser = capabilitiesParser;
+        this.versionParser = versionParser;
     }
 
     @Override
@@ -92,7 +96,7 @@ public class IncludedBuildDependencySubstitutionsBuilder implements GlobalDepend
     }
 
     private DependencySubstitutionsInternal resolveDependencySubstitutions(IncludedBuildState build) {
-        DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(build, instantiator, objectFactory, attributesFactory, moduleSelectorNotationParser, capabilitiesParser);
+        DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(build, instantiator, objectFactory, attributesFactory, moduleSelectorNotationParser, capabilitiesParser, versionParser);
         build.getRegisteredDependencySubstitutions().execute(dependencySubstitutions);
         return dependencySubstitutions;
     }
