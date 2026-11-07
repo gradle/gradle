@@ -28,6 +28,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
 import static com.google.common.collect.Maps.transformValues;
@@ -43,7 +44,40 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
 
     @Override
     public void store(String key, AfterExecutionState executionState) {
-        executionHistory.put(key, new DefaultPreviousExecutionState(
+        executionHistory.put(key, toPreviousExecutionState(executionState));
+    }
+
+    @Override
+    public boolean storeIfUnchanged(String key, Optional<PreviousExecutionState> expectedState, AfterExecutionState executionState) {
+        Optional<PreviousExecutionState> currentState = load(key);
+        if (!sameHistoryEntry(currentState, expectedState)) {
+            return false;
+        }
+        executionHistory.put(key, toPreviousExecutionState(executionState));
+        return true;
+    }
+
+    @Override
+    public void remove(String key) {
+        executionHistory.remove(key);
+    }
+
+    private static boolean sameHistoryEntry(Optional<PreviousExecutionState> currentState, Optional<PreviousExecutionState> expectedState) {
+        if (!currentState.isPresent() || !expectedState.isPresent()) {
+            return !currentState.isPresent() && !expectedState.isPresent();
+        }
+        PreviousExecutionState current = currentState.get();
+        PreviousExecutionState expected = expectedState.get();
+        if (!(current instanceof DefaultPreviousExecutionState) || !(expected instanceof DefaultPreviousExecutionState)) {
+            return false;
+        }
+        return ((DefaultPreviousExecutionState) current).getExecutionHistoryEntryId()
+            .equals(((DefaultPreviousExecutionState) expected).getExecutionHistoryEntryId());
+    }
+
+    private static PreviousExecutionState toPreviousExecutionState(AfterExecutionState executionState) {
+        return new DefaultPreviousExecutionState(
+            UUID.randomUUID().toString(),
             executionState.getOriginMetadata(),
             executionState.getCacheKey(),
             executionState.getImplementation(),
@@ -52,12 +86,7 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
             prepareForSerialization(executionState.getInputFileProperties()),
             executionState.getOutputFilesProducedByWork(),
             executionState.isSuccessful()
-        ));
-    }
-
-    @Override
-    public void remove(String key) {
-        executionHistory.remove(key);
+        );
     }
 
     private static ImmutableSortedMap<String, FileCollectionFingerprint> prepareForSerialization(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints) {

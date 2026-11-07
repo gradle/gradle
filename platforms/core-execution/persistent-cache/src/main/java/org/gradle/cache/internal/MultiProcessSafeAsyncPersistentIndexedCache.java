@@ -19,6 +19,7 @@ import org.gradle.cache.UnitOfWorkParticipant;
 import org.jspecify.annotations.Nullable;
 
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * An indexed cache that may perform updates asynchronously.
@@ -34,6 +35,11 @@ public interface MultiProcessSafeAsyncPersistentIndexedCache<K, V> extends UnitO
      * Fetches the given entry, producing if necessary, blocking until the result is available. This method may or may not block until any updates have completed and will invoke the given completion action when the operation is complete.
      */
     V get(K key, Function<? super K, ? extends V> producer, Runnable completion);
+
+    /**
+     * Replaces the current value synchronously when the supplied condition matches.
+     */
+    boolean putIf(K key, V value, Predicate<? super V> condition);
 
     /**
      * Submits an update to be applied later. This method may or may not block, and will invoke the given completion action when the operation is complete.
