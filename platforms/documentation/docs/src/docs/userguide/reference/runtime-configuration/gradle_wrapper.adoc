@@ -76,6 +76,20 @@ Adding the JAR file to version control is expected.
 Some organizations do not allow projects to submit binary files to version control, and there is no workaround available.
 ====
 
+[[sec:wrapper_line_endings]]
+The Wrapper scripts use platform-specific line endings: `gradlew` uses LF and `gradlew.bat` uses CRLF.
+If your version control system converts line endings, the scripts may stop working on other platforms, and regenerating them may show up as unrelated changes.
+When using Git, add the following rules to the `.gitattributes` file in the root of your repository to keep the line endings of the scripts and leave the Wrapper JAR untouched:
+
+[source,text]
+----
+/gradlew        text eol=lf
+*.bat           text eol=crlf
+*.jar           binary
+----
+
+The <<build_init_plugin.adoc#build_init_plugin,Build Init Plugin>> generates a `.gitattributes` file with these rules when creating a new project.
+
 The generated Wrapper properties file, `gradle/wrapper/gradle-wrapper.properties`, stores the information about the Gradle distribution:
 
 * The *server hosting* the Gradle distribution.
