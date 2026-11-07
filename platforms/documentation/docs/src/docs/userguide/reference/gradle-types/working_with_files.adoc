@@ -743,6 +743,11 @@ include::sample[dir="snippets/reference/gradle-types/copy/groovy",files="build.g
 
 As with filtering, you can also rename a subset of files by configuring it as part of a child specification on a `from()`.
 
+Like `eachFile()`, `filter()` and `expand()`, `rename()` adds a copy action that Gradle runs on each file just before copying it.
+The actions of a parent specification run first, followed by the actions of a <<#sub:using_child_copy_specifications,child specification>>, such as one configured on a `from()`.
+Within a specification, the actions run in the order they were added.
+For example, an `eachFile()` action added before `rename()` in the same specification sees the original name, and one added after it sees the new name.
+
 [[sec:renaming_files]]
 === Using `Copyspec.rename{}`
 
