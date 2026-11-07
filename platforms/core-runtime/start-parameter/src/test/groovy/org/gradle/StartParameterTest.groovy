@@ -92,6 +92,7 @@ class StartParameterTest extends Specification {
         parameter.writeDependencyLocks = true
         parameter.lockedDependenciesToUpdate = ['foo']
         parameter.includeBuild(new File('participant'))
+        parameter.agentMode = true
 
         when:
         def newInstance = newInstanceOf(parameter)

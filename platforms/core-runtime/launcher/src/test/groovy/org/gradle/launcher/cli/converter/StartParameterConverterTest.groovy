@@ -126,7 +126,42 @@ class StartParameterConverterTest extends Specification {
         parameters2.maxWorkerCount == 789
     }
 
+    def "agent mode is #agentMode with args #args and env #env"() {
+        when:
+        def parameter = convert(env, args as String[])
+
+        then:
+        parameter.agentMode == agentMode
+
+        where:
+        args                                      | env                         | agentMode
+        []                                        | [:]                         | false
+        ["--agent"]                               | [:]                         | true
+        ["--no-agent"]                            | [:]                         | false
+        ["-Dorg.gradle.agent=true"]               | [:]                         | true
+        []                                        | [ORG_GRADLE_AGENT: "true"]  | true
+        []                                        | [ORG_GRADLE_AGENT: "TRUE"]  | true
+        []                                        | [ORG_GRADLE_AGENT: "1"]     | false
+        ["-Dorg.gradle.agent=false"]              | [ORG_GRADLE_AGENT: "true"]  | false
+        ["-Dorg.gradle.agent=true"]               | [ORG_GRADLE_AGENT: "false"] | true
+        ["--no-agent"]                            | [ORG_GRADLE_AGENT: "true"]  | false
+        ["--agent"]                               | [ORG_GRADLE_AGENT: "false"] | true
+        ["--no-agent", "-Dorg.gradle.agent=true"] | [:]                         | false
+    }
+
+    def "can enable agent mode as persistent property"() {
+        expect:
+        userHome.file("gradle.properties") << "org.gradle.agent=true"
+        convert().agentMode
+        !convert("--no-agent").agentMode
+        !convert("-Dorg.gradle.agent=false").agentMode
+    }
+
     StartParameterInternal convert(String... args) {
+        convert([:], args)
+    }
+
+    StartParameterInternal convert(Map<String, String> env, String... args) {
         def converter = new StartParameterConverter()
         def initialPropertiesConverter = new InitialPropertiesConverter()
         def buildLayoutConverter = new BuildLayoutConverter()
@@ -143,6 +178,6 @@ class StartParameterConverterTest extends Specification {
         }
         def properties = propertiesConverter.convert(initialProperties, buildLayout)
 
-        return converter.convert(parsedCommandLine, buildLayout, properties, [:], new StartParameterInternal())
+        return converter.convert(parsedCommandLine, buildLayout, properties, env, new StartParameterInternal())
     }
 }

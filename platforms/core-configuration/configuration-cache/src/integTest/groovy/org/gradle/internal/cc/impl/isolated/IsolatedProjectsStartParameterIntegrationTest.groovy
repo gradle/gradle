@@ -319,6 +319,7 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
         ["setDaemonJvmCriteriaConfigured(false)", "setDaemonJvmCriteriaConfigured(boolean)"],
         ["setDevelocityUrl(null)", "setDevelocityUrl(String)"],
         ["setDevelocityPluginVersion(null)", "setDevelocityPluginVersion(String)"],
+        ["setAgentMode(false)", "setAgentMode(boolean)"],
     ]
 
 }
