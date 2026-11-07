@@ -19,6 +19,7 @@ package org.gradle.catalog
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
 
 class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolutionTest implements VersionCatalogSupport {
@@ -162,6 +163,107 @@ org.gradle.test:my-platform:1.0=incomingCatalogForLibs0
 
         then:
         outputContains 'Resolved: lib-1.0.jar'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30095")
+    def "catalog locks are isolated from #nestedBuild with catalog #nestedCatalog"() {
+        given:
+        publishCatalog('root-catalog', '1.0')
+        publishCatalog('nested-catalog', '1.0')
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories { maven { url = '${mavenRepo.uri}' } }
+                versionCatalogs {
+                    libs { from('org.gradle.test:root-catalog:1.+') }
+                }
+            }
+            ${nestedBuild == 'included' ? "includeBuild('included')" : ''}
+        """
+        file("$nestedBuild/settings.gradle") << """
+            rootProject.name = '$nestedBuild'
+            dependencyResolutionManagement {
+                repositories { maven { url = '${mavenRepo.uri}' } }
+                versionCatalogs {
+                    $nestedCatalog { from('org.gradle.test:nested-catalog:1.+') }
+                }
+            }
+        """
+        file("$nestedBuild/build.gradle") << """
+            tasks.register('checkCatalog') {
+                def catalogVersion = ${nestedCatalog}.versions.catalog.get()
+                doLast { println('Nested catalog version: ' + catalogVersion) }
+            }
+            ${nestedBuild == 'buildSrc' ? "tasks.named('jar') { dependsOn('checkCatalog') }" : ''}
+        """
+        buildFile << """
+            tasks.register('checkCatalog') {
+                ${nestedBuild == 'included' ? "dependsOn(gradle.includedBuild('included').task(':checkCatalog'))" : ''}
+                def catalogVersion = libs.versions.catalog.get()
+                doLast { println('Root catalog version: ' + catalogVersion) }
+            }
+        """
+
+        when:
+        run 'checkCatalog', '--write-locks'
+
+        then:
+        def rootLock = file('settings-gradle.lockfile').text
+        rootLock.contains('org.gradle.test:root-catalog:1.0=incomingCatalogForLibs0')
+        !rootLock.contains('nested-catalog')
+        def nestedLock = file("$nestedBuild/settings-gradle.lockfile").text
+        nestedLock.contains("org.gradle.test:nested-catalog:1.0=incomingCatalogFor${nestedCatalog.capitalize()}0")
+        !nestedLock.contains('root-catalog')
+        outputContains('Root catalog version: 1.0')
+        outputContains('Nested catalog version: 1.0')
+
+        when:
+        publishCatalog('root-catalog', '1.1')
+        publishCatalog('nested-catalog', '1.1')
+        run 'checkCatalog', '--refresh-dependencies'
+
+        then:
+        outputContains('Root catalog version: 1.0')
+        outputContains('Nested catalog version: 1.0')
+        file('settings-gradle.lockfile').text == rootLock
+        file("$nestedBuild/settings-gradle.lockfile").text == nestedLock
+
+        where:
+        nestedBuild | nestedCatalog
+        'buildSrc'  | 'libs'
+        'buildSrc'  | 'otherLibs'
+        'included'  | 'libs'
+        'included'  | 'otherLibs'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30095")
+    def "local catalog in #nestedBuild does not create a root settings lockfile"() {
+        given:
+        if (nestedBuild == 'included') {
+            settingsFile << "includeBuild('included')"
+        }
+        file("$nestedBuild/settings.gradle") << "rootProject.name = '$nestedBuild'"
+        file("$nestedBuild/build.gradle") << ''
+        file("$nestedBuild/gradle/libs.versions.toml") << '[versions]'
+
+        when:
+        run 'help', '--write-locks'
+
+        then:
+        !file('settings-gradle.lockfile').exists()
+        file("$nestedBuild/settings-gradle.lockfile").text.readLines().contains('empty=incomingCatalogForLibs0')
+
+        where:
+        nestedBuild << ['buildSrc', 'included']
+    }
+
+    private void publishCatalog(String name, String version) {
+        mavenRepo.module('org.gradle.test', name, version)
+            .withModuleMetadata()
+            .adhocVariants()
+            .hasType('toml')
+            .mainArtifact(content: "[versions]\ncatalog = '$version'\n".getBytes('UTF-8'))
+            .variant('versionCatalogElements', ['org.gradle.category': 'platform', 'org.gradle.usage': 'version-catalog'])
+            .publish()
     }
 
     def "reasonable error message if a platform cannot be resolved"() {

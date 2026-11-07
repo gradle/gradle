@@ -64,6 +64,7 @@ import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.catalog.DefaultDependenciesAccessors;
 import org.gradle.api.internal.catalog.DependenciesAccessorsWorkspaceProvider;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.notations.DependencyConstraintNotationParser;
@@ -81,6 +82,7 @@ import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.DependenciesAccessors;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.code.UserCodeApplicationContext;
@@ -143,14 +145,20 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         Instantiator instantiator,
         UserCodeApplicationContext context,
         DependencyManagementServices dependencyManagementServices,
+        BuildLayout buildLayout,
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
         ObjectFactory objects,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         IsolatableFactory isolatableFactory
     ) {
+        FileResolver settingsFileResolver = fileResolver.newResolver(buildLayout.getSettingsDir());
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
             dependencyManagementServices,
+            settingsFileResolver,
+            fileCollectionFactory.withResolver(settingsFileResolver),
             objects,
             collectionCallbackActionDecorator,
             moduleIdentifierFactory,
