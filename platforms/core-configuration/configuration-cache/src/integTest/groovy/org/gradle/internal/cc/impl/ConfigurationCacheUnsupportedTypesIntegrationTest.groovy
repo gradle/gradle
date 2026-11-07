@@ -89,6 +89,7 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler.ScriptClassLoader
 import org.gradle.initialization.DefaultSettings
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.locking.DefaultDependencyLockingHandler
 import org.gradle.invocation.DefaultGradle
@@ -323,6 +324,49 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
     private static executorServiceTypeOnCurrentJvm() {
         def shortName = Jvm.current().javaVersion.isCompatibleWith(JavaVersion.VERSION_21) ? 'AutoShutdownDelegatedExecutorService' : 'FinalizableDelegatedExecutorService'
         return 'java.util.concurrent.Executors$' + shortName
+    }
+
+    def "reports when task action captures the type-safe project accessor"() {
+        given:
+        FeaturePreviewsFixture.enableTypeSafeProjectAccessors(settingsFile)
+        settingsFile << """
+            rootProject.name = "p"
+            include("a")
+        """
+        createDir("a")
+        buildFile << """
+            tasks.register("rootProjectAccessor") {
+                def p = projects
+                doLast {
+                    println("RESULT=" + p?.a?.path)
+                }
+            }
+        """
+
+        when:
+        configurationCacheRunLenient "rootProjectAccessor"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            totalProblemsCount = 2
+            withUniqueProblems(
+                "Task `:rootProjectAccessor` of type `org.gradle.api.DefaultTask`: cannot deserialize object of type 'org.gradle.api.internal.catalog.TypeSafeProjectDependencyFactory' as these are not supported with the configuration cache.",
+                "Task `:rootProjectAccessor` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.accessors.dm.RootProjectAccessor', a subtype of 'org.gradle.api.internal.catalog.TypeSafeProjectDependencyFactory', as these are not supported with the configuration cache."
+            )
+            problemsWithStackTraceCount = 0
+        }
+
+        when:
+        configurationCacheRunLenient "rootProjectAccessor"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            totalProblemsCount = 1
+            withUniqueProblems(
+                "Task `:rootProjectAccessor` of type `org.gradle.api.DefaultTask`: cannot deserialize object of type 'org.gradle.api.internal.catalog.TypeSafeProjectDependencyFactory' as these are not supported with the configuration cache."
+            )
+            problemsWithStackTraceCount = 0
+        }
     }
 
     def "reports when task field is declared with type #baseType"() {
