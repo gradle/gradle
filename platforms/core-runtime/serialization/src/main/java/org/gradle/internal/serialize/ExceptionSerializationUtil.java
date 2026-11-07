@@ -21,7 +21,6 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,27 +68,26 @@ public final class ExceptionSerializationUtil {
      * It is, in particular, the case for opentest4j.
      */
     private static List<? extends Throwable> tryExtractMultiCauses(Throwable throwable) {
-        Method causesMethod = findCandidateGetCausesMethod(throwable);
-        if (causesMethod != null) {
-            Collection<?> causes;
-            try {
-                causes = Cast.uncheckedCast(causesMethod.invoke(throwable));
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                return Collections.emptyList();
-            }
-            if (causes == null || causes.isEmpty()) {
-                return Collections.emptyList();
-            }
-            for (Object cause : causes) {
-                if (!(cause instanceof Throwable)) {
+        try {
+            Method causesMethod = findCandidateGetCausesMethod(throwable);
+            if (causesMethod != null) {
+                Collection<?> causes = Cast.uncheckedCast(causesMethod.invoke(throwable));
+                if (causes == null || causes.isEmpty()) {
                     return Collections.emptyList();
                 }
+                for (Object cause : causes) {
+                    if (!(cause instanceof Throwable)) {
+                        return Collections.emptyList();
+                    }
+                }
+                List<Throwable> result = new ArrayList<Throwable>(causes.size());
+                for (Object cause : causes) {
+                    result.add(Cast.<Throwable>uncheckedCast(cause));
+                }
+                return Collections.unmodifiableList(result);
             }
-            List<Throwable> result = new ArrayList<Throwable>(causes.size());
-            for (Object cause : causes) {
-                result.add(Cast.<Throwable>uncheckedCast(cause));
-            }
-            return Collections.unmodifiableList(result);
+        } catch (Throwable ignored) {
+            return Collections.emptyList();
         }
         return Collections.emptyList();
     }
