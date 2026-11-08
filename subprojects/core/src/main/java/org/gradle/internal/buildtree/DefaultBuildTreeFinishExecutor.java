@@ -48,8 +48,18 @@ public class DefaultBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
 
         buildStateRegistry.visitBuilds(buildState -> {
             if (buildState instanceof NestedBuildState) {
-                ExecutionResult<Void> result = ((NestedBuildState) buildState).finishBuild();
-                finishNestedBuildsFailures.addAll(result.getFailures());
+                try {
+                    ExecutionResult<Void> result = ((NestedBuildState) buildState).finishBuild();
+                    finishNestedBuildsFailures.addAll(result.getFailures());
+                } catch (Throwable t) {
+                    // A nested build that cannot be finished must not prevent the root build from being finished.
+                    // Finishing the root build is what reports the build outcome, so letting this failure escape
+                    // here would lose the original failure: it would still be packaged into the result sent back
+                    // to the client, but nothing would ever be reported about it. This can happen when the nested
+                    // build's own state could never be created, for example when its directory is read-only and
+                    // its `.gradle` state cannot be written.
+                    finishNestedBuildsFailures.add(t);
+                }
             }
         });
 
