@@ -183,13 +183,36 @@ class ApacheCommonsHttpClientTest extends Specification {
     def "extractErrorDetail matches content-type case-insensitively"() {
         given:
         def responseBody = '{"detail": "Weird casing but still problem+json"}'
-        def response = createMockResponse("Application/Problem+JSON; charset=UTF-8", responseBody)
+        def response = createMockResponse(" Application/Problem+JSON ; charset=UTF-8 ", responseBody)
 
         when:
         def result = client.extractErrorDetail(response)
 
         then:
         result == Optional.of("Weird casing but still problem+json")
+    }
+
+    def "extractErrorDetail only parses an exact problem JSON media type"() {
+        given:
+        def response = Mock(HttpClient.Response) {
+            getMethod() >> "GET"
+            getHeader("Content-Type") >> contentType
+            getStatusReason() >> "Bad Request"
+        }
+
+        when:
+        def result = client.extractErrorDetail(response)
+
+        then:
+        result == Optional.of("Bad Request")
+        0 * response.getContent()
+
+        where:
+        contentType << [
+            'text/plain; description="application/problem+json"',
+            "application/problem+json-example",
+            "application/problem+json-seq"
+        ]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/39412")
