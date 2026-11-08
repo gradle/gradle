@@ -24,6 +24,8 @@ import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.ManagedFactories
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Nested
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.FilteringClassLoader
@@ -31,6 +33,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.util.TestUtil
+import spock.lang.Issue
 import spock.lang.Specification
 
 class DefaultIsolatableFactoryTest extends Specification {
@@ -498,5 +501,141 @@ class DefaultIsolatableFactoryTest extends Specification {
         other.prop == "123"
         !other.is(original)
         isolated.coerce(String) == null
+    }
+
+    interface SelfNestedBean {
+        @Nested
+        SelfNestedBean getSelf()
+
+        Property<String> getName()
+    }
+
+    interface MutuallyNestedBeanA {
+        @Nested
+        MutuallyNestedBeanB getB()
+    }
+
+    interface MutuallyNestedBeanB {
+        @Nested
+        MutuallyNestedBeanA getA()
+    }
+
+    interface OuterBean {
+        @Nested
+        InnerBean getInner()
+
+        Property<String> getName()
+    }
+
+    interface InnerBean {
+        Property<String> getName()
+    }
+
+    interface TwoNestedBean {
+        @Nested
+        InnerBean getFirst()
+
+        @Nested
+        InnerBean getSecond()
+    }
+
+    interface PropertyHolderBean {
+        Property<InnerBean> getInner()
+
+        Property<String> getName()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39202")
+    def "isolating a managed type with a self-referencing @Nested getter reports the cycle"() {
+        def original = TestUtil.objectFactory().newInstance(SelfNestedBean)
+
+        given:
+        _ * managedFactoryRegistry.lookup(_) >> TestUtil.instantiatorFactory().managedFactory
+
+        when:
+        isolatableFactory.isolate(original)
+
+        then:
+        def e = thrown(IsolationException)
+        e.cause instanceof IllegalStateException
+        e.cause.message ==~ /Cycles between nested beans are not allowed\. Cycle detected: '.*SelfNestedBean' -> '.*SelfNestedBean'\./
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39202")
+    def "isolating a managed type with a mutual @Nested cycle reports the cycle"() {
+        def original = TestUtil.objectFactory().newInstance(MutuallyNestedBeanA)
+
+        given:
+        _ * managedFactoryRegistry.lookup(_) >> TestUtil.instantiatorFactory().managedFactory
+
+        when:
+        isolatableFactory.isolate(original)
+
+        then:
+        def e = thrown(IsolationException)
+        e.cause instanceof IllegalStateException
+        e.cause.message ==~ /Cycles between nested beans are not allowed\. Cycle detected: '.*MutuallyNestedBeanA' -> '.*MutuallyNestedBeanB' -> '.*MutuallyNestedBeanA'\./
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39202")
+    def "a @Nested cycle is accepted when the managed type is instantiated"() {
+        when:
+        def instance = TestUtil.objectFactory().newInstance(SelfNestedBean)
+
+        then:
+        noExceptionThrown()
+
+        // Each level of the cycle is a distinct instance, so the object graph is unbounded
+        and:
+        instance.self.is(instance.self)
+        !instance.self.is(instance.self.self)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39202")
+    def "isolating a managed type with nested beans of different types succeeds"() {
+        def original = TestUtil.objectFactory().newInstance(OuterBean)
+        original.name.set("outer")
+        original.inner.name.set("inner")
+
+        given:
+        _ * managedFactoryRegistry.lookup(_) >> TestUtil.instantiatorFactory().managedFactory
+
+        expect:
+        def isolated = isolatableFactory.isolate(original)
+        isolated instanceof IsolatedManagedValue
+        def copy = isolated.isolate()
+        !copy.is(original)
+        copy.name.get() == "outer"
+        copy.inner.name.get() == "inner"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39202")
+    def "isolating a managed type that nests the same type in sibling properties succeeds"() {
+        def original = TestUtil.objectFactory().newInstance(TwoNestedBean)
+        original.first.name.set("first")
+        original.second.name.set("second")
+
+        given:
+        _ * managedFactoryRegistry.lookup(_) >> TestUtil.instantiatorFactory().managedFactory
+
+        expect:
+        def isolated = isolatableFactory.isolate(original)
+        isolated instanceof IsolatedManagedValue
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39202")
+    def "isolating a managed type holding a bean in a property succeeds"() {
+        def original = TestUtil.objectFactory().newInstance(PropertyHolderBean)
+        def inner = TestUtil.objectFactory().newInstance(InnerBean)
+        inner.name.set("inner")
+        original.inner.set(inner)
+        original.name.set("outer")
+
+        given:
+        _ * managedFactoryRegistry.lookup(_) >> TestUtil.instantiatorFactory().managedFactory
+
+        expect:
+        def isolated = isolatableFactory.isolate(original)
+        isolated instanceof IsolatedManagedValue
     }
 }
