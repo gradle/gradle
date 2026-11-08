@@ -89,4 +89,75 @@ class ValueSourceIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("ValueSource result = Hello, world")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/39202")
+    def "value source parameters with a @Nested type cycle report the cycle"() {
+        given:
+        buildFile """
+            import org.gradle.api.provider.*
+
+            interface SelfNested {
+                @Nested SelfNested getSelf()
+                Property<String> getName()
+            }
+
+            interface Params extends ValueSourceParameters {
+                @Nested SelfNested getNested()
+            }
+
+            abstract class Probe implements ValueSource<String, Params> {
+                @Override String obtain() { return "ok" }
+            }
+
+            println("probe = " + providers.of(Probe) {}.get())
+        """
+
+        when:
+        fails("help")
+
+        then:
+        outputDoesNotContain("probe = ok")
+
+        and:
+        failure.assertHasFileName("Build file '${buildFile}'")
+        failure.assertHasLineNumber(17)
+
+        // The failure names the declared types in the cycle, instead of the generated class and a bare stack overflow
+        and:
+        failureCauseContains("Could not isolate value")
+        failureCauseContains("of type Params")
+        failureCauseContains("Cycles between nested beans are not allowed. Cycle detected:")
+        failureCauseContains("SelfNested")
+        result.error.contains("SelfNested")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39202")
+    def "value source parameters that directly nest themselves report the cycle"() {
+        given:
+        buildFile """
+            import org.gradle.api.provider.*
+
+            interface Params extends ValueSourceParameters {
+                @Nested Params getSelf()
+            }
+
+            abstract class Probe implements ValueSource<String, Params> {
+                @Override String obtain() { return "ok" }
+            }
+
+            println("probe = " + providers.of(Probe) {}.get())
+        """
+
+        when:
+        fails("help")
+
+        then:
+        outputDoesNotContain("probe = ok")
+
+        and:
+        failureCauseContains("Could not isolate value")
+        failureCauseContains("of type Params")
+        failureCauseContains("Cycles between nested beans are not allowed. Cycle detected:")
+        failureCauseContains("Params")
+    }
 }
