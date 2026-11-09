@@ -26,6 +26,7 @@ description = "Plugins that add support for generating IDE project files used fo
 dependencies {
     api(projects.baseIdePlugins)
     api(projects.baseServices)
+    api(projects.buildOption)
     api(projects.core)
     api(projects.coreApi)
     api(projects.ide)
