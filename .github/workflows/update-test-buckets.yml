@@ -33,7 +33,7 @@ jobs:
             WARP_CLIENT_ID, gha/_shared/_all/warp_basic_access_client_id
             WARP_CLIENT_SECRET, gha/_shared/_all/warp_basic_access_client_secret
       - name: Setup java
-        uses: actions/setup-java@v6.1.0
+        uses: actions/setup-java@v6.2.0
         with:
           distribution: temurin
           java-version: 21
