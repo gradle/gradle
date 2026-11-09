@@ -179,10 +179,10 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
     }
 
     @Issue('https://github.com/gradle/gradle/issues/10694')
-    def "configuring a category or tag that does not apply to a test class does not affect runners sensitive to filtering"() {
+    def "configuring a category or tag that #description does not affect runners sensitive to filtering"() {
         given:
-        file('src/test/java/UnrelatedCategory.java') << '''
-            public interface UnrelatedCategory {
+        file('src/test/java/SomeCategory.java') << '''
+            public interface SomeCategory {
             }
         '''.stripIndent()
         file('src/test/java/FilterSensitiveRunner.java') << '''
@@ -217,8 +217,10 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         '''.stripIndent()
         file('src/test/java/MyTest.java') << """
             ${testFrameworkImports}
+            import org.junit.experimental.categories.Category;
 
             @RunWith(FilterSensitiveRunner.class)
+            ${include ? '@Category(SomeCategory.class)' : ''}
             public class MyTest {
                 @Test
                 public void testMyMethod() {
@@ -235,7 +237,7 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
             }
 
             test {
-                ${configureTestFramework} { ${excludeCategoryOrTag('UnrelatedCategory')} }
+                ${configureTestFramework} { ${include ? includeCategoryOrTag('SomeCategory') : excludeCategoryOrTag('SomeCategory')} }
             }
         """.stripIndent()
 
@@ -244,6 +246,11 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
 
         then:
         new DefaultTestExecutionResult(testDirectory).testClass('MyTest').assertTestPassed('testMyMethod')
+
+        where:
+        description                        | include
+        "does not apply to a test class"   | false
+        "applies to every test in a class" | true
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4924')
