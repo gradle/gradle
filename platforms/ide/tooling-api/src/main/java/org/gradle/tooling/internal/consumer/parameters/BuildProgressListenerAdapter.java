@@ -103,6 +103,7 @@ import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationConte
 import org.gradle.tooling.events.problems.internal.DefaultSeverity;
 import org.gradle.tooling.events.problems.internal.DefaultSingleProblemEvent;
 import org.gradle.tooling.events.problems.internal.DefaultSolution;
+import org.gradle.tooling.events.problems.internal.DefaultBuildFrame;
 import org.gradle.tooling.events.problems.internal.DefaultFrame;
 import org.gradle.tooling.events.problems.internal.DefaultProjectFrame;
 import org.gradle.tooling.events.problems.internal.DefaultTaskFrame;
@@ -264,6 +265,7 @@ import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersio
 import org.gradle.tooling.internal.protocol.problem.InternalProxiedAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
+import org.gradle.tooling.internal.protocol.problem.InternalBuildFrame;
 import org.gradle.tooling.internal.protocol.problem.InternalFrame;
 import org.gradle.tooling.internal.protocol.problem.InternalProjectFrame;
 import org.gradle.tooling.internal.protocol.problem.InternalTaskFrame;
@@ -1103,6 +1105,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
         if (frame instanceof InternalProjectFrame) {
             return new DefaultProjectFrame(displayName, locality, ((InternalProjectFrame) frame).getBuildTreePath());
+        }
+        if (frame instanceof InternalBuildFrame) {
+            return new DefaultBuildFrame(displayName, locality, ((InternalBuildFrame) frame).getBuildPath());
         }
         // A frame kind this client has no type for stays in the trace as a plain frame: the order of a trace carries meaning
         return new DefaultFrame(displayName, locality);

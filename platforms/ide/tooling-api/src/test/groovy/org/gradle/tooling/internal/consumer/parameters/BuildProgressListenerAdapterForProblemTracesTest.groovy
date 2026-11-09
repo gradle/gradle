@@ -16,10 +16,12 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
+import org.gradle.internal.build.event.types.DefaultBuildFrame
 import org.gradle.internal.build.event.types.DefaultFrame
 import org.gradle.internal.build.event.types.DefaultProjectFrame
 import org.gradle.internal.build.event.types.DefaultTaskFrame
 import org.gradle.internal.build.event.types.DefaultTrace
+import org.gradle.tooling.events.problems.BuildFrame
 import org.gradle.tooling.events.problems.Locality
 import org.gradle.tooling.events.problems.ProjectFrame
 import org.gradle.tooling.events.problems.TaskFrame
@@ -34,14 +36,17 @@ class BuildProgressListenerAdapterForProblemTracesTest extends Specification {
         given:
         def details = detailsWith(
             new DefaultTaskFrame("task :app:test", "UNKNOWN", ":app:test"),
-            new DefaultProjectFrame("project :app", "LOCAL", ":app")
+            new DefaultProjectFrame("project :app", "LOCAL", ":app"),
+            new DefaultBuildFrame("build :", "UNKNOWN", ":")
         )
 
         when:
         def frames = BuildProgressListenerAdapter.toDetectionTrace(details).frames
 
         then:
-        frames.size() == 2
+        frames.size() == 3
+        frames[2] instanceof BuildFrame
+        frames[2].buildPath == ":"
         frames[0] instanceof TaskFrame
         frames[0].buildTreePath == ":app:test"
         frames[0].displayName == "task :app:test"
@@ -72,6 +77,7 @@ class BuildProgressListenerAdapterForProblemTracesTest extends Specification {
         frames[0] instanceof TaskFrame
         !(frames[1] instanceof TaskFrame)
         !(frames[1] instanceof ProjectFrame)
+        !(frames[1] instanceof BuildFrame)
         frames[1].locality == Locality.LOCAL
         frames[2] instanceof ProjectFrame
     }

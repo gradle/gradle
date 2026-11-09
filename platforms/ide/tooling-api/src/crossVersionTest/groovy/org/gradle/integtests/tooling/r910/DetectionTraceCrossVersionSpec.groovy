@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r910
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.events.problems.BuildFrame
 import org.gradle.tooling.events.problems.Locality
 import org.gradle.tooling.events.problems.ProjectFrame
 import org.gradle.tooling.events.problems.TaskFrame
@@ -42,6 +43,8 @@ class DetectionTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionS
         frames[0].buildTreePath == ":reportProblem"
         frames[1] instanceof ProjectFrame
         frames[1].buildTreePath == ":"
+        frames[2] instanceof BuildFrame
+        frames[2].buildPath == ":"
         frames*.locality.unique() == [Locality.UNKNOWN]
 
         and: "the flat list is still filled"
@@ -63,6 +66,10 @@ class DetectionTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionS
         frames[0].buildTreePath == ":lib:core:reportProblem"
         frames[1] instanceof ProjectFrame
         frames[1].buildTreePath == ":lib:core"
+        frames[2] instanceof BuildFrame
+        frames[2].buildPath == ":lib"
+        frames[3] instanceof BuildFrame
+        frames[3].buildPath == ":"
     }
 
     def "problem reported while configuring carries the build alone"() {
@@ -74,6 +81,8 @@ class DetectionTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionS
 
         then:
         problems.size() == 1
-        problems[0].detectionTrace.frames*.displayName == ["build :"]
+        def frames = problems[0].detectionTrace.frames
+        frames*.displayName == ["build :"]
+        frames[0] instanceof BuildFrame
     }
 }
