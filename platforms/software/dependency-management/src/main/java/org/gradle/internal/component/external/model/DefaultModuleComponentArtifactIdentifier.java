@@ -22,10 +22,11 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.jspecify.annotations.Nullable;
 
-public class DefaultModuleComponentArtifactIdentifier implements ModuleComponentArtifactIdentifier {
+import java.util.Objects;
+
+public final class DefaultModuleComponentArtifactIdentifier extends ModuleComponentArtifactIdentifier {
     private final ModuleComponentIdentifier componentIdentifier;
     private final IvyArtifactName name;
-    private final int hashCode;
 
     public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension) {
         this(componentIdentifier, new DefaultIvyArtifactName(name, type, extension));
@@ -38,24 +39,26 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
     public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
         this.componentIdentifier = componentIdentifier;
         this.name = artifact;
-        this.hashCode = 31 * name.hashCode() + componentIdentifier.hashCode();
     }
 
     @Override
-    public String getFileName() {
+    public String getDestinationFileName() {
         String classifier = StringUtils.isNotEmpty(name.getClassifier()) ? "-" + name.getClassifier() : "";
         String extension = StringUtils.isNotEmpty(name.getExtension()) ? "." + name.getExtension() : "";
         return name.getName() + "-" + componentIdentifier.getVersion() + classifier + extension;
     }
 
+    // This is only a guess at the file path, as the actual path may depend on the repository layout and other factors.
+    // It's used here to provide a default value for the file path, but it may not be accurate in all cases.
     @Override
-    public String getDisplayName() {
-        return getFileName() + " (" + getComponentIdentifier().getDisplayName() + ")";
-    }
-
-    @Override
-    public String getCapitalizedDisplayName() {
-        return getDisplayName();
+    public String getFilePath() {
+        String fileName = getDestinationFileName();
+        if (!Objects.equals(name.getType(), name.getExtension())) {
+            // Assume that types are stored in a directory named after the type, e.g., "jars/", "zips/", etc.
+            // This is to provide a more accurate guess at the Ivy file path based on the default Ivy layout.
+            return name.getType() + "s/" + fileName;
+        }
+        return fileName;
     }
 
     public IvyArtifactName getName() {
@@ -65,28 +68,5 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
     @Override
     public ModuleComponentIdentifier getComponentIdentifier() {
         return componentIdentifier;
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || obj.getClass() != getClass()) {
-            return false;
-        }
-        DefaultModuleComponentArtifactIdentifier other = (DefaultModuleComponentArtifactIdentifier) obj;
-        return other.componentIdentifier.equals(componentIdentifier)
-                && other.name.equals(name);
     }
 }
