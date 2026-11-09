@@ -64,6 +64,11 @@ public class TcpOutgoingConnector implements OutgoingConnector {
         try {
             Exception lastFailure = null;
             for (InetAddress candidate : candidateAddresses) {
+                if (!InetAddressFactory.isLocalAddress(candidate)) {
+                    LOGGER.debug("Address {} is not an address of this machine, skipping.", candidate);
+                    lastFailure = new java.net.ConnectException(String.format("%s is not an address of this machine.", candidate));
+                    continue;
+                }
                 LOGGER.debug("Trying to connect to address {}.", candidate);
                 SocketChannel socketChannel;
                 try {
