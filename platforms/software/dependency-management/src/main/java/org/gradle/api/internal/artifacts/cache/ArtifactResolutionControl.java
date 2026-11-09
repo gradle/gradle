@@ -15,13 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.cache;
 
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-
-import java.io.File;
-
 /**
  * Command methods for controlling artifact resolution via the DSL.
  */
-public interface ArtifactResolutionControl extends ResolutionControl<ModuleComponentArtifactMetadata, File> {
+public interface ArtifactResolutionControl extends ResolutionControl {
+
+    /**
+     * Returns true if the artifact was recorded as missing. False otherwise.
+     */
+    boolean isMissing();
+
     boolean belongsToChangingModule();
+
 }
