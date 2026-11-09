@@ -192,7 +192,7 @@ The file must be located at `$PROJECT_ROOT/gradle/verification-metadata.xml`.
 
 NOTE: Currently, the only source of dependency verification metadata is this XML configuration file. Future versions of Gradle may include other sources (for example, via external services).
 
-A minimal configuration consists of the following:
+We recommend starting with the following configuration:
 
 [source,xml]
 ----
@@ -201,25 +201,36 @@ A minimal configuration consists of the following:
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
-      <verify-metadata>true</verify-metadata>
-      <verify-signatures>false</verify-signatures>
+      <verify-metadata>false</verify-metadata>
+      <verify-signatures>true</verify-signatures>
     </configuration>
 </verification-metadata>
 ----
 
-With this configuration, Gradle verifies all artifacts using checksums but will not verify signatures.
+With this configuration, Gradle verifies artifact signatures and falls back to checksums for artifacts that are not signed.
+It does not verify metadata files such as POM files.
+See <<#sec:disabling-metadata-verification>> for what this setting covers.
+
+This file alone does not let a build run.
+As soon as the file exists, Gradle verifies every downloaded artifact against it, and the file above does not list any trusted keys or checksums yet.
+Any build with external dependencies or plugins fails until you generate those entries:
+
+[source,bash]
+----
+$ ./gradlew --write-verification-metadata pgp,sha256 help
+----
+
+See <<#sec:bootstrapping-verification>> to learn more.
 
 Gradle verifies any artifact downloaded via its dependency management engine, including but not limited to:
 
 - Artifact files (e.g., JAR files, ZIPs) used during the build
-- Metadata artifacts (POM files, Ivy descriptors, and Gradle Module Metadata)
+- Metadata artifacts (POM files, Ivy descriptors, and Gradle Module Metadata), unless metadata verification is disabled
 - Plugins (both project and settings plugins)
 - Artifacts resolved via advanced dependency resolution APIs
 
 Gradle does _not_ verify changing dependencies (specifically `SNAPSHOT` versions) or locally produced artifacts (such as JARs generated during the build itself).
 By nature, the checksums and signatures of these files change constantly.
-
-WARNING: Using such a minimal configuration file will cause a project with external dependencies or plugins to fail immediately, as the file does not yet contain the required checksums for verification. See <<#sec:bootstrapping-verification>> to learn more.
 
 [[sec:verification-scope]]
 === Scope of Dependency Verification
@@ -235,28 +246,41 @@ When using an included build, the following rules apply:
 
 Because this configuration is global and strict, the most efficient way to begin is by generating a baseline configuration for your existing build.
 
-[[sec:disabling-metadata-verification]]
+[[sec:disabling-dependency-verification]]
 == Disabling Dependency Verification
 
-By default, Gradle verifies both artifacts (JARs, ZIPs, etc.) and their metadata files (POM files, Ivy descriptors, Gradle Module Metadata).
-Metadata verification can significantly increase the size of your configuration file.
+You can turn off parts of dependency verification.
+Each option reduces the protection verification gives you.
 
-To disable metadata verification, set the `<verify-metadata>` flag to `false`:
+[[sec:disabling-metadata-verification]]
+=== Disabling Metadata Verification
 
-[source,xml]
-----
-<?xml version="1.0" encoding="UTF-8"?>
-<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
-   <configuration>
-      <verify-metadata>false</verify-metadata>
-      <verify-signatures>false</verify-signatures>
-    </configuration>
-</verification-metadata>
-----
+The `<verify-metadata>` flag controls whether Gradle verifies metadata files: POM files, Ivy descriptors, and Gradle Module Metadata files.
+If the flag is absent, Gradle verifies metadata files.
 
-WARNING: Disabling metadata verification reduces security. Compromised metadata files could introduce malicious transitive dependencies into your build.
+Setting `<verify-metadata>` to `false` skips metadata files only.
+Gradle still verifies every other artifact, including JARs and plugin artifacts:
+
+[cols="2,1,1"]
+|===
+|File |`<verify-metadata>true</verify-metadata>` |`<verify-metadata>false</verify-metadata>`
+
+|Artifacts (JARs, ZIPs, plugin artifacts)
+|Verified
+|Verified
+
+|Metadata (POM files, Ivy descriptors, `.module` files)
+|Verified
+|Not verified
+|===
+
+No flag in the verification metadata file turns off artifact verification.
+To run a build without verification failures, use a <<#sec:disabling-verification,verification mode>>.
+
+Metadata verification significantly increases the size of the verification metadata file, because each module needs an entry for its metadata file as well as its artifacts, including parent POMs and BOMs.
+Set the flag to `true` if you also want Gradle to detect tampered metadata files.
+
+WARNING: With metadata verification disabled, Gradle cannot detect a tampered metadata file, which could change the transitive dependencies your build resolves.
 
 [[sub:disabling-specific-verification]]
 === Disabling Verification for Specific Configurations
@@ -983,50 +1007,6 @@ If you want to retry immediately, you can run with the `--refresh-keys` CLI flag
 ./gradlew build --refresh-keys
 ----
 
-[[sec:add-manual-keyring]]
-=== Adding Keys to the Keyring
-
-If you have a public key that Gradle cannot download from key servers, you can manually add it to the keyring file.
-This is useful when a key is not published to public key servers or when you want to avoid downloading keys repeatedly.
-
-[[sec:add-ascii-keyring]]
-==== For ASCII-Armored Format (.keys)
-
-If you're using the ASCII-armored keyring format, you can add keys directly by appending them to the `gradle/verification-keyring.keys` file.
-
-First, export the public key to a file:
-
-[source,bash]
-----
-$ gpg --export --armor 8756C4F765C9AC3CB6B85D62379CE192D401AB61 > key.asc
-----
-
-Then append the key to your keyring file:
-
-[source,bash]
-----
-$ cat key.asc >> gradle/verification-keyring.keys
-----
-
-[[sec:add-binary-keyring]]
-==== For Binary Format (.gpg)
-
-If you're using the binary keyring format, use GPG to import the key:
-
-[source,bash]
-----
-$ gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --import key.asc
-----
-
-Or import directly from a key server to the keyring:
-
-[source,bash]
-----
-$ gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --recv-keys 8756C4F765C9AC3CB6B85D62379CE192D401AB61
-----
-
-NOTE: Remember to use full 40-character fingerprint IDs when working with keys, not short or long IDs.
-
 [[sec:local-keyring]]
 === Exporting Keys for Faster Verification
 
@@ -1141,6 +1121,13 @@ This commonly happens when POM files differ between repositories in non-meaningf
 
 Dependency verification can fail in different ways. This section explains how to deal with various cases.
 
+[[sec:troubleshooting-verification]]
+By default, the console shows a short summary that lists the failing artifacts, and the full reason for each failure is in the linked HTML report, `dependency-verification-report.html`.
+To print the full reasons on the console, for example on CI, set `org.gradle.dependency.verification.console=verbose` as described in <<#sec:verification-console-output>>.
+
+NOTE: `buildSrc` does not read the root project's `gradle.properties` file.
+To get verbose output for dependencies resolved by `buildSrc`, also set the property in `buildSrc/gradle.properties`, or set it in `GRADLE_USER_HOME/gradle.properties`.
+
 [[missing_verification_metadata]]
 === Missing Verification Metadata
 
@@ -1170,6 +1157,30 @@ You need to add an entry to the verification file:
 
 Alternatively, ask Gradle to generate the missing information using <<#sec:bootstrapping-verification,bootstrapping>>.
 Existing information will be preserved; Gradle only adds missing verification metadata.
+
+[[metadata_missing_on_other_machines]]
+=== Metadata Checksums Missing on Other Machines
+
+With metadata verification enabled, a verification file that works on your machine can fail on CI or on another developer's machine:
+
+[source,text]
+----
+> Dependency verification failed for configuration ':compileClasspath':
+    - On artifact junit-bom-5.7.0.pom (org.junit:junit-bom:5.7.0) in repository 'MavenRepo': checksum is missing from verification metadata.
+----
+
+When you generate the verification file with a populated dependency cache, Gradle can miss some metadata files, such as parent POMs and BOMs, that it doesn't need to download again.
+Machines with an empty cache download those files and fail verification.
+See https://github.com/gradle/gradle/issues/19228[gradle/gradle#19228].
+
+To record every metadata file, generate the verification file with an empty Gradle user home:
+
+[source,bash]
+----
+$ ./gradlew --gradle-user-home /tmp/empty-gradle-home --write-verification-metadata pgp,sha256 help
+----
+
+This problem doesn't occur with metadata verification disabled, as in the <<#sub:verification-metadata,recommended starting configuration>>.
 
 [[incorrect_checksums]]
 === Incorrect Checksums
@@ -1278,3 +1289,55 @@ However, if you only do so, Gradle will still fail because all keys for this art
        </component>
    </components>
 ----
+
+[[sec:add-manual-keyring]]
+=== Adding Keys to the Keyring
+
+Gradle fails verification when it can't download the public key for a signed artifact:
+
+[source,text]
+----
+> Dependency verification failed for configuration ':compileClasspath':
+    - On artifact javaparser-core-3.6.11.jar (com.github.javaparser:javaparser-core:3.6.11) in repository 'MavenRepo': Artifact was signed with key '379ce192d401ab61' but it wasn't found in any key server so it couldn't be verified
+----
+
+If you have a public key that Gradle cannot download from key servers, you can manually add it to the keyring file.
+This is useful when a key is not published to public key servers or when you want to avoid downloading keys repeatedly.
+
+[[sec:add-ascii-keyring]]
+==== For ASCII-Armored Format (.keys)
+
+If you're using the ASCII-armored keyring format, you can add keys directly by appending them to the `gradle/verification-keyring.keys` file.
+
+First, export the public key to a file:
+
+[source,bash]
+----
+$ gpg --export --armor 8756C4F765C9AC3CB6B85D62379CE192D401AB61 > key.asc
+----
+
+Then append the key to your keyring file:
+
+[source,bash]
+----
+$ cat key.asc >> gradle/verification-keyring.keys
+----
+
+[[sec:add-binary-keyring]]
+==== For Binary Format (.gpg)
+
+If you're using the binary keyring format, use GPG to import the key:
+
+[source,bash]
+----
+$ gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --import key.asc
+----
+
+Or import directly from a key server to the keyring:
+
+[source,bash]
+----
+$ gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --recv-keys 8756C4F765C9AC3CB6B85D62379CE192D401AB61
+----
+
+NOTE: Remember to use full 40-character fingerprint IDs when working with keys, not short or long IDs.
