@@ -1,0 +1,12 @@
+// tag::include-build-logic[]
+pluginManagement {
+    includeBuild('build-logic')
+}
+// end::include-build-logic[]
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'multiproject-build-logic'
+include 'api', 'shared', 'services'

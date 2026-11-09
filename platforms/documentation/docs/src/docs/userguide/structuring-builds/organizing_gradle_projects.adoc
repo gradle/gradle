@@ -311,7 +311,7 @@ It compiles and makes this plugin available to all other build scripts in the pr
 <1> Applies `java-library` and testing logic
 <2> Subproject build script, applies `java-library` and testing logic
 
-You can learn more about multi-project builds in <<sharing_build_logic_between_subprojects.adoc#sharing_build_logic_between_subprojects,Sharing Build Logc between Subprojects using BuildSrc>>.
+To choose between `buildSrc`, a `build-logic` included build, and other ways to share build logic, see <<sharing_build_logic_between_subprojects.adoc#sharing_build_logic_between_subprojects,Sharing Build Logic>>.
 
 [[sec:build_sources_classpath]]
 === How `buildSrc` affects the build script classpath
