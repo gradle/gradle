@@ -49,6 +49,6 @@ class ReadOnlyCacheValidationTest extends AbstractReadOnlyCacheDependencyResolut
         then:
         outputContains("The read-only dependency cache is disabled because of a configuration problem:")
         outputContains("Read-only cache is configured but the directory layout isn't expected. You must have a pre-populated modules-2 directory at ")
-        outputContains("${new DocumentationRegistry().getDocumentationRecommendationFor("instructions on how to do this", "dependency_resolution", "sub:shared-readonly-cache")}")
+        outputContains("${new DocumentationRegistry().getDocumentationRecommendationFor("instructions on how to do this", "dependency_caching", "sec:shared-readonly-cache")}")
     }
 }

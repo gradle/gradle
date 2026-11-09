@@ -202,7 +202,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
             }
 
             contents.append("            <p>In any case you <b>must review the result</b> of this operation.")
-            .append("            <p>Please refer to the <a href=\"").append(documentationRegistry.getDocumentationFor("dependency_verification")).append("\" target=\"_blank\">documentation</a> for more information.</p>\n")
+            .append("            <p>Please refer to the <a href=\"").append(documentationRegistry.getDocumentationFor("securing_dependencies")).append("\" target=\"_blank\">documentation</a> for more information.</p>\n")
             .append("        </div>\n")
             .append("    </div>\n");
     }
@@ -224,7 +224,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
         for (String line : lines) {
             contents.append(line).append("\n");
         }
-        contents.append("        <p>See the <a href=\"").append(documentationRegistry.getDocumentationFor("dependency_verification", "sec:^")).append("\" target=\"_blank\">documentation</a> to get more information.</p>\n")
+        contents.append("        <p>See the <a href=\"").append(documentationRegistry.getDocumentationFor("securing_dependencies", "sec:dealing-verification-failure")).append("\" target=\"_blank\">documentation</a> to get more information.</p>\n")
             .append("        <button class=\"uk-button uk-button-primary uk-modal-close\" type=\"button\">Ok</button>\n")
             .append("    </div>\n")
             .append("</div>\n");
