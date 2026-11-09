@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 
 import static org.hamcrest.CoreMatchers.anyOf
@@ -1024,6 +1026,34 @@ lifecycle listener before
 task action ran
 lifecycle listener after
 legacy after"""
+    }
+
+    @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "the configuration cache reports this access as a problem instead")
+    def "listener accessing Task.project in #method is deprecated"() {
+        buildFile """
+            abstract class ProjectAccessingListener implements TaskLifecycleListener<Task> {
+                void $method {
+                    println "listener sees project \${task.project.name}"
+                }
+            }
+
+            tasks.register("foo") {
+                addLifecycleListener(ProjectAccessingListener)
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
+        run "foo"
+
+        then:
+        outputContains("listener sees project ")
+
+        where:
+        method << ["beforeExecution(Task task)", "afterExecution(Task task, TaskState state)"]
     }
 
     def "cannot register listener from a listener of the same task"() {

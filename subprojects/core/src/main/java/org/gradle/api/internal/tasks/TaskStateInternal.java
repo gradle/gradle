@@ -26,7 +26,7 @@ import java.util.List;
 
 public class TaskStateInternal implements TaskState {
     private boolean executing;
-    private boolean notifyingBeforeExecution;
+    private boolean notifyingLifecycleListeners;
     private boolean actionable = true;
     private boolean didWork;
     private RuntimeException failure;
@@ -119,15 +119,16 @@ public class TaskStateInternal implements TaskState {
     }
 
     /**
-     * Whether lifecycle listeners are being notified before the task executes.
-     * The task cannot be mutated then, only the values of its properties can be changed.
+     * Whether lifecycle listeners are being notified, before or after the task executes.
+     * Listener code runs at execution time, like the task actions.
+     * Before execution, the task cannot be mutated, only the values of its properties can be changed.
      */
-    public boolean isNotifyingBeforeExecution() {
-        return notifyingBeforeExecution;
+    public boolean isNotifyingLifecycleListeners() {
+        return notifyingLifecycleListeners;
     }
 
-    public void setNotifyingBeforeExecution(boolean notifyingBeforeExecution) {
-        this.notifyingBeforeExecution = notifyingBeforeExecution;
+    public void setNotifyingLifecycleListeners(boolean notifyingLifecycleListeners) {
+        this.notifyingLifecycleListeners = notifyingLifecycleListeners;
     }
 
     @Override

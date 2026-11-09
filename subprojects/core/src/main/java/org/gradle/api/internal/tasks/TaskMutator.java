@@ -45,13 +45,13 @@ public class TaskMutator {
         if (!task.getState().isConfigurable()) {
             throw new IllegalStateException(format(method));
         }
-        if (task.getState().isNotifyingBeforeExecution()) {
+        if (task.getState().isNotifyingLifecycleListeners()) {
             throw new IllegalStateException(formatForLifecycleListener(method));
         }
     }
 
     public void assertMutable(String listname, PropertyChangeEvent evt) {
-        if (task.getState().isConfigurable() && !task.getState().isNotifyingBeforeExecution()) {
+        if (task.getState().isConfigurable() && !task.getState().isNotifyingLifecycleListeners()) {
             return;
         }
 
