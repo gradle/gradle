@@ -147,7 +147,8 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
 
     private List<Filter> buildFilters(String testClassName, Runner filteredRunner) {
         List<Filter> filters = new ArrayList<>();
-        if (categoryFilter != null && excludesAnything(filteredRunner.getDescription(), categoryFilter)) {
+        Description description = filteredRunner.getDescription();
+        if (categoryFilter != null && excludesAnything(description, categoryFilter)) {
             filters.add(categoryFilter);
         }
 
@@ -158,7 +159,7 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
             TestSelectionMatcher matcher = new TestSelectionMatcher(filterSpec);
             // For test suites (including suite-like custom Runners), if the test suite class
             // matches the filter, run the entire suite instead of filtering away its contents.
-            if (!filteredRunner.getDescription().isSuite() || !matcher.matchesTest(testClassName, null)) {
+            if (!description.isSuite() || !matcher.matchesTest(testClassName, null)) {
                 filters.add(new MethodNameFilter(matcher));
             }
         }
