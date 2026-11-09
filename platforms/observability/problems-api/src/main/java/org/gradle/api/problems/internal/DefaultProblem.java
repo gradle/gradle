@@ -21,6 +21,7 @@ import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
+import org.gradle.api.problems.internal.location.Trace;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -40,6 +41,7 @@ public class DefaultProblem implements Serializable, ProblemInternal {
     private final Throwable exception;
     private final AdditionalData additionalData;
     private final boolean writtenToConsole;
+    private final Trace detectionTrace;
 
     public DefaultProblem(
         ProblemDefinition problemDefinition,
@@ -62,6 +64,21 @@ public class DefaultProblem implements Serializable, ProblemInternal {
         @Nullable AdditionalData additionalData,
         boolean writtenToConsole
     ) {
+        this(problemDefinition, contextualLabel, solutions, originLocations, contextualLocations, details, exception, additionalData, writtenToConsole, null);
+    }
+
+    public DefaultProblem(
+        ProblemDefinition problemDefinition,
+        @Nullable String contextualLabel,
+        List<String> solutions,
+        List<ProblemLocation> originLocations,
+        List<ProblemLocation> contextualLocations,
+        @Nullable String details,
+        @Nullable Throwable exception,
+        @Nullable AdditionalData additionalData,
+        boolean writtenToConsole,
+        @Nullable Trace detectionTrace
+    ) {
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
         this.solutions = solutions;
@@ -71,6 +88,7 @@ public class DefaultProblem implements Serializable, ProblemInternal {
         this.exception = exception;
         this.additionalData = additionalData;
         this.writtenToConsole = writtenToConsole;
+        this.detectionTrace = detectionTrace;
     }
 
     @Override
@@ -107,6 +125,12 @@ public class DefaultProblem implements Serializable, ProblemInternal {
 
     @Nullable
     @Override
+    public Trace getDetectionTrace() {
+        return detectionTrace;
+    }
+
+    @Nullable
+    @Override
     public Throwable getException() {
         return exception;
     }
@@ -138,10 +162,28 @@ public class DefaultProblem implements Serializable, ProblemInternal {
             details,
             exception,
             additionalData,
-            writtenToConsole
+            writtenToConsole,
+            detectionTrace
         );
     }
 
+    @Override
+    public ProblemInternal withDetectionTrace(Trace detectionTrace) {
+        return new DefaultProblem(
+            problemDefinition,
+            contextualLabel,
+            solutions,
+            originLocations,
+            contextualLocations,
+            details,
+            exception,
+            additionalData,
+            writtenToConsole,
+            detectionTrace
+        );
+    }
+
+    // The detection trace is left out of equals and hashCode, like the contextual locations: summarization hashes the problem.
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -174,6 +216,7 @@ public class DefaultProblem implements Serializable, ProblemInternal {
             ", solutions=" + solutions +
             ", originLocations=" + originLocations +
             ", contextualLocations=" + contextualLocations +
+            ", detectionTrace=" + detectionTrace +
             ", details='" + details + '\'' +
             ", exception=" + (exception != null ? exception.toString() : "null") +
             ", additionalData=" + additionalData +

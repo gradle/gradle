@@ -27,6 +27,7 @@ import org.gradle.api.problems.ProblemGroups;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.location.Trace;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.problems.Location;
@@ -60,6 +61,8 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
     private boolean collectStackLocation = false;
     private boolean writtenToConsole = false;
     private ProblemDiagnostics diagnostics;
+    // Copied from an existing problem only: reporters can't set the detection trace
+    private Trace detectionTrace;
 
     public DefaultProblemBuilder(
         ProblemsInfrastructure infrastructure
@@ -85,6 +88,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         this.exception = problem.getException();
         this.additionalData = problem.getAdditionalData();
         this.writtenToConsole = problem.isWrittenToConsole();
+        this.detectionTrace = problem.getDetectionTrace();
     }
 
     @Override
@@ -117,7 +121,8 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             details,
             exception,
             additionalData,
-            writtenToConsole
+            writtenToConsole,
+            detectionTrace
         );
     }
 

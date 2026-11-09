@@ -27,6 +27,9 @@ import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemLocation
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DocLinkInternal
+import org.gradle.api.problems.internal.location.Frame
+import org.gradle.api.problems.internal.location.Locality
+import org.gradle.api.problems.internal.location.Trace
 import org.gradle.api.problems.internal.ProblemInternal
 import org.gradle.api.problems.internal.ProblemBuilderInternal
 import org.gradle.api.problems.internal.PluginIdLocation
@@ -50,6 +53,7 @@ class ReceivedProblem implements ProblemInternal {
     private final List<ProblemLocation> contextualLocations
     private final ReceivedAdditionalData additionalData
     private final ReceivedException exception
+    private final Trace detectionTrace
 
     ReceivedProblem(long operationId, Map<String, Object> problemDetails) {
         this.operationId = operationId
@@ -61,6 +65,18 @@ class ReceivedProblem implements ProblemInternal {
         this.contextualLocations = fromList(problemDetails['contextualLocations'] as List<Object>)
         this.additionalData = new ReceivedAdditionalData(problemDetails['additionalData'] as Map<String, Object>)
         this.exception = problemDetails['exception'] == null ? null : new ReceivedException(problemDetails['exception'] as Map<String, Object>)
+        this.detectionTrace = toTrace(problemDetails['detectionTrace'] as Map<String, Object>)
+    }
+
+    private static Trace toTrace(Map<String, Object> trace) {
+        if (trace == null) {
+            return null
+        }
+        List<Frame> frames = []
+        (trace['frames'] as List<Map<String, Object>>).each { frame ->
+            frames.add(new Frame(frame['displayName'] as String, Locality.valueOf(frame['locality'] as String)))
+        }
+        new Trace(frames)
     }
 
     private static List<ProblemLocation> fromList(List<Object> locations) {
@@ -228,6 +244,19 @@ class ReceivedProblem implements ProblemInternal {
     @Override
     ProblemInternal withId(ProblemId id) {
         throw new UnsupportedOperationException("Not implemented")
+    }
+
+    @Override
+    ProblemInternal withDetectionTrace(Trace detectionTrace) {
+        throw new UnsupportedOperationException("Not implemented")
+    }
+
+    /**
+     * The detection trace with plain frames: the build operation trace holds each frame's display name and locality, but not its kind.
+     */
+    @Override
+    Trace getDetectionTrace() {
+        detectionTrace
     }
 
     static class ReceivedProblemDefinition implements ProblemDefinition {

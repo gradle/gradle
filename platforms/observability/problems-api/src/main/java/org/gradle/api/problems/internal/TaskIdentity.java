@@ -19,12 +19,29 @@ package org.gradle.api.problems.internal;
 public class TaskIdentity {
 
     private final String taskPath;
+    private final String projectPath;
+    private final String buildPath;
 
-    public TaskIdentity(String taskPath) {
+    /**
+     * @param taskPath the path of the task in the build tree
+     * @param projectPath the path of the task's project in the build tree
+     * @param buildPath the path of the build that owns the project
+     */
+    public TaskIdentity(String taskPath, String projectPath, String buildPath) {
         this.taskPath = taskPath;
+        this.projectPath = projectPath;
+        this.buildPath = buildPath;
     }
 
     public String getTaskPath() {
         return taskPath;
+    }
+
+    public String getProjectPath() {
+        return projectPath;
+    }
+
+    public String getBuildPath() {
+        return buildPath;
     }
 }

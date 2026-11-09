@@ -78,19 +78,16 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
 
     @Override
     public void emit(ProblemInternal problem, @Nullable OperationIdentifier id) {
-        String taskPath = getTaskPath(id);
+        // Detection is computed before summarization throttles occurrences, and attached only to the ones that pass
+        TaskIdentity taskIdentity = taskProvider.taskIdentityFor(id);
+        String taskPath = taskIdentity == null ? null : taskIdentity.getTaskPath();
         if (summarizerStrategy.shouldEmit(problem, taskPath)) {
-            problem = maybeAddTaskLocation(problem, taskPath);
+            problem = maybeAddTaskLocation(problem, taskPath).withDetectionTrace(DetectionTraces.detectedIn(taskIdentity));
             problemReportCreator.addProblem(problem);
             for (ProblemEmitter problemEmitter : problemEmitters) {
                 problemEmitter.emit(problem, id);
             }
         }
-    }
-
-    private @Nullable String getTaskPath(@Nullable OperationIdentifier id) {
-        TaskIdentity taskIdentity = taskProvider.taskIdentityFor(id);
-        return taskIdentity == null ? null : taskIdentity.getTaskPath();
     }
 
     private static ProblemInternal maybeAddTaskLocation(ProblemInternal problem, @Nullable String taskPath) {
