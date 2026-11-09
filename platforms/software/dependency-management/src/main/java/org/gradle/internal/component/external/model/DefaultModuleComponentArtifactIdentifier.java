@@ -24,7 +24,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 
-public final class DefaultModuleComponentArtifactIdentifier extends ModuleComponentArtifactIdentifier {
+public final class DefaultModuleComponentArtifactIdentifier extends AbstractModuleComponentArtifactIdentifier {
     private final ModuleComponentIdentifier componentIdentifier;
     private final IvyArtifactName name;
 
