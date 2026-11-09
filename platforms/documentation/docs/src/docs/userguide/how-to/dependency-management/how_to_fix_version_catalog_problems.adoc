@@ -106,9 +106,9 @@ myBundle = ["existingLib"]
 [[invalid_dependency_notation]]
 == 6. Correcting Invalid Dependency Notation
 
-**Error:** An alias has an incorrect dependency notation.
+**Error:** An alias has an incorrect dependency notation, or its group or name contains invalid characters.
 
-**Solution:** Use the correct syntax:
+**Solution:** Use the correct syntax and only valid characters:
 
 [source,groovy]
 ----
@@ -187,9 +187,9 @@ some-alias = { group="my-lib", name="1.0" }
 [[invalid_plugin_notation]]
 == 13. Fixing Invalid Plugin Notation
 
-**Error:** The plugin alias notation does not separate the plugin ID from the version.
+**Error:** The plugin alias notation does not separate the plugin ID from the version, or the plugin ID contains invalid characters.
 
-**Solution:** Use the correct format: `plugin.id:version`.
+**Solution:** Use the correct format, `plugin.id:version`, and only valid characters.
 
 [source,toml]
 ----
@@ -240,6 +240,6 @@ library("some-alias", "org.sample:lib").version("1.0")
 [[invalid_version_notation]]
 == 19. Correcting Invalid Version Notation
 
-**Error:** A version string uses syntax that cannot be parsed (for example, the strict version modifier `!!` was placed without a base version before it).
+**Error:** A version string uses syntax that cannot be parsed (for example, the strict version modifier `!!` was placed without a base version before it), or it contains invalid characters.
 
-**Solution:** Place a valid version number before the `!!` modifier, e.g. `1.0!!`, or remove the modifier when it is not needed.
+**Solution:** Place a valid version number before the `!!` modifier, e.g. `1.0!!`, or remove the modifier when it is not needed. Remove any invalid characters.
