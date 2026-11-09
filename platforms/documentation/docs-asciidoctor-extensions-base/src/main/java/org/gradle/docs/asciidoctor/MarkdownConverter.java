@@ -56,7 +56,8 @@ import java.util.stream.Collectors;
  * Code blocks keep their language, e.g. {@code ```kotlin} or {@code ```groovy}.
  * <p>
  * If the {@code markdown-base-url} attribute is set, each page points at the site's {@code llms.txt}, so an agent
- * that fetched a single page can find the rest of the documentation.
+ * that fetched a single page can find the rest of the documentation. Relative links and images are resolved against it,
+ * as a fetched {@code .md} file has no base URL an agent could resolve them with.
  */
 @ConverterFor(value = MarkdownConverter.BACKEND, suffix = ".md")
 public class MarkdownConverter extends StringConverter {
@@ -77,6 +78,7 @@ public class MarkdownConverter extends StringConverter {
     );
     private static final Pattern NUMERIC_ENTITY = Pattern.compile("&#(x[0-9a-fA-F]+|\\d+);");
     private static final Pattern TAG = Pattern.compile("<[^>]+>");
+    private static final Pattern URI_SCHEME = Pattern.compile("[a-zA-Z][a-zA-Z0-9+.-]*:");
     private static final Pattern EXCESS_BLANK_LINES = Pattern.compile("\n{3,}");
     private static final Pattern TRAILING_WHITESPACE = Pattern.compile("[ \\t]+$", Pattern.MULTILINE);
 
@@ -187,7 +189,7 @@ public class MarkdownConverter extends StringConverter {
         }
         String baseUrl = attribute(document, BASE_URL_ATTRIBUTE);
         if (!baseUrl.isEmpty()) {
-            out.append("> For the complete documentation index, see [llms.txt](").append(URI.create(baseUrl).resolve("/llms.txt")).append(").\n\n");
+            out.append("> For the complete documentation index, see [llms.txt](").append(resolve(document, "/llms.txt")).append(").\n\n");
         }
         out.append(body);
         if (!footnotes.isEmpty()) {
@@ -310,10 +312,10 @@ public class MarkdownConverter extends StringConverter {
                 if (text == null || text.isEmpty()) {
                     text = xrefText(node);
                 }
-                return "[" + text + "](" + node.getTarget() + ")";
+                return "[" + text + "](" + resolve(node, node.getTarget()) + ")";
             }
             case "link":
-                return "[" + node.getText() + "](" + node.getTarget() + ")";
+                return "[" + node.getText() + "](" + resolve(node, node.getTarget()) + ")";
             default:
                 String id = node.getId();
                 return id != null ? "<a id=\"" + id + "\"></a>" : "";
@@ -459,10 +461,26 @@ public class MarkdownConverter extends StringConverter {
 
     private static String imagePath(ContentNode node, String target) {
         if (target.contains("://") || target.startsWith("/")) {
-            return target;
+            return resolve(node, target);
         }
         String imagesDir = attribute(node.getDocument(), "imagesdir");
-        return imagesDir.isEmpty() ? target : imagesDir + "/" + target;
+        return resolve(node, imagesDir.isEmpty() ? target : imagesDir + "/" + target);
+    }
+
+    /**
+     * Resolves a relative link target against {@link #BASE_URL_ATTRIBUTE}. Links within the page stay as they are.
+     */
+    private static String resolve(ContentNode node, String target) {
+        String baseUrl = attribute(node.getDocument(), BASE_URL_ATTRIBUTE);
+        if (baseUrl.isEmpty() || target.isEmpty() || target.startsWith("#") || URI_SCHEME.matcher(target).lookingAt()) {
+            return target;
+        }
+        try {
+            return URI.create(baseUrl).resolve(target).toString();
+        } catch (IllegalArgumentException e) {
+            // Not a valid URI, e.g. a target with spaces; keep it as written
+            return target;
+        }
     }
 
     private static String indent(String text, String padding) {

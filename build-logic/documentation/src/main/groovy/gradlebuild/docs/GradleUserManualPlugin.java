@@ -230,7 +230,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 attributes.put("groovyDslPath", "../dsl");
                 attributes.put("javadocPath", "../javadoc");
                 attributes.put("kotlinDslPath", "../kotlin-dsl");
-                // Used by MarkdownConverter to point each .md page at the site's llms.txt
+                // Used by MarkdownConverter to point each .md page at the site's llms.txt and to make its links absolute
                 attributes.put("markdown-base-url", DOCS_GRADLE_ORG + extension.getGradleVersion().get() + "/userguide/");
                 // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
                 attributes.put("samples-dir", stagedDocumentation.get().getAsFile().getAbsolutePath());
