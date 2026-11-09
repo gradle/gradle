@@ -207,7 +207,7 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
         List<TaskLifecycleListener<Task>> notifiedListeners = new ArrayList<>(listenerTypes.size());
         boolean beforeExecutionFailed = false;
         try {
-            state.setNotifyingBeforeExecution(true);
+            state.setNotifyingLifecycleListeners(true);
             try {
                 for (Class<? extends TaskLifecycleListener<?>> listenerType : listenerTypes) {
                     TaskLifecycleListener<Task> listener = lifecycleListenerInstantiator.newInstance(listenerType);
@@ -215,7 +215,7 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
                     notifiedListeners.add(listener);
                 }
             } finally {
-                state.setNotifyingBeforeExecution(false);
+                state.setNotifyingLifecycleListeners(false);
             }
         } catch (Throwable t) {
             beforeExecutionFailed = true;
@@ -225,12 +225,17 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
         // The task is already failed when a listener could not be created or failed before execution
         ExecutionEngine.@Nullable Result result = beforeExecutionFailed ? null : executeWithFallbackOperationId(node);
 
-        for (TaskLifecycleListener<Task> listener : notifiedListeners) {
-            try {
-                listener.afterExecution(task, state);
-            } catch (Throwable t) {
-                state.addFailure(new TaskExecutionException(task, t));
+        state.setNotifyingLifecycleListeners(true);
+        try {
+            for (TaskLifecycleListener<Task> listener : notifiedListeners) {
+                try {
+                    listener.afterExecution(task, state);
+                } catch (Throwable t) {
+                    state.addFailure(new TaskExecutionException(task, t));
+                }
             }
+        } finally {
+            state.setNotifyingLifecycleListeners(false);
         }
         return result;
     }

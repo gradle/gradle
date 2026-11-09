@@ -226,6 +226,33 @@ class ConfigurationCacheTaskLifecycleListenerIntegrationTest extends AbstractCon
         outputContains("before :foo\naction of foo\nafter :foo")
     }
 
+    def "listener accessing Task.project in #method is reported as a problem"() {
+        buildFile """
+            abstract class ProjectAccessingListener implements TaskLifecycleListener<Task> {
+                void $method {
+                    println "listener sees project \${task.project.name}"
+                }
+            }
+
+            tasks.register("foo") {
+                addLifecycleListener(ProjectAccessingListener)
+            }
+        """
+
+        when:
+        configurationCacheFails "foo"
+
+        then:
+        // The access fails the task, so the problem is reported without failing the build a second time
+        failure.assertHasCause("Invocation of 'Task.project' by task ':foo' at execution time is unsupported with the configuration cache.")
+        problems.assertResultHasProblems(failure) {
+            withProblem("Build file 'build.gradle': line 4: invocation of 'Task.project' at execution time is unsupported with the configuration cache.")
+        }
+
+        where:
+        method << ["beforeExecution(Task task)", "afterExecution(Task task, TaskState state)"]
+    }
+
     private List<String> instances(String prefix) {
         output.readLines().findAll { it.startsWith(prefix) }.collect { it.tokenize(" ").last() }
     }
