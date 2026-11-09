@@ -313,6 +313,36 @@ It compiles and makes this plugin available to all other build scripts in the pr
 
 You can learn more about multi-project builds in <<sharing_build_logic_between_subprojects.adoc#sharing_build_logic_between_subprojects,Sharing Build Logc between Subprojects using BuildSrc>>.
 
+[[sec:build_sources_classpath]]
+=== How `buildSrc` affects the build script classpath
+
+Gradle builds `buildSrc` before it configures the main build.
+It then adds the `buildSrc` classes and all of their runtime dependencies to a class loader that is the parent of every build script's class loader in the build.
+
+This has two consequences:
+
+* *Libraries on the `buildSrc` classpath take precedence.*
+If a build script declares the same library in its `plugins {}` or `buildscript {}` block, either directly or through a plugin's dependencies, the build script still uses the copy from `buildSrc`.
+For example, if `buildSrc` depends on `commons-lang3:3.12.0` and the root build script declares `classpath("org.apache.commons:commons-lang3:3.17.0")`, every build script in the build loads the 3.12.0 classes.
+* *Classes from `buildSrc` can't see classes that only exist on a build script's classpath.*
+If a library on the `buildSrc` classpath needs a class that is only on a build script's classpath, the build fails with a `NoClassDefFoundError`.
+This can happen when `buildSrc` and a plugin depend on different artifacts that provide the same package, such as `javax.activation:javax.activation-api` and `javax.activation:activation`.
+
+To avoid these conflicts, declare each library in one place.
+If `buildSrc` needs a plugin or library that your build scripts also use, add it as a dependency of `buildSrc` and apply the plugin in your build scripts without a version.
+
+The `buildEnvironment` task only reports the dependencies declared in build scripts, not the `buildSrc` classpath that takes precedence over them.
+To see the `buildSrc` dependencies, run the `dependencies` task on the `buildSrc` build:
+
+[source,bash]
+----
+$ ./gradlew -p buildSrc dependencies --configuration runtimeClasspath
+----
+
+Builds included with `includeBuild()` don't have this behavior.
+Gradle resolves plugins from an included build together with other plugin dependencies, so version conflicts are handled by normal <<dependency_constraints_conflicts.adoc#sub:resolving-version-conflicts,conflict resolution>>.
+This is one of the reasons to <<best_practices_structuring_builds.adoc#favor_composite_builds,favor composite builds over `buildSrc`>>.
+
 [[sec:composite_builds]]
 == Composite Builds (`includeBuild()`)
 
