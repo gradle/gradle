@@ -22,7 +22,7 @@ import org.jspecify.annotations.NullMarked;
  * One element of a trace. Each kind of frame has a sub-interface; a client shows a kind it doesn't know through this one.
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
- * @since 9.10
+ * @since 9.10.0
  */
 @NullMarked
 public interface InternalFrame {

@@ -41,6 +41,7 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.configurationProblemsBase)
+    implementation(projects.coreApi)
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.messaging)

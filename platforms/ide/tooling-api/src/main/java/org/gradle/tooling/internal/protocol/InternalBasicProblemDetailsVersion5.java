@@ -23,7 +23,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
- * @since 9.10
+ * @since 9.10.0
  */
 @NullMarked
 public interface InternalBasicProblemDetailsVersion5 extends InternalBasicProblemDetailsVersion4 {
