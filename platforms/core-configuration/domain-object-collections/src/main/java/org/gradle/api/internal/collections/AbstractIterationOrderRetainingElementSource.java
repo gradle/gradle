@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
+import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
@@ -84,16 +85,16 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
     @Override
     public int size() {
+        return estimatedSize();
+    }
+
+    @Override
+    public int estimatedSize() {
         int count = 0;
         for (Element<T> element : inserted) {
             count += element.size();
         }
         return count;
-    }
-
-    @Override
-    public int estimatedSize() {
-        return size();
     }
 
     @Override
@@ -357,6 +358,25 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             return realized;
         }
 
+        boolean isProvidedByCollection() {
+            return delegate instanceof ElementsFromCollectionProvider;
+        }
+
+        List<T> peekValues() {
+            ImmutableList.Builder<T> builder = ImmutableList.builder();
+            super.collectInto(builder);
+            List<T> values = new ArrayList<>(builder.build());
+            if (removedValues != null) {
+                values.removeAll(removedValues);
+            }
+            return values;
+        }
+
+        @Override
+        public int size() {
+            return realized ? cache.size() - duplicates.size() : super.size();
+        }
+
         public void realize() {
             if (cache == null) {
                 ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(delegate.size());
@@ -400,9 +420,33 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             }
             removedValues.add(value);
             if (cache != null) {
-                return cache.remove(value);
+                int index = cache.indexOf(value);
+                if (index < 0) {
+                    return false;
+                }
+                cache.remove(index);
+                shiftDuplicatesAfterRemovalOf(index);
+                return true;
             }
             return true;
+        }
+
+        // Duplicates are tracked by index, so the ones after the removed value move one position back
+        private void shiftDuplicatesAfterRemovalOf(int removedIndex) {
+            if (duplicates.isEmpty()) {
+                return;
+            }
+            IntSet shifted = new IntOpenHashSet(duplicates.size());
+            IntIterator iterator = duplicates.iterator();
+            while (iterator.hasNext()) {
+                int index = iterator.nextInt();
+                if (index < removedIndex) {
+                    shifted.add(index);
+                } else if (index > removedIndex) {
+                    shifted.add(index - 1);
+                }
+            }
+            duplicates = shifted;
         }
 
         boolean isDuplicate(int index) {

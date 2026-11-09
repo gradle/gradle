@@ -22,7 +22,7 @@ import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionModeResolver;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.execution.DefaultTaskCacheabilityResolver;
@@ -42,41 +42,68 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter;
 import org.gradle.internal.file.DefaultReservedFileSystemLocationRegistry;
-import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.ReservedFileSystemLocation;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.impl.FileCollectionFingerprinterRegistrations;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.ManagedServiceRegistry;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 
-import java.util.List;
-
 @SuppressWarnings("deprecation")
 public class ProjectExecutionServices implements ServiceRegistrationProvider {
 
-    public static CloseableServiceRegistry create(ProjectInternal project) {
+    public static ManagedServiceRegistry create(ProjectInternal project) {
         return ServiceRegistryBuilder.builder()
+            .scopeStrictly(Scope.ProjectExecution.class)
             .displayName("project execution services for '" + project.getPath() + "'")
-            .parent(project.getServices())
-            .provider(new ProjectExecutionServices())
+            .parent(project.getGradle().getServices())
+            .provider(new ProjectExecutionServices(project.getServices()))
             .build();
     }
 
-    @Provides
-    TaskCacheabilityResolver createTaskCacheabilityResolver(RelativeFilePathResolver relativeFilePathResolver) {
-        return new DefaultTaskCacheabilityResolver(relativeFilePathResolver);
+    // TODO: Execution services should not depend on project services, which retain a reference to the Project instance
+    private final ServiceRegistry projectServices;
+
+    private ProjectExecutionServices(ServiceRegistry projectServices) {
+        this.projectServices = projectServices;
     }
 
     @Provides
-    ReservedFileSystemLocationRegistry createReservedFileLocationRegistry(List<ReservedFileSystemLocation> reservedFileSystemLocations) {
-        return new DefaultReservedFileSystemLocationRegistry(reservedFileSystemLocations);
+    FileResolver createFileResolver() {
+        return projectServices.get(FileResolver.class);
+    }
+
+    @Provides
+    FileCollectionFactory createFileCollectionFactory() {
+        return projectServices.get(FileCollectionFactory.class);
+    }
+
+    @Provides
+    TaskDependencyFactory createTaskDependencyFactory() {
+        return projectServices.get(TaskDependencyFactory.class);
+    }
+
+    @Provides
+    InputNormalizationHandlerInternal createInputNormalizationHandler() {
+        return projectServices.get(InputNormalizationHandlerInternal.class);
+    }
+
+    @Provides
+    ReservedFileSystemLocationRegistry createReservedFileSystemLocationRegistry() {
+        return new DefaultReservedFileSystemLocationRegistry(projectServices.getAll(ReservedFileSystemLocation.class));
+    }
+
+    @Provides
+    TaskCacheabilityResolver createTaskCacheabilityResolver(FileResolver fileResolver) {
+        return new DefaultTaskCacheabilityResolver(fileResolver);
     }
 
     @Provides
@@ -88,12 +115,12 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
     TaskNodeExecutor createTaskNodeExecutor(
         AsyncWorkTracker asyncWorkTracker,
         BuildOperationRunner buildOperationRunner,
-        TaskExecutionGraphInternal taskGraph,
+        TaskExecutionGraphInternal taskGraph, // Build scoped on purpose: Isolated Projects checks in the project one apply to user code only
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
         TaskDependencyFactory taskDependencyFactory,
-        FileOperations fileOperations,
+        FileResolver fileResolver,
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         TaskCacheabilityResolver taskCacheabilityResolver,
@@ -118,8 +145,7 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
             reservedFileSystemLocationRegistry,
             fileCollectionFactory,
             taskDependencyFactory,
-            // TODO Can we inject a PathToFileResolver here directly?
-            fileOperations.getFileResolver(),
+            fileResolver,
             missingTaskDependencyDetector
         );
     }

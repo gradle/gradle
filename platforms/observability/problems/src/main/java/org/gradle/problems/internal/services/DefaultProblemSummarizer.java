@@ -30,7 +30,6 @@ import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -79,8 +78,9 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
 
     @Override
     public void emit(ProblemInternal problem, @Nullable OperationIdentifier id) {
-        if (summarizerStrategy.shouldEmit(problem)) {
-            problem = maybeAddTaskLocation(problem, id);
+        String taskPath = getTaskPath(id);
+        if (summarizerStrategy.shouldEmit(problem, taskPath)) {
+            problem = maybeAddTaskLocation(problem, taskPath);
             problemReportCreator.addProblem(problem);
             for (ProblemEmitter problemEmitter : problemEmitters) {
                 problemEmitter.emit(problem, id);
@@ -88,11 +88,14 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         }
     }
 
-    @NonNull
-    private ProblemInternal maybeAddTaskLocation(ProblemInternal problem, @Nullable OperationIdentifier id) {
+    private @Nullable String getTaskPath(@Nullable OperationIdentifier id) {
         TaskIdentity taskIdentity = taskProvider.taskIdentityFor(id);
-        if (taskIdentity != null) {
-            problem = problem.toBuilder(new ProblemsInfrastructure(null, null, null, null, null, null)).taskLocation(taskIdentity.getTaskPath()).build();
+        return taskIdentity == null ? null : taskIdentity.getTaskPath();
+    }
+
+    private static ProblemInternal maybeAddTaskLocation(ProblemInternal problem, @Nullable String taskPath) {
+        if (taskPath != null) {
+            problem = problem.toBuilder(new ProblemsInfrastructure(null, null, null, null, null, null, null)).taskLocation(taskPath).build();
         }
         return problem;
     }

@@ -213,6 +213,22 @@ Can set using anything described in <<working_with_files.adoc#sec:specifying_mul
 | None but will be configured if a toolchain is defined on the `java` extension.
 |===
 
+[[sec:groovy_disabling_invokedynamic]]
+=== Disabling invokedynamic with Groovy 6 and later
+
+Starting with Groovy 6, classic call-site bytecode generation lives in the optional `org.apache.groovy:groovy-callsite` module.
+Setting `groovyOptions.optimizationOptions.all = false` or `groovyOptions.optimizationOptions.indy = false` switches the compiler to use this classic call-site bytecode generation, which requires `groovy-callsite` on both the compile and runtime classpath.
+Without it, compilation fails with:
+
+----
+Classic call-site bytecode generation requires the optional org.apache.groovy:groovy-callsite module on the classpath.
+----
+
+Gradle does not add `groovy-callsite` automatically.
+If you need to use it, declare a `groovy-callsite` dependency with the same version as your Groovy dependency, for example `implementation("org.apache.groovy:groovy-callsite:6.0.0")`.
+A `compileOnly` dependency is not sufficient, as classes compiled this way need `groovy-callsite` at runtime, even when they use `@CompileStatic`.
+See link:https://issues.apache.org/jira/browse/GROOVY-11158[GROOVY-11158] for details.
+
 [[sec:groovy_compilation_avoidance]]
 === Compilation avoidance
 

@@ -62,6 +62,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -101,6 +102,7 @@ class DefaultProjectSpec extends Specification {
         fileTree.builtBy == ['something'] as Set
     }
 
+    @ExpectDeprecation("The Project.ant(Action) method has been deprecated.")
     def "can configure ant tasks with an Action"() {
         given:
         def project = project('root', null, build(Path.ROOT))

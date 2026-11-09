@@ -30,6 +30,7 @@ import org.gradle.execution.plan.QueryableExecutionPlan
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.ToPlannedNodeConverterRegistry
 import org.gradle.execution.plan.ToPlannedTaskConverter
+import org.gradle.internal.operations.ProgressDisplayName
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.NodeIdentity
@@ -80,7 +81,9 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
         def gradle = Stub(GradleInternal) {
             isRootBuild() >> true
             getIdentityPath() >> Path.ROOT
-            contextualize(_) >> { String desc -> desc }
+            getOwner() >> Stub(BuildState) {
+                getOwnerToShow() >> null
+            }
         }
 
         def executionPlan = Stub(ExecutionPlan) {
@@ -98,14 +101,17 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
 
         then:
         def record = buildOperationRunner.log.mostRecent(CalculateTaskGraphBuildOperationType)
-        record.descriptor.progressDisplayName == "Building task graph of root build"
+        record.descriptor.displayName == "Calculate task graph"
+        record.descriptor.progressDisplayName == ProgressDisplayName.of(null, "Building task graph")
     }
 
     def "build operation has good progress display name for included build"() {
         def gradle = Stub(GradleInternal) {
             isRootBuild() >> false
             getIdentityPath() >> Path.path(":buildB")
-            contextualize(_) >> { String desc -> desc + " (:buildB)" }
+            getOwner() >> Stub(BuildState) {
+                getOwnerToShow() >> ":buildB"
+            }
         }
 
         def executionPlan = Stub(ExecutionPlan) {
@@ -123,6 +129,7 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
 
         then:
         def record = buildOperationRunner.log.mostRecent(CalculateTaskGraphBuildOperationType)
-        record.descriptor.progressDisplayName == "Building task graph of build ':buildB'"
+        record.descriptor.displayName == "Calculate task graph (:buildB)"
+        record.descriptor.progressDisplayName == ProgressDisplayName.of(":buildB", "Building task graph")
     }
 }

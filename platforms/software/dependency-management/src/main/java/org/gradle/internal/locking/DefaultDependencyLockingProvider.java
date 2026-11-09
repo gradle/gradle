@@ -48,7 +48,12 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.model.DomainObjectContext;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resource.local.FileResourceListener;
 import org.jspecify.annotations.Nullable;
 
@@ -74,6 +79,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private final Property<LockMode> lockMode;
     private final RegularFileProperty lockFile;
     private final ListProperty<String> ignoredDependencies;
+    private final BuildOperationRunner buildOperationRunner;
     private boolean uniqueLockStateLoaded;
     private Map<String, List<String>> allLockState;
     private LockEntryFilter compoundLockEntryFilter;
@@ -88,14 +94,13 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         DependencySubstitutionRules dependencySubstitutionRules,
         PropertyFactory propertyFactory,
         FilePropertyFactory filePropertyFactory,
-        FileResourceListener listener
+        FileResourceListener listener,
+        BuildOperationRunner buildOperationRunner
     ) {
         this.instanceIdentity = instanceIdentity;
+        this.buildOperationRunner = buildOperationRunner;
         this.dependencySubstitutionRules = dependencySubstitutionRules;
         this.writeLocks = startParameter.isWriteDependencyLocks();
-        if (writeLocks) {
-            LOGGER.debug("Write locks is enabled");
-        }
         List<String> lockedDependenciesToUpdate = startParameter.getLockedDependenciesToUpdate();
         partialUpdate = !lockedDependenciesToUpdate.isEmpty();
         updateLockEntryFilter = LockEntryFilterFactory.forParameter(lockedDependenciesToUpdate, "Update lock", true);
@@ -117,7 +122,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         recordUsage();
         loadLockState();
         if (!writeLocks || partialUpdate) {
-            List<String> lockedModules = findLockedModules(lockId);
+            List<String> lockedModules = findLockedModules(lockId, lockOwner);
             if (lockedModules == null && lockMode.get() == LockMode.STRICT) {
                 throw new MissingLockStateException(lockOwner);
             }
@@ -156,10 +161,19 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     }
 
     @Nullable
-    private List<String> findLockedModules(String lockId) {
+    private List<String> findLockedModules(String lockId, DisplayName lockOwner) {
         List<String> result = allLockState.get(lockId);
         if (result == null) {
-            result = lockFileReaderWriter.readLockFile(lockId);
+            result = lockFileReaderWriter.readLegacyLockFile(lockId);
+            // When updating locks, skip the warning since we are actively migrating locks.
+            if (result != null && !writeLocks) {
+                DeprecationLogger.deprecateAction("Storing dependency lock state using the legacy format")
+                    .withContext("Lock state for " + lockOwner.getDisplayName() + " was loaded from the legacy lock file '" + lockFileReaderWriter.getLegacyLockFile(lockId) + "'. Since Gradle 6.4, dependency lock state is stored in a single file per project.")
+                    .withAdvice("Regenerate the lock state of all locked configurations using --write-locks.")
+                    .willBeRemovedInGradle10()
+                    .withUpgradeGuideSection(9, "legacy_dependency_lock_format")
+                    .nagUser();
+            }
         }
         return result;
     }
@@ -221,8 +235,20 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     @Override
     public void buildFinished() {
         if (uniqueLockStateLoaded && lockFileReaderWriter.canWrite()) {
-            lockFileReaderWriter.writeUniqueLockfile(allLockState);
-            LOGGER.lifecycle("Persisted dependency lock state for {}", instanceIdentity.getDisplayName());
+            // The build is already part of the name of the owner, so its path is not added
+            String description = "Write dependency locks for " + instanceIdentity.getDisplayName();
+            buildOperationRunner.run(new RunnableBuildOperation() {
+                @Override
+                public void run(BuildOperationContext context) {
+                    lockFileReaderWriter.writeUniqueLockfile(allLockState);
+                    LOGGER.lifecycle("Persisted dependency lock state for {}", instanceIdentity.getDisplayName());
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName(description).progressDisplayName(description);
+                }
+            });
         }
     }
 

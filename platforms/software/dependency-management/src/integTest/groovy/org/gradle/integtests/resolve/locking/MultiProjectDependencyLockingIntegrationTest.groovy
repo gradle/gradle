@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyResolutionTest {
 
@@ -29,7 +30,7 @@ class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyRe
         """
     }
 
-    def 'does not apply lock defined in a dependent project'() {
+    def 'does not apply lock defined in a dependent project (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
@@ -61,9 +62,14 @@ class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyRe
             }
         """
 
-        firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'], false)
+        firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'], unique)
 
         when:
+        // Without CC, DependencyInsightReportTask's getter resolves the configuration while DefaultPropertyWalker
+        // has deprecation warnings disabled. With the configuration cache, resolution happens while storing the task.
+        if (!unique && GradleContextualExecuter.isConfigCache()) {
+            executer.expectDocumentedDeprecationWarning(firstLockFileFixture.legacyLockfileDeprecation("configuration ':first:compileClasspath'", 'compileClasspath'))
+        }
         succeeds ':first:dependencyInsight', '--configuration', 'compileClasspath', '--dependency', 'foo'
 
         then:
@@ -74,9 +80,12 @@ class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyRe
 
         then:
         outputContains('org:foo:1.1')
+
+        where:
+        unique << [true, false]
     }
 
-    def 'does apply lock to transitive dependencies from dependent project'() {
+    def 'does apply lock to transitive dependencies from dependent project (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
@@ -108,9 +117,14 @@ class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyRe
             }
         """
 
-        firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'], false)
+        firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'], unique)
 
         when:
+        // Without CC, DependencyInsightReportTask's getter resolves the configuration while DefaultPropertyWalker
+        // has deprecation warnings disabled. With the configuration cache, resolution happens while storing the task.
+        if (!unique && GradleContextualExecuter.isConfigCache()) {
+            executer.expectDocumentedDeprecationWarning(firstLockFileFixture.legacyLockfileDeprecation("configuration ':first:compileClasspath'", 'compileClasspath'))
+        }
         succeeds ':first:dependencyInsight', '--configuration', 'compileClasspath', '--dependency', 'foo'
 
         then:
@@ -121,6 +135,9 @@ class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyRe
 
         then:
         outputContains('org:foo:1.1')
+
+        where:
+        unique << [true, false]
     }
 
     def 'creates a lock file including transitive dependencies of dependent project'() {

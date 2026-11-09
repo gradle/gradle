@@ -16,21 +16,25 @@
 
 package org.gradle.launcher.daemon
 
+import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JdkRepository
+import org.gradle.platform.internal.CurrentBuildPlatform
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
 import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
 import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+import static org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesUtils.getToolchainUrlPropertyForPlatform
 
 @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
 @Flaky(because = "https://github.com/gradle/gradle-private/issues/5022")
@@ -84,8 +88,29 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
         then:
         failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${AvailableJavaHomes.differentVersion.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) from 'https://example.com/v=^10'")
             .assertHasResolutions(
-                "Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection.",
-                "Learn more about toolchain repositories at https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories.",
+                "For more information, please refer to https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:detect_provision in the Gradle documentation.",
+                STACKTRACE_MESSAGE, INFO_DEBUG, SCAN, GET_HELP
+            )
+    }
+
+    def "toolchain download without url for the current platform fails"() {
+        given:
+        writeJvmCriteria(AvailableJavaHomes.differentVersion.javaVersion)
+        def currentPlatform = new CurrentBuildPlatform(NativeServicesTestFixture.getInstance().get(SystemInfo), OperatingSystem.current())
+        def toolchainUrlProperty = getToolchainUrlPropertyForPlatform(currentPlatform.toBuildPlatform())
+
+        when:
+        failure = executer
+            .withTasks("help")
+            .withToolchainDownloadEnabled()
+            .runWithFailure()
+
+        then:
+        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${AvailableJavaHomes.differentVersion.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}), " +
+            "due to: No defined toolchain download url for ${currentPlatform.operatingSystem} on ${currentPlatform.architecture.toString().toLowerCase(Locale.ROOT)} architecture.")
+            .assertHasResolutions(
+                "Add a download URL for this platform to 'gradle/gradle-daemon-jvm.properties' as '${toolchainUrlProperty}=<SERVER_URL>'.",
+                "For more information, please refer to https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:detect_provision in the Gradle documentation.",
                 STACKTRACE_MESSAGE, INFO_DEBUG, SCAN, GET_HELP
             )
     }

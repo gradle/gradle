@@ -39,6 +39,7 @@ public abstract class UndefinedProblemGroup extends ProblemGroup {
      *
      * @since 9.9.0
      */
+    @SuppressWarnings("deprecation") // only Gradle may subclass
     protected UndefinedProblemGroup() {
     }
 

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.initialization;
 
-import org.gradle.composite.internal.TaskIdentifier;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
@@ -30,7 +30,7 @@ import java.util.function.Supplier;
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildLogicBuildQueue {
 
-    <T> T build(BuildState requester, List<TaskIdentifier> tasks, Supplier<T> continuationUnderLock);
+    <T> T build(BuildState requester, List<TaskInternal> tasks, Supplier<T> continuationUnderLock);
 
     <T> T buildBuildSrc(StandAloneNestedBuild buildSrcBuild, Function<BuildTreeLifecycleController, T> continuationUnderLock);
 }

@@ -503,7 +503,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ListenerManager listenerManager,
             PropertyFactory propertyFactory,
             FilePropertyFactory filePropertyFactory,
-            FileResourceListener fileResourceListener
+            FileResourceListener fileResourceListener,
+            BuildOperationRunner buildOperationRunner
         ) {
             if (!params.isDependencyLockingEnabled()) {
                 return NoOpDependencyLockingProvider.getInstance();
@@ -518,7 +519,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 globalDependencyResolutionRules.getDependencySubstitutionRules(),
                 propertyFactory,
                 filePropertyFactory,
-                fileResourceListener
+                fileResourceListener,
+                buildOperationRunner
             );
             if (startParameter.isWriteDependencyLocks()) {
                 listenerManager.addListener(new BuildModelLifecycleListener() {

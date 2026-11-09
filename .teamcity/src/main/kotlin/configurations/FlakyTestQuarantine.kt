@@ -7,7 +7,6 @@ import common.Os
 import common.applyDefaultSettings
 import common.buildScanTagParam
 import common.buildToolGradleParameters
-import common.checkCleanM2AndAndroidUserHome
 import common.functionalTestExtraParameters
 import common.functionalTestParameters
 import common.getBuildScanCustomValueParam
@@ -139,10 +138,6 @@ class FlakyTestQuarantine(
             }
         }
         killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, executionMode = BuildStep.ExecutionMode.ALWAYS)
-
-        steps {
-            checkCleanM2AndAndroidUserHome(os)
-        }
 
         applyDefaultDependencies(model, this)
     })

@@ -99,9 +99,7 @@ class TestLauncherDebugCrossVersionSpec extends ToolingApiSpecification {
             plugins {
                 id 'java-library'
             }
-            repositories {
-                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
-            }
+            ${RepoScriptBlockUtil.mavenCentralRepository()}
             testing {
                 suites {
                     test {

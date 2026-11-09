@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.util.PathSerializer;
 
 import java.io.IOException;
 

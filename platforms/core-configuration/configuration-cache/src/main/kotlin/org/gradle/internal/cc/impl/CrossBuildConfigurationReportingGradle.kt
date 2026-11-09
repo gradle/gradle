@@ -59,7 +59,7 @@ class CrossBuildConfigurationReportingGradle(
 
     private fun onBuildMutableStateAccess(what: String) {
         ipProblems.report {
-            problem {
+            problem("Build cannot access Gradle state of another build") {
                 text("Build ")
                 reference(referrer.identityPath.asString())
                 text(" cannot access ")
@@ -95,8 +95,6 @@ class CrossBuildConfigurationReportingGradle(
     override fun isRootBuild(): Boolean = delegate.isRootBuild
 
     override fun getIdentityPath(): Path = delegate.identityPath
-
-    override fun contextualize(description: String): String = delegate.contextualize(description)
 
     override fun getPublicBuildPath(): PublicBuildPath = delegate.publicBuildPath
 

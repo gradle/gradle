@@ -181,12 +181,22 @@ public class DefaultProblemReporter implements ProblemReporterInternal {
      */
     @Override
     public void report(Problem problem, OperationIdentifier id) {
-        ProblemInternal problemInternal = (ProblemInternal) problem;
+        ProblemInternal problemInternal = withCanonicalId((ProblemInternal) problem);
         Throwable exception = problemInternal.getException();
         if (exception != null) {
             exceptionProblemRegistry.onProblem(transform(exception), problemInternal);
         }
         problemSummarizer.emit(problemInternal, id);
+    }
+
+    /**
+     * Reports problems whose groups were created through the legacy factories with the matching predefined groups, so
+     * that every consumer, including the failure's problems, sees the same group whichever API the producer used.
+     */
+    private static ProblemInternal withCanonicalId(ProblemInternal problem) {
+        ProblemId id = problem.getDefinition().getId();
+        ProblemId canonical = DefaultProblemGroups.INSTANCE.canonical(id);
+        return canonical == id ? problem : problem.withId(canonical);
     }
 
     @NonNull

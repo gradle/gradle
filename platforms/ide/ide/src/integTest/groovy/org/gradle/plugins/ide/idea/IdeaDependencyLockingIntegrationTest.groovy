@@ -29,7 +29,7 @@ class IdeaDependencyLockingIntegrationTest extends AbstractIdeIntegrationTest {
         mvnRepo.module("groupOne", "artifactTwo", "1.1").publish()
         mvnRepo.module("groupOne", "artifactTwo", "2.0").publish()
 
-        file('gradle/dependency-locks/compileClasspath.lockfile') << 'groupOne:artifactTwo:1.1'
+        file('gradle.lockfile') << 'groupOne:artifactTwo:1.1=compileClasspath'
 
         //when
         expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
@@ -66,7 +66,7 @@ class IdeaDependencyLockingIntegrationTest extends AbstractIdeIntegrationTest {
         mvnRepo.module("groupOne", "artifactOne", "1.1").publish()
         mvnRepo.module("groupOne", "artifactTwo", "2.0").publish()
 
-        file('gradle/dependency-locks/compileClasspath.lockfile') << 'groupOne:artifactOne:1.1'
+        file('gradle.lockfile') << 'groupOne:artifactOne:1.1=compileClasspath'
 
         //when
         expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")

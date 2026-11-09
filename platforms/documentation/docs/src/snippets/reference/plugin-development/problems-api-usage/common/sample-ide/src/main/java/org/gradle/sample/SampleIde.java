@@ -87,7 +87,6 @@ public class SampleIde {
         System.out.println(prefix + "Problem:");
         ProblemDefinition definition = problem.getDefinition();
         System.out.println(" - id: " + fqId(definition));
-        System.out.println(" - display name: " + definition.getId().getDisplayName());
         if (problem.getDetails() != null) {
             System.out.println(" - details: " + problem.getDetails().getDetails());
         }
@@ -197,7 +196,6 @@ public class SampleIde {
             System.out.println("Problem Summaries:");
             problemEvent.getProblemSummaries()
                 .forEach(summary -> {
-                    System.out.println(" - display name: " + summary.getProblemId().getDisplayName());
                     System.out.println(" - id: " + fqId(summary.getProblemId()));
                     System.out.println(" - count: " + summary.getCount());
                     System.out.println();

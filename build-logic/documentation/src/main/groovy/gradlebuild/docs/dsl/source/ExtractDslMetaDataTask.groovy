@@ -46,7 +46,7 @@ abstract class ExtractDslMetaDataTask extends SourceTask {
      * {@inheritDoc}
      */
     @Override
-    @PathSensitive(PathSensitivity.NAME_ONLY)
+    @PathSensitive(PathSensitivity.RELATIVE)
     FileTree getSource() {
         return super.getSource();
     }

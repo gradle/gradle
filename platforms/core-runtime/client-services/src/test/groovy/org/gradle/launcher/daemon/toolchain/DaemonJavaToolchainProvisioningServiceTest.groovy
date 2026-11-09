@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.toolchain
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.cache.FileLock
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -29,6 +30,7 @@ import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningException
 import org.gradle.platform.Architecture
+import org.gradle.platform.BuildPlatformFactory
 import org.gradle.platform.OperatingSystem
 import org.gradle.platform.internal.CurrentBuildPlatform
 import org.gradle.util.TestUtil
@@ -73,6 +75,7 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
 
         buildPlatform.operatingSystem >> OperatingSystem.LINUX
         buildPlatform.architecture >> Architecture.AARCH64
+        buildPlatform.toBuildPlatform() >> BuildPlatformFactory.of(Architecture.AARCH64, OperatingSystem.LINUX)
     }
 
     def "cache is properly locked around provisioning a jdk"() {
@@ -132,6 +135,24 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
         thrown(ToolchainDownloadException.class)
     }
 
+    def "names the missing toolchain url property for the platform"() {
+        given:
+        spec.getDisplayName() >> "{languageVersion=11}"
+        def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([:])
+        def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, true, progressLoggerFactory)
+
+        when:
+        provisioningService.tryInstall(spec)
+
+        then:
+        def e = thrown(ToolchainDownloadException)
+        e.message == "Unable to download toolchain matching the requirements ({languageVersion=11}), due to: No defined toolchain download url for LINUX on aarch64 architecture."
+        e.resolutions == [
+            "Add a download URL for this platform to 'gradle/gradle-daemon-jvm.properties' as 'toolchainUrl.LINUX.AARCH64=<SERVER_URL>'.",
+            "For more information, please refer to ${DocumentationRegistry.BASE_URL}/userguide/gradle_daemon.html#sec:detect_provision in the Gradle documentation."
+        ]
+    }
+
     def "fails downloading from invalid provided platform toolchain url"() {
         given:
         def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([(buildPlatform.toBuildPlatform()) : "invalid url"])
@@ -143,6 +164,21 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
         then:
         0 * progressLogger.start("Installing toolchain", null)
         thrown(ToolchainDownloadException.class)
+    }
+
+    def "links the daemon toolchain docs for an invalid toolchain url"() {
+        given:
+        def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([(buildPlatform.toBuildPlatform()) : "invalid url"])
+        def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, true, progressLoggerFactory)
+
+        when:
+        provisioningService.tryInstall(spec)
+
+        then:
+        def e = thrown(ToolchainDownloadException)
+        e.resolutions == [
+            "For more information, please refer to ${DocumentationRegistry.BASE_URL}/userguide/gradle_daemon.html#sec:detect_provision in the Gradle documentation."
+        ]
     }
 
     def "downloads from url"() {

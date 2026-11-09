@@ -40,22 +40,20 @@ class ProblemLocationPastCapIntegrationTest extends AbstractIntegrationSpec {
         // through it to the calling script for the location, and keep the helper frame above it.
         file('buildSrc/src/main/java/org/example/ProblemEmitter.java') << '''
             package org.example;
-            import org.gradle.api.problems.ProblemReporter;
-            import org.gradle.api.problems.ProblemId;
-            import org.gradle.api.problems.ProblemGroup;
+            import org.gradle.api.problems.Problems;
 
             public class ProblemEmitter {
-                public static void emit(ProblemReporter reporter, String id) {
-                    reporter.report(ProblemId.create(id, id, ProblemGroup.create("demo", "demo group")), spec -> {});
+                public static void emit(Problems problems, String id) {
+                    problems.getReporter().report(problems.getGroups().getOthers().group("demo").problemId(id), spec -> {});
                 }
             }
         '''
         settingsFile "rootProject.name = 'root'"
         // Cap is 50; fire well past it with distinct problem ids, one call per line, so the summarizer keeps
         // them individual and each resolves to its own line.
-        def calls = (1..120).collect { "org.example.ProblemEmitter.emit(reporter, \"issue-$it\")" }.join("\n")
+        def calls = (1..120).collect { "org.example.ProblemEmitter.emit(problems, \"issue-$it\")" }.join("\n")
         buildFile """
-            def reporter = services.get(${Problems.name}).getReporter()
+            def problems = services.get(${Problems.name})
             $calls
         """
 

@@ -31,6 +31,7 @@ import spock.lang.Specification
 class DefaultProblemReporterTest extends Specification {
 
     def summarizer = Mock(ProblemSummarizer)
+    def registry = new ExceptionProblemRegistry()
 
     def "problem is attributed to the build operation provided by the operation id ref"() {
         given:
@@ -101,11 +102,45 @@ class DefaultProblemReporterTest extends Specification {
         1 * summarizer.emit(problem, operationId)
     }
 
+    def "problem with a factory group matching a predefined group is reported with the predefined group"() {
+        given:
+        def groups = DefaultProblemGroups.INSTANCE
+        def exception = new RuntimeException('failure')
+        def problem = new DefaultProblem(
+            new DefaultProblemDefinition(
+                ProblemId.create('Unused import', 'Unused import', ProblemGroup.create('Java', 'Java language', groups.compilation)),
+                Severity.ERROR,
+                null,
+            ),
+            'label',
+            [],
+            [],
+            [],
+            null,
+            exception,
+            null,
+            false
+        )
+        def reporter = reporter { null }
+
+        when:
+        reporter.report(problem, new OperationIdentifier(1L))
+
+        then:
+        1 * summarizer.emit({ ProblemInternal emitted ->
+            emitted.definition.id.group.is(groups.compilation.java) && emitted.contextualLabel == 'label'
+        }, new OperationIdentifier(1L))
+        // groups compare structurally, so check identity: only the predefined instance carries the description
+        def registered = registry.problemLocator.findAll(exception)
+        registered.size() == 1
+        registered[0].definition.id.group.is(groups.compilation.java)
+    }
+
     private DefaultProblemReporter reporter(Closure<OperationIdentifier> operationId) {
         new DefaultProblemReporter(
             summarizer,
             operationId as BuildOperationIdRef,
-            new ExceptionProblemRegistry(),
+            registry,
             null,
             new ProblemsInfrastructure(
                 new AdditionalDataBuilderFactory(),
@@ -113,7 +148,8 @@ class DefaultProblemReporterTest extends Specification {
                 Mock(PayloadSerializer),
                 Mock(IsolatableFactory),
                 Mock(IsolatableToBytesSerializer),
-                Mock(ProblemStream)
+                Mock(ProblemStream),
+                null
             )
         )
     }

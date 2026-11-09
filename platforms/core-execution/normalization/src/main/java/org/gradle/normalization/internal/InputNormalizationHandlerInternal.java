@@ -21,7 +21,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.jspecify.annotations.Nullable;
 
-@ServiceScope(Scope.Project.class)
+@ServiceScope({Scope.Project.class, Scope.ProjectExecution.class})
 public interface InputNormalizationHandlerInternal extends InputNormalizationHandler {
     @Override
     RuntimeClasspathNormalizationInternal getRuntimeClasspath();

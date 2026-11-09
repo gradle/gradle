@@ -1,0 +1,15 @@
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Task not found
+  Task 'pakageApp' not found in root project 'task-not-found'. Some candidates are: 'packageApp'.
+
+* Try:
+> Run gradle tasks to get a list of available tasks.
+> For more on name expansion, please refer to https://docs.gradle.org/0.0.0/userguide/command_line_interface.html#sec:name_abbreviation in the Gradle documentation.
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 0s

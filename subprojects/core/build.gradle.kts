@@ -5,10 +5,6 @@ plugins {
 
 description = "Public and internal 'core' Gradle APIs with implementation"
 
-configurations {
-    register("reports")
-}
-
 dependencies {
     api(projects.ant)
     api(projects.antApi)
@@ -247,6 +243,7 @@ dependencies {
     integTestImplementation(projects.launcher)
     integTestImplementation(projects.war)
     integTestImplementation(projects.daemonServices)
+    integTestImplementation(projects.groovyDsl)
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(testLibs.littleproxy)

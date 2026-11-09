@@ -43,4 +43,21 @@ systemProp=f
         expect:
         [:] == PropertiesFileHandler.getSystemProperties(temporaryFolder.file('unknown'))
     }
+
+    def "reports the file when it contains a malformed escape sequence (#method)"() {
+        TestFile propFile = temporaryFolder.file('props')
+        propFile << 'org.gradle.java.home=D:\\tools\\util\\jdk\n'
+
+        when:
+        PropertiesFileHandler."$method"(propFile)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error when loading properties file=$propFile"
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == 'Malformed \\uxxxx encoding.'
+
+        where:
+        method << ['getSystemProperties', 'getJvmArgs']
+    }
 }

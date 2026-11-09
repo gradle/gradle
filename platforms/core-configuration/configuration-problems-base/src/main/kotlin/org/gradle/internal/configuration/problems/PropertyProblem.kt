@@ -32,6 +32,11 @@ import kotlin.reflect.KClass
  */
 data class PropertyProblem(
     val trace: PropertyTrace,
+    /**
+     * The problem name reported to the Problems API.
+     * It is fixed per kind of problem and has no per-instance details, which stay in the [message].
+     */
+    val name: String,
     val message: StructuredMessage,
     val exception: Throwable? = null,
     /**

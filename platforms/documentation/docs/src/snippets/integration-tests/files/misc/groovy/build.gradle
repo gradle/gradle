@@ -11,18 +11,6 @@ tasks.register('ensureDirectory') {
 }
 // end::mkdir-example[]
 
-// tag::move-example[]
-tasks.register('moveReports') {
-    // Store the build directory into a variable to avoid project reference in the configuration cache
-    def dir = buildDir
-
-    doLast {
-        ant.move file: "${dir}/reports",
-                 todir: "${dir}/toArchive"
-    }
-}
-// end::move-example[]
-
 // tag::delete-example[]
 tasks.register('myClean', Delete) {
     delete buildDir

@@ -56,7 +56,14 @@ final class DefaultSecondLevelProblemGroup extends SecondLevelProblemGroup imple
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_DISPLAY_NAME);
+        return getDisplayNameInternal();
+    }
+
+    @Override
+    public String getDisplayNameInternal() {
         return name;
     }
 
@@ -67,7 +74,9 @@ final class DefaultSecondLevelProblemGroup extends SecondLevelProblemGroup imple
     }
 
     @Override
+    @Deprecated
     public ProblemGroup getParent() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_PARENT);
         // every Gradle-owned implementation extends ProblemGroup
         return (ProblemGroup) parent;
     }
@@ -100,6 +109,12 @@ final class DefaultSecondLevelProblemGroup extends SecondLevelProblemGroup imple
     @Override
     public ResolvableProblemGroup resolveChild(String name) {
         return name.equals(ProblemNames.UNDEFINED_NAME) ? resolveUndefined() : new DefaultThirdLevelProblemGroup(ProblemNames.validateUserGroupName(name), this);
+    }
+
+    @Override
+    @Nullable
+    public ResolvableProblemGroup findPredefinedChild(String name) {
+        return name.equals(ProblemNames.UNDEFINED_NAME) ? resolveUndefined() : null;
     }
 
     @Override

@@ -74,6 +74,9 @@ dependencies {
     runtimeOnly(libs.commonsIo)
     runtimeOnly(libs.commonsLang)
 
+    runtimeOnly(projects.groovyDsl) {
+        because("GroovyScriptPluginFactory is loaded dynamically at runtime by ScriptPluginFactorySelector")
+    }
     runtimeOnly(projects.kotlinDsl) {
         because("KotlinScriptPluginFactory is loaded dynamically at runtime by ScriptPluginFactorySelector")
     }

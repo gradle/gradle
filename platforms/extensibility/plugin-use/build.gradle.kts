@@ -36,6 +36,7 @@ dependencies {
     testImplementation(testFixtures(projects.core))
 
     integTestImplementation(projects.baseServicesGroovy)
+    integTestImplementation(projects.groovyDsl)
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(testLibs.groovyTest)
 

@@ -50,7 +50,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem) {
-            definition.id.fqid == 'generic:type'
+            definition.id.fqid == 'Others:Generic:label'
             definition.id.displayName == 'label'
             definition.severity == Severity.WARNING
             with(oneLocation(StackTraceLocation).fileLocation) {
@@ -86,6 +86,30 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 buildTreePath == ':included-lib:reportProblem'
             }
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38147")
+    def "identical problems reported by different tasks are all reported"() {
+        given:
+        // Both tasks are instances of the same task type reporting from the same source location, so the
+        // reported problems only differ by their task location. They must not be deduplicated against each other.
+        buildFile getProblemReportingScript("""
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {}
+        """)
+        buildFile """
+            tasks.register("reportProblem2", ProblemReportingTask)
+        """
+
+        when:
+        run('reportProblem', 'reportProblem2')
+
+        then:
+        def taskPaths = [receivedProblem(0), receivedProblem(1)]*.oneLocation(TaskLocation)*.buildTreePath
+        taskPaths.toSet() == [':reportProblem', ':reportProblem2'].toSet()
+        // the console rendering has no task path, the grouping under the task header tells the copies apart
+        result.groupedOutput.task(':reportProblem').output.contains('Problem found: label')
+        result.groupedOutput.task(':reportProblem2').output.contains('Problem found: label')
     }
 
     // This test will fail when the deprecated space-assignment syntax is removed.
@@ -146,7 +170,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem) {
-            definition.id.fqid == 'generic:type'
+            definition.id.fqid == 'Others:Generic:label'
             definition.id.displayName == 'label'
             with(oneLocation(StackTraceLocation)) {
                 with(fileLocation as LineInFileLocation) {
@@ -318,8 +342,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem) {
-            definition.id.fqid == 'problems-api:unsupported-additional-data'
-            definition.id.displayName == 'Unsupported additional data type'
+            definition.id.fqid == 'Gradle:Build Logic:Unsupported additional data type in reported problem'
+            definition.id.displayName == 'Unsupported additional data type in reported problem'
             with(oneLocation(StackTraceLocation).fileLocation as LineInFileLocation) {
                 length == -1
                 column == -1
@@ -352,10 +376,10 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         withReportProblemTask """
             ${problemIdScript()}
             try {
-                problems.getReporter().throwing(new RuntimeException("test"), ${ProblemId.name}.create("type11", "inner", problemGroup)) {
+                problems.getReporter().throwing(new RuntimeException("test"), problemGroup.problemId("inner")) {
                 }
             } catch (RuntimeException ex) {
-                problems.getReporter().throwing(ex, ${ProblemId.name}.create("type12", "outer", problemGroup)) {
+                problems.getReporter().throwing(ex, problemGroup.problemId("outer")) {
                 }
             }
         """
@@ -386,7 +410,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         10.times { index ->
             verifyAll(receivedProblem(index)) {
                 definition.id.displayName == 'label'
-                definition.id.name == 'type'
+                definition.id.name == 'label'
                 definition.severity == Severity.WARNING
                 solutions == ["solution $index"]
             }
@@ -402,7 +426,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         withReportProblemTask """
             ${problemIdScript()}
             for (int i = 0; i < 10; i++) {
-                problems.getReporter().report(${ProblemId.name}.create("type\$i", "This is the heading problem text\$i", problemGroup)) {
+                problems.getReporter().report(problemGroup.problemId("This is the heading problem text\$i")) {
                     it.details("This is a huge amount of extremely and very relevant details for this problem\$i")
                         .solution("solution")
                 }
@@ -422,7 +446,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         10.times { num ->
             verifyAll(receivedProblem(num)) {
                 definition.id.displayName == "This is the heading problem text$num"
-                definition.id.name == "type$num"
+                definition.id.name == "This is the heading problem text$num"
                 definition.severity == Severity.WARNING
                 details == "This is a huge amount of extremely and very relevant details for this problem$num"
                 solutions == ["solution"]
@@ -451,7 +475,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         report.summary.requestedTasks == "reportProblem"
         report.summary.documentationLink.toString().contains("reporting_problems")
 
-        report.problemIds == ["generic.type"]
+        report.problemIds == ["Others.Generic.label"]
         verifyAll(report.problems[0]) {
             it['severity'] == "WARNING"
             it['contextualLabel'] == "Some problem"
@@ -463,12 +487,51 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         receivedProblem != null
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39281")
+    def "problems report lists the groups of the reported problems in display order, with their descriptions"() {
+        given:
+        withReportProblemTask """
+            problems.getReporter().report(problems.groups.others.group("My plugin").problemId("Plugin problem")) {}
+            problems.getReporter().report(problems.groups.compilation.java.problemId("Unused import")) {}
+            problems.getReporter().report(problems.groups.compilation.undefined.problemId("Unknown compiler")) {}
+            problems.getReporter().report(problems.groups.dependencies.declaration.problemId("Declaration problem")) {}
+        """
+
+        when:
+        executer.withArgument("--problems-report")
+        run("reportProblem")
+
+        then:
+        def report = new ProblemsReportFixture(testDirectory.file(problemsReportOutputDirectory, problemsReportHtmlName))
+        def groups = report.summary['groups'] as List<Map<String, Object>>
+
+        groups*.get('path') == [
+            ["Dependencies"],
+            ["Dependencies", "Declaration"],
+            ["Compilation"],
+            ["Compilation", "Java"],
+            ["Compilation", "Undefined"],
+            ["Others"],
+            ["Others", "My plugin"],
+        ]
+        groups.findAll { it['path'] != ["Others", "My plugin"] }.every { it['description'] }
+        !groups.find { it['path'] == ["Others", "My plugin"] }.containsKey('description')
+
+        and:
+        (0..3).collect { receivedProblem(it).definition.id.fqid } as Set == [
+            "Others:My plugin:Plugin problem",
+            "Compilation:Java:Unused import",
+            "Compilation:Undefined:Unknown compiler",
+            "Dependencies:Declaration:Declaration problem",
+        ] as Set
+    }
+
     def "problem report can be disabled"() {
         given:
         withReportProblemTask """
             ${problemIdScript()}
             for (int i = 0; i < 10; i++) {
-                problems.getReporter().report(${ProblemId.name}.create("type\$i", "This is the heading problem text\$i", problemGroup)) {
+                problems.getReporter().report(problemGroup.problemId("This is the heading problem text\$i")) {
                     it.details("This is a huge amount of extremely and very relevant details for this problem\$i")
                         .solution("solution")
                 }
@@ -486,7 +549,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         10.times { num ->
             verifyAll(receivedProblem(num)) {
                 definition.id.displayName == "This is the heading problem text$num"
-                definition.id.name == "type$num"
+                definition.id.name == "This is the heading problem text$num"
                 details == "This is a huge amount of extremely and very relevant details for this problem$num"
                 solutions == ["solution"]
             }
@@ -515,8 +578,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     def "problems are rendered on the console when WarningMode=all configured"() {
         given:
         withReportProblemTask """
-            ${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("sample-problems", "Sample Problems");
-            ${ProblemId.name} problemId = ${ProblemId.name}.create("prototype-project", "Project is a prototype", problemGroup)
+            def problemId = problems.getGroups().getOthers().group("Sample Problems").problemId("Project is a prototype")
             problems.getReporter().report(problemId) { spec ->
                 spec.contextualLabel("This is a prototype and not a guideline for modeling real-life projects")
                 spec.details("Complex build logic like the Problems API usage should be integrated into plugins")
@@ -531,7 +593,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains """
-Problem found: Project is a prototype (id: prototype-project, in sample-problems)
+Problem found: Project is a prototype (in Others > Sample Problems)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API usage should be integrated into plugins
     For more information, please refer to https://example.com/some-problem.
@@ -539,7 +601,7 @@ Problem found: Project is a prototype (id: prototype-project, in sample-problems
     Possible solution: Look up the samples index for real-life examples.
         """
         verifyAll(receivedProblem) {
-            definition.id.fqid == 'sample-problems:prototype-project'
+            definition.id.fqid == 'Others:Sample Problems:Project is a prototype'
         }
     }
 
@@ -570,10 +632,10 @@ Problem found: Project is a prototype (id: prototype-project, in sample-problems
         given:
         disableProblemsApiCheck()
         withReportProblemTask """
-            ${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("sample-problems", "Sample Problems")
+            def problemGroup = problems.getGroups().getOthers().group("Sample Problems")
             def reporter = problems.getReporter()
             def orderedProblems = ['a', 'b', 'c', 'e', 'd'].collect { letter ->
-                ${ProblemId.name} id = ${ProblemId.name}.create("problem-" + letter, "Problem " + letter, problemGroup)
+                def id = problemGroup.problemId("Problem " + letter)
                 reporter.create(id) { spec ->
                     spec.contextualLabel("Context " + letter)
                 }
@@ -612,7 +674,7 @@ Problem found: Project is a prototype (id: prototype-project, in sample-problems
     }
 
     static String problemIdScript() {
-        """${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("generic", "group label");
-           ${ProblemId.name} problemId = ${ProblemId.name}.create("type", "label", problemGroup)"""
+        """def problemGroup = problems.getGroups().getOthers().group("Generic")
+           def problemId = problemGroup.problemId("label")"""
     }
 }

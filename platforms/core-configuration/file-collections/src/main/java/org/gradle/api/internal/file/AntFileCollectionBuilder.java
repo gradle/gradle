@@ -17,13 +17,13 @@ package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import java.io.File;
 import java.util.Collections;
 
-public class AntFileCollectionBuilder implements AntBuilderAware {
+@Deprecated
+public class AntFileCollectionBuilder implements org.gradle.api.tasks.AntBuilderAware {
 
     private final FileCollection files;
 
@@ -32,6 +32,7 @@ public class AntFileCollectionBuilder implements AntBuilderAware {
     }
 
     @Override
+    @Deprecated
     public Object addToAntBuilder(Object node, String childNodeName) {
         final DynamicObject dynamicObject = new BeanDynamicObject(node);
         dynamicObject.invokeMethod(childNodeName == null ? "resources" : childNodeName, new Closure(this) {

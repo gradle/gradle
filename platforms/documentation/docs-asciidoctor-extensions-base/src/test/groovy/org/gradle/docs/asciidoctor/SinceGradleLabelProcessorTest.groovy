@@ -15,17 +15,9 @@
  */
 package org.gradle.docs.asciidoctor
 
-import org.asciidoctor.Asciidoctor
 import org.asciidoctor.Options
-import spock.lang.Specification
 
-class SinceGradleLabelProcessorTest extends Specification {
-
-    Asciidoctor asciidoctor
-
-    def setup() {
-        asciidoctor = Asciidoctor.Factory.create()
-    }
+class SinceGradleLabelProcessorTest extends AbstractAsciidoctorTest {
 
     private String convertContent(String content) {
         return asciidoctor.convert(content, Options.builder().build())

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file
 
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -88,6 +89,7 @@ abstract class FileCollectionSpec extends Specification {
         elements.get()*.asFile == [file1, file2]
     }
 
+    @ExpectDeprecation("The FileCollection.addToAntBuilder(Object, String) method has been deprecated.")
     void canAddToAntBuilderAsResourceCollection() {
         File file1 = new File("f1")
         File file2 = new File("f2")
@@ -97,6 +99,7 @@ abstract class FileCollectionSpec extends Specification {
         assertSetContains(collection, toSet("f1", "f2"))
     }
 
+    @ExpectDeprecation("The FileCollection.addToAntBuilder(Object, String, AntType) method has been deprecated.")
     void includesOnlyExistingFilesWhenAddedToAntBuilderAsAFileSetOrMatchingTask() {
         TestFile testDir = this.testDir.getTestDirectory()
         TestFile file1 = testDir.file("f1").createFile()
@@ -114,6 +117,7 @@ abstract class FileCollectionSpec extends Specification {
         assertSetContainsForMatchingTask(collection, toSet("f1", "f2"))
     }
 
+    @ExpectDeprecation("The FileCollection.addToAntBuilder(Object, String, AntType) method has been deprecated.")
     void includesFilesAndContentsOfDirectoriesWhenConvertedToTreeAndAddedToAntBuilder() {
         TestFile testDir = this.testDir.getTestDirectory()
         TestFile file1 = testDir.file("f1").createFile()

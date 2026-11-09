@@ -23,7 +23,7 @@ import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.project.ImmutableProjectDescriptor;
-import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.ManagedServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ProjectScopeServices;
 import org.gradle.internal.service.scopes.Scope;
@@ -44,7 +44,7 @@ public class ProjectLifecycleController implements Closeable {
     @Nullable
     private ProjectInternal project;
     @Nullable
-    private CloseableServiceRegistry projectScopeServices;
+    private ManagedServiceRegistry projectScopeServices;
 
     private enum State implements StateTransitionController.State {
         NotCreated, Created, Configured

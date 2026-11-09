@@ -37,7 +37,7 @@ jobs:
           distribution: temurin
           java-version: 25
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.4.0
+        uses: gradle/actions/setup-gradle@v6.4.1
       - name: Update performance-test-durations.json
         run: |
           ./gradlew performance:writePerformanceTimes -Porg.gradle.performance.db.url=${{ env.PERFORMANCE_DB_URL }} -Porg.gradle.performance.db.username=${{ env.PERFORMANCE_DB_USERNAME }}
@@ -45,7 +45,7 @@ jobs:
         uses: peter-evans/create-pull-request@v8
         with:
           commit-message: Update performance test durations
-          branch: bot-update-performance-test-durations
+          branch: devprod/update-performance-test-durations
           branch-suffix: timestamp
           delete-branch: true
           title: 'Update performance test durations'

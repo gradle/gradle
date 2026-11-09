@@ -43,7 +43,7 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.ManagedServiceRegistry;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -56,7 +56,7 @@ import java.util.List;
 
 public class SettingsScopeServices implements ServiceRegistrationProvider {
 
-    public static CloseableServiceRegistry create(ServiceRegistry parent, SettingsInternal settings) {
+    public static ManagedServiceRegistry create(ServiceRegistry parent, SettingsInternal settings) {
         return ServiceRegistryBuilder.builder()
             .scopeStrictly(Scope.Settings.class)
             .displayName("settings services")

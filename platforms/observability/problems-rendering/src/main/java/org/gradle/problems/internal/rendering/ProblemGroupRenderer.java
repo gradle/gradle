@@ -18,6 +18,7 @@ package org.gradle.problems.internal.rendering;
 
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.internal.ProblemGroupInternal;
 
 /**
  * Renders problem groups and ids for humans, for example {@code Compilation > Java} and {@code Unused import (in Compilation > Java)}.
@@ -41,9 +42,13 @@ public final class ProblemGroupRenderer {
      * cannot be misread, for example {@code Compilation > "Java > Kotlin"}.
      */
     public static String render(ProblemGroup group) {
-        ProblemGroup parent = group.getParent();
+        return renderChain(ProblemGroupInternal.of(group));
+    }
+
+    private static String renderChain(ProblemGroupInternal group) {
+        ProblemGroupInternal parent = group.getParentInternal();
         String name = quoteIfNeeded(group.getName());
-        return parent == null ? name : render(parent) + SEPARATOR + name;
+        return parent == null ? name : renderChain(parent) + SEPARATOR + name;
     }
 
     /**

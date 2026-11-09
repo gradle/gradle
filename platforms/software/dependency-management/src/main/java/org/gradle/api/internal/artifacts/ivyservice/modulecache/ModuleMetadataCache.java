@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
@@ -33,8 +32,6 @@ public interface ModuleMetadataCache {
     CachedMetadata getCachedModuleDescriptor(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id);
 
     interface CachedMetadata {
-        ResolvedModuleVersion getModuleVersion();
-
         ModuleComponentResolveMetadata getMetadata();
 
         Duration getAge();

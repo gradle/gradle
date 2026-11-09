@@ -18,7 +18,6 @@ package org.gradle.internal.cc.impl.fingerprint
 
 import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.Describable
-import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.SettingsInternal
@@ -110,7 +109,7 @@ class ConfigurationCacheFingerprintWriter(
         fun hashCodeOf(file: File): HashCode
         fun hashCodeOfDirectoryChildrenNames(file: File): HashCode
         fun displayNameOf(file: File): String
-        fun reportProblem(exception: Throwable? = null, documentationSection: DocumentationSection? = null, message: StructuredMessageBuilder)
+        fun reportProblem(name: String, exception: Throwable? = null, documentationSection: DocumentationSection? = null, message: StructuredMessageBuilder)
         fun reportInput(input: PropertyProblem)
         fun location(consumer: String?): PropertyTrace
     }
@@ -288,11 +287,7 @@ class ConfigurationCacheFingerprintWriter(
     val URI.isHttp: Boolean
         get() = scheme.startsWith("http")
 
-    fun onDynamicVersionSelection(requested: ModuleComponentSelector, expiry: Expiry, versions: Set<ModuleVersionIdentifier>) {
-        // Only consider repositories serving at least one version of the requested module.
-        // This is meant to avoid repetitively expiring cache entries due to a 404 response for the requested module metadata
-        // from one of the configured repositories.
-        if (versions.isEmpty()) return
+    fun onDynamicVersionSelection(requested: ModuleComponentSelector, expiry: Expiry) {
         val expireAt = host.buildStartTime + expiry.keepFor.toMillis()
         onChangingValue(ConfigurationCacheFingerprint.DynamicDependencyVersion(requested.displayName, expireAt))
     }
@@ -449,7 +444,7 @@ class ConfigurationCacheFingerprintWriter(
         source: org.gradle.api.provider.ValueSource<T, P>
     ) {
         obtainedValue.value.failure.ifPresent { exception: Throwable ->
-            host.reportProblem(exception) {
+            host.reportProblem("Value source computation failed", exception) {
                 text("failed to compute value with custom source ")
                 reference(obtainedValue.valueSourceType)
                 source.displayNameIfAvailable?.let {
@@ -680,7 +675,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun reportValueSourceInput(trace: PropertyTrace, displayName: String?, typeName: String) {
-        reportInput(trace, documentationSection = null) {
+        reportInput("Value from custom source read", trace, documentationSection = null) {
             text("value from custom source ")
             reference(typeName)
             displayName?.let {
@@ -713,7 +708,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun reportFileInput(file: File, consumer: String?) {
-        reportInput(consumer, null) {
+        reportInput("File read", consumer, null) {
             text("file ")
             reference(host.displayNameOf(file))
         }
@@ -721,7 +716,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun reportDirectoryContentInput(directory: File, consumer: String?) {
-        reportInput(consumer, null) {
+        reportInput("Directory content read", consumer, null) {
             text("directory content ")
             reference(host.displayNameOf(directory))
         }
@@ -729,7 +724,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun reportFileSystemEntryInput(file: File, consumer: String?) {
-        reportInput(consumer, null) {
+        reportInput("File system entry checked", consumer, null) {
             text("file system entry ")
             reference(host.displayNameOf(file))
         }
@@ -737,7 +732,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun reportExternalProcessOutputRead(executable: String) {
-        reportInput(consumer = null, documentationSection = DocumentationSection.RequirementsExternalProcess) {
+        reportInput("External process output read", consumer = null, documentationSection = DocumentationSection.RequirementsExternalProcess) {
             text("output of external process ")
             reference(executable)
         }
@@ -752,7 +747,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun reportSystemPropertyInput(key: String, consumer: String?) {
-        reportInput(consumer, DocumentationSection.RequirementsSysPropEnvVarRead) {
+        reportInput("System property read", consumer, DocumentationSection.RequirementsSysPropEnvVarRead) {
             text("system property ")
             reference(key)
         }
@@ -767,7 +762,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun reportSystemPropertiesPrefixedByInput(prefix: String) {
-        reportInput(null, DocumentationSection.RequirementsSysPropEnvVarRead) {
+        reportInput("System properties read", null, DocumentationSection.RequirementsSysPropEnvVarRead) {
             if (prefix.isNotEmpty()) {
                 text("system properties prefixed by ")
                 reference(prefix)
@@ -786,7 +781,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun reportEnvironmentVariableInput(key: String, consumer: String?) {
-        reportInput(consumer, DocumentationSection.RequirementsSysPropEnvVarRead) {
+        reportInput("Environment variable read", consumer, DocumentationSection.RequirementsSysPropEnvVarRead) {
             text("environment variable ")
             reference(key)
         }
@@ -801,7 +796,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun reportEnvironmentVariablesPrefixedByInput(prefix: String) {
-        reportInput(null, DocumentationSection.RequirementsSysPropEnvVarRead) {
+        reportInput("Environment variables read", null, DocumentationSection.RequirementsSysPropEnvVarRead) {
             if (prefix.isNotEmpty()) {
                 text("environment variables prefixed by ")
                 reference(prefix)
@@ -813,15 +808,17 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun reportInput(
+        name: String,
         consumer: String?,
         documentationSection: DocumentationSection?,
         messageBuilder: StructuredMessage.Builder.() -> Unit
     ) {
-        reportInput(locationFor(consumer), documentationSection, messageBuilder)
+        reportInput(name, locationFor(consumer), documentationSection, messageBuilder)
     }
 
     private
     fun reportInput(
+        name: String,
         trace: PropertyTrace,
         documentationSection: DocumentationSection?,
         messageBuilder: StructuredMessage.Builder.() -> Unit
@@ -829,6 +826,7 @@ class ConfigurationCacheFingerprintWriter(
         host.reportInput(
             PropertyProblem(
                 trace,
+                name,
                 StructuredMessage.build(messageBuilder),
                 documentationSection = documentationSection
             )
@@ -1034,7 +1032,7 @@ class ConfigurationCacheFingerprintWriter(
             // Don't include property accesses coming from the Gradle runtime itself (e.g., version, group, buildDir, etc.)
             return
         }
-        reportInput(scopedLocation(propertyScope, location), null) {
+        reportInput("Gradle property read", scopedLocation(propertyScope, location), null) {
             text("Gradle property ")
             reference(propertyName)
         }
@@ -1051,7 +1049,7 @@ class ConfigurationCacheFingerprintWriter(
             // Don't include property accesses coming from the Gradle runtime itself (e.g., systemProp.*)
             return
         }
-        reportInput(scopedLocation(propertyScope, location), null) {
+        reportInput("Gradle property read", scopedLocation(propertyScope, location), null) {
             text("Gradle property ") // To avoid introducing a separate subtree in the report
             reference("$prefix*")
         }

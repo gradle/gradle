@@ -76,7 +76,7 @@ import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.scripts.ScriptFileUtil;
 import org.gradle.internal.scripts.ScriptResolutionResultReporter;
-import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.ManagedServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
@@ -178,7 +178,7 @@ public class ProjectBuilderImpl {
         BuildTreeServices buildTreeServices = buildTreeState.getServices().get(BuildTreeServices.class);
         TestRootBuild build = new TestRootBuild(projectDir, startParameter, buildTreeServices);
 
-        CloseableServiceRegistry buildServices = build.getBuildServices();
+        ManagedServiceRegistry buildServices = build.getBuildServices();
         buildServices.get(BuildStateRegistry.class).attachRootBuild(build);
 
         // Project or applied plugins can emit deprecation warnings, so we need to initialize the deprecation logger
@@ -234,7 +234,7 @@ public class ProjectBuilderImpl {
     ) {
         ProjectIdentity identity = ProjectIdentity.forRootProject(buildPath, projectName);
         ScriptFileResolver scriptFileResolver = buildServices.get(ScriptFileResolver.class);
-        ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(buildServices.get(Problems.class).getReporter());
+        ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(buildServices.get(Problems.class));
         File buildFile = ScriptFileUtil.resolveBuildFile(projectDir, scriptFileResolver, reporter::reportResolutionProblemsOf);
         return new ProjectBuilderProjectDescriptor(identity, projectDir, buildFile, null);
     }
@@ -248,7 +248,7 @@ public class ProjectBuilderImpl {
         Path projectPath = parentIdentity.getProjectPath().child(projectName);
         ProjectIdentity identity = ProjectIdentity.forSubproject(parentIdentity.getBuildPath(), projectPath);
         ScriptFileResolver scriptFileResolver = parent.getServices().get(ScriptFileResolver.class);
-        ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(parent.getServices().get(Problems.class).getReporter());
+        ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(parent.getServices().get(Problems.class));
         File buildFile = ScriptFileUtil.resolveBuildFile(projectDir, scriptFileResolver, reporter::reportResolutionProblemsOf);
         return new ProjectBuilderProjectDescriptor(identity, projectDir, buildFile, parentIdentity);
     }
@@ -313,7 +313,7 @@ public class ProjectBuilderImpl {
         }
 
         @Override
-        public CloseableServiceRegistry getBuildServices() {
+        public ManagedServiceRegistry getBuildServices() {
             return super.getBuildServices();
         }
 

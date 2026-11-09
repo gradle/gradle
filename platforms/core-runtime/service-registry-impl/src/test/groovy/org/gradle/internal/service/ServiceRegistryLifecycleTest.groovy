@@ -17,6 +17,7 @@
 package org.gradle.internal.service
 
 import org.gradle.internal.concurrent.Stoppable
+import spock.lang.Issue
 import spock.lang.Specification
 
 import java.lang.reflect.Type
@@ -97,6 +98,21 @@ class ServiceRegistryLifecycleTest extends Specification implements ServiceRegis
         1 * service.close()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/16390")
+    def "close invokes close method on each auto-closeable service"() {
+        def registry = newRegistry()
+        def service = Mock(TestAutoCloseService)
+
+        given:
+        registry.add(TestAutoCloseService, service)
+
+        when:
+        registry.close()
+
+        then:
+        1 * service.close()
+    }
+
     def "close invokes stop method on each service"() {
         def registry = newRegistry()
         def service = Mock(TestStopService)
@@ -109,6 +125,21 @@ class ServiceRegistryLifecycleTest extends Specification implements ServiceRegis
 
         then:
         1 * service.stop()
+    }
+
+    def "close stops rather than closes a service that is both stoppable and auto-closeable"() {
+        def registry = newRegistry()
+        def service = Mock(TestStopAndAutoCloseService)
+
+        given:
+        registry.add(TestStopAndAutoCloseService, service)
+
+        when:
+        registry.close()
+
+        then:
+        1 * service.stop()
+        0 * service.close()
     }
 
     def "close ignores service with no close or stop method"() {
@@ -370,7 +401,7 @@ class ServiceRegistryLifecycleTest extends Specification implements ServiceRegis
         then:
         service == childService
         1 * parentService.close()
-        0 * childService.close()
+        0 * childService.stop()
     }
 
     /**
@@ -488,8 +519,18 @@ class ServiceRegistryLifecycleTest extends Specification implements ServiceRegis
         void close()
     }
 
+    interface TestAutoCloseService extends AutoCloseable {
+        void close()
+    }
+
     interface TestStopService extends Stoppable {
         void stop()
+    }
+
+    interface TestStopAndAutoCloseService extends Stoppable, AutoCloseable {
+        void stop()
+
+        void close()
     }
 
     static class CloseableService implements Closeable {

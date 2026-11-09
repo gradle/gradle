@@ -178,6 +178,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean disableToolchainDownload = true;
     private boolean disableToolchainDetection = true;
     private boolean disablePluginRepositoryMirror = false;
+    private boolean extraRepositoriesDisabled = false;
 
     private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings = new ArrayList<>();
     private boolean eagerClassLoaderCreationChecksOn = true;
@@ -479,6 +480,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         if (disablePluginRepositoryMirror) {
             executer.withPluginRepositoryMirrorDisabled();
+        }
+        if (extraRepositoriesDisabled) {
+            executer.withoutExtraRepositories();
         }
 
         return executer;
@@ -977,6 +981,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
+    public GradleExecuter withoutExtraRepositories() {
+        extraRepositoriesDisabled = true;
+        return this;
+    }
+
+    @Override
     public GradleExecuter ignoreCleanupAssertions() {
         this.ignoreCleanupAssertions = true;
         return this;
@@ -1093,6 +1103,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             allArgs.add("--init-script");
             allArgs.add(initScript.getAbsolutePath());
         }
+        File extraRepositoriesInitScript = RepoScriptBlockUtil.extraRepositoriesInitScriptFile();
+        if (extraRepositoriesInitScript != null && !extraRepositoriesDisabled) {
+            // Pass the option and its value as one argument. The wrapper does not know this option. If the value is a
+            // separate argument, the wrapper stops parsing there and misses later options such as --gradle-user-home.
+            allArgs.add("--init-script=" + extraRepositoriesInitScript.getAbsolutePath());
+        }
         if (quiet) {
             allArgs.add("--quiet");
         }
@@ -1158,6 +1174,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     private void ensureSettingsFileAvailable() {
         TestFile workingDir = new TestFile(getWorkingDir());
+        if (hasSettingsFile(workingDir)) {
+            return;
+        }
         TestFile dir = workingDir;
         while (dir != null && getTestDirectoryProvider().getTestDirectory().isSelfOrDescendant(dir)) {
             if (hasSettingsFile(dir) || hasSettingsFile(dir.file("master"))) {
@@ -1194,7 +1213,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             // maven.repo.local is unset, so such a build - e.g. an auto-tested sample, a cross-version test,
             // or any executer that does not go through AbstractIntegrationSpec's M2Installation - would
             // otherwise resolve from or publish into the build agent's real ~/.m2/repository and trip the
-            // CHECK_CLEAN_M2_ANDROID_USER_HOME CI step. AbstractIntegrationSpec tests already pass
+            // post-build user home check in .teamcity/hooks. AbstractIntegrationSpec tests already pass
             // -Dmaven.repo.local via M2Installation, and `using m2` sets a user home, so both are left
             // untouched by this default.
             properties.put("maven.repo.local", testDirectoryProvider.getTestDirectory().file("maven-local-should-not-leak").getAbsolutePath());
@@ -1202,6 +1221,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         properties.put(DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY, "" + (daemonIdleTimeoutSecs * 1000));
         properties.put(DaemonBuildOptions.BaseDirOption.GRADLE_PROPERTY, daemonBaseDir.getAbsolutePath());
+
+        // The Kotlin Build Tools API reads its default daemon run dir from user.home only once per class loader,
+        // and KGP keeps that class loader across the builds of a Gradle daemon, which can have different user homes.
+        // One shared dir outside all test dirs stops a build from starting a Kotlin daemon in the deleted user home of an earlier test.
+        // See: https://youtrack.jetbrains.com/issue/KT-91113/
+        properties.put("kotlin.daemon.custom.run.files.path.for.tests", buildContext.getDaemonBaseDir().file("kotlin").getAbsolutePath());
+
         if (!noExplicitNativeServicesDir) {
             properties.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
         }

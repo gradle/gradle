@@ -70,6 +70,9 @@ abstract class AbstractLockingIntegrationTest extends AbstractDependencyResoluti
         def constraintVersion = lockMode() == LockMode.LENIENT ? "1.0" : "{strictly 1.0}"
 
         when:
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning(lockfileFixture.legacyLockfileDeprecation("configuration ':lockedConf'", 'lockedConf'))
+        }
         succeeds 'checkDeps'
 
         then:
@@ -187,7 +190,7 @@ dependencies {
             dependencyLocking {
                 lockAllConfigurations()
             }
-            
+
             repositories {
                 maven {
                     url = "${mavenRepo.uri}"
@@ -196,11 +199,11 @@ dependencies {
             configurations {
                 conf
             }
-            
+
             dependencies {
                 conf 'org:bar:1.+'
             }
-            
+
             task copyDeps(type: Copy) {
                 from configurations.conf
                 into "\$buildDir/output"
@@ -540,6 +543,7 @@ dependencies {
 
         then:
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.0'])
+        lockfileFixture.assertLegacyLockfileMissing('lockedConf')
 
         where:
         unique << [true, false]

@@ -18,6 +18,7 @@ package org.gradle.problems.internal.rendering;
 
 
 import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.internal.DefaultProblemId;
 import org.gradle.api.problems.internal.ProblemInternal;
 
 import java.io.PrintWriter;
@@ -141,7 +142,7 @@ public abstract class ProblemWriter {
             if (problem.getContextualLabel() != null) {
                 return problem.getContextualLabel();
             }
-            return problem.getDefinition().getId().getDisplayName();
+            return DefaultProblemId.displayNameOf(problem.getDefinition().getId());
         }
     }
 

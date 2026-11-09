@@ -17,6 +17,8 @@
 package org.gradle.api.problems
 
 import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.api.problems.internal.StackTraceLocation
+import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import spock.lang.Issue
@@ -54,6 +56,28 @@ class PredefinedProblemGroupsIntegrationTest extends AbstractIntegrationSpec {
             definition.id.group.parent.name == "Compilation"
             definition.id.group.parent.description == "Code compilation, including the compiler's configuration, compiler invocation, or compiler plugins."
             definition.id.group.parent.parent == null
+        }
+    }
+
+    def "a group created through ProblemGroup.create is reported as the matching predefined group"() {
+        given:
+        withReportProblemTask """
+            def java = org.gradle.api.problems.ProblemGroup.create("Java", "Java language", problems.groups.compilation)
+            problems.reporter.report(org.gradle.api.problems.ProblemId.create("Unused import", "Unused import", java)) {}
+        """
+
+        when:
+        run("reportProblem")
+
+        then:
+        verifyAll(receivedProblem) {
+            definition.id.fqid == "Compilation:Java:Unused import"
+            definition.id.group.displayName == "Java"
+            definition.id.group.description == "Java code compilation, including the compiler's configuration, compiler invocation, or compiler plugins."
+            // the problem is rebuilt with the predefined group; everything else is kept
+            definition.severity == Severity.WARNING
+            oneLocation(StackTraceLocation).fileLocation.path == buildFile.absolutePath
+            oneLocation(TaskLocation).buildTreePath == ':reportProblem'
         }
     }
 

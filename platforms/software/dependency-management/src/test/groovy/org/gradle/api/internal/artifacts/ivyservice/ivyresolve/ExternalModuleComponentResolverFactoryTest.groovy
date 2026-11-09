@@ -48,6 +48,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.NoOpDerivationStrategy
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resource.ExternalResourceRepository
@@ -75,12 +76,13 @@ class ExternalModuleComponentResolverFactoryTest extends Specification {
         ModuleRepositoryCacheProvider cacheProvider = new ModuleRepositoryCacheProvider(caches, caches)
         StartParameterResolutionOverride startParameterResolutionOverride = Mock(StartParameterResolutionOverride) {
             _ * overrideModuleVersionRepository(_) >> { ModuleComponentRepository repository -> repository }
-            _ * dependencyVerificationOverride(_, _, _, _, _, _, _) >> DependencyVerificationOverride.NO_VERIFICATION
+            _ * dependencyVerificationOverride(_, _, _, _, _, _, _, _) >> DependencyVerificationOverride.NO_VERIFICATION
         }
 
         def resolveStateFactory = DependencyManagementTestUtil.modelGraphResolveFactory()
         def dependencyVerificationOverride = startParameterResolutionOverride.dependencyVerificationOverride(
             Mock(BuildOperationExecutor),
+            Mock(BuildOperationRunner),
             TestUtil.checksumService,
             Mock(SignatureVerificationServiceFactory),
             new DocumentationRegistry(),

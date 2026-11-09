@@ -26,6 +26,7 @@ import org.gradle.api.problems.LineInFileLocation
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemLocation
+import org.gradle.api.problems.internal.DefaultProblemId
 import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.api.problems.internal.ProblemGroupInternal
 import org.gradle.api.problems.internal.ProblemInternal
@@ -57,6 +58,7 @@ class DefaultProblemsReportCreator(
     startParameter: StartParameterInternal,
     private val failureFactory: FailureFactory,
     private val buildStateRegistry: BuildStateRegistry,
+    rootGroups: List<ProblemGroup>,
 ) : ProblemReportCreator {
 
     private val report = CommonReport(
@@ -70,8 +72,10 @@ class DefaultProblemsReportCreator(
     private val taskNames = startParameter.taskNames
     private val failureDecorator = FailureDecorator()
     private val warningMode = startParameter.warningMode
+    private val groups = ProblemGroupTable(rootGroups)
 
     override fun addProblem(problem: ProblemInternal) {
+        groups.add(problem.definition.id)
         report.onProblem(problem.toJsProblem())
     }
 
@@ -81,6 +85,7 @@ class DefaultProblemsReportCreator(
             requestedTasks = taskNames.joinToString(" "),
             documentationLink = DocumentationRegistry().getDocumentationFor("reporting_problems"),
             summaries = problemSummaries.map { it.toJsProblemIdSummary() },
+            groups = groups.toJsProblemGroups(),
         )
         val reportFile = report.writeReportFileTo(reportDir.resolve("reports/problems"), summary)
         if (reportFile != null && warningMode != WarningMode.None) {
@@ -108,9 +113,9 @@ private fun ProblemSummaryData.toJsProblemIdSummary(): JsProblemIdSummary =
     JsProblemIdSummary(problemId = problemId.toJsProblemIdElements(), count = count)
 
 private fun ProblemId.toJsProblemIdElements(): List<JsProblemIdElement> =
-    group.chainFromRoot().map { jsElement(it.name, it.displayName) } + jsElement(name, displayName)
+    group.chainFromRoot().map { jsElement(it.name, it.displayNameInternal) } + jsElement(name, DefaultProblemId.displayNameOf(this))
 
-private fun ProblemGroup.chainFromRoot(): List<ProblemGroupInternal> =
+internal fun ProblemGroup.chainFromRoot(): List<ProblemGroupInternal> =
     generateSequence(ProblemGroupInternal.of(this)) { it.parentInternal }.toList().asReversed()
 
 @Suppress("USELESS_ELVIS")

@@ -316,6 +316,8 @@ The Gradle build uses [Java Toolchain](https://docs.gradle.org/current/userguide
 
 Available JDKs on your machine are automatically detected and wired for the various compile and test tasks.
 Some tests require multiple JDKs to be installed on your computer, be aware of this if you make changes related to anything toolchains related.
+Tests that need a specific JDK find it through `AvailableJavaHomes` and are skipped or fail when it is missing; `./gradlew javaToolchains` lists the JDKs Gradle detected.
+CI provisions more JDKs than a local build strictly needs (see `.teamcity/jdks.yaml`), so install only the versions the tests you run ask for.
 
 If you want to explicitly run tests with a different Java version, you need to specify `-PtestJavaVersion=#` with the major version of the JDK you want the tests to run with (e.g. `-PtestJavaVersion=14`).
 

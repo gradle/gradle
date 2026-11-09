@@ -63,7 +63,7 @@ class GradleBuildDocumentationConfigurationCacheSmokeTest extends AbstractGradle
         result.task(":docs:incubationReport").outcome == TaskOutcome.FROM_CACHE
     }
 
-    @Ignore("Broken by at least the Asciidoctor plugin, and takes 40mins on CI")
+    @Ignore("Takes 40mins on CI, and :docs:docs is not verified to be CC clean")
     @ToBeImplemented
     def "can build and test Gradle documentation with configuration cache enabled"() {
 
@@ -89,7 +89,7 @@ class GradleBuildDocumentationConfigurationCacheSmokeTest extends AbstractGradle
         then:
         result.assertConfigurationCacheStateLoaded()
         result.task(":docs:docs").outcome == TaskOutcome.SUCCESS
-        result.task("':docs:docsTest'").outcome == TaskOutcome.SUCCESS
+        result.task(":docs:docsTest").outcome == TaskOutcome.SUCCESS
     }
 
     @Ignore("With https://github.com/gradle/gradle/pull/36884 :docs:embeddedCrossVersionTest does not exist any more")

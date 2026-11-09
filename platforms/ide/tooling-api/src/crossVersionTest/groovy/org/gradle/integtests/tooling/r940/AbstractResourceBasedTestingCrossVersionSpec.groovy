@@ -70,9 +70,7 @@ abstract class AbstractResourceBasedTestingCrossVersionSpec extends ToolingApiSp
                 `java-library`
             }
 
-            repositories {
-                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-            }
+            ${RepoScriptBlockUtil.mavenCentralRepository(GradleDsl.KOTLIN)}
 
             dependencies {
                 api("org.junit.jupiter:junit-jupiter-engine:5.13.4")

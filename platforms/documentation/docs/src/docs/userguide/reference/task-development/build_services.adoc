@@ -152,6 +152,10 @@ This is possible; call `get()` on the provider.
 In addition to using a build service from a task, you can use a build service from a <<worker_api.adoc#converting_to_worker_api,Worker API action>>, an <<artifact_transforms.adoc#sec:implementing-artifact-transforms,artifact transform>> or another build service.
 To do this, pass the build service `Provider` as a parameter of the consuming action or service, in the same way you pass other parameters to the action or service.
 
+NOTE: Don't use a build service to give an artifact transform action files that require another artifact transform.
+Declare those files on a parameter of the transform annotated with `@InputFiles` instead.
+See <<upgrading_version_9.adoc#querying_transform_output_from_transform_action,the deprecation of undeclared transform queries>>.
+
 For example, to pass a `MyServiceType` service to Worker API action, you might add a property of type `Property<MyServiceType>` to the action's parameters object and then connect the `Provider<MyServiceType>` that you receive when registering the service to this property:
 
 [source,java]

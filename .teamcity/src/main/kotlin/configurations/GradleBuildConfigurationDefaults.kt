@@ -11,7 +11,6 @@ import common.VersionedSettingsBranch
 import common.applyDefaultSettings
 import common.buildScanTagParam
 import common.buildToolGradleParameters
-import common.checkCleanM2AndAndroidUserHome
 import common.cleanUpGitUntrackedFilesAndDirectories
 import common.compileAllDependency
 import common.functionalTestParameters
@@ -32,43 +31,6 @@ import model.CIBuildModel
 
 const val GRADLE_RUNNER_STEP_NAME = "GRADLE_RUNNER"
 const val GRADLE_RETRY_RUNNER_STEP_NAME = "GRADLE_RETRY_RUNNER"
-
-fun checkCleanDirUnixLike(
-    dir: String,
-    exitOnFailure: Boolean = true,
-) = """
-    REPO=$dir
-    if [ -e ${'$'}REPO ] ; then
-        if [ -n "${'$'}(ls -A ${'$'}REPO)" ] ; then
-            tree ${'$'}REPO
-            rm -rf ${'$'}REPO
-            echo "${'$'}REPO was polluted during the build"
-            ${if (exitOnFailure) "exit 1" else ""}
-        else
-            rm -rf ${'$'}REPO
-            echo "${'$'}REPO exists but is empty"
-        fi
-    else
-        echo "${'$'}REPO does not exist"
-    fi
-
-    """.trimIndent()
-
-fun checkCleanDirWindows(
-    dir: String,
-    exitOnFailure: Boolean = true,
-) = """
-
-    IF exist $dir (
-        DIR /B /A "$dir" | findstr "^" >nul && (
-            TREE $dir
-            RMDIR /S /Q $dir
-            ${if (exitOnFailure) "EXIT 1" else ""}
-        ) || (
-            RMDIR /S /Q $dir
-        )
-    )
-    """.trimIndent()
 
 fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
     if (model.publishStatusToGitHub) {
@@ -208,7 +170,6 @@ fun applyDefaults(
     buildType.steps {
         extraSteps()
         killProcessStep(buildType, KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, executionMode = ExecutionMode.ALWAYS)
-        checkCleanM2AndAndroidUserHome(os, buildType)
     }
 
     applyDefaultDependencies(model, buildType)
@@ -253,7 +214,6 @@ fun applyTestDefaults(
 
     buildType.steps {
         extraSteps()
-        checkCleanM2AndAndroidUserHome(os, buildType)
     }
 
     applyDefaultDependencies(model, buildType)

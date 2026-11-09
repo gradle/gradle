@@ -89,11 +89,13 @@ public class LockFileReaderWriter {
         LOGGER.debug("Lockfiles root: {}", lockFilesRoot);
     }
 
+    /**
+     * Read a lock file for a given lock ID from its legacy location,
+     * returning null if there is no legacy lock file for the given lock ID.
+     */
     @Nullable
-    public List<String> readLockFile(String lockId) {
-        checkValidRoot();
-
-        Path lockFile = lockFilesRoot.resolve(decorate(lockId) + FILE_SUFFIX);
+    public List<String> readLegacyLockFile(String lockId) {
+        Path lockFile = getLegacyLockFile(lockId);
         listener.fileObserved(lockFile.toFile());
         if (Files.exists(lockFile)) {
             List<String> result;
@@ -108,6 +110,14 @@ public class LockFileReaderWriter {
         } else {
             return null;
         }
+    }
+
+    /**
+     * The location of the legacy lock file for a given lock ID.
+     */
+    public Path getLegacyLockFile(String lockId) {
+        checkValidRoot();
+        return lockFilesRoot.resolve(decorate(lockId) + FILE_SUFFIX);
     }
 
     private String decorate(String lockId) {

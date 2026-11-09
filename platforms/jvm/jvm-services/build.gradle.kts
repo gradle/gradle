@@ -38,7 +38,6 @@ dependencies {
     api(libs.jspecify)
     api(libs.nativePlatform)
 
-    implementation(projects.functional)
     implementation(projects.native)
     implementation(projects.processServicesApi)
     implementation(projects.serialization)
@@ -46,6 +45,7 @@ dependencies {
     implementation(libs.asm)
     implementation(libs.commonsLang)
     implementation(libs.guava)
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     testImplementation(projects.native)

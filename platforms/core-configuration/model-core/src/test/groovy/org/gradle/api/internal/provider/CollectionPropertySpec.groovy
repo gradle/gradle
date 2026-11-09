@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider
 import com.google.common.collect.ImmutableCollection
 import org.gradle.api.Task
 import org.gradle.api.Transformer
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
@@ -1158,6 +1159,24 @@ The value of this property is derived from: <source>""")
         "getOrElse" | _
     }
 
+    def "size is zero when property has no value"() {
+        given:
+        property.set((Iterable) null)
+
+        expect:
+        !property.present
+        property.size() == 0
+    }
+
+    def "size is zero when property is set to provider with no value"() {
+        given:
+        property.set(notDefined())
+
+        expect:
+        !property.present
+        property.size() == 0
+    }
+
     def "does not run side effect when calling 'size'"() {
         def sideEffect1 = Mock(ValueSupplier.SideEffect)
         def sideEffect2 = Mock(ValueSupplier.SideEffect)
@@ -1588,13 +1607,14 @@ The value of this property is derived from: <source>""")
 
     def "can add a lot of providers"() {
         given:
+        def context = Mock(TaskDependencyResolveContext)
         (0..<100000).each {
             property.addAll(supplierWithProducer(Mock(Task), toImmutable([it.toString()])))
         }
 
         expect:
         property.get().size() == 100000
-        property.getProducer().visitProducerTasks {}
+        property.getProducer().visitDependencies(context)
     }
 
     def "value coercion is applied to #description after configuration cache round-trip"() {

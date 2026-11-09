@@ -78,7 +78,7 @@ class CrossProjectConfigurationReportingGradle(
 
     private fun onMutableStateAccess(what: String) {
         ipProblems.report {
-            problem {
+            problem("Project cannot access Gradle state") {
                 text("Project ")
                 reference(referrerProject.buildTreePath)
                 text(" cannot access ")
@@ -381,9 +381,6 @@ class CrossProjectConfigurationReportingGradle(
 
     override fun getIdentityPath(): Path =
         delegate.identityPath
-
-    override fun contextualize(description: String): String =
-        delegate.contextualize(description)
 
     override fun getPublicBuildPath(): PublicBuildPath =
         delegate.publicBuildPath

@@ -834,6 +834,10 @@ The `filter()` method has two variants, which behave differently:
 Note that both variants assume the source files are text-based.
 When you use the `ReplaceTokens` class with `filter()`, you create a template engine that replaces tokens of the form `@tokenName@` (the Ant-style token) with values you define.
 
+WARNING: Ant classes are no longer implicitly available to build scripts from Gradle 10, so the `FilterReader` variant stops working with Ant filters such as `ReplaceTokens` unless you add Ant to the classpath of your build logic.
+Prefer the `Transformer` variant, which has no Ant dependency.
+See <<upgrading_version_9.adoc#ant_build_script_classpath,Deprecation of implicit Ant classes on the build script classpath>> in the upgrade guide for examples of both approaches.
+
 [[using_copyspec_expand]]
 === Using `CopySpec.expand()`
 

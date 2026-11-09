@@ -19,6 +19,9 @@
 This chapter provides the information you need to migrate your Gradle {gradleVersion8} builds to Gradle 9.0.0.
 For migrating within Gradle 8.x, see the <<upgrading_version_8.adoc#upgrading_version_8, older migration guide>> first.
 
+NOTE: As soon as Gradle 10.0.0 ships, no security or bug fixes will be made on any release of Gradle 8.
+To receive fixes for these versions, see https://gradle.org/security-subscription/[Gradle Security Subscription].
+
 We recommend the following steps for all users:
 
 . Try running `gradle help --scan` and view the https://docs.develocity.ai/gradle/current/getting-started/#identifying-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
@@ -306,7 +309,7 @@ Configuring project ':subproject1' without an existing directory is not allowed.
 > Make sure the project directory exists and is writable.
 ----
 
-See <<upgrading_version_8.adoc#deprecated_missing_project_directory>> for more details.
+See <<upgrading_version_8.adoc#deprecated_missing_project_directory,Including projects without an existing directory>> for more details.
 
 [[task_changes]]
 == Task changes
@@ -819,7 +822,7 @@ However, at this stage of Configuration Cache maturity and ecosystem adoption, w
 [[upgraded_default_versions_of_code_quality_tools]]
 === Upgraded default versions of code quality tools
 
-The default version of Checkstyle is link:https://checkstyle.sourceforge.io/releasenotes.html#Release_10.24.0[10.24.0].
+The default version of Checkstyle is link:https://checkstyle.org/releasenotes.html#Release_10.24.0[10.24.0].
 
 The default version of CodeNarc is link:https://github.com/CodeNarc/CodeNarc/blob/v3.6.0/CHANGELOG.md#version-360--feb-2025[3.6.0].
 

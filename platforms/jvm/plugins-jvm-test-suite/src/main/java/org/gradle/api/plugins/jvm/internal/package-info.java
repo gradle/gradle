@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+/**
+ * This package contains a number of utilities used to facilitate the
+ * integration of Java plugins. It provides the implementation of the
+ * {@link org.gradle.api.plugins.jvm.internal.JvmPluginServices} service.
+ */
 @NullMarked
 package org.gradle.api.plugins.jvm.internal;
 

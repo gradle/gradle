@@ -34,6 +34,17 @@ class AntBuilderLoggingIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+        expectAntDeprecation("The Project.getAnt() method has been deprecated.")
+        5.times {
+            expectAntDeprecation("The Task.getAnt() method has been deprecated.")
+        }
+    }
+
+    private void expectAntDeprecation(String summary) {
+        executer.expectDocumentedDeprecationWarning(
+            "${summary} This is scheduled to be removed in Gradle 10. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_ant_builder"
+        )
     }
 
     def "logs normally without lifecycle log level set" () {
@@ -55,6 +66,7 @@ class AntBuilderLoggingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             ant.lifecycleLogLevel = "INFO"
         """
+        expectAntDeprecation("The Project.getAnt() method has been deprecated.")
 
         when:
         succeeds("antTest")
@@ -74,6 +86,7 @@ class AntBuilderLoggingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             ant.lifecycleLogLevel = "ERROR"
         """
+        expectAntDeprecation("The Project.getAnt() method has been deprecated.")
 
         when:
         succeeds("antTest")

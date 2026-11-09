@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRef;
@@ -50,10 +51,18 @@ public abstract class AbstractWorker implements BuildOperationAwareWorker {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName(spec.getDisplayName())
+                    .progressDisplayName("Executing work action " + simpleName(spec))
+                    .metadata(BuildOperationCategory.WORK_ACTION)
                     .parent(parentBuildOperation)
                     .details(new Details(spec.getActionImplementationClassName(), spec.getDisplayName()));
             }
         });
+    }
+
+    // In the console, this name is shown after the path of the task, so the simple name is enough
+    private static String simpleName(IsolatedParametersActionExecutionSpec<?> spec) {
+        String simpleName = spec.getImplementationClass().getSimpleName();
+        return simpleName.isEmpty() ? spec.getActionImplementationClassName() : simpleName;
     }
 
     interface Work {

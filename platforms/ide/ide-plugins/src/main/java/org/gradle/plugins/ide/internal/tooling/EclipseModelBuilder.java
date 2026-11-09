@@ -284,7 +284,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             eclipseProject.setSourceDirectories(classpathElements.getSourceDirectories());
             eclipseProject.setClasspathContainers(classpathElements.getClasspathContainers());
             eclipseProject.setOutputLocation(classpathElements.getEclipseOutputLocation() != null ? classpathElements.getEclipseOutputLocation() : new DefaultEclipseOutputLocation("bin"));
-            eclipseProject.setAutoBuildTasks(!TaskDependencyUtil.newTaskResolver().getDependencies(null, (TaskDependencyContainer) eclipseModel.getAutoBuildTasks()).isEmpty());
+            eclipseProject.setAutoBuildTasks(!TaskDependencyUtil.getDependencies(null, (TaskDependencyContainer) eclipseModel.getAutoBuildTasks()).isEmpty());
 
             org.gradle.plugins.ide.eclipse.model.Project xmlProject = new org.gradle.plugins.ide.eclipse.model.Project(new XmlTransformer());
 

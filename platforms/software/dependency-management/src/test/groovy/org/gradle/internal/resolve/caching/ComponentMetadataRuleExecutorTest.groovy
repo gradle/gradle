@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ComponentMetadataContext
 import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource
 import org.gradle.cache.CacheBuilder
@@ -100,7 +99,6 @@ class ComponentMetadataRuleExecutorTest extends Specification {
     // Tests --refresh-dependencies behavior
     @Unroll("Cache expiry check refresh = #mustRefresh - #scenario - #ruleClass")
     def "expires entry when cache policy tells us to"() {
-        def id = DefaultModuleVersionIdentifier.newId('org', 'foo', '1.0')
         def hashValue = TestHashCodes.hashCodeFrom(42)
         def key = Mock(ModuleComponentResolveMetadata)
         def inputsSnapshot = new StringValueSnapshot("1")
@@ -137,16 +135,14 @@ class ComponentMetadataRuleExecutorTest extends Specification {
             1 * record.getInput() >> '124'
             1 * record.getOutput() >> TestHashCodes.hashCodeFrom(10000)
             1 * cachedResult.isChanging() >> changing
-            1 * cachedResult.getModuleVersionId() >> id
-            1 * cacheExpirationControl.moduleExpiry({ it.id == id }, Duration.ZERO, changing) >> Stub(CacheExpirationControl.Expiry) {
+            1 * cacheExpirationControl.moduleExpiry(Duration.ZERO, changing) >> Stub(CacheExpirationControl.Expiry) {
                 isMustCheck() >> false
             }
             // we make it return false, this should invalidate the cache
             1 * someService.isUpToDate('124', TestHashCodes.hashCodeFrom(10000)) >> false
         } else {
             1 * cachedResult.isChanging() >> changing
-            1 * cachedResult.getModuleVersionId() >> id
-            1 * cacheExpirationControl.moduleExpiry({ it.id == id }, Duration.ZERO, changing) >> Stub(CacheExpirationControl.Expiry) {
+            1 * cacheExpirationControl.moduleExpiry(Duration.ZERO, changing) >> Stub(CacheExpirationControl.Expiry) {
                 isMustCheck() >> mustRefresh
             }
         }

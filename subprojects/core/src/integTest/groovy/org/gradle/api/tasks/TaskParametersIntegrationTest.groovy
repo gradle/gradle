@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
@@ -455,7 +456,7 @@ task someTask {
         }
         verifyAll(receivedProblem(2)) {
             severity == Severity.WARNING
-            fqid == 'root:test-problem'
+            fqid == 'Gradle:Plugin Validation:test problem'
             definition.id.displayName == 'test problem'
             contextualLabel == "Type 'InvalidTask' property 'inputFile' test problem"
             details == 'This is a test.'
@@ -465,6 +466,7 @@ task someTask {
                 'typeName': 'InvalidTask',
                 'propertyName': 'inputFile',
             ]
+            oneLocation(TaskLocation).buildTreePath == ':invalid'
         }
     }
 

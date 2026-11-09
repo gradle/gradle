@@ -319,10 +319,12 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         ListenerManager listenerManager,
         BuildCommencedTimeProvider timeProvider,
         ServiceRegistry serviceRegistry,
-        FileResourceListener fileResourceListener
+        FileResourceListener fileResourceListener,
+        BuildOperationRunner buildOperationRunner
     ) {
         DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(
             buildOperationExecutor,
+            buildOperationRunner,
             checksumService,
             signatureVerificationServiceFactory,
             documentationRegistry,

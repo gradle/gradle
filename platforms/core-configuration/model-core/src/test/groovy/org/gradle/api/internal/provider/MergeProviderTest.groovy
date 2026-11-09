@@ -86,6 +86,26 @@ class MergeProviderTest extends Specification {
         1 * mergedSideEffect.execute(["left", "right"])
     }
 
+    def "merges with changing content in #changingContent"() {
+        given:
+        def provider = new MergeProvider([first, second])
+
+        when:
+        def value = provider.calculateExecutionTimeValue()
+
+        then:
+        value.isChangingValue() == deferred
+        value.hasChangingContent() == deferred
+        value.toProvider().get() == ["A", "B"]
+
+        where:
+        deferred | changingContent | first                                                    | second
+        false    | "none"          | Providers.of("A")                                        | Providers.of("B")
+        true     | "first"         | new Providers.FixedValueWithChangingContentProvider("A") | Providers.of("B")
+        true     | "second"        | Providers.of("A")                                        | new Providers.FixedValueWithChangingContentProvider("B")
+        true     | "both"          | new Providers.FixedValueWithChangingContentProvider("A") | new Providers.FixedValueWithChangingContentProvider("B")
+    }
+
     def "provider is live"() {
         given:
         def first = objects.property(String)

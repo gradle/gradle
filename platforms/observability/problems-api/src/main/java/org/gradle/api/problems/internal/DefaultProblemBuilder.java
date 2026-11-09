@@ -23,6 +23,7 @@ import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemGroups;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
@@ -40,6 +41,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultProblemBuilder implements ProblemBuilderInternal {
+    private static final String MISSING_ID = "Reported problem has no id";
+    private static final String MISSING_PARENT = "Reported problem id has no group";
+    private static final String UNSUPPORTED_ADDITIONAL_DATA = "Unsupported additional data type in reported problem";
+
     private final ProblemsInfrastructure problemsInfrastructure;
 
     private ProblemId id;
@@ -86,13 +91,13 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
     public ProblemInternal build() {
         // id is mandatory
         if (getId() == null) {
-            return invalidProblem("missing-id", "Problem id must be specified", null);
+            return invalidProblem(MISSING_ID, null);
         } else if (getId().getGroup() == null) {
-            return invalidProblem("missing-parent", "Problem id must have a parent", null);
+            return invalidProblem(MISSING_PARENT, null);
         }
 
         if (additionalData instanceof UnsupportedAdditionalDataSpec) {
-            return invalidProblem("unsupported-additional-data", "Unsupported additional data type",
+            return invalidProblem(UNSUPPORTED_ADDITIONAL_DATA,
                 "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() +
                     ". Supported types are: " + problemsInfrastructure.getAdditionalDataBuilderFactory().getSupportedTypes());
         }
@@ -178,11 +183,12 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         return DefaultLineInFileLocation.from(path, line);
     }
 
-    private ProblemInternal invalidProblem(String id, String displayName, @Nullable String contextualLabel) {
-        id(id, displayName, ProblemGroup.create(
-            "problems-api",
-            "Problems API")
-        ).stackLocation();
+    private ProblemInternal invalidProblem(String name, @Nullable String contextualLabel) {
+        ProblemGroups groups = problemsInfrastructure.getGroups();
+        if (groups == null) {
+            throw new IllegalStateException("Cannot report invalid problem '" + name + "' without the predefined problem groups");
+        }
+        id(groups.getGradle().getBuildLogic().problemId(name)).stackLocation();
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(this.getId(), Severity.WARNING, null);
         List<ProblemLocation> problemLocations = new ArrayList<ProblemLocation>();
         ProblemDiagnostics diagnostics = determineDiagnostics();
@@ -308,14 +314,14 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         if (problemId instanceof DefaultProblemId && group == problemId.getGroup()) {
             this.id = problemId;
         } else {
-            this.id = ProblemId.create(problemId.getName(), problemId.getDisplayName(), group);
+            this.id = new DefaultProblemId(problemId.getName(), DefaultProblemId.displayNameOf(problemId), group);
         }
         return this;
     }
 
     @Override
     public ProblemBuilderInternal id(String name, String displayName, ProblemGroup parent) {
-        this.id = ProblemId.create(name, displayName, cloneGroup(parent));
+        this.id = new DefaultProblemId(name, displayName, cloneGroup(parent));
         return this;
     }
 

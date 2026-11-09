@@ -72,10 +72,6 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
         return ExecutionTimeValue.changingValue(this);
     }
 
-    public void maybeStop() {
-        // subclasses to override
-    }
-
     @SuppressWarnings("unused") // Used via instrumentation
     public static <P extends BuildServiceParameters, T extends BuildService<P>> void setBuildServiceAsConvention(@NonNull DefaultProperty<T> property, ServiceLookup serviceLookup, String buildServiceName) {
         BuildServiceRegistryInternal buildServiceRegistry = (BuildServiceRegistryInternal) serviceLookup.get(BuildServiceRegistry.class);

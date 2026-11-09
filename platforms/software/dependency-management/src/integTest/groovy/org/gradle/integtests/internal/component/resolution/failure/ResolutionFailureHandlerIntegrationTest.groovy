@@ -75,8 +75,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         }
         if (GradleContextualExecuter.configCache) {
             verifyAll(receivedProblem(1)) {
-                fqid == 'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection'
-                contextualLabel == 'error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
+                fqid == "Gradle:Configuration Cache:Error writing value"
+                contextualLabel == 'Error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
                 additionalData.asMap == [ 'trace' : 'task `:forceResolution` of type `Build_gradle$ForceResolution`' ]
             }
         }
@@ -205,8 +205,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         }
         if (GradleContextualExecuter.configCache) {
             verifyAll(receivedProblem(1)) {
-                fqid == 'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection'
-                contextualLabel == 'error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
+                fqid == "Gradle:Configuration Cache:Error writing value"
+                contextualLabel == 'Error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
                 additionalData.asMap == ['trace': 'task `:forceResolution` of type `Build_gradle$ForceResolution`']
             }
         }
@@ -270,8 +270,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         }
         if (GradleContextualExecuter.configCache) {
             verifyAll(receivedProblem(1)) {
-                fqid == 'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection'
-                contextualLabel == 'error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
+                fqid == "Gradle:Configuration Cache:Error writing value"
+                contextualLabel == 'Error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
                 additionalData.asMap == ['trace': 'task `:forceResolution` of type `Build_gradle$ForceResolution`']
             }
         }
@@ -373,7 +373,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve root project 'example'.")
         assertFullMessageCorrect("""     Required by:
          root project 'example'
-      > Multiple incompatible variants of org.example:example:1.0 were selected:
+      > Multiple incompatible variants of root project 'example' were selected:
            - Variant blueElementsCapability1 has attributes {color=blue}
            - Variant greenElementsCapability2 has attributes {color=green}""")
 
@@ -384,7 +384,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'Dependencies:Graph Resolution:Incompatible nodes of a single component were selected'
-            additionalData.asMap == [requestTarget: "org.example:example:1.0"]
+            additionalData.asMap == [requestTarget: "root project 'example'"]
         }
     }
 
