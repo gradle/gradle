@@ -19,6 +19,7 @@ package org.gradle.testkit.runner.internal
 import com.google.common.io.ByteSource
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
+import spock.lang.Issue
 import spock.lang.Specification
 
 import static org.gradle.testkit.runner.TaskOutcome.FAILED
@@ -147,6 +148,24 @@ class DefaultBuildResultTest extends Specification {
         }
 
         inputStreamReadCount == defaultBufferSize
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39762")
+    def "repeated calls to getOutput() read the source once"() {
+        int openCount = 0
+        final ByteSource byteSource = new ByteSource() {
+            @Override
+            InputStream openStream() throws IOException {
+                openCount++
+                return new ByteArrayInputStream('output'.bytes)
+            }
+        }
+        final BuildResult buildResult = new DefaultBuildResult(byteSource, buildTasks)
+
+        expect:
+        buildResult.output == 'output'
+        buildResult.output == 'output'
+        openCount == 1
     }
 
     static ByteSource emptyByteSource() {
