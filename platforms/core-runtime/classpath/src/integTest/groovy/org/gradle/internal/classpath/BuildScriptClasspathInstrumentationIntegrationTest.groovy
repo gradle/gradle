@@ -222,7 +222,12 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
             }
 
             println "classpath==" + buildscript.configurations.classpath.files*.name
-            println "markers==" + Thread.currentThread().getContextClassLoader().getResources("marker.txt").collect { it.text }
+            println "markers==" + Thread.currentThread().getContextClassLoader().getResources("marker.txt").collect {
+                // Don't use the JarURLConnection cache, it keeps the jar open and the test dir can't be deleted on Windows
+                def connection = it.openConnection()
+                connection.useCaches = false
+                connection.inputStream.withStream { stream -> stream.text }
+            }
         """
 
         when:
