@@ -209,13 +209,6 @@ jdks:
     version: "jdk-25.0.5+8"
     sha256: "36dc14d797aaff6d89aab302cd053fdba6207dfdcf772052fa7b023a94b0e857"
   - params:
-      - "macos.java27.openjdk.64bit"
-    os: "macos"
-    arch: "amd64"
-    vendor: "temurin"
-    version: "jdk-27+30-ea-beta"
-    sha256: "fd7fc2ada040515248d012f805a68bd6e14f1933d2d1a5d8739d03f89b1c7abe"
-  - params:
       - "macos.java27.openjdk.aarch64"
     os: "macos"
     arch: "aarch64"
