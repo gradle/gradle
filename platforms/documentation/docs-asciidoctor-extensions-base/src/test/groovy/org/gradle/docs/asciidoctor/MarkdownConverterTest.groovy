@@ -103,6 +103,31 @@ Use the link:{javadocPath}/org/gradle/api/Project.html[Project] API.
         md.contains('[Project](../javadoc/org/gradle/api/Project.html)')
     }
 
+    def "points at llms.txt when the base URL is set"() {
+        when:
+        String md = toMarkdown("""
+= The Java Plugin
+:markdown-base-url: https://docs.gradle.org/9.9.0/userguide/
+
+Apply it.
+""")
+
+        then:
+        md.startsWith("# The Java Plugin\n\n> For the complete documentation index, see [llms.txt](https://docs.gradle.org/llms.txt).\n\nApply it.")
+    }
+
+    def "does not point at llms.txt without a base URL"() {
+        when:
+        String md = toMarkdown("""
+= The Java Plugin
+
+Apply it.
+""")
+
+        then:
+        !md.contains("llms.txt")
+    }
+
     def "keeps only the Kotlin DSL variant of a multi-language sample"() {
         given:
         tmpDir.newFolder("sample", "kotlin")

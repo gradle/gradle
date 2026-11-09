@@ -32,6 +32,7 @@ import org.asciidoctor.converter.ConverterFor;
 import org.asciidoctor.converter.StringConverter;
 import org.jspecify.annotations.Nullable;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -53,11 +54,15 @@ import java.util.stream.Collectors;
  * <p>
  * Multi-language samples keep the Kotlin DSL variant and drop the Groovy DSL one, unless there is no Kotlin variant.
  * Code blocks keep their language, e.g. {@code ```kotlin} or {@code ```groovy}.
+ * <p>
+ * If the {@code markdown-base-url} attribute is set, each page points at the site's {@code llms.txt}, so an agent
+ * that fetched a single page can find the rest of the documentation.
  */
 @ConverterFor(value = MarkdownConverter.BACKEND, suffix = ".md")
 public class MarkdownConverter extends StringConverter {
 
     public static final String BACKEND = "markdown";
+    public static final String BASE_URL_ATTRIBUTE = "markdown-base-url";
 
     private static final String KOTLIN = "kotlin";
     private static final String GROOVY = "groovy";
@@ -179,6 +184,10 @@ public class MarkdownConverter extends StringConverter {
         String doctitle = document.getDoctitle();
         if (doctitle != null) {
             out.append("# ").append(doctitle).append("\n\n");
+        }
+        String baseUrl = attribute(document, BASE_URL_ATTRIBUTE);
+        if (!baseUrl.isEmpty()) {
+            out.append("> For the complete documentation index, see [llms.txt](").append(URI.create(baseUrl).resolve("/llms.txt")).append(").\n\n");
         }
         out.append(body);
         if (!footnotes.isEmpty()) {
