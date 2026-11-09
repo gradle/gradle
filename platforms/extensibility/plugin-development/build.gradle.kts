@@ -55,6 +55,7 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.snapshots)
     implementation(projects.testingJvm)
     implementation(projects.toolchainsJvm)
     implementation(projects.workerShared)
