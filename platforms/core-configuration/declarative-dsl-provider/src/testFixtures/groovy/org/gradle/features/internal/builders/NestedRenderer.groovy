@@ -169,7 +169,7 @@ ${nestedBodies}
                 "${JavaSources.renderAnnotations(property.allAnnotations)}${JavaSources.getPropertyReturnType(property)} get${JavaSources.capitalize(property.name)}();"
             }.join("\n")
             bmIface = """
-public interface ${nested.buildModel.className} extends BuildModel {
+public interface ${nested.buildModel.className} extends BuildModel, Named {
 ${buildModelPropertyGetters}
 }
 """
