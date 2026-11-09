@@ -19,6 +19,7 @@ package org.gradle.util.internal;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
+import java.util.List;
 
 public class RelativePathUtil {
     /**
@@ -29,6 +30,8 @@ public class RelativePathUtil {
      * @return The relative path
      */
     public static String relativePath(File from, File to) {
+        if (from.equals(to))
+            return "";
         try {
             return TextUtil.normaliseFileSeparators(from.toPath().relativize(to.toPath()).toString());
         } catch (Exception e) {
