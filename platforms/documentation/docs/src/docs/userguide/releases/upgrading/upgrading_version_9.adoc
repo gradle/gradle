@@ -44,6 +44,17 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+[[architecture_e2k]]
+==== New `E2K` constant in the incubating `Architecture` enum
+
+The incubating link:{javadocPath}/org/gradle/platform/Architecture.html[`Architecture`] enum has a new constant, `E2K`, for MCST Elbrus processors.
+Gradle recognizes the architecture but doesn't support it yet.
+
+This affects builds that add `E2K` to the `toolchainPlatforms` of the `updateDaemonJvm` task:
+
+* A `JavaToolchainResolver` that handles every `Architecture` value explicitly, for example with an exhaustive Kotlin `when` without an `else` branch, fails when it receives `E2K`. Resolvers should return `Optional.empty()` for architectures they don't support.
+* Gradle versions earlier than 9.10.0 can't read a `gradle-daemon-jvm.properties` file that contains `toolchainUrl.<OS>.E2K` entries, and fail at startup.
+
 [[derived_task_output_providers_execution_time]]
 ==== Transformations after `asFile`, `dir`, `file` and `zip` on task outputs are deferred
 
