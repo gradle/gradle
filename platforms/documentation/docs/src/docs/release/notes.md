@@ -120,7 +120,7 @@ Agent mode is where that work accumulates: its output contract will grow release
 For an agent, plain build output is mostly noise that takes up its limited context window, and the outcome of a build can be lost when it does not fit in that window.
 Agents also tend to kill processes that stay silent for too long.
 
-When agent mode is enabled, all build output is written as plain text to a per-invocation log file under the project cache directory, and the only thing printed to standard output is the path to that file.
+When agent mode is enabled, all build output is written as plain text to a per-invocation log file under the project cache directory, and the only thing printed to standard output is the path to that file, followed by a second line with its line count once the build finishes.
 The agent can tail the file while the build runs or read it afterwards, while the exit code tells it whether the build succeeded or not.
 While the build runs, Gradle writes a single newline to standard error every 10 seconds, so that the process is not mistaken for a hung one.
 Agent mode also implies `--non-interactive`, `--warning-mode=none` and `--stacktrace`.
@@ -128,6 +128,7 @@ Agent mode also implies `--non-interactive`, `--warning-mode=none` and `--stackt
 ```text
 $ gradle build --agent
 /path/to/project/.gradle/agent/builds/abc123/build-output.log
+42 lines
 ```
 
 Agent mode can also be enabled with the `ORG_GRADLE_AGENT` environment variable or the `org.gradle.agent` Gradle property, so that an agent does not need to pass the option on every invocation.

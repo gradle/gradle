@@ -109,7 +109,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         settings.waitForAllPendingCalls()
 
         then:
-        def agentOutput = assertOnlyLogFilePathPrinted(build.standardOutput)
+        def agentOutput = assertOnlyLogFilePathPrintedWhileRunning(build.standardOutput)
         ConcurrentTestUtil.poll {
             assert agentOutput.text.contains("Message from settings continued")
         }
@@ -121,6 +121,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         agentOutput.text.contains("BUILD SUCCESSFUL")
+        assertOnlyLogFilePathPrinted(build.standardOutput) == agentOutput
     }
 
     def "only writes complete lines to the file"() {
@@ -138,7 +139,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         settings.waitForAllPendingCalls()
 
         then:
-        def agentOutput = assertOnlyLogFilePathPrinted(build.standardOutput)
+        def agentOutput = assertOnlyLogFilePathPrintedWhileRunning(build.standardOutput)
         ConcurrentTestUtil.poll {
             assert agentOutput.text.contains("Complete line from settings\n")
         }
@@ -531,12 +532,28 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
     }
 
     /**
-     * Asserts that the given standard output is nothing but the location of the output file, and returns that file.
+     * Asserts that the standard output of a finished build is nothing but the location of the output file and its
+     * line count, and returns that file.
      */
     private TestFile assertOnlyLogFilePathPrinted(String standardOutput = output, String buildsDir = BUILDS_DIR) {
         def lines = standardOutput.readLines()
+        assert lines.size() == 2
+        def outputFile = assertLogFile(lines[0], buildsDir)
+        assert lines[1] == "${outputFile.readLines().size()} lines"
+        return outputFile
+    }
+
+    /**
+     * Asserts that the standard output of a running build is nothing but the location of the output file, and returns that file.
+     */
+    private TestFile assertOnlyLogFilePathPrintedWhileRunning(String standardOutput) {
+        def lines = standardOutput.readLines()
         assert lines.size() == 1
-        def outputFile = new TestFile(lines[0])
+        return assertLogFile(lines[0], BUILDS_DIR)
+    }
+
+    private TestFile assertLogFile(String path, String buildsDir) {
+        def outputFile = new TestFile(path)
         assert outputFile.name == "build-output.log"
         assert outputFile.parentFile.name ==~ /[a-z2-7]{26}/
         assert outputFile.parentFile.parentFile == file(buildsDir)

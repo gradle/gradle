@@ -80,4 +80,39 @@ class LineBufferingOutputStreamTest extends Specification {
         writes.join("") == "é\n"
         writes.last().endsWith("\n")
     }
+
+    def "counts #expected lines for writes #chunks"() {
+        when:
+        chunks.each { stream.write(it.bytes) }
+        stream.close()
+
+        then:
+        stream.lineCount == expected
+
+        where:
+        chunks                | expected
+        []                    | 0
+        ["\n"]                | 1
+        ["one\ntwo\n"]        | 2
+        ["one\r\ntwo\r\n"]    | 2
+        ["one\n\nthree\n"]    | 3
+        ["one\ntwo"]          | 2
+        ["on", "e\n", "tw"]   | 2
+        ["no newline"]        | 1
+    }
+
+    def "does not count a held back line until it is written"() {
+        when:
+        stream.write("one\ntw".bytes)
+
+        then:
+        stream.lineCount == 1
+
+        when:
+        stream.close()
+        stream.close()
+
+        then:
+        stream.lineCount == 2
+    }
 }

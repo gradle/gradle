@@ -66,7 +66,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -404,11 +403,13 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 // Ignore, deal with this problem later
             }
 
-            OutputStream agentOutput = null;
+            LineBufferingOutputStream agentOutput = null;
             AgentHeartbeat agentHeartbeat = null;
+            // System.out and System.err are replaced once the logging manager starts
+            PrintStream stdout = System.out;
             if (agentOutputFile != null) {
-                // Only in agent mode. System.out and System.err are replaced once the logging manager starts
-                agentOutput = openAgentOutput(agentOutputFile, System.out);
+                // Only in agent mode
+                agentOutput = openAgentOutput(agentOutputFile, stdout);
                 agentHeartbeat = AgentHeartbeat.start();
             }
 
@@ -427,6 +428,11 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 loggingManager.stop();
                 IoActions.closeQuietly(agentHeartbeat);
                 IoActions.closeQuietly(agentOutput);
+                if (agentOutput != null) {
+                    // Only after closing, which writes any final partial line
+                    stdout.println(agentOutput.getLineCount() + " lines");
+                    stdout.flush();
+                }
             }
         }
 
@@ -441,10 +447,10 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             };
         }
 
-        private static OutputStream openAgentOutput(File file, PrintStream stdout) {
+        private static LineBufferingOutputStream openAgentOutput(File file, PrintStream stdout) {
             try {
                 Files.createDirectories(file.getParentFile().toPath());
-                OutputStream output = new LineBufferingOutputStream(Files.newOutputStream(file.toPath()));
+                LineBufferingOutputStream output = new LineBufferingOutputStream(Files.newOutputStream(file.toPath()));
                 stdout.println(file.getAbsolutePath());
                 stdout.flush();
                 return output;

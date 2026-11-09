@@ -30,9 +30,17 @@ import java.io.OutputStream;
 class LineBufferingOutputStream extends OutputStream {
     private final OutputStream target;
     private final ByteArrayOutputStream partialLine = new ByteArrayOutputStream();
+    private long lineCount;
 
     LineBufferingOutputStream(OutputStream target) {
         this.target = target;
+    }
+
+    /**
+     * The number of lines passed on to the target. Includes a final line without a line ending once this stream is closed.
+     */
+    long getLineCount() {
+        return lineCount;
     }
 
     @Override
@@ -44,12 +52,13 @@ class LineBufferingOutputStream extends OutputStream {
     public void write(byte[] bytes, int offset, int length) throws IOException {
         int end = offset + length;
         int lastLineEnd = -1;
+        int lineEnds = 0;
         // Not the platform line separator: every line ending on every platform ends with this byte;
         // sometimes some files use `\n` even on Windows, for example task and tool outputs
-        for (int i = end - 1; i >= offset; i--) {
+        for (int i = offset; i < end; i++) {
             if (bytes[i] == '\n') {
                 lastLineEnd = i;
-                break;
+                lineEnds++;
             }
         }
         if (lastLineEnd < 0) {
@@ -58,6 +67,7 @@ class LineBufferingOutputStream extends OutputStream {
         }
         partialLine.write(bytes, offset, lastLineEnd + 1 - offset);
         partialLine.writeTo(target);
+        lineCount += lineEnds;
         partialLine.reset();
         partialLine.write(bytes, lastLineEnd + 1, end - lastLineEnd - 1);
         target.flush();
@@ -71,8 +81,11 @@ class LineBufferingOutputStream extends OutputStream {
 
     @Override
     public void close() throws IOException {
-        partialLine.writeTo(target);
-        partialLine.reset();
+        if (partialLine.size() > 0) {
+            partialLine.writeTo(target);
+            lineCount++;
+            partialLine.reset();
+        }
         target.close();
     }
 }
