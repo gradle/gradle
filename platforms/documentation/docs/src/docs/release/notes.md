@@ -10,7 +10,15 @@
 <meta name="twitter:description" content="We are excited to announce Gradle @version@.">
 <meta name="twitter:image" content="https://gradle.org/assets/images/releases/gradle-default.png">
 
-We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
+Gradle @version@ is the first patch release for Gradle 9.9.0 (released [@releaseDate@](https://gradle.org/releases/)).
+
+The following issues were resolved:
+
+* TODO
+
+We recommend upgrading to Gradle @version@.
+
+---
 
 In this release, Kotlin DSL scripts benefit from [incremental compilation](#performance-improvements), making script recompilation after a change in `buildSrc` or an included build up to 65% faster in large multi-project builds.
 
