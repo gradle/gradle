@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.dsl.ComponentMetadataRulesSupplier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalModuleComponentResolverFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverEnvironment;
 import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.DefaultArtifactResolutionResult;
@@ -156,13 +157,15 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         ResolutionStrategyInternal resolutionStrategy = resolutionStrategyFactory.create();
 
         ComponentResolvers componentResolvers = externalResolverFactory.createResolvers(
-            filteredRepositories,
-            componentMetadataRulesSupplier.getRules(),
-            componentMetadataHandler.getVariantDerivationStrategy(),
-            resolutionStrategy.getComponentSelection(),
-            resolutionStrategy.isDependencyVerificationEnabled(),
-            resolutionStrategy.getCachePolicy().asImmutable(),
-            ImmutableAttributesSchema.EMPTY
+            new ResolverEnvironment(
+                filteredRepositories,
+                componentMetadataRulesSupplier.getRules(),
+                componentMetadataHandler.getVariantDerivationStrategy(),
+                resolutionStrategy.getComponentSelection(),
+                resolutionStrategy.isDependencyVerificationEnabled(),
+                resolutionStrategy.getCachePolicy().asImmutable(),
+                ImmutableAttributesSchema.EMPTY
+            )
         );
 
         ComponentMetaDataResolver componentMetaDataResolver = componentResolvers.getComponentResolver();
