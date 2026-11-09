@@ -69,7 +69,10 @@ import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.ContextualLabel;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.DocumentationLink;
+import org.gradle.tooling.events.problems.Frame;
+import org.gradle.tooling.events.problems.Locality;
 import org.gradle.tooling.events.problems.Location;
+import org.gradle.tooling.events.problems.Trace;
 import org.gradle.tooling.events.problems.Problem;
 import org.gradle.tooling.events.problems.ProblemContext;
 import org.gradle.tooling.events.problems.ProblemDefinition;
@@ -100,7 +103,11 @@ import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationConte
 import org.gradle.tooling.events.problems.internal.DefaultSeverity;
 import org.gradle.tooling.events.problems.internal.DefaultSingleProblemEvent;
 import org.gradle.tooling.events.problems.internal.DefaultSolution;
+import org.gradle.tooling.events.problems.internal.DefaultFrame;
+import org.gradle.tooling.events.problems.internal.DefaultProjectFrame;
+import org.gradle.tooling.events.problems.internal.DefaultTaskFrame;
 import org.gradle.tooling.events.problems.internal.DefaultTaskPathLocation;
+import org.gradle.tooling.events.problems.internal.DefaultTrace;
 import org.gradle.tooling.events.task.TaskFinishEvent;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
 import org.gradle.tooling.events.task.TaskOperationResult;
@@ -174,6 +181,7 @@ import org.gradle.tooling.internal.consumer.DefaultTestAssertionFailure;
 import org.gradle.tooling.internal.consumer.DefaultTestFrameworkFailure;
 import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
 import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion4;
+import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion5;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFileComparisonTestAssertionFailure;
@@ -256,7 +264,11 @@ import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersio
 import org.gradle.tooling.internal.protocol.problem.InternalProxiedAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
+import org.gradle.tooling.internal.protocol.problem.InternalFrame;
+import org.gradle.tooling.internal.protocol.problem.InternalProjectFrame;
+import org.gradle.tooling.internal.protocol.problem.InternalTaskFrame;
 import org.gradle.tooling.internal.protocol.problem.InternalTaskPathLocation;
+import org.gradle.tooling.internal.protocol.problem.InternalTrace;
 import org.gradle.tooling.internal.protocol.test.source.InternalClassSource;
 import org.gradle.tooling.internal.protocol.test.source.InternalClasspathResourceSource;
 import org.gradle.tooling.internal.protocol.test.source.InternalDirectorySource;
@@ -1037,7 +1049,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             Collections.<Location>emptyList(),
             toSolutions(basicProblemDetails.getSolutions()),
             toAdditionalData(basicProblemDetails.getAdditionalData()),
-            toFailure(basicProblemDetails)
+            toFailure(basicProblemDetails),
+            null
         );
     }
 
@@ -1060,8 +1073,48 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             toLocations(contextualLocations),
             toSolutions(basicProblemDetails.getSolutions()),
             toAdditionalData(basicProblemDetails.getAdditionalData()),
-            toFailure(basicProblemDetails.getFailure())
+            toFailure(basicProblemDetails.getFailure()),
+            toDetectionTrace(basicProblemDetails)
         );
+    }
+
+    // Visible for testing
+    static @Nullable Trace toDetectionTrace(InternalBasicProblemDetailsVersion3 basicProblemDetails) {
+        if (!(basicProblemDetails instanceof InternalBasicProblemDetailsVersion5)) {
+            return null;
+        }
+        InternalTrace trace = ((InternalBasicProblemDetailsVersion5) basicProblemDetails).getDetectionTrace();
+        return trace == null ? null : toTrace(trace);
+    }
+
+    private static Trace toTrace(InternalTrace trace) {
+        List<Frame> frames = new ArrayList<>(trace.getFrames().size());
+        for (InternalFrame frame : trace.getFrames()) {
+            frames.add(toFrame(frame));
+        }
+        return new DefaultTrace(frames);
+    }
+
+    private static Frame toFrame(InternalFrame frame) {
+        String displayName = frame.getDisplayName();
+        Locality locality = toLocality(frame.getLocality());
+        if (frame instanceof InternalTaskFrame) {
+            return new DefaultTaskFrame(displayName, locality, ((InternalTaskFrame) frame).getBuildTreePath());
+        }
+        if (frame instanceof InternalProjectFrame) {
+            return new DefaultProjectFrame(displayName, locality, ((InternalProjectFrame) frame).getBuildTreePath());
+        }
+        // A frame kind this client has no type for stays in the trace as a plain frame: the order of a trace carries meaning
+        return new DefaultFrame(displayName, locality);
+    }
+
+    // A newer Gradle version can send a locality this client doesn't know
+    private static Locality toLocality(String locality) {
+        try {
+            return Locality.valueOf(locality);
+        } catch (IllegalArgumentException e) {
+            return Locality.UNKNOWN;
+        }
     }
 
     private static ProblemDefinition toProblemDefinition(InternalProblemDefinition problemDefinition) {

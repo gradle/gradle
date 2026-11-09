@@ -67,7 +67,17 @@ import org.gradle.tooling.internal.protocol.problem.InternalDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
 import org.gradle.tooling.internal.protocol.problem.InternalLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
+import org.gradle.tooling.internal.protocol.problem.InternalFrame;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
+import org.gradle.tooling.internal.protocol.problem.InternalTrace;
+import org.gradle.api.problems.internal.location.Frame;
+import org.gradle.api.problems.internal.location.ProjectFrame;
+import org.gradle.api.problems.internal.location.TaskFrame;
+import org.gradle.api.problems.internal.location.Trace;
+import org.gradle.internal.build.event.types.DefaultFrame;
+import org.gradle.internal.build.event.types.DefaultProjectFrame;
+import org.gradle.internal.build.event.types.DefaultTaskFrame;
+import org.gradle.internal.build.event.types.DefaultTrace;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -135,8 +145,31 @@ public class ProblemsProgressEventUtils {
             toInternalLocations(problem.getContextualLocations()),
             toInternalSolutions(problem.getSolutions()),
             toInternalAdditionalData(problem),
-            toInternalFailure(problem.getException())
+            toInternalFailure(problem.getException()),
+            toInternalTrace(problem.getDetectionTrace())
         );
+    }
+
+    private static @Nullable InternalTrace toInternalTrace(@Nullable Trace trace) {
+        if (trace == null) {
+            return null;
+        }
+        return new DefaultTrace(trace.getFrames().stream()
+            .map(ProblemsProgressEventUtils::toInternalFrame)
+            .collect(toImmutableList()));
+    }
+
+    private static InternalFrame toInternalFrame(Frame frame) {
+        String displayName = frame.getDisplayName();
+        String locality = frame.getLocality().name();
+        if (frame instanceof TaskFrame) {
+            return new DefaultTaskFrame(displayName, locality, ((TaskFrame) frame).getBuildTreePath());
+        }
+        if (frame instanceof ProjectFrame) {
+            return new DefaultProjectFrame(displayName, locality, ((ProjectFrame) frame).getBuildTreePath());
+        }
+        // A frame kind without a typed protocol class crosses as a plain frame
+        return new DefaultFrame(displayName, locality);
     }
 
     private static InternalProblemDefinition toInternalDefinition(ProblemDefinition definition) {

@@ -19,6 +19,7 @@ package org.gradle.internal.build.event.types;
 import com.google.common.collect.ImmutableList;
 import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
 import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion4;
+import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion5;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
@@ -26,6 +27,7 @@ import org.gradle.tooling.internal.protocol.problem.InternalContextualLabel;
 import org.gradle.tooling.internal.protocol.problem.InternalDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
+import org.gradle.tooling.internal.protocol.problem.InternalTrace;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -33,7 +35,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @NullMarked
-public class DefaultProblemDetails implements InternalBasicProblemDetailsVersion3, InternalBasicProblemDetailsVersion4, Serializable {
+public class DefaultProblemDetails implements InternalBasicProblemDetailsVersion3, InternalBasicProblemDetailsVersion4, InternalBasicProblemDetailsVersion5, Serializable {
     private final InternalProblemDefinition definition;
     private final InternalDetails details;
     @Nullable
@@ -43,6 +45,8 @@ public class DefaultProblemDetails implements InternalBasicProblemDetailsVersion
     private final List<InternalSolution> solutions;
     private InternalAdditionalData additionalData;
     private final InternalFailure failure;
+    @Nullable
+    private final InternalTrace detectionTrace;
 
     public DefaultProblemDetails(
         InternalProblemDefinition definition,
@@ -52,7 +56,8 @@ public class DefaultProblemDetails implements InternalBasicProblemDetailsVersion
         List<InternalLocation> contextualLocations,
         List<InternalSolution> solutions,
         InternalAdditionalData additionalData,
-        @Nullable InternalFailure failure
+        @Nullable InternalFailure failure,
+        @Nullable InternalTrace detectionTrace
     ) {
         this.definition = definition;
         this.details = details;
@@ -62,6 +67,7 @@ public class DefaultProblemDetails implements InternalBasicProblemDetailsVersion
         this.solutions = solutions;
         this.additionalData = additionalData;
         this.failure = failure;
+        this.detectionTrace = detectionTrace;
     }
 
     @Override
@@ -114,6 +120,12 @@ public class DefaultProblemDetails implements InternalBasicProblemDetailsVersion
     @Override
     public InternalAdditionalData getAdditionalData() {
         return additionalData;
+    }
+
+    @Nullable
+    @Override
+    public InternalTrace getDetectionTrace() {
+        return detectionTrace;
     }
 
     public void setAdditionalData(InternalAdditionalData additionalData) {

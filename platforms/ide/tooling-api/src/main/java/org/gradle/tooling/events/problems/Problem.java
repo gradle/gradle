@@ -77,6 +77,16 @@ public interface Problem {
     List<Location> getContextualLocations();
 
     /**
+     * Returns what was running when the problem was noticed: the task, its project and the build, leaf first.
+     *
+     * @return the detection trace, or {@code null} if the Gradle version running the build doesn't provide one
+     * @since 9.10.0
+     */
+    @Incubating
+    @Nullable
+    Trace getDetectionTrace();
+
+    /**
      * Returns the list of solutions.
      *
      * @return the solutions

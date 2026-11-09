@@ -24,6 +24,7 @@ import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.Problem;
 import org.gradle.tooling.events.problems.ProblemDefinition;
 import org.gradle.tooling.events.problems.Solution;
+import org.gradle.tooling.events.problems.Trace;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -39,6 +40,8 @@ public class DefaultProblem implements Problem {
     private final List<Solution> solutions;
     private final AdditionalData additionalData;
     private final Failure failure;
+    @Nullable
+    private final Trace detectionTrace;
 
     public DefaultProblem(
         ProblemDefinition problemDefinition,
@@ -48,7 +51,8 @@ public class DefaultProblem implements Problem {
         List<Location> contextualLocations,
         List<Solution> solutions,
         AdditionalData additionalData,
-        @Nullable Failure failure) {
+        @Nullable Failure failure,
+        @Nullable Trace detectionTrace) {
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
         this.details = details;
@@ -57,6 +61,7 @@ public class DefaultProblem implements Problem {
         this.solutions = solutions;
         this.additionalData = additionalData;
         this.failure = failure;
+        this.detectionTrace = detectionTrace;
     }
 
     @Override
@@ -72,6 +77,12 @@ public class DefaultProblem implements Problem {
     @Override
     public Details getDetails() {
         return details;
+    }
+
+    @Nullable
+    @Override
+    public Trace getDetectionTrace() {
+        return detectionTrace;
     }
 
     @Override
