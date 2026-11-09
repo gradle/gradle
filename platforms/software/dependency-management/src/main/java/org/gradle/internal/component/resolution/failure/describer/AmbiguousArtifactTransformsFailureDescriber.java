@@ -37,7 +37,8 @@ import java.util.stream.Collectors;
 public abstract class AmbiguousArtifactTransformsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousArtifactTransformsFailure> {
     private static final String ARTIFACT_TRANSFORMS_REPORT_SUGGESTION = "Run the :artifactTransforms report to see the available artifact transforms.";
     private static final String AMBIGUOUS_TRANSFORMATION_PREFIX = "Transformation failures are explained in more detail at ";
-    private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
+    private static final String AMBIGUOUS_TRANSFORMATION_PAGE = "artifact_transforms";
+    private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sec:the_artifact_transform_selection_process";
     private static final String REMOVE_TRANSFORMATIONS_SUGGESTION =  "Remove one or more registered transforms, or add additional attributes to them to ensure only a single valid transformation chain exists.";
 
     @Override
@@ -46,7 +47,7 @@ public abstract class AmbiguousArtifactTransformsFailureDescriber extends Abstra
         List<String> resolutions = buildResolutions(
             REMOVE_TRANSFORMATIONS_SUGGESTION,
             ARTIFACT_TRANSFORMS_REPORT_SUGGESTION,
-            suggestSpecificDocumentation(AMBIGUOUS_TRANSFORMATION_PREFIX, AMBIGUOUS_TRANSFORMATION_SECTION),
+            suggestSpecificDocumentation(AMBIGUOUS_TRANSFORMATION_PREFIX, AMBIGUOUS_TRANSFORMATION_PAGE, AMBIGUOUS_TRANSFORMATION_SECTION),
             suggestReviewAlgorithm()
         );
         return new ArtifactSelectionException(message, failure, resolutions);

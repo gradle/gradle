@@ -98,7 +98,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
            Cannot select module because of conflict with root project 'test' (c2). Both provide capability 'org:example:test-nonconflicting'.""")
 
         and: "Helpful resolutions are provided"
-        assertSuggestsViewingDocs("Capability conflicts are explained in more detail at https://docs.gradle.org/current/userguide/component_capabilities.html#sub:capabilities.")
+        assertSuggestsViewingDocs("Capability conflicts are explained in more detail at https://docs.gradle.org/current/userguide/component_capabilities.html#sec:capabilities.")
         assertSuggestsViewingDocs("Use 'resolutionStrategy.capabilitiesResolution' to choose between conflicting capability providers, as described at https://docs.gradle.org/current/userguide/component_capabilities.html#sec:selecting-between-candidates.")
 
         and: "Problems are reported"
@@ -128,8 +128,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
-        assertSuggestsViewingDocs("Use the dependencyInsight report with the --all-variants option to view all variants of the ambiguous dependency.  This report is described at https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying_reason_dependency_selection.")
+        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_aware_resolution.html#sec:step_3_disambiguation_using_requested_attributes.")
+        assertSuggestsViewingDocs("Use the dependencyInsight report with the --all-variants option to view all variants of the ambiguous dependency.  This report is described at https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
@@ -168,7 +168,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
+        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_aware_resolution.html#sec:step_3_disambiguation_using_requested_attributes.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
@@ -196,7 +196,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
+        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_aware_resolution.html#sec:step_3_disambiguation_using_requested_attributes.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
@@ -231,7 +231,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
+        assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_aware_resolution.html#sec:step_6_failure_condition.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
@@ -261,7 +261,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
+        assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_aware_resolution.html#sec:step_6_failure_condition.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
@@ -296,7 +296,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-incompatible.")
+        assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_aware_resolution.html#sec:step_6_failure_condition.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
@@ -322,7 +322,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.")
+        assertSuggestsViewingDocs("Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_configurations.html#sec:resolvable-consumable-configs.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
@@ -379,7 +379,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-incompatible.")
+        assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_aware_resolution.html#sec:abm-algorithm.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
@@ -405,7 +405,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
+        assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/artifact_resolution.html#sec:artifact-selection.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
@@ -452,7 +452,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Helpful resolutions are provided"
         assertSuggestRunningArtifactTransformsReport()
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("Transformation failures are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:transform-ambiguity.")
+        assertSuggestsViewingDocs("Transformation failures are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/artifact_transforms.html#sec:the_artifact_transform_selection_process.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
@@ -476,7 +476,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
+        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/artifact_resolution.html#sec:artifact-selection.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
@@ -1258,7 +1258,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void assertSuggestsReviewingAlgorithm() {
-        assertSuggestsViewingDocs("Review the variant matching algorithm at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_attributes.html#sec:abm_algorithm.")
+        assertSuggestsViewingDocs("Review the variant matching algorithm at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_aware_resolution.html#sec:abm-algorithm.")
     }
 
     private void assertSuggestsViewingDocs(String resolution) {
