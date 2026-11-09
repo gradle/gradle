@@ -17,12 +17,14 @@
 package org.gradle.testkit.runner.enduser
 
 import groovy.io.FileType
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.util.internal.GFileUtils
 import org.intellij.lang.annotations.Language
+import spock.lang.Issue
 
 /**
  * Miscellaneous usage scenarios that don't have more specific homes.
@@ -156,6 +158,53 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
 
         then:
         succeeds 'test'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39762")
+    def "does not leave files holding build output behind when the test JVM exits"() {
+        given:
+        executer.requireOwnGradleUserHomeDir("This test verifies TestKit's own behaviour, so it must not reuse a gradleTestKit() Jar cached from an earlier build of the same Gradle version")
+        buildFile << gradleTestKitDependency()
+        groovyTestSourceFile("""
+            import org.gradle.testkit.runner.GradleRunner
+            import java.nio.file.Files
+            import spock.lang.Specification
+
+            class Test extends Specification {
+                def "build logging more than the in-memory limit"() {
+                    given:
+                    def testProjectDir = Files.createTempDirectory("project").toFile()
+                    new File(testProjectDir, 'settings.gradle') << "rootProject.name = 'large-output'"
+                    new File(testProjectDir, 'build.gradle') << '''
+                        task printsALot {
+                            doLast {
+                                20000.times { println 'a' * 200 }
+                            }
+                        }
+                    '''
+
+                    when:
+                    def result = GradleRunner.create()
+                        .withProjectDir(testProjectDir)
+                        .withArguments('printsALot')
+                        .withDebug($embedded)
+                        .build()
+
+                    then:
+                    // The output must have gone to a file, otherwise there would be nothing to clean up
+                    new File(System.getProperty('java.io.tmpdir')).list().any { it.startsWith('FileBackedOutputStream') }
+                    result.output.contains('a' * 200)
+                }
+            }
+        """)
+
+        when:
+        succeeds 'test'
+
+        then:
+        executedAndNotSkipped ':test'
+        new JUnitXmlTestExecutionResult(projectDir).totalNumberOfTestClassesExecuted > 0
+        file('tmp').list().findAll { it.startsWith('FileBackedOutputStream') }.empty
     }
 
     static String successfulSpockTest(String className) {

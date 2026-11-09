@@ -17,6 +17,7 @@
 package org.gradle.testkit.runner.internal;
 
 import com.google.common.io.FileBackedOutputStream;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.internal.SystemProperties;
 import org.gradle.testkit.runner.BuildTask;
@@ -98,7 +99,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
 
     @Override
     public GradleExecutionResult run(GradleExecutionParameters parameters) {
-        final FileBackedOutputStream outputBuffer = new FileBackedOutputStream(OUTPUT_BUFFER_FILE_THRESHOLD_BYTES);
+        final FileBackedOutputStream outputBuffer = new FileBackedOutputStream(OUTPUT_BUFFER_FILE_THRESHOLD_BYTES, true);
         final OutputStream syncOutput = new SynchronizedOutputStream(outputBuffer);
 
         final List<BuildTask> tasks = new ArrayList<BuildTask>();
@@ -185,6 +186,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             if (connection != null) {
                 connection.close();
             }
+            IOUtils.closeQuietly(outputBuffer);
         }
 
         return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), outputBuffer.asByteSource(), tasks);
