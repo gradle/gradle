@@ -45,7 +45,7 @@ jobs:
         uses: peter-evans/create-pull-request@v8
         with:
           commit-message: Update performance test durations
-          branch: bot-update-performance-test-durations
+          branch: devprod/update-performance-test-durations
           branch-suffix: timestamp
           delete-branch: true
           title: 'Update performance test durations'
