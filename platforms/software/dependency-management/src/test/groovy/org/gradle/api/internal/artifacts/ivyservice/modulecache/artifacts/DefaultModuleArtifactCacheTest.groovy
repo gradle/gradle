@@ -18,7 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts
 
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator
 import org.gradle.cache.IndexedCache
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
 import org.gradle.internal.file.FileAccessTracker
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.Decoder
@@ -49,7 +51,7 @@ class DefaultModuleArtifactCacheTest extends Specification {
 
     def "storing null artifactFile not supported"() {
         given:
-        def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleComponentArtifactIdentifier))
+        def key = new ArtifactAtRepositoryKey("RepoID", new ModuleComponentFileArtifactIdentifier(DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "1.0"), "module-1.0.jar"))
 
         when:
         index.store(key, null, TestHashCodes.hashCodeFrom(0))
@@ -71,7 +73,7 @@ class DefaultModuleArtifactCacheTest extends Specification {
     def "stored artifact is put into persistentIndexedCache"() {
         given:
         1 * cacheAccessCoordinator.createCache(persistentCacheFile, _, _) >> persistentIndexedCache
-        def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleComponentArtifactIdentifier))
+        def key = new ArtifactAtRepositoryKey("RepoID", new ModuleComponentFileArtifactIdentifier(DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "1.0"), "module-1.0.jar"))
         def testFile = folder.createFile("aTestFile")
 
         when:
@@ -166,7 +168,7 @@ class DefaultModuleArtifactCacheTest extends Specification {
     def createEntryInPersistentCache() {
         1 * cacheAccessCoordinator.createCache(persistentCacheFile, _, _) >> persistentIndexedCache
         1 * cacheAccessCoordinator.useCache(_) >> { Supplier factory -> factory.get()}
-        def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleComponentArtifactIdentifier))
+        def key = new ArtifactAtRepositoryKey("RepoID", new ModuleComponentFileArtifactIdentifier(DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "1.0"), "module-1.0.jar"))
         1 * persistentIndexedCache.getIfPresent(key) >> cachedArtifact
         key
     }
