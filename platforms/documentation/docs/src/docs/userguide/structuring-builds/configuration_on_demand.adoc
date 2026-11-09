@@ -15,7 +15,8 @@
 [[configuration_and_execution]]
 = Configuration On Demand
 
-Configuration-on-demand attempts to configure only the relevant projects for the requested tasks, i.e., it only evaluates the build script file of projects participating in the build.
+Configuration-on-demand attempts to configure only the relevant projects for the requested tasks.
+Gradle skips the build script and the `gradle.beforeProject {}` and `gradle.afterProject {}` callbacks of projects that don't participate in the build.
 This way, the configuration time of a large multi-project build can be reduced.
 
 The configuration-on-demand feature is _incubating_, so only some builds are guaranteed to work correctly.
@@ -32,6 +33,45 @@ If project A has a compile dependency on project B, then building A causes the c
 Example: `someTask.dependsOn(":some-other-project:someOtherTask")`
 * A task requested via task path from the command line (or tooling API) causes the relevant project to be configured. +
 For example, building `project-a:project-b:someTask` causes configuration of `project-b`.
+
+[[sec:configuration_on_demand_callbacks]]
+== Configuring projects from the settings file
+
+Configuration-on-demand skips configuring projects, but Gradle still creates every project included in the settings file.
+Callbacks that iterate over projects behave differently:
+
+* `gradle.allprojects {}` runs for every project in the build, including projects that are not configured.
+* `gradle.beforeProject {}` and `gradle.afterProject {}` run only for projects that Gradle configures.
+* `gradle.lifecycle.afterProject {}` runs only for projects that Gradle configures.
+* `gradle.lifecycle.beforeProject {}` currently runs for every project in the build, including projects that are not configured.
+Gradle still doesn't evaluate the build scripts of those projects.
+
+If you configure projects from the settings file instead of in their build scripts, use `gradle.beforeProject {}` so that configuration-on-demand can skip the projects that a build doesn't need:
+
+=====
+[.multi-language-sample]
+======
+.settings.gradle.kts
+[source,kotlin]
+----
+gradle.beforeProject {
+    // Runs only for projects that are configured
+    println("Configuring $path")
+}
+----
+======
+[.multi-language-sample]
+======
+.settings.gradle
+[source,groovy]
+----
+gradle.beforeProject { project ->
+    // Runs only for projects that are configured
+    println("Configuring ${project.path}")
+}
+----
+======
+=====
 
 [[sec:configuration_on_demand]]
 == Enable `configure-on-demand`
