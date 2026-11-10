@@ -18,7 +18,9 @@ package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.logging.DaemonMessages
+import org.gradle.testdistribution.LocalOnly
 
+@LocalOnly
 class DaemonAuthenticationIntegrationSpec extends DaemonIntegrationSpec {
     private static final String REFUSED = "Peer did not present the expected connection token"
 
