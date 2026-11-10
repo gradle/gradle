@@ -101,6 +101,11 @@ class DelegatingProblemBuilder implements ProblemBuilderInternal {
     }
 
     @Override
+    public ProblemBuilderInternal callerLocation(Class<?> api) {
+        return validateDelegate(delegate.callerLocation(api));
+    }
+
+    @Override
     public ProblemBuilderInternal details(String details) {
         return validateDelegate(delegate.details(details));
     }

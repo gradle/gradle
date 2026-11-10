@@ -72,6 +72,7 @@ import org.gradle.tooling.internal.protocol.problem.InternalPosition;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 import org.gradle.tooling.internal.protocol.problem.InternalTrace;
 import org.gradle.api.problems.internal.location.BuildFrame;
+import org.gradle.api.problems.internal.location.CompiledCodePosition;
 import org.gradle.api.problems.internal.location.FilePosition;
 import org.gradle.api.problems.internal.location.Frame;
 import org.gradle.api.problems.internal.location.Position;
@@ -80,6 +81,7 @@ import org.gradle.api.problems.internal.location.ProjectFrame;
 import org.gradle.api.problems.internal.location.TaskFrame;
 import org.gradle.api.problems.internal.location.Trace;
 import org.gradle.internal.build.event.types.DefaultBuildFrame;
+import org.gradle.internal.build.event.types.DefaultProblemCompiledCodePosition;
 import org.gradle.internal.build.event.types.DefaultProblemFilePosition;
 import org.gradle.internal.build.event.types.DefaultFrame;
 import org.gradle.internal.build.event.types.DefaultPluginApplicationFrame;
@@ -197,6 +199,10 @@ public class ProblemsProgressEventUtils {
         if (position instanceof FilePosition) {
             FilePosition file = (FilePosition) position;
             return new DefaultProblemFilePosition(file.getPath(), file.getLine(), file.getColumn(), file.getOffset(), file.getLength());
+        }
+        if (position instanceof CompiledCodePosition) {
+            CompiledCodePosition compiled = (CompiledCodePosition) position;
+            return new DefaultProblemCompiledCodePosition(compiled.getFileName(), compiled.getClassName(), compiled.getModule(), compiled.getLine());
         }
         return null;
     }

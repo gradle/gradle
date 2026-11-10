@@ -17,12 +17,14 @@
 package org.gradle.tooling.internal.consumer.parameters
 
 import org.gradle.internal.build.event.types.DefaultBuildFrame
+import org.gradle.internal.build.event.types.DefaultProblemCompiledCodePosition
 import org.gradle.internal.build.event.types.DefaultProblemFilePosition
 import org.gradle.internal.build.event.types.DefaultFrame
 import org.gradle.internal.build.event.types.DefaultProjectFrame
 import org.gradle.internal.build.event.types.DefaultTaskFrame
 import org.gradle.internal.build.event.types.DefaultTrace
 import org.gradle.tooling.events.problems.BuildFrame
+import org.gradle.tooling.events.problems.CompiledCodePosition
 import org.gradle.tooling.events.problems.FilePosition
 import org.gradle.tooling.events.problems.Locality
 import org.gradle.tooling.events.problems.ProjectFrame
@@ -145,5 +147,22 @@ class BuildProgressListenerAdapterForProblemTracesTest extends Specification {
     def "no origin originTraces when the build doesn't send any"() {
         expect:
         BuildProgressListenerAdapter.toOriginTraces(Stub(InternalBasicProblemDetailsVersion4)).empty
+    }
+
+    def "a compiled-code position arrives with file name, class and module"() {
+        given:
+        def details = Stub(InternalBasicProblemDetailsVersion5) {
+            getOriginTraces() >> [new DefaultTrace([new DefaultFrame("AcmePlugin.java:42", "EXTERNAL", new DefaultProblemCompiledCodePosition("AcmePlugin.java", "com.acme.AcmePlugin", "com.acme:acme-plugin:1.0", 42))])]
+        }
+
+        when:
+        def position = BuildProgressListenerAdapter.toOriginTraces(details)[0].frames[0].position as CompiledCodePosition
+
+        then:
+        position.fileName == "AcmePlugin.java"
+        position.className == "com.acme.AcmePlugin"
+        position.module == "com.acme:acme-plugin:1.0"
+        position.line == 42
+        position.column == null
     }
 }

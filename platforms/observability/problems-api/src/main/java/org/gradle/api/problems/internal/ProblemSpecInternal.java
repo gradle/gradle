@@ -110,6 +110,9 @@ public interface ProblemSpecInternal extends ProblemSpec {
     ProblemSpecInternal stackLocation();
 
     @Override
+    ProblemSpecInternal callerLocation(Class<?> api);
+
+    @Override
     ProblemSpecInternal details(String details);
 
     @Override

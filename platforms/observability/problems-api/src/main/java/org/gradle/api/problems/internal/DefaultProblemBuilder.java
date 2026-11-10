@@ -30,6 +30,9 @@ import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.LineInFileLocation;
 import org.gradle.api.problems.OffsetInFileLocation;
 import org.gradle.api.problems.internal.location.ClassFrame;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.location.CompiledCodeFrame;
+import org.gradle.api.problems.internal.location.CompiledCodePosition;
 import org.gradle.api.problems.internal.location.FileLocationFrame;
 import org.gradle.api.problems.internal.location.FilePosition;
 import org.gradle.api.problems.internal.location.Frame;
@@ -67,6 +70,8 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
     private Throwable exception;
     private AdditionalData additionalData;
     private boolean collectStackLocation = false;
+    // The API whose caller is at fault: the origin leaf is the first stack frame outside Gradle and outside its package
+    private Class<?> callerApi;
     private boolean writtenToConsole = false;
     private ProblemDiagnostics diagnostics;
     // Copied from an existing problem only: reporters can't set the detection trace
@@ -84,6 +89,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         this(original.problemsInfrastructure);
         this.originLocations.addAll(originLocations);
         this.additionalData = original.additionalData;
+        this.callerApi = original.callerApi;
     }
 
     public DefaultProblemBuilder(
@@ -149,9 +155,11 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
     private List<Trace> originTraces() {
         ImmutableList.Builder<Trace> originTraces = ImmutableList.builder();
         for (ProblemLocation location : originLocations) {
-            FileLocation fileLocation = location instanceof StackTraceLocation ? ((StackTraceLocation) location).getFileLocation() : location instanceof FileLocation ? (FileLocation) location : null;
-            if (fileLocation != null) {
-                originTraces.add(new Trace(ImmutableList.of(new FileLocationFrame(positionOf(fileLocation), Locality.UNKNOWN))));
+            Frame leaf = location instanceof StackTraceLocation ? stackLeaf((StackTraceLocation) location)
+                : location instanceof FileLocation ? new FileLocationFrame(positionOf((FileLocation) location), Locality.UNKNOWN)
+                : null;
+            if (leaf != null) {
+                originTraces.add(new Trace(ImmutableList.of(leaf)));
             }
         }
         if (additionalData instanceof TypeValidationData) {
@@ -170,6 +178,33 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             }
         }
         return originTraces.build();
+    }
+
+    /**
+     * The leaf a captured stack gives. Without a named API it is the script line Gradle located, as before.
+     * With one, it is the caller of that API: the script line when the caller is a script, or else the compiled code's file and line from its debug information.
+     */
+    @Nullable
+    private Frame stackLeaf(StackTraceLocation location) {
+        FileLocation scriptLocation = location.getFileLocation();
+        Frame scriptLeaf = scriptLocation == null ? null : new FileLocationFrame(positionOf(scriptLocation), Locality.UNKNOWN);
+        if (callerApi == null) {
+            return scriptLeaf;
+        }
+        StackTraceElement caller = CallerFrames.firstOutside(location.getStackTrace(), callerApi);
+        if (caller == null) {
+            return scriptLeaf;
+        }
+        if (scriptLocation instanceof LineInFileLocation && isSameLine((LineInFileLocation) scriptLocation, caller)) {
+            return scriptLeaf;
+        }
+        return new CompiledCodeFrame(new CompiledCodePosition(caller.getFileName(), caller.getClassName(), null, caller.getLineNumber()), Locality.UNKNOWN);
+    }
+
+    private static boolean isSameLine(LineInFileLocation scriptLocation, StackTraceElement frame) {
+        String path = scriptLocation.getPath();
+        String fileName = frame.getFileName();
+        return scriptLocation.getLine() == frame.getLineNumber() && (path.equals(fileName) || path.endsWith("/" + fileName) || path.endsWith("\\" + fileName));
     }
 
     // Line and column count from 1 and offset from 0; the flat locations use -1 for a missing value, the position uses null (spec Q12)
@@ -257,7 +292,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         if (groups == null) {
             throw new IllegalStateException("Cannot report invalid problem '" + name + "' without the predefined problem groups");
         }
-        id(groups.getGradle().getBuildLogic().problemId(name)).stackLocation();
+        id(groups.getGradle().getBuildLogic().problemId(name)).callerLocation(Problems.class);
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(this.getId(), Severity.WARNING, null);
         List<ProblemLocation> problemLocations = new ArrayList<ProblemLocation>();
         ProblemDiagnostics diagnostics = determineDiagnostics();
@@ -356,6 +391,13 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
     @Override
     public ProblemBuilderInternal stackLocation() {
         this.collectStackLocation = true;
+        return this;
+    }
+
+    @Override
+    public ProblemBuilderInternal callerLocation(Class<?> api) {
+        this.collectStackLocation = true;
+        this.callerApi = api;
         return this;
     }
 

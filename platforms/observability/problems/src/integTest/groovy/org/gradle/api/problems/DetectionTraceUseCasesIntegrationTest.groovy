@@ -17,6 +17,7 @@
 package org.gradle.api.problems
 
 import org.gradle.api.problems.internal.StackTraceLocation
+import org.gradle.api.problems.internal.location.CompiledCodePosition
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
@@ -125,6 +126,12 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         detectionOf("Gradle:Deprecation:Feature") == ["plugin application com.acme.foo", "project :app", "build :"]
+
+        and: "the origin is the line in the compiled plugin, from its debug information (UC4, #26891)"
+        def leaf = problem.originTraces[0].frames[0]
+        leaf.displayName == "AcmePlugin.java:" + nagLineOf(file("buildSrc/src/main/java/com/acme/AcmePlugin.java"))
+        (leaf.position as CompiledCodePosition).className == "com.acme.AcmePlugin"
+        problem.oneLocation(StackTraceLocation).fileLocation == null
     }
 
     def "UC6: problem reported from an unmanaged thread is detected in the build"() {
@@ -352,6 +359,11 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
     private List<String> detectionOf(String fqid) {
         problem = findReceivedProblem { it.fqid == fqid }
         problem.detectionTrace.frames*.displayName
+    }
+
+    /** The line javac attributes the deprecation call to: the line of the method that nags, in a chained call. */
+    private static int nagLineOf(File source) {
+        source.readLines().findIndexOf { it.contains(".nagUser()") } + 1
     }
 
     private static List<List<String>> originsOf(ReceivedProblem problem) {

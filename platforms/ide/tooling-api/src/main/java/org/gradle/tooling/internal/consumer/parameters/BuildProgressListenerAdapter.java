@@ -105,6 +105,7 @@ import org.gradle.tooling.events.problems.internal.DefaultSeverity;
 import org.gradle.tooling.events.problems.internal.DefaultSingleProblemEvent;
 import org.gradle.tooling.events.problems.internal.DefaultSolution;
 import org.gradle.tooling.events.problems.internal.DefaultBuildFrame;
+import org.gradle.tooling.events.problems.internal.DefaultCompiledCodePosition;
 import org.gradle.tooling.events.problems.internal.DefaultFrame;
 import org.gradle.tooling.events.problems.internal.DefaultPluginApplicationFrame;
 import org.gradle.tooling.events.problems.internal.DefaultProjectFrame;
@@ -268,6 +269,7 @@ import org.gradle.tooling.internal.protocol.problem.InternalProxiedAdditionalDat
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 import org.gradle.tooling.internal.protocol.problem.InternalBuildFrame;
+import org.gradle.tooling.internal.protocol.problem.InternalCompiledCodePosition;
 import org.gradle.tooling.internal.protocol.problem.InternalFrame;
 import org.gradle.tooling.internal.protocol.problem.InternalPosition;
 import org.gradle.tooling.internal.protocol.problem.InternalPluginApplicationFrame;
@@ -1141,6 +1143,10 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (position instanceof org.gradle.tooling.internal.protocol.problem.InternalFilePosition) {
             org.gradle.tooling.internal.protocol.problem.InternalFilePosition file = (org.gradle.tooling.internal.protocol.problem.InternalFilePosition) position;
             return new org.gradle.tooling.events.problems.internal.DefaultFilePosition(file.getPath(), file.getLine(), file.getColumn(), file.getOffset(), file.getLength());
+        }
+        if (position instanceof InternalCompiledCodePosition) {
+            InternalCompiledCodePosition compiled = (InternalCompiledCodePosition) position;
+            return new DefaultCompiledCodePosition(compiled.getFileName(), compiled.getClassName(), compiled.getModule(), compiled.getLine());
         }
         return null;
     }

@@ -67,6 +67,9 @@ public interface ProblemBuilderInternal extends ProblemSpecInternal {
     ProblemBuilderInternal stackLocation();
 
     @Override
+    ProblemBuilderInternal callerLocation(Class<?> api);
+
+    @Override
     ProblemBuilderInternal details(String details);
 
     @Override

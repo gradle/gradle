@@ -27,7 +27,9 @@ import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemLocation
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DocLinkInternal
+import org.gradle.api.problems.internal.location.CompiledCodePosition
 import org.gradle.api.problems.internal.location.FilePosition
+import org.gradle.api.problems.internal.location.Position
 import org.gradle.api.problems.internal.location.Frame
 import org.gradle.internal.code.Locality
 import org.gradle.api.problems.internal.location.Trace
@@ -82,9 +84,12 @@ class ReceivedProblem implements ProblemInternal {
         new Trace(frames)
     }
 
-    private static FilePosition toPosition(Map<String, Object> position) {
+    private static Position toPosition(Map<String, Object> position) {
         if (position == null) {
             return null
+        }
+        if (position['className'] != null) {
+            return new CompiledCodePosition(position['fileName'] as String, position['className'] as String, position['module'] as String, position['line'] as Integer)
         }
         new FilePosition(position['path'] as String, position['line'] as Integer, position['column'] as Integer, position['offset'] as Integer, position['length'] as Integer)
     }
