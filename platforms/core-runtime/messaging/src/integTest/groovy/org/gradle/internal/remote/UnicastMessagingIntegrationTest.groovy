@@ -225,7 +225,7 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
         abstract void stop()
     }
 
-    static final byte[] CONNECTION_TOKEN = "0123456789abcdef".bytes
+    static final byte[] CONNECTION_TOKEN = "0123456789abcdef0123456789abcdef".bytes
 
     class Server extends Participant {
         private final lock = new ReentrantLock()

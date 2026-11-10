@@ -20,7 +20,6 @@ import org.gradle.cache.internal.DefaultFileLockManagerTestHelper
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.remote.Address
-import org.gradle.internal.remote.internal.inet.InetEndpoint
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.launcher.daemon.configuration.DaemonPriority
@@ -159,34 +158,6 @@ class PersistentDaemonRegistryTest extends Specification {
     }
 
     Address address(int i = addressCounter++) {
-        new TestAddress(i.toString())
+        new MultiChoiceAddress(UUID.randomUUID(), 1000 + i, [InetAddress.loopbackAddress])
     }
-
-    private static class TestAddress implements InetEndpoint {
-
-        final String displayName
-
-        TestAddress(String displayName) {
-            this.displayName = displayName
-        }
-
-        boolean equals(o) {
-            displayName == o.displayName
-        }
-
-        int hashCode() {
-            displayName.hashCode()
-        }
-
-        @Override
-        int getPort() {
-            return 0
-        }
-
-        @Override
-        List<InetAddress> getCandidates() {
-            return [InetAddress.localHost]
-        }
-    }
-
 }

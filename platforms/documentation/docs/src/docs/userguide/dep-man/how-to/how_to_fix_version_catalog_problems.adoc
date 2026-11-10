@@ -100,9 +100,9 @@ myBundle = ["existingLib"]
 
 == 6. Correcting Invalid Dependency Notation
 
-**Error:** An alias has an incorrect dependency notation.
+**Error:** An alias has an incorrect dependency notation, or its group, name, version, or branch contains invalid characters.
 
-**Solution:** Use the correct syntax:
+**Solution:** Use the correct syntax and only valid characters:
 
 [source,groovy]
 ----
@@ -174,9 +174,9 @@ some-alias = { group="my-lib", name="1.0" }
 
 == 13. Fixing Invalid Plugin Notation
 
-**Error:** The plugin alias notation does not separate the plugin ID from the version.
+**Error:** The plugin alias notation does not separate the plugin ID from the version, or the plugin ID, version, or branch contains invalid characters.
 
-**Solution:** Use the correct format: `plugin.id:version`.
+**Solution:** Use the correct format, `plugin.id:version`, and only valid characters.
 
 [source,toml]
 ----

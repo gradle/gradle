@@ -22,7 +22,7 @@ import org.gradle.testdistribution.LocalOnly
 
 @LocalOnly
 class DaemonAuthenticationIntegrationSpec extends DaemonIntegrationSpec {
-    private static final String REFUSED = "Peer did not present the expected connection token"
+    private static final String REFUSED = "Peer did not prove it holds the expected connection token"
 
     def "daemon refuses connection from a client that does not have the correct authentication token"() {
         when:
@@ -47,7 +47,7 @@ class DaemonAuthenticationIntegrationSpec extends DaemonIntegrationSpec {
         daemon.stops()
     }
 
-    def "daemon discards stop request that does not contain correct authentication token"() {
+    def "daemon refuses stop request from a client that does not have the correct authentication token"() {
         given:
         buildSucceeds()
         def daemon = daemons.daemon
@@ -57,12 +57,12 @@ class DaemonAuthenticationIntegrationSpec extends DaemonIntegrationSpec {
         daemon.changeTokenVisibleToClient()
         stopDaemonsNow()
 
-        then:
-        output.contains DaemonMessages.UNABLE_TO_STOP_DAEMON
+        then: "daemon rejects the token during the handshake, before the stop request is sent"
         daemon.log.contains(REFUSED)
+        output.contains DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE
+        !output.contains(DaemonMessages.UNABLE_TO_STOP_DAEMON)
 
-        and:
-        // daemon is still running
-        daemon.assertIdle()
+        and: "client removed the daemon from the registry, so it expires"
+        daemon.stops()
     }
 }

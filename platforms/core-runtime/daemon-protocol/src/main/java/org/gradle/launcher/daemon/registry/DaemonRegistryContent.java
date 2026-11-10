@@ -24,8 +24,6 @@ import org.gradle.internal.remote.internal.inet.SocketInetAddress;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -189,8 +187,7 @@ public class DaemonRegistryContent implements Serializable {
                         MULTI_CHOICE_ADDRESS_SERIALIZER.write(encoder, (MultiChoiceAddress) address);
                         break;
                     default:
-                        ObjectOutputStream oos = new ObjectOutputStream(encoder.getOutputStream());
-                        oos.writeObject(address);
+                        throw new IllegalArgumentException("Cannot store an address of type " + address.getClass().getName() + " in the daemon registry.");
                 }
             }
         }
@@ -208,8 +205,7 @@ public class DaemonRegistryContent implements Serializable {
                         out.add(MULTI_CHOICE_ADDRESS_SERIALIZER.read(decoder));
                         break;
                     default:
-                        ObjectInputStream ois = new ObjectInputStream(decoder.getInputStream());
-                        out.add((Address) ois.readObject());
+                        throw new IllegalArgumentException("Unexpected address type " + type + " in the daemon registry.");
                 }
             }
             return out;
