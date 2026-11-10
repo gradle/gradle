@@ -1219,6 +1219,29 @@ legacy after"""
         ]
     }
 
+    def "listener that references a type that is not a build service is rejected at registration"() {
+        buildFile """
+            import org.gradle.api.services.ServiceReference
+
+            abstract class ReferencingListener implements TaskLifecycleListener<Task> {
+                @ServiceReference("greeter")
+                abstract Property<String> getGreeter()
+            }
+
+            tasks.register("foo") {
+                addLifecycleListener(ReferencingListener)
+            }
+        """
+
+        when:
+        fails "foo"
+
+        then:
+        failure.assertHasCause("Could not create task ':foo'.")
+        failure.assertNoTasksScheduled()
+        failure.assertHasCause("Cannot use lifecycle listener ReferencingListener: property 'greeter' is annotated with @ServiceReference, but its type is not a Property of a build service.")
+    }
+
     def "listener type that cannot be instantiated is rejected at registration"() {
         buildFile """
             abstract class UnsupportedListener implements TaskLifecycleListener<Task> {
