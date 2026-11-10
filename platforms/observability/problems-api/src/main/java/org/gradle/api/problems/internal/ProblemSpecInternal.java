@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.internal.location.Trace;
 import org.gradle.api.Action;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.DocLink;
@@ -111,6 +112,14 @@ public interface ProblemSpecInternal extends ProblemSpec {
 
     @Override
     ProblemSpecInternal callerLocation(Class<?> api);
+
+    /**
+     * Declares one cause of this problem as a whole origin trace, leaf first.
+     * <p>
+     * For reporters that hold a path of their own to the cause, as Configuration Cache does. Once a trace is given this way,
+     * no origin trace is derived from the file locations.
+     */
+    ProblemSpecInternal originTrace(Trace originTrace);
 
     @Override
     ProblemSpecInternal details(String details);

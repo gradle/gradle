@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl
 
 
 import org.gradle.api.problems.Severity
+import org.gradle.internal.code.Locality
 import org.gradle.initialization.StartParameterBuildOptions
 
 class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCacheIntegrationTest {
@@ -116,5 +117,84 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
             contextualLabel == "Invocation of 'Task.project' at execution time is unsupported with the configuration cache."
             definition.severity == Severity.WARNING
         }
+    }
+
+    def "a problem in a build script has the script line as its origin trace"() {
+        given:
+        buildFile """
+            gradle.buildFinished { }
+            task run
+        """
+
+        when:
+        configurationCacheRunLenient 'run'
+
+        then:
+        def problem = findReceivedProblem { it.fqid == REGISTRATION_UNSUPPORTED }
+        problem.originTraces*.frames*.displayName == [[buildFile.absolutePath + ":2"]]
+        problem.originTraces[0].frames[0].locality == Locality.LOCAL
+
+        and: "the flat location still carries the display name, as before"
+        problem.originLocations[0].path == "build file 'build.gradle'"
+    }
+
+    def "a serialization problem has the path through the object graph as its origin trace (UC5)"() {
+        given:
+        buildFile """
+            class AcmeService {
+                Thread client = Thread.currentThread()
+            }
+
+            abstract class AcmeTask extends DefaultTask {
+                private final AcmeService service = new AcmeService()
+
+                @TaskAction
+                void run() {}
+            }
+
+            tasks.register("acme", AcmeTask)
+        """
+
+        when:
+        configurationCacheRunLenient 'acme'
+
+        then: "the problem is found once when storing and once when loading, each with the same path"
+        def stored = findReceivedProblem { it.contextualLabel.startsWith("Cannot serialize") }
+        def loaded = findReceivedProblem { it.contextualLabel.startsWith("Cannot deserialize") }
+        [stored, loaded].each { problem ->
+            assert problem.fqid == "Gradle:Configuration Cache:Type unsupported for serialization"
+            assert problem.originTraces*.frames*.displayName == [["field client", "bean AcmeService", "field service", "class AcmeTask", "task :acme"]]
+            // Today's text form keeps only the user code that contains the state, not the path to it
+            assert problem.additionalData.asMap.trace == "task `:acme` of type `AcmeTask`"
+            // Spec Q7: Configuration Cache notices the problem outside any task, so detection is the build alone
+            assert problem.detectionTrace.frames*.displayName == ["build :"]
+        }
+    }
+
+    def "problems that differ only in their path collapse into one in the Problems API"() {
+        given:
+        def fields = (1..20).collect { "private final Thread thread$it = Thread.currentThread()" }.join("\n")
+        buildFile """
+            abstract class AcmeTask extends DefaultTask {
+                $fields
+
+                @TaskAction
+                void run() {}
+            }
+
+            tasks.register("acme", AcmeTask)
+        """
+
+        when:
+        configurationCacheRunLenient 'acme'
+
+        then: "Configuration Cache counts every field, when storing and when loading, and calls two of them unique"
+        outputContains("40 problems were found storing the configuration cache, 2 of which seem unique.")
+
+        and: "the Problems API emits those two: the other 38 paths are equal problems to it, since a trace is not part of a problem's identity"
+        def received = collectedProblems.findAll { it.fqid == "Gradle:Configuration Cache:Type unsupported for serialization" }
+        received.size() == 2
+        received*.originTraces*.frames*.displayName.flatten().count { it.startsWith("field thread") } == 2
+        ignoreCleanupAssertions()
     }
 }

@@ -26,7 +26,14 @@ public final class PropertyFrame extends Frame {
     private final String name;
 
     public PropertyFrame(String name, Locality locality) {
-        super("property " + name, locality);
+        this("property", name, locality);
+    }
+
+    /**
+     * @param kind what sort of property this is, as shown to the user: "field", "input property"
+     */
+    public PropertyFrame(String kind, String name, Locality locality) {
+        super(kind + " " + name, locality);
         this.name = name;
     }
 

@@ -72,6 +72,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
     private boolean collectStackLocation = false;
     // The API whose caller is at fault: the origin leaf is the first stack frame outside Gradle and outside its package
     private Class<?> callerApi;
+    private final List<Trace> explicitOriginTraces = new ArrayList<Trace>();
     private boolean writtenToConsole = false;
     private ProblemDiagnostics diagnostics;
     // Copied from an existing problem only: reporters can't set the detection trace
@@ -109,6 +110,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         this.additionalData = problem.getAdditionalData();
         this.writtenToConsole = problem.isWrittenToConsole();
         this.detectionTrace = problem.getDetectionTrace();
+        this.explicitOriginTraces.addAll(problem.getOriginTraces());
     }
 
     @Override
@@ -153,6 +155,9 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
      * are derived from it; the localities of file frames are resolved later by the runtime, which knows the build's root.
      */
     private List<Trace> originTraces() {
+        if (!explicitOriginTraces.isEmpty()) {
+            return ImmutableList.copyOf(explicitOriginTraces);
+        }
         ImmutableList.Builder<Trace> originTraces = ImmutableList.builder();
         for (ProblemLocation location : originLocations) {
             Frame leaf = location instanceof StackTraceLocation ? stackLeaf((StackTraceLocation) location)
@@ -391,6 +396,12 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
     @Override
     public ProblemBuilderInternal stackLocation() {
         this.collectStackLocation = true;
+        return this;
+    }
+
+    @Override
+    public ProblemBuilderInternal originTrace(Trace originTrace) {
+        this.explicitOriginTraces.add(originTrace);
         return this;
     }
 
