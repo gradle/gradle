@@ -360,6 +360,24 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest {
         sources.hasDependencyAlias('other', 'getOther', "This dependency was declared in ${escapedContext}")
     }
 
+    def "comment terminators are escaped when outputting context and description in javadocs"() {
+        def context = "catalog g:a:1.0 */ { int injected = 1; } /*"
+        def escapedContext = "catalog g:a:1.0 *&#47; { int injected = 1; } /*"
+
+        when:
+        generate {
+            description.set("Description */ { int injected = 1; } /*")
+            withContext(context) {
+                library("some-alias", 'g:a:v')
+            }
+        }
+
+        then:
+        sources.assertClass('Generated', 'Description *&#47; { int injected = 1; } /*')
+        sources.hasDependencyAlias('some-alias', 'getAlias', "This dependency was declared in ${escapedContext}")
+        !sources.lines.any { it.contains('*/ {') }
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/20060")
     def "no name conflicting of library accessors"() {
         when:

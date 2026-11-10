@@ -12,9 +12,14 @@
 
 Gradle @version@ is the first patch release for Gradle 9.9.0 (released [@releaseDate@](https://gradle.org/releases/)).
 
+This release addreses three security vulnerabilities:
+- [Version catalog values run as code in generated accessors](https://github.com/gradle/gradle/security/advisories/GHSA-3cfg-jpcr-gfp3) - 9.3 Critical
+- [Gradle client trusts the content of the daemon registry](https://github.com/gradle/gradle/security/advisories/GHSA-gqrr-4j89-5267) - 8.6 High
+- [Daemon client trusts stale registry entries (port squatting)](https://github.com/gradle/gradle/security/advisories/GHSA-pcp8-98xm-c6pr) - 7.0 High
+
 The following issues were resolved:
 
-* TODO
+- [KotlinNativeBundleArtifactsTypes deprecation says upgrade to KGP 2.1.0, but KGP 2.4.21 still triggers it (fixed only in 2.5.0, KT-89265)](https://github.com/gradle/gradle/issues/39685)
 
 We recommend upgrading to Gradle @version@.
 
