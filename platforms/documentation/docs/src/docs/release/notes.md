@@ -127,6 +127,15 @@ Gradle provides a comprehensive plugin system, including built-in [Core Plugins]
 ### Security and infrastructure
 Gradle provides robust [security features and underlying infrastructure](userguide/security.html) to ensure that builds are secure, reproducible, and easy to maintain.
 
+#### S3 repositories use the AWS SDK for Java 2.x
+
+Gradle accesses [S3-backed repositories](userguide/supported_repository_protocols.html#sec:s3-repositories) with the AWS SDK for Java.
+AWS has ended support for version 1 of the SDK, so it no longer receives security fixes.
+
+Gradle now uses version 2 of the SDK.
+Most builds need no changes.
+If your build relies on the SDK's default credential lookup through the older system property or environment variable names, see the [upgrade guide](userguide/upgrading_version_9.html#aws_sdk_v2_for_s3_repositories).
+
 ### Tooling and IDE integration
 Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
 

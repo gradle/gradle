@@ -55,6 +55,28 @@ This affects builds that add `E2K` to the `toolchainPlatforms` of the `updateDae
 * A `JavaToolchainResolver` that handles every `Architecture` value explicitly, for example with an exhaustive Kotlin `when` without an `else` branch, fails when it receives `E2K`. Resolvers should return `Optional.empty()` for architectures they don't support.
 * Gradle versions earlier than 9.10.0 can't read a `gradle-daemon-jvm.properties` file that contains `toolchainUrl.<OS>.E2K` entries, and fail at startup.
 
+[[aws_sdk_v2_for_s3_repositories]]
+==== S3 repositories use the AWS SDK for Java 2.x
+
+Gradle now uses version 2 of the AWS SDK for Java to access <<supported_repository_protocols.adoc#sec:s3-repositories,S3-backed repositories>>.
+Version 1 is no longer part of the Gradle distribution.
+
+Repositories that use `AwsImAuthentication` rely on the default credential lookup of the SDK.
+Version 2 of the SDK no longer reads the following names, so replace them if your build provides credentials through them:
+
+* The `aws.secretKey` system property: use `aws.secretAccessKey`.
+* The `AWS_ACCESS_KEY` environment variable: use `AWS_ACCESS_KEY_ID`.
+* The `AWS_SECRET_KEY` environment variable: use `AWS_SECRET_ACCESS_KEY`.
+* The `AWS_CREDENTIAL_PROFILES_FILE` environment variable: use `AWS_SHARED_CREDENTIALS_FILE`.
+
+When Gradle requests the metadata of a resource that doesn't exist, it now makes a second request to tell a missing resource from a missing bucket.
+That request needs the same `s3:GetObject` permission as downloads.
+
+Gradle keeps ignoring the endpoint settings of the AWS SDK, such as the `AWS_ENDPOINT_URL` environment variable and the `endpoint_url` profile property.
+Use the <<supported_repository_protocols.adoc#sec:s3-configuration-properties,`org.gradle.s3.endpoint` system property>> to change the endpoint.
+
+The `aws.java.v1.disableDeprecationAnnouncement` system property no longer has any effect and can be removed.
+
 [[derived_task_output_providers_execution_time]]
 ==== Transformations after `asFile`, `dir`, `file` and `zip` on task outputs are deferred
 
