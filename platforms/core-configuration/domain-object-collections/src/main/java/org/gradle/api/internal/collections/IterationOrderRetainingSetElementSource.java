@@ -205,8 +205,9 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
             if (element.isRealized()) {
                 removedFromElement = element.removeAnnounced(value);
             }
-            if (removedFromElement && element.getValues().isEmpty() && !element.isProvided()) {
+            if (removedFromElement && element.getValues().isEmpty()) {
                 inserted.remove(index);
+                element.detach();
                 modCount++;
             } else {
                 index++;

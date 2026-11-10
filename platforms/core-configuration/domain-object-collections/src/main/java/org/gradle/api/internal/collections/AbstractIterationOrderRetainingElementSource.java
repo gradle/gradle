@@ -293,10 +293,6 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
                 modCount++;
                 iterator.remove();
                 next.detach();
-                if (next.isEmptiedByRemoval()) {
-                    // Its values were removed already, so removing it falls back to querying it, as for other providers
-                    return null;
-                }
                 return next.getVisibleValues();
             }
         }
@@ -329,9 +325,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         for (Element<T> element : inserted) {
-            if (!element.isEmptiedByRemoval()) {
-                context.add(element.getProducer());
-            }
+            context.add(element.getProducer());
         }
     }
 
@@ -420,11 +414,10 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
                     if (nextIndex == previousIndex) {
                         nextSubIndex--;
                     }
-                } else if (element.isProvided()) {
-                    // Kept, see isEmptiedByRemoval(); the next value is in a later element
-                    element.remove(collected.get(previousSubIndex));
                 } else {
+                    // A provided element goes as well once its values are gone, so its provider can be added again
                     backingList.remove(previousIndex);
+                    element.detach();
                     nextIndex--;
                 }
                 previousIndex = -1;
@@ -446,7 +439,6 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         private List<T> removedValues = null;
         private IntSet duplicates = IntSets.emptySet();
         private boolean realized;
-        private int removals;
         // While the element is realized: how many of its values were announced. These are always the first ones,
         // as values are announced in order and removing one of them moves the ones after it back. Negative otherwise.
         private int announcedCount = -1;
@@ -562,7 +554,6 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             if (index < announcedCount) {
                 announcedCount--;
             }
-            removals++;
             shiftDuplicatesAfterRemovalOf(index);
         }
 
@@ -583,15 +574,6 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
                 }
             }
             return removed;
-        }
-
-        boolean isProvided() {
-            return realizeAction != null;
-        }
-
-        // A provided element whose values were all removed stays, so adding its provider again is known to have no effect
-        boolean isEmptiedByRemoval() {
-            return realized && removals > 0 && cache.isEmpty();
         }
 
         // The value being announced counts as announced already

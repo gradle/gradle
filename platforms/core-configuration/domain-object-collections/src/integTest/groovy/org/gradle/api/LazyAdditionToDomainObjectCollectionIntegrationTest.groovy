@@ -882,22 +882,58 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         outputContains("names = [b]")
     }
 
-    def "adding a provider again after its value was removed has no effect"() {
+    def "adding a provider again to #containerType after its value was removed adds it again"() {
         buildFile """
-            def set = objects.domainObjectSet(String)
-            def queried = 0
-            def added = provider { queried++; "a" }
-            set.addLater(added)
-            set.all { }
-            set.remove("a")
-            set.addLater(added)
+            ${namedThing}
 
-            println "queried = " + queried + ", values = " + set.toList()
+            def collection = objects.${containerType}(NamedThing)
+            def queried = 0
+            collection.all { println "added " + it }
+            def added = provider { queried++; new NamedThing("x") }
+            collection.addLater(added)
+            collection.remove(collection.find { it.name == "x" })
+            collection.addLater(added)
+
+            println "queried = " + queried + ", names = " + collection.collect { it.name }
         """
 
         expect:
         succeeds("help")
-        outputContains("queried = 1, values = []")
+        output.count("added x") == 2
+        outputContains("queried = 2, names = [x]")
+
+        where:
+        containerType << ["domainObjectContainer", "domainObjectSet", "namedDomainObjectSet", "namedDomainObjectList"]
+    }
+
+    def "removing provider whose value was removed has no effect"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            set.all { }
+            def added = provider { "a" }
+            set.addLater(added)
+            set.remove("a")
+
+            println "remove result = " + set.remove(added) + ", values = " + set.toList()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("remove result = false, values = []")
+    }
+
+    def "provider of unknown type added as a value to a collection of providers can be removed"() {
+        buildFile """
+            def set = objects.domainObjectSet(Provider)
+            def value = provider { "a" }
+            set.add(value)
+
+            println "remove result = " + set.remove(value) + ", size = " + set.size()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("remove result = true, size = 0")
     }
 
     def "equal values of one provider are shown once"() {

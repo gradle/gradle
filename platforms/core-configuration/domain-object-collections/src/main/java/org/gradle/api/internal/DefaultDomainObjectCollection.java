@@ -542,13 +542,17 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
                     eventRegister.fireObjectRemoved(value);
                 }
                 return true;
-            } else if (getType().isAssignableFrom(providerInternal.getType()) && providerInternal.isPresent()) {
+            } else if (isOfCompatibleType(providerInternal) && providerInternal.isPresent() && removeValue(providerInternal.get())) {
                 // The provider is of compatible type and points to an element that was not added with it
-                o = providerInternal.get();
+                return true;
             }
-            // Else, the provider is of incompatible type, maybe we have a domain object collection of Provider, fallthrough
+            // Else, maybe we have a domain object collection of Provider
+            return getType().isInstance(o) && removeValue(o);
         }
+        return removeValue(o);
+    }
 
+    private boolean removeValue(Object o) {
         if (getStore().remove(o)) {
             @SuppressWarnings("unchecked") T cast = (T) o;
             didRemove(cast);
@@ -557,6 +561,12 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         } else {
             return false;
         }
+    }
+
+    // A provider of unknown type may provide an element too
+    private boolean isOfCompatibleType(ProviderInternal<?> provider) {
+        Class<?> providedType = provider.getType();
+        return providedType == null || getType().isAssignableFrom(providedType);
     }
 
     protected void didRemove(T t) {

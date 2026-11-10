@@ -193,10 +193,13 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         return false;
     }
 
-    // The collectors stay, so adding their providers again has no effect
+    // A provider whose values are all gone is forgotten as well, so adding it again adds its value again
     private void forgetRealized(Object value) {
-        for (RealizedValues<T> realizedValues : realized.values()) {
-            realizedValues.forget(candidate -> isEquivalent(candidate, value));
+        Iterator<RealizedValues<T>> iterator = realized.values().iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().forget(candidate -> isEquivalent(candidate, value))) {
+                iterator.remove();
+            }
         }
     }
 
@@ -362,7 +365,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
                 iterator.remove();
                 RealizedValues<T> realizedValues = entry.getValue();
                 if (realizedValues.external || realizedValues.captured.isEmpty()) {
-                    // Nothing known to remove: either the provider added its element itself, or its values were removed already
+                    // Nothing known to remove: either the provider added its element itself, or it had no values
                     return null;
                 }
                 realizedValues.markRemoved();
@@ -459,11 +462,8 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     public ProviderInternal<Set<T>> getElements() {
         return new BuildableBackedProvider<>(
             context -> {
-                for (Map.Entry<Collectors.TypedCollector<T>, RealizedValues<T>> entry : realized.entrySet()) {
-                    // Values removed by value take their producer with them
-                    if (entry.getValue().external || !entry.getValue().captured.isEmpty()) {
-                        context.add(entry.getKey().getProducer());
-                    }
+                for (Collectors.TypedCollector<T> collector : realized.keySet()) {
+                    context.add(collector.getProducer());
                 }
                 for (Collectors.TypedCollector<T> collector : pending) {
                     context.add(collector.getProducer());
@@ -543,7 +543,10 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
             return announcedCount < 0 || index < announcedCount;
         }
 
-        void forget(Predicate<T> matching) {
+        /**
+         * @return whether this forgot the last of the captured values
+         */
+        boolean forget(Predicate<T> matching) {
             if (!added.isEmpty()) {
                 added.removeIf(matching);
             }
@@ -563,10 +566,12 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
                     remaining.add(candidate);
                 }
             }
-            if (remaining != null) {
-                captured = remaining;
-                announcedCount = remainingAnnounced;
+            if (remaining == null) {
+                return false;
             }
+            captured = remaining;
+            announcedCount = remainingAnnounced;
+            return remaining.isEmpty();
         }
 
         void markRemoved() {
