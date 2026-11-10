@@ -602,6 +602,9 @@ public class ValidationProblemSerialization {
         public static final String FUNCTION_NAME = "functionName";
         public static final String PARENT_PROPERTY_NAME = "parentPropertyName";
         public static final String TYPE_NAME = "typeName";
+        public static final String DECLARING_CLASS_NAME = "declaringClassName";
+        public static final String SOURCE_FILENAME = "sourceFilename";
+        public static final String LINE_NUMBER = "lineNumber";
         public static final String GENERAL_DATA_DATA = "data";
 
         @Override
@@ -622,6 +625,9 @@ public class ValidationProblemSerialization {
                 out.name(FUNCTION_NAME).value(typeValidationData.getFunctionName());
                 out.name(PARENT_PROPERTY_NAME).value(typeValidationData.getParentPropertyName());
                 out.name(TYPE_NAME).value(typeValidationData.getTypeName());
+                out.name(DECLARING_CLASS_NAME).value(typeValidationData.getDeclaringClassName());
+                out.name(SOURCE_FILENAME).value(typeValidationData.getSourceFilename());
+                out.name(LINE_NUMBER).value(typeValidationData.getLineNumber());
             } else if (value instanceof GeneralData) {
                 out.name(ADDITIONAL_DATA_TYPE).value(GENERAL_DATA);
                 out.name(GENERAL_DATA_DATA);
@@ -652,6 +658,9 @@ public class ValidationProblemSerialization {
                 String functionName = null;
                 String parentPropertyName = null;
                 String typeName = null;
+                String declaringClassName = null;
+                String sourceFilename = null;
+                Integer lineNumber = null;
                 String name;
                 Map<String, String> generalData = null;
                 String propertyTrace = null;
@@ -687,6 +696,30 @@ public class ValidationProblemSerialization {
                             typeName = in.nextString();
                             break;
                         }
+                        case DECLARING_CLASS_NAME: {
+                            if (in.peek() == JsonToken.NULL) {
+                                in.nextNull();
+                            } else {
+                                declaringClassName = in.nextString();
+                            }
+                            break;
+                        }
+                        case SOURCE_FILENAME: {
+                            if (in.peek() == JsonToken.NULL) {
+                                in.nextNull();
+                            } else {
+                                sourceFilename = in.nextString();
+                            }
+                            break;
+                        }
+                        case LINE_NUMBER: {
+                            if (in.peek() == JsonToken.NULL) {
+                                in.nextNull();
+                            } else {
+                                lineNumber = in.nextInt();
+                            }
+                            break;
+                        }
                         case PROPERTY_TRACE: {
                             propertyTrace = in.nextString();
                             break;
@@ -712,13 +745,26 @@ public class ValidationProblemSerialization {
                 if (type == null) {
                     throw new JsonParseException("type must not be null");
                 }
-                return createAdditionalData(type, featureUsage, pluginId, propertyName, functionName, parentPropertyName, typeName, generalData, propertyTrace);
+                return createAdditionalData(type, featureUsage, pluginId, propertyName, functionName, parentPropertyName, typeName, declaringClassName, sourceFilename, lineNumber, generalData, propertyTrace);
             } finally {
                 in.endObject();
             }
         }
 
-        private static @NonNull AdditionalData createAdditionalData(String type, String featureUsage, String pluginId, String propertyName, String methodName, String parentPropertyName, String typeName, Map<String, String> generalData, String propertyTrace) {
+        private static @NonNull AdditionalData createAdditionalData(
+            String type,
+            String featureUsage,
+            String pluginId,
+            String propertyName,
+            String methodName,
+            String parentPropertyName,
+            String typeName,
+            @Nullable String declaringClassName,
+            @Nullable String sourceFilename,
+            @Nullable Integer lineNumber,
+            Map<String, String> generalData,
+            String propertyTrace
+        ) {
             switch (type) {
                 case DEPRECATION_DATA:
                     return new DefaultDeprecationData(DeprecationData.Type.valueOf(featureUsage));
@@ -728,7 +774,10 @@ public class ValidationProblemSerialization {
                         propertyName,
                         methodName,
                         parentPropertyName,
-                        typeName);
+                        typeName,
+                        declaringClassName,
+                        sourceFilename,
+                        lineNumber);
                 case GENERAL_DATA:
                     return new DefaultGeneralData(generalData);
                 case PROPERTY_TRACE_DATA:

@@ -26,10 +26,14 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.internal.ProblemBuilderInternal;
 import org.gradle.api.problems.internal.ProblemGroupsInternal;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
+import org.gradle.api.problems.internal.TypeValidationData;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.UntrackedTask;
@@ -39,6 +43,7 @@ import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
@@ -50,7 +55,13 @@ import java.lang.annotation.Annotation;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
@@ -59,6 +70,8 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
 
     public interface Params extends WorkParameters {
         ConfigurableFileCollection getClasses();
+
+        ConfigurableFileCollection getSourceDirectories();
 
         RegularFileProperty getOutputFile();
 
@@ -77,7 +90,150 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
         Params params = getParameters();
 
         params.getClasses().getAsFileTree().visit(new ValidationProblemCollector(taskValidationWarnings, taskValidationErrors, params, getProblems()));
-        storeResults(taskValidationWarnings, taskValidationErrors, params.getOutputFile(), getProblems().getGroups());
+
+        List<File> sourceRoots = params.getSourceDirectories().getFiles().stream()
+            .filter(File::isDirectory)
+            .collect(Collectors.toList());
+
+        List<Problem> enrichedWarnings = enrichProblems(taskValidationWarnings, sourceRoots, getProblems());
+        List<Problem> enrichedErrors = enrichProblems(taskValidationErrors, sourceRoots, getProblems());
+
+        storeResults(enrichedWarnings, enrichedErrors, params.getOutputFile(), getProblems().getGroups());
+    }
+
+    private static List<Problem> enrichProblems(List<Problem> problems, List<File> sourceRoots, ProblemsInternal problemsService) {
+        if (sourceRoots.isEmpty() || problems.isEmpty()) {
+            return problems;
+        }
+
+        Map<String, Optional<File>> resolvedFileCache = new HashMap<>();
+        List<Problem> enriched = new ArrayList<>(problems.size());
+        for (Problem problem : problems) {
+            enriched.add(enrichProblemWithLocation(problem, sourceRoots, problemsService, resolvedFileCache));
+        }
+        return enriched;
+    }
+
+    private static Problem enrichProblemWithLocation(
+        Problem problem,
+        List<File> sourceRoots,
+        ProblemsInternal problemsService,
+        Map<String, Optional<File>> resolvedFileCache
+    ) {
+        if (!(problem instanceof ProblemInternal)) {
+            return problem;
+        }
+        ProblemInternal problemInternal = (ProblemInternal) problem;
+        AdditionalData additionalData = problemInternal.getAdditionalData();
+        if (!(additionalData instanceof TypeValidationData)) {
+            return problem;
+        }
+        TypeValidationData typeValidationData = (TypeValidationData) additionalData;
+        String declaringClassName = typeValidationData.getDeclaringClassName();
+        String sourceFilename = typeValidationData.getSourceFilename();
+        if (declaringClassName == null || sourceFilename == null) {
+            return problem;
+        }
+
+        String cacheKey = declaringClassName + "#" + sourceFilename;
+        Optional<File> maybeSourceFile = resolvedFileCache.computeIfAbsent(cacheKey, k ->
+            Optional.ofNullable(resolveSourceFile(sourceRoots, declaringClassName, sourceFilename))
+        );
+        if (!maybeSourceFile.isPresent()) {
+            return problem;
+        }
+
+        File sourceFile = maybeSourceFile.get();
+        Integer lineNumber = typeValidationData.getLineNumber();
+        ProblemBuilderInternal builder = problemInternal.toBuilder(problemsService.getInfrastructure());
+        if (lineNumber != null) {
+            builder.lineInFileLocation(sourceFile.getAbsolutePath(), lineNumber);
+        } else {
+            builder.fileLocation(sourceFile.getAbsolutePath());
+        }
+        return builder.build();
+    }
+
+    @Nullable
+    static File resolveSourceFile(List<File> sourceRoots, String declaringClassName, String sourceFilename) {
+        // Step 1: Package-based lookup
+        String packagePath = "";
+        int lastDot = declaringClassName.lastIndexOf('.');
+        if (lastDot > 0) {
+            packagePath = declaringClassName.substring(0, lastDot).replace('.', File.separatorChar);
+        }
+        String relativePath = packagePath.isEmpty() ? sourceFilename : packagePath + File.separator + sourceFilename;
+
+        Set<String> matchedCanonicalPaths = new HashSet<>();
+        List<File> packageMatchedFiles = new ArrayList<>();
+
+        for (File root : sourceRoots) {
+            File candidate = new File(root, relativePath);
+            if (candidate.isFile()) {
+                try {
+                    String canonical = candidate.getCanonicalPath();
+                    if (matchedCanonicalPaths.add(canonical)) {
+                        packageMatchedFiles.add(candidate);
+                    }
+                } catch (IOException e) {
+                    if (matchedCanonicalPaths.add(candidate.getAbsolutePath())) {
+                        packageMatchedFiles.add(candidate);
+                    }
+                }
+            }
+        }
+
+        if (packageMatchedFiles.size() == 1) {
+            return packageMatchedFiles.get(0);
+        }
+        if (packageMatchedFiles.size() > 1) {
+            // Ambiguous across different source roots
+            return null;
+        }
+
+        // Step 2: Fallback for layouts where file is not in package directory (e.g. Kotlin non-package layout)
+        Set<String> fallbackCanonicalPaths = new HashSet<>();
+        List<File> fallbackMatchedFiles = new ArrayList<>();
+
+        for (File root : sourceRoots) {
+            findFilesByName(root, sourceFilename, fallbackCanonicalPaths, fallbackMatchedFiles);
+            if (fallbackMatchedFiles.size() > 1) {
+                // Ambiguous
+                return null;
+            }
+        }
+
+        if (fallbackMatchedFiles.size() == 1) {
+            return fallbackMatchedFiles.get(0);
+        }
+
+        return null;
+    }
+
+    private static void findFilesByName(File dir, String filename, Set<String> matchedPaths, List<File> matchedFiles) {
+        File[] files = dir.listFiles();
+        if (files == null) {
+            return;
+        }
+        for (File file : files) {
+            if (file.isDirectory()) {
+                findFilesByName(file, filename, matchedPaths, matchedFiles);
+                if (matchedFiles.size() > 1) {
+                    return;
+                }
+            } else if (file.isFile() && file.getName().equals(filename)) {
+                try {
+                    String canonical = file.getCanonicalPath();
+                    if (matchedPaths.add(canonical)) {
+                        matchedFiles.add(file);
+                    }
+                } catch (IOException e) {
+                    if (matchedPaths.add(file.getAbsolutePath())) {
+                        matchedFiles.add(file);
+                    }
+                }
+            }
+        }
     }
 
     private static void storeResults(List<Problem> warnings, List<Problem> errors, RegularFileProperty outputFile, ProblemGroupsInternal groups) {

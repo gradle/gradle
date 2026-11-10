@@ -158,6 +158,7 @@ public abstract class ValidatePlugins extends DefaultTask {
             })
             .submit(ValidateAction.class, params -> {
                 params.getClasses().setFrom(getClasses());
+                params.getSourceDirectories().setFrom(getSourceDirectories());
                 params.getOutputFile().set(getOutputFile());
                 params.getEnableStricterValidation().set(getEnableStricterValidation());
             });
@@ -211,6 +212,18 @@ public abstract class ValidatePlugins extends DefaultTask {
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract ConfigurableFileCollection getClasses();
+
+    /**
+     * The source directories containing the plugin source files.
+     *
+     * @since 9.10
+     */
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @IgnoreEmptyDirectories
+    @Optional
+    @Incubating
+    public abstract ConfigurableFileCollection getSourceDirectories();
 
     /**
      * The classpath used to load the classes under validation.

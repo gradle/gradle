@@ -193,6 +193,42 @@ class ValidationProblemSerializationTest extends Specification {
         (deserialized.additionalData as TypeValidationData).typeName == 'type'
         (deserialized.additionalData as TypeValidationData).parentPropertyName == 'parent'
         (deserialized.additionalData as TypeValidationData).pluginId == 'id'
+        (deserialized.additionalData as TypeValidationData).declaringClassName == null
+        (deserialized.additionalData as TypeValidationData).sourceFilename == null
+        (deserialized.additionalData as TypeValidationData).lineNumber == null
+
+        where:
+        asWarning << [false, true]
+    }
+
+    def "can serialize and deserialize a validation problem with source location metadata"(boolean asWarning) {
+        given:
+        def problem = problemReporter.internalCreate {
+            it.id(problemId)
+                .additionalDataInternal(TypeValidationDataSpec.class) {
+                    it.propertyName("property")
+                    it.typeName("type")
+                    it.parentPropertyName("parent")
+                    it.pluginId("id")
+                    it.declaringClassName("org.example.MyTask")
+                    it.sourceFilename("MyTask.java")
+                    it.lineNumber(42)
+                }
+        }
+
+        when:
+        def deserialized = serializeAndDeserialize(problem, asWarning)
+
+        then:
+        deserialized.definition.id.name == "id"
+        deserialized.definition.id.displayName == "id"
+        (deserialized.additionalData as TypeValidationData).propertyName == 'property'
+        (deserialized.additionalData as TypeValidationData).typeName == 'type'
+        (deserialized.additionalData as TypeValidationData).parentPropertyName == 'parent'
+        (deserialized.additionalData as TypeValidationData).pluginId == 'id'
+        (deserialized.additionalData as TypeValidationData).declaringClassName == 'org.example.MyTask'
+        (deserialized.additionalData as TypeValidationData).sourceFilename == 'MyTask.java'
+        (deserialized.additionalData as TypeValidationData).lineNumber == 42
 
         where:
         asWarning << [false, true]

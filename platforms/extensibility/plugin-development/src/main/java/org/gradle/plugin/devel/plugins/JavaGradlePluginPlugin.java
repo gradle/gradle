@@ -284,6 +284,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
             task.getOutputFile().set(project.getLayout().getBuildDirectory().file("reports/plugin-development/validation-report.json"));
 
             task.getClasses().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getOutput().getClassesDirs());
+            task.getSourceDirectories().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getAllSource().getSourceDirectories());
             task.getClasspath().setFrom(
                 // Use the plugin's runtimeClasspath (own classes + runtime dependencies) for validation and also add the compileClasspath in case some compileOnly
                 // dependencies need to be loaded. Prefer the runtime classpath in case of clashes by adding it first.

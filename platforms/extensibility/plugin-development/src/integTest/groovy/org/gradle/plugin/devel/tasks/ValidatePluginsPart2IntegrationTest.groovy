@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.devel.tasks
 
+import org.gradle.api.problems.LineInFileLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
@@ -455,8 +456,12 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'doubleIterableOptions.*.*',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
+                'declaringClassName' : 'MyTask$Options',
+                'sourceFilename' : 'MyTask.java',
+                'lineNumber' : 63,
             ]
-            originLocations == []
+            oneLocation(LineInFileLocation).path == source("src/main/java/MyTask.java").absolutePath
+            oneLocation(LineInFileLocation).line == 63
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
@@ -471,8 +476,12 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'iterableMappedOptions.*.<key>.*',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
+                'declaringClassName' : 'MyTask$Options',
+                'sourceFilename' : 'MyTask.java',
+                'lineNumber' : 63,
             ]
-            originLocations == []
+            oneLocation(LineInFileLocation).path == source("src/main/java/MyTask.java").absolutePath
+            oneLocation(LineInFileLocation).line == 63
         }
         verifyAll(receivedProblem(2)) {
             severity == Severity.ERROR
@@ -487,8 +496,12 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'iterableOptions.*',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
+                'declaringClassName' : 'MyTask$Options',
+                'sourceFilename' : 'MyTask.java',
+                'lineNumber' : 63,
             ]
-            originLocations == []
+            oneLocation(LineInFileLocation).path == source("src/main/java/MyTask.java").absolutePath
+            oneLocation(LineInFileLocation).line == 63
         }
         verifyAll(receivedProblem(3)) {
             severity == Severity.ERROR
@@ -503,8 +516,12 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'mappedOptions.<key>',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
+                'declaringClassName' : 'MyTask$Options',
+                'sourceFilename' : 'MyTask.java',
+                'lineNumber' : 63,
             ]
-            originLocations == []
+            oneLocation(LineInFileLocation).path == source("src/main/java/MyTask.java").absolutePath
+            oneLocation(LineInFileLocation).line == 63
         }
         verifyAll(receivedProblem(4)) {
             severity == Severity.ERROR
@@ -519,8 +536,12 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'namedIterable.<name>',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
+                'declaringClassName' : 'MyTask$NamedBean',
+                'sourceFilename' : 'MyTask.java',
+                'lineNumber' : 74,
             ]
-            originLocations == []
+            oneLocation(LineInFileLocation).path == source("src/main/java/MyTask.java").absolutePath
+            oneLocation(LineInFileLocation).line == 74
         }
         verifyAll(receivedProblem(5)) {
             severity == Severity.ERROR
@@ -535,8 +556,12 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'options',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
+                'declaringClassName' : 'MyTask$Options',
+                'sourceFilename' : 'MyTask.java',
+                'lineNumber' : 63,
             ]
-            originLocations == []
+            oneLocation(LineInFileLocation).path == source("src/main/java/MyTask.java").absolutePath
+            oneLocation(LineInFileLocation).line == 63
         }
         verifyAll(receivedProblem(6)) {
             severity == Severity.ERROR
@@ -551,8 +576,12 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'optionsList.*',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
+                'declaringClassName' : 'MyTask$Options',
+                'sourceFilename' : 'MyTask.java',
+                'lineNumber' : 63,
             ]
-            originLocations == []
+            oneLocation(LineInFileLocation).path == source("src/main/java/MyTask.java").absolutePath
+            oneLocation(LineInFileLocation).line == 63
         }
         verifyAll(receivedProblem(7)) {
             severity == Severity.ERROR
@@ -567,8 +596,12 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'providedOptions',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
+                'declaringClassName' : 'MyTask$Options',
+                'sourceFilename' : 'MyTask.java',
+                'lineNumber' : 63,
             ]
-            originLocations == []
+            oneLocation(LineInFileLocation).path == source("src/main/java/MyTask.java").absolutePath
+            oneLocation(LineInFileLocation).line == 63
         }
     }
 
