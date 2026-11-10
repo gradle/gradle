@@ -39,7 +39,7 @@ class OriginTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionSpec
                 @TaskAction
                 void run() {
                     getProblems().getReporter().report(getProblems().getGroups().getOthers().group("Generic").problemId("$PROBLEM_ID")) {
-                        it.lineInFileLocation("src/main/java/Foo.java", 12, 5)
+                        it.lineInFileLocation(project.file("src/main/java/Foo.java").absolutePath, 12, 5)
                         it.fileLocation("gradle.properties")
                     }
                 }
@@ -54,9 +54,9 @@ class OriginTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionSpec
         then:
         problems.size() == 1
         def traces = problems[0].originTraces
-        traces*.frames*.displayName == [["src/main/java/Foo.java:12:5"], ["gradle.properties"]]
+        traces*.frames*.displayName == [[file("src/main/java/Foo.java").absolutePath + ":12:5"], ["gradle.properties"]]
         with(traces[0].frames[0].position as FilePosition) {
-            path == "src/main/java/Foo.java"
+            path == file("src/main/java/Foo.java").absolutePath
             line == 12
             column == 5
             offset == null
@@ -65,8 +65,8 @@ class OriginTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionSpec
         traces[1].frames[0].position instanceof FilePosition
         (traces[1].frames[0].position as FilePosition).line == null
 
-        and: "a relative path can't be placed in the build, so its locality is unknown"
-        traces*.frames*.locality.flatten().unique() == [Locality.UNKNOWN]
+        and: "an absolute path under the build's root is local; a relative one can't be placed, so it stays unknown"
+        traces*.frames*.locality.flatten() == [Locality.LOCAL, Locality.UNKNOWN]
 
         and: "the flat list is still filled"
         problems[0].originLocations.findAll { it instanceof LineInFileLocation }*.line == [12]

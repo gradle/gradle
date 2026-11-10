@@ -54,9 +54,13 @@ final class OriginTraces {
         return result.build();
     }
 
+    // A relative path has no base Gradle knows: the write API takes a plain string, and resolving it against the daemon's working directory would be a guess
     private static boolean isInside(File root, File file) {
+        if (!file.isAbsolute()) {
+            return false;
+        }
         File rootPath = root.getAbsoluteFile();
-        for (File current = file.getAbsoluteFile(); current != null; current = current.getParentFile()) {
+        for (File current = file; current != null; current = current.getParentFile()) {
             if (current.equals(rootPath)) {
                 return true;
             }
