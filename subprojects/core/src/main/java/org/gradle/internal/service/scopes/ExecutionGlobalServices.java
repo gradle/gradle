@@ -30,6 +30,7 @@ import org.gradle.features.annotations.BindsProjectType;
 import org.gradle.features.annotations.RegistersProjectFeatures;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
+import org.gradle.api.internal.tasks.execution.TaskLifecycleListenerClassInfoStore;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
@@ -264,6 +265,11 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     @Provides
     TaskClassInfoStore createTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory, TaskScheme taskScheme) {
         return new DefaultTaskClassInfoStore(cacheFactory, taskScheme.getMetadataStore());
+    }
+
+    @Provides
+    TaskLifecycleListenerClassInfoStore createTaskLifecycleListenerClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory, TaskScheme taskScheme, InstantiatorFactory instantiatorFactory) {
+        return new TaskLifecycleListenerClassInfoStore(cacheFactory, taskScheme.getMetadataStore(), instantiatorFactory.injectScheme());
     }
 
     @Provides

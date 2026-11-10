@@ -1101,6 +1101,8 @@ legacy after"""
         fails "foo"
 
         then:
+        failure.assertHasCause("Could not create task ':foo'.")
+        failure.assertNoTasksScheduled()
         failure.assertHasCause("Cannot add lifecycle listener CopyListener to task ':foo': the listener accepts tasks of type CopyTask, but the task is of type org.gradle.api.DefaultTask.")
     }
 
@@ -1117,7 +1119,7 @@ legacy after"""
         fails "foo"
 
         then:
-        failure.assertHasCause("Cannot add lifecycle listener GenericListener to task ':foo': the task type the listener accepts cannot be determined.")
+        failure.assertHasCause("Cannot use lifecycle listener GenericListener: the task type the listener accepts cannot be determined.")
     }
 
     def "cannot register listener with nested property"() {
@@ -1149,7 +1151,9 @@ legacy after"""
         fails "foo"
 
         then:
-        failure.assertHasCause("Cannot add lifecycle listener NestedListener to task ':foo': property 'greeting' is annotated with @Nested, which is not supported for lifecycle listeners.")
+        failure.assertHasCause("Could not create task ':foo'.")
+        failure.assertNoTasksScheduled()
+        failure.assertHasCause("Cannot use lifecycle listener NestedListener: property 'greeting' is annotated with @Nested, which is not supported for lifecycle listeners.")
     }
 
     def "listener can inject #service"() {
@@ -1180,22 +1184,18 @@ legacy after"""
         service << ["ObjectFactory", "ProviderFactory", "FileSystemOperations", "ArchiveOperations", "ExecOperations", "ProjectLayout", "org.gradle.api.problems.Problems"]
     }
 
-    def "listener cannot inject #service"() {
+    def "listener that injects #serviceType is rejected at registration"() {
         buildFile """
             import javax.inject.Inject
 
             abstract class InjectingListener implements TaskLifecycleListener<Task> {
+                // Never used, so the service would not be looked up when the task executes
                 @Inject
-                abstract $service getService()
-
-                void beforeExecution(Task task) {
-                    println "injected \${service}"
-                }
+                abstract $serviceType getService()
             }
 
             tasks.register("foo") {
                 addLifecycleListener(InjectingListener)
-                doLast { println "task action ran" }
             }
         """
 
@@ -1203,11 +1203,40 @@ legacy after"""
         fails "foo"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':foo'")
-        failure.assertThatCause(containsString("available in task lifecycle listener services."))
-        outputDoesNotContain("task action ran")
+        failure.assertHasCause("Could not create task ':foo'.")
+        failure.assertNoTasksScheduled()
+        failure.assertThatCause(startsWith("Cannot use lifecycle listener InjectingListener: it injects a service of type $serviceType, which is not available to lifecycle listeners."))
 
         where:
-        service << ["Project", "org.gradle.api.internal.project.ProjectInternal", "org.gradle.api.invocation.Gradle", "TaskContainer", "WorkerExecutor", "org.gradle.api.services.BuildServiceRegistry", "org.gradle.internal.instantiation.managed.ManagedObjectRegistry"]
+        serviceType << [
+            "org.gradle.api.Project",
+            "org.gradle.api.internal.project.ProjectInternal",
+            "org.gradle.api.invocation.Gradle",
+            "org.gradle.api.tasks.TaskContainer",
+            "org.gradle.workers.WorkerExecutor",
+            "org.gradle.api.services.BuildServiceRegistry",
+            "org.gradle.internal.instantiation.managed.ManagedObjectRegistry"
+        ]
+    }
+
+    def "listener type that cannot be instantiated is rejected at registration"() {
+        buildFile """
+            abstract class UnsupportedListener implements TaskLifecycleListener<Task> {
+                abstract Thread getThread()
+            }
+
+            tasks.register("foo") {
+                addLifecycleListener(UnsupportedListener)
+            }
+        """
+
+        when:
+        fails "foo"
+
+        then:
+        failure.assertHasCause("Could not create task ':foo'.")
+        failure.assertNoTasksScheduled()
+        failure.assertHasCause("Could not generate a decorated class for type UnsupportedListener.")
+        failure.assertHasCause("Cannot have abstract method UnsupportedListener.getThread(): Thread.")
     }
 }
