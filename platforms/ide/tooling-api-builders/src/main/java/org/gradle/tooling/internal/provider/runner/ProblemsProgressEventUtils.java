@@ -77,6 +77,7 @@ import org.gradle.api.problems.internal.location.FilePosition;
 import org.gradle.api.problems.internal.location.Frame;
 import org.gradle.api.problems.internal.location.Position;
 import org.gradle.api.problems.internal.location.PluginApplicationFrame;
+import org.gradle.api.problems.internal.location.PluginClassFrame;
 import org.gradle.api.problems.internal.location.ProjectFrame;
 import org.gradle.api.problems.internal.location.TaskFrame;
 import org.gradle.api.problems.internal.location.Trace;
@@ -85,6 +86,7 @@ import org.gradle.internal.build.event.types.DefaultProblemCompiledCodePosition;
 import org.gradle.internal.build.event.types.DefaultProblemFilePosition;
 import org.gradle.internal.build.event.types.DefaultFrame;
 import org.gradle.internal.build.event.types.DefaultPluginApplicationFrame;
+import org.gradle.internal.build.event.types.DefaultPluginClassFrame;
 import org.gradle.internal.build.event.types.DefaultProjectFrame;
 import org.gradle.internal.build.event.types.DefaultTaskFrame;
 import org.gradle.internal.build.event.types.DefaultTrace;
@@ -190,6 +192,10 @@ public class ProblemsProgressEventUtils {
         }
         if (frame instanceof PluginApplicationFrame) {
             return new DefaultPluginApplicationFrame(displayName, locality, position, ((PluginApplicationFrame) frame).getPluginId());
+        }
+        if (frame instanceof PluginClassFrame) {
+            PluginClassFrame pluginClass = (PluginClassFrame) frame;
+            return new DefaultPluginClassFrame(displayName, locality, position, pluginClass.getClassName(), pluginClass.getPluginId());
         }
         // A frame kind without a typed protocol class crosses as a plain frame
         return new DefaultFrame(displayName, locality, position);

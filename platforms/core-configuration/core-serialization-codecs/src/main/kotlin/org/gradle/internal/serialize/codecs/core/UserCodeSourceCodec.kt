@@ -37,17 +37,32 @@ object UserCodeSourceCodec : Codec<UserCodeSource> {
                 writeString(value.className)
                 writeNullableString(value.pluginId)
                 writeEnum(value.locality)
+                writeAppliedBy(value.appliedBy)
             }
             is UserCodeSource.Script -> {
                 writeSmallInt(2)
                 writeString(value.displayName.displayName)
                 writeNullableString(value.uri?.toString())
                 writeEnum(value.locality)
+                writeAppliedBy(value.appliedBy)
             }
 
             else -> error("Unexpected user code source type: ${value.javaClass.name}")
         }
     }
+
+    // The chain of applying code is written inline with each source; a task's chain is short, but the same chain is repeated per task node
+    private suspend fun WriteContext.writeAppliedBy(appliedBy: UserCodeSource?) {
+        if (appliedBy == null) {
+            writeBoolean(false)
+        } else {
+            writeBoolean(true)
+            encode(appliedBy)
+        }
+    }
+
+    private suspend fun ReadContext.readAppliedBy(): UserCodeSource? =
+        if (readBoolean()) decode() else null
 
     override suspend fun ReadContext.decode(): UserCodeSource {
         return when (val type = readSmallInt()) {
@@ -56,14 +71,14 @@ object UserCodeSourceCodec : Codec<UserCodeSource> {
                 val className = readString()
                 val pluginId = readNullableString()
                 val locality = readEnum<Locality>()
-                UserCodeSource.Binary(Describables.of(displayName), className, pluginId, locality)
+                UserCodeSource.Binary(Describables.of(displayName), className, pluginId, locality, readAppliedBy())
             }
 
             2 -> {
                 val displayName = readString()
                 val uri = readNullableString()?.let { URI.create(it) }
                 val locality = readEnum<Locality>()
-                UserCodeSource.Script(Describables.of(displayName), uri, locality)
+                UserCodeSource.Script(Describables.of(displayName), uri, locality, readAppliedBy())
             }
 
             else -> error("Unexpected user code source type: $type")

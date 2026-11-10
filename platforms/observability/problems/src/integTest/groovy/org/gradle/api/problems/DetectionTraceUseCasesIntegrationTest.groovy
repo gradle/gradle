@@ -72,8 +72,37 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
         then:
         detectionOf("Gradle:Plugin Validation:Missing annotation") == ["task :app:acme", "project :app", "build :"]
 
-        and: "the origin is the property and its type"
-        originsOf(problem) == [["property bar", "class com.acme.AcmeTask"]]
+        and: "the origin is the property and its type, then the task and the script that registered it"
+        originsOf(problem) == [["property bar", "class com.acme.AcmeTask", "task :app:acme", file("app/build.gradle").absolutePath]]
+    }
+
+    def "UC4 in a task action: a deprecation from a compiled plugin keeps its compiled origin when the task location is added"() {
+        given:
+        settingsFile """
+            include "app"
+        """
+        pluginInBuildSrc("com.acme.foo", "com.acme.AcmePlugin", """
+            project.getTasks().register("acme", task -> task.doLast(t -> {
+                org.gradle.internal.deprecation.DeprecationLogger
+                    .deprecate("Feature")
+                    .willBeRemovedInGradle10()
+                    .undocumented()
+                    .nagUser();
+            }));
+        """)
+        file("app/build.gradle") << """
+            plugins {
+                id "com.acme.foo"
+            }
+        """
+        expectFeatureDeprecation()
+
+        when:
+        run(":app:acme")
+
+        then:
+        detectionOf("Gradle:Deprecation:Feature") == ["task :app:acme", "project :app", "build :"]
+        problem.originTraces[0].frames[0].displayName == "AcmePlugin.java:" + nagLineOf(file("buildSrc/src/main/java/com/acme/AcmePlugin.java"))
     }
 
     def "UC3: deprecation called from a build script in a task action is detected in the task"() {

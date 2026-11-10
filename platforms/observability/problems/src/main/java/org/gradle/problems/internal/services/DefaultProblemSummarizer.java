@@ -89,7 +89,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         if (summarizerStrategy.shouldEmit(problem, taskPath)) {
             problem = maybeAddTaskLocation(problem, taskPath)
                 .withDetectionTrace(DetectionTraces.detectedIn(detection))
-                .withOriginTraces(OriginTraces.withFileLocalities(problem.getOriginTraces(), buildTreeRootDirectory));
+                .withOriginTraces(OriginTraces.withLineage(OriginTraces.withFileLocalities(problem.getOriginTraces(), buildTreeRootDirectory), taskIdentity));
             problemReportCreator.addProblem(problem);
             for (ProblemEmitter problemEmitter : problemEmitters) {
                 problemEmitter.emit(problem, id);

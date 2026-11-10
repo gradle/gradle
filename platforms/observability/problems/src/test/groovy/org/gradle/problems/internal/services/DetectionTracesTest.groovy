@@ -85,7 +85,7 @@ class DetectionTracesTest extends Specification {
 
     def "while a task runs the plugin being applied is not part of the trace"() {
         when:
-        def frames = DetectionTraces.detectedIn(new DetectionContext(new TaskIdentity(":app:test", ":app", ":", null), new ProjectIdentity(":app", ":"), plugin("com.acme.foo", Locality.LOCAL))).frames
+        def frames = DetectionTraces.detectedIn(new DetectionContext(new TaskIdentity(":app:test", ":app", ":", "com.acme.AcmeTask", null), new ProjectIdentity(":app", ":"), plugin("com.acme.foo", Locality.LOCAL))).frames
 
         then:
         frames*.displayName == ["task :app:test", "project :app", "build :"]
@@ -94,7 +94,7 @@ class DetectionTracesTest extends Specification {
 
     def "a task registered by a plugin takes the plugin's locality"() {
         when:
-        def frames = DetectionTraces.detectedIn(new DetectionContext(new TaskIdentity(":app:test", ":app", ":", plugin("org.gradle.java", Locality.CORE)), null, null)).frames
+        def frames = DetectionTraces.detectedIn(new DetectionContext(new TaskIdentity(":app:test", ":app", ":", "com.acme.AcmeTask", plugin("org.gradle.java", Locality.CORE)), null, null)).frames
 
         then:
         frames[0].locality == Locality.CORE
@@ -110,7 +110,7 @@ class DetectionTracesTest extends Specification {
     }
 
     private static DetectionContext task(String taskPath, String projectPath, String buildPath) {
-        new DetectionContext(new TaskIdentity(taskPath, projectPath, buildPath, plugin("com.acme.foo", Locality.EXTERNAL)), null, null)
+        new DetectionContext(new TaskIdentity(taskPath, projectPath, buildPath, "com.acme.AcmeTask", plugin("com.acme.foo", Locality.EXTERNAL)), null, null)
     }
 
     private static UserCodeSource.Binary plugin(String id, Locality locality) {

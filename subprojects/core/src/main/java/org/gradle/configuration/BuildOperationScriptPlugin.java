@@ -65,7 +65,8 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
             decorated.apply(target);
         } else {
             URI uri = resource.getFile() != null ? resource.getFile().toURI() : resource.getLocation().getURI();
-            UserCodeSource source = new UserCodeSource.Script(getSource().getShortDisplayName(), uri, localityOf(target, resource.getFile()));
+            UserCodeApplicationContext.Application applying = userCodeApplicationContext.current();
+            UserCodeSource source = new UserCodeSource.Script(getSource().getShortDisplayName(), uri, localityOf(target, resource.getFile()), applying == null ? null : applying.getSource());
             UserCodeApplicationContext.Target appTarget = getApplicationTargetFor(target);
             userCodeApplicationContext.apply(source, appTarget, userCodeApplicationId -> buildOperationRunner.run(new RunnableBuildOperation() {
                 @Override

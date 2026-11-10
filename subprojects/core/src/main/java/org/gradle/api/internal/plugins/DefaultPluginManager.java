@@ -176,7 +176,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
                 final Runnable adder = addPluginInternal(plugin);
                 if (adder != null) {
                     UserCodeApplicationContext.Target appTarget = getApplicationTargetFor(target);
-                    UserCodeSource source = new UserCodeSource.Binary(plugin.getDisplayName(), pluginClass.getName(), pluginIdStr, codeLocalityResolver.localityOf(pluginClass));
+                    UserCodeSource source = new UserCodeSource.Binary(plugin.getDisplayName(), pluginClass.getName(), pluginIdStr, codeLocalityResolver.localityOf(pluginClass), currentSource());
                     userCodeApplicationContext.apply(source, appTarget, userCodeApplicationId ->
                         buildOperationRunner.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass, userCodeApplicationId))
                     );
@@ -189,6 +189,12 @@ public class DefaultPluginManager implements PluginManagerInternal {
         } finally {
             Thread.currentThread().setContextClassLoader(contextClassLoader);
         }
+    }
+
+    // The code that is applying this plugin, if any: a convention plugin, or a script
+    private @Nullable UserCodeSource currentSource() {
+        UserCodeApplicationContext.Application current = userCodeApplicationContext.current();
+        return current == null ? null : current.getSource();
     }
 
     private static UserCodeApplicationContext.Target getApplicationTargetFor(PluginTarget target) {

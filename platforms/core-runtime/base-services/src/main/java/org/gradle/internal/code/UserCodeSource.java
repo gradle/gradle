@@ -37,6 +37,12 @@ public interface UserCodeSource {
     Locality getLocality();
 
     /**
+     * Returns the code that applied this code: the plugin or script that was running when it was applied, or null when nothing was.
+     */
+    @Nullable
+    UserCodeSource getAppliedBy();
+
+    /**
      * User code that is applied as a binary plugin.
      */
     class Binary implements UserCodeSource {
@@ -45,21 +51,32 @@ public interface UserCodeSource {
         private final String className;
         private final @Nullable String pluginId;
         private final Locality locality;
+        private final @Nullable UserCodeSource appliedBy;
 
         public Binary(Describable displayName, String className, @Nullable String pluginId) {
             this(displayName, className, pluginId, Locality.UNKNOWN);
         }
 
         public Binary(Describable displayName, String className, @Nullable String pluginId, Locality locality) {
+            this(displayName, className, pluginId, locality, null);
+        }
+
+        public Binary(Describable displayName, String className, @Nullable String pluginId, Locality locality, @Nullable UserCodeSource appliedBy) {
             this.displayName = displayName;
             this.className = className;
             this.pluginId = pluginId;
             this.locality = locality;
+            this.appliedBy = appliedBy;
         }
 
         @Override
         public Locality getLocality() {
             return locality;
+        }
+
+        @Override
+        public @Nullable UserCodeSource getAppliedBy() {
+            return appliedBy;
         }
 
         @Override
@@ -91,20 +108,31 @@ public interface UserCodeSource {
         private final Describable displayName;
         private final @Nullable URI uri;
         private final Locality locality;
+        private final @Nullable UserCodeSource appliedBy;
 
         public Script(Describable displayName, @Nullable URI uri) {
             this(displayName, uri, Locality.UNKNOWN);
         }
 
         public Script(Describable displayName, @Nullable URI uri, Locality locality) {
+            this(displayName, uri, locality, null);
+        }
+
+        public Script(Describable displayName, @Nullable URI uri, Locality locality, @Nullable UserCodeSource appliedBy) {
             this.displayName = displayName;
             this.uri = uri;
             this.locality = locality;
+            this.appliedBy = appliedBy;
         }
 
         @Override
         public Locality getLocality() {
             return locality;
+        }
+
+        @Override
+        public @Nullable UserCodeSource getAppliedBy() {
+            return appliedBy;
         }
 
         @Override

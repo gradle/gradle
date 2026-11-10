@@ -108,6 +108,7 @@ import org.gradle.tooling.events.problems.internal.DefaultBuildFrame;
 import org.gradle.tooling.events.problems.internal.DefaultCompiledCodePosition;
 import org.gradle.tooling.events.problems.internal.DefaultFrame;
 import org.gradle.tooling.events.problems.internal.DefaultPluginApplicationFrame;
+import org.gradle.tooling.events.problems.internal.DefaultPluginClassFrame;
 import org.gradle.tooling.events.problems.internal.DefaultProjectFrame;
 import org.gradle.tooling.events.problems.internal.DefaultTaskFrame;
 import org.gradle.tooling.events.problems.internal.DefaultTaskPathLocation;
@@ -273,6 +274,7 @@ import org.gradle.tooling.internal.protocol.problem.InternalCompiledCodePosition
 import org.gradle.tooling.internal.protocol.problem.InternalFrame;
 import org.gradle.tooling.internal.protocol.problem.InternalPosition;
 import org.gradle.tooling.internal.protocol.problem.InternalPluginApplicationFrame;
+import org.gradle.tooling.internal.protocol.problem.InternalPluginClassFrame;
 import org.gradle.tooling.internal.protocol.problem.InternalProjectFrame;
 import org.gradle.tooling.internal.protocol.problem.InternalTaskFrame;
 import org.gradle.tooling.internal.protocol.problem.InternalTaskPathLocation;
@@ -1132,6 +1134,10 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
         if (frame instanceof InternalPluginApplicationFrame) {
             return new DefaultPluginApplicationFrame(displayName, locality, position, ((InternalPluginApplicationFrame) frame).getPluginId());
+        }
+        if (frame instanceof InternalPluginClassFrame) {
+            InternalPluginClassFrame pluginClass = (InternalPluginClassFrame) frame;
+            return new DefaultPluginClassFrame(displayName, locality, position, pluginClass.getClassName(), pluginClass.getPluginId());
         }
         // A frame kind this client has no type for stays in the trace as a plain frame: the order of a trace carries meaning
         return new DefaultFrame(displayName, locality, position);

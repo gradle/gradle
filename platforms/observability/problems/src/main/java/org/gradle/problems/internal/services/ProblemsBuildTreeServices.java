@@ -129,7 +129,7 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         return workExecutionTracker
             .getCurrentTask(id)
             .map(task -> task.getTaskIdentity())
-            .map(identity -> new TaskIdentity(identity.getBuildTreePath().asString(), identity.getProjectIdentity().getBuildTreePath().asString(), identity.getProjectIdentity().getBuildPath().asString(), identity.getUserCodeSource()))
+            .map(identity -> new TaskIdentity(identity.getBuildTreePath().asString(), identity.getProjectIdentity().getBuildTreePath().asString(), identity.getProjectIdentity().getBuildPath().asString(), identity.getTaskType().getName(), identity.getUserCodeSource()))
             .orElse(null);
     }
 
