@@ -146,6 +146,7 @@ class KnownProblemIds {
         'Gradle:Deprecation:Implicit lookup of properties in parent projects': ['Implicit lookup of properties in parent projects'],
         'Gradle:Deprecation:BuildSrc script': ['BuildSrc script'],
         'Gradle:Deprecation:Custom Task action': ['Custom Task action'],
+        'Gradle:Deprecation:Feature': ['Feature'],
         'Gradle:Deprecation:Task usage': ['Task usage'],
         'Gradle:Deprecation:Executing Gradle on JVM versions \\d+ and lower': ['Executing Gradle on JVM versions ' + (SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1) + ' and lower'],
         'Gradle:Deprecation:Included build script': ['Included build script'],
