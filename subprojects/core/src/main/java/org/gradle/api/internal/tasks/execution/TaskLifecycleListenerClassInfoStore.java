@@ -17,23 +17,27 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.internal.tasks.properties.GetServiceReferencesVisitor;
+import org.gradle.api.internal.tasks.properties.DefaultServiceReferenceSpec;
+import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.services.BuildService;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskLifecycleListener;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
-import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
@@ -90,7 +94,7 @@ public class TaskLifecycleListenerClassInfoStore {
     private TaskLifecycleListenerClassInfo createClassInfo(Class<?> listenerType) {
         Class<?> acceptedTaskType = acceptedTaskTypeOf(listenerType);
         TypeMetadata typeMetadata = typeMetadataStore.getTypeMetadata(listenerType);
-        GetServiceReferencesVisitor serviceReferences = new GetServiceReferencesVisitor();
+        ImmutableSortedSet.Builder<ServiceReferenceSpec> serviceReferences = ImmutableSortedSet.naturalOrder();
         for (PropertyMetadata property : typeMetadata.getPropertiesMetadata()) {
             if (property.getPropertyType() == Nested.class) {
                 // The services referenced by nested beans could only be found from a listener instance
@@ -100,12 +104,11 @@ public class TaskLifecycleListenerClassInfoStore {
                 ));
             }
             if (property.getPropertyType() == ServiceReference.class) {
-                // The handler only reads the property metadata, not its value
-                typeMetadata.getAnnotationHandlerFor(property).visitPropertyValue(property.getPropertyName(), PropertyValue.ABSENT, property, serviceReferences);
+                serviceReferences.add(serviceReferenceOf(listenerType, property));
             }
         }
         checkInjectedServices(listenerType);
-        return new TaskLifecycleListenerClassInfo(acceptedTaskType, serviceReferences.getServiceReferences());
+        return new TaskLifecycleListenerClassInfo(acceptedTaskType, serviceReferences.build());
     }
 
     private static Class<?> acceptedTaskTypeOf(Class<?> listenerType) {
@@ -114,6 +117,21 @@ public class TaskLifecycleListenerClassInfoStore {
             throw invalid(listenerType, "the task type the listener accepts cannot be determined. Declare the listener as implementing TaskLifecycleListener with a concrete task type.");
         }
         return TypeToken.of(acceptedType).getRawType();
+    }
+
+    private static ServiceReferenceSpec serviceReferenceOf(Class<?> listenerType, PropertyMetadata property) {
+        Type declaredType = property.getDeclaredType().getType();
+        if (declaredType instanceof ParameterizedType && Property.class.isAssignableFrom(property.getDeclaredType().getRawType())) {
+            Class<?> serviceType = TypeToken.of(((ParameterizedType) declaredType).getActualTypeArguments()[0]).getRawType();
+            if (BuildService.class.isAssignableFrom(serviceType)) {
+                String serviceName = property.getAnnotation(ServiceReference.class).map(ServiceReference::value).orElse("");
+                return new DefaultServiceReferenceSpec(property.getPropertyName(), Cast.uncheckedNonnullCast(serviceType), serviceName.trim());
+            }
+        }
+        throw invalid(listenerType, String.format(
+            "property '%s' is annotated with @ServiceReference, but its type is not a Property of a build service.",
+            property.getPropertyName()
+        ));
     }
 
     /**
