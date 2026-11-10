@@ -34,6 +34,17 @@ public class ProgressLoggingInputStream extends InputStream {
     }
 
     @Override
+    public long skip(long n) throws IOException {
+        // Skipped bytes are not processed, so they are not reported
+        return inputStream.skip(n);
+    }
+
+    @Override
+    public int available() throws IOException {
+        return inputStream.available();
+    }
+
+    @Override
     public int read() throws IOException {
         throw new UnsupportedOperationException("Reading from a remote resource should be buffered.");
     }
