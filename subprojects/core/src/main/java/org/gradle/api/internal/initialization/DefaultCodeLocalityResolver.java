@@ -19,27 +19,25 @@ package org.gradle.api.internal.initialization;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.ProtectionDomains;
+import org.gradle.internal.classloader.TransformedClassPathHolder;
+import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.code.Locality;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
-
 import java.io.File;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultCodeLocalityRegistry implements CodeLocalityRegistry {
+public class DefaultCodeLocalityResolver implements CodeLocalityResolver {
 
     private final Set<ClassLoader> coreClassLoaders;
-    private final Map<File, Locality> classpathEntries = new ConcurrentHashMap<>();
 
     @Inject
-    public DefaultCodeLocalityRegistry(ClassLoaderRegistry classLoaderRegistry) {
+    public DefaultCodeLocalityResolver(ClassLoaderRegistry classLoaderRegistry) {
         this(classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getPluginsClassLoader());
     }
 
-    DefaultCodeLocalityRegistry(ClassLoader... coreClassLoaders) {
+    DefaultCodeLocalityResolver(ClassLoader... coreClassLoaders) {
         ImmutableSet.Builder<ClassLoader> loaders = ImmutableSet.builder();
         for (ClassLoader loader : coreClassLoaders) {
             for (ClassLoader current = loader; current != null; current = current.getParent()) {
@@ -50,24 +48,30 @@ public class DefaultCodeLocalityRegistry implements CodeLocalityRegistry {
     }
 
     @Override
-    public void recordClasspathEntry(File file, Locality locality) {
-        classpathEntries.put(file.getAbsoluteFile(), locality);
-    }
-
-    @Override
     public Locality localityOf(Class<?> clazz) {
-        if (coreClassLoaders.contains(clazz.getClassLoader())) {
+        ClassLoader loader = clazz.getClassLoader();
+        if (coreClassLoaders.contains(loader)) {
             return Locality.CORE;
+        }
+        if (!(loader instanceof TransformedClassPathHolder)) {
+            return Locality.UNKNOWN;
         }
         File codeSource = codeSourceOf(clazz);
         if (codeSource == null) {
             return Locality.UNKNOWN;
         }
-        Locality result = classpathEntries.getOrDefault(codeSource.getAbsoluteFile(), Locality.UNKNOWN);
-        if (result == Locality.UNKNOWN) {
-            System.out.println("LOCALITY-DEBUG miss for " + clazz.getName() + " loaded from " + codeSource + " by " + clazz.getClassLoader() + "; recorded: " + classpathEntries);
+        return localityOf(((TransformedClassPathHolder) loader).getTransformedClassPath().kindOf(codeSource));
+    }
+
+    private static Locality localityOf(TransformedClassPath.InstrumentationKind kind) {
+        switch (kind) {
+            case PROJECT_DEPENDENCY:
+                return Locality.LOCAL;
+            case EXTERNAL_DEPENDENCY:
+                return Locality.EXTERNAL;
+            default:
+                return Locality.UNKNOWN;
         }
-        return result;
     }
 
     @Nullable

@@ -42,7 +42,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.api.internal.initialization.CodeLocalityRegistry;
+import org.gradle.api.internal.initialization.CodeLocalityResolver;
 import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
 import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultBuildLogicBuilder;
@@ -620,10 +620,10 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         ProblemsInternal problems,
-        CodeLocalityRegistry codeLocalityRegistry
+        CodeLocalityResolver codeLocalityResolver
     ) {
         PluginTarget target = new ImperativeOnlyPluginTarget<>(PluginTargetType.GRADLE, gradleInternal, problems);
-        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(buildScopeServices), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory, codeLocalityRegistry);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(buildScopeServices), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory, codeLocalityResolver);
     }
 
     @Provides

@@ -20,25 +20,15 @@ import org.gradle.internal.code.Locality;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.File;
-
 /**
- * Knows who owns the code of the build: Gradle itself, the build, or a third party.
+ * Tells who owns the code of a class: Gradle itself, the build, or a third party.
  * <p>
- * Script classpath resolution records which jars come from the build and which from a repository.
- * A class is then looked up through the jar it was loaded from. Gradle's own classes are known by their class loader.
- * Gradle claims a locality only when a record says so; otherwise the locality is unknown.
+ * Gradle's own classes are known by their class loader. Any other class is asked of the class loader that loaded it,
+ * which was built from a classpath that records where each entry came from. Gradle claims a locality only when such a
+ * record exists; otherwise the locality is unknown.
  */
 @ServiceScope(Scope.BuildTree.class)
-public interface CodeLocalityRegistry {
+public interface CodeLocalityResolver {
 
-    /**
-     * Records a classpath entry and who owns it.
-     */
-    void recordClasspathEntry(File file, Locality locality);
-
-    /**
-     * Returns who owns the given class.
-     */
     Locality localityOf(Class<?> clazz);
 }

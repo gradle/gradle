@@ -45,8 +45,6 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.execution.SafeInternalArtifactTransformAccess;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.internal.code.Locality;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector;
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
@@ -99,14 +97,12 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     private final InstrumentationTransformRegisterer instrumentationTransformRegisterer;
     private final PropertyUpgradeReportConfig propertyUpgradeReportConfig;
     private final ClassLoadTimeInstrumentationComposer classLoadTimeInstrumentationComposer;
-    private final CodeLocalityRegistry codeLocalityRegistry;
 
     public DefaultScriptClassPathResolver(
         AgentStatus agentStatus,
         Gradle gradle,
         PropertyUpgradeReportConfig propertyUpgradeReportConfig,
-        ClassLoadTimeInstrumentationComposer classLoadTimeInstrumentationComposer,
-        CodeLocalityRegistry codeLocalityRegistry
+        ClassLoadTimeInstrumentationComposer classLoadTimeInstrumentationComposer
     ) {
         // Shared services must be provided lazily, otherwise they are instantiated too early and some cases can fail
         this.instrumentationTransformRegisterer = new InstrumentationTransformRegisterer(
@@ -116,7 +112,6 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         );
         this.propertyUpgradeReportConfig = propertyUpgradeReportConfig;
         this.classLoadTimeInstrumentationComposer = classLoadTimeInstrumentationComposer;
-        this.codeLocalityRegistry = codeLocalityRegistry;
     }
 
     @Override
@@ -162,12 +157,12 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
             ArtifactCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
             Map<FileType, List<File>> instrumentedClasspath = mergeInstrumentedClasspath(originalArtifacts, instrumentedExternalDependencies, instrumentedProjectDependencies);
-            // The collections are computed by now, so this only walks them once more
-            recordLocalities(originalArtifacts, instrumentedExternalDependencies, instrumentedProjectDependencies);
+            // Where each entry came from, kept on the classpath so that the class loader built from it can say who owns a class
+            Map<File, TransformedClassPath.InstrumentationKind> kinds = InstrumentationClasspathMerger.kindsOf(instrumentedExternalDependencies, instrumentedProjectDependencies);
 
             MethodInterceptionReportCollector reportCollector = propertyUpgradeReportConfig.getReportCollector();
             instrumentedClasspath.getOrDefault(INTERCEPTED_METHODS_REPORT, Collections.emptyList()).forEach(reportCollector::collect);
-            ClassPath classPath = TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath.getOrDefault(ARTIFACT, Collections.emptyList()));
+            ClassPath classPath = TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath.getOrDefault(ARTIFACT, Collections.emptyList()), kinds);
             // The composition is repeated by the configuration cache class decoder when the classpath is restored
             // from the cache, see DefaultClassDecoder.scopeFor.
             return classLoadTimeInstrumentationComposer.composeWithThirdPartyAgentIfPresent(classPath);
@@ -194,27 +189,6 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
                 instrumentedExternalDependencies,
                 instrumentedProjectDependencies
             );
-        }
-    }
-
-    /**
-     * Records who owns each classpath entry, so that a class can later be attributed through the jar it was loaded from.
-     * Classes load from the original jar, or a copy of it, with the instrumentation agent and from the transformed jar without it, so both are recorded.
-     */
-    private void recordLocalities(ArtifactCollection originalDependencies, ArtifactCollection externalDependencies, ArtifactCollection projectDependencies) {
-        for (ResolvedArtifactResult artifact : originalDependencies.getArtifacts()) {
-            ComponentIdentifier componentId = artifact.getId().getComponentIdentifier();
-            if (isProjectDependency(componentId)) {
-                codeLocalityRegistry.recordClasspathEntry(artifact.getFile(), Locality.LOCAL);
-            } else if (isExternalDependency(componentId)) {
-                codeLocalityRegistry.recordClasspathEntry(artifact.getFile(), Locality.EXTERNAL);
-            }
-        }
-        for (ResolvedArtifactResult artifact : externalDependencies.getArtifacts()) {
-            codeLocalityRegistry.recordClasspathEntry(artifact.getFile(), Locality.EXTERNAL);
-        }
-        for (ResolvedArtifactResult artifact : projectDependencies.getArtifacts()) {
-            codeLocalityRegistry.recordClasspathEntry(artifact.getFile(), Locality.LOCAL);
         }
     }
 

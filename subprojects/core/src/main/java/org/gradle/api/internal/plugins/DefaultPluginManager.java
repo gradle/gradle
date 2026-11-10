@@ -31,7 +31,7 @@ import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.Cast;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationId;
-import org.gradle.api.internal.initialization.CodeLocalityRegistry;
+import org.gradle.api.internal.initialization.CodeLocalityResolver;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -72,11 +72,11 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     private final BuildOperationRunner buildOperationRunner;
     private final UserCodeApplicationContext userCodeApplicationContext;
-    private final CodeLocalityRegistry codeLocalityRegistry;
+    private final CodeLocalityResolver codeLocalityResolver;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
     @SuppressWarnings("this-escape")
-    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator callbackDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory, CodeLocalityRegistry codeLocalityRegistry) {
+    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator callbackDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory, CodeLocalityResolver codeLocalityResolver) {
         this.instantiator = instantiator;
         this.target = target;
         this.pluginRegistry = pluginRegistry;
@@ -84,7 +84,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this, callbackDecorator);
         this.buildOperationRunner = buildOperationRunner;
         this.userCodeApplicationContext = userCodeApplicationContext;
-        this.codeLocalityRegistry = codeLocalityRegistry;
+        this.codeLocalityResolver = codeLocalityResolver;
     }
 
     private <T> T instantiatePlugin(Class<T> type) {
@@ -176,7 +176,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
                 final Runnable adder = addPluginInternal(plugin);
                 if (adder != null) {
                     UserCodeApplicationContext.Target appTarget = getApplicationTargetFor(target);
-                    UserCodeSource source = new UserCodeSource.Binary(plugin.getDisplayName(), pluginClass.getName(), pluginIdStr, codeLocalityRegistry.localityOf(pluginClass));
+                    UserCodeSource source = new UserCodeSource.Binary(plugin.getDisplayName(), pluginClass.getName(), pluginIdStr, codeLocalityResolver.localityOf(pluginClass));
                     userCodeApplicationContext.apply(source, appTarget, userCodeApplicationId ->
                         buildOperationRunner.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass, userCodeApplicationId))
                     );

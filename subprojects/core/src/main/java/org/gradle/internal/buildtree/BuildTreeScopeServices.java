@@ -19,8 +19,8 @@ package org.gradle.internal.buildtree;
 import org.gradle.api.configuration.BuildFeatures;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
-import org.gradle.api.internal.initialization.CodeLocalityRegistry;
-import org.gradle.api.internal.initialization.DefaultCodeLocalityRegistry;
+import org.gradle.api.internal.initialization.CodeLocalityResolver;
+import org.gradle.api.internal.initialization.DefaultCodeLocalityResolver;
 import org.gradle.api.internal.configuration.DefaultBuildFeatures;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
@@ -132,7 +132,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         }
         registration.add(BuildInvocationScopeId.class, buildInvocationScopeId);
         registration.add(BuildTreeServices.class);
-        registration.add(CodeLocalityRegistry.class, DefaultCodeLocalityRegistry.class);
+        registration.add(CodeLocalityResolver.class, DefaultCodeLocalityResolver.class);
         registration.add(GradleEnterprisePluginManager.class);
         registration.add(BuildLifecycleControllerFactory.class, DefaultBuildLifecycleControllerFactory.class);
         registration.add(BuildOptionBuildOperationProgressEventsEmitter.class);

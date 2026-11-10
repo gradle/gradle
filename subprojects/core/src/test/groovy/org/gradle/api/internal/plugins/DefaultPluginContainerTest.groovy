@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.plugins
 
-import org.gradle.api.internal.initialization.CodeLocalityRegistry
+import org.gradle.api.internal.initialization.CodeLocalityResolver
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.CollectionCallbackActionDecorator
@@ -41,7 +41,7 @@ class DefaultPluginContainerTest extends Specification {
         getConfigurationTargetIdentifier() >> Mock(ConfigurationTargetIdentifier)
     }
     def instantiator = TestUtil.instantiatorFactory().inject()
-    def pluginManager = new DefaultPluginManager(pluginRegistry, instantiator, target, new TestBuildOperationRunner(), new TestUserCodeApplicationContext(), CollectionCallbackActionDecorator.NOOP, TestUtil.domainObjectCollectionFactory(), Stub(CodeLocalityRegistry))
+    def pluginManager = new DefaultPluginManager(pluginRegistry, instantiator, target, new TestBuildOperationRunner(), new TestUserCodeApplicationContext(), CollectionCallbackActionDecorator.NOOP, TestUtil.domainObjectCollectionFactory(), Stub(CodeLocalityResolver))
 
     @Subject
     def container = pluginManager.pluginContainer

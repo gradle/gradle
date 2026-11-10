@@ -19,7 +19,6 @@ package org.gradle.initialization.buildsrc
 import org.gradle.api.Action
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.internal.initialization.CodeLocalityRegistry
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver
 import org.gradle.api.internal.initialization.transform.ClassLoadTimeInstrumentationComposer
 import org.gradle.api.internal.project.ProjectInternal
@@ -58,7 +57,7 @@ class BuildSrcBuildListenerFactoryTest extends Specification {
             Stub(Gradle),
             Stub(PropertyUpgradeReportConfig),
             ClassLoadTimeInstrumentationComposer.empty()
-        , Stub(CodeLocalityRegistry))).create()
+        )).create()
 
         when:
         listener.projectsLoaded(gradle)
