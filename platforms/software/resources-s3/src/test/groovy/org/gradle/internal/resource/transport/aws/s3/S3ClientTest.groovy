@@ -34,7 +34,16 @@ import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response
 import software.amazon.awssdk.services.s3.model.S3Object
+import software.amazon.awssdk.http.AbortableInputStream
+import software.amazon.awssdk.http.ExecutableHttpRequest
+import software.amazon.awssdk.http.HttpExecuteRequest
+import software.amazon.awssdk.http.HttpExecuteResponse
+import software.amazon.awssdk.http.SdkHttpClient
 import software.amazon.awssdk.http.SdkHttpConfigurationOption
+import software.amazon.awssdk.http.SdkHttpResponse
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
+import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.model.UploadPartRequest
@@ -47,6 +56,7 @@ import org.gradle.internal.resource.ReadableContent
 import org.gradle.internal.resource.local.ByteArrayReadableContent
 import org.gradle.internal.resource.transport.http.HttpProxySettings
 import org.gradle.util.TestCredentialUtil
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.util.environment.RestoreSystemProperties
 
@@ -54,6 +64,7 @@ import java.time.Duration
 
 
 class S3ClientTest extends Specification {
+    static final int MIB = 1024 * 1024
     final S3ConnectionProperties s3ConnectionProperties = Mock()
 
     def setup(){
@@ -625,6 +636,40 @@ class S3ClientTest extends Specification {
         processed == 20
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/30965")
+    def "retries a single-part upload larger than 128 KB with the same bytes"() {
+        given:
+        def http = new FlakyHttpClient(["put"])
+        byte[] data = randomBytes(MIB)
+        S3Client s3Client = new S3Client(sdkClientWith(http), uploadProperties(10L * MIB, 5L * MIB))
+
+        when:
+        s3Client.put(nonRewindableContent(data), new URI("s3://mybucket/file.bin"))
+
+        then:
+        http.bodies["put"].size() == 2
+        http.bodies["put"].every { Arrays.equals(it, data) }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30965")
+    def "retries a failed part of a multipart upload with the same bytes"() {
+        given:
+        def http = new FlakyHttpClient(["part-2"])
+        int partSize = 512 * 1024
+        byte[] data = randomBytes(3 * partSize)
+        S3Client s3Client = new S3Client(sdkClientWith(http), uploadProperties(MIB, partSize))
+
+        when:
+        s3Client.put(nonRewindableContent(data), new URI("s3://mybucket/file.bin"))
+
+        then:
+        http.bodies["part-1"].size() == 1
+        http.bodies["part-2"].size() == 2
+        http.bodies["part-2"].every { Arrays.equals(it, Arrays.copyOfRange(data, partSize, 2 * partSize)) }
+        http.bodies["part-3"].size() == 1
+        http.bodies["complete"].size() == 1
+    }
+
     def "reuses one client per region"() {
         given:
         S3ConnectionProperties s3Properties = Stub()
@@ -720,6 +765,113 @@ class S3ClientTest extends Specification {
         and:
         def ex = thrown(HttpErrorStatusCodeException)
         ex.statusCode == 403
+    }
+
+    private S3ConnectionProperties uploadProperties(long multipartThreshold, long partSize) {
+        S3ConnectionProperties properties = Stub()
+        properties.getEndpoint() >> Optional.empty()
+        properties.getMultipartThreshold() >> multipartThreshold
+        properties.getPartSize() >> partSize
+        properties
+    }
+
+    private static byte[] randomBytes(int size) {
+        def bytes = new byte[size]
+        new Random().nextBytes(bytes)
+        bytes
+    }
+
+    // Like SDK v1's input, the stream cannot be reset, so a retry has to reopen the content
+    private static ReadableContent nonRewindableContent(byte[] data) {
+        new ReadableContent() {
+            @Override
+            InputStream open() {
+                new FilterInputStream(new ByteArrayInputStream(data)) {
+                    @Override
+                    boolean markSupported() {
+                        false
+                    }
+                }
+            }
+
+            @Override
+            long getContentLength() {
+                data.length
+            }
+        }
+    }
+
+    // A real SDK client, with the custom endpoint settings that send bodies unencoded
+    private static software.amazon.awssdk.services.s3.S3Client sdkClientWith(SdkHttpClient httpClient) {
+        software.amazon.awssdk.services.s3.S3Client.builder()
+            .httpClient(httpClient)
+            .region(Region.US_EAST_1)
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
+            .endpointOverride(new URI("http://localhost"))
+            .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).chunkedEncodingEnabled(false).build())
+            .build()
+    }
+
+    /**
+     * Records the body of every attempt, and fails the first attempt of the given operations with a retryable 500.
+     */
+    private static class FlakyHttpClient implements SdkHttpClient {
+        final Map<String, List<byte[]>> bodies = [:].withDefault { [] }
+        private final Set<String> failOnce
+
+        FlakyHttpClient(Collection<String> failOnce) {
+            this.failOnce = new HashSet<>(failOnce)
+        }
+
+        @Override
+        ExecutableHttpRequest prepareRequest(HttpExecuteRequest request) {
+            new ExecutableHttpRequest() {
+                @Override
+                HttpExecuteResponse call() {
+                    handle(request)
+                }
+
+                @Override
+                void abort() {
+                }
+            }
+        }
+
+        private HttpExecuteResponse handle(HttpExecuteRequest request) {
+            def query = request.httpRequest().rawQueryParameters()
+            String operation = query.containsKey("uploads") ? "create"
+                : query.containsKey("partNumber") ? "part-${query["partNumber"][0]}".toString()
+                : query.containsKey("uploadId") ? "complete"
+                : "put"
+            bodies[operation] << request.contentStreamProvider().map { it.newStream().bytes }.orElse(new byte[0])
+            if (failOnce.remove(operation)) {
+                return response(500, "<Error><Code>InternalError</Code><Message>Simulated failure</Message></Error>")
+            }
+            switch (operation) {
+                case "create":
+                    return response(200, "<InitiateMultipartUploadResult><Bucket>mybucket</Bucket><Key>file.bin</Key><UploadId>1</UploadId></InitiateMultipartUploadResult>")
+                case "complete":
+                    return response(200, "<CompleteMultipartUploadResult><Bucket>mybucket</Bucket><Key>file.bin</Key><ETag>\"etag\"</ETag></CompleteMultipartUploadResult>")
+                default:
+                    return response(200, "")
+            }
+        }
+
+        private static HttpExecuteResponse response(int status, String body) {
+            HttpExecuteResponse.builder()
+                .response(SdkHttpResponse.builder().statusCode(status).putHeader("ETag", "\"etag\"").build())
+                .responseBody(AbortableInputStream.create(new ByteArrayInputStream(body.bytes)))
+                .build()
+        }
+
+        @Override
+        void close() {
+        }
+
+        @Override
+        String clientName() {
+            "flaky"
+        }
     }
 
     private static S3RegionalResource someResource() {
