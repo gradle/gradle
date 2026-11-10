@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
 import org.gradle.api.tasks.TaskLifecycleListener;
@@ -24,19 +25,20 @@ import org.gradle.api.tasks.TaskLifecycleListener;
  * What is known about a valid {@link TaskLifecycleListener} type, regardless of the tasks it is registered with.
  */
 public class TaskLifecycleListenerClassInfo {
-    private final Class<?> acceptedTaskType;
+    private final ImmutableList<Class<?>> acceptedTaskTypes;
     private final ImmutableSet<ServiceReferenceSpec> serviceReferences;
 
-    public TaskLifecycleListenerClassInfo(Class<?> acceptedTaskType, ImmutableSet<ServiceReferenceSpec> serviceReferences) {
-        this.acceptedTaskType = acceptedTaskType;
+    public TaskLifecycleListenerClassInfo(ImmutableList<Class<?>> acceptedTaskTypes, ImmutableSet<ServiceReferenceSpec> serviceReferences) {
+        this.acceptedTaskTypes = acceptedTaskTypes;
         this.serviceReferences = serviceReferences;
     }
 
     /**
-     * The type of task the listener is declared for.
+     * The types that a task must have for the listener to accept it.
+     * There are several when the listener is declared for a type variable with several bounds.
      */
-    public Class<?> getAcceptedTaskType() {
-        return acceptedTaskType;
+    public ImmutableList<Class<?>> getAcceptedTaskTypes() {
+        return acceptedTaskTypes;
     }
 
     /**

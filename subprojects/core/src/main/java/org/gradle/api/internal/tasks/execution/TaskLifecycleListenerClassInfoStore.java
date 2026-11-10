@@ -47,6 +47,7 @@ import org.gradle.process.ExecOperations;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -92,7 +93,7 @@ public class TaskLifecycleListenerClassInfoStore {
     }
 
     private TaskLifecycleListenerClassInfo createClassInfo(Class<?> listenerType) {
-        Class<?> acceptedTaskType = acceptedTaskTypeOf(listenerType);
+        ImmutableList<Class<?>> acceptedTaskTypes = acceptedTaskTypesOf(listenerType);
         TypeMetadata typeMetadata = typeMetadataStore.getTypeMetadata(listenerType);
         ImmutableSortedSet.Builder<ServiceReferenceSpec> serviceReferences = ImmutableSortedSet.naturalOrder();
         for (PropertyMetadata property : typeMetadata.getPropertiesMetadata()) {
@@ -108,15 +109,20 @@ public class TaskLifecycleListenerClassInfoStore {
             }
         }
         checkInjectedServices(listenerType);
-        return new TaskLifecycleListenerClassInfo(acceptedTaskType, serviceReferences.build());
+        return new TaskLifecycleListenerClassInfo(acceptedTaskTypes, serviceReferences.build());
     }
 
-    private static Class<?> acceptedTaskTypeOf(Class<?> listenerType) {
+    private static ImmutableList<Class<?>> acceptedTaskTypesOf(Class<?> listenerType) {
         Type acceptedType = TypeToken.of(listenerType).resolveType(TaskLifecycleListener.class.getTypeParameters()[0]).getType();
-        if (!(acceptedType instanceof Class) && !(acceptedType instanceof ParameterizedType)) {
-            throw invalid(listenerType, "the task type the listener accepts cannot be determined. Declare the listener as implementing TaskLifecycleListener with a concrete task type.");
+        if (acceptedType instanceof TypeVariable) {
+            // A generic listener, or one declared without type arguments, accepts the tasks that match the bounds of its type variable
+            ImmutableList.Builder<Class<?>> bounds = ImmutableList.builder();
+            for (Type bound : ((TypeVariable<?>) acceptedType).getBounds()) {
+                bounds.add(TypeToken.of(bound).getRawType());
+            }
+            return bounds.build();
         }
-        return TypeToken.of(acceptedType).getRawType();
+        return ImmutableList.of(TypeToken.of(acceptedType).getRawType());
     }
 
     private static ServiceReferenceSpec serviceReferenceOf(Class<?> listenerType, PropertyMetadata property) {

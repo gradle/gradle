@@ -586,13 +586,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
         taskMutator.mutate("Task.addLifecycleListener(Class)", () -> {
             TaskLifecycleListenerClassInfo listenerInfo = getServices().get(TaskLifecycleListenerClassInfoStore.class).getClassInfo(listenerType);
-            Class<?> acceptedTaskType = listenerInfo.getAcceptedTaskType();
             // The compiler cannot check this for Groovy or reflective callers
-            if (!acceptedTaskType.isInstance(this)) {
-                throw new InvalidUserDataException(String.format(
-                    "Cannot add lifecycle listener %s to %s: the listener accepts tasks of type %s, but the task is of type %s.",
-                    listenerType.getName(), this, acceptedTaskType.getName(), GeneratedSubclasses.unpackType(this).getName()
-                ));
+            for (Class<?> acceptedTaskType : listenerInfo.getAcceptedTaskTypes()) {
+                if (!acceptedTaskType.isInstance(this)) {
+                    throw new InvalidUserDataException(String.format(
+                        "Cannot add lifecycle listener %s to %s: the listener accepts tasks of type %s, but the task is of type %s.",
+                        listenerType.getName(), this, acceptedTaskType.getName(), GeneratedSubclasses.unpackType(this).getName()
+                    ));
+                }
             }
             if (lifecycleListeners == null) {
                 lifecycleListeners = new LinkedHashSet<>();
