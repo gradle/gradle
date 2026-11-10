@@ -53,7 +53,9 @@ If you’re implementing a custom task as a class, then it takes just two steps 
 . Create typed properties (via getter methods) for each of your task inputs and outputs
 . Add the appropriate annotation to each of those properties
 
-NOTE: Annotations must be placed on getters or on Groovy properties. Annotations placed on setters, or on a Java field without a corresponding annotated getter, are ignored.
+NOTE: Annotations must be placed on getters or on Groovy properties.
+In Kotlin, use the `get:` use-site target to annotate the property getter, for example `@get:Input`.
+Annotations placed on setters, or on a field without a matching getter, are ignored.
 
 Gradle supports four main categories of inputs and outputs:
 

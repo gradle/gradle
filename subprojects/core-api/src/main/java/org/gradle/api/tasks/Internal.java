@@ -25,6 +25,8 @@ import java.lang.annotation.Target;
  * <p>Attached to a task property to indicate that the property is not to be taken into account for up-to-date checking.</p>
  *
  * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
+ * In Kotlin, use the {@code get:} use-site target to attach it to the property getter, for example {@code @get:Internal}.
+ * This also works on abstract properties, where the annotation without a use-site target does not compile.
  * Annotations on setters or just the field in Java are ignored.</p>
  *
  * <p>This will cause the task <em>not</em> to be considered out-of-date when the property has changed.</p>
