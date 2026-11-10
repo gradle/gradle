@@ -118,6 +118,20 @@ class TcpConnectorTest extends ConcurrentSpec {
         e.cause instanceof java.net.ConnectException
     }
 
+    def "client does not connect to an address of another machine"() {
+        // TEST-NET-1, reserved for documentation and never assigned to a local interface
+        def remote = InetAddress.getByName("192.0.2.1")
+        def address = new MultiChoiceAddress(idGenerator.generateId(), portAllocator.assignPort(), [remote])
+
+        when:
+        outgoingConnector.connect(address, connectionToken)
+
+        then:
+        ConnectException e = thrown()
+        e.message.startsWith "Could not connect to server ${address}."
+        e.cause.message == "${remote} is not an address of this machine."
+    }
+
     def "client cannot connect after server stopped"() {
         when:
         def acceptor = incomingConnector.accept(Mock(Action), false, connectionToken)
