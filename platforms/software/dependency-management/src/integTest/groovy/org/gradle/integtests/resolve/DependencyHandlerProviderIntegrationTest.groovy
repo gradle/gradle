@@ -185,7 +185,7 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
             conf lazyDep
         }
         // Do the resolve
-        configurations.conf.incoming.dependencies
+        configurations.conf.incoming.dependencies.toList()
         """
 
         when:

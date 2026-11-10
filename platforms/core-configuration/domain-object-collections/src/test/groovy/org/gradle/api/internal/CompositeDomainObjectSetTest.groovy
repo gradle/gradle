@@ -17,9 +17,13 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
+import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
+import spock.lang.Timeout
 
 class CompositeDomainObjectSetTest extends Specification {
 
@@ -615,5 +619,427 @@ class CompositeDomainObjectSetTest extends Specification {
         composite.toList() == ["a", "b"]
         added == ["a", "b"]
         removed == []
+    }
+
+    def "eager listener on a type of the composite realizes only pending elements of that type when a collection is added"() {
+        given:
+        def stringProvider = Mock(ProviderInternal)
+        def builderProvider = Mock(ProviderInternal)
+        _ * stringProvider.type >> String
+        _ * stringProvider.calculateValue(_) >> ValueSupplier.Value.of("a")
+        _ * builderProvider.type >> StringBuilder
+        def collection = new DefaultDomainObjectSet(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        collection.addLater(stringProvider)
+        collection.addLater(builderProvider)
+        def composite = CompositeDomainObjectSet.create(CharSequence)
+        def seen = []
+        composite.withType(String).whenObjectAdded { seen << it }
+
+        when:
+        composite.addCollection(collection)
+
+        then:
+        seen == ["a"]
+        0 * builderProvider.calculateValue(_)
+    }
+
+    def "element that several collections of a nested composite contain reaches the listeners of the outer composite"() {
+        given:
+        def inner = composite()
+        inner.addCollectionProvider(collectionProvider("x"))
+        inner.addCollectionProvider(collectionProvider("x"))
+        def outer = composite()
+        def added = []
+        outer.whenObjectAdded { added << it }
+
+        when:
+        outer.addCollection(inner)
+
+        then:
+        added == ["x"]
+    }
+
+    def "lazy listener of an outer composite sees element that several collections of a nested composite add later"() {
+        given:
+        def collection1 = collection()
+        def collection2 = collection()
+        def inner = composite(collection1, collection2)
+        def outer = composite(inner)
+        def seen = []
+        outer.configureEach { seen << it }
+        collection1.addLater(Providers.of("x"))
+        collection2.addLater(Providers.of("x"))
+
+        when:
+        def read = outer.toList()
+
+        then:
+        read == ["x"]
+        seen == ["x"]
+    }
+
+    def "lazy listener sees element that several collections of the composite have pending once"() {
+        given:
+        def collection1 = collection()
+        def collection2 = collection()
+        collection1.addLater(Providers.of("x"))
+        collection2.addLater(Providers.of("x"))
+        def composite = composite(collection1, collection2)
+        def seen = []
+
+        when:
+        composite.configureEach { seen << it }
+
+        then:
+        seen == ["x"]
+    }
+
+    def "removing an element from one collection does not realize pending elements of the others"() {
+        given:
+        def collection1 = collection()
+        def collection2 = collection()
+        def composite = composite(collection1, collection2)
+        def seen = []
+        def removed = []
+        composite.configureEach { seen << it }
+        composite.whenObjectRemoved { removed << it }
+        collection1.add("x")
+        collection2.addLater(Providers.of("x"))
+
+        when:
+        collection1.remove("x")
+
+        then:
+        seen == ["x"]
+        removed == ["x"]
+    }
+
+    def "reading includes pending element a listener adds to a collection that was read already"() {
+        given:
+        def collection1 = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        def collection2 = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        def composite = CompositeDomainObjectSet.create(CharSequence, collection1, collection2)
+        collection2.withType(String).whenObjectAdded { collection1.addLater(Providers.of(new StringBuilder("x"))) }
+        // The declared type is wider than the type of the listener, so the element stays pending until it is read
+        def added = TestUtil.objectFactory().property(CharSequence)
+        added.set("a")
+        collection2.addLater(added)
+
+        expect:
+        composite.toList()*.toString() == ["x", "a"]
+    }
+
+    def "reading a composite of one collection includes collection a listener adds while it is read"() {
+        given:
+        def collection1 = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        def collection2 = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        collection2.add("z")
+        def composite = CompositeDomainObjectSet.create(CharSequence, collection1)
+        collection1.withType(String).whenObjectAdded { composite.addCollection(collection2) }
+        def added = TestUtil.objectFactory().property(CharSequence)
+        added.set("p")
+        collection1.addLater(added)
+
+        expect:
+        composite.toList()*.toString() == ["p", "z"]
+    }
+
+    def "uniqueness check does not realize pending elements of a filtered view of a nested composite"() {
+        given:
+        def queried = false
+        def builderProvider = Mock(ProviderInternal)
+        _ * builderProvider.type >> StringBuilder
+        _ * builderProvider.calculateValue(_) >> { queried = true; ValueSupplier.Value.of(new StringBuilder("y")) }
+        def collection1 = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        def collection2 = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        def inner = CompositeDomainObjectSet.create(CharSequence, collection1, collection2)
+        def outer = CompositeDomainObjectSet.create(String, inner.withType(String))
+        def added = []
+        outer.whenObjectAdded { added << it }
+        collection2.addLater(builderProvider)
+
+        when:
+        collection1.add("x")
+
+        then:
+        added == ["x"]
+        !queried
+    }
+
+    def "reading includes pending element a listener adds to a filtered collection that was read already"() {
+        given:
+        def collection1 = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        def collection2 = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        def composite = CompositeDomainObjectSet.create(CharSequence, collection1.withType(String), collection2)
+        collection2.configureEach { collection1.addLater(Providers.of("x")) }
+        collection2.addLater(Providers.of(new StringBuilder("p")))
+
+        expect:
+        composite.toList()*.toString() == ["x", "p"]
+    }
+
+    def "collection removed from composite is not eager for its listeners even if the provider gives a different collection"() {
+        given:
+        def queried = false
+        def stringProvider = Mock(ProviderInternal)
+        _ * stringProvider.type >> String
+        _ * stringProvider.calculateValue(_) >> { queried = true; ValueSupplier.Value.of("y") }
+        def collection = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        def filteredCollections = TestUtil.providerFactory().provider { collection.withType(String) }
+        def composite = CompositeDomainObjectSet.create(String)
+        composite.addCollectionProvider(filteredCollections)
+        composite.toList()
+        composite.whenObjectAdded { }
+
+        when:
+        composite.removeCollectionProvider(filteredCollections)
+        collection.addLater(stringProvider)
+
+        then:
+        !queried
+    }
+
+    @Timeout(10)
+    def "reading a composite of a filtered view of a filtered view leaves pending elements of other types alone"() {
+        given:
+        def builderProvider = Mock(ProviderInternal)
+        _ * builderProvider.type >> StringBuilder
+        def collection = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        collection.addLater(builderProvider)
+        collection.add("a")
+        def composite = CompositeDomainObjectSet.create(String, collection.matching { true }.withType(String))
+
+        expect:
+        composite.toList() == ["a"]
+    }
+
+    def "eager listener on composite realizes pending element a listener adds to another collection while pending elements are realized"() {
+        given:
+        def queried = false
+        def lateProvider = Mock(ProviderInternal)
+        _ * lateProvider.type >> String
+        _ * lateProvider.calculateValue(_) >> { queried = true; ValueSupplier.Value.of("late") }
+        def collection1 = collection()
+        def collection2 = collection()
+        def composite = composite(collection1, collection2)
+        collection2.configureEach {
+            if (it == "y") {
+                collection1.addLater(lateProvider)
+            }
+        }
+        collection2.addLater(Providers.of("y"))
+
+        when:
+        composite.whenObjectAdded { }
+
+        then:
+        queried
+    }
+
+    def "collection that a listener removes while it is added is not part of the composite"() {
+        given:
+        def queried = false
+        def laterProvider = Mock(ProviderInternal)
+        _ * laterProvider.type >> String
+        _ * laterProvider.calculateValue(_) >> { queried = true; ValueSupplier.Value.of("y") }
+        def source = collection()
+        def composite = composite()
+        def added = []
+        composite.whenObjectAdded { added << it }
+        source.addLater(Providers.of("x"))
+        source.configureEach { composite.removeCollection(source) }
+
+        when:
+        composite.addCollection(source)
+        source.addLater(laterProvider)
+
+        then:
+        added == []
+        composite.toList() == []
+        !queried
+    }
+
+    def "all on composite sees element its action adds with a provider"() {
+        given:
+        def source = collection("a")
+        def composite = composite(source)
+        def seen = []
+
+        when:
+        composite.all {
+            seen << it
+            if (it == "a") {
+                source.addLater(Providers.of("b"))
+            }
+        }
+
+        then:
+        seen == ["a", "b"]
+        composite.toList() == ["a", "b"]
+    }
+
+    def "collection that a listener removes and adds again while it is added keeps the eager listeners of the composite"() {
+        given:
+        def source = collection("a")
+        def composite = composite()
+        def seen = []
+        def done = false
+        composite.whenObjectAdded {
+            seen << it
+            if (!done) {
+                done = true
+                composite.removeCollection(source)
+                composite.addCollection(source)
+            }
+        }
+        composite.addCollection(source)
+
+        when:
+        source.addLater(Providers.of("b"))
+
+        then:
+        seen.contains("b")
+    }
+
+    def "eager listener on composite realizes pending element a listener adds while elements that are not forwarded are realized"() {
+        given:
+        def queried = false
+        def lateProvider = Mock(ProviderInternal)
+        _ * lateProvider.type >> String
+        _ * lateProvider.calculateValue(_) >> { queried = true; ValueSupplier.Value.of("a") }
+        def collection1 = collection()
+        def collection2 = collection()
+        def composite = composite(collection1, collection2.matching { it.startsWith("x") })
+        collection2.configureEach {
+            if (it == "y") {
+                collection1.addLater(lateProvider)
+            }
+        }
+        collection2.addLater(Providers.of("y"))
+
+        when:
+        composite.whenObjectAdded { }
+
+        then:
+        queried
+    }
+
+    def "lazy action whose registration failed to read the composite still sees elements added later"() {
+        given:
+        def failing = Mock(ProviderInternal)
+        _ * failing.type >> String
+        _ * failing.calculateValue(_) >> { throw new RuntimeException("boom") }
+        def source = collection()
+        source.addLater(failing)
+        def composite = composite(source)
+        def seen = []
+
+        when:
+        composite.configureEach { seen << it }
+
+        then:
+        thrown(RuntimeException)
+
+        when:
+        source.add("a")
+
+        then:
+        seen == ["a"]
+    }
+
+    def "collection whose wiring failed is not eager for listeners of the composite after it is removed"() {
+        given:
+        def failing = Mock(ProviderInternal)
+        _ * failing.type >> StringBuilder
+        _ * failing.calculateValue(_) >> { throw new RuntimeException("boom") }
+        def queried = false
+        def laterProvider = Mock(ProviderInternal)
+        _ * laterProvider.type >> String
+        _ * laterProvider.calculateValue(_) >> { queried = true; ValueSupplier.Value.of("later") }
+        def source = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        source.addLater(failing)
+        def inner = CompositeDomainObjectSet.create(CharSequence, source)
+        def outer = CompositeDomainObjectSet.create(CharSequence)
+        outer.withType(String).whenObjectAdded { }
+
+        when:
+        outer.addCollection(inner)
+
+        then:
+        thrown(RuntimeException)
+
+        when:
+        source.remove(failing)
+        outer.removeCollection(inner)
+        source.addLater(laterProvider)
+
+        then:
+        !queried
+    }
+
+    def "collection composited twice keeps the eager listeners of the composite when the instance whose wiring failed is removed"() {
+        given:
+        def failing = Mock(ProviderInternal)
+        _ * failing.type >> String
+        _ * failing.calculateValue(_) >> { throw new RuntimeException("boom") }
+        def queried = false
+        def laterProvider = Mock(ProviderInternal)
+        _ * laterProvider.type >> String
+        _ * laterProvider.calculateValue(_) >> { queried = true; ValueSupplier.Value.of("later") }
+        def source = collection()
+        def provided = TestUtil.providerFactory().provider { source }
+        def composite = composite()
+        composite.all { }
+        composite.addCollectionProvider(provided)
+        source.addLater(failing)
+
+        when:
+        composite.toList()
+
+        then:
+        thrown(RuntimeException)
+
+        when:
+        source.remove(failing)
+        composite.addCollection(source)
+        composite.removeCollectionProvider(provided)
+        source.addLater(laterProvider)
+
+        then:
+        queried
+    }
+
+    def "eager listener of composite sees elements of a provided collection whose wiring failed"() {
+        given:
+        def fail = true
+        def failing = Mock(ProviderInternal)
+        _ * failing.type >> String
+        _ * failing.calculateValue(_) >> {
+            if (fail) {
+                throw new RuntimeException("boom")
+            }
+            ValueSupplier.Value.of("a")
+        }
+        def source = collection()
+        source.addLater(failing)
+        def composite = composite()
+        def seen = []
+        composite.whenObjectAdded { seen << it }
+        composite.addCollectionProvider(TestUtil.providerFactory().provider { source })
+
+        when:
+        composite.toList()
+
+        then:
+        thrown(RuntimeException)
+
+        when:
+        fail = false
+        source.add("b")
+        def read = composite.toList()
+
+        then:
+        read as Set == ["a", "b"] as Set
+        seen as Set == ["a", "b"] as Set
     }
 }

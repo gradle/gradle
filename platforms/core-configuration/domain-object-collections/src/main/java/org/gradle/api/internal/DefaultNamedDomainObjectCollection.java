@@ -110,6 +110,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         this(collection, Specs.satisfyAll(), elementFilter, instantiator, namer);
     }
 
+    @SuppressWarnings("this-escape")
     protected DefaultNamedDomainObjectCollection(
         DefaultNamedDomainObjectCollection<? super T> collection,
         Spec<String> nameFilter,
@@ -118,6 +119,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         Namer<? super T> namer
     ) {
         this(elementFilter.getType(), collection.filteredStore(elementFilter), collection.filteredEvents(elementFilter), collection.filteredIndex(nameFilter, elementFilter), instantiator, namer);
+        filters(collection);
     }
 
     @Override
@@ -161,13 +163,16 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
-    protected void doAddLater(Provider<? extends T> provider) {
-        super.doAddLater(provider);
+    protected boolean doAddLater(Provider<? extends T> provider) {
+        if (!super.doAddLater(provider)) {
+            return false;
+        }
         if (provider instanceof Named) {
             final Named named = (Named) provider;
             index.putPending(named.getName(), Providers.internal(provider));
             deferredElementKnown(named.getName(), provider);
         }
+        return true;
     }
 
     public void whenElementKnown(Action<? super ElementInfo<T>> action) {

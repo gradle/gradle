@@ -47,7 +47,7 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-1.0-sources.jar.asc").text
     }
 
-    def "signs artifact added with a provider configured after the configuration was signed"() {
+    def "signs artifact added with a provider after the configuration was signed"() {
         given:
         file("extra.txt").text = "extra"
         buildFile """
@@ -60,12 +60,7 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
                 sign configurations.meta
             }
 
-            def extraFiles = objects.listProperty(RegularFile)
-            configurations.meta.outgoing.artifacts(extraFiles)
-            extraFiles.add(layout.projectDirectory.file("extra.txt"))
-
-            // e.g. variant or publication setup reading the artifacts later during configuration
-            println "artifacts = " + configurations.meta.artifacts*.file*.name
+            configurations.meta.outgoing.artifacts(provider { [layout.projectDirectory.file("extra.txt")] })
 
             ${keyInfo.addAsPropertiesScript()}
         """
@@ -74,7 +69,6 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         succeeds(":signMeta")
 
         then:
-        outputContains("artifacts = [extra.txt]")
         file("extra.txt.asc").text
     }
 

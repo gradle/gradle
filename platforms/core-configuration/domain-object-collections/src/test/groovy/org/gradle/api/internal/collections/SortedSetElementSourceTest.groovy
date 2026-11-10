@@ -17,6 +17,7 @@
 package org.gradle.api.internal.collections
 
 
+import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSupplier
 
@@ -32,6 +33,49 @@ class SortedSetElementSourceTest extends ElementSourceSpec {
         _ * provider1.calculateValue(_) >> ValueSupplier.Value.of("provider1")
         _ * provider2.calculateValue(_) >> ValueSupplier.Value.of("provider2")
         _ * provider3.calculateValue(_) >> ValueSupplier.Value.of("provider3")
+    }
+
+    def "removing provider removes value it announced after a listener removed an equal value added directly"() {
+        given:
+        source.add("b")
+        def added = setProvider("a", "b")
+        source.onPendingAdded {
+            if (it == "a") {
+                source.remove("b")
+            }
+        }
+        source.addPendingCollection(added)
+        source.realizePending()
+        source.remove("a")
+
+        when:
+        def removed = source.removeRealized(added)
+
+        then:
+        removed == ["b"]
+        source.iterator().collect() == []
+    }
+
+    def "same value yielded twice is still known to come from the provider after a listener removed the first one"() {
+        given:
+        def value = "x"
+        def added = Mock(CollectionProviderInternal)
+        _ * added.elementType >> String
+        _ * added.calculateValue(_) >> ValueSupplier.Value.of([value, value])
+        def first = true
+        source.onPendingAdded {
+            if (first) {
+                first = false
+                source.remove(it)
+            }
+        }
+        source.addPendingCollection(added)
+        source.realizePending()
+
+        expect:
+        source.iterator().collect() == ["x"]
+        source.removeRealized(added) == ["x"]
+        source.iterator().collect() == []
     }
 
     def "can remove elements using iteratorNoFlush"() {

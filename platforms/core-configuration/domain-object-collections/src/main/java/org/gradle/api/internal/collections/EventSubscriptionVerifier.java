@@ -28,13 +28,4 @@ public interface EventSubscriptionVerifier<T> {
      * Determines whether events should be emitted for elements of the given type.
      */
     boolean isSubscribed(@Nullable Class<? extends T> type);
-
-    /**
-     * Whether an eager listener is subscribed to the given type, rather than only a composite collection forwarding the elements.
-     * Pending elements realized on add only to be forwarded are queried again when the collection is read,
-     * so that derived collections such as {@code Configuration.getAllDependencies()} don't capture values early.
-     */
-    default boolean isSubscribedByListener(@Nullable Class<? extends T> type) {
-        return isSubscribed(type);
-    }
 }

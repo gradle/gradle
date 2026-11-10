@@ -1295,9 +1295,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         didRemoved1
 
         and:
+        // The values captured on realization are removed, without querying the providers again
         _ * provider1.type >> type
-        1 * provider1.present >> true
-        1 * provider1.get() >> a
         0 * _
 
         when:
@@ -1308,8 +1307,6 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         and:
         _ * provider2.type >> type
-        1 * provider2.present >> true
-        1 * provider2.get() >> b
         0 * _
     }
 
@@ -1365,10 +1362,6 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         and:
         _ * provider1.type >> type
-        1 * provider1.present >> true
-        1 * provider1.get() >> a
-
-        and:
         1 * action.execute(a)
         0 * _
 
@@ -1677,8 +1670,6 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         and:
         _ * provider1.type >> type
-        1 * provider1.present >> true
-        1 * provider1.get() >> a
         1 * action.execute(a)
         0 * _
     }

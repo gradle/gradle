@@ -333,6 +333,20 @@ abstract class ElementSourceSpec extends Specification {
         return new TypedProvider(StringBuffer, value)
     }
 
+    def "reading includes pending elements that are added while pending elements are realized"() {
+        given:
+        def addedByListener = provider("bar")
+        source.onPendingAdded {
+            if (it.toString() == "foo") {
+                source.addPending(addedByListener)
+            }
+        }
+        source.addPending(provider("foo"))
+
+        expect:
+        source.iterator().collect { it.toString() } as Set == ["foo", "bar"] as Set
+    }
+
     CollectionProviderInternal<? extends String, Set<? extends String>> setProvider(String... values) {
         return new TypedProviderOfSet(String, values as LinkedHashSet)
     }
