@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Set;
@@ -53,6 +54,22 @@ public class InetAddressFactory {
      */
     public boolean isCommunicationAddress(InetAddress address) {
         return getLocalBindingAddress().equals(address);
+    }
+
+    /**
+     * Determines if the IP address belongs to this machine: a loopback or wildcard address, or an address of one of its network interfaces.
+     * Unlike {@link #isCommunicationAddress(InetAddress)}, it does not depend on this process's bind address configuration,
+     * so it also accepts the address of a daemon that was started with a different one.
+     */
+    public static boolean isLocalAddress(InetAddress address) {
+        if (address.isLoopbackAddress() || address.isAnyLocalAddress()) {
+            return true;
+        }
+        try {
+            return NetworkInterface.getByInetAddress(address) != null;
+        } catch (SocketException e) {
+            return false;
+        }
     }
 
     /**
