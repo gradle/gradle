@@ -745,12 +745,12 @@ after :foo executed=true failure=null"""
         outputDoesNotContain("task action ran")
 
         where:
-        description           | mutation                             | method
-        "declare input"       | 'task.inputs.property("x", "y")'     | "TaskInputs.property(String, Object)"
-        "declare output"      | 'task.outputs.file("out.txt")'       | "TaskOutputs.file(Object)"
-        "add dependency"      | 'task.dependsOn("other")'            | "Task.dependsOn(Object...)"
-        "add action"          | 'task.doFirst { }'                   | "Task.doFirst(Closure)"
-        "change skip"         | 'task.enabled = false'               | "Task.setEnabled(boolean)"
+        description      | mutation                         | method
+        "declare input"  | 'task.inputs.property("x", "y")' | "TaskInputs.property(String, Object)"
+        "declare output" | 'task.outputs.file("out.txt")'   | "TaskOutputs.file(Object)"
+        "add dependency" | 'task.dependsOn("other")'        | "Task.dependsOn(Object...)"
+        "add action"     | 'task.doFirst { }'               | "Task.doFirst(Closure)"
+        "change skip"    | 'task.enabled = false'           | "Task.setEnabled(boolean)"
     }
 
     def "beforeExecution can change the value of a task input"() {
@@ -1101,25 +1101,58 @@ legacy after"""
         fails "foo"
 
         then:
-        failure.assertHasCause("Could not create task ':foo'.")
-        failure.assertNoTasksScheduled()
-        failure.assertHasCause("Cannot add lifecycle listener CopyListener to task ':foo': the listener accepts tasks of type CopyTask, but the task is of type org.gradle.api.DefaultTask.")
+        assertFailedAtListenerRegistration(":foo", "Cannot add lifecycle listener CopyListener to task ':foo': the listener accepts tasks of type CopyTask, but the task is of type org.gradle.api.DefaultTask.")
     }
 
-    def "cannot register listener whose task type cannot be determined"() {
+    def "generic listener accepts the tasks that match the bound of its type variable"() {
         buildFile """
-            abstract class GenericListener<T extends Task> implements TaskLifecycleListener<T> {}
+            abstract class CopyTask extends DefaultTask {}
 
+            abstract class GenericListener<T extends CopyTask> implements TaskLifecycleListener<T> {
+                void beforeExecution(T task) {
+                    println "before \${task.path}"
+                }
+            }
+
+            tasks.register("copy", CopyTask) {
+                addLifecycleListener(GenericListener)
+            }
             tasks.register("foo") {
                 addLifecycleListener(GenericListener)
             }
         """
 
         when:
+        run "copy"
+
+        then:
+        outputContains("before :copy")
+
+        when:
         fails "foo"
 
         then:
-        failure.assertHasCause("Cannot use lifecycle listener GenericListener: the task type the listener accepts cannot be determined.")
+        assertFailedAtListenerRegistration(":foo", "Cannot add lifecycle listener GenericListener to task ':foo': the listener accepts tasks of type CopyTask, but the task is of type org.gradle.api.DefaultTask.")
+    }
+
+    def "listener declared without a task type accepts any task"() {
+        buildFile """
+            abstract class RawListener implements TaskLifecycleListener {
+                void beforeExecution(Task task) {
+                    println "before \${task.path}"
+                }
+            }
+
+            tasks.register("foo") {
+                addLifecycleListener(RawListener)
+            }
+        """
+
+        when:
+        run "foo"
+
+        then:
+        outputContains("before :foo")
     }
 
     def "cannot register listener with nested property"() {
@@ -1151,9 +1184,7 @@ legacy after"""
         fails "foo"
 
         then:
-        failure.assertHasCause("Could not create task ':foo'.")
-        failure.assertNoTasksScheduled()
-        failure.assertHasCause("Cannot use lifecycle listener NestedListener: property 'greeting' is annotated with @Nested, which is not supported for lifecycle listeners.")
+        assertFailedAtListenerRegistration(":foo", "Cannot use lifecycle listener NestedListener: property 'greeting' is annotated with @Nested, which is not supported for lifecycle listeners.")
     }
 
     def "listener can inject #service"() {
@@ -1203,9 +1234,7 @@ legacy after"""
         fails "foo"
 
         then:
-        failure.assertHasCause("Could not create task ':foo'.")
-        failure.assertNoTasksScheduled()
-        failure.assertThatCause(startsWith("Cannot use lifecycle listener InjectingListener: it injects a service of type $serviceType, which is not available to lifecycle listeners."))
+        assertFailedAtListenerRegistration(":foo", "Cannot use lifecycle listener InjectingListener: it injects a service of type $serviceType, which is not available to lifecycle listeners.")
 
         where:
         serviceType << [
@@ -1237,9 +1266,7 @@ legacy after"""
         fails "foo"
 
         then:
-        failure.assertHasCause("Could not create task ':foo'.")
-        failure.assertNoTasksScheduled()
-        failure.assertHasCause("Cannot use lifecycle listener ReferencingListener: property 'greeter' is annotated with @ServiceReference, but its type is not a Property of a build service.")
+        assertFailedAtListenerRegistration(":foo", "Cannot use lifecycle listener ReferencingListener: property 'greeter' is annotated with @ServiceReference, but its type is not a Property of a build service.")
     }
 
     def "listener type that cannot be instantiated is rejected at registration"() {
@@ -1257,9 +1284,12 @@ legacy after"""
         fails "foo"
 
         then:
-        failure.assertHasCause("Could not create task ':foo'.")
+        assertFailedAtListenerRegistration(":foo", "Could not generate a decorated class for type UnsupportedListener.")
+    }
+
+    private void assertFailedAtListenerRegistration(String requestedTask, String cause) {
+        failure.assertHasCause("Could not create task '$requestedTask'.")
         failure.assertNoTasksScheduled()
-        failure.assertHasCause("Could not generate a decorated class for type UnsupportedListener.")
-        failure.assertHasCause("Cannot have abstract method UnsupportedListener.getThread(): Thread.")
+        failure.assertHasCause(cause)
     }
 }
