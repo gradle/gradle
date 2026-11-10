@@ -40,6 +40,9 @@ dependencies {
     pluginsRuntimeOnly(projects.kotlinDslProviderPlugins) {
         because("We need a KotlinScriptBasePluginsApplicator service implementation to use Kotlin DSL scripts.")
     }
+    pluginsRuntimeOnly(projects.groovyDslPlugins) {
+        because("The groovy-gradle-plugin travels with java-gradle-plugin, which kotlin-dsl-provider-plugins brings into this distribution.")
+    }
     pluginsRuntimeOnly(projects.instrumentationDeclarations) {
         because("Property upgrades for core plugins reference types on plugin classpath and that is why interceptors need to be loaded from plugins' classpath.")
     }
