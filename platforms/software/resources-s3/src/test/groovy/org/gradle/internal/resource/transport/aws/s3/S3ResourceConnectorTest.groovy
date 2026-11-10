@@ -16,13 +16,15 @@
 
 package org.gradle.internal.resource.transport.aws.s3
 
-import software.amazon.awssdk.services.s3.model.GetObjectResponse
-
-import software.amazon.awssdk.core.ResponseInputStream
 import org.gradle.internal.resource.ExternalResourceName
+import software.amazon.awssdk.core.ResponseInputStream
+import software.amazon.awssdk.services.s3.model.GetObjectResponse
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse
 import spock.lang.Specification
 
-
+/**
+ * Unit tests for {@link S3ResourceConnector}.
+ */
 class S3ResourceConnectorTest extends Specification {
     def uri = new URI("http://somewhere")
     def name = new ExternalResourceName(uri)
@@ -37,13 +39,9 @@ class S3ResourceConnectorTest extends Specification {
 
     def "should get a resource"() {
         S3Client s3Client = Mock()
-        software.amazon.awssdk.services.s3.S3Client amazonS3Client =
-            software.amazon.awssdk.services.s3.S3Client.builder().build()
         def getObjectResponse = GetObjectResponse.builder().build()
-        ResponseInputStream<GetObjectResponse> responseInputStream =
-            new ResponseInputStream(getObjectResponse, new ByteArrayInputStream('contents'.getBytes()))
-        def getResourceResponse = new S3Client.GetResourceResponse(amazonS3Client, responseInputStream)
-        1 * s3Client.getResource(uri) >> getResourceResponse
+        ResponseInputStream<GetObjectResponse> responseInputStream = new ResponseInputStream(getObjectResponse, new ByteArrayInputStream('contents'.getBytes()))
+        1 * s3Client.getResource(uri) >> responseInputStream
 
         when:
         def s3Resource = new S3ResourceConnector(s3Client).openResource(name, false)
@@ -55,4 +53,26 @@ class S3ResourceConnectorTest extends Specification {
         s3Resource?.close()
     }
 
+    def "treats a missing Last-Modified as unknown"() {
+        S3Client s3Client = Mock()
+        1 * s3Client.getMetaData(uri) >> HeadObjectResponse.builder().contentLength(12L).build()
+
+        when:
+        def metaData = new S3ResourceConnector(s3Client).getMetaData(name, false)
+
+        then:
+        metaData.lastModified == null
+        metaData.contentLength == 12L
+    }
+
+    def "treats a missing Content-Length as unknown"() {
+        S3Client s3Client = Mock()
+        1 * s3Client.getMetaData(uri) >> HeadObjectResponse.builder().build()
+
+        when:
+        def metaData = new S3ResourceConnector(s3Client).getMetaData(name, false)
+
+        then:
+        metaData.contentLength == -1
+    }
 }

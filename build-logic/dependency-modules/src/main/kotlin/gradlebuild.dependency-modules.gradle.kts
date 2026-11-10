@@ -30,6 +30,11 @@ dependencies {
         // Gradle distribution - minify: remove unused transitive dependencies
         applyRule<DependencyRemovalByNameRule>("com.amazonaws:aws-java-sdk-core", setOf("jackson-dataformat-cbor"))
         applyRule<DependencyRemovalByGroupRule>("org.eclipse.jgit:org.eclipse.jgit", setOf("com.googlecode.javaewah"))
+        // S3 repositories use the synchronous client over apache5-client only
+        applyRule<DependencyRemovalByNameRule>("software.amazon.awssdk:s3", setOf("apache-client", "crt-core", "netty-nio-client"))
+        applyRule<DependencyRemovalByNameRule>("software.amazon.awssdk:sts", setOf("apache-client", "netty-nio-client"))
+        // Marker annotations only, and the module name collides with org.jetbrains:annotations in the distribution
+        all(RemoveAwsSdkAnnotationsRule::class.java)
 
         // We don't need the extra annotations provided by j2objc
         applyRule<DependencyRemovalByNameRule>("com.google.http-client:google-http-client", setOf("j2objc-annotations"))
@@ -285,6 +290,18 @@ fun <reified T : ComponentMetadataRule> ComponentMetadataHandler.applyRule(modul
  * a JDK 8 launcher. The Java 8 jars it produces link against classes that cannot load on
  * Java 8.
  */
+abstract class RemoveAwsSdkAnnotationsRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        if (context.details.id.group == "software.amazon.awssdk") {
+            context.details.withVariant("runtime") {
+                withDependencies {
+                    removeAll { it.group == "software.amazon.awssdk" && it.name == "annotations" }
+                }
+            }
+        }
+    }
+}
+
 abstract class GroovyTargetJvmVersionRule : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         if (context.details.id.group != "org.apache.groovy") {

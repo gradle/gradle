@@ -70,9 +70,7 @@ public class S3ResourceResolver {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         if (objectListing.hasCommonPrefixes()) {
             for (CommonPrefix prefix : objectListing.commonPrefixes()) {
-                /**
-                 * The common prefixes will also include the prefix of the <code>ListObjectsV2Response</code>
-                 */
+                // The common prefixes will also include the prefix of the ListObjectsV2Response
                 String directChild = prefix.prefix().split(Pattern.quote(objectListing.prefix()))[1];
                 if (directChild.endsWith("/")) {
                     builder.add(directChild.substring(0, directChild.length() - 1));

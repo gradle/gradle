@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -28,17 +29,17 @@ import java.time.Instant;
 
 public class S3Resource implements ExternalResourceReadResponse {
 
-    private final S3Client.GetResourceResponse getResourceResponse;
+    private final ResponseInputStream<GetObjectResponse> response;
     private final URI uri;
 
-    public S3Resource(S3Client.GetResourceResponse getResourceResponse, URI uri) {
-        this.getResourceResponse = getResourceResponse;
+    public S3Resource(ResponseInputStream<GetObjectResponse> response, URI uri) {
+        this.response = response;
         this.uri = uri;
     }
 
     @Override
     public InputStream openStream() throws IOException {
-        return getResourceResponse.getResponseInputStream();
+        return response;
     }
 
     public URI getURI() {
@@ -46,7 +47,8 @@ public class S3Resource implements ExternalResourceReadResponse {
     }
 
     public long getContentLength() {
-        return getResourceResponse.getResponseInputStream().response().contentLength();
+        Long contentLength = response.response().contentLength();
+        return contentLength == null ? -1 : contentLength;
     }
 
     public boolean isLocal() {
@@ -55,18 +57,18 @@ public class S3Resource implements ExternalResourceReadResponse {
 
     @Override
     public ExternalResourceMetaData getMetaData() {
-        GetObjectResponse objectMetadata = getResourceResponse.getResponseInputStream().response();
+        GetObjectResponse objectMetadata = response.response();
         Instant lastModified = objectMetadata.lastModified();
         return new DefaultExternalResourceMetaData(uri,
                 lastModified == null ? 0 : lastModified.toEpochMilli(),
                 getContentLength(),
-                getResourceResponse.getResponseInputStream().response().contentType(),
-                getResourceResponse.getResponseInputStream().response().eTag(),
+                objectMetadata.contentType(),
+                objectMetadata.eTag(),
                 null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
     }
 
     @Override
     public void close() throws IOException {
-        getResourceResponse.close();
+        response.close();
     }
 }

@@ -26,10 +26,11 @@ import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.time.Instant;
 import java.util.List;
 
 public class S3ResourceConnector extends AbstractExternalResourceAccessor implements ExternalResourceConnector {
@@ -50,11 +51,11 @@ public class S3ResourceConnector extends AbstractExternalResourceAccessor implem
     @Override
     public ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate) {
         LOGGER.debug("Attempting to get resource: {}", location);
-        S3Client.GetResourceResponse resourceItems = s3Client.getResource(location.getUri());
-        if (resourceItems == null) {
+        ResponseInputStream<GetObjectResponse> response = s3Client.getResource(location.getUri());
+        if (response == null) {
             return null;
         }
-        return new S3Resource(resourceItems, location.getUri());
+        return new S3Resource(response, location.getUri());
     }
 
     @Override
@@ -64,22 +65,19 @@ public class S3ResourceConnector extends AbstractExternalResourceAccessor implem
         if (headObjectResponse == null) {
             return null;
         }
+        Instant lastModified = headObjectResponse.lastModified();
+        Long contentLength = headObjectResponse.contentLength();
         return new DefaultExternalResourceMetaData(location.getUri(),
-            headObjectResponse.lastModified().toEpochMilli(),
-            headObjectResponse.contentLength(),
+            lastModified == null ? 0 : lastModified.toEpochMilli(),
+            contentLength == null ? -1 : contentLength,
             headObjectResponse.contentType(),
             headObjectResponse.eTag(),
             null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
     }
 
     @Override
-    public void upload(ReadableContent resource, ExternalResourceName destination) throws IOException {
+    public void upload(ReadableContent resource, ExternalResourceName destination) {
         LOGGER.debug("Attempting to upload stream to : {}", destination);
-        InputStream inputStream = resource.open();
-        try {
-            s3Client.put(inputStream, resource.getContentLength(), destination.getUri());
-        } finally {
-            inputStream.close();
-        }
+        s3Client.put(resource, destination.getUri());
     }
 }

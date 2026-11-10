@@ -33,13 +33,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.Instant
 
-import javax.servlet.ServletException
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 import java.security.MessageDigest
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 
 class S3Server extends HttpServer implements RepositoryServer {
 
@@ -542,6 +536,22 @@ class S3Server extends HttpServer implements RepositoryServer {
             }
         }
         expect(httpStub)
+
+        // Also allow (but don't require) a HEAD probe for the same path. Gradle's Ivy resolver
+        // probes URLs with HEAD before GET, and the underlying HTTP server returns 405 (Method
+        // Not Allowed) if only GET is registered. Using allow() makes the HEAD stub optional so
+        // callers that only send GET (e.g. Maven publish) don't get an unmet-expectation failure.
+        allow(url, false, ['HEAD'], new HttpServer.ActionSupport("return 404 for missing HEAD") {
+            void handle(HttpRequest request, HttpResponse response) {
+                response.addHeader('x-amz-id-2', X_AMZ_ID_2)
+                response.addHeader('x-amz-request-id', X_AMZ_REQUEST_ID)
+                response.addHeader('Date', DATE_HEADER)
+                response.addHeader('Server', SERVER_AMAZON_S3)
+                // Use setStatus, not sendError, to avoid Jetty auto-writing an HTML body /
+                // setting text/html Content-Type. A real S3 HEAD 404 has no body.
+                response.setStatus(404)
+            }
+        })
     }
 
     def stubGetFileBroken(String url) {

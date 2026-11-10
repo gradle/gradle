@@ -17,10 +17,9 @@
 package org.gradle.internal.resource.transport.aws.s3;
 
 import software.amazon.awssdk.regions.Region;
-import com.google.common.base.Optional;
 
 import java.net.URI;
-import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,9 +35,9 @@ public class S3RegionalResource {
     private String bucketName;
     private String key;
 
-    public S3RegionalResource(URI uri, Map<String, Region> knownBucketRegions) {
+    public S3RegionalResource(URI uri) {
         this.uri = uri;
-        configure(knownBucketRegions);
+        configure();
     }
 
     public Optional<Region> getRegion() {
@@ -54,19 +53,8 @@ public class S3RegionalResource {
     }
 
 
-    private void configure(Map<String, Region> knownBucketRegions) {
-        Matcher matcher = FALLBACK_ENDPOINT_PATTERN.matcher(uri.toString());
-        if (matcher.find()) {
-            String bucketName = getBucketName(matcher.group(1));
-            if (knownBucketRegions.containsKey(bucketName)) {
-                this.region = Optional.of(knownBucketRegions.get(bucketName));
-                this.bucketName = bucketName;
-                this.key = matcher.group(2);
-                return;
-            }
-        }
-
-        matcher = REGIONAL_ENDPOINT_PATTERN.matcher(uri.toString());
+    private void configure() {
+        Matcher matcher = REGIONAL_ENDPOINT_PATTERN.matcher(uri.toString());
         if (matcher.find()) {
             String bucketName = matcher.group(1);
             String region = matcher.group(2);
@@ -87,7 +75,7 @@ public class S3RegionalResource {
 
         matcher = FALLBACK_ENDPOINT_PATTERN.matcher(uri.toString());
         if (matcher.find()) {
-            this.region = Optional.absent();
+            this.region = Optional.empty();
             this.bucketName = getBucketName(matcher.group(1));
             this.key = matcher.group(2);
 

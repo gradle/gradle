@@ -16,65 +16,108 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
-import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.core.retry.RetryPolicy;
+import com.google.common.collect.ImmutableList;
+import com.google.common.io.ByteStreams;
+import org.gradle.api.credentials.AwsCredentials;
+import org.gradle.internal.resource.ReadableContent;
+import org.gradle.internal.resource.ResourceExceptions;
+import org.gradle.internal.resource.transport.http.HttpProxySettings;
+import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.retries.DefaultRetryStrategy;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ProxyConfiguration;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
+import software.amazon.awssdk.http.apache5.ProxyConfiguration;
+import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
+import software.amazon.awssdk.services.s3.model.CompletedPart;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
-import software.amazon.awssdk.core.sync.RequestBody;
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
-import org.gradle.api.credentials.AwsCredentials;
-import org.gradle.internal.resource.ResourceExceptions;
-import org.gradle.internal.resource.transport.http.HttpProxySettings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-@SuppressWarnings("deprecation")
 public class S3Client {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Client.class);
-    private static final Map<String, Region> KNOWN_BUCKET_REGIONS = new HashMap<>();
+    // AWS SDK v2 requires a region at builder time; v1 silently defaulted to us-east-1.
+    // Preserve that behavior when no region has been derived from a bucket URL.
+    private static final Region DEFAULT_REGION = Region.US_EAST_1;
+    private static final String OCTET_STREAM = "application/octet-stream";
+    // SDK v1's defaults; SDK v2 defaults to 2 seconds and 30 seconds.
+    private static final Duration CONNECTION_TIMEOUT = Duration.ofSeconds(10);
+    private static final Duration SOCKET_TIMEOUT = Duration.ofSeconds(50);
+    // The region in a custom endpoint's host, as SDK v1 derived it, such as s3.eu-west-1.amazonaws.com or s3.eu-central-1.wasabisys.com
+    private static final Pattern AWS_ENDPOINT_HOST = Pattern.compile("^(?:.+\\.)?s3(?:-fips)?(?:[.-]dualstack)?[.-]([a-z0-9-]+)\\.amazonaws\\.com(?:\\.cn)?$");
+    private static final Pattern OTHER_ENDPOINT_HOST = Pattern.compile("^(?:.+\\.)?s3\\.([a-z0-9-]+)\\.");
 
-    // amazonS3ClientMock is used to configure Mocks for testing.
-    private software.amazon.awssdk.services.s3.S3Client amazonS3ClientMock = null;
-    private StaticCredentialsProvider credentialsProvider = null;
-    private URI endpoint = null;
-    private Region region = null;
+    private final software.amazon.awssdk.services.s3.@Nullable S3Client amazonS3ClientMock;
+    private AwsCredentialsProvider credentialsProvider = AnonymousCredentialsProvider.create();
+    private final Map<Region, software.amazon.awssdk.services.s3.S3Client> clientsByRegion = new ConcurrentHashMap<>();
     private final S3ResourceResolver resourceResolver = new S3ResourceResolver();
-    private S3ConnectionProperties s3ConnectionProperties = null;
+    private final S3ConnectionProperties s3ConnectionProperties;
+
+    public S3Client(software.amazon.awssdk.services.s3.@Nullable S3Client amazonS3ClientMock,
+                    S3ConnectionProperties s3ConnectionProperties) {
+        this.amazonS3ClientMock = amazonS3ClientMock;
+        this.s3ConnectionProperties = s3ConnectionProperties;
+    }
 
     /**
      * Constructor without provided credentials to delegate to the default provider chain.
      * @since 3.1
      */
-    public S3Client(software.amazon.awssdk.services.s3.S3Client amazonS3ClientMock,
-                    S3ConnectionProperties s3ConnectionProperties) {
-        this.amazonS3ClientMock = amazonS3ClientMock;
-        this.s3ConnectionProperties = s3ConnectionProperties;
-    }
     public S3Client(S3ConnectionProperties s3ConnectionProperties) {
-        this.s3ConnectionProperties = s3ConnectionProperties;
+        this((software.amazon.awssdk.services.s3.S3Client) null, s3ConnectionProperties);
+        // SDK v1's S3 chain fell back to anonymous access when no credentials were found; the v2 chain throws.
+        // Each request walks the chain, so that a transient lookup failure doesn't stick to the anonymous provider.
+        this.credentialsProvider = AwsCredentialsProviderChain.builder()
+            .reuseLastProviderEnabled(false)
+            .credentialsProviders(DefaultCredentialsProvider.builder().build(), AnonymousCredentialsProvider.create())
+            .build();
     }
 
-    public S3Client(AwsCredentials awsCredentials, S3ConnectionProperties s3ConnectionProperties) {
+    public S3Client(@Nullable AwsCredentials awsCredentials, S3ConnectionProperties s3ConnectionProperties) {
+        this.amazonS3ClientMock = null;
         this.s3ConnectionProperties = s3ConnectionProperties;
         if (awsCredentials != null) {
             if (awsCredentials.getSessionToken() == null) {
@@ -88,62 +131,33 @@ public class S3Client {
                     )
                 );
             }
-        } else {
-            this.credentialsProvider = null;
         }
     }
 
-    public static final class GetResourceResponse {
-        private final software.amazon.awssdk.services.s3.S3Client amazonS3Client;
-        private final ResponseInputStream<GetObjectResponse> responseInputStream;
-
-        GetResourceResponse(software.amazon.awssdk.services.s3.S3Client amazonS3Client,
-                            ResponseInputStream<GetObjectResponse> responseInputStream) {
-            this.amazonS3Client = amazonS3Client;
-            this.responseInputStream = responseInputStream;
-        }
-
-        public void close() throws IOException{
-            getResponseInputStream().close();
-            amazonS3Client.close();
-        }
-
-        public ResponseInputStream<GetObjectResponse> getResponseInputStream() {
-            return responseInputStream;
-        }
-    }
-
-    private software.amazon.awssdk.services.s3.S3Client build() {
+    private software.amazon.awssdk.services.s3.S3Client clientFor(S3RegionalResource s3RegionalResource) {
         if (amazonS3ClientMock != null) {
             return amazonS3ClientMock;
         }
+        Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
+        Region region = endpoint.isPresent()
+            ? signingRegion(endpoint.get())
+            : s3RegionalResource.getRegion().orElse(DEFAULT_REGION);
+        return clientsByRegion.computeIfAbsent(region, this::build);
+    }
 
-        // We can't change the region of a built software.amazon.awssdk.services.s3.S3Client.
-        // We don't know the region until we know the bucket we will be accessing.
-        // Defer building the client until we receive an access request.
-        // Reusing builders can put them into a bad state.
-        // Create a new builder from saved properties when needed.
+    private software.amazon.awssdk.services.s3.S3Client build(Region region) {
+        // We can't change the region of a built software.amazon.awssdk.services.s3.S3Client,
+        // and we don't know the region until we know the bucket we will be accessing.
         S3ClientBuilder clientBuilder = software.amazon.awssdk.services.s3.S3Client.builder()
             .httpClientBuilder(createProxyConfiguration())
-            .overrideConfiguration(createConnectionProperties());
-
-        if (credentialsProvider != null) {
-            clientBuilder.credentialsProvider(credentialsProvider);
-        }
-        if (endpoint != null) {
-            clientBuilder.endpointOverride(endpoint);
-        }
-        if (region != null) {
-            clientBuilder.region(region);
-        }
-        if (s3ConnectionProperties != null) {
-            clientBuilder.applyMutation(builder -> applyS3ConnectionProperties(builder, s3ConnectionProperties));
-
-        }
+            .overrideConfiguration(createConnectionProperties())
+            .credentialsProvider(credentialsProvider)
+            .region(region);
+        applyS3ConnectionProperties(clientBuilder, s3ConnectionProperties);
         return clientBuilder.build();
     }
 
-    private static void applyS3ConnectionProperties(
+    private void applyS3ConnectionProperties(
         S3ClientBuilder clientBuilder, S3ConnectionProperties s3ConnectionProperties) {
 
         Optional<URI> endpointProperty = s3ConnectionProperties.getEndpoint();
@@ -154,53 +168,96 @@ public class S3Client {
                 .pathStyleAccessEnabled(true)
                 .chunkedEncodingEnabled(false);
             clientBuilder.serviceConfiguration(s3configurationBuilder.build());
+        } else {
+            // Region-less URLs start at the default region, so the SDK has to follow S3's redirect to the bucket's region.
+            clientBuilder.crossRegionAccessEnabled(true);
         }
+    }
+
+    static Region signingRegion(URI endpoint) {
+        String host = endpoint.getHost();
+        if (host == null) {
+            return DEFAULT_REGION;
+        }
+        host = host.toLowerCase(Locale.ROOT);
+        Matcher aws = AWS_ENDPOINT_HOST.matcher(host);
+        if (aws.matches()) {
+            return aws.group(1).equals("external-1") ? Region.US_EAST_1 : Region.of(aws.group(1));
+        }
+        if (host.endsWith(".amazonaws.com") || host.endsWith(".amazonaws.com.cn")) {
+            return DEFAULT_REGION;
+        }
+        Matcher other = OTHER_ENDPOINT_HOST.matcher(host);
+        return other.find() ? Region.of(other.group(1)) : DEFAULT_REGION;
     }
 
     private ClientOverrideConfiguration createConnectionProperties() {
         ClientOverrideConfiguration.Builder clientOverrideConfigurationBuilder = ClientOverrideConfiguration.builder();
+        ignoreConfiguredEndpointUrls(clientOverrideConfigurationBuilder);
         Optional<Integer> maxErrorRetryCount = s3ConnectionProperties.getMaxErrorRetryCount();
         if (maxErrorRetryCount.isPresent()) {
-            RetryPolicy retryPolicy = RetryPolicy.builder()
-                .numRetries(maxErrorRetryCount.get())
-                .build();
-            clientOverrideConfigurationBuilder.retryPolicy(retryPolicy);
+            // maxAttempts includes the initial attempt; numRetries counted only retries. Preserve behavior with +1.
+            clientOverrideConfigurationBuilder.retryStrategy(
+                DefaultRetryStrategy.legacyStrategyBuilder()
+                    .maxAttempts(maxErrorRetryCount.get() + 1)
+                    .build()
+            );
         }
         return clientOverrideConfigurationBuilder.build();
     }
 
-    private  SdkHttpClient.Builder<ApacheHttpClient.Builder> createProxyConfiguration() {
+    /**
+     * SDK v2 also takes endpoints from AWS_ENDPOINT_URL, aws.endpointUrl and the profile's endpoint_url, which SDK v1 ignored.
+     * Gradle only uses org.gradle.s3.endpoint, so turn that off for the active profile and keep its other settings.
+     */
+    private static void ignoreConfiguredEndpointUrls(ClientOverrideConfiguration.Builder builder) {
+        String profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValue().orElse("default");
+        String section = profileName.equals("default") ? "[default]" : "[profile " + profileName + "]";
+        ProfileFile ignoreEndpointUrls = ProfileFile.builder()
+            .content(section + "\nignore_configured_endpoint_urls = true\n")
+            .type(ProfileFile.Type.CONFIGURATION)
+            .build();
+        builder.defaultProfileName(profileName);
+        builder.defaultProfileFileSupplier(() -> ProfileFile.aggregator()
+            .addFile(ProfileFile.defaultProfileFile())
+            .addFile(ignoreEndpointUrls)
+            .build());
+    }
+
+    private SdkHttpClient.Builder<Apache5HttpClient.Builder> createProxyConfiguration() {
         ProxyConfiguration.Builder proxyConfigurationBuilder = ProxyConfiguration.builder();
         Optional<HttpProxySettings.HttpProxy> proxyOptional = s3ConnectionProperties.getProxy();
         if (proxyOptional.isPresent()) {
             HttpProxySettings.HttpProxy proxy = proxyOptional.get();
             URI uri = URI.create(String.format("http://%s:%s", proxy.host, proxy.port));
             proxyConfigurationBuilder.endpoint(uri);
-            PasswordCredentials credentials = proxy.credentials;
+            HttpProxySettings.HttpProxyCredentials credentials = proxy.credentials;
             if (credentials != null) {
                 proxyConfigurationBuilder
                     .username(credentials.getUsername())
                     .password(credentials.getPassword());
             }
         }
-        return ApacheHttpClient.builder()
+        return Apache5HttpClient.builder()
+            .connectionTimeout(CONNECTION_TIMEOUT)
+            .socketTimeout(SOCKET_TIMEOUT)
             .proxyConfiguration(proxyConfigurationBuilder.build());
     }
 
-    public void put(InputStream inputStream, Long contentLength, URI destination) {
-        if (contentLength < s3ConnectionProperties.getMultipartThreshold()) {
-            putSingleObject(inputStream, contentLength, destination);
+    public void put(ReadableContent content, URI destination) {
+        if (content.getContentLength() < s3ConnectionProperties.getMultipartThreshold()) {
+            putSingleObject(content, destination);
         } else {
-            putMultiPartObject(inputStream, contentLength, destination);
+            putMultiPartObject(content, destination);
         }
     }
 
-    private void putSingleObject(InputStream inputStream, Long contentLength, URI destination) {
-        try {
-            S3RegionalResource s3RegionalResource = new S3RegionalResource(destination, KNOWN_BUCKET_REGIONS);
+    private void putSingleObject(ReadableContent content, URI destination) {
+        long contentLength = content.getContentLength();
+        try (ContentRangeProvider body = new ContentRangeProvider(content, 0, contentLength)) {
+            S3RegionalResource s3RegionalResource = new S3RegionalResource(destination);
             String bucketName = s3RegionalResource.getBucketName();
             String s3BucketKey = s3RegionalResource.getKey();
-            configureClient(s3RegionalResource);
 
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
@@ -209,20 +266,18 @@ public class S3Client {
                 .contentLength(contentLength).build();
             LOGGER.debug("Attempting to put resource:[{}] into s3 bucket [{}]", s3BucketKey, bucketName);
 
-            try (software.amazon.awssdk.services.s3.S3Client amazonS3Client = build()) {
-                amazonS3Client.putObject(putObjectRequest, RequestBody.fromInputStream(inputStream, contentLength));
-            }
-        } catch (SdkException e) {
+            clientFor(s3RegionalResource).putObject(putObjectRequest, RequestBody.fromContentProvider(body, contentLength, OCTET_STREAM));
+        } catch (SdkException | IOException e) {
             throw ResourceExceptions.putFailed(destination, e);
         }
     }
 
-    private void putMultiPartObject(InputStream inputStream, Long contentLength, URI destination) {
+    private void putMultiPartObject(ReadableContent content, URI destination) {
         try {
-            S3RegionalResource s3RegionalResource = new S3RegionalResource(destination, KNOWN_BUCKET_REGIONS);
+            long contentLength = content.getContentLength();
+            S3RegionalResource s3RegionalResource = new S3RegionalResource(destination);
             String bucketName = s3RegionalResource.getBucketName();
             String s3BucketKey = s3RegionalResource.getKey();
-            configureClient(s3RegionalResource);
             List<CompletedPart> partETags = new ArrayList<>();
             CreateMultipartUploadRequest initRequest = CreateMultipartUploadRequest.builder()
                 .bucket(bucketName)
@@ -230,128 +285,109 @@ public class S3Client {
                 .acl(ObjectCannedACL.BUCKET_OWNER_FULL_CONTROL)
                 .build();
 
-            try (software.amazon.awssdk.services.s3.S3Client amazonS3Client = build()) {
-                CreateMultipartUploadResponse initResponse = amazonS3Client.createMultipartUpload(initRequest);
-                try {
-                    long filePosition = 0;
-                    long partSize = s3ConnectionProperties.getPartSize();
+            software.amazon.awssdk.services.s3.S3Client amazonS3Client = clientFor(s3RegionalResource);
+            CreateMultipartUploadResponse initResponse = amazonS3Client.createMultipartUpload(initRequest);
+            try {
+                long filePosition = 0;
+                long partSize = s3ConnectionProperties.getPartSize();
 
-                    LOGGER.debug("Attempting to put resource:[{}] into s3 bucket [{}]", s3BucketKey, bucketName);
+                LOGGER.debug("Attempting to put multi-part resource:[{}] into s3 bucket [{}]", s3BucketKey, bucketName);
 
-                    for (int partNumber = 1; filePosition < contentLength; partNumber++) {
-                        partSize = Math.min(partSize, contentLength - filePosition);
-                        RequestBody requestBody = RequestBody.fromInputStream(inputStream, partSize);
-                        UploadPartRequest uploadPartRequest = UploadPartRequest.builder()
-                            .bucket(bucketName)
-                            .key(s3BucketKey)
-                            .uploadId(initResponse.uploadId())
-                            .partNumber(partNumber)
-                            .build();
-                        String eTag = amazonS3Client.uploadPart(uploadPartRequest, requestBody).eTag();
-                        CompletedPart completedPart = CompletedPart.builder().partNumber(partNumber).eTag(eTag).build();
-                        partETags.add(completedPart);
-                        filePosition += partSize;
+                for (int partNumber = 1; filePosition < contentLength; partNumber++) {
+                    partSize = Math.min(partSize, contentLength - filePosition);
+                    UploadPartRequest uploadPartRequest = UploadPartRequest.builder()
+                        .bucket(bucketName)
+                        .key(s3BucketKey)
+                        .uploadId(initResponse.uploadId())
+                        .partNumber(partNumber)
+                        .build();
+                    String eTag;
+                    try (ContentRangeProvider part = new ContentRangeProvider(content, filePosition, partSize)) {
+                        eTag = amazonS3Client.uploadPart(uploadPartRequest, RequestBody.fromContentProvider(part, partSize, OCTET_STREAM)).eTag();
                     }
-
-                    CompletedMultipartUpload completedMultipartUpload = CompletedMultipartUpload.builder()
-                        .parts(partETags)
-                        .build();
-
-                    CompleteMultipartUploadRequest completeRequest = CompleteMultipartUploadRequest.builder()
-                        .bucket(bucketName)
-                        .key(s3BucketKey)
-                        .uploadId(initResponse.uploadId())
-                        .multipartUpload(completedMultipartUpload)
-                        .build();
-                    amazonS3Client.completeMultipartUpload(completeRequest);
-                } catch (SdkException e) {
-                    AbortMultipartUploadRequest abortRequest = AbortMultipartUploadRequest.builder()
-                        .bucket(bucketName)
-                        .key(s3BucketKey)
-                        .uploadId(initResponse.uploadId())
-                        .build();
-                    amazonS3Client.abortMultipartUpload(abortRequest);
-                    throw e;
+                    CompletedPart completedPart = CompletedPart.builder().partNumber(partNumber).eTag(eTag).build();
+                    partETags.add(completedPart);
+                    filePosition += partSize;
                 }
+
+                CompletedMultipartUpload completedMultipartUpload = CompletedMultipartUpload.builder()
+                    .parts(partETags)
+                    .build();
+
+                CompleteMultipartUploadRequest completeRequest = CompleteMultipartUploadRequest.builder()
+                    .bucket(bucketName)
+                    .key(s3BucketKey)
+                    .uploadId(initResponse.uploadId())
+                    .multipartUpload(completedMultipartUpload)
+                    .build();
+                amazonS3Client.completeMultipartUpload(completeRequest);
+            } catch (RuntimeException | IOException e) {
+                AbortMultipartUploadRequest abortRequest = AbortMultipartUploadRequest.builder()
+                    .bucket(bucketName)
+                    .key(s3BucketKey)
+                    .uploadId(initResponse.uploadId())
+                    .build();
+                amazonS3Client.abortMultipartUpload(abortRequest);
+                throw e;
             }
-        } catch (SdkException e) {
+        } catch (SdkException | IOException e) {
             throw ResourceExceptions.putFailed(destination, e);
         }
     }
 
+    @Nullable
     public HeadObjectResponse getMetaData(URI uri) {
-        S3RegionalResource s3RegionalResource = new S3RegionalResource(uri, KNOWN_BUCKET_REGIONS);
+        S3RegionalResource s3RegionalResource = new S3RegionalResource(uri);
         String bucketName = s3RegionalResource.getBucketName();
         String s3BucketKey = s3RegionalResource.getKey();
-        configureClient(s3RegionalResource);
 
-        try (software.amazon.awssdk.services.s3.S3Client amazonS3Client = build()) {
-            return amazonS3Client.headObject(
-                objectRequest -> objectRequest.bucket(bucketName).key(s3BucketKey));
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = clientFor(s3RegionalResource);
+        try {
+            return amazonS3Client.headObject(objectRequest -> objectRequest.bucket(bucketName).key(s3BucketKey));
         } catch (S3Exception e) {
-            if (exceptionIsRedirect(e)) {
-                Optional<String> region = regionFromRedirectException(e);
-                if (region.isPresent()) {
-                    S3Client.KNOWN_BUCKET_REGIONS.put(bucketName, Region.of(region.get()));
-                }
-                Optional<URI> location = locationFromRedirectException(e);
-                if (location.isPresent()) {
-                    return getMetaData(location.get());
-                } else {
-                    return getMetaData(uri);
-                }
-            } else {
-                String errorCode = e.awsErrorDetails().errorCode();
-                if (null != errorCode && errorCode.equalsIgnoreCase("NoSuchKey")) {
-                    return null;
-                }
-                throw ResourceExceptions.getFailed(uri, e);
+            if (e.statusCode() != 404) {
+                throw ResourceExceptions.getFailed(uri, e.statusCode(), e);
+            }
+            confirmMissingKey(amazonS3Client, bucketName, s3BucketKey, uri);
+            return null;
+        }
+    }
+
+    /**
+     * A HEAD 404 has no body, and the SDK reports every one as NoSuchKey, so a missing bucket looks like a missing key.
+     * A GET for the same key gets S3's real error code.
+     */
+    private static void confirmMissingKey(software.amazon.awssdk.services.s3.S3Client amazonS3Client, String bucketName, String s3BucketKey, URI uri) {
+        try {
+            // An object created since the HEAD is still reported as missing for this request
+            amazonS3Client.getObject(objectRequest -> objectRequest.bucket(bucketName).key(s3BucketKey)).abort();
+        } catch (S3Exception e) {
+            if (!isNoSuchKey(e)) {
+                throw ResourceExceptions.getFailed(uri, e.statusCode(), e);
             }
         }
     }
 
-    public GetResourceResponse getResource(URI uri) {
-        S3RegionalResource s3RegionalResource = new S3RegionalResource(uri, KNOWN_BUCKET_REGIONS);
+    @Nullable
+    public ResponseInputStream<GetObjectResponse> getResource(URI uri) {
+        S3RegionalResource s3RegionalResource = new S3RegionalResource(uri);
         String bucketName = s3RegionalResource.getBucketName();
         String s3BucketKey = s3RegionalResource.getKey();
-        configureClient(s3RegionalResource);
-
-        // The amazonS3Client is auto-closable, but we can't wrap this with a try-with-resources
-        // block because the ResponseInputStream needs to be read after this method returns.
-        software.amazon.awssdk.services.s3.S3Client amazonS3Client = build();
 
         try {
-            return new GetResourceResponse(
-                amazonS3Client,
-                amazonS3Client.getObject(objectRequest -> objectRequest.bucket(bucketName).key(s3BucketKey)));
+            return clientFor(s3RegionalResource).getObject(objectRequest -> objectRequest.bucket(bucketName).key(s3BucketKey));
         } catch (S3Exception e) {
-            amazonS3Client.close();
-            if (exceptionIsRedirect(e)) {
-                Optional<String> region = regionFromRedirectException(e);
-                if (region.isPresent()) {
-                    S3Client.KNOWN_BUCKET_REGIONS.put(bucketName, Region.of(region.get()));
-                }
-                Optional<URI> location = locationFromRedirectException(e);
-                if (location.isPresent()) {
-                    return getResource(location.get());
-                } else {
-                    return getResource(uri);
-                }
-            } else {
-                String errorCode = e.awsErrorDetails().errorCode();
-                if (null != errorCode && errorCode.equalsIgnoreCase("NoSuchKey")) {
-                    return null;
-                }
-                throw ResourceExceptions.getFailed(uri, e);
+            if (isNoSuchKey(e)) {
+                return null;
             }
+            throw ResourceExceptions.getFailed(uri, e.statusCode(), e);
         }
     }
 
     public List<String> listDirectChildren(URI parent) {
-        S3RegionalResource s3RegionalResource = new S3RegionalResource(parent, KNOWN_BUCKET_REGIONS);
+        S3RegionalResource s3RegionalResource = new S3RegionalResource(parent);
         String bucketName = s3RegionalResource.getBucketName();
         String s3BucketKey = s3RegionalResource.getKey();
-        configureClient(s3RegionalResource);
 
         ListObjectsV2Request listObjectsV2Request = ListObjectsV2Request.builder()
             .bucket(bucketName)
@@ -360,46 +396,62 @@ public class S3Client {
             .delimiter("/")
             .build();
         ImmutableList.Builder<String> listBuilder = ImmutableList.builder();
-        try (software.amazon.awssdk.services.s3.S3Client amazonS3Client = build()) {
-            ListObjectsV2Iterable objectListing = amazonS3Client.listObjectsV2Paginator(listObjectsV2Request);
+        try {
+            ListObjectsV2Iterable objectListing = clientFor(s3RegionalResource).listObjectsV2Paginator(listObjectsV2Request);
             objectListing.forEach(listObjectsResponse ->
                 listBuilder.addAll(resourceResolver.resolveResourceNames(listObjectsResponse))
             );
+        } catch (S3Exception e) {
+            throw ResourceExceptions.getFailed(parent, e.statusCode(), e);
         }
         return listBuilder.build();
     }
 
-    private void configureClient(S3RegionalResource s3RegionalResource) {
-        Optional<URI> endpointProperty = s3ConnectionProperties.getEndpoint();
-        if (endpointProperty.isPresent()) {
-            endpoint = endpointProperty.get();
-        } else {
-            Optional<Region> regionResource = s3RegionalResource.getRegion();
-            if (regionResource.isPresent()) {
-                region = regionResource.get();
+    // A GET 404 normally carries an error code. Treat a 404 without one, such as from an
+    // S3-compatible server that sends no body, as a missing key, so that unrelated 404s
+    // (NoSuchBucket, endpoint proxies, etc.) still fail instead of looking like a missing resource.
+    private static boolean isNoSuchKey(S3Exception e) {
+        AwsErrorDetails details = e.awsErrorDetails();
+        String errorCode = details == null ? null : details.errorCode();
+        return "NoSuchKey".equalsIgnoreCase(errorCode)
+            || (errorCode == null && e.statusCode() == 404);
+    }
+
+    /**
+     * Supplies a byte range of the content, reopening it each time the SDK re-reads the body
+     * for signing or a retry, so that uploads stay off the heap.
+     */
+    private static final class ContentRangeProvider implements ContentStreamProvider, Closeable {
+        private final ReadableContent content;
+        private final long offset;
+        private final long length;
+        private @Nullable InputStream current;
+
+        ContentRangeProvider(ReadableContent content, long offset, long length) {
+            this.content = content;
+            this.offset = offset;
+            this.length = length;
+        }
+
+        @Override
+        public InputStream newStream() {
+            try {
+                close();
+                InputStream stream = content.open();
+                current = stream;
+                ByteStreams.skipFully(stream, offset);
+                return ByteStreams.limit(stream, length);
+            } catch (IOException e) {
+                throw SdkClientException.create("Could not read the content to upload.", e);
+            }
+        }
+
+        @Override
+        public void close() throws IOException {
+            if (current != null) {
+                current.close();
+                current = null;
             }
         }
     }
-
-    private boolean exceptionIsRedirect(S3Exception e) {
-        return e.statusCode() == 301 || e.statusCode() == 307;
-    }
-
-    private Optional<URI> locationFromRedirectException(S3Exception e) {
-        java.util.Optional<String> locationHeader = e
-            .awsErrorDetails()
-            .sdkHttpResponse()
-            .firstMatchingHeader("Location");
-        // Convert from java.util.Optional to com.google.common.base.Optional.
-        return locationHeader.map(h -> Optional.of(URI.create(h))).orElseGet(Optional::absent);
-    }
-
-    private Optional<String> regionFromRedirectException(S3Exception e) {
-        java.util.Optional<String> bucketRegionHeader = e
-            .awsErrorDetails()
-            .sdkHttpResponse()
-            .firstMatchingHeader("x-amz-bucket-region");
-        // Convert from java.util.Optional to com.google.common.base.Optional.
-        return bucketRegionHeader.map(Optional::of).orElseGet(Optional::absent);
-    }
- }
+}
