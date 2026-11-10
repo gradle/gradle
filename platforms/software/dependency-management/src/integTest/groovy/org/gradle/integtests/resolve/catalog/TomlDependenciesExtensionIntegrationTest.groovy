@@ -1119,4 +1119,32 @@ my-lib.module = "org.gradle.test:lib"
             }
         }
     }
+
+    def "#entry of #alias cannot inject code into the generated accessors using '#forbidden'"() {
+        tomlFile << toml.replace('<payload>', payload)
+
+        when:
+        fails 'help'
+
+        then:
+        injectedCodeDidNotRun()
+        verifyAll(receivedProblem) {
+            fqid == "dependency-version-catalog:$problemId"
+            contextualLabel.startsWith("Problem: In version catalog libs, on alias '$alias' $entry '")
+            contextualLabel.endsWith("' contains '$forbidden', which is not allowed")
+        }
+
+        where:
+        [entry, alias, problemId, toml, payload, forbidden] << [
+            ['version', 'example', 'invalid-dependency-notation', '[versions]\nexample = "1.0.0 <payload>"\n'],
+            ['preferred version', 'example', 'invalid-dependency-notation', '[versions]\nexample = "1.0!!1.1 <payload>"\n'],
+            ['rejected version', 'example', 'invalid-dependency-notation', '[versions]\nexample = { require = "1.0", reject = ["1.1 <payload>"] }\n'],
+            ['group', 'lib', 'invalid-dependency-notation', '[libraries]\nlib = { group = "g <payload>", name = "n", version = "1.0" }\n'],
+            ['name', 'lib', 'invalid-dependency-notation', '[libraries]\nlib = { group = "g", name = "n <payload>", version = "1.0" }\n'],
+            ['version', 'lib', 'invalid-dependency-notation', '[libraries]\nlib = "g:n:1.0 <payload>"\n'],
+            ['strict version', 'lib', 'invalid-dependency-notation', '[libraries]\nlib = { module = "g:n", version.strictly = "1.0 <payload>" }\n'],
+            ['plugin id', 'plug', 'invalid-plugin-notation', '[plugins]\nplug = { id = "p <payload>", version = "1.0" }\n'],
+            ['version', 'plug', 'invalid-plugin-notation', '[plugins]\nplug = "p:1.0 <payload>"\n'],
+        ].collectMany { row -> INJECTION_PAYLOADS.collect { row + it } }
+    }
 }
