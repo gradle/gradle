@@ -288,8 +288,8 @@ val jvm = platform("jvm") {
     subproject("war")
 }
 
-// Extensibility Platform
-val extensibility = platform("extensibility") {
+// Plugin Development Platform
+val pluginDev = platform("plugin-dev") {
     uses(core)
     uses(jvm)
     subproject("plugin-development")
@@ -302,7 +302,7 @@ platform("dsl") {
     uses(core)
     uses(software)
     uses(jvm)
-    uses(extensibility)
+    uses(pluginDev)
     subproject("groovy-dsl")
     subproject("kotlin-dsl")
     subproject("kotlin-dsl-integ-tests")

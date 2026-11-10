@@ -17,7 +17,7 @@ Before starting, you need these details from the user (ask if not provided):
    - `platform("reporting-plugins")` - flat list of subprojects
    - `platform("software")` - flat list of subprojects (no nested modules)
    - `platform("jvm")` - flat list of subprojects
-   - `platform("extensibility")` - flat list of subprojects
+   - `platform("plugin-dev")` - flat list of subprojects
    - `platform("native")` - flat list of subprojects
    - `platform("dsl")` - flat list of subprojects
    - Top-level modules (not inside a platform): `documentation`, `ide`, `enterprise`

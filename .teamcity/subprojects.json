@@ -1191,7 +1191,7 @@
   },
   {
     "name": "plugin-development",
-    "path": "platforms/extensibility/plugin-development",
+    "path": "platforms/plugin-dev/plugin-development",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
@@ -1604,7 +1604,7 @@
   },
   {
     "name": "test-kit",
-    "path": "platforms/extensibility/test-kit",
+    "path": "platforms/plugin-dev/test-kit",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -1709,7 +1709,7 @@
   },
   {
     "name": "unit-test-fixtures",
-    "path": "platforms/extensibility/unit-test-fixtures",
+    "path": "platforms/plugin-dev/unit-test-fixtures",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
