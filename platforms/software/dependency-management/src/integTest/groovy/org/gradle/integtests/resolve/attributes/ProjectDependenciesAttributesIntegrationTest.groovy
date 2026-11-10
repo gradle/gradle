@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import spock.lang.Issue
 
 class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -131,78 +132,76 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
 
     }
 
-    def "multiple nodes in a target component may be selected when only the producing component has attribute rules marking their attributes compatible"() {
-        settingsFile << """include 'producer'"""
+    @Issue("https://github.com/gradle/gradle/issues/29390")
+    def "selects variants with different capabilities and different categories that were not requested"() {
+        settingsFile << """
+            include("producer")
+        """
 
+        file("producer/library.jar").text = "library"
+        file("producer/bundle.zip").text = "bundle"
         file("producer/build.gradle") << """
-            class AllCompatibilityRule implements AttributeCompatibilityRule<Object> {
-                @Override
-                public void execute(CompatibilityCheckDetails<Object> details) {
-                    details.compatible()
-                }
-            }
-
-            dependencies {
-                attributesSchema {
-                    attribute(Attribute.of("color", String)) {
-                        if (${applyRule}) {
-                            compatibilityRules.add(AllCompatibilityRule)
-                        }
-                    }
-                }
-            }
-
-            ${blueAndRedVariants()}
+            group = "org"
 
             configurations {
-                blueVariant {
+                consumable("libraryElements") {
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+                    }
                     outgoing {
-                        capability("org:special:1.0")
+                        capability("org:producer-dependencies:1.0")
+                        artifact(file("library.jar"))
+                    }
+                }
+                consumable("bundleElements") {
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "data"))
+                    }
+                    outgoing {
+                        capability("org:producer-bundle:1.0")
+                        artifact(file("bundle.zip"))
                     }
                 }
             }
         """
 
         buildFile << """
+            configurations.res.attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+                attribute(Attribute.of("distribution", String), "client")
+            }
+
             dependencies {
-                conf(project(":producer"))
                 conf(project(":producer")) {
                     capabilities {
-                        requireCapability("org:special:1.0")
+                        requireCapability("org:producer-dependencies")
+                    }
+                }
+                conf(project(":producer")) {
+                    capabilities {
+                        requireCapability("org:producer-bundle")
                     }
                 }
             }
         """
 
         when:
-        if (applyRule) {
-            run ':checkDeps'
-        } else {
-            fails ':checkDeps'
-        }
+        run(":checkDeps")
 
         then:
-        if (applyRule) {
-            resolve.expectGraph {
-                root(":", ":test:") {
-                    project(':producer', "test:producer:unspecified") {
-                        variant "redVariant", [color: 'red']
-                        noArtifacts()
-                    }
-                    project(':producer', "test:producer:unspecified") {
-                        variant "blueVariant", [color: 'blue']
-                        noArtifacts()
-                    }
+        resolve.expectGraph {
+            root(":", ":test:") {
+                project(":producer", "org:producer:unspecified") {
+                    variant("libraryElements", ["org.gradle.category": "library", "org.gradle.usage": "java-api"])
+                    artifact(name: "library", type: "jar", fileName: "library.jar")
+                }
+                project(":producer", "org:producer:unspecified") {
+                    variant("bundleElements", ["org.gradle.category": "data"])
+                    artifact(name: "bundle", type: "zip", fileName: "bundle.zip")
                 }
             }
-        } else {
-            failure.assertHasCause("""Multiple incompatible variants of project ':producer' were selected:
-   - Variant blueVariant has attributes {color=blue}
-   - Variant redVariant has attributes {color=red}""")
         }
-
-        where:
-        applyRule << [true, false]
     }
 
     private static String blueAndRedVariants() {

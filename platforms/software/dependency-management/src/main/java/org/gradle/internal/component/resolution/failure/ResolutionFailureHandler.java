@@ -36,11 +36,9 @@ import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.problems.internal.ResolutionFailureData;
 import org.gradle.api.problems.internal.ResolutionFailureDataSpec;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.GraphVariantSelector;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.SelectionReasonAssessor.AssessedSelection;
@@ -54,7 +52,6 @@ import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactsF
 import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure;
 import org.gradle.internal.component.resolution.failure.type.ConfigurationDoesNotExistFailure;
 import org.gradle.internal.component.resolution.failure.type.ConfigurationNotCompatibleFailure;
-import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure;
 import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailure;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleArtifactFailure;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
@@ -205,19 +202,6 @@ public class ResolutionFailureHandler {
         return describeFailure(failure);
     }
     // endregion Variant Selection failures
-
-    // region Graph Validation failures
-    public AbstractResolutionFailureException incompatibleMultipleNodesValidationFailure(
-        AttributeMatcher matcher,
-        ComponentGraphResolveMetadata selectedComponent,
-        Set<VariantGraphResolveMetadata> incompatibleNodes
-    ) {
-        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(ImmutableAttributes.EMPTY, matcher);
-        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessNodeMetadatas(incompatibleNodes);
-        IncompatibleMultipleNodesValidationFailure failure = new IncompatibleMultipleNodesValidationFailure(selectedComponent, incompatibleNodes, assessedCandidates);
-        return describeFailure(failure);
-    }
-    // endregion Graph Validation failures
 
     // region Artifact Selection failures
     public AbstractResolutionFailureException ambiguousArtifactTransformsFailure(

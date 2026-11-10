@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.internal.component.resolution.failure.exception.ConflictingConstraintsException
-import org.gradle.internal.component.resolution.failure.exception.GraphValidationException
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure
@@ -30,7 +29,6 @@ import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactsF
 import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure
 import org.gradle.internal.component.resolution.failure.type.ConfigurationDoesNotExistFailure
 import org.gradle.internal.component.resolution.failure.type.ConfigurationNotCompatibleFailure
-import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure
 import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailure
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleArtifactFailure
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure
@@ -357,37 +355,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
     // endregion Variant Selection failure
 
-    // region Graph Validation failures
-    // endregion Graph Validation failures
-
     // region Artifact Selection failures
-    def "demonstrate incompatible artifact variants exception"() {
-        incompatibleArtifactVariants.prepare()
-
-        expect:
-        assertResolutionFailsAsExpected(incompatibleArtifactVariants)
-
-        and: "Has error output"
-        assertFailureDescriptionCorrect()
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        failure.assertHasCause("Could not resolve root project 'example'.")
-        assertFullMessageCorrect("""     Required by:
-         root project 'example'
-      > Multiple incompatible variants of root project 'example' were selected:
-           - Variant blueElementsCapability1 has attributes {color=blue}
-           - Variant greenElementsCapability2 has attributes {color=green}""")
-
-        and: "Helpful resolutions are provided"
-        assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-incompatible.")
-
-        and: "Problems are reported"
-        verifyAll(receivedProblem(0)) {
-            fqid == 'Dependencies:Graph Resolution:Incompatible nodes of a single component were selected'
-            additionalData.asMap == [requestTarget: "root project 'example'"]
-        }
-    }
-
     def "demonstrate no matching artifact variants exception"() {
         noMatchingArtifactVariants.prepare()
 
@@ -679,8 +647,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     private final Demonstration multipleSelectedVariantsWithSameCapabilities = new Demonstration("Multiple selected variants with the same capabilities", VariantSelectionByAttributesException.class, ConfigurationNotCompatibleFailure.class, this.&setupMultipleConfigurationsWithSameCapabilities)
 
-    private final Demonstration incompatibleArtifactVariants = new Demonstration("Incompatible graph variants", GraphValidationException.class, IncompatibleMultipleNodesValidationFailure.class, this.&setupIncompatibleMultipleNodesValidationFailureForProject)
-
     private final List<Demonstration> demonstrations = [
         ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute,
         ambiguousGraphVariantForProjectWithoutSingleDisambiguatingAttribute,
@@ -696,7 +662,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         ambiguousArtifactTransforms,
         ambiguousArtifactVariants,
 
-        incompatibleArtifactVariants,
         multipleSelectedVariantsWithSameCapabilities
     ]
     // endregion error showcase
@@ -1136,75 +1101,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
             dependencies {
                 add("defaultDependencies", project(":", "mismatch"))
-            }
-
-            ${forceConsumerResolution()}
-        """
-    }
-
-    private void setupIncompatibleMultipleNodesValidationFailureForProject() {
-        buildKotlinFile << """
-            group = "org.example"
-            version = "1.0"
-
-            val color = Attribute.of("color", String::class.java)
-
-            // TODO: Can't use dependencyScope here yet, as it doesn't support capabilities
-            val incompatible = configurations.create("incompatible") {
-                isCanBeDeclared = true
-                isCanBeConsumed = false
-                isCanBeResolved = false
-            }
-
-            configurations {
-                consumable("blueElementsCapability1") {
-                    attributes.attribute(color, "blue")
-                    outgoing {
-                        capability("org.example:cap1:1.0")
-                    }
-                }
-                consumable("blueElementsCapability2") {
-                    attributes.attribute(color, "blue")
-                    outgoing {
-                        capability("org.example:cap2:1.0")
-                    }
-                }
-
-                consumable("greenElementsCapability1") {
-                    attributes.attribute(color, "green")
-                    outgoing {
-                        capability("org.example:cap1:1.0")
-                    }
-                }
-                consumable("greenElementsCapability2") {
-                    attributes.attribute(color, "green")
-                    outgoing {
-                        capability("org.example:cap2:1.0")
-                    }
-                }
-
-                resolvable("resolveMe") {
-                    extendsFrom(incompatible)
-                }
-            }
-
-            dependencies {
-                add("incompatible", project(":")) {
-                    attributes {
-                        attribute(color, "blue")
-                    }
-                    capabilities {
-                        requireCapability("org.example:cap1:1.0")
-                    }
-                }
-                add("incompatible", project(":")) {
-                    attributes {
-                        attribute(color, "green")
-                    }
-                    capabilities {
-                        requireCapability("org.example:cap2:1.0")
-                    }
-                }
             }
 
             ${forceConsumerResolution()}

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -46,8 +45,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictException;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
-import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
-import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
@@ -55,9 +52,7 @@ import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
-import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -72,12 +67,10 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 @ServiceScope(Scope.Project.class)
 public class DependencyGraphBuilder {
@@ -315,7 +308,6 @@ public class DependencyGraphBuilder {
         ConflictResolution conflictResolution,
         ResolutionParameters.FailureResolutions failureResolutions
     ) {
-        ImmutableAttributesSchema consumerSchema = resolveState.getConsumerSchema();
         for (ModuleResolveState module : resolveState.getModules()) {
             ComponentState selected = module.getSelected();
             if (selected != null) {
@@ -335,8 +327,6 @@ public class DependencyGraphBuilder {
                     }
                     if (module.isVirtualPlatform()) {
                         attachMultipleForceOnPlatformFailureToEdges(module);
-                    } else if (selected.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
-                        validateMultipleNodeSelection(consumerSchema, module, selected, resolutionFailureHandler, resolveState.getAttributeSchemaServices());
                     }
                     if (denyDynamicSelectors) {
                         validateDynamicSelectors(selected);
@@ -546,49 +536,6 @@ public class DependencyGraphBuilder {
         );
 
         return new ImmutablePair<>(conflict, failureResolutions.forVersionConflict(conflict));
-    }
-
-    /**
-     * Validates that all selected nodes of a single component have compatible attributes,
-     * when using variant aware resolution.
-     */
-    private static void validateMultipleNodeSelection(
-        ImmutableAttributesSchema consumerSchema,
-        ModuleResolveState module,
-        ComponentState selected,
-        ResolutionFailureHandler resolutionFailureHandler,
-        AttributeSchemaServices attributeSchemaServices
-    ) {
-        Set<NodeState> selectedNodes = selected.getNodes().stream()
-            .filter(n -> n.isSelected() && !n.isAttachedToVirtualPlatform() && !n.hasShadowedCapability() && !n.isRejectedForCapabilityConflict())
-            .collect(Collectors.toSet());
-
-        if (selectedNodes.size() < 2) {
-            return;
-        }
-
-        Set<Set<NodeState>> combinations = Sets.combinations(selectedNodes, 2);
-        Set<NodeState> incompatibleNodes = new HashSet<>();
-
-        AttributeMatcher matcher = attributeSchemaServices.getMatcher(consumerSchema, selected.getMetadata().getAttributesSchema());
-        for (Set<NodeState> combination : combinations) {
-            Iterator<NodeState> it = combination.iterator();
-            NodeState first = it.next();
-            NodeState second = it.next();
-
-            if (!matcher.areMutuallyCompatible(first.getMetadata().getAttributes(), second.getMetadata().getAttributes())) {
-                incompatibleNodes.add(first);
-                incompatibleNodes.add(second);
-            }
-        }
-
-        if (!incompatibleNodes.isEmpty()) {
-            Set<VariantGraphResolveMetadata> incompatibleNodeMetadatas = incompatibleNodes.stream()
-                .map(NodeState::getMetadata)
-                .collect(Collectors.toSet());
-            AbstractResolutionFailureException variantsSelectionException = resolutionFailureHandler.incompatibleMultipleNodesValidationFailure(matcher, selected.getMetadata(), incompatibleNodeMetadatas);
-            module.visitIncomingEdges(edge -> edge.failWith(variantsSelectionException));
-        }
     }
 
     private static void attachMultipleForceOnPlatformFailureToEdges(ModuleResolveState module) {

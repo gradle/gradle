@@ -19,7 +19,7 @@
  * interfaces that exist to categorize types of failure conditions that can occur during dependency resolution and
  * delineate when during dependency resolution a failure occurred.
  * <p>
- * There are currently 4 different categories of resolution failures processed by the
+ * There are currently 3 different categories of resolution failures processed by the
  * {@link org.gradle.internal.component.resolution.failure.ResolutionFailureHandler ResolutionFailureHandler}.  There may be
  * more in the future.
  * <p>
@@ -28,7 +28,6 @@
  * <ol>
  *     <li>{@link org.gradle.internal.component.resolution.failure.interfaces.ComponentSelectionFailure}</li>
  *     <li>{@link org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionFailure}</li>
- *     <li>{@link org.gradle.internal.component.resolution.failure.interfaces.GraphValidationFailure}</li>
  *     <li>{@link org.gradle.internal.component.resolution.failure.interfaces.ArtifactSelectionFailure}</li>
  * </ol>
  * This list is ordered, as the selection of any given artifact can fail the resolution process in many ways.

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model
 
+import org.gradle.api.Named
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.AttributeDisambiguationRule
@@ -117,6 +118,47 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
         matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4], requested) == [candidate1]
         matcher.matchMultipleCandidates([candidate2, candidate3, candidate4], requested) == [candidate2]
         matcher.matchMultipleCandidates([candidate3, candidate4], requested) == [candidate3]
+    }
+
+    interface Flavor extends Named {}
+
+    static class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+        @Override
+        void execute(CompatibilityCheckDetails<Flavor> details) {
+            details.compatible()
+        }
+    }
+
+    static class FlavorDisambiguationRule implements AttributeDisambiguationRule<Flavor> {
+        @Override
+        void execute(MultipleCandidatesDetails<Flavor> details) {
+            def best = details.candidateValues.find { it.name == "best" }
+            if (best != null) {
+                details.closestMatch(best)
+            }
+        }
+    }
+
+    def "disambiguates desugared requested attributes in the precedence order of their rich types"() {
+        def highestFlavor = Attribute.of("highest", Flavor)
+        def lowestFlavor = Attribute.of("lowest", Flavor)
+        def schema = AttributeTestUtil.immutableSchema {
+            attributeDisambiguationPrecedence(highestFlavor, lowestFlavor)
+            attribute(highestFlavor).compatibilityRules.add(FlavorCompatibilityRule)
+            attribute(highestFlavor).disambiguationRules.add(FlavorDisambiguationRule)
+            attribute(lowestFlavor).compatibilityRules.add(FlavorCompatibilityRule)
+            attribute(lowestFlavor).disambiguationRules.add(FlavorDisambiguationRule)
+        }
+        def matcher = AttributeTestUtil.services().getMatcher(schema, ImmutableAttributesSchema.EMPTY)
+
+        // Desugared attributes, as read from published metadata
+        def candidate1 = new ImmutableAttributesBackedMatchingCandidate(AttributeTestUtil.attributes([highest: "best", lowest: "other"]))
+        def candidate2 = new ImmutableAttributesBackedMatchingCandidate(AttributeTestUtil.attributes([highest: "other", lowest: "best"]))
+        def requested = AttributeTestUtil.attributes([highest: "requested", lowest: "requested"])
+
+        expect:
+        matcher.matchMultipleCandidates([candidate1, candidate2], requested) == [candidate1]
+        matcher.matchMultipleCandidates([candidate2, candidate1], requested) == [candidate1]
     }
 
     private static ImmutableAttributes requested(String highestValue, String middleValue, String lowestValue) {

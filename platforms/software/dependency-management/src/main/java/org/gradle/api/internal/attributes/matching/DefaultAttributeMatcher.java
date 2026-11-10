@@ -71,23 +71,9 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
     }
 
     private boolean doIsMatchingCandidate(MatchingCandidateCacheKey k) {
-        return allCommonAttributesSatisfy(k.candidate, k.requested, schema::matchValue);
-    }
+        ImmutableAttributes requested = k.requested;
+        ImmutableAttributes candidate = k.candidate;
 
-    @Override
-    public boolean areMutuallyCompatible(ImmutableAttributes candidate, ImmutableAttributes requested) {
-        return allCommonAttributesSatisfy(candidate, requested, schema::weakMatchValue);
-    }
-
-    /**
-     * Return true iff all common attributes between the candidate and requested
-     * attribute sets satisfy the given predicate.
-     */
-    private boolean allCommonAttributesSatisfy(
-        ImmutableAttributes candidate,
-        ImmutableAttributes requested,
-        CoercingAttributeValuePredicate predicate
-    ) {
         if (requested.isEmpty() || candidate.isEmpty()) {
             return true;
         }
@@ -98,7 +84,7 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
 
             if (candidateEntry != null) {
                 Attribute<?> typedAttribute = schema.tryRehydrate(attribute);
-                if (!predicate.test(typedAttribute, requestedEntry, candidateEntry)) {
+                if (!coercedMatchValue(typedAttribute, requestedEntry, candidateEntry)) {
                     return false;
                 }
             }
@@ -108,29 +94,17 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
     }
 
     /**
-     * Matches two attribute values, one from the consumer and one from the producer,
-     * that share a common attribute type.
+     * Coerce the candidate and requested attribute values to the type of the attribute
+     * and test that they match.
      */
-    private interface CoercingAttributeValuePredicate {
-
-        /**
-         * Test that the candidate attribute value satisfies the requested attribute value.
-         */
-        <A> boolean test(Attribute<A> attribute, A requested, A candidate);
-
-        /**
-         * Coerce the candidate and requested attribute values to the type of the attribute
-         * and test that they match.
-         */
-        default <T> boolean test(
-            Attribute<T> attribute,
-            ImmutableAttributesEntry<?> requested,
-            ImmutableAttributesEntry<?> candidate
-        ) {
-            T requestedValue = requested.coerce(attribute);
-            T candidateValue = candidate.coerce(attribute);
-            return test(attribute, requestedValue, candidateValue);
-        }
+    private <T> boolean coercedMatchValue(
+        Attribute<T> attribute,
+        ImmutableAttributesEntry<?> requested,
+        ImmutableAttributesEntry<?> candidate
+    ) {
+        T requestedValue = requested.coerce(attribute);
+        T candidateValue = candidate.coerce(attribute);
+        return schema.matchValue(attribute, requestedValue, candidateValue);
     }
 
     @Override
@@ -140,8 +114,6 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
             return Collections.emptyList();
         }
 
-        CoercingAttributeValuePredicate matches = schema::matchValue;
-
         ImmutableCollection<ImmutableAttributesEntry<?>> attributes = requested.getEntries();
         List<AttributeMatcher.MatchingDescription<?>> result = new ArrayList<>(attributes.size());
         for (ImmutableAttributesEntry<?> requestedEntry : attributes) {
@@ -150,7 +122,7 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
 
             if (candidateEntry != null) {
                 Attribute<?> typedAttribute = schema.tryRehydrate(attribute);
-                boolean match = matches.test(typedAttribute, requestedEntry, candidateEntry);
+                boolean match = coercedMatchValue(typedAttribute, requestedEntry, candidateEntry);
                 result.add(new AttributeMatcher.MatchingDescription(requestedEntry, candidateEntry, match));
             } else {
                 result.add(new AttributeMatcher.MatchingDescription(requestedEntry, candidateEntry, false));

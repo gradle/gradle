@@ -44,6 +44,7 @@ class ModuleVersionSpec {
     private List<InteractionExpectation> expectGetMetadata = [InteractionExpectation.NONE]
     private List<ArtifactExpectation> expectGetArtifact = []
     private MetadataType metadataType = MetadataType.REPO_DEFAULT
+    private boolean withoutDefaultVariants
 
     static enum MetadataType {
         REPO_DEFAULT,
@@ -137,6 +138,13 @@ class ModuleVersionSpec {
         spec.delegate = variant
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec()
+    }
+
+    /**
+     * Publishes only the variants declared with {@link #variant}, without the default ones of the module.
+     */
+    void withoutDefaultVariants() {
+        withoutDefaultVariants = true
     }
 
     void variants(List<String> names, @DelegatesTo(value = VariantMetadataSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
@@ -300,6 +308,9 @@ class ModuleVersionSpec {
             componentLevelAttributes.each { key, value ->
                 module.attributes[key] = value
             }
+        }
+        if (withoutDefaultVariants) {
+            module.withoutDefaultVariants()
         }
         if (variants) {
             variants.each { variant ->
