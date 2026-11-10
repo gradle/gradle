@@ -71,7 +71,7 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
 
     /**
      * Resolves the file of the given artifact. Returns null when the artifact is
-     * optional and does not exist in the repository.
+     * optional and could not be resolved from the repository.
      *
      * @throws ArtifactNotFoundException when a required artifact does not exist in the repository.
      */
@@ -86,10 +86,15 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         if (!artifactFile.hasResult()) {
             sourceRepository.getRemoteAccess().resolveArtifact(artifact, sources, artifactFile);
         }
+        if (artifact.isOptionalArtifact() && !artifactFile.isSuccessful()) {
+            // TODO: To maintain behavior, an optional artifact that fails to resolve for any reason
+            // is treated as absent. The more correct behavior is for an artifact that is not found to
+            // be absent. Some repositories answer requests for missing files with a 401 or 403, which
+            // we may want to treat as absent as well.
+            // See https://github.com/gradle/gradle/issues/39756
+            return null;
+        }
         if (artifactFile.isNotFound()) {
-            if (artifact.isOptionalArtifact()) {
-                return null;
-            }
             throw artifactFile.getNotFoundFailure();
         }
         return artifactFile.getResult();
