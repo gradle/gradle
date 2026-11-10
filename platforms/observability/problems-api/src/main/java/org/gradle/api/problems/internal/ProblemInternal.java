@@ -46,6 +46,11 @@ public interface ProblemInternal extends Problem {
     ProblemInternal withDetectionTrace(Trace detectionTrace);
 
     /**
+     * Returns a copy of this problem with the given origin traces; everything else is unchanged.
+     */
+    ProblemInternal withOriginTraces(List<Trace> originTraces);
+
+    /**
      * Returns the problem definition, i.e. the data that is independent of the report context.
      */
     ProblemDefinition getDefinition();
@@ -86,6 +91,13 @@ public interface ProblemInternal extends Problem {
      * Might be empty if there is no meaningful contextual information.
      */
     List<ProblemLocation> getContextualLocations();
+
+    /**
+     * Returns the authored causes of the problem, one trace per cause, each leaf first.
+     * <p>
+     * Empty when the cause isn't authored or Gradle can't find it.
+     */
+    List<Trace> getOriginTraces();
 
     /**
      * Returns what was running when the problem was noticed: task, project and build, leaf first.

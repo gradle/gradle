@@ -20,6 +20,7 @@ import org.gradle.api.problems.internal.StackTraceLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
+import org.gradle.internal.code.Locality
 
 /**
  * The detection traces of the use cases in the "Problem Locations Revised" spec. Each test is named after its use case.
@@ -69,6 +70,9 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         detectionOf("Gradle:Plugin Validation:Missing annotation") == ["task :app:acme", "project :app", "build :"]
+
+        and: "the origin is the property and its type"
+        originsOf(problem) == [["property bar", "class com.acme.AcmeTask"]]
     }
 
     def "UC3: deprecation called from a build script in a task action is detected in the task"() {
@@ -91,8 +95,10 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
         then:
         detectionOf("Gradle:Deprecation:Feature") == ["task :app:test", "project :app", "build :"]
 
-        and: "the origin stays the script line, as today"
-        deprecation.oneLocation(StackTraceLocation).fileLocation.path == file("app/build.gradle").absolutePath
+        and: "the origin is the script line, local, as the flat list says too"
+        originsOf(problem) == [[file("app/build.gradle").absolutePath + ":6"]]
+        problem.originTraces[0].frames[0].locality == Locality.LOCAL
+        problem.oneLocation(StackTraceLocation).fileLocation.path == file("app/build.gradle").absolutePath
     }
 
     def "UC4: deprecation called from a compiled plugin while it is applied is detected in the plugin application"() {
@@ -173,6 +179,10 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
         then:
         def problem = findReceivedProblem { it.fqid.startsWith("Compilation:Java:") }
         problem.detectionTrace.frames*.displayName == ["task :app:compileJava", "project :app", "build :"]
+
+        and: "the origin is the line of the Java file, local"
+        originsOf(problem) == [[file("app/src/main/java/Foo.java").absolutePath + ":4:29"]]
+        problem.originTraces[0].frames[0].locality == Locality.LOCAL
     }
 
     def "UC8: deprecation called from a settings script is detected in the build"() {
@@ -187,6 +197,8 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         detectionOf("Gradle:Deprecation:Feature") == ["build :"]
+        originsOf(problem) == [[settingsFile.absolutePath + ":4"]]
+        problem.originTraces[0].frames[0].locality == Locality.LOCAL
     }
 
     def "UC9: deprecation in a build script of an included build is detected in that build's project"() {
@@ -213,6 +225,8 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         detectionOf("Gradle:Deprecation:Feature") == ["project :lib:core", "build :lib", "build :"]
+        originsOf(problem) == [[file("lib/core/build.gradle").absolutePath + ":4"]]
+        problem.originTraces[0].frames[0].locality == Locality.LOCAL
     }
 
     def "UC10: deprecation in a task action on a configuration cache hit is detected in the task"() {
@@ -290,6 +304,7 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         detectionOf("Gradle:Plugin Validation:Missing annotation") == ["task :plugin:validatePlugins", "project :plugin", "build :"]
+        originsOf(problem) == [["property bar", "class com.acme.AcmeTask"]]
     }
 
     private void pluginInBuildSrc(String id, String implementationClass, String applyBody) {
@@ -332,11 +347,14 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDocumentedDeprecationWarning("Feature has been deprecated. This is scheduled to be removed in Gradle 10.")
     }
 
-    private ReceivedProblem deprecation
+    private ReceivedProblem problem
 
     private List<String> detectionOf(String fqid) {
-        def problem = findReceivedProblem { it.fqid == fqid }
-        deprecation = problem
+        problem = findReceivedProblem { it.fqid == fqid }
         problem.detectionTrace.frames*.displayName
+    }
+
+    private static List<List<String>> originsOf(ReceivedProblem problem) {
+        problem.originTraces*.frames*.displayName
     }
 }

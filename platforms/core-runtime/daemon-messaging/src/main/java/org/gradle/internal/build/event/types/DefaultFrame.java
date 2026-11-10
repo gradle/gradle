@@ -17,7 +17,9 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.tooling.internal.protocol.problem.InternalFrame;
+import org.gradle.tooling.internal.protocol.problem.InternalPosition;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 
@@ -26,10 +28,23 @@ public class DefaultFrame implements InternalFrame, Serializable {
 
     private final String displayName;
     private final String locality;
+    @Nullable
+    private final InternalPosition position;
 
     public DefaultFrame(String displayName, String locality) {
+        this(displayName, locality, null);
+    }
+
+    public DefaultFrame(String displayName, String locality, @Nullable InternalPosition position) {
         this.displayName = displayName;
         this.locality = locality;
+        this.position = position;
+    }
+
+    @Nullable
+    @Override
+    public InternalPosition getPosition() {
+        return position;
     }
 
     @Override

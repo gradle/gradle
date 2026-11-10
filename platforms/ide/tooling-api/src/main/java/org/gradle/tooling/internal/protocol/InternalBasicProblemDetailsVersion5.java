@@ -20,6 +20,8 @@ import org.gradle.tooling.internal.protocol.problem.InternalTrace;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
+
 /**
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
@@ -27,6 +29,8 @@ import org.jspecify.annotations.Nullable;
  */
 @NullMarked
 public interface InternalBasicProblemDetailsVersion5 extends InternalBasicProblemDetailsVersion4 {
+
+    List<InternalTrace> getOriginTraces();
 
     @Nullable
     InternalTrace getDetectionTrace();

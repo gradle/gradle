@@ -18,17 +18,32 @@ package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.problems.Frame;
 import org.gradle.tooling.events.problems.Locality;
+import org.gradle.tooling.events.problems.Position;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 @NullMarked
 public class DefaultFrame implements Frame {
 
     private final String displayName;
     private final Locality locality;
+    @Nullable
+    private final Position position;
 
     public DefaultFrame(String displayName, Locality locality) {
+        this(displayName, locality, null);
+    }
+
+    public DefaultFrame(String displayName, Locality locality, @Nullable Position position) {
         this.displayName = displayName;
         this.locality = locality;
+        this.position = position;
+    }
+
+    @Nullable
+    @Override
+    public Position getPosition() {
+        return position;
     }
 
     @Override

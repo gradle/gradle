@@ -71,6 +71,7 @@ import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.DocumentationLink;
 import org.gradle.tooling.events.problems.Frame;
 import org.gradle.tooling.events.problems.Locality;
+import org.gradle.tooling.events.problems.Position;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.Trace;
 import org.gradle.tooling.events.problems.Problem;
@@ -268,6 +269,7 @@ import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 import org.gradle.tooling.internal.protocol.problem.InternalBuildFrame;
 import org.gradle.tooling.internal.protocol.problem.InternalFrame;
+import org.gradle.tooling.internal.protocol.problem.InternalPosition;
 import org.gradle.tooling.internal.protocol.problem.InternalPluginApplicationFrame;
 import org.gradle.tooling.internal.protocol.problem.InternalProjectFrame;
 import org.gradle.tooling.internal.protocol.problem.InternalTaskFrame;
@@ -1054,7 +1056,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             toSolutions(basicProblemDetails.getSolutions()),
             toAdditionalData(basicProblemDetails.getAdditionalData()),
             toFailure(basicProblemDetails),
-            null
+            null,
+            Collections.<Trace>emptyList()
         );
     }
 
@@ -1078,8 +1081,21 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             toSolutions(basicProblemDetails.getSolutions()),
             toAdditionalData(basicProblemDetails.getAdditionalData()),
             toFailure(basicProblemDetails.getFailure()),
-            toDetectionTrace(basicProblemDetails)
+            toDetectionTrace(basicProblemDetails),
+            toOriginTraces(basicProblemDetails)
         );
+    }
+
+    // Visible for testing
+    static List<Trace> toOriginTraces(InternalBasicProblemDetailsVersion3 basicProblemDetails) {
+        if (!(basicProblemDetails instanceof InternalBasicProblemDetailsVersion5)) {
+            return ImmutableList.of();
+        }
+        ImmutableList.Builder<Trace> result = ImmutableList.builder();
+        for (InternalTrace trace : ((InternalBasicProblemDetailsVersion5) basicProblemDetails).getOriginTraces()) {
+            result.add(toTrace(trace));
+        }
+        return result.build();
     }
 
     // Visible for testing
@@ -1102,20 +1118,31 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private static Frame toFrame(InternalFrame frame) {
         String displayName = frame.getDisplayName();
         Locality locality = toLocality(frame.getLocality());
+        Position position = toPosition(frame.getPosition());
         if (frame instanceof InternalTaskFrame) {
-            return new DefaultTaskFrame(displayName, locality, ((InternalTaskFrame) frame).getBuildTreePath());
+            return new DefaultTaskFrame(displayName, locality, position, ((InternalTaskFrame) frame).getBuildTreePath());
         }
         if (frame instanceof InternalProjectFrame) {
-            return new DefaultProjectFrame(displayName, locality, ((InternalProjectFrame) frame).getBuildTreePath());
+            return new DefaultProjectFrame(displayName, locality, position, ((InternalProjectFrame) frame).getBuildTreePath());
         }
         if (frame instanceof InternalBuildFrame) {
-            return new DefaultBuildFrame(displayName, locality, ((InternalBuildFrame) frame).getBuildPath());
+            return new DefaultBuildFrame(displayName, locality, position, ((InternalBuildFrame) frame).getBuildPath());
         }
         if (frame instanceof InternalPluginApplicationFrame) {
-            return new DefaultPluginApplicationFrame(displayName, locality, ((InternalPluginApplicationFrame) frame).getPluginId());
+            return new DefaultPluginApplicationFrame(displayName, locality, position, ((InternalPluginApplicationFrame) frame).getPluginId());
         }
         // A frame kind this client has no type for stays in the trace as a plain frame: the order of a trace carries meaning
-        return new DefaultFrame(displayName, locality);
+        return new DefaultFrame(displayName, locality, position);
+    }
+
+    // A position kind this client doesn't know is dropped; a frame without a position still shows through its display name
+    private static @Nullable Position toPosition(@Nullable InternalPosition position) {
+        // The problems types share their simple names with the test event ones, hence the qualified names
+        if (position instanceof org.gradle.tooling.internal.protocol.problem.InternalFilePosition) {
+            org.gradle.tooling.internal.protocol.problem.InternalFilePosition file = (org.gradle.tooling.internal.protocol.problem.InternalFilePosition) position;
+            return new org.gradle.tooling.events.problems.internal.DefaultFilePosition(file.getPath(), file.getLine(), file.getColumn(), file.getOffset(), file.getLength());
+        }
+        return null;
     }
 
     // A newer Gradle version can send a locality this client doesn't know

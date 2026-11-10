@@ -27,6 +27,14 @@ import org.gradle.api.problems.ProblemGroups;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.LineInFileLocation;
+import org.gradle.api.problems.OffsetInFileLocation;
+import org.gradle.api.problems.internal.location.ClassFrame;
+import org.gradle.api.problems.internal.location.FileLocationFrame;
+import org.gradle.api.problems.internal.location.FilePosition;
+import org.gradle.api.problems.internal.location.Frame;
+import org.gradle.api.problems.internal.location.PropertyFrame;
+import org.gradle.internal.code.Locality;
 import org.gradle.api.problems.internal.location.Trace;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.isolation.Isolatable;
@@ -70,6 +78,12 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         this.problemsInfrastructure = infrastructure;
         this.additionalData = null;
         this.solutions = new ArrayList<String>();
+    }
+
+    private DefaultProblemBuilder(DefaultProblemBuilder original, List<ProblemLocation> originLocations) {
+        this(original.problemsInfrastructure);
+        this.originLocations.addAll(originLocations);
+        this.additionalData = original.additionalData;
     }
 
     public DefaultProblemBuilder(
@@ -122,8 +136,58 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             exception,
             additionalData,
             writtenToConsole,
-            detectionTrace
+            detectionTrace,
+            originTraces()
         );
+    }
+
+    /**
+     * The origin traces: one per file location the reporter gave, with that location as its leaf, and one for the
+     * property and type of a validation problem. The flat origin list stays the reporters' input for now, so the traces
+     * are derived from it; the localities of file frames are resolved later by the runtime, which knows the build's root.
+     */
+    private List<Trace> originTraces() {
+        ImmutableList.Builder<Trace> traces = ImmutableList.builder();
+        for (ProblemLocation location : originLocations) {
+            FileLocation fileLocation = location instanceof StackTraceLocation ? ((StackTraceLocation) location).getFileLocation() : location instanceof FileLocation ? (FileLocation) location : null;
+            if (fileLocation != null) {
+                traces.add(new Trace(ImmutableList.of(new FileLocationFrame(positionOf(fileLocation), Locality.UNKNOWN))));
+            }
+        }
+        if (additionalData instanceof TypeValidationData) {
+            TypeValidationData data = (TypeValidationData) additionalData;
+            ImmutableList.Builder<Frame> frames = ImmutableList.builder();
+            if (data.getPropertyName() != null) {
+                String name = data.getParentPropertyName() == null ? data.getPropertyName() : data.getParentPropertyName() + "." + data.getPropertyName();
+                frames.add(new PropertyFrame(name, Locality.UNKNOWN));
+            }
+            if (data.getTypeName() != null) {
+                frames.add(new ClassFrame(data.getTypeName(), Locality.UNKNOWN));
+            }
+            ImmutableList<Frame> validated = frames.build();
+            if (!validated.isEmpty()) {
+                traces.add(new Trace(validated));
+            }
+        }
+        return traces.build();
+    }
+
+    // Line and column count from 1 and offset from 0; the flat locations use -1 for a missing value, the position uses null (spec Q12)
+    private static FilePosition positionOf(FileLocation location) {
+        if (location instanceof LineInFileLocation) {
+            LineInFileLocation line = (LineInFileLocation) location;
+            return new FilePosition(line.getPath(), valueOrNull(line.getLine()), valueOrNull(line.getColumn()), null, valueOrNull(line.getLength()));
+        }
+        if (location instanceof OffsetInFileLocation) {
+            OffsetInFileLocation offset = (OffsetInFileLocation) location;
+            return new FilePosition(offset.getPath(), null, null, valueOrNull(offset.getOffset()), valueOrNull(offset.getLength()));
+        }
+        return new FilePosition(location.getPath(), null, null, null, null);
+    }
+
+    @Nullable
+    private static Integer valueOrNull(int value) {
+        return value < 0 ? null : value;
     }
 
     @Nullable
@@ -205,7 +269,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             ImmutableList.<String>of(),
             problemLocations,
             ImmutableList.<ProblemLocation>of()
-        );
+        ).withOriginTraces(new DefaultProblemBuilder(this, problemLocations).originTraces());
     }
 
     protected Severity getSeverity() {

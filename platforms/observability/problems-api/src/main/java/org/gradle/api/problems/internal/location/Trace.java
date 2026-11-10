@@ -26,7 +26,8 @@ import java.util.List;
  */
 public final class Trace implements Serializable {
 
-    private final ImmutableList<Frame> frames;
+    // Declared as List, not ImmutableList: the plugin validation report serializes problems with Gson, which needs a type it can instantiate
+    private final List<Frame> frames;
 
     public Trace(List<? extends Frame> frames) {
         this.frames = ImmutableList.copyOf(frames);

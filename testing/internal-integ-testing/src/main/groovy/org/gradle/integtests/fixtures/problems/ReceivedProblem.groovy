@@ -27,6 +27,7 @@ import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemLocation
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DocLinkInternal
+import org.gradle.api.problems.internal.location.FilePosition
 import org.gradle.api.problems.internal.location.Frame
 import org.gradle.internal.code.Locality
 import org.gradle.api.problems.internal.location.Trace
@@ -54,6 +55,7 @@ class ReceivedProblem implements ProblemInternal {
     private final ReceivedAdditionalData additionalData
     private final ReceivedException exception
     private final Trace detectionTrace
+    private final List<Trace> originTraces
 
     ReceivedProblem(long operationId, Map<String, Object> problemDetails) {
         this.operationId = operationId
@@ -66,6 +68,7 @@ class ReceivedProblem implements ProblemInternal {
         this.additionalData = new ReceivedAdditionalData(problemDetails['additionalData'] as Map<String, Object>)
         this.exception = problemDetails['exception'] == null ? null : new ReceivedException(problemDetails['exception'] as Map<String, Object>)
         this.detectionTrace = toTrace(problemDetails['detectionTrace'] as Map<String, Object>)
+        this.originTraces = (problemDetails['originTraces'] as List<Map<String, Object>>).collect { toTrace(it) }
     }
 
     private static Trace toTrace(Map<String, Object> trace) {
@@ -74,9 +77,16 @@ class ReceivedProblem implements ProblemInternal {
         }
         List<Frame> frames = []
         (trace['frames'] as List<Map<String, Object>>).each { frame ->
-            frames.add(new Frame(frame['displayName'] as String, Locality.valueOf(frame['locality'] as String)))
+            frames.add(new Frame(frame['displayName'] as String, Locality.valueOf(frame['locality'] as String), toPosition(frame['position'] as Map<String, Object>)))
         }
         new Trace(frames)
+    }
+
+    private static FilePosition toPosition(Map<String, Object> position) {
+        if (position == null) {
+            return null
+        }
+        new FilePosition(position['path'] as String, position['line'] as Integer, position['column'] as Integer, position['offset'] as Integer, position['length'] as Integer)
     }
 
     private static List<ProblemLocation> fromList(List<Object> locations) {
@@ -257,6 +267,16 @@ class ReceivedProblem implements ProblemInternal {
     @Override
     Trace getDetectionTrace() {
         detectionTrace
+    }
+
+    @Override
+    List<Trace> getOriginTraces() {
+        originTraces
+    }
+
+    @Override
+    ProblemInternal withOriginTraces(List<Trace> originTraces) {
+        throw new UnsupportedOperationException("Not implemented")
     }
 
     static class ReceivedProblemDefinition implements ProblemDefinition {

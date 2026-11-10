@@ -45,6 +45,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     private final ProblemReportCreator problemReportCreator;
     private final SummarizerStrategy summarizerStrategy;
     private final DetectionContextProvider detectionContextProvider;
+    private final File buildTreeRootDirectory;
 
     public static final InternalOption<Integer> THRESHOLD_OPTION = InternalOptions.ofInt("org.gradle.internal.problem.summary.threshold", 15);
     public static final int THRESHOLD_DEFAULT_VALUE = THRESHOLD_OPTION.getDefaultValue();
@@ -55,7 +56,8 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         Collection<ProblemEmitter> problemEmitters,
         InternalOptions internalOptions,
         ProblemReportCreator problemReportCreator,
-        DetectionContextProvider detectionContextProvider
+        DetectionContextProvider detectionContextProvider,
+        File buildTreeRootDirectory
     ) {
         this.eventEmitter = eventEmitter;
         this.currentBuildOperationRef = currentBuildOperationRef;
@@ -63,6 +65,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         this.summarizerStrategy = new SummarizerStrategy(internalOptions.getInt(THRESHOLD_OPTION));
         this.problemReportCreator = problemReportCreator;
         this.detectionContextProvider = detectionContextProvider;
+        this.buildTreeRootDirectory = buildTreeRootDirectory;
     }
 
     @Override
@@ -84,7 +87,9 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         TaskIdentity taskIdentity = detection.getTask();
         String taskPath = taskIdentity == null ? null : taskIdentity.getTaskPath();
         if (summarizerStrategy.shouldEmit(problem, taskPath)) {
-            problem = maybeAddTaskLocation(problem, taskPath).withDetectionTrace(DetectionTraces.detectedIn(detection));
+            problem = maybeAddTaskLocation(problem, taskPath)
+                .withDetectionTrace(DetectionTraces.detectedIn(detection))
+                .withOriginTraces(OriginTraces.withFileLocalities(problem.getOriginTraces(), buildTreeRootDirectory));
             problemReportCreator.addProblem(problem);
             for (ProblemEmitter problemEmitter : problemEmitters) {
                 problemEmitter.emit(problem, id);

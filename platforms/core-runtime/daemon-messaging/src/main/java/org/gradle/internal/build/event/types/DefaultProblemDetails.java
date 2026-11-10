@@ -47,6 +47,7 @@ public class DefaultProblemDetails implements InternalBasicProblemDetailsVersion
     private final InternalFailure failure;
     @Nullable
     private final InternalTrace detectionTrace;
+    private final List<InternalTrace> originTraces;
 
     public DefaultProblemDetails(
         InternalProblemDefinition definition,
@@ -57,7 +58,8 @@ public class DefaultProblemDetails implements InternalBasicProblemDetailsVersion
         List<InternalSolution> solutions,
         InternalAdditionalData additionalData,
         @Nullable InternalFailure failure,
-        @Nullable InternalTrace detectionTrace
+        @Nullable InternalTrace detectionTrace,
+        List<InternalTrace> originTraces
     ) {
         this.definition = definition;
         this.details = details;
@@ -68,6 +70,7 @@ public class DefaultProblemDetails implements InternalBasicProblemDetailsVersion
         this.additionalData = additionalData;
         this.failure = failure;
         this.detectionTrace = detectionTrace;
+        this.originTraces = originTraces;
     }
 
     @Override
@@ -120,6 +123,11 @@ public class DefaultProblemDetails implements InternalBasicProblemDetailsVersion
     @Override
     public InternalAdditionalData getAdditionalData() {
         return additionalData;
+    }
+
+    @Override
+    public List<InternalTrace> getOriginTraces() {
+        return originTraces;
     }
 
     @Nullable

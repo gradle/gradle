@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemId;
@@ -42,6 +43,7 @@ public class DefaultProblem implements Serializable, ProblemInternal {
     private final AdditionalData additionalData;
     private final boolean writtenToConsole;
     private final Trace detectionTrace;
+    private final List<Trace> originTraces;
 
     public DefaultProblem(
         ProblemDefinition problemDefinition,
@@ -79,6 +81,22 @@ public class DefaultProblem implements Serializable, ProblemInternal {
         boolean writtenToConsole,
         @Nullable Trace detectionTrace
     ) {
+        this(problemDefinition, contextualLabel, solutions, originLocations, contextualLocations, details, exception, additionalData, writtenToConsole, detectionTrace, ImmutableList.<Trace>of());
+    }
+
+    public DefaultProblem(
+        ProblemDefinition problemDefinition,
+        @Nullable String contextualLabel,
+        List<String> solutions,
+        List<ProblemLocation> originLocations,
+        List<ProblemLocation> contextualLocations,
+        @Nullable String details,
+        @Nullable Throwable exception,
+        @Nullable AdditionalData additionalData,
+        boolean writtenToConsole,
+        @Nullable Trace detectionTrace,
+        List<Trace> originTraces
+    ) {
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
         this.solutions = solutions;
@@ -89,6 +107,7 @@ public class DefaultProblem implements Serializable, ProblemInternal {
         this.additionalData = additionalData;
         this.writtenToConsole = writtenToConsole;
         this.detectionTrace = detectionTrace;
+        this.originTraces = originTraces;
     }
 
     @Override
@@ -121,6 +140,11 @@ public class DefaultProblem implements Serializable, ProblemInternal {
     @Override
     public List<ProblemLocation> getContextualLocations() {
         return contextualLocations;
+    }
+
+    @Override
+    public List<Trace> getOriginTraces() {
+        return originTraces;
     }
 
     @Nullable
@@ -163,7 +187,8 @@ public class DefaultProblem implements Serializable, ProblemInternal {
             exception,
             additionalData,
             writtenToConsole,
-            detectionTrace
+            detectionTrace,
+            originTraces
         );
     }
 
@@ -179,11 +204,29 @@ public class DefaultProblem implements Serializable, ProblemInternal {
             exception,
             additionalData,
             writtenToConsole,
-            detectionTrace
+            detectionTrace,
+            originTraces
         );
     }
 
-    // The detection trace is left out of equals and hashCode, like the contextual locations: summarization hashes the problem.
+    @Override
+    public ProblemInternal withOriginTraces(List<Trace> originTraces) {
+        return new DefaultProblem(
+            problemDefinition,
+            contextualLabel,
+            solutions,
+            originLocations,
+            contextualLocations,
+            details,
+            exception,
+            additionalData,
+            writtenToConsole,
+            detectionTrace,
+            originTraces
+        );
+    }
+
+    // The traces are left out of equals and hashCode, like the contextual locations: summarization hashes the problem.
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -216,6 +259,7 @@ public class DefaultProblem implements Serializable, ProblemInternal {
             ", solutions=" + solutions +
             ", originLocations=" + originLocations +
             ", contextualLocations=" + contextualLocations +
+            ", originTraces=" + originTraces +
             ", detectionTrace=" + detectionTrace +
             ", details='" + details + '\'' +
             ", exception=" + (exception != null ? exception.toString() : "null") +

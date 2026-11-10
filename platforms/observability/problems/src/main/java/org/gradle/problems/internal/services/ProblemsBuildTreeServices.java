@@ -42,6 +42,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.execution.WorkExecutionTracker;
+import org.gradle.internal.initialization.layout.BuildTreeLocations;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -101,7 +102,8 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         ProblemReportCreator problemReportCreator,
         WorkExecutionTracker workExecutionTracker,
         StartParameterInternal startParameter,
-        UserCodeApplicationContext userCodeApplicationContext
+        UserCodeApplicationContext userCodeApplicationContext,
+        BuildTreeLocations buildTreeLocations
     ) {
         ImmutableList.Builder<ProblemEmitter> emitters = ImmutableList.builder();
         emitters.add(new BuildOperationBasedProblemEmitter(eventEmitter));
@@ -113,7 +115,8 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
             emitters.build(),
             internalOptions,
             problemReportCreator,
-            id -> new DetectionContext(currentTask(id, workExecutionTracker), ProblemProjectIdentityTracker.getProjectIdentity(), currentPlugin(userCodeApplicationContext))
+            id -> new DetectionContext(currentTask(id, workExecutionTracker), ProblemProjectIdentityTracker.getProjectIdentity(), currentPlugin(userCodeApplicationContext)),
+            buildTreeLocations.getBuildTreeRootDirectory()
         );
     }
 

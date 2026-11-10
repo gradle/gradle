@@ -17,15 +17,17 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.tooling.internal.protocol.problem.InternalProjectFrame;
+import org.gradle.tooling.internal.protocol.problem.InternalPosition;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 @NullMarked
 public class DefaultProjectFrame extends DefaultFrame implements InternalProjectFrame {
 
     private final String buildTreePath;
 
-    public DefaultProjectFrame(String displayName, String locality, String buildTreePath) {
-        super(displayName, locality);
+    public DefaultProjectFrame(String displayName, String locality, @Nullable InternalPosition position, String buildTreePath) {
+        super(displayName, locality, position);
         this.buildTreePath = buildTreePath;
     }
 

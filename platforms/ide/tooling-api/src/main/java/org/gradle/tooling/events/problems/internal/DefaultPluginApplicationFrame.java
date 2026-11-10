@@ -17,16 +17,18 @@
 package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.problems.Locality;
+import org.gradle.tooling.events.problems.Position;
 import org.gradle.tooling.events.problems.PluginApplicationFrame;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 @NullMarked
 public class DefaultPluginApplicationFrame extends DefaultFrame implements PluginApplicationFrame {
 
     private final String pluginId;
 
-    public DefaultPluginApplicationFrame(String displayName, Locality locality, String pluginId) {
-        super(displayName, locality);
+    public DefaultPluginApplicationFrame(String displayName, Locality locality, @Nullable Position position, String pluginId) {
+        super(displayName, locality, position);
         this.pluginId = pluginId;
     }
 

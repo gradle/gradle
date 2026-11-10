@@ -17,6 +17,7 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
+import org.jspecify.annotations.Nullable;
 
 /**
  * One element of a {@link Trace}: a build element such as a task, a project or a build.
@@ -45,4 +46,13 @@ public interface Frame {
      * @since 9.10.0
      */
     Locality getLocality();
+
+    /**
+     * Returns where in a file this frame points.
+     *
+     * @return the position, or {@code null} for a frame that isn't an authored unit or whose place isn't known
+     * @since 9.10.0
+     */
+    @Nullable
+    Position getPosition();
 }

@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.protocol.problem;
 
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * One element of a trace. Each kind of frame has a sub-interface; a client shows a kind it doesn't know through this one.
@@ -28,6 +29,12 @@ import org.jspecify.annotations.NullMarked;
 public interface InternalFrame {
 
     String getDisplayName();
+
+    /**
+     * Where in a file the frame points, or null for a frame that isn't an authored unit or whose place isn't known.
+     */
+    @Nullable
+    InternalPosition getPosition();
 
     /**
      * The locality as the name of its constant. A client maps a name it doesn't know to "unknown".

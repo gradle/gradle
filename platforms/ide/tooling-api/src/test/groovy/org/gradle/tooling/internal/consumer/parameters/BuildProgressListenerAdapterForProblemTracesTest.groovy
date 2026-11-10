@@ -17,11 +17,13 @@
 package org.gradle.tooling.internal.consumer.parameters
 
 import org.gradle.internal.build.event.types.DefaultBuildFrame
+import org.gradle.internal.build.event.types.DefaultProblemFilePosition
 import org.gradle.internal.build.event.types.DefaultFrame
 import org.gradle.internal.build.event.types.DefaultProjectFrame
 import org.gradle.internal.build.event.types.DefaultTaskFrame
 import org.gradle.internal.build.event.types.DefaultTrace
 import org.gradle.tooling.events.problems.BuildFrame
+import org.gradle.tooling.events.problems.FilePosition
 import org.gradle.tooling.events.problems.Locality
 import org.gradle.tooling.events.problems.ProjectFrame
 import org.gradle.tooling.events.problems.TaskFrame
@@ -35,9 +37,9 @@ class BuildProgressListenerAdapterForProblemTracesTest extends Specification {
     def "typed frames arrive as their public types, leaf first"() {
         given:
         def details = detailsWith(
-            new DefaultTaskFrame("task :app:test", "UNKNOWN", ":app:test"),
-            new DefaultProjectFrame("project :app", "LOCAL", ":app"),
-            new DefaultBuildFrame("build :", "UNKNOWN", ":")
+            new DefaultTaskFrame("task :app:test", "UNKNOWN", null, ":app:test"),
+            new DefaultProjectFrame("project :app", "LOCAL", null, ":app"),
+            new DefaultBuildFrame("build :", "UNKNOWN", null, ":")
         )
 
         when:
@@ -64,9 +66,9 @@ class BuildProgressListenerAdapterForProblemTracesTest extends Specification {
             getName() >> "main"
         }
         def details = detailsWith(
-            new DefaultTaskFrame("task :app:test", "UNKNOWN", ":app:test"),
+            new DefaultTaskFrame("task :app:test", "UNKNOWN", null, ":app:test"),
             futureKind,
-            new DefaultProjectFrame("project :app", "UNKNOWN", ":app")
+            new DefaultProjectFrame("project :app", "UNKNOWN", null, ":app")
         )
 
         when:
@@ -113,5 +115,35 @@ class BuildProgressListenerAdapterForProblemTracesTest extends Specification {
      */
     interface FrameKindFromTheFuture extends InternalFrame {
         String getName()
+    }
+
+    def "origin traces arrive with their file positions, and a frame without one has null"() {
+        given:
+        def details = Stub(InternalBasicProblemDetailsVersion5) {
+            getOriginTraces() >> [
+                new DefaultTrace([new DefaultFrame("build.gradle:12:5", "LOCAL", new DefaultProblemFilePosition("build.gradle", 12, 5, null, null))]),
+                new DefaultTrace([new DefaultFrame("property bar", "UNKNOWN"), new DefaultFrame("class AcmeTask", "EXTERNAL")])
+            ]
+        }
+
+        when:
+        def traces = BuildProgressListenerAdapter.toOriginTraces(details)
+
+        then:
+        traces.size() == 2
+        with(traces[0].frames[0].position as FilePosition) {
+            path == "build.gradle"
+            line == 12
+            column == 5
+            offset == null
+            length == null
+        }
+        traces[1].frames*.position == [null, null]
+        traces[1].frames*.displayName == ["property bar", "class AcmeTask"]
+    }
+
+    def "no origin traces when the build doesn't send any"() {
+        expect:
+        BuildProgressListenerAdapter.toOriginTraces(Stub(InternalBasicProblemDetailsVersion4)).empty
     }
 }

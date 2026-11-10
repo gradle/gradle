@@ -17,23 +17,39 @@
 package org.gradle.api.problems.internal.location;
 
 import org.gradle.internal.code.Locality;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * One element of a {@link Trace}: a build element a user recognises.
  * <p>
- * Every frame has a display name and a locality, so that a consumer can show a frame whose kind it doesn't know.
+ * Every frame has a display name, a locality and, for authored units, a position in a file, so that a consumer can show a frame whose kind it doesn't know.
  * Subclasses add the data of their kind.
  */
 public class Frame implements Serializable {
 
     private final String displayName;
     private final Locality locality;
+    private final Position position;
 
     public Frame(String displayName, Locality locality) {
+        this(displayName, locality, null);
+    }
+
+    public Frame(String displayName, Locality locality, @Nullable Position position) {
         this.displayName = displayName;
         this.locality = locality;
+        this.position = position;
+    }
+
+    /**
+     * Where in a file this frame points, if it is an authored unit with a known place.
+     */
+    @Nullable
+    public Position getPosition() {
+        return position;
     }
 
     public String getDisplayName() {
@@ -53,12 +69,12 @@ public class Frame implements Serializable {
             return false;
         }
         Frame that = (Frame) o;
-        return displayName.equals(that.displayName) && locality == that.locality;
+        return displayName.equals(that.displayName) && locality == that.locality && Objects.equals(position, that.position);
     }
 
     @Override
     public int hashCode() {
-        return 31 * displayName.hashCode() + locality.hashCode();
+        return Objects.hash(displayName, locality, position);
     }
 
     @Override

@@ -17,16 +17,18 @@
 package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.problems.Locality;
+import org.gradle.tooling.events.problems.Position;
 import org.gradle.tooling.events.problems.BuildFrame;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 @NullMarked
 public class DefaultBuildFrame extends DefaultFrame implements BuildFrame {
 
     private final String buildPath;
 
-    public DefaultBuildFrame(String displayName, Locality locality, String buildPath) {
-        super(displayName, locality);
+    public DefaultBuildFrame(String displayName, Locality locality, @Nullable Position position, String buildPath) {
+        super(displayName, locality, position);
         this.buildPath = buildPath;
     }
 

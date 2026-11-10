@@ -42,6 +42,7 @@ public class DefaultProblem implements Problem {
     private final Failure failure;
     @Nullable
     private final Trace detectionTrace;
+    private final List<Trace> originTraces;
 
     public DefaultProblem(
         ProblemDefinition problemDefinition,
@@ -52,7 +53,8 @@ public class DefaultProblem implements Problem {
         List<Solution> solutions,
         AdditionalData additionalData,
         @Nullable Failure failure,
-        @Nullable Trace detectionTrace) {
+        @Nullable Trace detectionTrace,
+        List<Trace> originTraces) {
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
         this.details = details;
@@ -62,6 +64,7 @@ public class DefaultProblem implements Problem {
         this.additionalData = additionalData;
         this.failure = failure;
         this.detectionTrace = detectionTrace;
+        this.originTraces = originTraces;
     }
 
     @Override
@@ -77,6 +80,11 @@ public class DefaultProblem implements Problem {
     @Override
     public Details getDetails() {
         return details;
+    }
+
+    @Override
+    public List<Trace> getOriginTraces() {
+        return originTraces;
     }
 
     @Nullable

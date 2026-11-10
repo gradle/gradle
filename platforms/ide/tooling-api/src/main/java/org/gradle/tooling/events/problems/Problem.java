@@ -77,6 +77,17 @@ public interface Problem {
     List<Location> getContextualLocations();
 
     /**
+     * Returns the authored causes of the problem: one trace per cause, each leaf first.
+     * <p>
+     * Empty when the cause isn't authored, when Gradle can't find it, or when the Gradle version running the build doesn't provide traces.
+     *
+     * @return the origin traces
+     * @since 9.10.0
+     */
+    @Incubating
+    List<Trace> getOriginTraces();
+
+    /**
      * Returns what was running when the problem was noticed: the task, its project and the build, leaf first.
      *
      * @return the detection trace, or {@code null} if the Gradle version running the build doesn't provide one
