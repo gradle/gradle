@@ -31,14 +31,6 @@ public interface AttributeMatcher {
     boolean isMatchingCandidate(ImmutableAttributes candidate, ImmutableAttributes requested);
 
     /**
-     * Determines whether two candidates are mutually compatible.
-     *
-     * @return true if for each shared key in the provided attribute sets, the corresponding
-     * attribute value in each set is compatible. false otherwise.
-     */
-    boolean areMutuallyCompatible(ImmutableAttributes first, ImmutableAttributes second);
-
-    /**
      * Determine if a candidate value compatible with the requested criteria
      * for a some attribute.
      */

@@ -29,7 +29,6 @@ import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.jspecify.annotations.Nullable;
 
@@ -72,13 +71,6 @@ public final class ResolutionCandidateAssessor {
                 ImmutableCapabilities capabilities = variant.getCapabilities().orElse(defaultCapabilityForComponent);
                 return assessCandidate(variant.getDisplayName(), capabilities, variant.getAttributes().asImmutable());
             }).sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
-            .collect(Collectors.toList());
-    }
-
-    public List<AssessedCandidate> assessNodeMetadatas(Set<VariantGraphResolveMetadata> nodes) {
-        return nodes.stream()
-            .map(variant -> assessCandidate(variant.getDisplayName(), variant.getCapabilities(), variant.getAttributes().asImmutable()))
-            .sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
             .collect(Collectors.toList());
     }
 

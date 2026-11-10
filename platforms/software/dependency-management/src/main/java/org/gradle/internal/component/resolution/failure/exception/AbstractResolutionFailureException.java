@@ -42,7 +42,7 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
  * list of resolutions that may help the user to fix the problem.  This class is meant to be immutable.
  *
  * @implNote This class should not be subclassed beyond the existing
- * {@link VariantSelectionByNameException}, {@link ArtifactSelectionException}, {@link GraphValidationException} and
+ * {@link VariantSelectionByNameException}, {@link ArtifactSelectionException} and
  * {@link VariantSelectionByAttributesException} subtypes.  All subtypes should remain immutable.
  */
 @Contextual

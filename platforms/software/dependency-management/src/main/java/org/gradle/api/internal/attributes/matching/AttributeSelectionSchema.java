@@ -53,14 +53,6 @@ public interface AttributeSelectionSchema {
     <T> boolean matchValue(Attribute<T> attribute, T requested, T candidate);
 
     /**
-     * Determine if two values are compatible with each other. This is a "two directional"
-     * match. If the two values mach in any direction, this method returns true.
-     */
-    default <T> boolean weakMatchValue(Attribute<T> attribute, T requested, T candidate) {
-        return matchValue(attribute, requested, candidate) || matchValue(attribute, candidate, requested);
-    }
-
-    /**
      * Attempt to "rehydrate" an attribute that was previously desugared.
      * Desugared attributes are converted from rich types to primitives
      * during serialization.

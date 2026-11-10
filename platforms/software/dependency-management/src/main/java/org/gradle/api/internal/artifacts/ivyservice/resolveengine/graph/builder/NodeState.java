@@ -33,7 +33,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
-import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.Pair;
 import org.gradle.internal.Try;
 import org.gradle.internal.collect.PersistentSet;
@@ -1391,24 +1390,6 @@ public class NodeState implements DependencyGraphNode {
             }
         }
         return null;
-    }
-
-    public boolean isAttachedToVirtualPlatform() {
-        for (EdgeState incomingEdge : incomingEdges) {
-            if (incomingEdge.getDependencyMetadata() instanceof LenientPlatformDependencyMetadata) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    boolean hasShadowedCapability() {
-        for (Capability capability : metadata.getCapabilities().asSet()) {
-            if (capability instanceof ShadowedCapability) {
-                return true;
-            }
-        }
-        return false;
     }
 
     boolean isSelectedByVariantAwareResolution() {

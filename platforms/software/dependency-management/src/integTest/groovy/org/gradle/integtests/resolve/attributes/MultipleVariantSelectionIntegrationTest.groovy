@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.util.internal.ToBeImplemented
-import spock.lang.Issue
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -100,7 +99,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         }
     }
 
-    void "fails selecting distinct variants of the same component by using attributes if they have different capabilities but incompatible values"() {
+    void "selects variants with different capabilities even if their attribute values conflict"() {
         given:
         repository {
             'org:test:1.0' {
@@ -146,16 +145,24 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         when:
         repositoryInteractions {
-            'org:test:1.0' {
-                expectGetMetadata()
+            id("org:test:1.0") {
+                expectResolve()
             }
         }
-        fails 'checkDeps'
+        succeeds("checkDeps")
 
         then:
-        failure.assertHasCause("""Multiple incompatible variants of org:test:1.0 were selected:
-   - Variant api1 has attributes {custom=c1, org.gradle.status=${MultipleVariantSelectionIntegrationTest.defaultStatus()}}
-   - Variant runtime2 has attributes {custom=c2, org.gradle.status=${MultipleVariantSelectionIntegrationTest.defaultStatus()}}""")
+        String status = defaultStatus()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:test:1.0") {
+                    variant("api1", ["org.gradle.status": status, custom: "c1"])
+                }
+                module("org:test:1.0") {
+                    variant("runtime2", ["org.gradle.status": status, custom: "c2"])
+                }
+            }
+        }
     }
 
     void "cannot select distinct variants of the same component by using different attributes if they have the same capabilities"() {
@@ -439,7 +446,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
     }
 
-    def "prevents selection of 2 variants of the same component with transitive dependency if they have different capabilities but incompatible attributes"() {
+    def "selects 2 variants of the same component with transitive dependency if they have different capabilities even if their attribute values conflict"() {
         given:
         repository {
             'org:foo:1.0' {
@@ -501,23 +508,37 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         when:
         repositoryInteractions {
-            'org:bar:1.0' {
+            id("org:bar:1.0") {
+                expectResolve()
+            }
+            id("org:foo:1.0") {
                 expectGetMetadata()
             }
-            'org:foo:1.0' {
+            id("org:foo:1.1") {
                 expectGetMetadata()
-            }
-            'org:foo:1.1' {
-                expectGetMetadata()
+                expectGetVariantArtifacts("runtime")
+                expectGetVariantArtifacts("altruntime")
             }
         }
-        fails 'checkDeps'
+        succeeds("checkDeps")
 
         then:
-        failure.assertHasCause("""Multiple incompatible variants of org:foo:1.1 were selected:
-   - Variant altruntime has attributes {custom=c3, org.gradle.status=${defaultStatus()}}
-   - Variant runtime has attributes {custom=c2, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=${defaultStatus()}, org.gradle.usage=java-runtime}""")
-
+        String status = defaultStatus()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:1.0", "org:foo:1.1") {
+                    byConflictResolution("between versions 1.1 and 1.0")
+                    variant("runtime", [custom: "c2", "org.gradle.status": status, "org.gradle.usage": "java-runtime", "org.gradle.libraryelements": "jar", "org.gradle.category": "library"])
+                    artifact(classifier: "c2")
+                }
+                module("org:bar:1.0") {
+                    module("org:foo:1.1") {
+                        variant("altruntime", [custom: "c3", "org.gradle.status": status])
+                        artifact(classifier: "c3")
+                    }
+                }
+            }
+        }
     }
 
     def "cannot select 2 variants of the same component with transitive dependency if they use the same capability"() {
@@ -880,122 +901,6 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 //                }
 //            }
 //        }
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/29872")
-    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven") // Http server fixtures do not support publishing
-    def "attribute compatibility rules are applied when checking for mutual variant compatibility within a component when the producer attributes are desugared"() {
-
-        def common = """
-            interface Foo extends Named {}
-            def foo = Attribute.of("attr", Foo)
-        """
-
-        // Publish producer to local repo
-        // The published GMM will have desugared attributes.
-        file("producer/settings.gradle") << "rootProject.name = 'producer'"
-        file("producer/build.gradle") << """
-            plugins {
-                id("base")
-                id("maven-publish")
-            }
-
-            ${common}
-
-            group = "org"
-            version = "1.0"
-
-            configurations {
-                consumable("first") {
-                    attributes.attribute(foo, objects.named(Foo, "first"))
-                }
-                consumable("second") {
-                    attributes.attribute(foo, objects.named(Foo, "second"))
-                    outgoing.capability("special:special:1.0")
-                }
-            }
-
-            def comp = publishing.softwareComponentFactory.adhoc("comp")
-            comp.addVariantsFromConfiguration(configurations.first) {}
-            comp.addVariantsFromConfiguration(configurations.second) {}
-
-            publishing {
-                ${mavenTestRepository()}
-                publications {
-                    maven(MavenPublication) {
-                        from(comp)
-                    }
-                }
-            }
-        """
-        executer.inDirectory(file("producer"))
-        succeeds(":publish")
-
-        // Consume the published component using the rich attributes
-        buildFile << """
-            ${common}
-            ${mavenTestRepository()}
-
-            class FooCompatibilityRule implements AttributeCompatibilityRule<Foo> {
-                @Override
-                public void execute(CompatibilityCheckDetails<Foo> details) {
-                    details.compatible()
-                }
-            }
-
-            dependencies {
-                attributesSchema {
-                    if (${applyRule}) {
-                        attribute(foo).compatibilityRules.add(FooCompatibilityRule)
-                    }
-                }
-
-                conf("org:producer:1.0")
-                conf("org:producer:1.0") {
-                    capabilities {
-                        requireCapability("special:special:1.0")
-                    }
-                }
-            }
-        """
-
-        executer.inDirectory(file())
-
-        when:
-        repositoryInteractions {
-            id('org:producer:1.0') {
-                expectGetMetadata()
-            }
-        }
-
-        if (applyRule) {
-            succeeds 'checkDeps'
-        } else {
-            fails 'checkDeps'
-        }
-
-        then:
-        if (applyRule) {
-            resolve.expectGraph {
-                root(":", ":test:") {
-                    module('org:producer:1.0') {
-                        variant('first', ['org.gradle.status': 'release', attr: 'first'])
-                        noArtifacts()
-                    }
-                    module('org:producer:1.0') {
-                        variant('second', ['org.gradle.status': 'release', attr: 'second'])
-                        noArtifacts()
-                    }
-                }
-            }
-        } else {
-            failure.assertHasCause("""Multiple incompatible variants of org:producer:1.0 were selected:
-   - Variant first has attributes {attr=first, org.gradle.status=release}
-   - Variant second has attributes {attr=second, org.gradle.status=release}""")
-        }
-
-        where:
-        applyRule << [true, false]
     }
 
     static String defaultStatus() {

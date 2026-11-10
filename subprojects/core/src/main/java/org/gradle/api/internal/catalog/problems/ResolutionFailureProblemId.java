@@ -46,9 +46,6 @@ public enum ResolutionFailureProblemId implements Describable {
     NO_COMPATIBLE_VARIANTS("No variants exist that would match the request", Phase.GRAPH_RESOLUTION),
     NO_VARIANTS_WITH_MATCHING_CAPABILITIES("No variants exist with capabilities that would match the request", Phase.GRAPH_RESOLUTION),
 
-    // Graph Validation failures
-    INCOMPATIBLE_MULTIPLE_NODES("Incompatible nodes of a single component were selected", Phase.GRAPH_RESOLUTION),
-
     // Artifact Selection failures
     AMBIGUOUS_ARTIFACT_TRANSFORM("Multiple artifact transforms exist that would satisfy the request", Phase.ARTIFACT_RESOLUTION),
     NO_COMPATIBLE_ARTIFACT("No artifacts exist that would match the request", Phase.ARTIFACT_RESOLUTION),
