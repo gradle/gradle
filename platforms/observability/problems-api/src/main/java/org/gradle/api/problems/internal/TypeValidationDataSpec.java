@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Specifies configuration options when creating a new TypeValidationData instance.
  */
@@ -25,4 +27,7 @@ public interface TypeValidationDataSpec extends AdditionalDataSpec {
     TypeValidationDataSpec functionName(String methodName);
     TypeValidationDataSpec parentPropertyName(String parentPropertyName);
     TypeValidationDataSpec typeName(String typeName);
+    TypeValidationDataSpec declaringClassName(@Nullable String declaringClassName);
+    TypeValidationDataSpec sourceFilename(@Nullable String sourceFilename);
+    TypeValidationDataSpec lineNumber(@Nullable Integer lineNumber);
 }

@@ -30,13 +30,35 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
     private final String functionName;
     private final String parentPropertyName;
     private final String typeName;
+    @Nullable
+    private final String declaringClassName;
+    @Nullable
+    private final String sourceFilename;
+    @Nullable
+    private final Integer lineNumber;
 
     public DefaultTypeValidationData(String pluginId, String propertyName, String functionName, String parentPropertyName, String typeName) {
+        this(pluginId, propertyName, functionName, parentPropertyName, typeName, null, null, null);
+    }
+
+    public DefaultTypeValidationData(
+        @Nullable String pluginId,
+        @Nullable String propertyName,
+        @Nullable String functionName,
+        @Nullable String parentPropertyName,
+        @Nullable String typeName,
+        @Nullable String declaringClassName,
+        @Nullable String sourceFilename,
+        @Nullable Integer lineNumber
+    ) {
         this.pluginId = pluginId;
         this.propertyName = propertyName;
         this.functionName = functionName;
         this.parentPropertyName = parentPropertyName;
         this.typeName = typeName;
+        this.declaringClassName = declaringClassName;
+        this.sourceFilename = sourceFilename;
+        this.lineNumber = lineNumber;
     }
 
     @Override
@@ -65,6 +87,24 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
     }
 
     @Override
+    @Nullable
+    public String getDeclaringClassName() {
+        return declaringClassName;
+    }
+
+    @Override
+    @Nullable
+    public String getSourceFilename() {
+        return sourceFilename;
+    }
+
+    @Override
+    @Nullable
+    public Integer getLineNumber() {
+        return lineNumber;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (!(o instanceof DefaultTypeValidationData)) {
             return false;
@@ -74,12 +114,15 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
             equal(propertyName, that.propertyName) &&
             equal(functionName, that.functionName) &&
             equal(parentPropertyName, that.parentPropertyName) &&
-            equal(typeName, that.typeName);
+            equal(typeName, that.typeName) &&
+            equal(declaringClassName, that.declaringClassName) &&
+            equal(sourceFilename, that.sourceFilename) &&
+            equal(lineNumber, that.lineNumber);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(pluginId, propertyName, functionName, parentPropertyName, typeName);
+        return Objects.hashCode(pluginId, propertyName, functionName, parentPropertyName, typeName, declaringClassName, sourceFilename, lineNumber);
     }
 
     public static AdditionalDataBuilder<TypeValidationData> builder(@Nullable TypeValidationData from) {
@@ -96,6 +139,9 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
         private String functionName;
         private String parentPropertyName;
         private String typeName;
+        private String declaringClassName;
+        private String sourceFilename;
+        private Integer lineNumber;
 
         public DefaultTypeValidationDataBuilder() {
         }
@@ -106,11 +152,14 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
             this.functionName = from.getFunctionName();
             this.parentPropertyName = from.getParentPropertyName();
             this.typeName = from.getTypeName();
+            this.declaringClassName = from.getDeclaringClassName();
+            this.sourceFilename = from.getSourceFilename();
+            this.lineNumber = from.getLineNumber();
         }
 
         @Override
         public DefaultTypeValidationData build() {
-            return new DefaultTypeValidationData(pluginId, propertyName, functionName, parentPropertyName, typeName);
+            return new DefaultTypeValidationData(pluginId, propertyName, functionName, parentPropertyName, typeName, declaringClassName, sourceFilename, lineNumber);
         }
 
         @Override
@@ -140,6 +189,24 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
         @Override
         public TypeValidationDataSpec typeName(String typeName) {
             this.typeName = typeName;
+            return this;
+        }
+
+        @Override
+        public TypeValidationDataSpec declaringClassName(@Nullable String declaringClassName) {
+            this.declaringClassName = declaringClassName;
+            return this;
+        }
+
+        @Override
+        public TypeValidationDataSpec sourceFilename(@Nullable String sourceFilename) {
+            this.sourceFilename = sourceFilename;
+            return this;
+        }
+
+        @Override
+        public TypeValidationDataSpec lineNumber(@Nullable Integer lineNumber) {
+            this.lineNumber = lineNumber;
             return this;
         }
     }

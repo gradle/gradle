@@ -16,10 +16,12 @@
 
 package org.gradle.internal.properties.annotations;
 
+import org.gradle.api.problems.internal.TypeValidationDataSpec;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
+import java.lang.reflect.Method;
 import java.util.Locale;
 
 import static org.gradle.internal.deprecation.Documentation.userManual;
@@ -50,6 +52,23 @@ public interface MissingPropertyAnnotationHandler {
                 .details("Properties must be annotated so that Gradle knows how to handle them during up-to-date checking")
                 .solution("Add " + displayName)
                 .solution("Mark it as @Internal");
+        }
+
+        Method method = annotationMetadata.getMethod();
+        if (method != null) {
+            Class<?> declaringClass = method.getDeclaringClass();
+            ClassSourceLocation location = ClassSourceLocationResolver.INSTANCE.resolve(declaringClass);
+            String sourceFilename = location.getSourceFilename();
+            Integer lineNumber = location.getLineNumber(method);
+            problem.additionalDataInternal(TypeValidationDataSpec.class, data -> {
+                data.declaringClassName(declaringClass.getName());
+                if (sourceFilename != null) {
+                    data.sourceFilename(sourceFilename);
+                }
+                if (lineNumber != null) {
+                    data.lineNumber(lineNumber);
+                }
+            });
         }
     });
 }

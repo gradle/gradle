@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import org.gradle.api.problems.FileLocation
+import org.gradle.api.problems.LineInFileLocation
 import spock.lang.Issue
 
 class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implements ValidatePluginsTrait {
@@ -65,8 +67,10 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'tree',
                 'typeName' : 'MyTask',
                 'propertyName' : 'nonAnnotated',
+                'declaringClassName' : 'MyTask$Tree',
+                'sourceFilename' : 'MyTask.groovy',
             ]
-            originLocations == []
+            oneLocation(FileLocation).path == source("src/main/groovy/MyTask.groovy").absolutePath
         }
 
     }
@@ -376,7 +380,8 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'unannotatedProperty\' is missing an input or output annotation'
-            originLocations == []
+            oneLocation(LineInFileLocation).path == source("src/main/java/MyTask.java").absolutePath
+            oneLocation(LineInFileLocation).line == 8
         }
 
         where:
@@ -475,8 +480,12 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTransformAction',
                 'propertyName' : 'badTime',
+                'declaringClassName' : 'MyTransformAction',
+                'sourceFilename' : 'MyTransformAction.java',
+                'lineNumber' : 37,
             ]
-            originLocations == []
+            oneLocation(LineInFileLocation).path == source("src/main/java/MyTransformAction.java").absolutePath
+            oneLocation(LineInFileLocation).line == 37
         }
         verifyAll(receivedProblem(2)) {
             severity == Severity.ERROR
@@ -490,8 +499,12 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTransformAction',
                 'propertyName' : 'oldThing',
+                'declaringClassName' : 'MyTransformAction',
+                'sourceFilename' : 'MyTransformAction.java',
+                'lineNumber' : 43,
             ]
-            originLocations == []
+            oneLocation(LineInFileLocation).path == source("src/main/java/MyTransformAction.java").absolutePath
+            oneLocation(LineInFileLocation).line == 43
         }
     }
 
@@ -593,8 +606,10 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTransformParameters',
                 'propertyName' : 'badTime',
+                'declaringClassName' : 'MyTransformParameters',
+                'sourceFilename' : 'MyTransformParameters.java',
             ]
-            originLocations == []
+            oneLocation(FileLocation).path == source("src/main/java/MyTransformParameters.java").absolutePath
         }
         verifyAll(receivedProblem(3)) {
             severity == Severity.ERROR
@@ -608,8 +623,10 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTransformParameters',
                 'propertyName' : 'oldThing',
+                'declaringClassName' : 'MyTransformParameters',
+                'sourceFilename' : 'MyTransformParameters.java',
             ]
-            originLocations == []
+            oneLocation(FileLocation).path == source("src/main/java/MyTransformParameters.java").absolutePath
         }
 
     }
