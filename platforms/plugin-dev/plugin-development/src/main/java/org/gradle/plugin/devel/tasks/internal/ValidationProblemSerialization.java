@@ -51,6 +51,8 @@ import org.gradle.api.problems.internal.ProblemGroupInternal;
 import org.gradle.api.problems.internal.ProblemGroupsInternal;
 import org.gradle.api.problems.internal.PropertyTraceData;
 import org.gradle.api.problems.internal.TypeValidationData;
+import org.gradle.api.problems.internal.location.FilePosition;
+import org.gradle.api.problems.internal.location.Position;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -107,6 +109,7 @@ public class ValidationProblemSerialization {
         gsonBuilder.registerTypeHierarchyAdapter(ProblemId.class, new ProblemIdAdapter(groups));
         gsonBuilder.registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter());
         gsonBuilder.registerTypeHierarchyAdapter(ProblemLocation.class, new LocationAdapter());
+        gsonBuilder.registerTypeHierarchyAdapter(Position.class, new PositionAdapter());
         gsonBuilder.registerTypeHierarchyAdapter(AdditionalData.class, new AdditionalDataAdapter());
         gsonBuilder.registerTypeAdapterFactory(new ThrowableAdapterFactory());
 
@@ -454,6 +457,74 @@ public class ValidationProblemSerialization {
                     return finalConsultDocumentationMessage;
                 }
             };
+        }
+    }
+
+    /**
+     * The position of a frame in an origin trace. Only file positions exist today; Gson can't create the interface on its own.
+     * The frames themselves come back as plain frames, which keeps their display name, locality and position but not their kind.
+     */
+    private static class PositionAdapter extends TypeAdapter<Position> {
+        @Override
+        public void write(JsonWriter out, @Nullable Position value) throws IOException {
+            if (!(value instanceof FilePosition)) {
+                out.nullValue();
+                return;
+            }
+            FilePosition position = (FilePosition) value;
+            out.beginObject();
+            out.name("path").value(position.getPath());
+            out.name("line").value(position.getLine());
+            out.name("column").value(position.getColumn());
+            out.name("offset").value(position.getOffset());
+            out.name("length").value(position.getLength());
+            out.endObject();
+        }
+
+        @Override
+        @Nullable
+        public Position read(JsonReader in) throws IOException {
+            if (in.peek() == JsonToken.NULL) {
+                in.nextNull();
+                return null;
+            }
+            String path = null;
+            Integer line = null;
+            Integer column = null;
+            Integer offset = null;
+            Integer length = null;
+            in.beginObject();
+            while (in.hasNext()) {
+                String name = in.nextName();
+                if (in.peek() == JsonToken.NULL) {
+                    in.nextNull();
+                    continue;
+                }
+                switch (name) {
+                    case "path":
+                        path = in.nextString();
+                        break;
+                    case "line":
+                        line = in.nextInt();
+                        break;
+                    case "column":
+                        column = in.nextInt();
+                        break;
+                    case "offset":
+                        offset = in.nextInt();
+                        break;
+                    case "length":
+                        length = in.nextInt();
+                        break;
+                    default:
+                        in.skipValue();
+                }
+            }
+            in.endObject();
+            if (path == null) {
+                throw new JsonParseException("A file position needs a path");
+            }
+            return new FilePosition(path, line, column, offset, length);
         }
     }
 

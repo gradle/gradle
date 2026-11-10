@@ -159,7 +159,10 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
             ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
             ArtifactCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
-            recordLocalities(originalDependencies, instrumentedExternalDependencies, instrumentedProjectDependencies);
+            // Visiting the artifact views from inside a task action, as the GradleBuild task does, needs the same scope as the merge below
+            try (SafeInternalArtifactTransformAccess.Scope ignored = SafeInternalArtifactTransformAccess.safely()) {
+                recordLocalities(originalDependencies, instrumentedExternalDependencies, instrumentedProjectDependencies);
+            }
             Map<FileType, List<File>> instrumentedClasspath = mergeInstrumentedClasspath(originalDependencies, instrumentedExternalDependencies, instrumentedProjectDependencies);
 
             MethodInterceptionReportCollector reportCollector = propertyUpgradeReportConfig.getReportCollector();
