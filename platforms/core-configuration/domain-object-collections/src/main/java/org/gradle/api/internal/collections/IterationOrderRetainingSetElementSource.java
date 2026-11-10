@@ -238,15 +238,6 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
         return false;
     }
 
-    private boolean isAddedBy(ProviderInternal<?> provider) {
-        for (Element<T> element : getInserted()) {
-            if (element.isProvidedBy(provider)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     // Values that are not announced yet don't count
     private void markDuplicates(T value) {
         boolean seen = false;
@@ -272,7 +263,7 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
     public boolean addPending(ProviderInternal<? extends T> provider) {
         modCount++;
         // Compared by provider: an element realized on add holds its values, so it is not equal to a new one
-        if (isAddedBy(provider)) {
+        if (containsProvider(provider)) {
             return false;
         }
         addProvidedElement(cachingElement(provider));
@@ -283,7 +274,7 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
     public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
         modCount++;
         // Compared by provider: an element realized on add holds its values, so it is not equal to a new one
-        if (isAddedBy(provider)) {
+        if (containsProvider(provider)) {
             return false;
         }
         addProvidedElement(cachingElement(provider));

@@ -228,6 +228,11 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
+    public boolean containsProvider(ProviderInternal<?> provider) {
+        return collection.containsProvider(provider);
+    }
+
+    @Override
     public boolean removePending(ProviderInternal<? extends S> provider) {
         return collection.removePending(provider);
     }

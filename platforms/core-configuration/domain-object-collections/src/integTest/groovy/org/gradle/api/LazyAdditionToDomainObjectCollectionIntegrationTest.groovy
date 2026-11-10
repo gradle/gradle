@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.TaskOrderSpecs
 import spock.lang.Issue
 
+import static org.hamcrest.CoreMatchers.containsString
+
 class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
@@ -547,6 +549,136 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         combined:
         // The second provider has no known type
         providerExpression << ["thing", "provider { thing.get() }"]
+    }
+
+    def "removing provider realized by eager action through a filtered view of #containerType removes its element"() {
+        buildFile """
+            ${namedThing}
+
+            def collection = objects.${containerType}(NamedThing)
+            collection.all { }
+            collection.whenObjectRemoved { println "removed " + it }
+            def added = provider { new NamedThing("a") }
+            collection.addLater(added)
+
+            println "remove result = " + collection.matching { true }.remove(added)
+            println "names = " + collection.collect { it.name } + ", found = " + collection.find { it.name == "a" }
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("removed a")
+        outputContains("remove result = true")
+        outputContains("names = [], found = null")
+
+        where:
+        containerType << ["domainObjectContainer", "domainObjectSet", "namedDomainObjectSet", "namedDomainObjectList"]
+    }
+
+    def "name of provider realized by eager action is free again after removing it through a filtered view"() {
+        buildFile """
+            ${namedThing}
+
+            def collection = objects.domainObjectContainer(NamedThing) { name -> new NamedThing(name) }
+            collection.all { }
+            def added = provider { new NamedThing("a") }
+            collection.addLater(added)
+            collection.matching { true }.remove(added)
+
+            println "found by name = " + collection.findByName("a")
+            collection.register("a")
+            println "names = " + collection.names
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("found by name = null")
+        outputContains("names = [a]")
+    }
+
+    def "removing realized task provider through a filtered view fails like removing it from the task container"() {
+        buildFile """
+            def registered = tasks.register("foo")
+            tasks.all { }
+            tasks.matching { true }.remove(registered)
+        """
+
+        expect:
+        fails("help")
+        failure.assertHasCause("Removing tasks from the task container is not supported.  Disable the tasks or use replace() instead.")
+    }
+
+    def "removing realized provider through a filtered view fails when the collection disallows changes"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            set.all { }
+            def added = provider { "a" }
+            set.addLater(added)
+            set.disallowChanges()
+            set.matching { true }.remove(added)
+        """
+
+        expect:
+        fails("help")
+        failure.assertThatCause(containsString("Cannot call remove(Object) on"))
+        failure.assertThatCause(containsString("as changes to this collection are disallowed."))
+    }
+
+    def "removing realized task providers with removeAll through a filtered view fails like removing them from the task container"() {
+        buildFile """
+            def registered = tasks.register("foo")
+            tasks.all { }
+            tasks.matching { true }.removeAll([registered])
+        """
+
+        expect:
+        fails("help")
+        failure.assertHasCause("Removing tasks from the task container is not supported.  Disable the tasks or use replace() instead.")
+    }
+
+    def "removing realized providers with removeAll through a filtered view removes their elements"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            set.all { }
+            set.whenObjectRemoved { println "removed " + it }
+            def added = provider { "a" }
+            set.addLater(added)
+
+            println "remove result = " + set.matching { true }.removeAll([added]) + ", values = " + set.toList()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("removed a")
+        outputContains("remove result = true, values = []")
+    }
+
+    def "removing a value through a filtered view is unsupported also when it is wrapped in a provider"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            set.add("a")
+            set.matching { true }.remove(provider { "a" })
+        """
+
+        expect:
+        fails("help")
+        failure.assertThatCause(containsString("as it is a filtered collection"))
+    }
+
+    def "removing realized provider through a filtered view fails when the view disallows changes"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            def view = set.matching { true }
+            view.disallowChanges()
+            set.all { }
+            def added = provider { "a" }
+            set.addLater(added)
+            view.remove(added)
+        """
+
+        expect:
+        fails("help")
+        failure.assertThatCause(containsString("as changes to this collection are disallowed."))
     }
 
     def "value added directly stays when provider with equal value realized by eager action is removed"() {

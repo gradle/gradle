@@ -37,8 +37,10 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
         super(type, store, decorator);
     }
 
+    @SuppressWarnings("this-escape")
     protected DefaultDomainObjectSet(DefaultDomainObjectSet<? super T> store, CollectionFilter<T> filter) {
         this(filter.getType(), store.filteredStore(filter), store.filteredEvents(filter));
+        filters(store);
     }
 
     protected DefaultDomainObjectSet(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister) {

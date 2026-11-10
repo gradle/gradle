@@ -603,6 +603,11 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         }
 
         @Override
+        public boolean containsProvider(ProviderInternal<?> provider) {
+            return false;
+        }
+
+        @Override
         public boolean removePending(ProviderInternal<? extends T> provider) {
             throw new UnsupportedOperationException();
         }

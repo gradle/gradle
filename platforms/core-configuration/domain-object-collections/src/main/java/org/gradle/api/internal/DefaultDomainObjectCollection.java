@@ -68,6 +68,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     private boolean changesDisallowed = false;
 
+    // For a filtered view: the collection it shows part of, which removes providers on its behalf
+    @Nullable
+    private DefaultDomainObjectCollection<? super T> filteredCollection;
+
     protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionCallbackActionDecorator callbackActionDecorator) {
         this(type, store, new DefaultCollectionEventRegister<T>(type, callbackActionDecorator));
     }
@@ -84,8 +88,14 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this.store.setSubscriptionVerifier(eventRegister);
     }
 
+    @SuppressWarnings("this-escape")
     protected DefaultDomainObjectCollection(DefaultDomainObjectCollection<? super T> collection, CollectionFilter<T> filter) {
         this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter));
+        filters(collection);
+    }
+
+    protected final void filters(DefaultDomainObjectCollection<? super T> collection) {
+        this.filteredCollection = collection;
     }
 
     protected void realized(ProviderInternal<? extends T> provider) {
@@ -523,6 +533,15 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     @Override
     public boolean remove(Object o) {
         assertCanMutate("remove(Object)");
+        return removeFromThisOrFilteredCollection(o);
+    }
+
+    // Unlike a value, a provider added to the collection a filtered view shows part of can be removed through the view:
+    // that collection removes it, with its own checks and listeners
+    private boolean removeFromThisOrFilteredCollection(Object o) {
+        if (filteredCollection != null && o instanceof ProviderInternal && store.containsProvider((ProviderInternal<?>) o)) {
+            return filteredCollection.remove(o);
+        }
         return doRemove(o);
     }
 
@@ -583,7 +602,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
         boolean changed = false;
         for (Object o : c) {
-            if (doRemove(o)) {
+            if (removeFromThisOrFilteredCollection(o)) {
                 changed = true;
             }
         }

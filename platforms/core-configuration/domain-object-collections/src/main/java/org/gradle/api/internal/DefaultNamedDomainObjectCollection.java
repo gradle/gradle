@@ -110,6 +110,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         this(collection, Specs.satisfyAll(), elementFilter, instantiator, namer);
     }
 
+    @SuppressWarnings("this-escape")
     protected DefaultNamedDomainObjectCollection(
         DefaultNamedDomainObjectCollection<? super T> collection,
         Spec<String> nameFilter,
@@ -118,6 +119,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         Namer<? super T> namer
     ) {
         this(elementFilter.getType(), collection.filteredStore(elementFilter), collection.filteredEvents(elementFilter), collection.filteredIndex(nameFilter, elementFilter), instantiator, namer);
+        filters(collection);
     }
 
     @Override

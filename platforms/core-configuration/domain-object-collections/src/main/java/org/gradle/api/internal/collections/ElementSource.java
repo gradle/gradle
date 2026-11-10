@@ -129,6 +129,11 @@ public interface ElementSource<T> extends Iterable<T> {
 
     boolean addPending(ProviderInternal<? extends T> provider);
 
+    /**
+     * Whether the provider was added to this source and is still in it, pending or realized.
+     */
+    boolean containsProvider(ProviderInternal<?> provider);
+
     boolean removePending(ProviderInternal<? extends T> provider);
 
     /**

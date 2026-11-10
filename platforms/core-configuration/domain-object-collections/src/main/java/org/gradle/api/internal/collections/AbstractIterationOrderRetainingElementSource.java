@@ -265,6 +265,16 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     @Override
+    public boolean containsProvider(ProviderInternal<?> provider) {
+        for (Element<T> element : inserted) {
+            if (element.isProvidedBy(provider)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public boolean removePending(ProviderInternal<? extends T> provider) {
         return removeByProvider(provider);
     }

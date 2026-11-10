@@ -351,6 +351,21 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     @Override
+    public boolean containsProvider(ProviderInternal<?> provider) {
+        for (Collectors.TypedCollector<T> collector : pending) {
+            if (collector.isProvidedBy(provider)) {
+                return true;
+            }
+        }
+        for (Collectors.TypedCollector<T> collector : realized.keySet()) {
+            if (collector.isProvidedBy(provider)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public boolean removePending(ProviderInternal<? extends T> provider) {
         return removeByProvider(provider);
     }
