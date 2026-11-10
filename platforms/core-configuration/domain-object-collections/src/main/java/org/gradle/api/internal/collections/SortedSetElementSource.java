@@ -220,7 +220,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
             }));
         }
         Collectors.TypedCollector<T> collector = collectorFromProvider(provider);
-        if (realizedOnAdd.containsKey(collector)) {
+        if (isStillRealizedOnAdd(collector)) {
             return false;
         }
 
@@ -270,7 +270,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
             }));
         }
         Collectors.TypedCollector<T> collector = collectorFromCollectionProvider(provider);
-        if (realizedOnAdd.containsKey(collector)) {
+        if (isStillRealizedOnAdd(collector)) {
             return false;
         }
 
@@ -295,6 +295,18 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
             // Only realized to be forwarded to a composite collection, so the provider is queried again when this collection is read
             pending.add(collector);
         }
+    }
+
+    private boolean isStillRealizedOnAdd(Collectors.TypedCollector<T> collector) {
+        List<T> realizedValues = realizedOnAdd.get(collector);
+        if (realizedValues == null) {
+            return false;
+        }
+        if (realizedValues.isEmpty() || realizedValues.stream().anyMatch(values::contains)) {
+            return true;
+        }
+        realizedOnAdd.remove(collector);
+        return false;
     }
 
     @Override

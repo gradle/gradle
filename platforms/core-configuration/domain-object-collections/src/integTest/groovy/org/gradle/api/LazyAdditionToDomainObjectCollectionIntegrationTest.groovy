@@ -651,6 +651,30 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         outputContains("removed provider = true, values = []")
     }
 
+    def "provider an eager action realized is added again to #factory after its value was removed"() {
+        buildFile """
+            ${namedThing}
+
+            def collection = objects.${factory}(NamedThing)
+            def queried = 0
+            collection.all { println "added " + it }
+            def thing = provider { queried++; new NamedThing("x") }
+            collection.addLater(thing)
+            collection.remove(collection.find { it.name == "x" })
+            collection.addLater(thing)
+
+            println "queried = " + queried + ", names = " + collection.collect { it.name }
+        """
+
+        expect:
+        succeeds("help")
+        output.count("added x") == 2
+        outputContains("queried = 2, names = [x]")
+
+        where:
+        factory << ["domainObjectContainer", "domainObjectSet", "namedDomainObjectSet", "namedDomainObjectList"]
+    }
+
     def getNamedThing() {
         """
             class NamedThing implements Named {
