@@ -24,6 +24,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
@@ -72,7 +73,7 @@ class MultipleCandidateMatcher {
     private final ImmutableAttributes[] candidates;
     private final AttributeMatchingExplanationBuilder explanationBuilder;
 
-    private final List<Attribute<?>> requestedAttributes;
+    private final List<Attribute<?>> requestedAttributeKeys;
     private final BitSet compatible;
 
     /**
@@ -99,10 +100,10 @@ class MultipleCandidateMatcher {
         this.requested = requested;
         this.explanationBuilder = explanationBuilder;
 
-        this.requestedAttributes = requested.keySet().asList();
-        this.requestedAttributeValues = getRequestedValues(requestedAttributes, requested);
+        this.requestedAttributeKeys = rehydrate(schema, requested);
+        this.requestedAttributeValues = getRequestedValues(requestedAttributeKeys, requested);
 
-        this.candidateValues = new Object[candidates.length * requestedAttributes.size()];
+        this.candidateValues = new Object[candidates.length * requestedAttributeKeys.size()];
 
         this.compatible = new BitSet(candidates.length);
         compatible.set(0, candidates.length);
@@ -121,12 +122,24 @@ class MultipleCandidateMatcher {
         return disambiguateCompatibleCandidates();
     }
 
+    /**
+     * Returns the requested attributes keys, with each requested attribute key replaced by the attribute of the schema
+     * with the same name, so that the rules of the schema apply to it.
+     */
+    private static List<Attribute<?>> rehydrate(AttributeSelectionSchema schema, ImmutableAttributes requested) {
+        List<Attribute<?>> attributes = new ArrayList<>(requested.keySet().size());
+        for (Attribute<?> attribute : requested.keySet()) {
+            attributes.add(schema.tryRehydrate(attribute));
+        }
+        return attributes;
+    }
+
     private static @Nullable Object[] getRequestedValues(List<Attribute<?>> requestedAttributes, ImmutableAttributes requested) {
         @Nullable Object[] requestedAttributeValues = new Object[requestedAttributes.size()];
         for (int a = 0; a < requestedAttributes.size(); a++) {
             Attribute<?> attribute = requestedAttributes.get(a);
-            ImmutableAttributesEntry<?> requestedEntry = requested.findEntry(attribute);
-            requestedAttributeValues[a] = requestedEntry != null ? requestedEntry.getIsolatedValue() : null;
+            ImmutableAttributesEntry<?> requestedEntry = requested.findEntry(attribute.getName());
+            requestedAttributeValues[a] = requestedEntry != null ? requestedEntry.coerce(attribute) : null;
         }
         return requestedAttributeValues;
     }
@@ -144,7 +157,7 @@ class MultipleCandidateMatcher {
     private void matchCandidate(int c) {
         int matchLength = 0;
 
-        for (int a = 0; a < requestedAttributes.size(); a++) {
+        for (int a = 0; a < requestedAttributeKeys.size(); a++) {
             MatchResult result = recordAndMatchCandidateValue(c, a);
             if (result == MatchResult.NO_MATCH) {
                 compatible.clear(c);
@@ -163,7 +176,7 @@ class MultipleCandidateMatcher {
 
     private MatchResult recordAndMatchCandidateValue(int c, int a) {
         Object requestedValue = requestedAttributeValues[a];
-        Attribute<?> attribute = requestedAttributes.get(a);
+        Attribute<?> attribute = requestedAttributeKeys.get(a);
         ImmutableAttributesEntry<?> candidateEntry = candidates[c].findEntry(attribute.getName());
 
         if (candidateEntry == null) {
@@ -200,7 +213,7 @@ class MultipleCandidateMatcher {
                 continue;
             }
             int lengthOfOtherMatch = 0;
-            for (int a = 0; a < requestedAttributes.size(); a++) {
+            for (int a = 0; a < requestedAttributeKeys.size(); a++) {
                 if (getCandidateValue(c, a) == null) {
                     continue;
                 }
@@ -238,7 +251,7 @@ class MultipleCandidateMatcher {
     }
 
     private void disambiguateWithRequestedAttributeKeys(Attribute<?>[] extraAttributes) {
-        if (requestedAttributes.isEmpty()) {
+        if (requestedAttributeKeys.isEmpty()) {
             return;
         }
         for (Attribute<?> extraAttribute : extraAttributes) {
@@ -275,7 +288,7 @@ class MultipleCandidateMatcher {
         // The sorted indices are [ 2, 0 ]
         // The unsorted indices are [ 1 ]
         //
-        final AttributeSelectionSchema.PrecedenceResult precedenceResult = schema.orderByPrecedence(requested.keySet());
+        final AttributeSelectionSchema.PrecedenceResult precedenceResult = schema.orderByPrecedence(requestedAttributeKeys);
 
         for (int a : precedenceResult.getSortedOrder()) {
             disambiguateRequestedAttribute(a);
@@ -303,7 +316,7 @@ class MultipleCandidateMatcher {
             return;
         }
 
-        Set<Object> matches = unsafeDisambiguate(requestedAttributes.get(a), requestedAttributeValues[a], candidateValues);
+        Set<Object> matches = unsafeDisambiguate(requestedAttributeKeys.get(a), requestedAttributeValues[a], candidateValues);
         if (matches != null && matches.size() < candidateValues.size()) {
             // Remove any candidates which do not satisfy the disambiguation rule.
             for (int c = remaining.nextSetBit(0); c >= 0; c = remaining.nextSetBit(c + 1)) {
@@ -456,7 +469,7 @@ class MultipleCandidateMatcher {
     }
 
     private int getValueIndex(int c, int a) {
-        return c * requestedAttributes.size() + a;
+        return c * requestedAttributeKeys.size() + a;
     }
 
     private enum MatchResult {

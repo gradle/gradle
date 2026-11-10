@@ -1426,6 +1426,99 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         'c2'                        | 'c1'                      | 'c2'                      | 'runtime'             | 'api'                      | 'runtime'                  | 'runtime'
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/29872")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    def "applies rules of a rich attribute type to the attribute values requested by a published dependency"(List<String> producerFlavors, boolean applyRules) {
+        given:
+        // The published metadata of the dependency declares the requested attribute value as a String
+        repository {
+            id("org:library:1.0") {
+                ["api", "runtime"].each { name ->
+                    variant(name) {
+                        dependsOn("org:producer:1.0") {
+                            attributes.flavor = "first"
+                        }
+                    }
+                }
+            }
+            id("org:producer:1.0") {
+                withoutDefaultVariants()
+                producerFlavors.each { producerFlavor ->
+                    variant(producerFlavor) {
+                        attribute("flavor", producerFlavor)
+                    }
+                }
+            }
+        }
+
+        buildFile << """
+            interface Flavor extends Named {}
+
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                @Override
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    details.compatible()
+                }
+            }
+
+            class FlavorDisambiguationRule implements AttributeDisambiguationRule<Flavor> {
+                @Override
+                void execute(MultipleCandidatesDetails<Flavor> details) {
+                    details.closestMatch(details.candidateValues.find { it.name == "second" })
+                }
+            }
+
+            def flavor = Attribute.of("flavor", Flavor)
+
+            dependencies {
+                attributesSchema {
+                    attribute(flavor)
+                    if ($applyRules) {
+                        attribute(flavor).compatibilityRules.add(FlavorCompatibilityRule)
+                        attribute(flavor).disambiguationRules.add(FlavorDisambiguationRule)
+                    }
+                }
+
+                conf("org:library:1.0")
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            allowAll()
+        }
+
+        if (applyRules) {
+            succeeds("checkDeps")
+        } else {
+            fails("checkDeps")
+        }
+
+        then:
+        if (applyRules) {
+            String status = defaultStatus()
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    module("org:library:1.0") {
+                        variant("runtime", ["org.gradle.status": status, "org.gradle.usage": "java-runtime", "org.gradle.libraryelements": "jar", "org.gradle.category": "library"])
+                        module("org:producer:1.0") {
+                            variant("second", ["org.gradle.status": status, flavor: "second"])
+                        }
+                    }
+                }
+            }
+        } else {
+            failure.assertHasCause("No matching variant of org:producer:1.0 was found.")
+        }
+
+        where:
+        producerFlavors       | applyRules
+        ["second"]            | true
+        ["second"]            | false
+        ["second", "third"]   | true
+        ["second", "third"]   | false
+    }
+
     static String defaultStatus() {
         GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release'
     }

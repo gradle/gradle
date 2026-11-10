@@ -92,9 +92,7 @@ class GradleMetadataValidationResolveIntegrationTest extends AbstractModuleDepen
         when:
         repository {
             'org.test:projectA:1.1' {
-                withModule {
-                    withoutDefaultVariants()
-                }
+                withoutDefaultVariants()
             }
         }
         repositoryInteractions {
