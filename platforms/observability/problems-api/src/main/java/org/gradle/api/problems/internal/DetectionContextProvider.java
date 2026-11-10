@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,14 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Supplies task execution information.
+ * Supplies what was running when a problem was reported.
  */
-public interface TaskIdentityProvider {
+public interface DetectionContextProvider {
 
     /**
-     * Returns the identity of the task the current thread is working for, or else of the task running the target build operation.
+     * Returns what the current thread is working for, or else what runs the target build operation.
      *
      * @param id the id of the target build operation, or {@code null} if there is none
-     * @return the task identity, or {@code null} if neither is working for a task
      */
-    @Nullable
-    TaskIdentity taskIdentityFor(@Nullable OperationIdentifier id);
+    DetectionContext detectionContextFor(@Nullable OperationIdentifier id);
 }

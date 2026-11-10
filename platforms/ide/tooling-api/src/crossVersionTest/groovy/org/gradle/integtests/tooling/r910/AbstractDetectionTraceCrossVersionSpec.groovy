@@ -100,6 +100,50 @@ abstract class AbstractDetectionTraceCrossVersionSpec extends ToolingApiSpecific
         """
     }
 
+    /**
+     * A plugin with an id, built in buildSrc, reports the problem as it is applied. Uses the Problems API of Gradle 9.10.
+     */
+    void pluginWithIdReportsProblemWhenApplied() {
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id "java-gradle-plugin"
+            }
+            gradlePlugin {
+                plugins {
+                    foo {
+                        id = "com.acme.foo"
+                        implementationClass = "com.acme.FooPlugin"
+                    }
+                }
+            }
+        """
+        file("buildSrc/src/main/java/com/acme/FooPlugin.java") << """
+            package com.acme;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.problems.Problems;
+            import javax.inject.Inject;
+
+            public abstract class FooPlugin implements Plugin<Project> {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @Override
+                public void apply(Project project) {
+                    getProblems().getReporter().report(getProblems().getGroups().getOthers().group("Generic").problemId("$PROBLEM_ID"), spec -> {});
+                }
+            }
+        """
+        buildFile """
+            plugins {
+                id "com.acme.foo"
+            }
+
+            tasks.register("reportProblem")
+        """
+    }
+
     List<?> runReportProblem() {
         def listener = new ProblemListener()
         withConnection { connection ->

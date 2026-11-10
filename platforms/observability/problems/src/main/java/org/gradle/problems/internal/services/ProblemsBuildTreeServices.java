@@ -29,16 +29,20 @@ import org.gradle.api.problems.internal.IsolatableToBytesSerializer;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemReportCreator;
 import org.gradle.api.problems.internal.ProblemSummarizer;
+import org.gradle.api.problems.internal.DetectionContext;
+import org.gradle.api.problems.internal.ProblemProjectIdentityTracker;
 import org.gradle.api.problems.internal.ProblemTaskIdentityTracker;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.problems.internal.TaskIdentity;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.execution.WorkExecutionTracker;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -51,6 +55,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.problems.internal.NoOpProblemReportCreator;
 import org.gradle.problems.internal.emitters.BuildOperationBasedProblemEmitter;
@@ -95,7 +100,8 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         InternalOptions internalOptions,
         ProblemReportCreator problemReportCreator,
         WorkExecutionTracker workExecutionTracker,
-        StartParameterInternal startParameter
+        StartParameterInternal startParameter,
+        UserCodeApplicationContext userCodeApplicationContext
     ) {
         ImmutableList.Builder<ProblemEmitter> emitters = ImmutableList.builder();
         emitters.add(new BuildOperationBasedProblemEmitter(eventEmitter));
@@ -107,19 +113,33 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
             emitters.build(),
             internalOptions,
             problemReportCreator,
-            id -> {
-                TaskIdentity taskIdentity = ProblemTaskIdentityTracker.getTaskIdentity();
-                if (taskIdentity != null) {
-                    return taskIdentity;
-                } else {
-                    return workExecutionTracker
-                        .getCurrentTask(id)
-                        .map(task -> task.getTaskIdentity())
-                        .map(identity -> new TaskIdentity(identity.getBuildTreePath().asString(), identity.getProjectIdentity().getBuildTreePath().asString(), identity.getProjectIdentity().getBuildPath().asString()))
-                        .orElse(null);
-                }
-            }
+            id -> new DetectionContext(currentTask(id, workExecutionTracker), ProblemProjectIdentityTracker.getProjectIdentity(), currentPluginId(userCodeApplicationContext))
         );
+    }
+
+    @Nullable
+    private static TaskIdentity currentTask(@Nullable OperationIdentifier id, WorkExecutionTracker workExecutionTracker) {
+        TaskIdentity taskIdentity = ProblemTaskIdentityTracker.getTaskIdentity();
+        if (taskIdentity != null) {
+            return taskIdentity;
+        }
+        return workExecutionTracker
+            .getCurrentTask(id)
+            .map(task -> task.getTaskIdentity())
+            .map(identity -> new TaskIdentity(identity.getBuildTreePath().asString(), identity.getProjectIdentity().getBuildTreePath().asString(), identity.getProjectIdentity().getBuildPath().asString()))
+            .orElse(null);
+    }
+
+    /**
+     * The id of the plugin whose code the current thread runs, if it has one. Scripts and plugins without an id give none.
+     */
+    @Nullable
+    private static String currentPluginId(UserCodeApplicationContext userCodeApplicationContext) {
+        UserCodeApplicationContext.Application application = userCodeApplicationContext.current();
+        if (application == null || !(application.getSource() instanceof UserCodeSource.Binary)) {
+            return null;
+        }
+        return ((UserCodeSource.Binary) application.getSource()).getPluginId();
     }
 
     @Provides

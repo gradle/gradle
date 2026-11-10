@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.events.problems.BuildFrame
 import org.gradle.tooling.events.problems.Locality
+import org.gradle.tooling.events.problems.PluginApplicationFrame
 import org.gradle.tooling.events.problems.ProjectFrame
 import org.gradle.tooling.events.problems.TaskFrame
 import org.gradle.tooling.events.problems.TaskPathLocation
@@ -72,7 +73,7 @@ class DetectionTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionS
         frames[3].buildPath == ":"
     }
 
-    def "problem reported while configuring carries the build alone"() {
+    def "problem reported while configuring a project carries the project and the build"() {
         given:
         pluginReportsProblemWhenApplied()
 
@@ -82,7 +83,23 @@ class DetectionTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionS
         then:
         problems.size() == 1
         def frames = problems[0].detectionTrace.frames
-        frames*.displayName == ["build :"]
-        frames[0] instanceof BuildFrame
+        frames*.displayName == ["project :", "build :"]
+        frames[0] instanceof ProjectFrame
+        frames[1] instanceof BuildFrame
+    }
+
+    def "problem reported by a plugin with an id carries the plugin application"() {
+        given:
+        pluginWithIdReportsProblemWhenApplied()
+
+        when:
+        def problems = runReportProblem()
+
+        then:
+        problems.size() == 1
+        def frames = problems[0].detectionTrace.frames
+        frames*.displayName == ["plugin application com.acme.foo", "project :", "build :"]
+        frames[0] instanceof PluginApplicationFrame
+        frames[0].pluginId == "com.acme.foo"
     }
 }

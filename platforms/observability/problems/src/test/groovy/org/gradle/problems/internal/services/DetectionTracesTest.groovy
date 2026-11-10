@@ -16,9 +16,12 @@
 
 package org.gradle.problems.internal.services
 
+import org.gradle.api.problems.internal.DetectionContext
+import org.gradle.api.problems.internal.ProjectIdentity
 import org.gradle.api.problems.internal.TaskIdentity
 import org.gradle.api.problems.internal.location.BuildFrame
 import org.gradle.api.problems.internal.location.Locality
+import org.gradle.api.problems.internal.location.PluginApplicationFrame
 import org.gradle.api.problems.internal.location.ProjectFrame
 import org.gradle.api.problems.internal.location.TaskFrame
 import spock.lang.Specification
@@ -27,7 +30,7 @@ class DetectionTracesTest extends Specification {
 
     def "task in the root build yields task, project and build, leaf first"() {
         when:
-        def frames = DetectionTraces.detectedIn(new TaskIdentity(":app:test", ":app", ":")).frames
+        def frames = DetectionTraces.detectedIn(task(":app:test", ":app", ":")).frames
 
         then:
         frames*.class == [TaskFrame, ProjectFrame, BuildFrame]
@@ -40,19 +43,58 @@ class DetectionTracesTest extends Specification {
 
     def "task in an included build also yields the root build"() {
         when:
-        def frames = DetectionTraces.detectedIn(new TaskIdentity(":lib:core:compileJava", ":lib:core", ":lib")).frames
+        def frames = DetectionTraces.detectedIn(task(":lib:core:compileJava", ":lib:core", ":lib")).frames
 
         then:
         frames*.class == [TaskFrame, ProjectFrame, BuildFrame, BuildFrame]
         frames*.displayName == ["task :lib:core:compileJava", "project :lib:core", "build :lib", "build :"]
     }
 
+    def "while a project is configured the trace holds the project and its builds"() {
+        when:
+        def frames = DetectionTraces.detectedIn(new DetectionContext(null, new ProjectIdentity(":lib:core", ":lib"), null)).frames
+
+        then:
+        frames*.class == [ProjectFrame, BuildFrame, BuildFrame]
+        frames*.displayName == ["project :lib:core", "build :lib", "build :"]
+    }
+
+    def "a plugin being applied to a project is the leaf"() {
+        when:
+        def frames = DetectionTraces.detectedIn(new DetectionContext(null, new ProjectIdentity(":app", ":"), "com.acme.foo")).frames
+
+        then:
+        frames*.class == [PluginApplicationFrame, ProjectFrame, BuildFrame]
+        frames*.displayName == ["plugin application com.acme.foo", "project :app", "build :"]
+        frames[0].pluginId == "com.acme.foo"
+    }
+
+    def "a plugin being applied outside a project sits on the root build"() {
+        when:
+        def frames = DetectionTraces.detectedIn(new DetectionContext(null, null, "com.acme.settings")).frames
+
+        then:
+        frames*.displayName == ["plugin application com.acme.settings", "build :"]
+    }
+
+    def "while a task runs the plugin being applied is not part of the trace"() {
+        when:
+        def frames = DetectionTraces.detectedIn(new DetectionContext(new TaskIdentity(":app:test", ":app", ":"), new ProjectIdentity(":app", ":"), "com.acme.foo")).frames
+
+        then:
+        frames*.displayName == ["task :app:test", "project :app", "build :"]
+    }
+
     def "without a task the trace holds the root build alone"() {
         when:
-        def frames = DetectionTraces.detectedIn(null).frames
+        def frames = DetectionTraces.detectedIn(DetectionContext.NONE).frames
 
         then:
         frames*.class == [BuildFrame]
         frames*.displayName == ["build :"]
+    }
+
+    private static DetectionContext task(String taskPath, String projectPath, String buildPath) {
+        new DetectionContext(new TaskIdentity(taskPath, projectPath, buildPath), null, null)
     }
 }

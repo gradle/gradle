@@ -23,8 +23,9 @@ import org.gradle.api.problems.internal.ProblemReportCreator;
 import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.api.problems.internal.ProblemSummaryData;
 import org.gradle.api.problems.internal.ProblemsInfrastructure;
+import org.gradle.api.problems.internal.DetectionContext;
+import org.gradle.api.problems.internal.DetectionContextProvider;
 import org.gradle.api.problems.internal.TaskIdentity;
-import org.gradle.api.problems.internal.TaskIdentityProvider;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -43,7 +44,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     private final Collection<ProblemEmitter> problemEmitters;
     private final ProblemReportCreator problemReportCreator;
     private final SummarizerStrategy summarizerStrategy;
-    private final TaskIdentityProvider taskProvider;
+    private final DetectionContextProvider detectionContextProvider;
 
     public static final InternalOption<Integer> THRESHOLD_OPTION = InternalOptions.ofInt("org.gradle.internal.problem.summary.threshold", 15);
     public static final int THRESHOLD_DEFAULT_VALUE = THRESHOLD_OPTION.getDefaultValue();
@@ -54,14 +55,14 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         Collection<ProblemEmitter> problemEmitters,
         InternalOptions internalOptions,
         ProblemReportCreator problemReportCreator,
-        TaskIdentityProvider taskProvider
+        DetectionContextProvider detectionContextProvider
     ) {
         this.eventEmitter = eventEmitter;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.problemEmitters = problemEmitters;
         this.summarizerStrategy = new SummarizerStrategy(internalOptions.getInt(THRESHOLD_OPTION));
         this.problemReportCreator = problemReportCreator;
-        this.taskProvider = taskProvider;
+        this.detectionContextProvider = detectionContextProvider;
     }
 
     @Override
@@ -79,10 +80,11 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     @Override
     public void emit(ProblemInternal problem, @Nullable OperationIdentifier id) {
         // Detection is computed before summarization throttles occurrences, and attached only to the ones that pass
-        TaskIdentity taskIdentity = taskProvider.taskIdentityFor(id);
+        DetectionContext detection = detectionContextProvider.detectionContextFor(id);
+        TaskIdentity taskIdentity = detection.getTask();
         String taskPath = taskIdentity == null ? null : taskIdentity.getTaskPath();
         if (summarizerStrategy.shouldEmit(problem, taskPath)) {
-            problem = maybeAddTaskLocation(problem, taskPath).withDetectionTrace(DetectionTraces.detectedIn(taskIdentity));
+            problem = maybeAddTaskLocation(problem, taskPath).withDetectionTrace(DetectionTraces.detectedIn(detection));
             problemReportCreator.addProblem(problem);
             for (ProblemEmitter problemEmitter : problemEmitters) {
                 problemEmitter.emit(problem, id);

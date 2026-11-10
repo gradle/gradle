@@ -72,11 +72,13 @@ import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 import org.gradle.tooling.internal.protocol.problem.InternalTrace;
 import org.gradle.api.problems.internal.location.BuildFrame;
 import org.gradle.api.problems.internal.location.Frame;
+import org.gradle.api.problems.internal.location.PluginApplicationFrame;
 import org.gradle.api.problems.internal.location.ProjectFrame;
 import org.gradle.api.problems.internal.location.TaskFrame;
 import org.gradle.api.problems.internal.location.Trace;
 import org.gradle.internal.build.event.types.DefaultBuildFrame;
 import org.gradle.internal.build.event.types.DefaultFrame;
+import org.gradle.internal.build.event.types.DefaultPluginApplicationFrame;
 import org.gradle.internal.build.event.types.DefaultProjectFrame;
 import org.gradle.internal.build.event.types.DefaultTaskFrame;
 import org.gradle.internal.build.event.types.DefaultTrace;
@@ -172,6 +174,9 @@ public class ProblemsProgressEventUtils {
         }
         if (frame instanceof BuildFrame) {
             return new DefaultBuildFrame(displayName, locality, ((BuildFrame) frame).getBuildPath());
+        }
+        if (frame instanceof PluginApplicationFrame) {
+            return new DefaultPluginApplicationFrame(displayName, locality, ((PluginApplicationFrame) frame).getPluginId());
         }
         // A frame kind without a typed protocol class crosses as a plain frame
         return new DefaultFrame(displayName, locality);
