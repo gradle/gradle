@@ -58,16 +58,17 @@ final class DetectionTraces {
                 new TaskFrame(task.getTaskPath(), LOCALITY),
                 new ProjectFrame(task.getProjectPath(), LOCALITY)));
         }
-        ImmutableList.Builder<Frame> leaves = ImmutableList.builder();
+        ImmutableList.Builder<Frame> leafBuilder = ImmutableList.builder();
         if (detection.getAppliedPluginId() != null) {
-            leaves.add(new PluginApplicationFrame(detection.getAppliedPluginId(), LOCALITY));
+            leafBuilder.add(new PluginApplicationFrame(detection.getAppliedPluginId(), LOCALITY));
         }
         ProjectIdentity project = detection.getProject();
         if (project != null) {
-            leaves.add(new ProjectFrame(project.getBuildTreePath(), LOCALITY));
-            return withBuilds(project.getBuildPath(), leaves.build());
+            leafBuilder.add(new ProjectFrame(project.getBuildTreePath(), LOCALITY));
+            return withBuilds(project.getBuildPath(), leafBuilder.build());
         }
-        return leaves.build().isEmpty() ? ROOT_BUILD : withBuilds(ROOT_BUILD_PATH, leaves.build());
+        ImmutableList<Frame> leaves = leafBuilder.build();
+        return leaves.isEmpty() ? ROOT_BUILD : withBuilds(ROOT_BUILD_PATH, leaves);
     }
 
     private static Trace withBuilds(String buildPath, ImmutableList<Frame> leaves) {
