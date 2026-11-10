@@ -147,11 +147,11 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
      * are derived from it; the localities of file frames are resolved later by the runtime, which knows the build's root.
      */
     private List<Trace> originTraces() {
-        ImmutableList.Builder<Trace> traces = ImmutableList.builder();
+        ImmutableList.Builder<Trace> originTraces = ImmutableList.builder();
         for (ProblemLocation location : originLocations) {
             FileLocation fileLocation = location instanceof StackTraceLocation ? ((StackTraceLocation) location).getFileLocation() : location instanceof FileLocation ? (FileLocation) location : null;
             if (fileLocation != null) {
-                traces.add(new Trace(ImmutableList.of(new FileLocationFrame(positionOf(fileLocation), Locality.UNKNOWN))));
+                originTraces.add(new Trace(ImmutableList.of(new FileLocationFrame(positionOf(fileLocation), Locality.UNKNOWN))));
             }
         }
         if (additionalData instanceof TypeValidationData) {
@@ -166,10 +166,10 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             }
             ImmutableList<Frame> validated = frames.build();
             if (!validated.isEmpty()) {
-                traces.add(new Trace(validated));
+                originTraces.add(new Trace(validated));
             }
         }
-        return traces.build();
+        return originTraces.build();
     }
 
     // Line and column count from 1 and offset from 0; the flat locations use -1 for a missing value, the position uses null (spec Q12)

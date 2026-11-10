@@ -159,8 +159,8 @@ public class ProblemsProgressEventUtils {
         );
     }
 
-    private static List<InternalTrace> toInternalTraces(List<Trace> traces) {
-        return traces.stream().map(ProblemsProgressEventUtils::toInternalTrace).collect(toImmutableList());
+    private static List<InternalTrace> toInternalTraces(List<Trace> originTraces) {
+        return originTraces.stream().map(ProblemsProgressEventUtils::toInternalTrace).collect(toImmutableList());
     }
 
     private static @Nullable InternalTrace toInternalDetectionTrace(@Nullable Trace trace) {

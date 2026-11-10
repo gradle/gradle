@@ -117,7 +117,7 @@ class BuildProgressListenerAdapterForProblemTracesTest extends Specification {
         String getName()
     }
 
-    def "origin traces arrive with their file positions, and a frame without one has null"() {
+    def "origin originTraces arrive with their file positions, and a frame without one has null"() {
         given:
         def details = Stub(InternalBasicProblemDetailsVersion5) {
             getOriginTraces() >> [
@@ -127,22 +127,22 @@ class BuildProgressListenerAdapterForProblemTracesTest extends Specification {
         }
 
         when:
-        def traces = BuildProgressListenerAdapter.toOriginTraces(details)
+        def originTraces = BuildProgressListenerAdapter.toOriginTraces(details)
 
         then:
-        traces.size() == 2
-        with(traces[0].frames[0].position as FilePosition) {
+        originTraces.size() == 2
+        with(originTraces[0].frames[0].position as FilePosition) {
             path == "build.gradle"
             line == 12
             column == 5
             offset == null
             length == null
         }
-        traces[1].frames*.position == [null, null]
-        traces[1].frames*.displayName == ["property bar", "class AcmeTask"]
+        originTraces[1].frames*.position == [null, null]
+        originTraces[1].frames*.displayName == ["property bar", "class AcmeTask"]
     }
 
-    def "no origin traces when the build doesn't send any"() {
+    def "no origin originTraces when the build doesn't send any"() {
         expect:
         BuildProgressListenerAdapter.toOriginTraces(Stub(InternalBasicProblemDetailsVersion4)).empty
     }

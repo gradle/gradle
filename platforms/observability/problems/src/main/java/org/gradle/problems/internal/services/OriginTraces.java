@@ -37,9 +37,9 @@ final class OriginTraces {
      * Gives each file location frame its locality: a file inside the root directory of the build tree is the user's own; any other file,
      * such as one in a cache or in the Gradle user home, stays unknown. Frames that already have a locality are left alone.
      */
-    static List<Trace> withFileLocalities(List<Trace> traces, File buildTreeRootDirectory) {
+    static List<Trace> withFileLocalities(List<Trace> originTraces, File buildTreeRootDirectory) {
         ImmutableList.Builder<Trace> result = ImmutableList.builder();
-        for (Trace trace : traces) {
+        for (Trace trace : originTraces) {
             ImmutableList.Builder<Frame> frames = ImmutableList.builder();
             for (Frame frame : trace.getFrames()) {
                 if (frame instanceof FileLocationFrame && frame.getLocality() == Locality.UNKNOWN) {
