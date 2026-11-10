@@ -12,9 +12,10 @@
 
 Gradle @version@ is the seventh patch release for Gradle 8.14 (released [@releaseDate@](https://gradle.org/releases/)).
 
-It fixes the following issues:
-
-* TODO
+This release addresses three security vulnerabilities:
+- [Version catalog values run as code in generated accessors](https://github.com/gradle/gradle/security/advisories/GHSA-3cfg-jpcr-gfp3) - 9.3 Critical
+- [Gradle client trusts the content of the daemon registry](https://github.com/gradle/gradle/security/advisories/GHSA-gqrr-4j89-5267) - 8.6 High
+- [Daemon client trusts stale registry entries (port squatting)](https://github.com/gradle/gradle/security/advisories/GHSA-pcp8-98xm-c6pr) - 7.0 High
 
 Issues fixed in the sixth patch release:
 
