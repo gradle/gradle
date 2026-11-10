@@ -157,13 +157,13 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             resolutionScope.setTypeHierarchyAnalysisResult(getAnalysisResult(classpathConfiguration));
             resolutionScope.setOriginalClasspath(originalDependencies.getFiles());
 
+            // Each call to getArtifacts() on a view selects and visits the artifacts again, so the collection is shared with the merge below
+            ArtifactCollection originalArtifacts = originalDependencies.getArtifacts();
             ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
             ArtifactCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
-            // Visiting the artifact views from inside a task action, as the GradleBuild task does, needs the same scope as the merge below
-            try (SafeInternalArtifactTransformAccess.Scope ignored = SafeInternalArtifactTransformAccess.safely()) {
-                recordLocalities(originalDependencies, instrumentedExternalDependencies, instrumentedProjectDependencies);
-            }
-            Map<FileType, List<File>> instrumentedClasspath = mergeInstrumentedClasspath(originalDependencies, instrumentedExternalDependencies, instrumentedProjectDependencies);
+            Map<FileType, List<File>> instrumentedClasspath = mergeInstrumentedClasspath(originalArtifacts, instrumentedExternalDependencies, instrumentedProjectDependencies);
+            // The collections are computed by now, so this only walks them once more
+            recordLocalities(originalArtifacts, instrumentedExternalDependencies, instrumentedProjectDependencies);
 
             MethodInterceptionReportCollector reportCollector = propertyUpgradeReportConfig.getReportCollector();
             instrumentedClasspath.getOrDefault(INTERCEPTED_METHODS_REPORT, Collections.emptyList()).forEach(reportCollector::collect);
@@ -184,13 +184,13 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
      * "undeclared artifact transform input" deprecation that would otherwise fire.
      */
     private static Map<FileType, List<File>> mergeInstrumentedClasspath(
-        ArtifactView originalDependencies,
+        ArtifactCollection originalDependencies,
         ArtifactCollection instrumentedExternalDependencies,
         ArtifactCollection instrumentedProjectDependencies
     ) {
         try (SafeInternalArtifactTransformAccess.Scope ignored = SafeInternalArtifactTransformAccess.safely()) {
             return InstrumentationClasspathMerger.mergeToClasspath(
-                originalDependencies.getArtifacts(),
+                originalDependencies,
                 instrumentedExternalDependencies,
                 instrumentedProjectDependencies
             );
@@ -201,8 +201,8 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
      * Records who owns each classpath entry, so that a class can later be attributed through the jar it was loaded from.
      * Classes load from the original jar, or a copy of it, with the instrumentation agent and from the transformed jar without it, so both are recorded.
      */
-    private void recordLocalities(ArtifactView originalDependencies, ArtifactCollection externalDependencies, ArtifactCollection projectDependencies) {
-        for (ResolvedArtifactResult artifact : originalDependencies.getArtifacts().getArtifacts()) {
+    private void recordLocalities(ArtifactCollection originalDependencies, ArtifactCollection externalDependencies, ArtifactCollection projectDependencies) {
+        for (ResolvedArtifactResult artifact : originalDependencies.getArtifacts()) {
             ComponentIdentifier componentId = artifact.getId().getComponentIdentifier();
             if (isProjectDependency(componentId)) {
                 codeLocalityRegistry.recordClasspathEntry(artifact.getFile(), Locality.LOCAL);
