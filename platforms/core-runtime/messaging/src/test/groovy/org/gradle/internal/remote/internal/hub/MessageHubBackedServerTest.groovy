@@ -27,7 +27,7 @@ import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage
 import spock.lang.Specification
 
 class MessageHubBackedServerTest extends Specification {
-    private static final byte[] CONNECTION_TOKEN = "0123456789abcdef".bytes
+    private static final byte[] CONNECTION_TOKEN = "0123456789abcdef0123456789abcdef".bytes
 
     final IncomingConnector connector = Mock()
     final ExecutorFactory executorFactory = Mock()

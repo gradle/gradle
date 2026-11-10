@@ -34,6 +34,7 @@ import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Timeout
 
+import java.nio.channels.ServerSocketChannel
 import java.nio.channels.SocketChannel
 
 @Timeout(60)
@@ -43,7 +44,7 @@ class TcpConnectorTest extends ConcurrentSpec {
     final def addressFactory = new InetAddressFactory()
     final def outgoingConnector = new TcpOutgoingConnector()
     final def incomingConnector = new TcpIncomingConnector(executorFactory, addressFactory, idGenerator, 1)
-    final byte[] connectionToken = "0123456789abcdef".bytes
+    final byte[] connectionToken = "0123456789abcdef0123456789abcdef".bytes
     @Rule
     public ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
@@ -351,7 +352,7 @@ class TcpConnectorTest extends ConcurrentSpec {
 
     def "server executes action when incoming connection presents the expected connection token"() {
         Action action = Mock()
-        def token = "0123456789abcdef".bytes
+        def token = "0123456789abcdef0123456789abcdef".bytes
 
         when:
         def acceptor = incomingConnector.accept(action, false, token)
@@ -366,21 +367,52 @@ class TcpConnectorTest extends ConcurrentSpec {
         connection?.stop()
     }
 
-    def "refuses connections that present the wrong connection token"() {
+    def "client and server refuse each other when they hold different connection tokens"() {
         given:
         def connected = false
         def action = { connected = true }
+        def acceptor = incomingConnector.accept(action, false, "0123456789abcdef0123456789abcdef".bytes)
 
         when:
-        def acceptor = incomingConnector.accept(action, false, "0123456789abcdef".bytes)
-        def connection = outgoingConnector.connect(acceptor.address, "0123456789abcdeF".bytes).create(serializer)
-        acceptor.stop()
+        outgoingConnector.connect(acceptor.address, "fedcba9876543210fedcba9876543210".bytes)
 
         then:
+        thrown(ConnectException)
         !connected
 
         cleanup:
-        connection?.stop()
+        acceptor?.stop()
+    }
+
+    def "client sends only its proof to a server that cannot prove it holds the connection token"() {
+        given:
+        def squatter = ServerSocketChannel.open()
+        squatter.bind(new InetSocketAddress(addressFactory.localBindingAddress, 0))
+        def address = new MultiChoiceAddress(idGenerator.generateId(), squatter.socket().localPort, [addressFactory.localBindingAddress])
+        def received = new ByteArrayOutputStream()
+        def squatterThread = Thread.start {
+            def socket = squatter.accept().socket()
+            socket.outputStream.write(new byte[ConnectionHandshake.PROOF_LENGTH])
+            socket.outputStream.flush()
+            received << socket.inputStream
+            socket.close()
+        }
+
+        when:
+        outgoingConnector.connect(address, connectionToken)
+
+        then:
+        ConnectException e = thrown()
+        e.cause.message == "Peer did not prove it holds the expected connection token"
+
+        when:
+        squatterThread.join()
+
+        then:
+        received.toByteArray() as List == (TcpOutgoingConnector.CONNECTION_PREAMBLE as List) + (ConnectionHandshake.clientProof(connectionToken) as List)
+
+        cleanup:
+        squatter?.close()
     }
 
     def "times out and refuses connections that send the preamble but no connection token"() {
@@ -388,7 +420,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         def connected = false
         def action = { connected = true }
         def socketChannel = SocketChannel.open()
-        def acceptor = incomingConnector.accept(action, false, "0123456789abcdef".bytes)
+        def acceptor = incomingConnector.accept(action, false, "0123456789abcdef0123456789abcdef".bytes)
         def communicationAddress = addressFactory.getLocalBindingAddress()
         def connectAddress = new InetSocketAddress(communicationAddress, acceptor.address.port)
 

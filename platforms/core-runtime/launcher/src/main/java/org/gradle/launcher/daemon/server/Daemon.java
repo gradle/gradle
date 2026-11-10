@@ -22,6 +22,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.remote.Address;
+import org.gradle.internal.remote.internal.inet.ConnectionHandshake;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -35,7 +36,6 @@ import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
 
-import java.security.SecureRandom;
 import java.util.Date;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -120,9 +120,7 @@ public class Daemon implements Stoppable {
             }
 
             // Generate an authentication token, which must be provided by the client in any requests it makes
-            SecureRandom secureRandom = new SecureRandom();
-            byte[] token = new byte[16];
-            secureRandom.nextBytes(token);
+            byte[] token = ConnectionHandshake.newConnectionToken();
 
             registryUpdater = new DaemonRegistryUpdater(daemonRegistry, daemonContext, token);
 
