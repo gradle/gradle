@@ -44,6 +44,12 @@ public enum Locality {
      */
     CORE,
     /**
+     * The user's machine or CI setup rather than the build, such as an init script from the Gradle user home.
+     *
+     * @since 9.10.0
+     */
+    ENVIRONMENT,
+    /**
      * Gradle can't tell who owns the frame, or the build sent a locality this client doesn't know.
      *
      * @since 9.10.0

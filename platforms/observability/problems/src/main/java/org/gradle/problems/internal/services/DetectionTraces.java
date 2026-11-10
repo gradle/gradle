@@ -22,7 +22,8 @@ import org.gradle.api.problems.internal.ProjectIdentity;
 import org.gradle.api.problems.internal.TaskIdentity;
 import org.gradle.api.problems.internal.location.BuildFrame;
 import org.gradle.api.problems.internal.location.Frame;
-import org.gradle.api.problems.internal.location.Locality;
+import org.gradle.internal.code.Locality;
+import org.gradle.internal.code.UserCodeSource;
 import org.gradle.api.problems.internal.location.PluginApplicationFrame;
 import org.gradle.api.problems.internal.location.ProjectFrame;
 import org.gradle.api.problems.internal.location.TaskFrame;
@@ -35,10 +36,10 @@ final class DetectionTraces {
 
     private static final String ROOT_BUILD_PATH = ":";
 
-    // The prototype doesn't compute locality yet
-    private static final Locality LOCALITY = Locality.UNKNOWN;
+    // Projects and builds are the user's own, whichever build of the tree they belong to
+    private static final Locality BUILD_MODEL = Locality.LOCAL;
 
-    private static final Trace ROOT_BUILD = new Trace(ImmutableList.of(new BuildFrame(ROOT_BUILD_PATH, LOCALITY)));
+    private static final Trace ROOT_BUILD = new Trace(ImmutableList.of(createRootBuildFrame()));
 
     private DetectionTraces() {
     }
@@ -54,17 +55,19 @@ final class DetectionTraces {
     static Trace detectedIn(DetectionContext detection) {
         TaskIdentity task = detection.getTask();
         if (task != null) {
+            // A task takes the locality of the code that registered it
             return withBuilds(task.getBuildPath(), ImmutableList.of(
-                new TaskFrame(task.getTaskPath(), LOCALITY),
-                new ProjectFrame(task.getProjectPath(), LOCALITY)));
+                new TaskFrame(task.getTaskPath(), task.getLocality()),
+                new ProjectFrame(task.getProjectPath(), BUILD_MODEL)));
         }
         ImmutableList.Builder<Frame> leafBuilder = ImmutableList.builder();
-        if (detection.getAppliedPluginId() != null) {
-            leafBuilder.add(new PluginApplicationFrame(detection.getAppliedPluginId(), LOCALITY));
+        UserCodeSource.Binary plugin = detection.getAppliedPlugin();
+        if (plugin != null) {
+            leafBuilder.add(new PluginApplicationFrame(plugin.getPluginId(), plugin.getLocality()));
         }
         ProjectIdentity project = detection.getProject();
         if (project != null) {
-            leafBuilder.add(new ProjectFrame(project.getBuildTreePath(), LOCALITY));
+            leafBuilder.add(new ProjectFrame(project.getBuildTreePath(), BUILD_MODEL));
             return withBuilds(project.getBuildPath(), leafBuilder.build());
         }
         ImmutableList<Frame> leaves = leafBuilder.build();
@@ -73,11 +76,15 @@ final class DetectionTraces {
 
     private static Trace withBuilds(String buildPath, ImmutableList<Frame> leaves) {
         ImmutableList.Builder<Frame> frames = ImmutableList.<Frame>builder().addAll(leaves);
-        frames.add(new BuildFrame(buildPath, LOCALITY));
+        frames.add(new BuildFrame(buildPath, BUILD_MODEL));
         // Spec Q11 is open: every build up to the root, or only the owning build. The prototype adds the root build, as UC9 does.
         if (!ROOT_BUILD_PATH.equals(buildPath)) {
-            frames.add(new BuildFrame(ROOT_BUILD_PATH, LOCALITY));
+            frames.add(createRootBuildFrame());
         }
         return new Trace(frames.build());
+    }
+
+    private static BuildFrame createRootBuildFrame() {
+        return new BuildFrame(ROOT_BUILD_PATH, BUILD_MODEL);
     }
 }

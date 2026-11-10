@@ -32,6 +32,11 @@ public interface UserCodeSource {
     Describable getDisplayName();
 
     /**
+     * Returns who owns this code: the build, a third party, Gradle, or the environment the build runs in.
+     */
+    Locality getLocality();
+
+    /**
      * User code that is applied as a binary plugin.
      */
     class Binary implements UserCodeSource {
@@ -39,11 +44,22 @@ public interface UserCodeSource {
         private final Describable displayName;
         private final String className;
         private final @Nullable String pluginId;
+        private final Locality locality;
 
         public Binary(Describable displayName, String className, @Nullable String pluginId) {
+            this(displayName, className, pluginId, Locality.UNKNOWN);
+        }
+
+        public Binary(Describable displayName, String className, @Nullable String pluginId, Locality locality) {
             this.displayName = displayName;
             this.className = className;
             this.pluginId = pluginId;
+            this.locality = locality;
+        }
+
+        @Override
+        public Locality getLocality() {
+            return locality;
         }
 
         @Override
@@ -74,10 +90,21 @@ public interface UserCodeSource {
 
         private final Describable displayName;
         private final @Nullable URI uri;
+        private final Locality locality;
 
         public Script(Describable displayName, @Nullable URI uri) {
+            this(displayName, uri, Locality.UNKNOWN);
+        }
+
+        public Script(Describable displayName, @Nullable URI uri, Locality locality) {
             this.displayName = displayName;
             this.uri = uri;
+            this.locality = locality;
+        }
+
+        @Override
+        public Locality getLocality() {
+            return locality;
         }
 
         @Override

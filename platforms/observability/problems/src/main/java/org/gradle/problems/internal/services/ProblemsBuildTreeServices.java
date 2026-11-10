@@ -113,7 +113,7 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
             emitters.build(),
             internalOptions,
             problemReportCreator,
-            id -> new DetectionContext(currentTask(id, workExecutionTracker), ProblemProjectIdentityTracker.getProjectIdentity(), currentPluginId(userCodeApplicationContext))
+            id -> new DetectionContext(currentTask(id, workExecutionTracker), ProblemProjectIdentityTracker.getProjectIdentity(), currentPlugin(userCodeApplicationContext))
         );
     }
 
@@ -126,20 +126,20 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         return workExecutionTracker
             .getCurrentTask(id)
             .map(task -> task.getTaskIdentity())
-            .map(identity -> new TaskIdentity(identity.getBuildTreePath().asString(), identity.getProjectIdentity().getBuildTreePath().asString(), identity.getProjectIdentity().getBuildPath().asString()))
+            .map(identity -> new TaskIdentity(identity.getBuildTreePath().asString(), identity.getProjectIdentity().getBuildTreePath().asString(), identity.getProjectIdentity().getBuildPath().asString(), identity.getUserCodeSource()))
             .orElse(null);
     }
 
     /**
-     * The id of the plugin whose code the current thread runs, if it has one. Scripts and plugins without an id give none.
+     * The plugin whose code the current thread runs, if it has an id. Scripts and plugins without an id give none.
      */
-    @Nullable
-    private static String currentPluginId(UserCodeApplicationContext userCodeApplicationContext) {
+    private static UserCodeSource.@Nullable Binary currentPlugin(UserCodeApplicationContext userCodeApplicationContext) {
         UserCodeApplicationContext.Application application = userCodeApplicationContext.current();
         if (application == null || !(application.getSource() instanceof UserCodeSource.Binary)) {
             return null;
         }
-        return ((UserCodeSource.Binary) application.getSource()).getPluginId();
+        UserCodeSource.Binary plugin = (UserCodeSource.Binary) application.getSource();
+        return plugin.getPluginId() == null ? null : plugin;
     }
 
     @Provides

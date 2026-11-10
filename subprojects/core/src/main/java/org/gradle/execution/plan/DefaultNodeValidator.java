@@ -68,7 +68,7 @@ public class DefaultNodeValidator implements NodeValidator {
         TaskIdentity previous = ProblemTaskIdentityTracker.getTaskIdentity();
         try {
             org.gradle.api.internal.project.taskfactory.TaskIdentity<?> identity = task.getTaskIdentity();
-            ProblemTaskIdentityTracker.setTaskIdentity(new TaskIdentity(identity.getBuildTreePath().asString(), identity.getProjectIdentity().getBuildTreePath().asString(), identity.getProjectIdentity().getBuildPath().asString()));
+            ProblemTaskIdentityTracker.setTaskIdentity(new TaskIdentity(identity.getBuildTreePath().asString(), identity.getProjectIdentity().getBuildTreePath().asString(), identity.getProjectIdentity().getBuildPath().asString(), identity.getUserCodeSource()));
             reportErrors(warnings, errors, task, validationContext);
         } finally {
             if (previous == null) {

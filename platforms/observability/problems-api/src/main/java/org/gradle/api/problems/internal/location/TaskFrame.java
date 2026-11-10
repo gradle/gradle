@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal.location;
 
+import org.gradle.internal.code.Locality;
+
 /**
  * A task of the build.
  */

@@ -329,7 +329,7 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
     private ExecutionEngine.@Nullable Result executeTrackingTaskIdentity(LocalTaskNode node) {
         try {
             org.gradle.api.internal.project.taskfactory.TaskIdentity<?> identity = node.getTask().getTaskIdentity();
-            ProblemTaskIdentityTracker.setTaskIdentity(new TaskIdentity(identity.getBuildTreePath().asString(), identity.getProjectIdentity().getBuildTreePath().asString(), identity.getProjectIdentity().getBuildPath().asString()));
+            ProblemTaskIdentityTracker.setTaskIdentity(new TaskIdentity(identity.getBuildTreePath().asString(), identity.getProjectIdentity().getBuildTreePath().asString(), identity.getProjectIdentity().getBuildPath().asString(), identity.getUserCodeSource()));
             return doExecute(node);
         } finally {
             ProblemTaskIdentityTracker.clear();

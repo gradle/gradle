@@ -28,7 +28,7 @@ import org.gradle.api.problems.ProblemLocation
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DocLinkInternal
 import org.gradle.api.problems.internal.location.Frame
-import org.gradle.api.problems.internal.location.Locality
+import org.gradle.internal.code.Locality
 import org.gradle.api.problems.internal.location.Trace
 import org.gradle.api.problems.internal.ProblemInternal
 import org.gradle.api.problems.internal.ProblemBuilderInternal

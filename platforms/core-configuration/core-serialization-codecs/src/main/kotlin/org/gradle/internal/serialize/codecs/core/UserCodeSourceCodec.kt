@@ -17,10 +17,13 @@
 package org.gradle.internal.serialize.codecs.core
 
 import org.gradle.internal.Describables
+import org.gradle.internal.code.Locality
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.readEnum
+import org.gradle.internal.serialize.graph.writeEnum
 import java.net.URI
 
 
@@ -33,11 +36,13 @@ object UserCodeSourceCodec : Codec<UserCodeSource> {
                 writeString(value.displayName.displayName)
                 writeString(value.className)
                 writeNullableString(value.pluginId)
+                writeEnum(value.locality)
             }
             is UserCodeSource.Script -> {
                 writeSmallInt(2)
                 writeString(value.displayName.displayName)
                 writeNullableString(value.uri?.toString())
+                writeEnum(value.locality)
             }
 
             else -> error("Unexpected user code source type: ${value.javaClass.name}")
@@ -50,13 +55,15 @@ object UserCodeSourceCodec : Codec<UserCodeSource> {
                 val displayName = readString()
                 val className = readString()
                 val pluginId = readNullableString()
-                UserCodeSource.Binary(Describables.of(displayName), className, pluginId)
+                val locality = readEnum<Locality>()
+                UserCodeSource.Binary(Describables.of(displayName), className, pluginId, locality)
             }
 
             2 -> {
                 val displayName = readString()
                 val uri = readNullableString()?.let { URI.create(it) }
-                UserCodeSource.Script(Describables.of(displayName), uri)
+                val locality = readEnum<Locality>()
+                UserCodeSource.Script(Describables.of(displayName), uri, locality)
             }
 
             else -> error("Unexpected user code source type: $type")

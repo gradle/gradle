@@ -84,7 +84,7 @@ class BuildProgressListenerAdapterForProblemTracesTest extends Specification {
 
     def "a locality the client doesn't know becomes UNKNOWN"() {
         given:
-        def details = detailsWith(new DefaultFrame("init script", "ENVIRONMENT"))
+        def details = detailsWith(new DefaultFrame("source set main", "VENDORED"))
 
         expect:
         BuildProgressListenerAdapter.toDetectionTrace(details).frames[0].locality == Locality.UNKNOWN

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal.location;
+package org.gradle.internal.code;
 
 /**
- * Who owns a {@link Frame}.
+ * Who owns a piece of code, and so who can change it.
  */
 public enum Locality {
     /**
@@ -25,15 +25,19 @@ public enum Locality {
      */
     LOCAL,
     /**
-     * A third-party plugin.
+     * A third-party plugin from a repository.
      */
     EXTERNAL,
     /**
-     * Gradle itself.
+     * Gradle itself, including its bundled plugins.
      */
     CORE,
     /**
-     * Gradle can't tell who owns the frame.
+     * The user's machine or CI setup rather than the build: an init script from the Gradle user home or the installation.
+     */
+    ENVIRONMENT,
+    /**
+     * Gradle can't tell who owns the code.
      */
     UNKNOWN
 }

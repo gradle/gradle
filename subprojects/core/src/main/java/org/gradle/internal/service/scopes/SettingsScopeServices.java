@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.DefaultBuildLayout;
 import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.initialization.CodeLocalityRegistry;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
@@ -106,7 +107,8 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
         ProjectFeatureDeclarations projectFeatureRegistry,
-        ProblemsInternal problems
+        ProblemsInternal problems,
+        CodeLocalityRegistry codeLocalityRegistry
     ) {
         PluginTarget target = new ProjectFeatureDeclarationPluginTarget(
             new ImperativeOnlyPluginTarget<>(PluginTargetType.SETTINGS, settings, problems),
@@ -114,7 +116,7 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
             pluginScheme.getInspectionScheme(),
             problems
         );
-        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(settingsScopeServiceRegistry), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(settingsScopeServiceRegistry), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory, codeLocalityRegistry);
     }
 
     @Provides

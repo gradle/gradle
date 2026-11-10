@@ -46,7 +46,8 @@ class DetectionTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionS
         frames[1].buildTreePath == ":"
         frames[2] instanceof BuildFrame
         frames[2].buildPath == ":"
-        frames*.locality.unique() == [Locality.UNKNOWN]
+        and: "the task was registered by the build script; project and build are the user's"
+        frames*.locality == [Locality.LOCAL, Locality.LOCAL, Locality.LOCAL]
 
         and: "the flat list is still filled"
         problems[0].contextualLocations.findAll { it instanceof TaskPathLocation }*.buildTreePath == [":reportProblem"]

@@ -20,7 +20,9 @@ import org.gradle.api.problems.internal.DetectionContext
 import org.gradle.api.problems.internal.ProjectIdentity
 import org.gradle.api.problems.internal.TaskIdentity
 import org.gradle.api.problems.internal.location.BuildFrame
-import org.gradle.api.problems.internal.location.Locality
+import org.gradle.internal.Describables
+import org.gradle.internal.code.Locality
+import org.gradle.internal.code.UserCodeSource
 import org.gradle.api.problems.internal.location.PluginApplicationFrame
 import org.gradle.api.problems.internal.location.ProjectFrame
 import org.gradle.api.problems.internal.location.TaskFrame
@@ -38,7 +40,9 @@ class DetectionTracesTest extends Specification {
         frames[0].buildTreePath == ":app:test"
         frames[1].buildTreePath == ":app"
         frames[2].buildPath == ":"
-        frames*.locality.unique() == [Locality.UNKNOWN]
+
+        and: "the task takes the locality of its registering code; project and build are the user's"
+        frames*.locality == [Locality.EXTERNAL, Locality.LOCAL, Locality.LOCAL]
     }
 
     def "task in an included build also yields the root build"() {
@@ -61,28 +65,39 @@ class DetectionTracesTest extends Specification {
 
     def "a plugin being applied to a project is the leaf"() {
         when:
-        def frames = DetectionTraces.detectedIn(new DetectionContext(null, new ProjectIdentity(":app", ":"), "com.acme.foo")).frames
+        def frames = DetectionTraces.detectedIn(new DetectionContext(null, new ProjectIdentity(":app", ":"), plugin("com.acme.foo", Locality.LOCAL))).frames
 
         then:
         frames*.class == [PluginApplicationFrame, ProjectFrame, BuildFrame]
         frames*.displayName == ["plugin application com.acme.foo", "project :app", "build :"]
         frames[0].pluginId == "com.acme.foo"
+        frames*.locality == [Locality.LOCAL, Locality.LOCAL, Locality.LOCAL]
     }
 
     def "a plugin being applied outside a project sits on the root build"() {
         when:
-        def frames = DetectionTraces.detectedIn(new DetectionContext(null, null, "com.acme.settings")).frames
+        def frames = DetectionTraces.detectedIn(new DetectionContext(null, null, plugin("com.acme.settings", Locality.EXTERNAL))).frames
 
         then:
         frames*.displayName == ["plugin application com.acme.settings", "build :"]
+        frames*.locality == [Locality.EXTERNAL, Locality.LOCAL]
     }
 
     def "while a task runs the plugin being applied is not part of the trace"() {
         when:
-        def frames = DetectionTraces.detectedIn(new DetectionContext(new TaskIdentity(":app:test", ":app", ":"), new ProjectIdentity(":app", ":"), "com.acme.foo")).frames
+        def frames = DetectionTraces.detectedIn(new DetectionContext(new TaskIdentity(":app:test", ":app", ":", null), new ProjectIdentity(":app", ":"), plugin("com.acme.foo", Locality.LOCAL))).frames
 
         then:
         frames*.displayName == ["task :app:test", "project :app", "build :"]
+        frames[0].locality == Locality.UNKNOWN
+    }
+
+    def "a task registered by a plugin takes the plugin's locality"() {
+        when:
+        def frames = DetectionTraces.detectedIn(new DetectionContext(new TaskIdentity(":app:test", ":app", ":", plugin("org.gradle.java", Locality.CORE)), null, null)).frames
+
+        then:
+        frames[0].locality == Locality.CORE
     }
 
     def "without a task the trace holds the root build alone"() {
@@ -95,6 +110,10 @@ class DetectionTracesTest extends Specification {
     }
 
     private static DetectionContext task(String taskPath, String projectPath, String buildPath) {
-        new DetectionContext(new TaskIdentity(taskPath, projectPath, buildPath), null, null)
+        new DetectionContext(new TaskIdentity(taskPath, projectPath, buildPath, plugin("com.acme.foo", Locality.EXTERNAL)), null, null)
+    }
+
+    private static UserCodeSource.Binary plugin(String id, Locality locality) {
+        new UserCodeSource.Binary(Describables.of("plugin '$id'"), "com.acme.FooPlugin", id, locality)
     }
 }

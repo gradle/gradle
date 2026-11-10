@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal.location;
 
+import org.gradle.internal.code.Locality;
+
 import java.io.Serializable;
 
 /**

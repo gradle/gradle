@@ -16,21 +16,28 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.internal.code.Locality;
+import org.gradle.internal.code.UserCodeSource;
+import org.jspecify.annotations.Nullable;
+
 public class TaskIdentity {
 
     private final String taskPath;
     private final String projectPath;
     private final String buildPath;
+    private final Locality locality;
 
     /**
      * @param taskPath the path of the task in the build tree
      * @param projectPath the path of the task's project in the build tree
      * @param buildPath the path of the build that owns the project
+     * @param registeredBy the code that registered the task, if known
      */
-    public TaskIdentity(String taskPath, String projectPath, String buildPath) {
+    public TaskIdentity(String taskPath, String projectPath, String buildPath, @Nullable UserCodeSource registeredBy) {
         this.taskPath = taskPath;
         this.projectPath = projectPath;
         this.buildPath = buildPath;
+        this.locality = registeredBy == null ? Locality.UNKNOWN : registeredBy.getLocality();
     }
 
     public String getTaskPath() {
@@ -43,5 +50,12 @@ public class TaskIdentity {
 
     public String getBuildPath() {
         return buildPath;
+    }
+
+    /**
+     * Who owns the task: the locality of the code that registered it.
+     */
+    public Locality getLocality() {
+        return locality;
     }
 }

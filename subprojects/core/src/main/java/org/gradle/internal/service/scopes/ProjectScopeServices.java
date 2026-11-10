@@ -39,6 +39,7 @@ import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
+import org.gradle.api.internal.initialization.CodeLocalityRegistry;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginInstantiator;
@@ -224,7 +225,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
-        ProblemsInternal problems
+        ProblemsInternal problems,
+        CodeLocalityRegistry codeLocalityRegistry
     ) {
 
         PluginTarget ruleBasedTarget = new RuleBasedPluginTarget(
@@ -244,7 +246,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             buildOperationRunner,
             userCodeApplicationContext,
             decorator,
-            domainObjectCollectionFactory
+            domainObjectCollectionFactory,
+            codeLocalityRegistry
         );
     }
 

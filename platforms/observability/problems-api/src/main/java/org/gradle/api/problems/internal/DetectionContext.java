@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.internal.code.UserCodeSource;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -28,12 +29,12 @@ public class DetectionContext {
 
     private final TaskIdentity task;
     private final ProjectIdentity project;
-    private final String appliedPluginId;
+    private final UserCodeSource.Binary appliedPlugin;
 
-    public DetectionContext(@Nullable TaskIdentity task, @Nullable ProjectIdentity project, @Nullable String appliedPluginId) {
+    public DetectionContext(@Nullable TaskIdentity task, @Nullable ProjectIdentity project, UserCodeSource.@Nullable Binary appliedPlugin) {
         this.task = task;
         this.project = project;
-        this.appliedPluginId = appliedPluginId;
+        this.appliedPlugin = appliedPlugin;
     }
 
     @Nullable
@@ -47,10 +48,9 @@ public class DetectionContext {
     }
 
     /**
-     * The id of the plugin whose code is running, if it has one.
+     * The plugin whose code is running, if it has an id.
      */
-    @Nullable
-    public String getAppliedPluginId() {
-        return appliedPluginId;
+    public UserCodeSource.@Nullable Binary getAppliedPlugin() {
+        return appliedPlugin;
     }
 }
