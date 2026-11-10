@@ -43,7 +43,7 @@ These protocols determine how Gradle communicates with the repositories to resol
 | <<#sec:authentication-schemes, Documentation>>
 
 | `s3`
-| access key/secret key/session token or Environment variables
+| access key/secret key/session token, or the AWS default credential chain, including AWS SSO profiles
 | <<#sec:s3-repositories,Documentation>>
 
 | `gcs`
@@ -171,6 +171,17 @@ Overrides the AWS S3 endpoint when using a non-AWS, S3 API-compatible storage se
 
 `org.gradle.s3.maxErrorRetry`::
 Specifies the maximum number of retry attempts when the S3 server responds with an HTTP 5xx status code. The default value is 3 if not specified.
+
+[[sec:s3-default-credentials]]
+==== S3 credentials from the AWS default credential chain
+
+A repository that uses link:{javadocPath}/org/gradle/authentication/aws/AwsImAuthentication.html[`AwsImAuthentication`] takes its credentials from the default credential chain of the AWS SDK for Java.
+The chain looks for credentials in Java system properties, environment variables, the shared AWS config and credentials files in `~/.aws`, a web identity token, and the container or EC2 instance role.
+
+Profiles in the shared AWS config file can use AWS IAM Identity Center (successor to AWS Single Sign-On).
+Sign in with `aws sso login` before running the build, and sign in again when the access token expires.
+
+If the chain finds no credentials, Gradle sends anonymous requests, which only succeed for public buckets.
 
 [[sec:s3-url-formats]]
 ==== S3 URL formats
