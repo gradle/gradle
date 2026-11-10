@@ -21,6 +21,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.OsTestPreconditions
 
@@ -64,6 +65,23 @@ class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec 
         then:
         targetDataFile.text == "output"
         result.entries == 4
+    }
+
+    def "unpacked file snapshot records the file's length and last modified time"() {
+        def sourceOutputFile = temporaryFolder.file("source.txt")
+        sourceOutputFile << "output"
+        def targetOutputFile = temporaryFolder.file("target.txt")
+        def output = new ByteArrayOutputStream()
+        pack output, prop("out", FILE, sourceOutputFile)
+
+        when:
+        def input = new ByteArrayInputStream(output.toByteArray())
+        def result = unpack input, prop("out", FILE, targetOutputFile)
+
+        then:
+        def metadata = (result.snapshots["out"] as RegularFileSnapshot).metadata
+        metadata.length == "output".length()
+        metadata.lastModified == targetOutputFile.lastModified()
     }
 
     def "can pack tree with missing #type (pre-existing as: #preExistsAs)"() {
