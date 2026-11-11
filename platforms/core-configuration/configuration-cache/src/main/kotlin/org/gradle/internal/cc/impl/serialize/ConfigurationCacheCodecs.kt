@@ -113,7 +113,6 @@ import org.gradle.internal.serialize.codecs.core.defaultCodecForProviderWithChan
 import org.gradle.internal.serialize.codecs.core.groovyCodecs
 import org.gradle.internal.serialize.codecs.core.jos.ExternalizableCodec
 import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec
-import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.dm.ArtifactCollectionCodec
 import org.gradle.internal.serialize.codecs.dm.AttributeContainerCodec
@@ -208,7 +207,7 @@ class DefaultConfigurationCacheCodecs(
     documentationRegistry: DocumentationRegistry,
     taskDependencyFactory: TaskDependencyFactory,
     moduleIdentifierFactory: ImmutableModuleIdentifierFactory,
-    val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
+    val javaObjectSerializationCodec: JavaObjectSerializationCodec,
     transformStepNodeFactory: TransformStepNodeFactory,
     problems: ProblemsInternal,
     private val objectOpener: ObjectOpener,
@@ -354,7 +353,7 @@ class DefaultConfigurationCacheCodecs(
     fun Bindings.completeWithStatefulCodecs() = append {
         bind(KotlinObjectCodec)
         bind(ExternalizableCodec)
-        bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup, objectOpener))
+        bind(javaObjectSerializationCodec)
         bind(ValueObjectCodec)
 
         // This protects the BeanCodec against StackOverflowErrors, but
