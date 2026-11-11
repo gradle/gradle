@@ -20,7 +20,7 @@ import org.asciidoctor.extension.JavaExtensionRegistry
 
 class IncubatingLabelProcessorTest extends AbstractAsciidoctorTest {
 
-    def setup() {
+    def setupSpec() {
         JavaExtensionRegistry extensionRegistry = asciidoctor.javaExtensionRegistry()
         extensionRegistry.inlineMacro(IncubatingLabelProcessor.class)
     }

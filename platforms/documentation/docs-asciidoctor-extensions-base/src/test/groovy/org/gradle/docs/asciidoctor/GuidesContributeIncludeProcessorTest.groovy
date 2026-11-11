@@ -23,7 +23,7 @@ import spock.lang.Subject
 @Subject(GuidesContributeIncludeProcessor)
 class GuidesContributeIncludeProcessorTest extends AbstractAsciidoctorTest {
 
-    def setup() {
+    def setupSpec() {
         JavaExtensionRegistry extensionRegistry = asciidoctor.javaExtensionRegistry()
         extensionRegistry.includeProcessor(GuidesContributeIncludeProcessor.class)
     }
