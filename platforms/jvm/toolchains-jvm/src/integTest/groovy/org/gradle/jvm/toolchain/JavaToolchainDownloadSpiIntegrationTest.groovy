@@ -161,7 +161,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37104")
-    @Requires(IntegTestPreconditions.Java11HomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.Java11HomeAvailable)
     def "toolchain download succeeds when server sends Content-Disposition attachment without filename"() {
         given:
         Assume.assumeFalse(JavaVersion.current() == JavaVersion.VERSION_11)
