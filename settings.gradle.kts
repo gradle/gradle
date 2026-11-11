@@ -349,3 +349,17 @@ FeaturePreviews.Feature.entries.forEach { feature ->
         enableFeaturePreview(feature.name)
     }
 }
+
+// DO NOT MERGE. Experiment only, for the xperimental branch: exercises the TeamCity user home guard plugin.
+// USER_HOME_GUARD_TEST=<action>-<nonce>. "write" creates ~/.m2/org/userhomeguard-test/marker.txt, anything else only
+// reports whether ~/.m2/org exists. The nonce keeps each run from reusing the configuration cache.
+System.getenv("USER_HOME_GUARD_TEST")?.takeIf { it.isNotBlank() }?.let { value ->
+    val guarded = java.io.File(System.getProperty("user.home"), ".m2/org")
+    println("[user-home-guard-test] $value: $guarded exists at configuration time = ${guarded.exists()}")
+    if (value.startsWith("write")) {
+        val marker = java.io.File(guarded, "userhomeguard-test/marker.txt")
+        marker.parentFile.mkdirs()
+        marker.writeText("written by $value\n")
+        println("[user-home-guard-test] wrote $marker")
+    }
+}
