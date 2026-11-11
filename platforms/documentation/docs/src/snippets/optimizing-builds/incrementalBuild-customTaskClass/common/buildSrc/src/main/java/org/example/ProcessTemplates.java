@@ -11,12 +11,14 @@ import org.gradle.api.tasks.*;
 
 import javax.inject.Inject;
 
+@CacheableTask
 public abstract class ProcessTemplates extends DefaultTask {
 
     @Input
     public abstract Property<TemplateEngineType> getTemplateEngine();
 
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     public abstract ConfigurableFileCollection getSourceFiles();
 
     @Nested

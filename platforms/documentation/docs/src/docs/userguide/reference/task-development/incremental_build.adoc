@@ -25,7 +25,9 @@ Gradle supports this behavior out of the box through a feature called *increment
 You have almost certainly already seen it in action.
 When you run a task and the task is marked with `UP-TO-DATE` in the console output, this means incremental build is at work.
 
-How does an incremental build work? How can you make sure your tasks support running incrementally? Let’s take a look.
+The same declared inputs and outputs let Gradle reuse task outputs from the <<build_cache.adoc#build_cache,build cache>>, even after a `clean` or on another machine.
+When Gradle loads a task's outputs from the build cache, the task is marked `FROM-CACHE`.
+This chapter shows how to declare inputs and outputs so that your tasks work correctly with both.
 
 [[sec:task_inputs_outputs]]
 == Task inputs and outputs
@@ -127,6 +129,9 @@ Represents which engine to use when processing the source templates, e.g. FreeMa
 * `sourceFiles`
 +
 The source templates that the task will be processing. Single files and collections of files need their own special annotations. In this case, we’re dealing with a collection of input files and so we use the `@InputFiles` annotation. You’ll see more file-oriented annotations in a table later.
++
+The `@PathSensitive(PathSensitivity.RELATIVE)` annotation tells Gradle that only the paths of the templates relative to their root directory affect the output.
+Without it, the absolute paths of the templates are part of the inputs, and a build in a different directory can't reuse the task's outputs from the build cache.
 
 * `templateData`
 +
@@ -137,6 +142,22 @@ For this example, we’re using a custom class to represent the model data. Howe
 The directory where the generated files go. As with input files, there are several annotations for output files and directories. A property representing a single directory requires `@OutputDirectory`. You’ll learn about the others soon.
 
 These annotated properties mean that Gradle will skip the task if none of the source files, template engine, model data or generated files has changed since the previous time Gradle executed the task. This will often save a significant amount of time. You can learn how Gradle detects <<#sec:how_does_it_work,changes later>>.
+
+The `@CacheableTask` annotation on the class opts the task into the build cache.
+With the build cache enabled, Gradle loads the task's outputs from the cache when it has already executed the task with the same inputs, even after the outputs were deleted:
+
+====
+[source,bash]
+----
+$ ./gradlew clean processTemplates --build-cache
+----
+[source,text]
+----
+include::{snippetsPath}/optimizing-builds/incrementalBuild-customTaskClass/tests/customTaskClassFromCache.out[]
+----
+====
+
+See <<#sec:task_inputs_outputs_build_cache>> for what else a cacheable task needs.
 
 This example is particularly interesting because it works with collections of source files. What happens if only one source file changes? Does the task process all the source files again or just the modified one? That depends on the task implementation. If the latter, then the task itself is incremental, but that’s a different feature to the one we’re discussing here. Gradle does help task implementers with this via its <<custom_tasks.adoc#incremental_tasks,incremental task inputs>> feature.
 
@@ -587,6 +608,27 @@ Therefore, the class name does not identify the implementation of the lambda and
 When the implementation of a task, task action or a nested input cannot be tracked precisely, Gradle disables any caching for the task.
 That means that the task will never be up-to-date or loaded from the <<build_cache.adoc#sec:task_output_caching,build cache>>.
 --
+
+[[sec:task_inputs_outputs_build_cache]]
+== Inputs, outputs, and the build cache
+
+Up-to-date checks compare a task's inputs and outputs with the task's previous execution in the same project directory.
+The <<build_cache.adoc#sec:task_output_caching_details,build cache key>> is computed from the same inputs, so it can match an execution from another build, another checkout, or another machine.
+That makes correct declarations more important for cacheable tasks:
+
+* Task types are not cacheable by default.
+Opt in with link:{javadocPath}/org/gradle/api/tasks/CacheableTask.html[`@CacheableTask`], or with link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#cacheIf(org.gradle.api.specs.Spec)[`TaskOutputs.cacheIf()`] for tasks declared with the <<#sec:task_input_output_runtime_api,runtime API>>.
+* Declare every input that affects the outputs.
+A missing input can cause an incorrect cache hit in every build that shares the cache, not only in the local project.
+* Declare a normalization strategy for every file input, with `@PathSensitive`, `@Classpath` or `@CompileClasspath`.
+File inputs default to absolute paths, which prevents reuse across checkout locations.
+Gradle reports a <<validation_problems.adoc#missing_normalization_annotation,validation problem>> for a cacheable task that does not declare one.
+See <<best_practices_tasks.adoc#default_path_sensitivities,choosing a path sensitivity>>.
+* Declare files that the task leaves behind but that are not outputs with `@LocalState`, so that Gradle removes them when it loads the task's outputs from the cache.
+* Avoid volatile inputs, such as timestamps, or <<#sec:configure_input_normalization,normalize>> them.
+
+Tasks with <<#sec:task_input_validation,validation problems>> and tasks whose implementation Gradle can't track are never loaded from or stored in the build cache.
+For how to find cache misses and incorrect cache hits, see <<build_cache_debugging.adoc#build_cache_debugging,Debugging and diagnosing Build Cache misses>>.
 
 [[sec:advanced_inc_build]]
 == Advanced techniques
