@@ -406,7 +406,7 @@ The fixed version removes `afterEvaluate` and avoids assumptions about when or w
 
 The root build file has been deleted as there is no longer a need to use `subprojects {}`.
 
-In the `app` subproject, the build file uses `plugins.withPlugin("java") {}` to safely configure tasks once `java` is applied:
+In the `app` subproject, the build file uses `pluginManager.withPlugin("java") {}` to safely configure tasks once `java` is applied:
 
 ====
 include::sample[dir="snippets/best-practices/dontAssumePluginOrder-do/kotlin",files="app/build.gradle.kts[tags=do-this]"]

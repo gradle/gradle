@@ -298,6 +298,7 @@ Where `«plugin id»` and `«plugin version»` must be constant, literal strings
 
 The `plugins{}` block must also be a top-level statement in the build script.
 It cannot be nested inside another construct (e.g., an if-statement or for-loop).
+To apply a plugin conditionally, see <<#sec:plugin_manager_apply,Applying a plugin conditionally>>.
 
 [[sec:subprojects_plugins_dsl]]
 === 2. Applying plugins to all subprojects{} or allprojects{}
@@ -475,6 +476,80 @@ include::sample[dir="snippets/fundamentals/authoring-builds/publishing/groovy", 
 Running `gradle publish` in the sample directory creates the following Maven repository layout (the Ivy layout is similar):
 
 image::plugin-markers.png[]
+
+[[sec:plugin_manager]]
+== Applying and Detecting Plugins Programmatically
+
+The `plugins {}` block cannot apply a plugin conditionally, and it cannot react to plugins that other build logic applies.
+For these cases, use the link:{javadocPath}/org/gradle/api/plugins/PluginManager.html[`PluginManager`] API.
+Projects, settings, and the `Gradle` object in init scripts expose it as `pluginManager`.
+
+[[sec:plugin_manager_apply]]
+=== Applying a plugin conditionally
+
+link:{javadocPath}/org/gradle/api/plugins/PluginManager.html#apply(java.lang.String)[`PluginManager.apply()`] applies a plugin by ID or by class.
+It does nothing if the plugin is already applied.
+
+`apply()` does not resolve plugins from a repository.
+The plugin must already be available to the build script: a core plugin, a plugin from `buildSrc` or an included build, or a plugin declared in the `plugins {}` block with `apply false`:
+
+====
+include::sample[dir="snippets/fundamentals/authoring-builds/pluginManager/kotlin",files="build.gradle.kts[tags=conditional-apply]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/pluginManager/groovy",files="build.gradle[tags=conditional-apply]"]
+====
+<1> Declare the Shadow plugin so that Gradle resolves it, without applying it.
+<2> Apply the plugin only when the `fatJar` Gradle property is set, for example with `./gradlew shadowJar -PfatJar`.
+
+[[sec:plugin_manager_with_plugin]]
+=== Reacting to a plugin
+
+link:{javadocPath}/org/gradle/api/plugins/PluginManager.html#withPlugin(java.lang.String,org.gradle.api.Action)[`PluginManager.withPlugin()`] runs an action when a plugin with the given ID is applied:
+
+* If the plugin is already applied, the action runs immediately.
+* Otherwise, the action runs right after the plugin is applied.
+* If the plugin is never applied, the action never runs.
+
+The result does not depend on the order in which plugins are applied, so prefer `withPlugin()` to checking whether a plugin is present.
+The following example configures the `shadowJar` task, which only exists when the Shadow plugin is applied:
+
+====
+include::sample[dir="snippets/fundamentals/authoring-builds/pluginManager/kotlin",files="build.gradle.kts[tags=with-plugin]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/pluginManager/groovy",files="build.gradle[tags=with-plugin]"]
+====
+
+[[sec:plugin_manager_has_plugin]]
+=== Checking whether a plugin is applied
+
+link:{javadocPath}/org/gradle/api/plugins/PluginManager.html#hasPlugin(java.lang.String)[`PluginManager.hasPlugin()`] returns `true` if a plugin with the given ID has been applied or is currently being applied.
+link:{javadocPath}/org/gradle/api/plugins/PluginManager.html#findPlugin(java.lang.String)[`PluginManager.findPlugin()`] returns an link:{javadocPath}/org/gradle/api/plugins/AppliedPlugin.html[`AppliedPlugin`], or `null` if the plugin is not applied.
+You can query core plugins by name, such as `java`, or by full ID, such as `org.gradle.java`.
+
+Both methods only see the plugins applied so far, so the same check can return a different result depending on where it runs.
+Use them only after the plugins you check for are applied, as in the following example, which runs after the conditional application above:
+
+====
+include::sample[dir="snippets/fundamentals/authoring-builds/pluginManager/kotlin",files="build.gradle.kts[tags=has-plugin]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/pluginManager/groovy",files="build.gradle[tags=has-plugin]"]
+====
+
+[[sec:plugin_container]]
+=== The plugin container
+
+`project.plugins` returns the link:{javadocPath}/org/gradle/api/plugins/PluginContainer.html[`PluginContainer`], an older API that holds the `Plugin` instances applied to the project.
+Prefer `pluginManager` for applying plugins and for checking plugins by ID.
+
+Use the plugin container when you need to match plugins by class instead of by ID.
+For example, `withType()` can react to link:{javadocPath}/org/gradle/api/plugins/JavaBasePlugin.html[`JavaBasePlugin`], which the `java`, `java-library`, `groovy`, and `scala` plugins all apply:
+
+====
+include::sample[dir="snippets/fundamentals/authoring-builds/pluginManager/kotlin",files="build.gradle.kts[tags=plugin-container]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/pluginManager/groovy",files="build.gradle[tags=plugin-container]"]
+====
+
+The plugin container is also the only way to find a plugin that was applied by class and has no ID.
+
+NOTE: `PluginContainer.hasPlugin()` only returns `true` after a plugin's application has completed.
+`PluginManager.hasPlugin()` also returns `true` while the plugin is being applied.
 
 [[sec:old_plugin_application]]
 == Legacy Plugin Application
