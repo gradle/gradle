@@ -148,6 +148,7 @@ import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
 import org.gradle.internal.serialize.graph.codecs.BeanSpecCodec
 import org.gradle.internal.serialize.graph.codecs.Bindings
+import org.gradle.internal.serialize.graph.codecs.BindingsBackedCodec
 import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 import org.gradle.internal.serialize.graph.codecs.DelegatingCodec
 import org.gradle.internal.serialize.graph.codecs.NotImplementedCodec
@@ -326,6 +327,11 @@ class DefaultConfigurationCacheCodecs(
             bind(RegisteredFlowActionCodec)
 
             bind(NamedCodec(managedFactoryRegistry))
+
+            bind(KotlinObjectCodec)
+            bind(ExternalizableCodec)
+            bind(javaObjectSerializationCodec)
+            bind(ValueObjectCodec)
         }
 
         userTypesBindings = makeUserTypeBindings {
@@ -349,13 +355,13 @@ class DefaultConfigurationCacheCodecs(
         }
     }
 
+    /**
+     * Finalizes the bindings by adding stateful codecs and returns a fresh `BindingsBackedCodec` instance.
+     *
+     * Stateful codecs maintain state that cannot be shared across different reading/writing contexts.
+     */
     private
-    fun Bindings.completeWithStatefulCodecs() = append {
-        bind(KotlinObjectCodec)
-        bind(ExternalizableCodec)
-        bind(javaObjectSerializationCodec)
-        bind(ValueObjectCodec)
-
+    fun Bindings.completeWithStatefulCodecs(): BindingsBackedCodec = append {
         // This protects the BeanCodec against StackOverflowErrors, but
         // we can still get them for the other codecs, for instance,
         // with deeply nested Lists, deeply nested Maps, etc.
