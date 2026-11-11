@@ -16,6 +16,13 @@
 
 package org.gradle.problems.internal.services;
 
+import org.gradle.api.problems.internal.DetectionContext;
+import org.gradle.api.problems.internal.StackTraceLocation;
+import org.gradle.api.problems.ProblemLocation;
+import org.gradle.api.problems.FileLocation;
+import org.gradle.api.problems.LineInFileLocation;
+import org.gradle.api.problems.internal.location.CompiledCodeFrame;
+import org.gradle.api.problems.internal.location.CompiledCodePosition;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.problems.internal.TaskIdentity;
 import org.gradle.api.problems.internal.location.ClassFrame;
@@ -60,6 +67,100 @@ final class OriginTraces {
             result.add(new Trace(frames.build()));
         }
         return result.build();
+    }
+
+    /**
+     * Picks a better leaf for a trace that ends in compiled code. The reporter took the first caller outside Gradle and its own API,
+     * which can be a line in a library that a script or a plugin uses. Going down the stack from there, the nearest known user code becomes the leaf:
+     * the script line Gradle located, or the first frame whose class comes from the jar of a plugin the detection names, with that plugin's locality.
+     * Those plugins are the one being applied or the one that registered the running task, and the code that applied them.
+     * Without either, the leaf the reporter chose stays.
+     */
+    static List<Trace> withUserCodeCallers(List<Trace> originTraces, List<ProblemLocation> originLocations, DetectionContext detection, ClassFileLookup classFiles) {
+        List<UserCodeSource.Binary> plugins = pluginsWithCodeLocation(detection);
+        ImmutableList.Builder<Trace> result = ImmutableList.builder();
+        boolean changed = false;
+        for (Trace trace : originTraces) {
+            Frame leaf = trace.getFrames().get(0);
+            Frame better = leaf instanceof CompiledCodeFrame ? userCodeCallerOf((CompiledCodeFrame) leaf, originLocations, plugins, classFiles) : null;
+            if (better == null) {
+                result.add(trace);
+            } else {
+                changed = true;
+                result.add(new Trace(ImmutableList.<Frame>builder().add(better).addAll(trace.getFrames().subList(1, trace.getFrames().size())).build()));
+            }
+        }
+        return changed ? result.build() : originTraces;
+    }
+
+    private static @Nullable Frame userCodeCallerOf(CompiledCodeFrame leaf, List<ProblemLocation> originLocations, List<UserCodeSource.Binary> plugins, ClassFileLookup classFiles) {
+        for (ProblemLocation location : originLocations) {
+            if (!(location instanceof StackTraceLocation)) {
+                continue;
+            }
+            StackTraceLocation stackLocation = (StackTraceLocation) location;
+            List<StackTraceElement> stack = stackLocation.getStackTrace();
+            int leafIndex = indexOf(leaf.getPosition(), stack);
+            if (leafIndex < 0) {
+                continue;
+            }
+            FileLocation scriptLocation = stackLocation.getFileLocation();
+            for (StackTraceElement element : stack.subList(leafIndex, stack.size())) {
+                if (isScriptLine(scriptLocation, element)) {
+                    // Whether the script is the build's own is decided with the other file leaves
+                    return new FileLocationFrame(positionOf((LineInFileLocation) scriptLocation), Locality.UNKNOWN);
+                }
+                if (element.getFileName() == null || element.getLineNumber() <= 0) {
+                    continue;
+                }
+                for (UserCodeSource.Binary plugin : plugins) {
+                    if (classFiles.contains(plugin.getCodeLocation(), element.getClassName())) {
+                        return new CompiledCodeFrame(new CompiledCodePosition(element.getFileName(), element.getClassName(), null, element.getLineNumber()), plugin.getLocality());
+                    }
+                }
+            }
+            return null;
+        }
+        return null;
+    }
+
+    private static FilePosition positionOf(LineInFileLocation line) {
+        return new FilePosition(line.getPath(), valueOrNull(line.getLine()), valueOrNull(line.getColumn()), null, valueOrNull(line.getLength()));
+    }
+
+    private static @Nullable Integer valueOrNull(int value) {
+        return value < 0 ? null : value;
+    }
+
+    private static int indexOf(CompiledCodePosition position, List<StackTraceElement> stack) {
+        for (int i = 0; i < stack.size(); i++) {
+            StackTraceElement element = stack.get(i);
+            if (element.getClassName().equals(position.getClassName()) && Integer.valueOf(element.getLineNumber()).equals(position.getLine())) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static boolean isScriptLine(@Nullable FileLocation scriptLocation, StackTraceElement element) {
+        if (!(scriptLocation instanceof LineInFileLocation) || element.getFileName() == null) {
+            return false;
+        }
+        String path = scriptLocation.getPath();
+        String fileName = element.getFileName();
+        return ((LineInFileLocation) scriptLocation).getLine() == element.getLineNumber()
+            && (path.equals(fileName) || path.endsWith("/" + fileName) || path.endsWith("\\" + fileName));
+    }
+
+    private static List<UserCodeSource.Binary> pluginsWithCodeLocation(DetectionContext detection) {
+        TaskIdentity task = detection.getTask();
+        ImmutableList.Builder<UserCodeSource.Binary> plugins = ImmutableList.builder();
+        for (UserCodeSource source = task != null ? task.getRegisteredBy() : detection.getAppliedCode(); source != null; source = source.getAppliedBy()) {
+            if (source instanceof UserCodeSource.Binary && ((UserCodeSource.Binary) source).getCodeLocation() != null) {
+                plugins.add((UserCodeSource.Binary) source);
+            }
+        }
+        return plugins.build();
     }
 
     // A relative path has no base Gradle knows: the write API takes a plain string, and resolving it against the daemon's working directory would be a guess

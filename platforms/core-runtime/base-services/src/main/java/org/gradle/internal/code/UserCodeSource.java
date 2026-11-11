@@ -19,6 +19,7 @@ package org.gradle.internal.code;
 import org.gradle.api.Describable;
 import org.jspecify.annotations.Nullable;
 
+import java.io.File;
 import java.net.URI;
 
 /**
@@ -52,6 +53,7 @@ public interface UserCodeSource {
         private final @Nullable String pluginId;
         private final Locality locality;
         private final @Nullable UserCodeSource appliedBy;
+        private final @Nullable File codeLocation;
 
         public Binary(Describable displayName, String className, @Nullable String pluginId) {
             this(displayName, className, pluginId, Locality.UNKNOWN);
@@ -62,11 +64,23 @@ public interface UserCodeSource {
         }
 
         public Binary(Describable displayName, String className, @Nullable String pluginId, Locality locality, @Nullable UserCodeSource appliedBy) {
+            this(displayName, className, pluginId, locality, appliedBy, null);
+        }
+
+        public Binary(Describable displayName, String className, @Nullable String pluginId, Locality locality, @Nullable UserCodeSource appliedBy, @Nullable File codeLocation) {
             this.displayName = displayName;
             this.className = className;
             this.pluginId = pluginId;
             this.locality = locality;
             this.appliedBy = appliedBy;
+            this.codeLocation = codeLocation;
+        }
+
+        /**
+         * The jar or class directory the plugin's class was loaded from, if known.
+         */
+        public @Nullable File getCodeLocation() {
+            return codeLocation;
         }
 
         @Override

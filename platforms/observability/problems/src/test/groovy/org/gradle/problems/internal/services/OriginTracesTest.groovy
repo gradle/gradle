@@ -25,6 +25,11 @@ import org.gradle.api.problems.internal.location.PropertyFrame
 import org.gradle.api.problems.internal.location.TaskFrame
 import org.gradle.api.problems.internal.location.Trace
 import org.gradle.internal.Describables
+import org.gradle.api.problems.LineInFileLocation
+import org.gradle.api.problems.internal.DetectionContext
+import org.gradle.api.problems.internal.StackTraceLocation
+import org.gradle.api.problems.internal.location.CompiledCodeFrame
+import org.gradle.api.problems.internal.location.CompiledCodePosition
 import org.gradle.internal.code.Locality
 import org.gradle.internal.code.UserCodeSource
 import spock.lang.Specification
@@ -103,5 +108,113 @@ class OriginTracesTest extends Specification {
             "class com.acme.Tasks.AcmeTask",
             "task :acme"
         ]
+    }
+
+    def "a library line gives way to the first line below it from the jar of the plugin being applied"() {
+        given:
+        def plugin = pluginIn("/repo/acme.jar", Locality.EXTERNAL)
+
+        when:
+        def traces = OriginTraces.withUserCodeCallers([compiledLeaf("com.google.Util", 10)], [stack(null, "com.google.Util:10", "com.acme.FooPlugin:42", "com.acme.FooPlugin:7")], new DetectionContext(null, null, plugin), classesOf("/repo/acme.jar", "com.acme.FooPlugin"))
+
+        then:
+        traces[0].frames*.displayName == ["FooPlugin.java:42"]
+        traces[0].frames[0].locality == Locality.EXTERNAL
+    }
+
+    def "a leaf that is already in the plugin's jar stays and takes the plugin's locality"() {
+        given:
+        def plugin = pluginIn("/repo/acme.jar", Locality.LOCAL)
+
+        when:
+        def traces = OriginTraces.withUserCodeCallers([compiledLeaf("com.acme.FooPlugin", 42)], [stack(null, "com.acme.FooPlugin:42")], new DetectionContext(null, null, plugin), classesOf("/repo/acme.jar", "com.acme.FooPlugin"))
+
+        then:
+        traces[0].frames*.displayName == ["FooPlugin.java:42"]
+        traces[0].frames[0].locality == Locality.LOCAL
+    }
+
+    def "the plugin that registered the running task counts, and the code that applied it"() {
+        given:
+        def convention = new UserCodeSource.Binary(Describables.of("plugin"), "com.acme.ConventionPlugin", null, Locality.LOCAL, null, new File("/build/convention.jar"))
+        def plugin = new UserCodeSource.Binary(Describables.of("plugin"), "com.acme.FooPlugin", "com.acme.foo", Locality.EXTERNAL, convention, new File("/repo/acme.jar"))
+        def detection = new DetectionContext(new TaskIdentity(":app:acme", ":app", ":", "com.acme.AcmeTask", plugin), null, null)
+
+        when:
+        def traces = OriginTraces.withUserCodeCallers([compiledLeaf("com.google.Util", 10)], [stack(null, "com.google.Util:10", "com.acme.ConventionPlugin:5")], detection, classesOf("/build/convention.jar", "com.acme.ConventionPlugin"))
+
+        then:
+        traces[0].frames*.displayName == ["ConventionPlugin.java:5"]
+        traces[0].frames[0].locality == Locality.LOCAL
+    }
+
+    def "a script line nearer than the plugin becomes the leaf"() {
+        given:
+        def plugin = pluginIn("/repo/acme.jar", Locality.EXTERNAL)
+        def scriptLine = Stub(LineInFileLocation) {
+            getPath() >> "/work/shared.gradle"
+            getLine() >> 3
+            getColumn() >> -1
+            getLength() >> -1
+        }
+
+        when:
+        def traces = OriginTraces.withUserCodeCallers([compiledLeaf("com.google.Util", 10)], [stack(scriptLine, "com.google.Util:10", "shared_abc:3@shared.gradle", "com.acme.FooPlugin:42")], new DetectionContext(null, null, plugin), classesOf("/repo/acme.jar", "com.acme.FooPlugin"))
+
+        then:
+        traces[0].frames*.displayName == ["/work/shared.gradle:3"]
+        traces[0].frames[0] instanceof FileLocationFrame
+    }
+
+    def "a script line becomes the leaf also when no plugin is running"() {
+        given:
+        def scriptLine = Stub(LineInFileLocation) {
+            getPath() >> "/work/build.gradle"
+            getLine() >> 5
+            getColumn() >> -1
+            getLength() >> -1
+        }
+
+        expect:
+        OriginTraces.withUserCodeCallers([compiledLeaf("com.google.Util", 10)], [stack(scriptLine, "com.google.Util:10", "build_abc:5@build.gradle")], DetectionContext.NONE, classesOf("/repo/acme.jar"))[0].frames*.displayName == ["/work/build.gradle:5"]
+    }
+
+    def "without a script line or a frame from a counted plugin's jar, nothing changes"() {
+        given:
+        def original = [compiledLeaf("com.google.Util", 10)]
+        def locations = [stack(null, "com.google.Util:10", "com.other.Thing:1")]
+
+        expect:
+        OriginTraces.withUserCodeCallers(original, locations, DetectionContext.NONE, classesOf("/repo/acme.jar", "com.acme.FooPlugin")).is(original)
+        OriginTraces.withUserCodeCallers(original, locations, new DetectionContext(null, null, pluginIn("/repo/acme.jar", Locality.EXTERNAL)), classesOf("/repo/acme.jar", "com.acme.FooPlugin")).is(original)
+    }
+
+    private static UserCodeSource.Binary pluginIn(String jar, Locality locality) {
+        new UserCodeSource.Binary(Describables.of("plugin"), "com.acme.FooPlugin", "com.acme.foo", locality, null, new File(jar))
+    }
+
+    private static Trace compiledLeaf(String className, int line) {
+        new Trace([new CompiledCodeFrame(new CompiledCodePosition(className.substring(className.lastIndexOf('.') + 1) + ".java", className, null, line), Locality.UNKNOWN)])
+    }
+
+    /**
+     * A stack of "class:line" elements, top first; "class:line@file" names the source file.
+     */
+    private StackTraceLocation stack(LineInFileLocation scriptLine, String... elements) {
+        def stackTrace = elements.collect {
+            def (frame, fileName) = it.contains("@") ? it.split("@") : [it, null]
+            def (className, line) = frame.split(":")
+            new StackTraceElement(className, "run", fileName ?: className.substring(className.lastIndexOf('.') + 1) + ".java", line as int)
+        }
+        Stub(StackTraceLocation) {
+            getFileLocation() >> scriptLine
+            getStackTrace() >> stackTrace
+        }
+    }
+
+    private ClassFileLookup classesOf(String jar, String... classNames) {
+        Stub(ClassFileLookup) {
+            contains(new File(jar), _) >> { File location, String className -> className in classNames }
+        }
     }
 }

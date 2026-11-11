@@ -26,6 +26,7 @@ import org.gradle.api.problems.internal.ProblemsInfrastructure;
 import org.gradle.api.problems.internal.DetectionContext;
 import org.gradle.api.problems.internal.DetectionContextProvider;
 import org.gradle.api.problems.internal.TaskIdentity;
+import org.gradle.api.problems.internal.location.Trace;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -46,6 +47,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     private final SummarizerStrategy summarizerStrategy;
     private final DetectionContextProvider detectionContextProvider;
     private final File buildTreeRootDirectory;
+    private final ClassFileLookup classFiles = new ClassFileLookup();
 
     public static final InternalOption<Integer> THRESHOLD_OPTION = InternalOptions.ofInt("org.gradle.internal.problem.summary.threshold", 15);
     public static final int THRESHOLD_DEFAULT_VALUE = THRESHOLD_OPTION.getDefaultValue();
@@ -86,6 +88,8 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         DetectionContext detection = detectionContextProvider.detectionContextFor(id);
         TaskIdentity taskIdentity = detection.getTask();
         String taskPath = taskIdentity == null ? null : taskIdentity.getTaskPath();
+        // The leaf is part of what tells two problems apart, so it is settled before repeated problems are dropped
+        problem = withUserCodeCallers(problem, detection);
         if (summarizerStrategy.shouldEmit(problem, taskPath)) {
             problem = locate(problem, detection);
             problemReportCreator.addProblem(problem);
@@ -106,9 +110,16 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
             return problem;
         }
         TaskIdentity taskIdentity = detection.getTask();
+        problem = withUserCodeCallers(problem, detection);
         return maybeAddTaskLocation(problem, taskIdentity == null ? null : taskIdentity.getTaskPath())
             .withDetectionTrace(DetectionTraces.detectedIn(detection))
             .withOriginTraces(OriginTraces.withLineage(OriginTraces.withFileLocalities(problem.getOriginTraces(), buildTreeRootDirectory), taskIdentity));
+    }
+
+    private ProblemInternal withUserCodeCallers(ProblemInternal problem, DetectionContext detection) {
+        List<Trace> origins = problem.getOriginTraces();
+        List<Trace> withCallers = OriginTraces.withUserCodeCallers(origins, problem.getOriginLocations(), detection, classFiles);
+        return withCallers == origins ? problem : problem.withOriginTraces(withCallers);
     }
 
     private static ProblemInternal maybeAddTaskLocation(ProblemInternal problem, @Nullable String taskPath) {

@@ -24,6 +24,7 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readEnum
 import org.gradle.internal.serialize.graph.writeEnum
+import java.io.File
 import java.net.URI
 
 
@@ -37,6 +38,7 @@ object UserCodeSourceCodec : Codec<UserCodeSource> {
                 writeString(value.className)
                 writeNullableString(value.pluginId)
                 writeEnum(value.locality)
+                writeNullableString(value.codeLocation?.path)
                 writeAppliedBy(value.appliedBy)
             }
             is UserCodeSource.Script -> {
@@ -72,7 +74,8 @@ object UserCodeSourceCodec : Codec<UserCodeSource> {
                 val className = readString()
                 val pluginId = readNullableString()
                 val locality = readEnum<Locality>()
-                UserCodeSource.Binary(Describables.of(displayName), className, pluginId, locality, readAppliedBy())
+                val codeLocation = readNullableString()?.let { File(it) }
+                UserCodeSource.Binary(Describables.of(displayName), className, pluginId, locality, readAppliedBy(), codeLocation)
             }
 
             2 -> {

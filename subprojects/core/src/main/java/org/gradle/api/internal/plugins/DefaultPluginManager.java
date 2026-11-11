@@ -43,6 +43,10 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.jspecify.annotations.Nullable;
 
+import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -163,6 +167,19 @@ public class DefaultPluginManager implements PluginManagerInternal {
         doApply(pluginRegistry.inspect(type));
     }
 
+    /**
+     * The jar or class directory a plugin class was loaded from, or null when it has none, such as a class defined in a script held in memory.
+     */
+    private static @Nullable File codeLocationOf(Class<?> pluginClass) {
+        try {
+            CodeSource codeSource = pluginClass.getProtectionDomain().getCodeSource();
+            URL location = codeSource == null ? null : codeSource.getLocation();
+            return location != null && "file".equals(location.getProtocol()) ? new File(location.toURI()) : null;
+        } catch (SecurityException | URISyntaxException | IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     private void doApply(final PluginImplementation<?> plugin) {
         PluginId pluginId = plugin.getPluginId();
         final String pluginIdStr = pluginId == null ? null : pluginId.toString();
@@ -176,7 +193,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
                 final Runnable adder = addPluginInternal(plugin);
                 if (adder != null) {
                     UserCodeApplicationContext.Target appTarget = getApplicationTargetFor(target);
-                    UserCodeSource source = new UserCodeSource.Binary(plugin.getDisplayName(), pluginClass.getName(), pluginIdStr, codeLocalityResolver.localityOf(pluginClass), currentSource());
+                    UserCodeSource source = new UserCodeSource.Binary(plugin.getDisplayName(), pluginClass.getName(), pluginIdStr, codeLocalityResolver.localityOf(pluginClass), currentSource(), codeLocationOf(pluginClass));
                     userCodeApplicationContext.apply(source, appTarget, userCodeApplicationId ->
                         buildOperationRunner.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass, userCodeApplicationId))
                     );
