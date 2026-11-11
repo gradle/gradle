@@ -54,7 +54,10 @@ class OriginTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionSpec
         then:
         problems.size() == 1
         def originTraces = problems[0].originTraces
-        originTraces*.frames*.displayName == [[file("src/main/java/Foo.java").absolutePath + ":12:5"], ["gradle.properties"]]
+        originTraces*.frames*.displayName == [
+            [file("src/main/java/Foo.java").absolutePath + ":12:5"],
+            ["gradle.properties"]
+        ]
         with(originTraces[0].frames[0].position as FilePosition) {
             path == file("src/main/java/Foo.java").absolutePath
             line == 12
@@ -66,7 +69,10 @@ class OriginTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionSpec
         (originTraces[1].frames[0].position as FilePosition).line == null
 
         and: "an absolute path under the build's root is local; a relative one can't be placed, so it stays unknown"
-        originTraces*.frames*.locality.flatten() == [Locality.LOCAL, Locality.UNKNOWN]
+        originTraces*.frames*.locality.flatten() == [
+            Locality.LOCAL,
+            Locality.UNKNOWN
+        ]
 
         and: "the flat list is still filled"
         problems[0].originLocations.findAll { it instanceof LineInFileLocation }*.line == [12]

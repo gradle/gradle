@@ -49,7 +49,15 @@ class PropertyTraceOriginsTest {
 
         assertThat(
             trace.frames.map { it.displayName },
-            equalTo(listOf("field client", "bean ${PropertyTraceOriginsTest::class.java.name}", "input property service", "class org.gradle.api.Task", "task :app:acme"))
+            equalTo(
+                listOf(
+                    "field client",
+                    "bean ${PropertyTraceOriginsTest::class.java.name}",
+                    "input property service",
+                    "class org.gradle.api.Task",
+                    "task :app:acme"
+                )
+            )
         )
         assertThat(
             trace.frames.map { it.javaClass },
@@ -75,7 +83,13 @@ class PropertyTraceOriginsTest {
 
         assertThat(
             trace.frames.map { it.displayName },
-            equalTo(listOf("onlyIf specs", "lambda of type org.gradle.api.Action in com.acme.AcmePlugin.lambda\$apply\$0", "Gradle runtime"))
+            equalTo(
+                listOf(
+                    "onlyIf specs",
+                    "lambda of type org.gradle.api.Action in com.acme.AcmePlugin.lambda\$apply\$0",
+                    "Gradle runtime"
+                )
+            )
         )
         assertThat(trace.frames.last().locality, equalTo(Locality.CORE))
     }

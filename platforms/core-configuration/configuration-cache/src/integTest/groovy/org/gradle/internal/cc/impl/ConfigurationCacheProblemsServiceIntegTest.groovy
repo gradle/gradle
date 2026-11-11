@@ -164,7 +164,15 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         def loaded = findReceivedProblem { it.contextualLabel.startsWith("Cannot deserialize") }
         [stored, loaded].each { problem ->
             assert problem.fqid == "Gradle:Configuration Cache:Type unsupported for serialization"
-            assert problem.originTraces*.frames*.displayName == [["field client", "bean AcmeService", "field service", "class AcmeTask", "task :acme"]]
+            assert problem.originTraces*.frames*.displayName == [
+                [
+                    "field client",
+                    "bean AcmeService",
+                    "field service",
+                    "class AcmeTask",
+                    "task :acme"
+                ]
+            ]
             // Today's text form keeps only the user code that contains the state, not the path to it
             assert problem.additionalData.asMap.trace == "task `:acme` of type `AcmeTask`"
             // Spec Q7: Configuration Cache notices the problem outside any task, so detection is the build alone
@@ -218,7 +226,10 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         outputContains("10 problems were found storing the configuration cache")
         def received = collectedProblems.findAll { it.fqid == UNSUPPORTED_TYPE }
         received.size() == 2
-        received.every { it.originTraces[0].frames*.displayName.take(2) == ["field thread", "class AcmeTask"] }
+        received.every { it.originTraces[0].frames*.displayName.take(2) == [
+            "field thread",
+            "class AcmeTask"
+        ] }
         ignoreCleanupAssertions()
     }
 

@@ -46,8 +46,16 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
         run("acme")
 
         then:
-        localitiesOf(atApplication()) == ["plugin application com.acme.foo": Locality.LOCAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
-        localitiesOf(inTask()) == ["task :acme": Locality.LOCAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
+        localitiesOf(atApplication()) == [
+            "plugin application com.acme.foo": Locality.LOCAL,
+            "project :": Locality.LOCAL,
+            "build :": Locality.LOCAL
+        ]
+        localitiesOf(inTask()) == [
+            "task :acme": Locality.LOCAL,
+            "project :": Locality.LOCAL,
+            "build :": Locality.LOCAL
+        ]
     }
 
     def "a plugin applied by its class is named by the class and keeps its locality"() {
@@ -61,8 +69,16 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
         run("acme")
 
         then:
-        localitiesOf(atApplication()) == ["plugin application class com.acme.AcmePlugin": Locality.LOCAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
-        localitiesOf(inTask()) == ["task :acme": Locality.LOCAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
+        localitiesOf(atApplication()) == [
+            "plugin application class com.acme.AcmePlugin": Locality.LOCAL,
+            "project :": Locality.LOCAL,
+            "build :": Locality.LOCAL
+        ]
+        localitiesOf(inTask()) == [
+            "task :acme": Locality.LOCAL,
+            "project :": Locality.LOCAL,
+            "build :": Locality.LOCAL
+        ]
     }
 
     def "only the innermost plugin application is part of the trace"() {
@@ -91,8 +107,16 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
         run("acme")
 
         then:
-        localitiesOf(atApplication()) == ["plugin application class com.acme.AcmePlugin": Locality.LOCAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
-        localitiesOf(inTask()) == ["task :acme": Locality.LOCAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
+        localitiesOf(atApplication()) == [
+            "plugin application class com.acme.AcmePlugin": Locality.LOCAL,
+            "project :": Locality.LOCAL,
+            "build :": Locality.LOCAL
+        ]
+        localitiesOf(inTask()) == [
+            "task :acme": Locality.LOCAL,
+            "project :": Locality.LOCAL,
+            "build :": Locality.LOCAL
+        ]
     }
 
     def "a plugin from a repository and the task it registers are external"() {
@@ -118,8 +142,16 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
         run("acme")
 
         then:
-        localitiesOf(atApplication()) == ["plugin application com.acme.foo": Locality.EXTERNAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
-        localitiesOf(inTask()) == ["task :acme": Locality.EXTERNAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
+        localitiesOf(atApplication()) == [
+            "plugin application com.acme.foo": Locality.EXTERNAL,
+            "project :": Locality.LOCAL,
+            "build :": Locality.LOCAL
+        ]
+        localitiesOf(inTask()) == [
+            "task :acme": Locality.EXTERNAL,
+            "project :": Locality.LOCAL,
+            "build :": Locality.LOCAL
+        ]
     }
 
     def "a task registered by a core plugin is core"() {
@@ -142,7 +174,11 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def problem = findReceivedProblem { it.fqid.startsWith("Compilation:Java:") }
-        localitiesOf(problem) == ["task :compileJava": Locality.CORE, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
+        localitiesOf(problem) == [
+            "task :compileJava": Locality.CORE,
+            "project :": Locality.LOCAL,
+            "build :": Locality.LOCAL
+        ]
     }
 
     def "a task registered by a build script is local"() {
@@ -156,7 +192,11 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
         run("acme")
 
         then:
-        localitiesOf(inTask()) == ["task :acme": Locality.LOCAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
+        localitiesOf(inTask()) == [
+            "task :acme": Locality.LOCAL,
+            "project :": Locality.LOCAL,
+            "build :": Locality.LOCAL
+        ]
     }
 
     def "a task registered by an init script from the Gradle user home belongs to the environment"() {
@@ -168,7 +208,11 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
         run("acme")
 
         then:
-        localitiesOf(inTask()) == ["task :acme": Locality.ENVIRONMENT, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
+        localitiesOf(inTask()) == [
+            "task :acme": Locality.ENVIRONMENT,
+            "project :": Locality.LOCAL,
+            "build :": Locality.LOCAL
+        ]
     }
 
     def "a task registered by an init script passed on the command line is unknown"() {
@@ -179,7 +223,11 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
         run("acme", "--init-script", "acme.gradle")
 
         then:
-        localitiesOf(inTask()) == ["task :acme": Locality.UNKNOWN, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
+        localitiesOf(inTask()) == [
+            "task :acme": Locality.UNKNOWN,
+            "project :": Locality.LOCAL,
+            "build :": Locality.LOCAL
+        ]
     }
 
     def "a task keeps the locality of its plugin on a configuration cache hit"() {
@@ -198,7 +246,11 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         configurationCache.assertStateLoaded()
-        localitiesOf(inTask()) == ["task :acme": Locality.LOCAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
+        localitiesOf(inTask()) == [
+            "task :acme": Locality.LOCAL,
+            "project :": Locality.LOCAL,
+            "build :": Locality.LOCAL
+        ]
     }
 
     def "a plugin class defined in a build script is unknown, and its task takes the locality of its class"() {
@@ -223,8 +275,16 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
         run("acme")
 
         then:
-        localitiesOf(atApplication()) == ["plugin application class ScriptPlugin": Locality.UNKNOWN, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
-        localitiesOf(inTask()) == ["task :acme": Locality.UNKNOWN, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
+        localitiesOf(atApplication()) == [
+            "plugin application class ScriptPlugin": Locality.UNKNOWN,
+            "project :": Locality.LOCAL,
+            "build :": Locality.LOCAL
+        ]
+        localitiesOf(inTask()) == [
+            "task :acme": Locality.UNKNOWN,
+            "project :": Locality.LOCAL,
+            "build :": Locality.LOCAL
+        ]
     }
 
     def "a plugin from a jar added with files() and the task it registers are external"() {
@@ -246,8 +306,16 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
         run("acme")
 
         then:
-        localitiesOf(atApplication()) == ["plugin application com.acme.foo": Locality.EXTERNAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
-        localitiesOf(inTask()) == ["task :acme": Locality.EXTERNAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
+        localitiesOf(atApplication()) == [
+            "plugin application com.acme.foo": Locality.EXTERNAL,
+            "project :": Locality.LOCAL,
+            "build :": Locality.LOCAL
+        ]
+        localitiesOf(inTask()) == [
+            "task :acme": Locality.EXTERNAL,
+            "project :": Locality.LOCAL,
+            "build :": Locality.LOCAL
+        ]
     }
 
     def "a settings plugin applied to an included build is detected in the root build"() {
@@ -295,7 +363,10 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
         run("help")
 
         then:
-        atApplication().detectionTrace.frames*.displayName == ["plugin application com.acme.settings", "build :"]
+        atApplication().detectionTrace.frames*.displayName == [
+            "plugin application com.acme.settings",
+            "build :"
+        ]
     }
 
     /**

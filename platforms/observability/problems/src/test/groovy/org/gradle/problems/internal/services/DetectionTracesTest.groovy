@@ -36,14 +36,26 @@ class DetectionTracesTest extends Specification {
         def frames = DetectionTraces.detectedIn(task(":app:test", ":app", ":")).frames
 
         then:
-        frames*.class == [TaskFrame, ProjectFrame, BuildFrame]
-        frames*.displayName == ["task :app:test", "project :app", "build :"]
+        frames*.class == [
+            TaskFrame,
+            ProjectFrame,
+            BuildFrame
+        ]
+        frames*.displayName == [
+            "task :app:test",
+            "project :app",
+            "build :"
+        ]
         frames[0].buildTreePath == ":app:test"
         frames[1].buildTreePath == ":app"
         frames[2].buildPath == ":"
 
         and: "the task takes the locality of its registering code; project and build are the user's"
-        frames*.locality == [Locality.EXTERNAL, Locality.LOCAL, Locality.LOCAL]
+        frames*.locality == [
+            Locality.EXTERNAL,
+            Locality.LOCAL,
+            Locality.LOCAL
+        ]
     }
 
     def "task in an included build also yields the root build"() {
@@ -51,8 +63,18 @@ class DetectionTracesTest extends Specification {
         def frames = DetectionTraces.detectedIn(task(":lib:core:compileJava", ":lib:core", ":lib")).frames
 
         then:
-        frames*.class == [TaskFrame, ProjectFrame, BuildFrame, BuildFrame]
-        frames*.displayName == ["task :lib:core:compileJava", "project :lib:core", "build :lib", "build :"]
+        frames*.class == [
+            TaskFrame,
+            ProjectFrame,
+            BuildFrame,
+            BuildFrame
+        ]
+        frames*.displayName == [
+            "task :lib:core:compileJava",
+            "project :lib:core",
+            "build :lib",
+            "build :"
+        ]
     }
 
     def "while a project is configured the trace holds the project and its builds"() {
@@ -60,8 +82,16 @@ class DetectionTracesTest extends Specification {
         def frames = DetectionTraces.detectedIn(new DetectionContext(null, new ProjectIdentity(":lib:core", ":lib"), null)).frames
 
         then:
-        frames*.class == [ProjectFrame, BuildFrame, BuildFrame]
-        frames*.displayName == ["project :lib:core", "build :lib", "build :"]
+        frames*.class == [
+            ProjectFrame,
+            BuildFrame,
+            BuildFrame
+        ]
+        frames*.displayName == [
+            "project :lib:core",
+            "build :lib",
+            "build :"
+        ]
     }
 
     def "a plugin being applied to a project is the leaf"() {
@@ -69,10 +99,22 @@ class DetectionTracesTest extends Specification {
         def frames = DetectionTraces.detectedIn(new DetectionContext(null, new ProjectIdentity(":app", ":"), plugin("com.acme.foo", Locality.LOCAL))).frames
 
         then:
-        frames*.class == [PluginApplicationFrame, ProjectFrame, BuildFrame]
-        frames*.displayName == ["plugin application com.acme.foo", "project :app", "build :"]
+        frames*.class == [
+            PluginApplicationFrame,
+            ProjectFrame,
+            BuildFrame
+        ]
+        frames*.displayName == [
+            "plugin application com.acme.foo",
+            "project :app",
+            "build :"
+        ]
         frames[0].pluginId == "com.acme.foo"
-        frames*.locality == [Locality.LOCAL, Locality.LOCAL, Locality.LOCAL]
+        frames*.locality == [
+            Locality.LOCAL,
+            Locality.LOCAL,
+            Locality.LOCAL
+        ]
     }
 
     def "a plugin applied by its class is named by the class"() {
@@ -80,7 +122,11 @@ class DetectionTracesTest extends Specification {
         def frames = DetectionTraces.detectedIn(new DetectionContext(null, new ProjectIdentity(":app", ":"), plugin(null, Locality.LOCAL))).frames
 
         then:
-        frames*.displayName == ["plugin application class com.acme.FooPlugin", "project :app", "build :"]
+        frames*.displayName == [
+            "plugin application class com.acme.FooPlugin",
+            "project :app",
+            "build :"
+        ]
         frames[0].pluginId == null
         frames[0].className == "com.acme.FooPlugin"
     }
@@ -93,9 +139,21 @@ class DetectionTracesTest extends Specification {
         def frames = DetectionTraces.detectedIn(new DetectionContext(null, new ProjectIdentity(":app", ":"), script)).frames
 
         then:
-        frames*.class == [ScriptApplicationFrame, ProjectFrame, BuildFrame]
-        frames*.displayName == ["script application shared.gradle", "project :app", "build :"]
-        frames*.locality == [Locality.LOCAL, Locality.LOCAL, Locality.LOCAL]
+        frames*.class == [
+            ScriptApplicationFrame,
+            ProjectFrame,
+            BuildFrame
+        ]
+        frames*.displayName == [
+            "script application shared.gradle",
+            "project :app",
+            "build :"
+        ]
+        frames*.locality == [
+            Locality.LOCAL,
+            Locality.LOCAL,
+            Locality.LOCAL
+        ]
     }
 
     def "a script without a file is named by its display name"() {
@@ -103,7 +161,10 @@ class DetectionTracesTest extends Specification {
         def script = new UserCodeSource.Script(Describables.of("script"), null, Locality.UNKNOWN, null, false)
 
         expect:
-        DetectionTraces.detectedIn(new DetectionContext(null, null, script)).frames*.displayName == ["script application script", "build :"]
+        DetectionTraces.detectedIn(new DetectionContext(null, null, script)).frames*.displayName == [
+            "script application script",
+            "build :"
+        ]
     }
 
     def "a plugin being applied outside a project sits on the root build"() {
@@ -111,8 +172,14 @@ class DetectionTracesTest extends Specification {
         def frames = DetectionTraces.detectedIn(new DetectionContext(null, null, plugin("com.acme.settings", Locality.EXTERNAL))).frames
 
         then:
-        frames*.displayName == ["plugin application com.acme.settings", "build :"]
-        frames*.locality == [Locality.EXTERNAL, Locality.LOCAL]
+        frames*.displayName == [
+            "plugin application com.acme.settings",
+            "build :"
+        ]
+        frames*.locality == [
+            Locality.EXTERNAL,
+            Locality.LOCAL
+        ]
     }
 
     def "while a task runs the plugin being applied is not part of the trace"() {
@@ -120,7 +187,11 @@ class DetectionTracesTest extends Specification {
         def frames = DetectionTraces.detectedIn(new DetectionContext(new TaskIdentity(":app:test", ":app", ":", "com.acme.AcmeTask", null), new ProjectIdentity(":app", ":"), plugin("com.acme.foo", Locality.LOCAL))).frames
 
         then:
-        frames*.displayName == ["task :app:test", "project :app", "build :"]
+        frames*.displayName == [
+            "task :app:test",
+            "project :app",
+            "build :"
+        ]
         frames[0].locality == Locality.UNKNOWN
     }
 

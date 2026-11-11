@@ -41,7 +41,11 @@ class DetectionTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionS
         then:
         problems.size() == 1
         def frames = problems[0].detectionTrace.frames
-        frames*.displayName == ["task :reportProblem", "project :", "build :"]
+        frames*.displayName == [
+            "task :reportProblem",
+            "project :",
+            "build :"
+        ]
         frames[0] instanceof TaskFrame
         frames[0].buildTreePath == ":reportProblem"
         frames[1] instanceof ProjectFrame
@@ -49,7 +53,11 @@ class DetectionTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionS
         frames[2] instanceof BuildFrame
         frames[2].buildPath == ":"
         and: "the task was registered by the build script; project and build are the user's"
-        frames*.locality == [Locality.LOCAL, Locality.LOCAL, Locality.LOCAL]
+        frames*.locality == [
+            Locality.LOCAL,
+            Locality.LOCAL,
+            Locality.LOCAL
+        ]
 
         and: "the flat list is still filled"
         problems[0].contextualLocations.findAll { it instanceof TaskPathLocation }*.buildTreePath == [":reportProblem"]
@@ -65,7 +73,12 @@ class DetectionTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionS
         then:
         problems.size() == 1
         def frames = problems[0].detectionTrace.frames
-        frames*.displayName == ["task :lib:core:reportProblem", "project :lib:core", "build :lib", "build :"]
+        frames*.displayName == [
+            "task :lib:core:reportProblem",
+            "project :lib:core",
+            "build :lib",
+            "build :"
+        ]
         frames[0] instanceof TaskFrame
         frames[0].buildTreePath == ":lib:core:reportProblem"
         frames[1] instanceof ProjectFrame
@@ -86,7 +99,11 @@ class DetectionTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionS
         then:
         problems.size() == 1
         def frames = problems[0].detectionTrace.frames
-        frames*.displayName == ["plugin application class ProblemReportingPlugin", "project :", "build :"]
+        frames*.displayName == [
+            "plugin application class ProblemReportingPlugin",
+            "project :",
+            "build :"
+        ]
         frames[0] instanceof PluginApplicationFrame
         frames[0].pluginId == null
         frames[0].className == "ProblemReportingPlugin"
@@ -104,7 +121,11 @@ class DetectionTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionS
         then:
         problems.size() == 1
         def frames = problems[0].detectionTrace.frames
-        frames*.displayName == ["plugin application com.acme.foo", "project :", "build :"]
+        frames*.displayName == [
+            "plugin application com.acme.foo",
+            "project :",
+            "build :"
+        ]
         frames[0] instanceof PluginApplicationFrame
         frames[0].pluginId == "com.acme.foo"
         frames[0].className == "com.acme.FooPlugin"
@@ -146,7 +167,11 @@ class DetectionTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionS
         GradleConnectionException e = thrown(GradleConnectionException)
         def onFailure = problemsOf(e.failures[0]).find { it.definition.id.name == PROBLEM_ID }
         onFailure != null
-        onFailure.detectionTrace.frames*.displayName == ["task :reportProblem", "project :", "build :"]
+        onFailure.detectionTrace.frames*.displayName == [
+            "task :reportProblem",
+            "project :",
+            "build :"
+        ]
         onFailure.originTraces*.frames*.displayName == [[file("src/Foo.java").absolutePath + ":3"]]
         onFailure.originTraces[0].frames[0].locality == Locality.LOCAL
 
@@ -212,7 +237,11 @@ class DetectionTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionS
         GradleConnectionException e = thrown(GradleConnectionException)
         def onFailure = problemsOf(e.failures[0]).find { it.definition.id.name == PROBLEM_ID }
         onFailure != null
-        onFailure.detectionTrace?.frames*.displayName == ["task :reportProblem", "project :", "build :"]
+        onFailure.detectionTrace?.frames*.displayName == [
+            "task :reportProblem",
+            "project :",
+            "build :"
+        ]
 
         where:
         isolation << ["noIsolation", "classLoaderIsolation", "processIsolation"]

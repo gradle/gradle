@@ -70,10 +70,21 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
         fails(":app:acme")
 
         then:
-        detectionOf("Gradle:Plugin Validation:Missing annotation") == ["task :app:acme", "project :app", "build :"]
+        detectionOf("Gradle:Plugin Validation:Missing annotation") == [
+            "task :app:acme",
+            "project :app",
+            "build :"
+        ]
 
         and: "the origin is the property and its type, then the task and the script that registered it"
-        originsOf(problem) == [["property bar", "class com.acme.AcmeTask", "task :app:acme", file("app/build.gradle").absolutePath]]
+        originsOf(problem) == [
+            [
+                "property bar",
+                "class com.acme.AcmeTask",
+                "task :app:acme",
+                file("app/build.gradle").absolutePath
+            ]
+        ]
     }
 
     def "UC4 in a task action: a deprecation from a compiled plugin keeps its compiled origin when the task location is added"() {
@@ -101,7 +112,11 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
         run(":app:acme")
 
         then:
-        detectionOf("Gradle:Deprecation:Feature") == ["task :app:acme", "project :app", "build :"]
+        detectionOf("Gradle:Deprecation:Feature") == [
+            "task :app:acme",
+            "project :app",
+            "build :"
+        ]
         problem.originTraces[0].frames[0].displayName == "AcmePlugin.java:" + nagLineOf(file("buildSrc/src/main/java/com/acme/AcmePlugin.java"))
     }
 
@@ -123,7 +138,11 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
         run(":app:test")
 
         then:
-        detectionOf("Gradle:Deprecation:Feature") == ["task :app:test", "project :app", "build :"]
+        detectionOf("Gradle:Deprecation:Feature") == [
+            "task :app:test",
+            "project :app",
+            "build :"
+        ]
 
         and: "the origin is the script line, local, as the flat list says too"
         originsOf(problem) == [[file("app/build.gradle").absolutePath + ":6"]]
@@ -154,7 +173,11 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
         run(":app:help")
 
         then:
-        detectionOf("Gradle:Deprecation:Feature") == ["plugin application com.acme.foo", "project :app", "build :"]
+        detectionOf("Gradle:Deprecation:Feature") == [
+            "plugin application com.acme.foo",
+            "project :app",
+            "build :"
+        ]
 
         and: "the origin is the line in the compiled plugin, from its debug information (UC4, #26891)"
         def leaf = problem.originTraces[0].frames[0]
@@ -214,7 +237,11 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def problem = findReceivedProblem { it.fqid.startsWith("Compilation:Java:") }
-        problem.detectionTrace.frames*.displayName == ["task :app:compileJava", "project :app", "build :"]
+        problem.detectionTrace.frames*.displayName == [
+            "task :app:compileJava",
+            "project :app",
+            "build :"
+        ]
 
         and: "the origin is the line of the Java file, local"
         originsOf(problem) == [[file("app/src/main/java/Foo.java").absolutePath + ":4:29"]]
@@ -279,7 +306,11 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
         run("help")
 
         then:
-        detectionOf("Gradle:Deprecation:Feature") == ["script application shared.gradle", "project :", "build :"]
+        detectionOf("Gradle:Deprecation:Feature") == [
+            "script application shared.gradle",
+            "project :",
+            "build :"
+        ]
         problem.detectionTrace.frames[0].locality == Locality.LOCAL
     }
 
@@ -297,7 +328,10 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
         run("help")
 
         then:
-        detectionOf("Gradle:Deprecation:Feature") == ["script application shared.settings.gradle", "build :"]
+        detectionOf("Gradle:Deprecation:Feature") == [
+            "script application shared.settings.gradle",
+            "build :"
+        ]
     }
 
     def "UC9: deprecation in a build script of an included build is detected in that build's project"() {
@@ -323,7 +357,11 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
         run("useLib")
 
         then:
-        detectionOf("Gradle:Deprecation:Feature") == ["project :lib:core", "build :lib", "build :"]
+        detectionOf("Gradle:Deprecation:Feature") == [
+            "project :lib:core",
+            "build :lib",
+            "build :"
+        ]
         originsOf(problem) == [[file("lib/core/build.gradle").absolutePath + ":4"]]
         problem.originTraces[0].frames[0].locality == Locality.LOCAL
     }
@@ -350,7 +388,11 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         configurationCache.assertStateLoaded()
-        detectionOf("Gradle:Deprecation:Feature") == ["task :app:test", "project :app", "build :"]
+        detectionOf("Gradle:Deprecation:Feature") == [
+            "task :app:test",
+            "project :app",
+            "build :"
+        ]
     }
 
     def "UC11: plugin type problem found by validatePlugins is detected in that task"() {
@@ -402,8 +444,17 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
         fails(":plugin:validatePlugins")
 
         then:
-        detectionOf("Gradle:Plugin Validation:Missing annotation") == ["task :plugin:validatePlugins", "project :plugin", "build :"]
-        originsOf(problem) == [["property bar", "class com.acme.AcmeTask"]]
+        detectionOf("Gradle:Plugin Validation:Missing annotation") == [
+            "task :plugin:validatePlugins",
+            "project :plugin",
+            "build :"
+        ]
+        originsOf(problem) == [
+            [
+                "property bar",
+                "class com.acme.AcmeTask"
+            ]
+        ]
     }
 
     private void pluginInBuildSrc(String id, String implementationClass, String applyBody) {

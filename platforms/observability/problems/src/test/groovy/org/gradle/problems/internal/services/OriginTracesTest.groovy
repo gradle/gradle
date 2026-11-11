@@ -43,9 +43,30 @@ class OriginTracesTest extends Specification {
         def frames = OriginTraces.withLineage([validation], task)[0].frames
 
         then:
-        frames*.displayName == ["property bar", "class com.acme.AcmeTask", "task :app:acme", "plugin com.acme.foo", "plugin com.acme.convention", new File("/work/build.gradle").absolutePath]
-        frames*.class == [PropertyFrame, ClassFrame, TaskFrame, PluginClassFrame, PluginClassFrame, FileLocationFrame]
-        frames*.locality == [Locality.UNKNOWN, Locality.UNKNOWN, Locality.EXTERNAL, Locality.EXTERNAL, Locality.LOCAL, Locality.LOCAL]
+        frames*.displayName == [
+            "property bar",
+            "class com.acme.AcmeTask",
+            "task :app:acme",
+            "plugin com.acme.foo",
+            "plugin com.acme.convention",
+            new File("/work/build.gradle").absolutePath
+        ]
+        frames*.class == [
+            PropertyFrame,
+            ClassFrame,
+            TaskFrame,
+            PluginClassFrame,
+            PluginClassFrame,
+            FileLocationFrame
+        ]
+        frames*.locality == [
+            Locality.UNKNOWN,
+            Locality.UNKNOWN,
+            Locality.EXTERNAL,
+            Locality.EXTERNAL,
+            Locality.LOCAL,
+            Locality.LOCAL
+        ]
         (frames[5].position as FilePosition).line == null
     }
 
@@ -55,7 +76,10 @@ class OriginTracesTest extends Specification {
         def validation = new Trace([new PropertyFrame("bar", Locality.UNKNOWN), new ClassFrame("com.acme.AcmeTask", Locality.UNKNOWN)])
 
         expect:
-        OriginTraces.withLineage([validation], task)[0].frames*.displayName == ["property bar", "class com.acme.AcmeTask"]
+        OriginTraces.withLineage([validation], task)[0].frames*.displayName == [
+            "property bar",
+            "class com.acme.AcmeTask"
+        ]
     }
 
     def "a file location leaf and a problem outside a task get no lineage"() {
@@ -74,6 +98,10 @@ class OriginTracesTest extends Specification {
         def validation = new Trace([new PropertyFrame("bar", Locality.UNKNOWN), new ClassFrame("com.acme.Tasks.AcmeTask", Locality.UNKNOWN)])
 
         expect:
-        OriginTraces.withLineage([validation], task)[0].frames*.displayName == ["property bar", "class com.acme.Tasks.AcmeTask", "task :acme"]
+        OriginTraces.withLineage([validation], task)[0].frames*.displayName == [
+            "property bar",
+            "class com.acme.Tasks.AcmeTask",
+            "task :acme"
+        ]
     }
 }

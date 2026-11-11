@@ -77,7 +77,11 @@ class BuildProgressListenerAdapterForProblemTracesTest extends Specification {
         def frames = BuildProgressListenerAdapter.toDetectionTrace(details).frames
 
         then:
-        frames*.displayName == ["task :app:test", "source set main", "project :app"]
+        frames*.displayName == [
+            "task :app:test",
+            "source set main",
+            "project :app"
+        ]
         frames[0] instanceof TaskFrame
         !(frames[1] instanceof TaskFrame)
         !(frames[1] instanceof ProjectFrame)
@@ -141,7 +145,10 @@ class BuildProgressListenerAdapterForProblemTracesTest extends Specification {
             length == null
         }
         originTraces[1].frames*.position == [null, null]
-        originTraces[1].frames*.displayName == ["property bar", "class AcmeTask"]
+        originTraces[1].frames*.displayName == [
+            "property bar",
+            "class AcmeTask"
+        ]
     }
 
     def "no origin originTraces when the build doesn't send any"() {

@@ -339,7 +339,11 @@ class DefaultProblemBuilderTest extends Specification {
         then:
         problem.originTraces.size() == 3
         problem.originTraces.every { it.frames.size() == 1 && it.frames[0] instanceof FileLocationFrame }
-        problem.originTraces*.frames*.displayName.flatten() == ["build.gradle:12:5", "settings.gradle", "gradle.properties"]
+        problem.originTraces*.frames*.displayName.flatten() == [
+            "build.gradle:12:5",
+            "settings.gradle",
+            "gradle.properties"
+        ]
 
         and: "line and column count from 1, offset from 0, and a missing value is null"
         with(problem.originTraces[0].frames[0].position) {
@@ -376,8 +380,14 @@ class DefaultProblemBuilderTest extends Specification {
 
         then:
         problem.originTraces.size() == 1
-        problem.originTraces[0].frames*.displayName == ["property bar", "class com.acme.AcmeTask"]
-        problem.originTraces[0].frames*.class == [PropertyFrame, ClassFrame]
+        problem.originTraces[0].frames*.displayName == [
+            "property bar",
+            "class com.acme.AcmeTask"
+        ]
+        problem.originTraces[0].frames*.class == [
+            PropertyFrame,
+            ClassFrame
+        ]
         problem.originTraces[0].frames*.position == [null, null]
     }
 
@@ -391,7 +401,10 @@ class DefaultProblemBuilderTest extends Specification {
             .build()
 
         then:
-        problem.originTraces[0].frames*.displayName == ["property options.bar", "class com.acme.AcmeTask"]
+        problem.originTraces[0].frames*.displayName == [
+            "property options.bar",
+            "class com.acme.AcmeTask"
+        ]
     }
 
     def "a problem without file locations or validation data has no origin"() {

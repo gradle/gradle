@@ -62,7 +62,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             with(oneLocation(TaskLocation)) {
                 buildTreePath == ':reportProblem'
             }
-            detectionTrace.frames*.displayName == ['task :reportProblem', 'project :', 'build :']
+            detectionTrace.frames*.displayName == [
+                'task :reportProblem',
+                'project :',
+                'build :'
+            ]
         }
     }
 
@@ -86,7 +90,12 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             with(oneLocation(TaskLocation)) {
                 buildTreePath == ':included-lib:reportProblem'
             }
-            detectionTrace.frames*.displayName == ['task :included-lib:reportProblem', 'project :included-lib', 'build :included-lib', 'build :']
+            detectionTrace.frames*.displayName == [
+                'task :included-lib:reportProblem',
+                'project :included-lib',
+                'build :included-lib',
+                'build :'
+            ]
         }
     }
 

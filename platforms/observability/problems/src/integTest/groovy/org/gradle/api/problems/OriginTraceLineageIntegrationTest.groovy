@@ -120,7 +120,14 @@ class OriginTraceLineageIntegrationTest extends AbstractIntegrationSpec {
             "plugin com.acme.convention",
             file("app/build.gradle").absolutePath,
         ]
-        frames*.locality == [Locality.UNKNOWN, Locality.UNKNOWN, Locality.EXTERNAL, Locality.EXTERNAL, Locality.LOCAL, Locality.LOCAL]
+        frames*.locality == [
+            Locality.UNKNOWN,
+            Locality.UNKNOWN,
+            Locality.EXTERNAL,
+            Locality.EXTERNAL,
+            Locality.LOCAL,
+            Locality.LOCAL
+        ]
     }
 
     def "a task type that is a nested class gets its lineage"() {
@@ -152,7 +159,12 @@ class OriginTraceLineageIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def problem = findReceivedProblem { it.fqid == "Gradle:Plugin Validation:Missing annotation" }
-        problem.originTraces[0].frames*.displayName == ["property bar", "class com.acme.Tasks.AcmeTask", "task :acme", buildFile.absolutePath]
+        problem.originTraces[0].frames*.displayName == [
+            "property bar",
+            "class com.acme.Tasks.AcmeTask",
+            "task :acme",
+            buildFile.absolutePath
+        ]
     }
 
     def "a property of a nested bean gets the lineage of its task"() {
@@ -193,6 +205,11 @@ class OriginTraceLineageIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def problem = findReceivedProblem { it.fqid == "Gradle:Plugin Validation:Missing annotation" }
-        problem.originTraces[0].frames*.displayName == ["property options.bar", "class com.acme.AcmeTask", "task :acme", buildFile.absolutePath]
+        problem.originTraces[0].frames*.displayName == [
+            "property options.bar",
+            "class com.acme.AcmeTask",
+            "task :acme",
+            buildFile.absolutePath
+        ]
     }
 }
