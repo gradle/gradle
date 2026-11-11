@@ -146,31 +146,16 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         return percent < 0 ? "-" : percent + "%";
     }
 
+    /**
+     * Renders the summary counters, shown above the tabs.
+     */
     public static final class ForSummary extends PerRootTabRenderer {
-        private final ForChildren childrenRenderer;
-        private final ForFailure failureRenderer;
-
-        public ForSummary(boolean shrink, int rootIndex, int perRootInfoIndex) {
+        public ForSummary(int rootIndex, int perRootInfoIndex) {
             super(rootIndex, perRootInfoIndex);
-            this.childrenRenderer = new ForChildren(shrink, rootIndex, perRootInfoIndex);
-            this.failureRenderer = new ForFailure(rootIndex, perRootInfoIndex);
         }
 
         @Override
         protected void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
-            htmlWriter.startElement("div");
-            renderSummary(info, htmlWriter);
-            if (info.isLeaf()) {
-                if (ForFailure.hasFailureDetails(info)) {
-                    failureRenderer.render(getCurrentModel(), htmlWriter);
-                }
-            } else {
-                childrenRenderer.render(getCurrentModel(), htmlWriter);
-            }
-            htmlWriter.endElement();
-        }
-
-        private static void renderSummary(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("div").attribute("class", "summary");
             htmlWriter.startElement("table");
             htmlWriter.startElement("tr");
@@ -398,10 +383,24 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             super(rootIndex, perRootInfoIndex);
         }
 
-        public static boolean hasFailureDetails(PerRootInfo info) {
+        /**
+         * Returns the title of the tab for the failure details of the given info, or {@code null} if there are no details to show.
+         * Only non-successful leaves with at least one failure or an assumption failure have details.
+         */
+        @Nullable
+        public static String getTabTitle(PerRootInfo info) {
+            if (!info.isLeaf()) {
+                return null;
+            }
             SerializableTestResult result = getLeafResult(info);
-            return result.getResultType() != TestResult.ResultType.SUCCESS
-                && (!result.getFailures().isEmpty() || result.getAssumptionFailure() != null);
+            if (result.getFailures().isEmpty() && result.getAssumptionFailure() == null) {
+                return null;
+            }
+            return switch (result.getResultType()) {
+                case FAILURE -> "failure";
+                case SKIPPED -> "skip reason";
+                default -> null;
+            };
         }
 
         @Override
@@ -409,10 +408,6 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             SerializableTestResult result = getLeafResult(info);
 
             htmlWriter.startElement("div").attribute("class", "result-details");
-
-            htmlWriter.startElement("h3").characters(
-                result.getResultType() == TestResult.ResultType.FAILURE ? "Failure details" : "Skip details"
-            ).endElement();
 
             String failureOutputId = "root-" + rootIndex + "-test-failure-" + result.getName();
             htmlWriter.startElement("span").attribute("class", "code");

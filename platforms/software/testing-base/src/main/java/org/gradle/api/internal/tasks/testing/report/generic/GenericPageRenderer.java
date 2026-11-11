@@ -145,12 +145,22 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
             if (infos.isEmpty()) {
                 continue;
             }
-            List<TabsRenderer<TestTreeModel>> perRootInfoTabsRenderers = new ArrayList<>(infos.size());
+            List<ReportRenderer<TestTreeModel, SimpleHtmlWriter>> perRootInfoRenderers = new ArrayList<>(infos.size());
             for (int perRootInfoIndex = 0; perRootInfoIndex < infos.size(); perRootInfoIndex++) {
                 PerRootInfo info = infos.get(perRootInfoIndex);
 
-                final TabsRenderer<TestTreeModel> perRootInfoTabsRenderer = new TabsRenderer<>();
-                perRootInfoTabsRenderer.add("summary", new PerRootTabRenderer.ForSummary(shrink, rootIndex, perRootInfoIndex));
+                ReportRenderer<TestTreeModel, SimpleHtmlWriter> summaryRenderer = new PerRootTabRenderer.ForSummary(rootIndex, perRootInfoIndex);
+                TabsRenderer<TestTreeModel> perRootInfoTabsRenderer = new TabsRenderer<>();
+                boolean hasTabs = false;
+                if (!info.isLeaf()) {
+                    perRootInfoTabsRenderer.add("children", new PerRootTabRenderer.ForChildren(shrink, rootIndex, perRootInfoIndex));
+                    hasTabs = true;
+                }
+                String failureTabTitle = PerRootTabRenderer.ForFailure.getTabTitle(info);
+                if (failureTabTitle != null) {
+                    perRootInfoTabsRenderer.add(failureTabTitle, new PerRootTabRenderer.ForFailure(rootIndex, perRootInfoIndex));
+                    hasTabs = true;
+                }
                 TestOutputReader outputReader = outputReaders.get(rootIndex);
                 boolean hasStdout = false;
                 boolean hasStderr = false;
@@ -169,30 +179,44 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                 }
                 if (hasStdout) {
                     perRootInfoTabsRenderer.add("standard output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdOut));
+                    hasTabs = true;
                 }
                 if (hasStderr) {
                     perRootInfoTabsRenderer.add("error output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdErr));
+                    hasTabs = true;
                 }
                 // TODO: This should be handled differently so that the renders know what to expect vs the GenericPageRenderer doing something special
                 if (Iterables.any(info.getMetadatas(), event -> event instanceof TestKeyValueDataEvent)) {
                     perRootInfoTabsRenderer.add("data", new PerRootTabRenderer.ForKeyValues(rootIndex, perRootInfoIndex));
+                    hasTabs = true;
                 }
                 if (Iterables.any(info.getMetadatas(), event -> event instanceof TestFileAttachmentDataEvent)) {
                     perRootInfoTabsRenderer.add("attachments", new PerRootTabRenderer.ForFileAttachments(rootIndex, perRootInfoIndex));
+                    hasTabs = true;
                 }
 
-                perRootInfoTabsRenderers.add(perRootInfoTabsRenderer);
+                boolean renderTabs = hasTabs;
+                perRootInfoRenderers.add(new ReportRenderer<>() {
+                    @Override
+                    public void render(TestTreeModel model, SimpleHtmlWriter output) throws IOException {
+                        summaryRenderer.render(model, output);
+                        if (renderTabs) {
+                            perRootInfoTabsRenderer.render(model, output);
+                        }
+                    }
+                });
             }
 
             // If necessary, render each run in its own tab
-            TabsRenderer<TestTreeModel> directlyBelowRootTabsRenderer;
-            if (perRootInfoTabsRenderers.size() == 1) {
-                directlyBelowRootTabsRenderer = perRootInfoTabsRenderers.get(0);
+            ReportRenderer<TestTreeModel, SimpleHtmlWriter> directlyBelowRootRenderer;
+            if (perRootInfoRenderers.size() == 1) {
+                directlyBelowRootRenderer = perRootInfoRenderers.get(0);
             } else {
-                directlyBelowRootTabsRenderer = new TabsRenderer<>();
-                for (int i = 0; i < perRootInfoTabsRenderers.size(); i++) {
-                    directlyBelowRootTabsRenderer.add("run " + (i + 1), perRootInfoTabsRenderers.get(i));
+                TabsRenderer<TestTreeModel> runTabsRenderer = new TabsRenderer<>();
+                for (int i = 0; i < perRootInfoRenderers.size(); i++) {
+                    runTabsRenderer.add("run " + (i + 1), perRootInfoRenderers.get(i));
                 }
+                directlyBelowRootRenderer = runTabsRenderer;
             }
             String rootState = "successGroup";
             for (PerRootInfo info : infos) {
@@ -213,7 +237,7 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                 public void render(TestTreeModel model, SimpleHtmlWriter output) throws IOException {
                     String displayName = SerializableTestResult.getCombinedDisplayName(infos.get(0).getResults());
                     output.startElement("h1").characters(displayName).endElement();
-                    directlyBelowRootTabsRenderer.render(model, output);
+                    directlyBelowRootRenderer.render(model, output);
                 }
             });
         }
