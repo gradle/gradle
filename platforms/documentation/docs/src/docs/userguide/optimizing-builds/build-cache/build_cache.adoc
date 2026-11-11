@@ -193,7 +193,7 @@ NOTE: The task path is _not_ an input to the build cache key.
 This means that tasks with different task paths can re-use each other's outputs as long as Gradle determines that executing them yields the same result.
 
 In order to ensure that the inputs and outputs are properly declared use integration tests (for example using TestKit) to check that a task produces the same outputs for identical inputs and captures all output files for the task.
-We suggest adding tests to ensure that the task inputs are relocatable, i.e. that the task can be loaded from the cache into a different build directory (see link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[@PathSensitive]).
+We suggest adding tests to ensure that the task inputs are relocatable, i.e. that the task can be loaded from the cache into a different build directory (see link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[`@PathSensitive`] and <<best_practices_tasks.adoc#default_path_sensitivities,choosing a path sensitivity>>).
 
 In order to handle volatile inputs for your tasks consider <<incremental_build.adoc#sec:configure_input_normalization,configuring input normalization>>.
 

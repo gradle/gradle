@@ -60,6 +60,7 @@ public interface TaskExecutionGraph {
      * <p>Adds a listener to this graph, to be notified as tasks are executed.</p>
      *
      * @param listener The listener to add. Does nothing if this listener has already been added.
+     * @see org.gradle.build.event.BuildEventsListenerRegistry#onTaskCompletion(org.gradle.api.provider.Provider)
      * @deprecated This method is not supported when configuration caching is enabled.
      * @since 0.7
      */
@@ -70,6 +71,7 @@ public interface TaskExecutionGraph {
      * <p>Remove a listener from this graph.</p>
      *
      * @param listener The listener to remove. Does nothing if this listener was never added to this graph.
+     * @see org.gradle.build.event.BuildEventsListenerRegistry#onTaskCompletion(org.gradle.api.provider.Provider)
      * @deprecated This method is not supported when configuration caching is enabled.
      * @since 0.7
      */
@@ -134,6 +136,7 @@ public interface TaskExecutionGraph {
      * optional.</p>
      *
      * @param closure The closure to execute when a task has been executed
+     * @see org.gradle.build.event.BuildEventsListenerRegistry#onTaskCompletion(org.gradle.api.provider.Provider)
      * @deprecated This method is not supported when configuration caching is enabled.
      * @since 0.7
      */
@@ -145,6 +148,7 @@ public interface TaskExecutionGraph {
      * first parameter.</p>
      *
      * @param action The action to execute when a task has been executed
+     * @see org.gradle.build.event.BuildEventsListenerRegistry#onTaskCompletion(org.gradle.api.provider.Provider)
      * @deprecated This method is not supported when configuration caching is enabled.
      *
      * @since 3.1
