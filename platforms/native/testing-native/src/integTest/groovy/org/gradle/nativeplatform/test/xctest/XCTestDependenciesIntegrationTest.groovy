@@ -33,10 +33,10 @@ class XCTestDependenciesIntegrationTest extends AbstractNativeDependenciesIntegr
     protected void makeComponentWithLibrary() {
         buildFile << """
             apply plugin: 'xctest'
-            project(':lib') {
-                apply plugin: 'swift-library'
-            }
 """
+        buildFile("lib/build.gradle", """
+            apply plugin: 'swift-library'
+""")
         file("src/test/swift/Test.swift") << """
             import Lib
             import XCTest

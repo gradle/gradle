@@ -17,7 +17,6 @@
 package org.gradle.execution.taskgraph
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.model.internal.core.ModelNode
 
@@ -25,12 +24,13 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
 
     def setup() {
         executer.beforeExecute { it.noDeprecationChecks() }
-        buildFile << """
-            def tasksFile = file("tasks.txt")
+        settingsFile """
+            def tasksFile = new File(settingsDir, "tasks.txt")
             tasksFile.text = ''
-            gradle.taskGraph.whenReady {
-                allprojects {
-                    tasks.matching { it.group == "mygroup" }.all {
+            gradle.lifecycle.beforeProject {
+                def projectTasks = tasks
+                gradle.taskGraph.whenReady {
+                    projectTasks.matching { it.group == "mygroup" }.all {
                         tasksFile << path + '\\n'
                     }
                 }
@@ -47,13 +47,12 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
         createdTasks
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "does not create rule based tasks in projects without required tasks"() {
         when:
         createDirs("a", "b", "c")
-        settingsFile << "include 'a', 'b', 'c'"
-        buildFile << """
-            allprojects {
+        settingsFile """
+            include 'a', 'b', 'c'
+            gradle.lifecycle.beforeProject {
                 model {
                     tasks {
                         create("t1") {
@@ -161,19 +160,12 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
         output.contains "finalizer: configured"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects, configuring projects from root")
     def "task container is self closed for projects of which any tasks are being executed"() {
         createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
 
-        buildFile """
-            project(':a') {
-                apply type: ProjectARules
-            }
-
-            project(':b') {
-                apply type: ProjectBRules
-            }
+        buildFile("a/build.gradle", """
+            apply type: ProjectARules
 
             class ProjectARules extends RuleSource {
                 @Mutate
@@ -183,6 +175,9 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
                     }
                 }
             }
+        """)
+        buildFile("b/build.gradle", """
+            apply type: ProjectBRules
 
             class ProjectBRules extends RuleSource {
                 @Mutate
@@ -190,7 +185,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
                     tasks.create("dependency")
                 }
             }
-        """
+        """)
 
         when:
         succeeds ":a:executed"

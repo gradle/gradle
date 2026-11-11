@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftTaskNames
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -164,7 +163,6 @@ apply plugin: 'xctest'
         lib.assertTestCasesRan(testExecutionResult)
     }
 
-    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Swift build")
     def "can specify a test dependency on another library"() {
         def lib = new SwiftLib()
         def test = new SwiftLibTest(lib, lib.greeter, lib.sum, lib.multiply)
@@ -176,9 +174,6 @@ rootProject.name = 'app'
 include 'greeter'
 """
         buildFile << """
-project(':greeter') {
-    apply plugin: 'swift-library'
-}
 
 apply plugin: 'swift-library'
 
@@ -186,6 +181,9 @@ dependencies {
     testImplementation project(':greeter')
 }
 """
+        buildFile("greeter/build.gradle", """
+apply plugin: 'swift-library'
+""")
         lib.writeToProject(file('greeter'))
         test.writeToProject(testDirectory)
 
@@ -421,7 +419,6 @@ apply plugin: 'swift-library'
         test.assertTestCasesRan(testExecutionResult)
     }
 
-    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Swift build")
     def 'can build xctest bundle which transitively depends on other Swift libraries'() {
         given:
         def app = new SwiftAppWithLibraries()
@@ -435,16 +432,16 @@ apply plugin: 'swift-library'
             dependencies {
                 implementation project(':hello')
             }
-            project(':hello') {
-                apply plugin: 'swift-library'
-                dependencies {
-                    api project(':log')
-                }
-            }
-            project(':log') {
-                apply plugin: 'swift-library'
-            }
         """
+        buildFile("hello/build.gradle", """
+            apply plugin: 'swift-library'
+            dependencies {
+                api project(':log')
+            }
+        """)
+        buildFile("log/build.gradle", """
+            apply plugin: 'swift-library'
+        """)
 
         app.application.writeToProject(testDirectory)
         app.greeter.writeToProject(file('hello'))
@@ -462,7 +459,6 @@ apply plugin: 'swift-library'
             tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ':xcTest', ':test')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Swift build")
     def 'can run xctest in swift package manager layout'() {
         given:
         def app = new SwiftAppWithLibraries()
@@ -483,22 +479,22 @@ apply plugin: 'swift-library'
                 implementation project(':hello')
             }
 
-            project(':hello') {
-                apply plugin: 'swift-library'
-                library {
-                    source.from rootProject.file('Sources/Hello')
-                }
-                dependencies {
-                    api project(':log')
-                }
-            }
-            project(':log') {
-                apply plugin: 'swift-library'
-                library {
-                    source.from rootProject.file('Sources/Log')
-                }
-            }
         """
+        buildFile("hello/build.gradle", """
+            apply plugin: 'swift-library'
+            library {
+                source.from isolated.rootProject.projectDirectory.dir('Sources/Hello')
+            }
+            dependencies {
+                api project(':log')
+            }
+        """)
+        buildFile("log/build.gradle", """
+            apply plugin: 'swift-library'
+            library {
+                source.from isolated.rootProject.projectDirectory.dir('Sources/Log')
+            }
+        """)
 
         app.application.writeToProject(file('Sources/App'))
         app.greeter.writeToProject(file('Sources/Hello'))

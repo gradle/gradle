@@ -46,7 +46,7 @@ class AbstractSwiftMixedLanguageIntegrationTest extends AbstractIntegrationSpec 
         assumeTrue("C++ toolchain is available", cppToolChain != null)
 
         File initScript = file("init.gradle") << """
-        allprojects { p ->
+        gradle.lifecycle.beforeProject { p ->
             p.plugins.withType(${swiftToolChain.pluginClass}) {
                 toolChains {
                     ${swiftToolChain.buildScriptConfig}
@@ -63,7 +63,7 @@ class AbstractSwiftMixedLanguageIntegrationTest extends AbstractIntegrationSpec 
         // Starting on Swift 4.1 and above, executable on Linux are linked using `-pie` flag, this means C++ codes need to be compiled using `-fPIC`
         if (OperatingSystem.current().isLinux() && swiftToolChain.version.compareTo(VersionNumber.parse("4.1")) >= 0) {
             initScript << """
-                allprojects { p ->
+                gradle.lifecycle.beforeProject { p ->
                     p.plugins.withId("cpp-library") {
                         p.library.binaries.configureEach(CppStaticLibrary) {
                             compileTask.get().configure {

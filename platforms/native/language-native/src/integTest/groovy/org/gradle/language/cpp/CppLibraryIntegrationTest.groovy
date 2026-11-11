@@ -26,7 +26,6 @@ import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.hamcrest.CoreMatchers
 
 import static org.gradle.util.Matchers.containsText
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements CppTaskNames {
 
@@ -349,28 +348,25 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can compile and link against implementation and api libraries"() {
         createDirs("lib1", "lib2", "lib3")
         settingsFile << "include 'lib1', 'lib2', 'lib3'"
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
-        buildFile << """
-            project(':lib1') {
-                apply plugin: 'cpp-library'
-                dependencies {
-                    api project(':lib2')
-                    implementation project(':lib3')
-                }
+        buildFile("lib1/build.gradle", """
+            apply plugin: 'cpp-library'
+            dependencies {
+                api project(':lib2')
+                implementation project(':lib3')
             }
-            project(':lib2') {
-                apply plugin: 'cpp-library'
-            }
-            project(':lib3') {
-                apply plugin: 'cpp-library'
-            }
-"""
+""")
+        buildFile("lib2/build.gradle", """
+            apply plugin: 'cpp-library'
+""")
+        buildFile("lib3/build.gradle", """
+            apply plugin: 'cpp-library'
+""")
         app.deck.writeToProject(file("lib1"))
         app.card.writeToProject(file("lib2"))
         app.shuffle.writeToProject(file("lib3"))
@@ -395,30 +391,27 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         sharedLibrary("lib3/build/lib/main/release/lib3").strippedRuntimeFile.assertExists()
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can compile and link against static implementation and api libraries"() {
         createDirs("lib1", "lib2", "lib3")
         settingsFile << "include 'lib1', 'lib2', 'lib3'"
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
-        buildFile << """
-            project(':lib1') {
-                apply plugin: 'cpp-library'
-                dependencies {
-                    api project(':lib2')
-                    implementation project(':lib3')
-                }
+        buildFile("lib1/build.gradle", """
+            apply plugin: 'cpp-library'
+            dependencies {
+                api project(':lib2')
+                implementation project(':lib3')
             }
-            project(':lib2') {
-                apply plugin: 'cpp-library'
-                library.linkage = [Linkage.STATIC]
-            }
-            project(':lib3') {
-                apply plugin: 'cpp-library'
-                library.linkage = [Linkage.STATIC]
-            }
-        """
+        """)
+        buildFile("lib2/build.gradle", """
+            apply plugin: 'cpp-library'
+            library.linkage = [Linkage.STATIC]
+        """)
+        buildFile("lib3/build.gradle", """
+            apply plugin: 'cpp-library'
+            library.linkage = [Linkage.STATIC]
+        """)
         app.deck.writeToProject(file("lib1"))
         app.card.writeToProject(file("lib2"))
         app.shuffle.writeToProject(file("lib3"))
@@ -441,21 +434,19 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         sharedLibrary("lib1/build/lib/main/release/lib1").strippedRuntimeFile.assertExists()
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "private headers are not visible to consumer"() {
         def lib = new CppLib()
 
         given:
         createDirs("greeter", "consumer")
         settingsFile << "include 'greeter', 'consumer'"
-        buildFile << """
-            subprojects {
-                apply plugin: 'cpp-library'
-            }
-            project(':consumer') {
-                dependencies { implementation project(':greeter') }
-            }
-"""
+        buildFile("greeter/build.gradle", """
+            apply plugin: 'cpp-library'
+""")
+        buildFile("consumer/build.gradle", """
+            apply plugin: 'cpp-library'
+            dependencies { implementation project(':greeter') }
+""")
         lib.sources.writeToProject(file('greeter'))
         lib.publicHeaders.writeToSourceDir(file('greeter/src/main/headers'))
         lib.privateHeaders.writeToSourceDir(file('greeter/src/main/headers'))
@@ -471,35 +462,32 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         failure.assertThatCause(CoreMatchers.containsString("C++ compiler failed while compiling main.cpp."))
 
         when:
-        buildFile << """
-project(':greeter') {
-    library.privateHeaders.from = []
-    library.publicHeaders.from = ['src/main/headers']
-}
-"""
+        buildFile("greeter/build.gradle", """
+library.privateHeaders.from = []
+library.publicHeaders.from = ['src/main/headers']
+""")
 
         then:
         succeeds(":consumer:compileDebugCpp")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "implementation dependencies are not visible to consumer"() {
         def app = new CppAppWithLibraries()
 
         given:
         createDirs("greeter", "logger", "consumer")
         settingsFile << "include 'greeter', 'logger', 'consumer'"
-        buildFile << """
-            subprojects {
-                apply plugin: 'cpp-library'
-            }
-            project(':greeter') {
-                dependencies { implementation project(':logger') }
-            }
-            project(':consumer') {
-                dependencies { implementation project(':greeter') }
-            }
-"""
+        buildFile("greeter/build.gradle", """
+            apply plugin: 'cpp-library'
+            dependencies { implementation project(':logger') }
+""")
+        buildFile("logger/build.gradle", """
+            apply plugin: 'cpp-library'
+""")
+        buildFile("consumer/build.gradle", """
+            apply plugin: 'cpp-library'
+            dependencies { implementation project(':greeter') }
+""")
         app.greeterLib.writeToProject(file('greeter'))
         app.loggerLib.writeToProject(file('logger'))
         file("consumer/src/main/cpp/main.cpp") << """
@@ -514,36 +502,33 @@ project(':greeter') {
         failure.assertThatCause(CoreMatchers.containsString("C++ compiler failed while compiling main.cpp."))
 
         when:
-        buildFile.text = buildFile.text.replace("dependencies { implementation project(':logger')", "dependencies { api project(':logger')")
+        file("greeter/build.gradle").replace("dependencies { implementation project(':logger')", "dependencies { api project(':logger')")
 
         then:
         succeeds(":consumer:compileDebugCpp")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can change default base name and successfully link against library"() {
         createDirs("lib1", "lib2")
         settingsFile << "include 'lib1', 'lib2'"
         def app = new CppAppWithLibraries()
 
         given:
-        buildFile << """
-            project(':lib1') {
-                apply plugin: 'cpp-library'
-                library {
-                    baseName = 'hello'
-                }
-                dependencies {
-                    implementation project(':lib2')
-                }
+        buildFile("lib1/build.gradle", """
+            apply plugin: 'cpp-library'
+            library {
+                baseName = 'hello'
             }
-            project(':lib2') {
-                apply plugin: 'cpp-library'
-                library {
-                    baseName = 'log'
-                }
+            dependencies {
+                implementation project(':lib2')
             }
-"""
+""")
+        buildFile("lib2/build.gradle", """
+            apply plugin: 'cpp-library'
+            library {
+                baseName = 'log'
+            }
+""")
         app.greeterLib.writeToProject(file("lib1"))
         app.loggerLib.writeToProject(file("lib2"))
 
