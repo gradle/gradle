@@ -2368,4 +2368,38 @@ Second: 1.1"""
         "plugins.myPlugin"   | "org.gradle.test:1.0"
         "bundles.myBundle"   | "[org.gradle.test:lib:3.0.5]"
     }
+
+    def "#entry of #alias declared in the settings DSL cannot inject code into the generated accessors using '#forbidden'"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        ${declaration.replace('<payload>', payload)}
+                    }
+                }
+            }
+        """
+
+        when:
+        fails 'help'
+
+        then:
+        injectedCodeDidNotRun()
+        verifyAll(receivedProblem) {
+            fqid == "Dependencies:Declaration:$problem"
+            contextualLabel.startsWith("In version catalog libs, on alias '$alias' $entry '")
+            contextualLabel.endsWith("' contains '$forbidden', which is not allowed")
+        }
+
+        where:
+        [payload, forbidden] << INJECTION_PAYLOADS
+        combined:
+        entry     | alias     | problem                                       | declaration
+        'version' | 'example' | 'Invalid version notation in version catalog' | "version('example', '1.0.0 <payload>')"
+        'branch'  | 'example' | 'Invalid version notation in version catalog' | "version('example') { branch = 'b <payload>' }"
+        'group'   | 'lib'     | 'Invalid version catalog dependency notation' | "library('lib', 'g <payload>:n:1.0')"
+        'name'    | 'lib'     | 'Invalid version catalog dependency notation' | "library('lib', 'g:n <payload>:1.0')"
+        'version' | 'lib'     | 'Invalid version notation in version catalog' | "library('lib', 'g:n:1.0 <payload>')"
+        'branch'  | 'lib'     | 'Invalid version notation in version catalog' | "library('lib', 'g', 'n').version { branch = 'b <payload>' }"
+    }
 }
