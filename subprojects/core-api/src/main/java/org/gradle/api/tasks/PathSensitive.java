@@ -26,6 +26,8 @@ import java.lang.annotation.Target;
  * Annotates a task file property, specifying which part of the file paths should be considered during up-to-date checks.
  *
  * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
+ * In Kotlin, use the {@code get:} use-site target to attach it to the property getter, for example {@code @get:PathSensitive(PathSensitivity.RELATIVE)}.
+ * This also works on abstract properties, where the annotation without a use-site target does not compile.
  * Annotations on setters or just the field in Java are ignored.</p>
  *
  * <p>If a {@link org.gradle.api.Task} declares a file property without this annotation, the default is {@link PathSensitivity#ABSOLUTE}.</p>
