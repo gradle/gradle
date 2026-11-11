@@ -131,6 +131,9 @@ class OriginTraceCallerIntegrationTest extends AbstractIntegrationSpec {
             module == null
         }
 
+        and: "the class is known only by name, so who owns it is not"
+        leaf.locality == Locality.UNKNOWN
+
         and: "the flat list, which older clients read, still points at the script line Gradle located below the compiled caller, as before"
         (problem.oneLocation(StackTraceLocation).fileLocation as LineInFileLocation).line == 5
     }

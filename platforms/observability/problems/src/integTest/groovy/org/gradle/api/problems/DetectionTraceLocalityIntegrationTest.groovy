@@ -156,6 +156,103 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
         localitiesOf(inTask()) == ["task :acme": Locality.LOCAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
     }
 
+    def "a plugin class defined in a build script gets no application frame, and its task takes the script's locality"() {
+        given:
+        buildFile """
+            $reportingTask
+
+            abstract class ScriptPlugin implements Plugin<Project> {
+                @Inject
+                abstract Problems getProblems()
+
+                void apply(Project project) {
+                    problems.reporter.report(problems.groups.others.group("Generic").problemId("$PROBLEM_ID")) { it.details("at application") }
+                    project.tasks.register("acme", ProblemReportingTask)
+                }
+            }
+
+            apply plugin: ScriptPlugin
+        """
+
+        when:
+        run("acme")
+
+        then:
+        localitiesOf(atApplication()) == ["project :": Locality.LOCAL, "build :": Locality.LOCAL]
+        localitiesOf(inTask()) == ["task :acme": Locality.UNKNOWN, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
+    }
+
+    def "a plugin from a jar added with files() and the task it registers are external"() {
+        given:
+        def pluginBuilder = new PluginBuilder(file("acme-plugin"))
+        pluginBuilder.packageName = "com.acme"
+        pluginBuilder.addPluginSource("com.acme.foo", "AcmePlugin", pluginSource("com.acme", "AcmePlugin"))
+        pluginBuilder.publishTo(createExecuter(), file("libs/acme-plugin.jar"))
+        buildFile """
+            buildscript {
+                dependencies {
+                    classpath files("libs/acme-plugin.jar")
+                }
+            }
+            apply plugin: "com.acme.foo"
+        """
+
+        when:
+        run("acme")
+
+        then:
+        localitiesOf(atApplication()) == ["plugin application com.acme.foo": Locality.EXTERNAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
+        localitiesOf(inTask()) == ["task :acme": Locality.EXTERNAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
+    }
+
+    def "a settings plugin applied to an included build is detected in the root build"() {
+        given:
+        def pluginBuilder = new PluginBuilder(file("acme-settings-plugin"))
+        pluginBuilder.packageName = "com.acme"
+        pluginBuilder.addPluginSource("com.acme.settings", "AcmeSettingsPlugin", """
+            package com.acme
+
+            import org.gradle.api.Plugin
+            import org.gradle.api.initialization.Settings
+            import org.gradle.api.problems.Problems
+            import javax.inject.Inject
+
+            abstract class AcmeSettingsPlugin implements Plugin<Settings> {
+                @Inject
+                abstract Problems getProblems()
+
+                void apply(Settings settings) {
+                    problems.reporter.report(problems.groups.others.group("Generic").problemId("$PROBLEM_ID")) { it.details("at application") }
+                }
+            }
+        """)
+        pluginBuilder.publishAs("com.acme", "acme-settings-plugin", "1.0", mavenRepo, createExecuter())
+        def pluginManagement = """
+            pluginManagement {
+                repositories {
+                    maven { url = "${mavenRepo.uri}" }
+                }
+            }
+        """
+        settingsFile """
+            $pluginManagement
+            includeBuild "lib"
+        """
+        file("lib/settings.gradle") << """
+            $pluginManagement
+            plugins {
+                id "com.acme.settings" version "1.0"
+            }
+            rootProject.name = "lib"
+        """
+
+        when:
+        run("help")
+
+        then:
+        atApplication().detectionTrace.frames*.displayName == ["plugin application com.acme.settings", "build :"]
+    }
+
     /**
      * A plugin that reports a problem as it is applied and registers task {@code acme}, which reports one too.
      */
