@@ -184,6 +184,8 @@ public class DefaultProblemReporter implements ProblemReporterInternal {
         ProblemInternal problemInternal = withCanonicalId((ProblemInternal) problem);
         Throwable exception = problemInternal.getException();
         if (exception != null) {
+            // The copy kept against the exception is what a build failure carries, so it gets its locations first
+            problemInternal = problemSummarizer.locate(problemInternal, id);
             exceptionProblemRegistry.onProblem(transform(exception), problemInternal);
         }
         problemSummarizer.emit(problemInternal, id);

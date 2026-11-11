@@ -18,6 +18,8 @@ package org.gradle.integtests.tooling.r910
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.Failure
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.events.problems.BuildFrame
 import org.gradle.tooling.events.problems.Locality
 import org.gradle.tooling.events.problems.PluginApplicationFrame
@@ -102,5 +104,54 @@ class DetectionTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionS
         frames*.displayName == ["plugin application com.acme.foo", "project :", "build :"]
         frames[0] instanceof PluginApplicationFrame
         frames[0].pluginId == "com.acme.foo"
+    }
+
+    def "the problem a build failure carries has the same traces as the problem event"() {
+        given:
+        buildFile """
+            import org.gradle.api.problems.Problems
+            import javax.inject.Inject
+
+            abstract class FailingTask extends DefaultTask {
+                @Inject
+                abstract Problems getProblems()
+
+                @TaskAction
+                void run() {
+                    def id = getProblems().getGroups().getOthers().group("Generic").problemId("$PROBLEM_ID")
+                    throw getProblems().getReporter().throwing(new RuntimeException("boom"), id) {
+                        it.lineInFileLocation(project.file("src/Foo.java").absolutePath, 3)
+                    }
+                }
+            }
+
+            tasks.register("reportProblem", FailingTask)
+        """
+        def listener = new ProblemListener()
+
+        when:
+        withConnection { connection ->
+            connection.newBuild()
+                .forTasks("reportProblem")
+                .addProgressListener(listener)
+                .withDetailedFailure()
+                .run()
+        }
+
+        then:
+        GradleConnectionException e = thrown(GradleConnectionException)
+        def onFailure = problemsOf(e.failures[0]).find { it.definition.id.name == PROBLEM_ID }
+        onFailure != null
+        onFailure.detectionTrace.frames*.displayName == ["task :reportProblem", "project :", "build :"]
+        onFailure.originTraces*.frames*.displayName == [[file("src/Foo.java").absolutePath + ":3"]]
+        onFailure.originTraces[0].frames[0].locality == Locality.LOCAL
+
+        and: "as the event has"
+        listener.problems.size() == 1
+        listener.problems[0].detectionTrace.frames*.displayName == onFailure.detectionTrace.frames*.displayName
+    }
+
+    private static List<?> problemsOf(Failure failure) {
+        failure.problems + failure.causes.collectMany { problemsOf(it) }
     }
 }

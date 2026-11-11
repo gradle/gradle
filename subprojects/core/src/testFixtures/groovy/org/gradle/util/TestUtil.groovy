@@ -484,6 +484,11 @@ class TestProblemSummarizer implements ProblemSummarizer {
         emitted.add(problem)
     }
 
+    @Override
+    ProblemInternal locate(ProblemInternal problem, @Nullable OperationIdentifier id) {
+        problem
+    }
+
     void reset() {
         emitted.clear()
     }

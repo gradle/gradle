@@ -87,14 +87,28 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         TaskIdentity taskIdentity = detection.getTask();
         String taskPath = taskIdentity == null ? null : taskIdentity.getTaskPath();
         if (summarizerStrategy.shouldEmit(problem, taskPath)) {
-            problem = maybeAddTaskLocation(problem, taskPath)
-                .withDetectionTrace(DetectionTraces.detectedIn(detection))
-                .withOriginTraces(OriginTraces.withLineage(OriginTraces.withFileLocalities(problem.getOriginTraces(), buildTreeRootDirectory), taskIdentity));
+            problem = locate(problem, detection);
             problemReportCreator.addProblem(problem);
             for (ProblemEmitter problemEmitter : problemEmitters) {
                 problemEmitter.emit(problem, id);
             }
         }
+    }
+
+    @Override
+    public ProblemInternal locate(ProblemInternal problem, @Nullable OperationIdentifier id) {
+        return locate(problem, detectionContextProvider.detectionContextFor(id));
+    }
+
+    private ProblemInternal locate(ProblemInternal problem, DetectionContext detection) {
+        if (problem.getDetectionTrace() != null) {
+            // Already located, by a caller that needed the complete problem before emitting it
+            return problem;
+        }
+        TaskIdentity taskIdentity = detection.getTask();
+        return maybeAddTaskLocation(problem, taskIdentity == null ? null : taskIdentity.getTaskPath())
+            .withDetectionTrace(DetectionTraces.detectedIn(detection))
+            .withOriginTraces(OriginTraces.withLineage(OriginTraces.withFileLocalities(problem.getOriginTraces(), buildTreeRootDirectory), taskIdentity));
     }
 
     private static ProblemInternal maybeAddTaskLocation(ProblemInternal problem, @Nullable String taskPath) {

@@ -38,6 +38,12 @@ public class WorkerProblemEmitter implements ProblemSummarizer {
         this.protocol = protocol;
     }
 
+    // A worker doesn't know what the daemon is running; the daemon locates the problem when it receives it
+    @Override
+    public ProblemInternal locate(ProblemInternal problem, @Nullable OperationIdentifier id) {
+        return problem;
+    }
+
     @Override
     public void emit(ProblemInternal problem, @Nullable OperationIdentifier id) {
         protocol.reportProblem(problem, id);
