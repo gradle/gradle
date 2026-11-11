@@ -29,7 +29,7 @@ public class MissingLockStateException extends RuntimeException implements Resol
     static {
         RESOLUTIONS = ImmutableList.of(
             "To create the lock state, run a task that performs dependency resolution and add '--write-locks' to the command line.",
-            new DocumentationRegistry().getDocumentationRecommendationFor("information on generating lock state", "dependency_locking", "generating_and_updating_dependency_locks"));
+            new DocumentationRegistry().getDocumentationRecommendationFor("information on generating lock state", "dependency_locking", "sec:generate-locks"));
     }
     public MissingLockStateException(DisplayName displayName) {
         super("Locking strict mode: " + displayName.getCapitalizedDisplayName() + " is locked but does not have lock state.");

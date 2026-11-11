@@ -36,7 +36,8 @@ import static org.gradle.internal.exceptions.StyledException.style;
  */
 public abstract class ConfigurationNotCompatibleFailureDescriber extends AbstractResolutionFailureDescriber<ConfigurationNotCompatibleFailure> {
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
-    private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
+    private static final String INCOMPATIBLE_VARIANTS_PAGE = "variant_aware_resolution";
+    private static final String INCOMPATIBLE_VARIANTS_SECTION = "sec:step_6_failure_condition";
 
     private final AttributeDescriberRegistry attributeDescribers;
 
@@ -51,7 +52,7 @@ public abstract class ConfigurationNotCompatibleFailureDescriber extends Abstrac
     public VariantSelectionByNameException describeFailure(ConfigurationNotCompatibleFailure failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), attributeDescribers.getDescribers());
         String message = buildFailureMsg(failure, describer);
-        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION), suggestReviewAlgorithm());
+        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_PAGE, INCOMPATIBLE_VARIANTS_SECTION), suggestReviewAlgorithm());
         return new VariantSelectionByNameException(message, failure, resolutions);
     }
 

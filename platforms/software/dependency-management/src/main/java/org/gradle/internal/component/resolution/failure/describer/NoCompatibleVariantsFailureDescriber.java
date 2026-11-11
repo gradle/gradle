@@ -39,7 +39,8 @@ import static org.gradle.internal.exceptions.StyledException.style;
  */
 public abstract class NoCompatibleVariantsFailureDescriber extends AbstractResolutionFailureDescriber<NoCompatibleVariantsFailure> {
     private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
-    private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
+    private static final String NO_MATCHING_VARIANTS_PAGE = "variant_aware_resolution";
+    private static final String NO_MATCHING_VARIANTS_SECTION = "sec:step_6_failure_condition";
     private static final String NO_VARIANTS_EXIST_PREFIX = "Creating consumable variants is explained in more detail at ";
     private static final String NO_VARIANTS_EXIST_SECTION = "sec:resolvable-consumable-configs";
 
@@ -110,10 +111,10 @@ public abstract class NoCompatibleVariantsFailureDescriber extends AbstractResol
 
     private List<String> buildResolutions(FailureSubType failureSubType) {
         if (failureSubType == FailureSubType.NO_VARIANTS_EXIST) {
-            String suggestReviewCreatingConsumableConfigs = NO_VARIANTS_EXIST_PREFIX + getDocumentationRegistry().getDocumentationFor("declaring_dependencies", NO_VARIANTS_EXIST_SECTION) + ".";
+            String suggestReviewCreatingConsumableConfigs = NO_VARIANTS_EXIST_PREFIX + getDocumentationRegistry().getDocumentationFor("declaring_configurations", NO_VARIANTS_EXIST_SECTION) + ".";
             return buildResolutions(suggestReviewCreatingConsumableConfigs, suggestReviewAlgorithm());
         } else {
-            return buildResolutions(suggestSpecificDocumentation(NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION), suggestReviewAlgorithm());
+            return buildResolutions(suggestSpecificDocumentation(NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_PAGE, NO_MATCHING_VARIANTS_SECTION), suggestReviewAlgorithm());
         }
     }
 
