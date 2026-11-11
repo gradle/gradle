@@ -76,7 +76,7 @@ class DetectionTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionS
         frames[3].buildPath == ":"
     }
 
-    def "problem reported while configuring a project carries the project and the build"() {
+    def "problem reported by a plugin applied by its class carries the plugin application without an id"() {
         given:
         pluginReportsProblemWhenApplied()
 
@@ -86,9 +86,12 @@ class DetectionTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionS
         then:
         problems.size() == 1
         def frames = problems[0].detectionTrace.frames
-        frames*.displayName == ["project :", "build :"]
-        frames[0] instanceof ProjectFrame
-        frames[1] instanceof BuildFrame
+        frames*.displayName == ["plugin application class ProblemReportingPlugin", "project :", "build :"]
+        frames[0] instanceof PluginApplicationFrame
+        frames[0].pluginId == null
+        frames[0].className == "ProblemReportingPlugin"
+        frames[1] instanceof ProjectFrame
+        frames[2] instanceof BuildFrame
     }
 
     def "problem reported by a plugin with an id carries the plugin application"() {
@@ -104,6 +107,7 @@ class DetectionTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionS
         frames*.displayName == ["plugin application com.acme.foo", "project :", "build :"]
         frames[0] instanceof PluginApplicationFrame
         frames[0].pluginId == "com.acme.foo"
+        frames[0].className == "com.acme.FooPlugin"
     }
 
     def "the problem a build failure carries has the same traces as the problem event"() {

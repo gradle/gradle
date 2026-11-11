@@ -45,11 +45,13 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
     private final ScriptPlugin decorated;
     private final BuildOperationRunner buildOperationRunner;
     private final UserCodeApplicationContext userCodeApplicationContext;
+    private final boolean topLevelScript;
 
-    public BuildOperationScriptPlugin(ScriptPlugin decorated, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
+    public BuildOperationScriptPlugin(ScriptPlugin decorated, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, boolean topLevelScript) {
         this.decorated = decorated;
         this.buildOperationRunner = buildOperationRunner;
         this.userCodeApplicationContext = userCodeApplicationContext;
+        this.topLevelScript = topLevelScript;
     }
 
     @Override
@@ -66,7 +68,7 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
         } else {
             URI uri = resource.getFile() != null ? resource.getFile().toURI() : resource.getLocation().getURI();
             UserCodeApplicationContext.Application applying = userCodeApplicationContext.current();
-            UserCodeSource source = new UserCodeSource.Script(getSource().getShortDisplayName(), uri, localityOf(target, resource.getFile()), applying == null ? null : applying.getSource());
+            UserCodeSource source = new UserCodeSource.Script(getSource().getShortDisplayName(), uri, localityOf(target, resource.getFile()), applying == null ? null : applying.getSource(), topLevelScript);
             UserCodeApplicationContext.Target appTarget = getApplicationTargetFor(target);
             userCodeApplicationContext.apply(source, appTarget, userCodeApplicationId -> buildOperationRunner.run(new RunnableBuildOperation() {
                 @Override

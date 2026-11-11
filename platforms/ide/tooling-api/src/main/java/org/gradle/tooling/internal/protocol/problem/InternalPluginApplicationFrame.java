@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.protocol.problem;
 
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The application of a plugin to a project, a settings object or a build.
@@ -27,5 +28,8 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 public interface InternalPluginApplicationFrame extends InternalFrame {
 
+    @Nullable
     String getPluginId();
+
+    String getClassName();
 }

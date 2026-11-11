@@ -237,6 +237,69 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
         problem.originTraces[0].frames[0].locality == Locality.LOCAL
     }
 
+    def "a deprecation in a script applied to a project with apply from is detected in the script application"() {
+        given:
+        settingsFile """
+            include "app"
+        """
+        file("app/build.gradle") << """
+            apply from: rootProject.file("gradle/shared.gradle")
+        """
+        file("gradle/shared.gradle") << """
+            $NAG
+        """
+        expectFeatureDeprecation()
+
+        when:
+        run(":app:help")
+
+        then:
+        detectionOf("Gradle:Deprecation:Feature") == [
+            "script application shared.gradle",
+            "project :app",
+            "build :"
+        ]
+        problem.detectionTrace.frames[0].locality == Locality.LOCAL
+        originsOf(problem) == [[file("gradle/shared.gradle").absolutePath + ":4"]]
+    }
+
+    def "a script applied from outside the build still counts as local"() {
+        given:
+        file("root/settings.gradle") << ""
+        file("root/build.gradle") << """
+            apply from: "../outside/shared.gradle"
+        """
+        file("outside/shared.gradle") << """
+            $NAG
+        """
+        executer.inDirectory(file("root"))
+        expectFeatureDeprecation()
+
+        when:
+        run("help")
+
+        then:
+        detectionOf("Gradle:Deprecation:Feature") == ["script application shared.gradle", "project :", "build :"]
+        problem.detectionTrace.frames[0].locality == Locality.LOCAL
+    }
+
+    def "a deprecation in a script applied to the settings with apply from is detected in the script application"() {
+        given:
+        settingsFile """
+            apply from: "shared.settings.gradle"
+        """
+        file("shared.settings.gradle") << """
+            $NAG
+        """
+        expectFeatureDeprecation()
+
+        when:
+        run("help")
+
+        then:
+        detectionOf("Gradle:Deprecation:Feature") == ["script application shared.settings.gradle", "build :"]
+    }
+
     def "UC9: deprecation in a build script of an included build is detected in that build's project"() {
         given:
         settingsFile """

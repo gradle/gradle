@@ -115,7 +115,7 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
             emitters.build(),
             internalOptions,
             problemReportCreator,
-            id -> new DetectionContext(currentTask(id, workExecutionTracker), ProblemProjectIdentityTracker.getProjectIdentity(), currentPlugin(userCodeApplicationContext)),
+            id -> new DetectionContext(currentTask(id, workExecutionTracker), ProblemProjectIdentityTracker.getProjectIdentity(), currentApplication(userCodeApplicationContext)),
             buildTreeLocations.getBuildTreeRootDirectory()
         );
     }
@@ -134,15 +134,19 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
     }
 
     /**
-     * The plugin whose code the current thread runs, if it has an id. Scripts and plugins without an id give none.
+     * The plugin whose code the current thread runs, or the script when other code applied it with {@code apply from:}.
+     * The script of a project, of the settings or of an init script gives none: the project or build frame stands for it.
      */
-    private static UserCodeSource.@Nullable Binary currentPlugin(UserCodeApplicationContext userCodeApplicationContext) {
+    private static @Nullable UserCodeSource currentApplication(UserCodeApplicationContext userCodeApplicationContext) {
         UserCodeApplicationContext.Application application = userCodeApplicationContext.current();
-        if (application == null || !(application.getSource() instanceof UserCodeSource.Binary)) {
+        if (application == null) {
             return null;
         }
-        UserCodeSource.Binary plugin = (UserCodeSource.Binary) application.getSource();
-        return plugin.getPluginId() == null ? null : plugin;
+        UserCodeSource source = application.getSource();
+        if (source instanceof UserCodeSource.Script && ((UserCodeSource.Script) source).isTopLevel()) {
+            return null;
+        }
+        return source;
     }
 
     @Provides

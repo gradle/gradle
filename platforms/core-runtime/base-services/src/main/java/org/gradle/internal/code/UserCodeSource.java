@@ -109,6 +109,7 @@ public interface UserCodeSource {
         private final @Nullable URI uri;
         private final Locality locality;
         private final @Nullable UserCodeSource appliedBy;
+        private final boolean topLevel;
 
         public Script(Describable displayName, @Nullable URI uri) {
             this(displayName, uri, Locality.UNKNOWN);
@@ -119,10 +120,23 @@ public interface UserCodeSource {
         }
 
         public Script(Describable displayName, @Nullable URI uri, Locality locality, @Nullable UserCodeSource appliedBy) {
+            this(displayName, uri, locality, appliedBy, true);
+        }
+
+        public Script(Describable displayName, @Nullable URI uri, Locality locality, @Nullable UserCodeSource appliedBy, boolean topLevel) {
             this.displayName = displayName;
             this.uri = uri;
             this.locality = locality;
             this.appliedBy = appliedBy;
+            this.topLevel = topLevel;
+        }
+
+        /**
+         * Whether this is the script of its target, such as the build script of a project, the settings script or an init script.
+         * A script that other code pulls in with {@code apply from:} is not.
+         */
+        public boolean isTopLevel() {
+            return topLevel;
         }
 
         @Override

@@ -50,6 +50,51 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
         localitiesOf(inTask()) == ["task :acme": Locality.LOCAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
     }
 
+    def "a plugin applied by its class is named by the class and keeps its locality"() {
+        given:
+        pluginInBuildSrc("com.acme.foo", "com.acme.AcmePlugin")
+        buildFile """
+            apply plugin: com.acme.AcmePlugin
+        """
+
+        when:
+        run("acme")
+
+        then:
+        localitiesOf(atApplication()) == ["plugin application class com.acme.AcmePlugin": Locality.LOCAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
+        localitiesOf(inTask()) == ["task :acme": Locality.LOCAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
+    }
+
+    def "only the innermost plugin application is part of the trace"() {
+        given:
+        pluginInBuildSrc("com.acme.outer", "com.acme.OuterPlugin")
+        file("buildSrc/src/main/groovy/com/acme/OuterPlugin.groovy").text = """
+            package com.acme
+
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+
+            class OuterPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.pluginManager.apply(AcmePlugin)
+                }
+            }
+        """
+        file("buildSrc/src/main/groovy/com/acme/AcmePlugin.groovy") << pluginSource("com.acme", "AcmePlugin")
+        buildFile """
+            plugins {
+                id "com.acme.outer"
+            }
+        """
+
+        when:
+        run("acme")
+
+        then:
+        localitiesOf(atApplication()) == ["plugin application class com.acme.AcmePlugin": Locality.LOCAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
+        localitiesOf(inTask()) == ["task :acme": Locality.LOCAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
+    }
+
     def "a plugin from a repository and the task it registers are external"() {
         given:
         def pluginBuilder = new PluginBuilder(file("acme-plugin"))
@@ -156,7 +201,7 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
         localitiesOf(inTask()) == ["task :acme": Locality.LOCAL, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
     }
 
-    def "a plugin class defined in a build script gets no application frame, and its task takes the script's locality"() {
+    def "a plugin class defined in a build script is unknown, and its task takes the locality of its class"() {
         given:
         buildFile """
             $reportingTask
@@ -178,7 +223,7 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
         run("acme")
 
         then:
-        localitiesOf(atApplication()) == ["project :": Locality.LOCAL, "build :": Locality.LOCAL]
+        localitiesOf(atApplication()) == ["plugin application class ScriptPlugin": Locality.UNKNOWN, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
         localitiesOf(inTask()) == ["task :acme": Locality.UNKNOWN, "project :": Locality.LOCAL, "build :": Locality.LOCAL]
     }
 

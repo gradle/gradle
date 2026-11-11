@@ -1133,7 +1133,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             return new DefaultBuildFrame(displayName, locality, position, ((InternalBuildFrame) frame).getBuildPath());
         }
         if (frame instanceof InternalPluginApplicationFrame) {
-            return new DefaultPluginApplicationFrame(displayName, locality, position, ((InternalPluginApplicationFrame) frame).getPluginId());
+            return new DefaultPluginApplicationFrame(displayName, locality, position, ((InternalPluginApplicationFrame) frame).getPluginId(), ((InternalPluginApplicationFrame) frame).getClassName());
         }
         if (frame instanceof InternalPluginClassFrame) {
             InternalPluginClassFrame pluginClass = (InternalPluginClassFrame) frame;

@@ -25,15 +25,22 @@ import org.jspecify.annotations.Nullable;
 @NullMarked
 public class DefaultPluginApplicationFrame extends DefaultFrame implements PluginApplicationFrame {
 
-    private final String pluginId;
+    private final @Nullable String pluginId;
+    private final String className;
 
-    public DefaultPluginApplicationFrame(String displayName, Locality locality, @Nullable Position position, String pluginId) {
+    public DefaultPluginApplicationFrame(String displayName, Locality locality, @Nullable Position position, @Nullable String pluginId, String className) {
         super(displayName, locality, position);
         this.pluginId = pluginId;
+        this.className = className;
     }
 
     @Override
-    public String getPluginId() {
+    public @Nullable String getPluginId() {
         return pluginId;
+    }
+
+    @Override
+    public String getClassName() {
+        return className;
     }
 }

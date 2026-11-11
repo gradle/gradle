@@ -20,7 +20,7 @@ import org.gradle.internal.code.UserCodeSource;
 import org.jspecify.annotations.Nullable;
 
 /**
- * What was running when a problem was reported: the executing task, the project being configured, and the plugin being applied.
+ * What was running when a problem was reported: the executing task, the project being configured, and the plugin or script being applied.
  * Each part is null when there is no such thing.
  */
 public class DetectionContext {
@@ -29,12 +29,12 @@ public class DetectionContext {
 
     private final TaskIdentity task;
     private final ProjectIdentity project;
-    private final UserCodeSource.Binary appliedPlugin;
+    private final UserCodeSource appliedCode;
 
-    public DetectionContext(@Nullable TaskIdentity task, @Nullable ProjectIdentity project, UserCodeSource.@Nullable Binary appliedPlugin) {
+    public DetectionContext(@Nullable TaskIdentity task, @Nullable ProjectIdentity project, @Nullable UserCodeSource appliedCode) {
         this.task = task;
         this.project = project;
-        this.appliedPlugin = appliedPlugin;
+        this.appliedCode = appliedCode;
     }
 
     @Nullable
@@ -48,9 +48,10 @@ public class DetectionContext {
     }
 
     /**
-     * The plugin whose code is running, if it has an id.
+     * The plugin whose code is running, or the script when other code applied it with {@code apply from:}.
      */
-    public UserCodeSource.@Nullable Binary getAppliedPlugin() {
-        return appliedPlugin;
+    @Nullable
+    public UserCodeSource getAppliedCode() {
+        return appliedCode;
     }
 }

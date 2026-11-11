@@ -17,6 +17,7 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The application of a plugin to a project, a settings object or a build.
@@ -29,8 +30,17 @@ public interface PluginApplicationFrame extends Frame {
     /**
      * Returns the id of the plugin.
      *
-     * @return the plugin id, such as {@code com.acme.foo}
+     * @return the plugin id, such as {@code com.acme.foo}, or null when the plugin was applied by its class
      * @since 9.10.0
      */
+    @Nullable
     String getPluginId();
+
+    /**
+     * Returns the name of the plugin's class.
+     *
+     * @return the fully qualified class name
+     * @since 9.10.0
+     */
+    String getClassName();
 }

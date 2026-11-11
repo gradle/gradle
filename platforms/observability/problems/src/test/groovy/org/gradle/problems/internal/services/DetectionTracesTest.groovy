@@ -25,6 +25,7 @@ import org.gradle.internal.code.Locality
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.api.problems.internal.location.PluginApplicationFrame
 import org.gradle.api.problems.internal.location.ProjectFrame
+import org.gradle.api.problems.internal.location.ScriptApplicationFrame
 import org.gradle.api.problems.internal.location.TaskFrame
 import spock.lang.Specification
 
@@ -74,6 +75,37 @@ class DetectionTracesTest extends Specification {
         frames*.locality == [Locality.LOCAL, Locality.LOCAL, Locality.LOCAL]
     }
 
+    def "a plugin applied by its class is named by the class"() {
+        when:
+        def frames = DetectionTraces.detectedIn(new DetectionContext(null, new ProjectIdentity(":app", ":"), plugin(null, Locality.LOCAL))).frames
+
+        then:
+        frames*.displayName == ["plugin application class com.acme.FooPlugin", "project :app", "build :"]
+        frames[0].pluginId == null
+        frames[0].className == "com.acme.FooPlugin"
+    }
+
+    def "a script applied by other code is the leaf, named by its file"() {
+        given:
+        def script = new UserCodeSource.Script(Describables.of("script '/work/gradle/shared.gradle'"), new File("/work/gradle/shared.gradle").toURI(), Locality.LOCAL, null, false)
+
+        when:
+        def frames = DetectionTraces.detectedIn(new DetectionContext(null, new ProjectIdentity(":app", ":"), script)).frames
+
+        then:
+        frames*.class == [ScriptApplicationFrame, ProjectFrame, BuildFrame]
+        frames*.displayName == ["script application shared.gradle", "project :app", "build :"]
+        frames*.locality == [Locality.LOCAL, Locality.LOCAL, Locality.LOCAL]
+    }
+
+    def "a script without a file is named by its display name"() {
+        given:
+        def script = new UserCodeSource.Script(Describables.of("script"), null, Locality.UNKNOWN, null, false)
+
+        expect:
+        DetectionTraces.detectedIn(new DetectionContext(null, null, script)).frames*.displayName == ["script application script", "build :"]
+    }
+
     def "a plugin being applied outside a project sits on the root build"() {
         when:
         def frames = DetectionTraces.detectedIn(new DetectionContext(null, null, plugin("com.acme.settings", Locality.EXTERNAL))).frames
@@ -114,6 +146,6 @@ class DetectionTracesTest extends Specification {
     }
 
     private static UserCodeSource.Binary plugin(String id, Locality locality) {
-        new UserCodeSource.Binary(Describables.of("plugin '$id'"), "com.acme.FooPlugin", id, locality)
+        new UserCodeSource.Binary(Describables.of("plugin"), "com.acme.FooPlugin", id, locality)
     }
 }

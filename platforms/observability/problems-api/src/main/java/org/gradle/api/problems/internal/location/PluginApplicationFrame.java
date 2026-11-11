@@ -14,24 +14,35 @@
  * limitations under the License.
  */
 
+
 package org.gradle.api.problems.internal.location;
 
 import org.gradle.internal.code.Locality;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The application of a plugin to a target.
  */
 public final class PluginApplicationFrame extends Frame {
 
-    private final String pluginId;
+    private final @Nullable String pluginId;
+    private final String className;
 
-    public PluginApplicationFrame(String pluginId, Locality locality) {
-        super("plugin application " + pluginId, locality);
+    /**
+     * @param pluginId the id the plugin was applied by, or null when it was applied by class
+     */
+    public PluginApplicationFrame(@Nullable String pluginId, String className, Locality locality) {
+        super(pluginId != null ? "plugin application " + pluginId : "plugin application class " + className, locality);
         this.pluginId = pluginId;
+        this.className = className;
     }
 
-    public String getPluginId() {
+    public @Nullable String getPluginId() {
         return pluginId;
+    }
+
+    public String getClassName() {
+        return className;
     }
 
     @Override

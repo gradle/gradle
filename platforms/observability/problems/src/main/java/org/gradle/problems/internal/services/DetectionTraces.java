@@ -26,8 +26,12 @@ import org.gradle.internal.code.Locality;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.api.problems.internal.location.PluginApplicationFrame;
 import org.gradle.api.problems.internal.location.ProjectFrame;
+import org.gradle.api.problems.internal.location.ScriptApplicationFrame;
 import org.gradle.api.problems.internal.location.TaskFrame;
 import org.gradle.api.problems.internal.location.Trace;
+import org.jspecify.annotations.Nullable;
+
+import java.net.URI;
 
 /**
  * Builds the detection trace of a problem: what was running when the problem was noticed.
@@ -48,8 +52,8 @@ final class DetectionTraces {
      * Returns the trace for what was running when a problem was noticed, leaf first.
      * <ul>
      * <li>While a task runs: the task, its project, the build that owns it, and the root build.</li>
-     * <li>While a project is configured: the plugin being applied, if any, the project, its build, and the root build.</li>
-     * <li>Otherwise: the plugin being applied, if any, and the root build.</li>
+     * <li>While a project is configured: the plugin or script being applied, if any, the project, its build, and the root build.</li>
+     * <li>Otherwise: the plugin or script being applied, if any, and the root build.</li>
      * </ul>
      */
     static Trace detectedIn(DetectionContext detection) {
@@ -61,9 +65,9 @@ final class DetectionTraces {
                 new ProjectFrame(task.getProjectPath(), BUILD_MODEL)));
         }
         ImmutableList.Builder<Frame> leafBuilder = ImmutableList.builder();
-        UserCodeSource.Binary plugin = detection.getAppliedPlugin();
-        if (plugin != null) {
-            leafBuilder.add(new PluginApplicationFrame(plugin.getPluginId(), plugin.getLocality()));
+        Frame application = applicationFrameOf(detection.getAppliedCode());
+        if (application != null) {
+            leafBuilder.add(application);
         }
         ProjectIdentity project = detection.getProject();
         if (project != null) {
@@ -72,6 +76,26 @@ final class DetectionTraces {
         }
         ImmutableList<Frame> leaves = leafBuilder.build();
         return leaves.isEmpty() ? ROOT_BUILD : withBuilds(ROOT_BUILD_PATH, leaves);
+    }
+
+    private static @Nullable Frame applicationFrameOf(@Nullable UserCodeSource applied) {
+        if (applied instanceof UserCodeSource.Binary) {
+            UserCodeSource.Binary plugin = (UserCodeSource.Binary) applied;
+            return new PluginApplicationFrame(plugin.getPluginId(), plugin.getClassName(), plugin.getLocality());
+        }
+        if (applied instanceof UserCodeSource.Script) {
+            return new ScriptApplicationFrame(scriptNameOf((UserCodeSource.Script) applied), applied.getLocality());
+        }
+        return null;
+    }
+
+    private static String scriptNameOf(UserCodeSource.Script script) {
+        URI uri = script.getUri();
+        String path = uri == null ? null : uri.getPath();
+        if (path == null || path.isEmpty()) {
+            return script.getDisplayName().getDisplayName();
+        }
+        return path.substring(path.lastIndexOf('/') + 1);
     }
 
     private static Trace withBuilds(String buildPath, ImmutableList<Frame> leaves) {

@@ -44,6 +44,7 @@ object UserCodeSourceCodec : Codec<UserCodeSource> {
                 writeString(value.displayName.displayName)
                 writeNullableString(value.uri?.toString())
                 writeEnum(value.locality)
+                writeBoolean(value.isTopLevel)
                 writeAppliedBy(value.appliedBy)
             }
 
@@ -78,7 +79,8 @@ object UserCodeSourceCodec : Codec<UserCodeSource> {
                 val displayName = readString()
                 val uri = readNullableString()?.let { URI.create(it) }
                 val locality = readEnum<Locality>()
-                UserCodeSource.Script(Describables.of(displayName), uri, locality, readAppliedBy())
+                val topLevel = readBoolean()
+                UserCodeSource.Script(Describables.of(displayName), uri, locality, readAppliedBy(), topLevel)
             }
 
             else -> error("Unexpected user code source type: $type")

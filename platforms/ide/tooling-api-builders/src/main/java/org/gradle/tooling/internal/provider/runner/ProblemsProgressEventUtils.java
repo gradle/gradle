@@ -191,7 +191,7 @@ public class ProblemsProgressEventUtils {
             return new DefaultBuildFrame(displayName, locality, position, ((BuildFrame) frame).getBuildPath());
         }
         if (frame instanceof PluginApplicationFrame) {
-            return new DefaultPluginApplicationFrame(displayName, locality, position, ((PluginApplicationFrame) frame).getPluginId());
+            return new DefaultPluginApplicationFrame(displayName, locality, position, ((PluginApplicationFrame) frame).getPluginId(), ((PluginApplicationFrame) frame).getClassName());
         }
         if (frame instanceof PluginClassFrame) {
             PluginClassFrame pluginClass = (PluginClassFrame) frame;
