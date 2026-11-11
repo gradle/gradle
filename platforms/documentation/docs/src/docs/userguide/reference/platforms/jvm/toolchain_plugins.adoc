@@ -28,6 +28,14 @@ At the moment the download response only contains a download URL, but may be ext
 WARNING: For the download URL only secure protocols like `https` are accepted.
 This is required to make sure no one can tamper with the download in flight.
 
+Gradle names the downloaded archive after the file name the server provides in the `Content-Disposition` header.
+Without that header, Gradle uses everything after the last `/` of the URL, including any query.
+If the header is present but has no file name, Gradle names the archive after a hash of the full URL instead.
+Gradle reuses an archive it has already downloaded under the same name.
+Unless the server provides a file name in the `Content-Disposition` header, a URL that changes between requests, for example one with an expiring access token such as `https://example.com/jdks/temurin-21?token=a1b2c3`, causes Gradle to download the archive again each time it provisions a toolchain.
+
+NOTE: Gradle detects whether the archive is a zip or a tar.gz file from its content, not from its file name.
+
 The plugins provide the mapping logic via an implementation of link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainResolver.html[JavaToolchainResolver]:
 
 .JavaToolchainResolverImplementation.java
