@@ -151,6 +151,69 @@ class DetectionTraceCrossVersionSpec extends AbstractDetectionTraceCrossVersionS
         listener.problems[0].detectionTrace.frames*.displayName == onFailure.detectionTrace.frames*.displayName
     }
 
+    def "the problem a build failure carries has its traces when it was thrown in a worker #isolation"() {
+        given:
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id "java"
+            }
+            dependencies {
+                implementation(gradleApi())
+            }
+        """
+        file("buildSrc/src/main/java/org/gradle/test/FailingWork.java") << """
+            package org.gradle.test;
+
+            import org.gradle.api.problems.Problems;
+            import org.gradle.workers.WorkAction;
+            import org.gradle.workers.WorkParameters;
+            import javax.inject.Inject;
+
+            public abstract class FailingWork implements WorkAction<WorkParameters.None> {
+                @Inject
+                public abstract Problems getProblems();
+
+                @Override
+                public void execute() {
+                    throw getProblems().getReporter().throwing(new RuntimeException("boom"),
+                        getProblems().getGroups().getOthers().group("Generic").problemId("$PROBLEM_ID"), spec -> {});
+                }
+            }
+        """
+        buildFile """
+            import javax.inject.Inject
+
+            abstract class FailingTask extends DefaultTask {
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor()
+
+                @TaskAction
+                void run() {
+                    getWorkerExecutor().${isolation}().submit(org.gradle.test.FailingWork) {}
+                }
+            }
+
+            tasks.register("reportProblem", FailingTask)
+        """
+
+        when:
+        withConnection { connection ->
+            connection.newBuild()
+                .forTasks("reportProblem")
+                .withDetailedFailure()
+                .run()
+        }
+
+        then:
+        GradleConnectionException e = thrown(GradleConnectionException)
+        def onFailure = problemsOf(e.failures[0]).find { it.definition.id.name == PROBLEM_ID }
+        onFailure != null
+        onFailure.detectionTrace?.frames*.displayName == ["task :reportProblem", "project :", "build :"]
+
+        where:
+        isolation << ["noIsolation", "classLoaderIsolation", "processIsolation"]
+    }
+
     private static List<?> problemsOf(Failure failure) {
         failure.problems + failure.causes.collectMany { problemsOf(it) }
     }
