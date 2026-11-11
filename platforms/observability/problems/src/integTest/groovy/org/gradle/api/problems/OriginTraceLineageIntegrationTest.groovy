@@ -122,4 +122,77 @@ class OriginTraceLineageIntegrationTest extends AbstractIntegrationSpec {
         ]
         frames*.locality == [Locality.UNKNOWN, Locality.UNKNOWN, Locality.EXTERNAL, Locality.EXTERNAL, Locality.LOCAL, Locality.LOCAL]
     }
+
+    def "a task type that is a nested class gets its lineage"() {
+        given:
+        file("buildSrc/src/main/java/com/acme/Tasks.java") << """
+            package com.acme;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.TaskAction;
+
+            public class Tasks {
+                public static class AcmeTask extends DefaultTask {
+                    private String bar;
+
+                    public String getBar() { return bar; }
+                    public void setBar(String bar) { this.bar = bar; }
+
+                    @TaskAction
+                    public void run() {}
+                }
+            }
+        """
+        buildFile """
+            tasks.register("acme", com.acme.Tasks.AcmeTask)
+        """
+
+        when:
+        fails("acme")
+
+        then:
+        def problem = findReceivedProblem { it.fqid == "Gradle:Plugin Validation:Missing annotation" }
+        problem.originTraces[0].frames*.displayName == ["property bar", "class com.acme.Tasks.AcmeTask", "task :acme", buildFile.absolutePath]
+    }
+
+    def "a property of a nested bean gets the lineage of its task"() {
+        given:
+        file("buildSrc/src/main/java/com/acme/Options.java") << """
+            package com.acme;
+
+            public class Options {
+                private String bar;
+
+                public String getBar() { return bar; }
+                public void setBar(String bar) { this.bar = bar; }
+            }
+        """
+        file("buildSrc/src/main/java/com/acme/AcmeTask.java") << """
+            package com.acme;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.Nested;
+            import org.gradle.api.tasks.TaskAction;
+
+            public class AcmeTask extends DefaultTask {
+                private final Options options = new Options();
+
+                @Nested
+                public Options getOptions() { return options; }
+
+                @TaskAction
+                public void run() {}
+            }
+        """
+        buildFile """
+            tasks.register("acme", com.acme.AcmeTask)
+        """
+
+        when:
+        fails("acme")
+
+        then:
+        def problem = findReceivedProblem { it.fqid == "Gradle:Plugin Validation:Missing annotation" }
+        problem.originTraces[0].frames*.displayName == ["property options.bar", "class com.acme.AcmeTask", "task :acme", buildFile.absolutePath]
+    }
 }

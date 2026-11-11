@@ -76,7 +76,8 @@ final class OriginTraces {
         for (Trace trace : traces) {
             List<Frame> frames = trace.getFrames();
             Frame root = frames.get(frames.size() - 1);
-            if (root instanceof ClassFrame && ((ClassFrame) root).getClassName().equals(task.getTypeName())) {
+            // Validation names a nested class with dots, the task type with a dollar sign
+            if (root instanceof ClassFrame && ((ClassFrame) root).getClassName().equals(task.getTypeName().replace('$', '.'))) {
                 ImmutableList.Builder<Frame> withLineage = ImmutableList.<Frame>builder().addAll(frames);
                 withLineage.add(new TaskFrame(task.getTaskPath(), task.getLocality()));
                 for (UserCodeSource source = task.getRegisteredBy(); source != null; source = source.getAppliedBy()) {

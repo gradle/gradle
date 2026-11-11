@@ -67,4 +67,13 @@ class OriginTracesTest extends Specification {
         OriginTraces.withLineage([file], task)[0].frames*.displayName == ["/work/build.gradle:3"]
         OriginTraces.withLineage([file], null)[0].frames*.displayName == ["/work/build.gradle:3"]
     }
+
+    def "a task type that is a nested class matches the dotted name validation gives it"() {
+        given:
+        def task = new TaskIdentity(":acme", ":", ":", 'com.acme.Tasks$AcmeTask', null)
+        def validation = new Trace([new PropertyFrame("bar", Locality.UNKNOWN), new ClassFrame("com.acme.Tasks.AcmeTask", Locality.UNKNOWN)])
+
+        expect:
+        OriginTraces.withLineage([validation], task)[0].frames*.displayName == ["property bar", "class com.acme.Tasks.AcmeTask", "task :acme"]
+    }
 }
