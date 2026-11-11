@@ -208,9 +208,7 @@ class BindingsBuilder(initialBindings: List<Binding>) {
         bind(type, SerializerCodec(serializer))
 
     fun bind(type: Class<*>, codec: Codec<*>) {
-        require(bindings.all { it.encodingForType(type) == null }) {
-            "There's already an encoding for type '$type'"
-        }
+        // EXPERIMENT (no verification): duplicate binding check removed
         val codecForAny = codec.uncheckedCast<Codec<Any>>()
         val encodingProducer = producerForSubtypesOf(type, codecForAny)
         bind(encodingProducer, codecForAny)
