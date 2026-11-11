@@ -85,12 +85,80 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         return FORMATTER.format(logTime.atOffset(ZoneOffset.UTC));
     }
 
+    private static String getFormattedDuration(PerRootInfo info) {
+        return info.getResults().stream()
+            .map(r -> TimeFormatting.formatDurationVeryTerse(r.getDuration()))
+            .collect(Collectors.joining(" / "));
+    }
+
+    private static long getTotalDurationMillis(PerRootInfo info) {
+        long total = 0;
+        for (SerializableTestResult r : info.getResults()) {
+            total += r.getDuration();
+        }
+        return total;
+    }
+
+    private static int getSuccessRatePercent(PerRootInfo info) {
+        int total = info.getTotalLeafCount();
+        if (total == 0) {
+            return -1;
+        }
+        return (total - info.getFailedLeafCount()) * 100 / total;
+    }
+
+    private static TestResult.ResultType getResultType(PerRootInfo info) {
+        if (info.isLeaf()) {
+            // For leaf nodes, we use the result type of the single result
+            return getLeafResult(info).getResultType();
+        }
+        // For container nodes, we use failure if any of its own results failed, so its failure isn't hidden if all
+        // its children passed, and otherwise the worst result type of its children.
+        //
+        // This ignores the container's other results because containers made out of all skipped tests
+        // may be marked as successful in the result, but we want to show them as skipped if all their children are skipped.
+        if (info.getFailedLeafCount() > 0 || info.getResults().stream().anyMatch(r -> r.getResultType() == TestResult.ResultType.FAILURE)) {
+            return TestResult.ResultType.FAILURE;
+        }
+        if (info.getSkippedLeafCount() > 0) {
+            return TestResult.ResultType.SKIPPED;
+        }
+        return TestResult.ResultType.SUCCESS;
+    }
+
+    private static SerializableTestResult getLeafResult(PerRootInfo info) {
+        if (info.getResults().size() > 1) {
+            throw new IllegalStateException("Leaf nodes should only have one result");
+        }
+        return info.getResults().get(0);
+    }
+
+    private static String getStatusClass(TestResult.ResultType resultType) {
+        switch (resultType) {
+            case SUCCESS:
+                return "success";
+            case FAILURE:
+                return "failures";
+            case SKIPPED:
+                return "skipped";
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
+    private static String getFormattedSuccessRate(PerRootInfo info) {
+        int percent = getSuccessRatePercent(info);
+        return percent < 0 ? "-" : percent + "%";
+    }
+
     public static final class ForSummary extends PerRootTabRenderer {
-        private final boolean shrink;
+        private final ForChildren childrenRenderer;
+        private final ForFailure failureRenderer;
 
         public ForSummary(boolean shrink, int rootIndex, int perRootInfoIndex) {
             super(rootIndex, perRootInfoIndex);
-            this.shrink = shrink;
+            this.childrenRenderer = new ForChildren(shrink, rootIndex, perRootInfoIndex);
+            this.failureRenderer = new ForFailure(rootIndex, perRootInfoIndex);
         }
 
         @Override
@@ -98,56 +166,13 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             htmlWriter.startElement("div");
             renderSummary(info, htmlWriter);
             if (info.isLeaf()) {
-                renderLeafDetails(info, htmlWriter);
+                if (ForFailure.hasFailureDetails(info)) {
+                    failureRenderer.render(getCurrentModel(), htmlWriter);
+                }
             } else {
-                renderContainerDetails(htmlWriter);
+                childrenRenderer.render(getCurrentModel(), htmlWriter);
             }
             htmlWriter.endElement();
-        }
-
-        private void renderContainerDetails(SimpleHtmlWriter htmlWriter) throws IOException {
-            List<Pair<String, ChildTableRenderer>> childTableRenderers = getChildTableRenderers();
-
-            ReportRenderer<TestTreeModel, SimpleHtmlWriter> renderer;
-            if (childTableRenderers.size() == 1) {
-                // No need to render tabs if there is only one tab
-                renderer = Objects.requireNonNull(childTableRenderers.get(0).right);
-            } else {
-                TabsRenderer<TestTreeModel> tabsRenderer = new TabsRenderer<>();
-                childTableRenderers.forEach(p -> tabsRenderer.add(p.left, p.right));
-                renderer = tabsRenderer;
-            }
-
-            renderer.render(getCurrentModel(), htmlWriter);
-        }
-
-        private List<Pair<String, ChildTableRenderer>> getChildTableRenderers() {
-            List<ChildEntry> children = Streams.of(getCurrentModel().getChildrenOf(rootIndex))
-                .flatMap(t ->
-                    t.getPerRootInfo().get(rootIndex).stream()
-                        .map(p -> new ChildEntry(t, p))
-                )
-                .collect(Collectors.toList());
-            ImmutableList.Builder<Pair<String, ChildTableRenderer>> childTableRenderers = ImmutableList.builder();
-            addResultTabIfNeeded("Failed", TestResult.ResultType.FAILURE, children, childTableRenderers);
-            addResultTabIfNeeded("Skipped", TestResult.ResultType.SKIPPED, children, childTableRenderers);
-            childTableRenderers.add(Pair.of("All", new ChildTableRenderer(shrink, children)));
-            return childTableRenderers.build();
-        }
-
-        private void addResultTabIfNeeded(
-            String name,
-            TestResult.ResultType resultType,
-            List<ChildEntry> children,
-            ImmutableList.Builder<Pair<String, ChildTableRenderer>> childListRenderers
-        ) {
-            // Match the status shown for each child, so containers are matched by the results of their children.
-            List<ChildEntry> matchedChildren = children.stream()
-                .filter(e -> getResultType(e.perRootInfo) == resultType)
-                .collect(Collectors.toList());
-            if (!matchedChildren.isEmpty()) {
-                childListRenderers.add(Pair.of(name, new ChildTableRenderer(shrink, matchedChildren)));
-            }
         }
 
         private static void renderSummary(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
@@ -210,63 +235,62 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             htmlWriter.endElement();
             htmlWriter.endElement();
         }
+    }
 
-        private static String getFormattedDuration(PerRootInfo info) {
-            return info.getResults().stream()
-                .map(r -> TimeFormatting.formatDurationVeryTerse(r.getDuration()))
-                .collect(Collectors.joining(" / "));
+    /**
+     * Renders the table of children of a container, split into sub-tabs by result.
+     */
+    public static final class ForChildren extends PerRootTabRenderer {
+        private final boolean shrink;
+
+        public ForChildren(boolean shrink, int rootIndex, int perRootInfoIndex) {
+            super(rootIndex, perRootInfoIndex);
+            this.shrink = shrink;
         }
 
-        private void renderLeafDetails(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
-            if (info.getResults().size() > 1) {
-                throw new IllegalStateException("Leaf nodes should only have one result");
-            }
-            SerializableTestResult result = info.getResults().get(0);
+        @Override
+        protected void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
+            List<Pair<String, ChildTableRenderer>> childTableRenderers = getChildTableRenderers();
 
-            boolean isSuccess = result.getResultType() == TestResult.ResultType.SUCCESS;
-            boolean hasFailures = !result.getFailures().isEmpty();
-            boolean hasAssumptionFailure =  result.getAssumptionFailure() != null;
-
-            if (!isSuccess && (hasFailures || hasAssumptionFailure)) {
-                htmlWriter.startElement("div").attribute("class", "result-details");
-
-                htmlWriter.startElement("h3").characters(
-                    result.getResultType() == TestResult.ResultType.FAILURE ? "Failure details" : "Skip details"
-                ).endElement();
-
-                String failureOutputId = "root-" + rootIndex + "-test-failure-" + result.getName();
-                htmlWriter.startElement("span").attribute("class", "code");
-
-                addClipboardCopyButton(htmlWriter, failureOutputId);
-
-                htmlWriter.startElement("pre").attribute("id", failureOutputId);
-                if (hasFailures) {
-                    for (SerializableFailure failure : result.getFailures()) {
-                        renderFailure(failure, htmlWriter);
-                    }
-                }
-                if (hasAssumptionFailure) {
-                    renderFailure(result.getAssumptionFailure(), htmlWriter);
-                }
-                htmlWriter.endElement(); // pre
-
-                htmlWriter.endElement(); // span
-
-                htmlWriter.endElement(); // div
-            }
-        }
-
-        private void renderFailure(SerializableFailure failure, SimpleHtmlWriter htmlWriter) throws IOException {
-            // There is confusion here over if we should show the message if there is a stack trace.
-            // See https://github.com/gradle/gradle/issues/35176
-            if (failure.getStackTrace().isEmpty()) {
-                // We need to show the message
-                htmlWriter.characters(failure.getMessage() + "\n");
+            ReportRenderer<TestTreeModel, SimpleHtmlWriter> renderer;
+            if (childTableRenderers.size() == 1) {
+                // No need to render tabs if there is only one tab
+                renderer = Objects.requireNonNull(childTableRenderers.get(0).right);
             } else {
-                htmlWriter.characters(failure.getStackTrace());
+                TabsRenderer<TestTreeModel> tabsRenderer = new TabsRenderer<>();
+                childTableRenderers.forEach(p -> tabsRenderer.add(p.left, p.right));
+                renderer = tabsRenderer;
             }
-            for (int i = 0; i < failure.getCauses().size(); i++) {
-                htmlWriter.characters("Cause " + (i+1) + ": " + failure.getCauses().get(i) + "\n");
+
+            renderer.render(getCurrentModel(), htmlWriter);
+        }
+
+        private List<Pair<String, ChildTableRenderer>> getChildTableRenderers() {
+            List<ChildEntry> children = Streams.of(getCurrentModel().getChildrenOf(rootIndex))
+                .flatMap(t ->
+                    t.getPerRootInfo().get(rootIndex).stream()
+                        .map(p -> new ChildEntry(t, p))
+                )
+                .collect(Collectors.toList());
+            ImmutableList.Builder<Pair<String, ChildTableRenderer>> childTableRenderers = ImmutableList.builder();
+            addResultTabIfNeeded("Failed", TestResult.ResultType.FAILURE, children, childTableRenderers);
+            addResultTabIfNeeded("Skipped", TestResult.ResultType.SKIPPED, children, childTableRenderers);
+            childTableRenderers.add(Pair.of("All", new ChildTableRenderer(shrink, children)));
+            return childTableRenderers.build();
+        }
+
+        private void addResultTabIfNeeded(
+            String name,
+            TestResult.ResultType resultType,
+            List<ChildEntry> children,
+            ImmutableList.Builder<Pair<String, ChildTableRenderer>> childListRenderers
+        ) {
+            // Match the status shown for each child, so containers are matched by the results of their children.
+            List<ChildEntry> matchedChildren = children.stream()
+                .filter(e -> getResultType(e.perRootInfo) == resultType)
+                .collect(Collectors.toList());
+            if (!matchedChildren.isEmpty()) {
+                childListRenderers.add(Pair.of(name, new ChildTableRenderer(shrink, matchedChildren)));
             }
         }
 
@@ -372,61 +396,61 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 htmlWriter.endElement();
             }
         }
+    }
 
-        private static long getTotalDurationMillis(PerRootInfo info) {
-            long total = 0;
-            for (SerializableTestResult r : info.getResults()) {
-                total += r.getDuration();
-            }
-            return total;
+    public static final class ForFailure extends PerRootTabRenderer {
+        public ForFailure(int rootIndex, int perRootInfoIndex) {
+            super(rootIndex, perRootInfoIndex);
         }
 
-        private static int getSuccessRatePercent(PerRootInfo info) {
-            int total = info.getTotalLeafCount();
-            if (total == 0) {
-                return -1;
-            }
-            return (total - info.getFailedLeafCount()) * 100 / total;
+        public static boolean hasFailureDetails(PerRootInfo info) {
+            SerializableTestResult result = getLeafResult(info);
+            return result.getResultType() != TestResult.ResultType.SUCCESS
+                && (!result.getFailures().isEmpty() || result.getAssumptionFailure() != null);
         }
 
-        private static TestResult.ResultType getResultType(PerRootInfo info) {
-            if (info.isLeaf()) {
-                // For leaf nodes, we use the result type of the single result
-                if (info.getResults().size() > 1) {
-                    throw new IllegalStateException("Leaf nodes should only have one result");
-                }
-                return info.getResults().get(0).getResultType();
+        @Override
+        protected void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
+            SerializableTestResult result = getLeafResult(info);
+
+            htmlWriter.startElement("div").attribute("class", "result-details");
+
+            htmlWriter.startElement("h3").characters(
+                result.getResultType() == TestResult.ResultType.FAILURE ? "Failure details" : "Skip details"
+            ).endElement();
+
+            String failureOutputId = "root-" + rootIndex + "-test-failure-" + result.getName();
+            htmlWriter.startElement("span").attribute("class", "code");
+
+            addClipboardCopyButton(htmlWriter, failureOutputId);
+
+            htmlWriter.startElement("pre").attribute("id", failureOutputId);
+            for (SerializableFailure failure : result.getFailures()) {
+                renderFailure(failure, htmlWriter);
             }
-            // For container nodes, we use failure if any of its own results failed, so its failure isn't hidden if all
-            // its children passed, and otherwise the worst result type of its children.
-            //
-            // This ignores the container's other results because containers made out of all skipped tests
-            // may be marked as successful in the result, but we want to show them as skipped if all their children are skipped.
-            if (info.getFailedLeafCount() > 0 || info.getResults().stream().anyMatch(r -> r.getResultType() == TestResult.ResultType.FAILURE)) {
-                return TestResult.ResultType.FAILURE;
+            SerializableFailure assumptionFailure = result.getAssumptionFailure();
+            if (assumptionFailure != null) {
+                renderFailure(assumptionFailure, htmlWriter);
             }
-            if (info.getSkippedLeafCount() > 0) {
-                return TestResult.ResultType.SKIPPED;
-            }
-            return TestResult.ResultType.SUCCESS;
+            htmlWriter.endElement(); // pre
+
+            htmlWriter.endElement(); // span
+
+            htmlWriter.endElement(); // div
         }
 
-        private static String getStatusClass(TestResult.ResultType resultType) {
-            switch (resultType) {
-                case SUCCESS:
-                    return "success";
-                case FAILURE:
-                    return "failures";
-                case SKIPPED:
-                    return "skipped";
-                default:
-                    throw new IllegalStateException();
+        private static void renderFailure(SerializableFailure failure, SimpleHtmlWriter htmlWriter) throws IOException {
+            // There is confusion here over if we should show the message if there is a stack trace.
+            // See https://github.com/gradle/gradle/issues/35176
+            if (failure.getStackTrace().isEmpty()) {
+                // We need to show the message
+                htmlWriter.characters(failure.getMessage() + "\n");
+            } else {
+                htmlWriter.characters(failure.getStackTrace());
             }
-        }
-
-        private static String getFormattedSuccessRate(PerRootInfo info) {
-            int percent = getSuccessRatePercent(info);
-            return percent < 0 ? "-" : percent + "%";
+            for (int i = 0; i < failure.getCauses().size(); i++) {
+                htmlWriter.characters("Cause " + (i + 1) + ": " + failure.getCauses().get(i) + "\n");
+            }
         }
     }
 
