@@ -17,7 +17,6 @@
 package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class CppBinariesRelocationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
     def setup() {
@@ -34,10 +33,10 @@ class CppBinariesRelocationIntegrationTest extends AbstractInstalledToolChainInt
                     implementation project(':lib')
                 }
             }
-            project(':lib') {
-                apply plugin: 'cpp-library'
-            }
         """
+        buildFile("lib/build.gradle", """
+            apply plugin: 'cpp-library'
+        """)
 
         file("lib/src/main/public/lib.h") << libraryHeader
         file("lib/src/main/cpp/lib.cpp") << librarySource
@@ -73,7 +72,6 @@ class CppBinariesRelocationIntegrationTest extends AbstractInstalledToolChainInt
         """
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can execute application with dependencies when relocated"() {
         def installDir = file("build/install/main/debug")
         def relocatedInstallDir = file("relocated-install")

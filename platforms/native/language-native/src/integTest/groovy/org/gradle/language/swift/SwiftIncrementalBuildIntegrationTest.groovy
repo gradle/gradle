@@ -18,7 +18,6 @@ package org.gradle.language.swift
 
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -79,24 +78,21 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksSkipped(assembleAppTasks)
     }
 
-    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "rebuilds application when a single source file in library changes"() {
         createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
         def app = new IncrementalSwiftModifyExpectedOutputAppWithLib()
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'swift-application'
-                dependencies {
-                    implementation project(':greeter')
-                }
+        buildFile("app/build.gradle", """
+            apply plugin: 'swift-application'
+            dependencies {
+                implementation project(':greeter')
             }
-            project(':greeter') {
-                apply plugin: 'swift-library'
-            }
-"""
+""")
+        buildFile("greeter/build.gradle", """
+            apply plugin: 'swift-library'
+""")
         app.library.writeToProject(file("greeter"))
         app.application.writeToProject(file("app"))
 
@@ -252,17 +248,15 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         def outputs = createCompilationOutputs(outputDirectory)
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'swift-application'
-                dependencies {
-                    implementation project(':greeter')
-                }
+        buildFile("app/build.gradle", """
+            apply plugin: 'swift-application'
+            dependencies {
+                implementation project(':greeter')
             }
-            project(':greeter') {
-                apply plugin: 'swift-library'
-            }
-        """
+        """)
+        buildFile("greeter/build.gradle", """
+            apply plugin: 'swift-library'
+        """)
         app.library.writeToProject(file("greeter"))
         app.application.writeToProject(file("app"))
 

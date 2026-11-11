@@ -24,10 +24,10 @@ class CppUnitTestWithLibraryDependenciesIntegrationTest extends AbstractNativeUn
         buildFile << """
             apply plugin: 'cpp-unit-test'
             apply plugin: 'cpp-library'
-            project(':lib') {
-                apply plugin: 'cpp-library'
-            }
 """
+        buildFile("lib/build.gradle", """
+            apply plugin: 'cpp-library'
+""")
         file("src/main/headers/main_lib.h") << """
             extern int some_func();
 """

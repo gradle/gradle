@@ -17,7 +17,6 @@
 package org.gradle.language.swift
 
 
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.language.AbstractNativeLibraryDependenciesIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -26,7 +25,6 @@ import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftLibraryDependenciesIntegrationTest extends AbstractNativeLibraryDependenciesIntegrationTest {
-    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "can compile against a library with implementation dependencies"() {
         createDirs("lib1", "lib2")
         settingsFile << """
@@ -37,16 +35,16 @@ class SwiftLibraryDependenciesIntegrationTest extends AbstractNativeLibraryDepen
             dependencies {
                 implementation project(':lib1')
             }
-            project(':lib1') {
-                apply plugin: 'swift-library'
-                dependencies {
-                    implementation project(':lib2')
-                }
-            }
-            project(':lib2') {
-                apply plugin: 'swift-library'
-            }
         """
+        buildFile("lib1/build.gradle", """
+            apply plugin: 'swift-library'
+            dependencies {
+                implementation project(':lib2')
+            }
+        """)
+        buildFile("lib2/build.gradle", """
+            apply plugin: 'swift-library'
+        """)
 
         file("src/main/swift/Lib.swift") << """
             import Lib1
@@ -72,7 +70,6 @@ class SwiftLibraryDependenciesIntegrationTest extends AbstractNativeLibraryDepen
         result.assertTasksScheduled([":lib1:compileDebugSwift", ":lib1:linkDebug", ":lib2:compileDebugSwift", ":lib2:linkDebug"], assembleDevBinaryTasks, assembleDevBinaryTask)
     }
 
-    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "can compile against a library with binary-specific implementation dependencies"() {
         createDirs("lib1", "lib2")
         settingsFile << """
@@ -83,20 +80,20 @@ class SwiftLibraryDependenciesIntegrationTest extends AbstractNativeLibraryDepen
             dependencies {
                 implementation project(':lib1')
             }
-            project(':lib1') {
-                apply plugin: 'swift-library'
-                library {
-                    binaries.getByName('mainDebug').configure {
-                        dependencies {
-                            implementation project(':lib2')
-                        }
+        """
+        buildFile("lib1/build.gradle", """
+            apply plugin: 'swift-library'
+            library {
+                binaries.getByName('mainDebug').configure {
+                    dependencies {
+                        implementation project(':lib2')
                     }
                 }
             }
-            project(':lib2') {
-                apply plugin: 'swift-library'
-            }
-        """
+        """)
+        buildFile("lib2/build.gradle", """
+            apply plugin: 'swift-library'
+        """)
 
         file("src/main/swift/Lib.swift") << """
             import Lib1
@@ -126,10 +123,10 @@ class SwiftLibraryDependenciesIntegrationTest extends AbstractNativeLibraryDepen
     protected void makeComponentWithLibrary() {
         buildFile << """
             apply plugin: 'swift-library'
-            project(':lib') {
-                apply plugin: 'swift-library'
-            }
         """
+        buildFile("lib/build.gradle", """
+            apply plugin: 'swift-library'
+        """)
 
         file("src/main/swift/Lib.swift") << librarySource
         file("lib/src/main/swift/Lib.swift") << librarySource

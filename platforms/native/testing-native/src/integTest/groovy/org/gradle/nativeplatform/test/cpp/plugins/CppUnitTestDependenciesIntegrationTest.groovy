@@ -23,10 +23,10 @@ class CppUnitTestDependenciesIntegrationTest extends AbstractNativeDependenciesI
     protected void makeComponentWithLibrary() {
         buildFile << """
             apply plugin: 'cpp-unit-test'
-            project(':lib') {
-                apply plugin: 'cpp-library'
-            }
 """
+        buildFile("lib/build.gradle", """
+            apply plugin: 'cpp-library'
+""")
         file("src/test/cpp/main.cpp") << """
             #include <lib.h>
             

@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -39,19 +38,16 @@ import static org.gradle.util.Matchers.containsText
 @Requires(TestEnvironmentPreconditions.HasXCTest)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements VerifiesGenericTestReportResults {
-    @ToBeFixedForIsolatedProjects(because = "configures the :app project from the root build script")
     def "fails when working directory is invalid"() {
         buildWithApplicationAndDependencies()
-        buildFile << """
-            project(':app') {
-                def dir = project.layout.projectDirectory.dir("does-not-exist")
-                tasks.withType(XCTest).configureEach {
-                    doFirst {
-                        workingDirectory = dir
-                    }
+        buildFile("app/build.gradle", """
+            def dir = project.layout.projectDirectory.dir("does-not-exist")
+            tasks.withType(XCTest).configureEach {
+                doFirst {
+                    workingDirectory = dir
                 }
             }
-        """
+        """)
         expect:
         fails(':app:test')
 
@@ -60,22 +56,19 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         failure.assertHasCause("Working directory '${file('app/does-not-exist')}' does not exist.")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "configures the :app project from the root build script")
     def "fails when application cannot load shared library at runtime"() {
         buildWithApplicationAndDependencies()
-        buildFile << """
-            project(':app') {
-                def buildDir = project(':hello').layout.buildDirectory
-                def ops = project.services.get(${FileSystemOperations.name})
-                tasks.withType(XCTest).configureEach {
-                    doFirst {
-                        ops.delete {
-                            delete buildDir
-                        }
+        buildFile("app/build.gradle", """
+            def buildDir = isolated.rootProject.projectDirectory.dir('hello/build')
+            def ops = project.services.get(${FileSystemOperations.name})
+            tasks.withType(XCTest).configureEach {
+                doFirst {
+                    ops.delete {
+                        delete buildDir
                     }
                 }
             }
-        """
+        """)
 
         expect:
         fails(':app:test')

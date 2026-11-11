@@ -17,7 +17,6 @@
 package org.gradle.language.cpp
 
 
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppApp
@@ -366,26 +365,23 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation("build/some-app").exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "can compile and link against a library"() {
         createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibrary()
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
-                    dependencies {
-                        implementation project(':hello')
-                    }
+        buildFile("app/build.gradle", """
+            apply plugin: 'cpp-application'
+            application {
+                dependencies {
+                    implementation project(':hello')
                 }
             }
-            project(':hello') {
-                apply plugin: 'cpp-library'
-            }
-        """
+        """)
+        buildFile("hello/build.gradle", """
+            apply plugin: 'cpp-library'
+        """)
         app.greeter.writeToProject(file("hello"))
         app.main.writeToProject(file("app"))
 
@@ -400,30 +396,27 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.assertIncludesLibraries("hello")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can compile and link against a library when specifying multiple target machines"() {
         createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibrary()
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
-                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}, machines.os('host-family')]
-                    dependencies {
-                        implementation project(':hello')
-                    }
+        buildFile("app/build.gradle", """
+            apply plugin: 'cpp-application'
+            application {
+                targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}, machines.os('host-family')]
+                dependencies {
+                    implementation project(':hello')
                 }
             }
-            project(':hello') {
-                apply plugin: 'cpp-library'
-                library {
-                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}, machines.os('host-family')]
-                }
+        """)
+        buildFile("hello/build.gradle", """
+            apply plugin: 'cpp-library'
+            library {
+                targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}, machines.os('host-family')]
             }
-        """
+        """)
         app.greeter.writeToProject(file("hello"))
         app.main.writeToProject(file("app"))
 
@@ -438,30 +431,27 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.assertIncludesLibraries("hello")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "fails when dependency library does not specify the same target machines"() {
         createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
         def app = new CppAppWithLibrary()
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
-                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}]
-                    dependencies {
-                        implementation project(':greeter')
-                    }
+        buildFile("app/build.gradle", """
+            apply plugin: 'cpp-application'
+            application {
+                targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}]
+                dependencies {
+                    implementation project(':greeter')
                 }
             }
-            project(':greeter') {
-                apply plugin: 'cpp-library'
-                library {
-                    targetMachines = [machines.os('os-family')]
-                }
+        """)
+        buildFile("greeter/build.gradle", """
+            apply plugin: 'cpp-library'
+            library {
+                targetMachines = [machines.os('os-family')]
             }
-        """
+        """)
         app.greeter.writeToProject(file("greeter"))
         app.main.writeToProject(file("app"))
 
@@ -473,31 +463,28 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         failure.assertHasCause("No matching variant of project ':greeter' was found. The consumer was configured to find attribute 'org.gradle.native.architecture' with value '${currentArchitecture}', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName.toLowerCase()}', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.usage' with value 'native-runtime' but:")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "fails when dependency library does not specify the same target architecture"() {
         createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
         def app = new CppAppWithLibrary()
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
-                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}]
-                    dependencies {
-                        implementation project(':greeter')
-                    }
+        buildFile("app/build.gradle", """
+            apply plugin: 'cpp-application'
+            application {
+                targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}]
+                dependencies {
+                    implementation project(':greeter')
                 }
             }
-            project(':greeter') {
-                apply plugin: 'cpp-library'
-                library {
-                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo')]
-                }
-                ${configureToolChainSupport('foo')}
+        """)
+        buildFile("greeter/build.gradle", """
+            apply plugin: 'cpp-library'
+            library {
+                targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo')]
             }
-        """
+            ${configureToolChainSupport('foo')}
+        """)
         app.greeter.writeToProject(file("greeter"))
         app.main.writeToProject(file("app"))
 
@@ -549,30 +536,27 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         succeeds "compileDebug"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can compile and link against a library with explicit target machine defined"() {
         createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibrary()
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
-                    dependencies {
-                        implementation project(':hello')
-                    }
-                    targetMachines = [machines.os('${currentOsFamilyName}').architecture('${currentArchitecture}')]
+        buildFile("app/build.gradle", """
+            apply plugin: 'cpp-application'
+            application {
+                dependencies {
+                    implementation project(':hello')
                 }
+                targetMachines = [machines.os('${currentOsFamilyName}').architecture('${currentArchitecture}')]
             }
-            project(':hello') {
-                apply plugin: 'cpp-library'
-                library {
-                    targetMachines = [machines.os('${currentOsFamilyName}').architecture('${currentArchitecture}')]
-                }
+        """)
+        buildFile("hello/build.gradle", """
+            apply plugin: 'cpp-library'
+            library {
+                targetMachines = [machines.os('${currentOsFamilyName}').architecture('${currentArchitecture}')]
             }
-        """
+        """)
         app.greeter.writeToProject(file("hello"))
         app.main.writeToProject(file("app"))
 
@@ -587,7 +571,6 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.assertIncludesLibraries("hello")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "fails compile and link against a library with different operating system family support"() {
         createDirs("app", "hello")
         settingsFile << """
@@ -597,23 +580,21 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         def app = new CppAppWithLibrary()
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
-                    dependencies {
-                        implementation project(':hello')
-                    }
-                    targetMachines = [machines.os('${currentOsFamilyName}').architecture('${currentArchitecture}')]
+        buildFile("app/build.gradle", """
+            apply plugin: 'cpp-application'
+            application {
+                dependencies {
+                    implementation project(':hello')
                 }
+                targetMachines = [machines.os('${currentOsFamilyName}').architecture('${currentArchitecture}')]
             }
-            project(':hello') {
-                apply plugin: 'cpp-library'
-                library {
-                    targetMachines = [machines.os('some-other-family').architecture('${currentArchitecture}')]
-                }
+        """)
+        buildFile("hello/build.gradle", """
+            apply plugin: 'cpp-library'
+            library {
+                targetMachines = [machines.os('some-other-family').architecture('${currentArchitecture}')]
             }
-        """
+        """)
         app.greeter.writeToProject(file("hello"))
         app.main.writeToProject(file("app"))
 
@@ -630,28 +611,25 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
           - Doesn't say anything about org.gradle.native.optimized (required 'false')"""
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can compile and link against a static library"() {
         createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibrary()
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
-                    dependencies {
-                        implementation project(':hello')
-                    }
+        buildFile("app/build.gradle", """
+            apply plugin: 'cpp-application'
+            application {
+                dependencies {
+                    implementation project(':hello')
                 }
             }
-            project(':hello') {
-                apply plugin: 'cpp-library'
+        """)
+        buildFile("hello/build.gradle", """
+            apply plugin: 'cpp-library'
 
-                library.linkage = [Linkage.STATIC]
-            }
-        """
+            library.linkage = [Linkage.STATIC]
+        """)
         app.greeter.writeToProject(file("hello"))
         app.main.writeToProject(file("app"))
 
@@ -666,28 +644,25 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.assertIncludesLibraries()
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can compile and link against a library with both linkages defined"() {
         createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibrary()
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
-                    dependencies {
-                        implementation project(':hello')
-                    }
+        buildFile("app/build.gradle", """
+            apply plugin: 'cpp-application'
+            application {
+                dependencies {
+                    implementation project(':hello')
                 }
             }
-            project(':hello') {
-                apply plugin: 'cpp-library'
+        """)
+        buildFile("hello/build.gradle", """
+            apply plugin: 'cpp-library'
 
-                library.linkage = [Linkage.STATIC, Linkage.SHARED]
-            }
-        """
+            library.linkage = [Linkage.STATIC, Linkage.SHARED]
+        """)
         app.greeter.writeToProject(file("hello"))
         app.main.writeToProject(file("app"))
 
@@ -702,32 +677,29 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.assertIncludesLibraries("hello")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "can compile and link against a library with debug and release variants"() {
         createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibraryAndOptionalFeature()
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
-                    dependencies {
-                        implementation project(':hello')
-                    }
-                }
-                application.binaries.get { it.optimized }.configure {
-                    compileTask.get().setMacros(WITH_FEATURE: "true")
+        buildFile("app/build.gradle", """
+            apply plugin: 'cpp-application'
+            application {
+                dependencies {
+                    implementation project(':hello')
                 }
             }
-            project(':hello') {
-                apply plugin: 'cpp-library'
-                library.binaries.get { it.optimized }.configure {
-                    compileTask.get().setMacros(WITH_FEATURE: "true")
-                }
+            application.binaries.get { it.optimized }.configure {
+                compileTask.get().setMacros(WITH_FEATURE: "true")
             }
-        """
+        """)
+        buildFile("hello/build.gradle", """
+            apply plugin: 'cpp-library'
+            library.binaries.get { it.optimized }.configure {
+                compileTask.get().setMacros(WITH_FEATURE: "true")
+            }
+        """)
         app.greeterLib.writeToProject(file("hello"))
         app.main.writeToProject(file("app"))
 
@@ -752,38 +724,35 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation("app/build/install/main/debug").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can compile and link against library with api and implementation dependencies"() {
         createDirs("app", "deck", "card", "shuffle")
         settingsFile << "include 'app', 'deck', 'card', 'shuffle'"
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
-                    dependencies {
-                        implementation project(':deck')
-                    }
+        buildFile("app/build.gradle", """
+            apply plugin: 'cpp-application'
+            application {
+                dependencies {
+                    implementation project(':deck')
                 }
             }
-            project(':deck') {
-                apply plugin: 'cpp-library'
-                library {
-                    dependencies {
-                        api project(':card')
-                        implementation project(':shuffle')
-                    }
+        """)
+        buildFile("deck/build.gradle", """
+            apply plugin: 'cpp-library'
+            library {
+                dependencies {
+                    api project(':card')
+                    implementation project(':shuffle')
                 }
             }
-            project(':card') {
-                apply plugin: 'cpp-library'
-            }
-            project(':shuffle') {
-                apply plugin: 'cpp-library'
-            }
-        """
+        """)
+        buildFile("card/build.gradle", """
+            apply plugin: 'cpp-library'
+        """)
+        buildFile("shuffle/build.gradle", """
+            apply plugin: 'cpp-library'
+        """)
         app.deck.writeToProject(file("deck"))
         app.card.writeToProject(file("card"))
         app.shuffle.writeToProject(file("shuffle"))
@@ -802,41 +771,38 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can compile and link against a static library with api and implementation dependencies"() {
         createDirs("app", "deck", "card", "shuffle")
         settingsFile << "include 'app', 'deck', 'card', 'shuffle'"
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
-                    dependencies {
-                        implementation project(':deck')
-                    }
+        buildFile("app/build.gradle", """
+            apply plugin: 'cpp-application'
+            application {
+                dependencies {
+                    implementation project(':deck')
                 }
             }
-            project(':deck') {
-                apply plugin: 'cpp-library'
-                library {
-                    linkage = [Linkage.STATIC]
-                    dependencies {
-                        api project(':card')
-                        implementation project(':shuffle')
-                    }
+        """)
+        buildFile("deck/build.gradle", """
+            apply plugin: 'cpp-library'
+            library {
+                linkage = [Linkage.STATIC]
+                dependencies {
+                    api project(':card')
+                    implementation project(':shuffle')
                 }
             }
-            project(':card') {
-                apply plugin: 'cpp-library'
-                library.linkage = [Linkage.STATIC]
-            }
-            project(':shuffle') {
-                apply plugin: 'cpp-library'
-                library.linkage = [Linkage.STATIC]
-            }
-        """
+        """)
+        buildFile("card/build.gradle", """
+            apply plugin: 'cpp-library'
+            library.linkage = [Linkage.STATIC]
+        """)
+        buildFile("shuffle/build.gradle", """
+            apply plugin: 'cpp-library'
+            library.linkage = [Linkage.STATIC]
+        """)
         app.deck.writeToProject(file("deck"))
         app.card.writeToProject(file("card"))
         app.shuffle.writeToProject(file("shuffle"))
@@ -855,35 +821,32 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "honors changes to library buildDir"() {
         createDirs("app", "lib1", "lib2")
         settingsFile << "include 'app', 'lib1', 'lib2'"
         def app = new CppAppWithLibraries()
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
-                    dependencies {
-                        implementation project(':lib1')
-                    }
+        buildFile("app/build.gradle", """
+            apply plugin: 'cpp-application'
+            application {
+                dependencies {
+                    implementation project(':lib1')
                 }
             }
-            project(':lib1') {
-                apply plugin: 'cpp-library'
-                library {
-                    dependencies {
-                        implementation project(':lib2')
-                    }
+""")
+        buildFile("lib1/build.gradle", """
+            apply plugin: 'cpp-library'
+            library {
+                dependencies {
+                    implementation project(':lib2')
                 }
             }
-            project(':lib2') {
-                apply plugin: 'cpp-library'
-                buildDir = 'out'
-            }
-"""
+""")
+        buildFile("lib2/build.gradle", """
+            apply plugin: 'cpp-library'
+            buildDir = 'out'
+""")
         app.greeterLib.writeToProject(file("lib1"))
         app.loggerLib.writeToProject(file("lib2"))
         app.main.writeToProject(file("app"))
@@ -902,41 +865,38 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         sharedLibrary("app/build/install/main/debug/lib/lib2").file.assertExists()
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "honors changes to library output locations"() {
         createDirs("app", "lib1", "lib2")
         settingsFile << "include 'app', 'lib1', 'lib2'"
         def app = new CppAppWithLibraries()
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
-                    dependencies {
-                        implementation project(':lib1')
-                    }
+        buildFile("app/build.gradle", """
+            apply plugin: 'cpp-application'
+            application {
+                dependencies {
+                    implementation project(':lib1')
                 }
             }
-            project(':lib1') {
-                apply plugin: 'cpp-library'
-                library {
-                    dependencies {
-                        implementation project(':lib2')
-                    }
+        """)
+        buildFile("lib1/build.gradle", """
+            apply plugin: 'cpp-library'
+            library {
+                dependencies {
+                    implementation project(':lib2')
                 }
             }
-            project(':lib2') {
-                apply plugin: 'cpp-library'
-                library.binaries.get { !it.optimized }.configure {
-                    def link = linkTask.get()
-                    link.linkedFile = layout.buildDirectory.file("shared/lib1_debug.dll")
-                    if (link.importLibrary.present) {
-                        link.importLibrary = layout.buildDirectory.file("import/lib1_import.lib")
-                    }
+        """)
+        buildFile("lib2/build.gradle", """
+            apply plugin: 'cpp-library'
+            library.binaries.get { !it.optimized }.configure {
+                def link = linkTask.get()
+                link.linkedFile = layout.buildDirectory.file("shared/lib1_debug.dll")
+                if (link.importLibrary.present) {
+                    link.importLibrary = layout.buildDirectory.file("import/lib1_import.lib")
                 }
             }
-        """
+        """)
         app.greeterLib.writeToProject(file("lib1"))
         app.loggerLib.writeToProject(file("lib2"))
         app.main.writeToProject(file("app"))
@@ -955,38 +915,35 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         file("app/build/install/main/debug/lib/lib1_debug.dll").assertIsFile()
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "honors changes to library public header location"() {
         createDirs("app", "lib1", "lib2")
         settingsFile << "include 'app', 'lib1', 'lib2'"
         def app = new CppAppWithLibraries()
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
-                    dependencies {
-                        implementation project(':lib1')
-                    }
+        buildFile("app/build.gradle", """
+            apply plugin: 'cpp-application'
+            application {
+                dependencies {
+                    implementation project(':lib1')
                 }
             }
-            project(':lib1') {
-                apply plugin: 'cpp-library'
-                library {
-                    dependencies {
-                        implementation project(':lib2')
-                    }
-                    publicHeaders.from('include')
+""")
+        buildFile("lib1/build.gradle", """
+            apply plugin: 'cpp-library'
+            library {
+                dependencies {
+                    implementation project(':lib2')
                 }
+                publicHeaders.from('include')
             }
-            project(':lib2') {
-                apply plugin: 'cpp-library'
-                library {
-                    publicHeaders.from('include')
-                }
+""")
+        buildFile("lib2/build.gradle", """
+            apply plugin: 'cpp-library'
+            library {
+                publicHeaders.from('include')
             }
-"""
+""")
         app.greeterLib.publicHeaders.writeToSourceDir(file("lib1/include"))
         app.greeterLib.privateHeaders.writeToProject(file("lib1"))
         app.greeterLib.sources.writeToProject(file("lib1"))
@@ -1007,39 +964,36 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         sharedLibrary("app/build/install/main/debug/lib/lib2").file.assertExists()
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "multiple components can share the same source directory"() {
         createDirs("app", "greeter", "logger")
         settingsFile << "include 'app', 'greeter', 'logger'"
         def app = new CppAppWithLibraries()
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
-                    dependencies {
-                        implementation project(':greeter')
-                    }
-                    source.from '../Sources/main.cpp'
+        buildFile("app/build.gradle", """
+            apply plugin: 'cpp-application'
+            application {
+                dependencies {
+                    implementation project(':greeter')
                 }
+                source.from '../Sources/main.cpp'
             }
-            project(':greeter') {
-                apply plugin: 'cpp-library'
-                library {
-                    dependencies {
-                        implementation project(':logger')
-                    }
-                    source.from '../Sources/greeter.cpp'
+""")
+        buildFile("greeter/build.gradle", """
+            apply plugin: 'cpp-library'
+            library {
+                dependencies {
+                    implementation project(':logger')
                 }
+                source.from '../Sources/greeter.cpp'
             }
-            project(':logger') {
-                apply plugin: 'cpp-library'
-                library {
-                    source.from '../Sources/logger.cpp'
-                }
+""")
+        buildFile("logger/build.gradle", """
+            apply plugin: 'cpp-library'
+            library {
+                source.from '../Sources/logger.cpp'
             }
-"""
+""")
         app.main.writeToSourceDir(file("Sources"))
         app.greeterLib.sources.writeToSourceDir(file("Sources"))
         app.greeterLib.headers.writeToProject(file("greeter"))

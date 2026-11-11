@@ -35,10 +35,10 @@ class XCTestWithApplicationDependenciesIntegrationTest extends AbstractNativeUni
         buildFile << """
             apply plugin: 'xctest'
             apply plugin: 'swift-application'
-            project(':lib') {
-                apply plugin: 'swift-library'
-            }
 """
+        buildFile("lib/build.gradle", """
+            apply plugin: 'swift-library'
+""")
         file("src/main/swift/App.swift") << """
             import Lib
 

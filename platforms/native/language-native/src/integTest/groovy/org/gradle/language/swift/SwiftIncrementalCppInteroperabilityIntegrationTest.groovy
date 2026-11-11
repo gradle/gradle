@@ -19,27 +19,23 @@ package org.gradle.language.swift
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyCppDepApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyCppDepHeadersApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyCppDepModuleMapApp
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
-    @ToBeFixedForIsolatedProjects(because = "Swift uses allprojects/subprojects (software model)")
     def "relinks but does not recompile when c++ sources change"() {
         def app = new IncrementalSwiftModifyCppDepApp()
         createDirs("app", "cppGreeter")
         settingsFile << "include ':app', ':cppGreeter'"
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'swift-application'
-                dependencies {
-                    implementation project(':cppGreeter')
-                }
+        buildFile("app/build.gradle", """
+            apply plugin: 'swift-application'
+            dependencies {
+                implementation project(':cppGreeter')
             }
-            project(':cppGreeter') {
-                apply plugin: 'cpp-library'
-            }
-        """
+        """)
+        buildFile("cppGreeter/build.gradle", """
+            apply plugin: 'cpp-library'
+        """)
         app.library.writeToProject(file("cppGreeter"))
         app.application.writeToProject(file("app"))
 
@@ -72,24 +68,21 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         result.assertTasksSkipped(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Swift uses allprojects/subprojects (software model)")
     def "recompiles when c++ headers change"() {
         def app = new IncrementalSwiftModifyCppDepHeadersApp()
         createDirs("app", "cppGreeter")
         settingsFile << "include ':app', ':cppGreeter'"
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'swift-application'
-                dependencies {
-                    implementation project(':cppGreeter')
-                }
+        buildFile("app/build.gradle", """
+            apply plugin: 'swift-application'
+            dependencies {
+                implementation project(':cppGreeter')
             }
-            project(':cppGreeter') {
-                apply plugin: 'cpp-library'
-            }
-        """
+        """)
+        buildFile("cppGreeter/build.gradle", """
+            apply plugin: 'cpp-library'
+        """)
         app.library.writeToProject(file("cppGreeter"))
         app.application.writeToProject(file("app"))
 
@@ -122,24 +115,21 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         result.assertTasksSkipped(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Swift uses allprojects/subprojects (software model)")
     def "regenerates module map and recompiles swift app when headers change"() {
         def app = new IncrementalSwiftModifyCppDepModuleMapApp()
         createDirs("app", "cppGreeter")
         settingsFile << "include ':app', ':cppGreeter'"
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'swift-application'
-                dependencies {
-                    implementation project(':cppGreeter')
-                }
+        buildFile("app/build.gradle", """
+            apply plugin: 'swift-application'
+            dependencies {
+                implementation project(':cppGreeter')
             }
-            project(':cppGreeter') {
-                apply plugin: 'cpp-library'
-            }
-        """
+        """)
+        buildFile("cppGreeter/build.gradle", """
+            apply plugin: 'cpp-library'
+        """)
         app.library.writeToProject(file("cppGreeter"))
         app.application.writeToProject(file("app"))
 
@@ -155,11 +145,9 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
 
         when:
         app.library.applyChangesToProject(file('cppGreeter'))
-        buildFile << """
-            project(':cppGreeter') {
-                library.publicHeaders.from = ['src/main/${app.library.alternateGreeter.header.sourceFile.path}']
-            }
-        """
+        buildFile("cppGreeter/build.gradle", """
+            library.publicHeaders.from = ['src/main/${app.library.alternateGreeter.header.sourceFile.path}']
+        """)
         succeeds ":app:assemble"
 
         then:
