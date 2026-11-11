@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 class DisambiguateArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -44,7 +43,6 @@ class DisambiguateArtifactTransformIntegrationTest extends AbstractHttpDependenc
         """
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Transforms registered and configured in root project using allprojects. This allows transform tests to use the same artifact transform implementation Class.")
     def "disambiguates A -> B -> C and B -> C by selecting the latter"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -67,65 +65,65 @@ public class MyClass {
 }
 """
 
-        buildFile << """
+        buildFile("lib/build.gradle", """
+repositories {
+    maven { url = "${mavenRepo.uri}" }
+}
+apply plugin: 'java-library'
+""")
+
+        buildFile("app/build.gradle", """
 def artifactType = Attribute.of('artifactType', String)
 
-allprojects {
-    repositories {
-        maven { url = "${mavenRepo.uri}" }
-    }
-}
-project(':lib') {
-    apply plugin: 'java-library'
+repositories {
+    maven { url = "${mavenRepo.uri}" }
 }
 
-project(':app') {
-    apply plugin: 'java'
+apply plugin: 'java'
 
-    dependencies {
-        implementation 'test:test:1.3'
-        implementation project(':lib')
+dependencies {
+    implementation 'test:test:1.3'
+    implementation project(':lib')
+}
+
+dependencies {
+    registerTransform(FileSizer) { // B
+        from.attribute(artifactType, 'java-classes-directory')
+        from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
+        from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
+
+        to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, 'size'))
     }
+    registerTransform(FileSizer) { // A
+        from.attribute(artifactType, 'jar')
+        from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
+        from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
 
-    dependencies {
-        registerTransform(FileSizer) { // B
-            from.attribute(artifactType, 'java-classes-directory')
-            from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
-            from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
-
-            to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, 'size'))
-        }
-        registerTransform(FileSizer) { // A
-            from.attribute(artifactType, 'jar')
-            from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
-            from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
-
-            to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
-            to.attribute(artifactType, 'java-classes-directory')
-            to.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
-        }
+        to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
+        to.attribute(artifactType, 'java-classes-directory')
+        to.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
     }
+}
 
-    task resolve(type: Copy) {
-        def artifacts = configurations.compileClasspath.incoming.artifactView {
-            attributes { it.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, 'size')) }
-            if (project.hasProperty("lenient")) {
-                lenient(true)
-            }
-        }.artifacts
-        from artifacts.artifactFiles
-        into "\${buildDir}/libs"
-        doLast {
-            println "files: " + artifacts.collect { it.file.name }
-            println "ids: " + artifacts.collect { it.id }
-            println "components: " + artifacts.collect { it.id.componentIdentifier }
-            println "variants: " + artifacts.collect { it.variant.attributes }
+task resolve(type: Copy) {
+    def artifacts = configurations.compileClasspath.incoming.artifactView {
+        attributes { it.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, 'size')) }
+        if (project.hasProperty("lenient")) {
+            lenient(true)
         }
+    }.artifacts
+    from artifacts.artifactFiles
+    into "\${buildDir}/libs"
+    doLast {
+        println "files: " + artifacts.collect { it.file.name }
+        println "ids: " + artifacts.collect { it.id }
+        println "components: " + artifacts.collect { it.id.componentIdentifier }
+        println "variants: " + artifacts.collect { it.variant.attributes }
     }
 }
 
 ${artifactTransform("FileSizer")}
-"""
+""")
 
         when:
         run "resolve"
@@ -137,7 +135,6 @@ ${artifactTransform("FileSizer")}
         output.count("Transforming test-1.3.jar.txt to test-1.3.jar.txt.txt") == 1
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Transforms registered and configured in root project using allprojects. This allows transform tests to use the same artifact transform implementation Class.")
     def "can not disambiguate A -> C and B -> C as both are valid chains"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -160,76 +157,76 @@ public class MyClass {
 }
 """
 
-        buildFile << """
+        buildFile("lib/build.gradle", """
+repositories {
+    maven { url = "${mavenRepo.uri}" }
+}
+apply plugin: 'java-library'
+""")
+
+        buildFile("app/build.gradle", """
 def artifactType = Attribute.of('artifactType', String)
 def extraAttribute = Attribute.of('extra', String)
 
-allprojects {
-    repositories {
-        maven { url = "${mavenRepo.uri}" }
-    }
-}
-project(':lib') {
-    apply plugin: 'java-library'
+repositories {
+    maven { url = "${mavenRepo.uri}" }
 }
 
-project(':app') {
-    apply plugin: 'java'
+apply plugin: 'java'
 
-    dependencies {
-        implementation 'test:test:1.3'
-        implementation project(':lib')
-    }
+dependencies {
+    implementation 'test:test:1.3'
+    implementation project(':lib')
+}
 
-    def hasExtraAttribute = providers.gradleProperty('extraAttribute').isPresent()
+def hasExtraAttribute = providers.gradleProperty('extraAttribute').isPresent()
 
-    dependencies {
-        registerTransform(TestTransform) { // A
-            from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-            from.attribute(artifactType, 'java-classes-directory')
-            to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-            to.attribute(artifactType, 'final')
+dependencies {
+    registerTransform(TestTransform) { // A
+        from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+        from.attribute(artifactType, 'java-classes-directory')
+        to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+        to.attribute(artifactType, 'final')
 
-            if (hasExtraAttribute) {
-                from.attribute(extraAttribute, 'whatever')
-                to.attribute(extraAttribute, 'value1')
-            }
-        }
-        registerTransform(TestTransform) { // B
-            from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-            from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
-            from.attribute(artifactType, 'jar')
-            to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-            to.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
-            to.attribute(artifactType, 'final')
-
-            if (hasExtraAttribute) {
-                from.attribute(extraAttribute, 'whatever')
-                to.attribute(extraAttribute, 'value2')
-            }
+        if (hasExtraAttribute) {
+            from.attribute(extraAttribute, 'whatever')
+            to.attribute(extraAttribute, 'value1')
         }
     }
+    registerTransform(TestTransform) { // B
+        from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+        from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+        from.attribute(artifactType, 'jar')
+        to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+        to.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
+        to.attribute(artifactType, 'final')
 
-    task resolve(type: Copy) {
-        def artifacts = configurations.compileClasspath.incoming.artifactView {
-            attributes { it.attribute(artifactType, 'final') }
-            if (project.hasProperty("lenient")) {
-                lenient(true)
-            }
-        }.artifacts
-        from artifacts.artifactFiles
-        into "\${buildDir}/libs"
-        doLast {
-            println "files: " + artifacts.collect { it.file.name }
-            println "ids: " + artifacts.collect { it.id }
-            println "components: " + artifacts.collect { it.id.componentIdentifier }
-            println "variants: " + artifacts.collect { it.variant.attributes }
+        if (hasExtraAttribute) {
+            from.attribute(extraAttribute, 'whatever')
+            to.attribute(extraAttribute, 'value2')
         }
+    }
+}
+
+task resolve(type: Copy) {
+    def artifacts = configurations.compileClasspath.incoming.artifactView {
+        attributes { it.attribute(artifactType, 'final') }
+        if (project.hasProperty("lenient")) {
+            lenient(true)
+        }
+    }.artifacts
+    from artifacts.artifactFiles
+    into "\${buildDir}/libs"
+    doLast {
+        println "files: " + artifacts.collect { it.file.name }
+        println "ids: " + artifacts.collect { it.id }
+        println "components: " + artifacts.collect { it.id.componentIdentifier }
+        println "variants: " + artifacts.collect { it.variant.attributes }
     }
 }
 
 ${artifactTransform("TestTransform")}
-"""
+""")
 
         when:
         fails "resolve"
@@ -412,46 +409,46 @@ task resolve(type: Copy) {
         output.count('Sizing') == 0
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Transforms registered and configured in root project using allprojects. This allows transform tests to use the same artifact transform implementation Class.")
     def "disambiguation leverages schema rules before doing it size based"() {
         given:
         createDirs("child")
         settingsFile << """
 include('child')
 """
+        buildFile("child/build.gradle", """
+repositories {
+    maven { url = "${mavenRepo.uri}" }
+}
+
+configurations {
+    runtimeOnly {
+        canBeConsumed = false
+        canBeResolved = false
+    }
+    runtimeElements {
+        extendsFrom(runtimeOnly)
+        assert canBeConsumed
+        canBeResolved = false
+        attributes {
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+        }
+    }
+}
+
+
+artifacts {
+    buildDir.mkdirs()
+    file("\$buildDir/test.jar").text = "toto"
+    runtimeOnly file("\$buildDir/test.jar")
+}
+""")
         buildFile << """
 def artifactType = Attribute.of('artifactType', String)
 
 apply plugin: 'java-library'
 
-allprojects {
-    repositories {
-        maven { url = "${mavenRepo.uri}" }
-    }
-}
-
-project(':child') {
-    configurations {
-        runtimeOnly {
-            canBeConsumed = false
-            canBeResolved = false
-        }
-        runtimeElements {
-            extendsFrom(runtimeOnly)
-            assert canBeConsumed
-            canBeResolved = false
-            attributes {
-                attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
-            }
-        }
-    }
-
-
-    artifacts {
-        buildDir.mkdirs()
-        file("\$buildDir/test.jar").text = "toto"
-        runtimeOnly file("\$buildDir/test.jar")
-    }
+repositories {
+    maven { url = "${mavenRepo.uri}" }
 }
 
 dependencies {

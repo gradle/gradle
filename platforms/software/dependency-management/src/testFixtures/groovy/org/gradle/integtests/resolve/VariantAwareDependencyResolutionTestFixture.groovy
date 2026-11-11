@@ -26,24 +26,33 @@ trait VariantAwareDependencyResolutionTestFixture extends TasksWithInputsAndOutp
         """
             def color = Attribute.of('color', String)
             allprojects {
-                configurations {
-                    implementation {
-                        // TODO: Make this a dependency scope
-                        // canBeResolved = false
-                        // canBeConsumed = false
-                    }
-                    resolver {
-                        attributes.attribute(color, 'blue')
-                        extendsFrom implementation
-                        assert canBeResolved
-                        canBeConsumed = false
-                    }
-                    outgoing {
-                        attributes.attribute(color, 'blue')
-                        extendsFrom implementation
-                        canBeResolved = false
-                        assert canBeConsumed
-                    }
+                ${colorVariantConfigurations()}
+            }
+        """
+    }
+
+    /**
+     * Declares the configurations used by {@link #colorVariants()}, using a {@code color} variable for the attribute.
+     */
+    String colorVariantConfigurations() {
+        """
+            configurations {
+                implementation {
+                    // TODO: Make this a dependency scope
+                    // canBeResolved = false
+                    // canBeConsumed = false
+                }
+                resolver {
+                    attributes.attribute(color, 'blue')
+                    extendsFrom implementation
+                    assert canBeResolved
+                    canBeConsumed = false
+                }
+                outgoing {
+                    attributes.attribute(color, 'blue')
+                    extendsFrom implementation
+                    canBeResolved = false
+                    assert canBeConsumed
                 }
             }
         """
