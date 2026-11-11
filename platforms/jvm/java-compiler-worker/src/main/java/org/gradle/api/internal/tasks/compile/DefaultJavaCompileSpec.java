@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
@@ -38,6 +39,7 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     private List<File> sourceRoots;
     private Set<String> classesToCompile = Collections.emptySet();
     private File backupDestinationDir;
+    private Map<String, File> stashedClassFiles = Collections.emptyMap();
 
     @Override
     public MinimalJavaCompileOptions getCompileOptions() {
@@ -53,6 +55,16 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     @Override
     public void setClassBackupDir(@Nullable File classBackupDir) {
         this.backupDestinationDir = classBackupDir;
+    }
+
+    @Override
+    public Map<String, File> getStashedClassFiles() {
+        return stashedClassFiles;
+    }
+
+    @Override
+    public void setStashedClassFiles(Map<String, File> stashedClassFiles) {
+        this.stashedClassFiles = stashedClassFiles;
     }
 
     public void setCompileOptions(CompileOptions compileOptions) {

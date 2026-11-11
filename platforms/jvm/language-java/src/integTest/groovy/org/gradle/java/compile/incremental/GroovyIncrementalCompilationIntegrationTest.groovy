@@ -75,6 +75,64 @@ class A2{}
         outputs.deletedClasses('A2')
     }
 
+    def "does not fail when a precompiled trait helper refers to a recompiled class only privately"() {
+        given:
+        // ZoneError and A are private dependents of Util; the helper of WithZone refers to ZoneError only in a private method,
+        // so it is not recompiled and is loaded from the previous output while ZoneError is being recompiled
+        def util = source "class Util { static String zone(String id) { id?.trim() } }"
+        source "class ZoneError extends RuntimeException { String zone() { Util.zone('UTC') } }"
+        source "trait WithZone { private ZoneError error() { new ZoneError() }; String describe() { error().message } }"
+        source "class A implements WithZone { String zone() { Util.zone('UTC') } }"
+        outputs.snapshot { run "compileGroovy" }
+
+        when:
+        util.text = "class Util { static String zone(String id) { id?.trim()?.toUpperCase() } }"
+        run "compileGroovy"
+
+        then:
+        outputs.recompiledClasses("Util", "ZoneError", "A")
+    }
+
+    def "compiles incrementally when the build resolves classes by loading them"() {
+        given:
+        buildFile << """
+            tasks.withType(GroovyCompile) {
+                groovyOptions.optimizationOptions.asmResolving = false
+            }
+        """
+        source "class A { B b }"
+        def b = source "class B {}"
+        outputs.snapshot { run "compileGroovy" }
+
+        when:
+        b.text = "class B { int i }"
+        run "compileGroovy"
+
+        then:
+        outputs.recompiledClasses("A", "B")
+    }
+
+    def "fails to compile a class that refers to a class removed from a changed source"() {
+        given:
+        def a = file('src/main/groovy/org/gradle/A.groovy')
+        a << """
+package org.gradle
+
+class A1 {}
+
+class A2 {}
+"""
+        file('src/main/groovy/org/gradle/B.groovy') << 'package org.gradle; class B { A2 a2 }'
+        outputs.snapshot { run "compileGroovy" }
+
+        when:
+        a.text = 'package org.gradle; class A1 {}'
+        runAndFail "compileGroovy"
+
+        then:
+        failure.assertHasErrorOutput("unable to resolve class A2")
+    }
+
     def 'only recompile removed packages'() {
         given:
         file('src/main/groovy/org/gradle/Org.groovy') << 'package org.gradle; class Org {}'

@@ -48,6 +48,7 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
+    implementation(projects.javaApiExtractor)
     implementation(projects.jvmServices)
     implementation(projects.loggingApi)
     implementation(projects.platformBase)
