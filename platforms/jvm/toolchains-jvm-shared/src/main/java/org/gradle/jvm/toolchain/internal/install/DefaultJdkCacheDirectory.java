@@ -18,7 +18,6 @@ package org.gradle.jvm.toolchain.internal.install;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Files;
-import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileTree;
@@ -48,7 +47,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -64,6 +62,8 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
     @VisibleForTesting
     static final String MARKER_FILE = ".ready";
     private static final String MAC_OS_JAVA_HOME_FOLDER = "Contents/Home";
+    private static final byte[] ZIP_MAGIC = {'P', 'K', 0x03, 0x04};
+    private static final byte[] GZIP_MAGIC = {(byte) 0x1f, (byte) 0x8b};
 
     private static final class UnpackedRoot {
         private final File dir;
@@ -273,7 +273,7 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
                 .toLowerCase(Locale.ROOT) + ".2";
     }
 
-    private File unpack(File jdkArchive) {
+    private File unpack(File jdkArchive) throws IOException {
         final FileTree fileTree = asFileTree(jdkArchive);
         String unpackFolderName = getNameWithoutExtension(jdkArchive);
         final File unpackFolder = temporaryFileProvider.createTemporaryDirectory(unpackFolderName, null, "jdks");
@@ -302,12 +302,32 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
         }
     }
 
-    private FileTree asFileTree(File jdkArchive) {
-        final String extension = FilenameUtils.getExtension(jdkArchive.getName());
-        if (Objects.equals(extension, "zip")) {
+    /**
+     * Detects the archive format from its leading bytes, since the archive file name may have no extension.
+     */
+    private FileTree asFileTree(File jdkArchive) throws IOException {
+        byte[] header = Files.asByteSource(jdkArchive).slice(0, 4).read();
+        if (startsWith(header, ZIP_MAGIC)) {
+            LOGGER.info("Unpacking toolchain archive {} (zip)", jdkArchive.getName());
             return operations.zipTree(jdkArchive);
         }
-        return operations.tarTree(operations.getResources().gzip(jdkArchive));
+        if (startsWith(header, GZIP_MAGIC)) {
+            LOGGER.info("Unpacking toolchain archive {} (tar.gz)", jdkArchive.getName());
+            return operations.tarTree(operations.getResources().gzip(jdkArchive));
+        }
+        throw new IOException("Unsupported JDK archive format, expected a zip or tar.gz archive: " + jdkArchive);
+    }
+
+    private static boolean startsWith(byte[] bytes, byte[] prefix) {
+        if (bytes.length < prefix.length) {
+            return false;
+        }
+        for (int i = 0; i < prefix.length; i++) {
+            if (bytes[i] != prefix[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public FileLock acquireWriteLock(File destinationFile, String operationName) {

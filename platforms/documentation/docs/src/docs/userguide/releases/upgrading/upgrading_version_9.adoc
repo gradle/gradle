@@ -121,6 +121,22 @@ If your build asserts on an attribute value read from a `ResolutionResult` or fr
 Build operations and published Gradle Module Metadata already reported the name, so assertions against those are unaffected.
 Do not reintroduce the old string by overriding `getName()` to return `toString()`; see <<variant_attributes.adoc#sec:creating-attributes, Creating attributes>> for why the two must agree.
 
+[[toolchain_archive_name_and_format]]
+==== Toolchain archives without a file name are named from the download URL
+
+When Gradle downloads a toolchain, it names the archive after the file name the server provides.
+Previously, provisioning failed with `Can't determine filename for resource located at: <url>` when the server sent a `Content-Disposition` header without a file name.
+Gradle now names such an archive after a hash of the full download URL, including its query.
+
+Gradle reuses a downloaded archive only if it finds one with the same name.
+For archives named from a hash of the URL, a resolver that returns a different URL for each request, for example one with an expiring access token, makes Gradle download the archive again each time it provisions a toolchain.
+See <<toolchain_plugins.adoc#sec:provide_a_download_uri,Provide a download URI>>.
+
+Gradle also detects whether a toolchain archive is a zip or a tar.gz file from its content.
+Previously, Gradle relied on the file extension: it unpacked a `.zip` file as a zip archive and any other file as a tar.gz archive.
+An archive whose extension does not match its content now unpacks correctly.
+An archive that is neither a zip nor a tar.gz file fails with `Unsupported JDK archive format`.
+
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier
 

@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain.install.internal
 import org.gradle.api.GradleException
 import org.gradle.authentication.Authentication
 import org.gradle.cache.FileLock
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.resource.ExternalResource
@@ -40,6 +41,7 @@ import org.gradle.platform.Architecture
 import org.gradle.platform.OperatingSystem
 import org.gradle.platform.internal.CurrentBuildPlatform
 import org.gradle.util.TestUtil
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -202,6 +204,67 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
         then:
         1 * downloader.download(DOWNLOAD.getUri(), new File(temporaryFolder, UPDATED_ARCHIVE_NAME), _)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37104")
+    def "archive file name uses provided file name or falls back to URI hash when it is #description"() {
+        given:
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, createToolchainConfiguration(true), buildOperationRunner, buildPlatform)
+        def metaData = Mock(ExternalResourceMetaData) {
+            getFilename() >> filename
+        }
+        def resource = Mock(ExternalResource) {
+            getMetaData() >> metaData
+        }
+
+        expect:
+        provisioningService.buildFileNameWithDetails(DOWNLOAD.uri, resource, spec) == expected
+
+        where:
+        description | filename     | expected
+        "provided"  | ARCHIVE_NAME | UPDATED_ARCHIVE_NAME
+        "null"      | null         | "jdk-" + Hashing.hashString(DOWNLOAD.uri.toString()).toCompactString() + "-Eclipse-Temurin-11"
+        "empty"     | ""           | "jdk-" + Hashing.hashString(DOWNLOAD.uri.toString()).toCompactString() + "-Eclipse-Temurin-11"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37104")
+    def "archive without a provided file name is downloaded again when the URL token changes"() {
+        given:
+        def firstUri = URI.create('https://server/jdk?token=first')
+        def secondUri = URI.create('https://server/jdk?token=second')
+        def firstArchive = new File(temporaryFolder, "jdk-" + Hashing.hashString(firstUri.toString()).toCompactString() + "-Eclipse-Temurin-11")
+        def secondArchive = new File(temporaryFolder, "jdk-" + Hashing.hashString(secondUri.toString()).toCompactString() + "-Eclipse-Temurin-11")
+
+        def unnamedResource = Mock(ExternalResource) {
+            getMetaData() >> Mock(ExternalResourceMetaData)
+        }
+        def unnamedDownloader = Mock(SecureFileDownloader) {
+            getResourceFor(_ as URI, _ as Collection<Authentication>) >> unnamedResource
+        }
+        def resolver = Mock(JavaToolchainResolver) {
+            resolve(_ as JavaToolchainRequest) >>> [firstUri, firstUri, secondUri].collect { Optional.of(JavaToolchainDownload.fromUri(it)) }
+        }
+        mockRegistry(resolver)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, unnamedDownloader, cache, providerFactory, createToolchainConfiguration(true), buildOperationRunner, buildPlatform)
+
+        when:
+        provisioningService.tryInstall(spec)
+
+        then:
+        1 * unnamedDownloader.download(firstUri, firstArchive, _) >> { firstArchive.createNewFile() }
+
+        when: "the same URL is provided again"
+        provisioningService.tryInstall(spec)
+
+        then: "the downloaded archive is reused"
+        0 * unnamedDownloader.download(_, _, _)
+
+        when: "the URL token changes"
+        provisioningService.tryInstall(spec)
+
+        then: "the archive gets a different name and is downloaded again"
+        1 * unnamedDownloader.download(secondUri, secondArchive, _)
+        firstArchive.name != secondArchive.name
     }
 
     ToolchainConfiguration createToolchainConfiguration(boolean autoDownload) {
