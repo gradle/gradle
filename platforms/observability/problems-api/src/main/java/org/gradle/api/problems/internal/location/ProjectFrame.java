@@ -37,4 +37,9 @@ public final class ProjectFrame extends Frame {
     public String getBuildTreePath() {
         return buildTreePath;
     }
+
+    @Override
+    public boolean isAuthored() {
+        return false;
+    }
 }

@@ -23,6 +23,7 @@ import org.gradle.initialization.StartParameterBuildOptions
 
 class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCacheIntegrationTest {
 
+    public static final String UNSUPPORTED_TYPE = "Gradle:Configuration Cache:Type unsupported for serialization"
     public static final String REGISTRATION_UNSUPPORTED = "Gradle:Configuration Cache:Unsupported build listener registration"
 
     @Override
@@ -171,7 +172,57 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         }
     }
 
-    def "problems that differ only in their path collapse into one in the Problems API"() {
+    def "each field that can't be serialized is a problem of its own"() {
+        given:
+        def fields = (1..5).collect { "private final Thread thread$it = Thread.currentThread()" }.join("\n")
+        buildFile """
+            abstract class AcmeTask extends DefaultTask {
+                $fields
+
+                @TaskAction
+                void run() {}
+            }
+
+            tasks.register("acme", AcmeTask)
+        """
+
+        when:
+        configurationCacheRunLenient 'acme'
+
+        then: "one per field, when storing and when loading"
+        outputContains("10 problems were found storing the configuration cache, 2 of which seem unique.")
+        def received = collectedProblems.findAll { it.fqid == UNSUPPORTED_TYPE }
+        received.size() == 10
+        received.collect { it.originTraces[0].frames[0].displayName }.toSet() == (1..5).collect { "field thread$it".toString() }.toSet()
+        ignoreCleanupAssertions()
+    }
+
+    def "the same field in many tasks of one type is one problem"() {
+        given:
+        buildFile """
+            abstract class AcmeTask extends DefaultTask {
+                private final Thread thread = Thread.currentThread()
+
+                @TaskAction
+                void run() {}
+            }
+
+            (1..5).each { tasks.register("acme\$it", AcmeTask) }
+            tasks.register("all") { dependsOn tasks.withType(AcmeTask) }
+        """
+
+        when:
+        configurationCacheRunLenient 'all'
+
+        then: "Configuration Cache counts every task; the field is one thing to fix, reported once when storing and once when loading"
+        outputContains("10 problems were found storing the configuration cache")
+        def received = collectedProblems.findAll { it.fqid == UNSUPPORTED_TYPE }
+        received.size() == 2
+        received.every { it.originTraces[0].frames*.displayName.take(2) == ["field thread", "class AcmeTask"] }
+        ignoreCleanupAssertions()
+    }
+
+    def "more distinct problems of one kind than the Problems API limit are cut off"() {
         given:
         def fields = (1..20).collect { "private final Thread thread$it = Thread.currentThread()" }.join("\n")
         buildFile """
@@ -188,13 +239,9 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         when:
         configurationCacheRunLenient 'acme'
 
-        then: "Configuration Cache counts every field, when storing and when loading, and calls two of them unique"
+        then: "Configuration Cache reports all 40; the Problems API stops at its limit per problem id"
         outputContains("40 problems were found storing the configuration cache, 2 of which seem unique.")
-
-        and: "the Problems API emits those two: the other 38 paths are equal problems to it, since a trace is not part of a problem's identity"
-        def received = collectedProblems.findAll { it.fqid == "Gradle:Configuration Cache:Type unsupported for serialization" }
-        received.size() == 2
-        received*.originTraces*.frames*.displayName.flatten().count { it.startsWith("field thread") } == 2
+        collectedProblems.count { it.fqid == UNSUPPORTED_TYPE } == 15
         ignoreCleanupAssertions()
     }
 }

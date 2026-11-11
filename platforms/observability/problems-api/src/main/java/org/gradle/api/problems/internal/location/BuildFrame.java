@@ -36,4 +36,9 @@ public final class BuildFrame extends Frame {
     public String getBuildPath() {
         return buildPath;
     }
+
+    @Override
+    public boolean isAuthored() {
+        return false;
+    }
 }

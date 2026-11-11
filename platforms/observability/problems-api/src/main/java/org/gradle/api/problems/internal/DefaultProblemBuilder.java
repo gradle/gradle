@@ -51,6 +51,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class DefaultProblemBuilder implements ProblemBuilderInternal {
     private static final String MISSING_ID = "Reported problem has no id";
@@ -159,14 +160,12 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             return ImmutableList.copyOf(explicitOriginTraces);
         }
         ImmutableList.Builder<Trace> originTraces = ImmutableList.builder();
-        for (ProblemLocation location : originLocations) {
-            Frame leaf = location instanceof StackTraceLocation ? stackLeaf((StackTraceLocation) location)
-                : location instanceof FileLocation ? new FileLocationFrame(positionOf((FileLocation) location), Locality.UNKNOWN)
-                : null;
-            if (leaf != null) {
-                originTraces.add(new Trace(ImmutableList.of(leaf)));
-            }
-        }
+        originLocations.stream()
+            .map(this::originLeafOf)
+            .filter(Objects::nonNull)
+            .map(leaf -> new Trace(ImmutableList.of(leaf)))
+            .forEach(originTraces::add);
+
         if (additionalData instanceof TypeValidationData) {
             TypeValidationData data = (TypeValidationData) additionalData;
             ImmutableList.Builder<Frame> frames = ImmutableList.builder();
@@ -183,6 +182,16 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             }
         }
         return originTraces.build();
+    }
+
+    private @Nullable Frame originLeafOf(ProblemLocation location) {
+        if (location instanceof StackTraceLocation) {
+            return stackLeaf((StackTraceLocation) location);
+        }
+        if (location instanceof FileLocation) {
+            return new FileLocationFrame(positionOf((FileLocation) location), Locality.UNKNOWN);
+        }
+        return null;
     }
 
     /**

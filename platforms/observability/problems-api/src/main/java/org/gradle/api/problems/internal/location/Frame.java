@@ -45,6 +45,14 @@ public class Frame implements Serializable {
     }
 
     /**
+     * Whether this frame is an authored unit: code or a script someone wrote, such as a file line, a property, a class.
+     * The other frames are build model units: runtime entities of the build, such as a task or a project.
+     */
+    public boolean isAuthored() {
+        return true;
+    }
+
+    /**
      * Where in a file this frame points, if it is an authored unit with a known place.
      */
     @Nullable

@@ -40,6 +40,25 @@ public final class Trace implements Serializable {
         return frames;
     }
 
+    /**
+     * What this trace says about the cause itself: its authored frames, each by its name and position.
+     * <p>
+     * Two traces with the same authored frames name the same thing to fix, whatever build model units sit around them:
+     * a field of a task type is one cause, however many tasks of that type there are. Locality is left out, since it is filled in after a problem is built.
+     */
+    public List<Object> getAuthoredIdentity() {
+        ImmutableList.Builder<Object> identity = ImmutableList.builder();
+        for (Frame frame : frames) {
+            if (frame.isAuthored()) {
+                identity.add(frame.getDisplayName());
+                if (frame.getPosition() != null) {
+                    identity.add(frame.getPosition());
+                }
+            }
+        }
+        return identity.build();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

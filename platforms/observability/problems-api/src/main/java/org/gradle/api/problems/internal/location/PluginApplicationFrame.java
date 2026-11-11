@@ -33,4 +33,9 @@ public final class PluginApplicationFrame extends Frame {
     public String getPluginId() {
         return pluginId;
     }
+
+    @Override
+    public boolean isAuthored() {
+        return false;
+    }
 }

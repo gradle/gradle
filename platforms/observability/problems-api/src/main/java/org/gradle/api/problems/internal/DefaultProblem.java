@@ -226,7 +226,13 @@ public class DefaultProblem implements Serializable, ProblemInternal {
         );
     }
 
-    // The traces are left out of equals and hashCode, like the contextual locations: summarization hashes the problem.
+    /**
+     * Two problems are the same when they say the same thing about the same cause.
+     * <p>
+     * The cause is the flat origin locations and the authored frames of the origin traces: the file line, the property, the class.
+     * Build model units, such as the task at the root of a trace, don't make a problem distinct, and neither do the detection trace
+     * and the contextual locations: summarization keeps problems of different tasks apart on its own.
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -240,15 +246,30 @@ public class DefaultProblem implements Serializable, ProblemInternal {
             equal(contextualLabel, that.contextualLabel) &&
             equal(solutions, that.solutions) &&
             equal(originLocations, that.originLocations) &&
+            equal(authoredOrigins(), that.authoredOrigins()) &&
             equal(details, that.details) &&
             equal(exception, that.exception) &&
-            equal(additionalData, that.additionalData) &&
+            equal(identifyingData(), that.identifyingData()) &&
             writtenToConsole == that.writtenToConsole;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(problemDefinition, contextualLabel, solutions, originLocations, details, exception, additionalData, writtenToConsole);
+        return Objects.hashCode(problemDefinition, contextualLabel, solutions, originLocations, authoredOrigins(), details, exception, identifyingData(), writtenToConsole);
+    }
+
+    private List<List<Object>> authoredOrigins() {
+        ImmutableList.Builder<List<Object>> origins = ImmutableList.builder();
+        for (Trace trace : originTraces) {
+            origins.add(trace.getAuthoredIdentity());
+        }
+        return origins.build();
+    }
+
+    // The text form of a Configuration Cache trace names the task that holds the state. It is a location, which the origin trace now carries, so it doesn't identify the problem.
+    @Nullable
+    private AdditionalData identifyingData() {
+        return additionalData instanceof PropertyTraceData && !originTraces.isEmpty() ? null : additionalData;
     }
 
     @Override
