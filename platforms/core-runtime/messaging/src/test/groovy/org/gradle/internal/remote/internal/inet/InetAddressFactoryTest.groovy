@@ -49,6 +49,16 @@ class InetAddressFactoryTest extends Specification {
         !factory.isCommunicationAddress(ip(127, 0, 0, 3))
     }
 
+    def "loopback, wildcard and local interface addresses are local addresses"() {
+        expect:
+        InetAddressFactory.isLocalAddress(InetAddress.getLoopbackAddress())
+        InetAddressFactory.isLocalAddress(ip(127, 0, 0, 2))
+        InetAddressFactory.isLocalAddress(new InetSocketAddress(0).address)
+        Collections.list(NetworkInterface.getNetworkInterfaces()).collectMany { Collections.list(it.inetAddresses) }.every { InetAddressFactory.isLocalAddress(it) }
+        // TEST-NET-1, reserved for documentation and never assigned to a local interface
+        !InetAddressFactory.isLocalAddress(ip(192, 0, 2, 1))
+    }
+
     def "wildcard address is always present"() {
 
         when:

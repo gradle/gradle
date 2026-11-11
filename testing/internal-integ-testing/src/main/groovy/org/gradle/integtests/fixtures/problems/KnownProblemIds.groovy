@@ -131,6 +131,7 @@ class KnownProblemIds {
         'Provisioning:Tools and Toolchains:Invalid JVM installation': ['Invalid JVM installation'],
         'Dependencies:Declaration:Version catalog alias builder not finished': [VersionCatalogProblemId.ALIAS_NOT_FINISHED.name],
         'Dependencies:Declaration:Invalid version catalog dependency notation': [VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION.name],
+        'Dependencies:Declaration:Invalid version catalog plugin notation': [VersionCatalogProblemId.INVALID_PLUGIN_NOTATION.name],
         'Dependencies:Declaration:Invalid version catalog TOML definition': [VersionCatalogProblemId.INVALID_TOML_DEFINITION.name],
         'Dependencies:Declaration:Invalid version notation in version catalog': [VersionCatalogProblemId.INVALID_VERSION_NOTATION.name],
         'Dependencies:Declaration:Invalid version notation': ['Invalid version notation'],
