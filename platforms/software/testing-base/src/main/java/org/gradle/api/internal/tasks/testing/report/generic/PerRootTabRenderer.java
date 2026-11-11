@@ -134,16 +134,11 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
     }
 
     private static String getStatusClass(TestResult.ResultType resultType) {
-        switch (resultType) {
-            case SUCCESS:
-                return "success";
-            case FAILURE:
-                return "failures";
-            case SKIPPED:
-                return "skipped";
-            default:
-                throw new IllegalStateException();
-        }
+        return switch (resultType) {
+            case SUCCESS -> "success";
+            case FAILURE -> "failures";
+            case SKIPPED -> "skipped";
+        };
     }
 
     private static String getFormattedSuccessRate(PerRootInfo info) {
