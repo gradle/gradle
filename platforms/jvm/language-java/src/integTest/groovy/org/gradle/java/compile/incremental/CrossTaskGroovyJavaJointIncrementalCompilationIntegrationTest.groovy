@@ -17,19 +17,13 @@
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractCrossTaskIncrementalCompilationSupport {
     CompiledLanguage language = CompiledLanguage.GROOVY
     boolean useJar = false
 
-    def setup() {
-        configureGroovyIncrementalCompilation()
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/22531")
-    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def 'incremental compilation does not fail on api change referenced via static property when affected class is #bCompileStatic#bSuffix'() {
         given:
         // A is a private dependency of B1 and B1 is referenced in E1.isCacheEnabled through inheritance.
@@ -65,7 +59,6 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
         "groovy" | "@groovy.transform.CompileStatic " | ["B1", "E1", "E2"]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project incremental compilation")
     def 'incremental compilation does not fail when some deleted class with Java source is private referenced in class that is loaded by Groovy'() {
         given:
         // A is a private dependency of B1 and B1 is referenced in E1.isCacheEnabled through inheritance.
@@ -121,7 +114,6 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
         impl.recompiledClasses("B1", "C1", "D1", "E1", "E2")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project incremental compilation")
     def 'incremental compilation does not fail on api change when we compile only groovy in the dependent project and affected class is #bCompileStatic#bSuffix'() {
         given:
         // A is a private dependency of B and B is referenced in E.isCacheEnabled through inheritance.
@@ -149,7 +141,6 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
         "groovy" | "@groovy.transform.CompileStatic " | ["B", "E"]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project incremental compilation")
     def 'incremental compilation after a failure works on api dependency change'() {
         given:
         File aClass = sourceForLanguageForProject(CompiledLanguage.JAVA, "api", "class A { void m1() {}; }")

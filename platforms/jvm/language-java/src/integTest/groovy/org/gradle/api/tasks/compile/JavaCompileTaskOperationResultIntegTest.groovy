@@ -19,17 +19,16 @@ package org.gradle.api.tasks.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.fixtures.HelperProcessorFixture
 import spock.lang.Issue
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class JavaCompileTaskOperationResultIntegTest extends AbstractIntegrationSpec {
     def setup() {
-        settingsFile << """
+        settingsFile """
             include 'processor'
-        """
-        buildFile << """
-            allprojects {
+            gradle.lifecycle.beforeProject {
                 apply plugin: 'java'
             }
+        """
+        buildFile """
             dependencies {
                 compileOnly project(':processor')
                 annotationProcessor project(':processor')
@@ -46,7 +45,6 @@ class JavaCompileTaskOperationResultIntegTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22999")
-    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "listener added during doFirst of JavaCompile can subscribe to task completion events but does not get a callback"() {
         buildFile << """
             import javax.inject.Inject

@@ -16,16 +16,13 @@
 
 package org.gradle.java.compile.incremental
 
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
-
-@ToBeFixedForIsolatedProjects(because = "subprojects/allprojects, configure projects from root")
 abstract class AbstractCompileAvoidanceWithIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
     def setup() {
-        buildFile << """
-            allprojects {
+        settingsFile """
+            gradle.lifecycle.beforeProject {
                 ${mavenCentralRepository()}
             }
-       """
+        """
     }
 
     def "doesn't recompile if implementation dependency changed in ABI compatible way"() {
@@ -35,16 +32,14 @@ abstract class AbstractCompileAvoidanceWithIncrementalCompilationIntegrationTest
             import org.apache.commons.math3.util.BigReal;
             public class ToolImpl { public void execute() { BigReal read = BigReal.ONE; } }
 '''
-        buildFile << """
-            project(':a') {
-                apply plugin: '${language.name}'
+        buildFile("a/build.gradle", """
+            apply plugin: '${language.name}'
 
-                dependencies {
-                    implementation 'org.apache.commons:commons-math3:3.4'
-                }
+            dependencies {
+                implementation 'org.apache.commons:commons-math3:3.4'
             }
-            """
-        configureGroovyIncrementalCompilation("subprojects")
+        """)
+        configureGroovyIncrementalCompilationForSubprojects()
 
         when:
         succeeds "a:${language.compileTaskName}"
@@ -53,7 +48,7 @@ abstract class AbstractCompileAvoidanceWithIncrementalCompilationIntegrationTest
         executedAndNotSkipped ":a:${language.compileTaskName}"
 
         when:
-        buildFile.text = buildFile.text.replace("3.4", "3.4.1")
+        file("a/build.gradle").text = file("a/build.gradle").text.replace("3.4", "3.4.1")
 
         then:
         succeeds "a:${language.compileTaskName}"

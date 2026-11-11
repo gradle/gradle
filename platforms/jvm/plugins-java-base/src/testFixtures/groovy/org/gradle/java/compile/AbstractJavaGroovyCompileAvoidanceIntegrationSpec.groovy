@@ -20,10 +20,8 @@ import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
-@ToBeFixedForIsolatedProjects(because = "allprojects")
 abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends AbstractIntegrationSpec {
     abstract boolean isUseJar()
 
@@ -44,25 +42,27 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
 
     def setup() {
         createDirs("a", "b")
-        settingsFile << """
+        settingsFile """
             include 'a', 'b'
-        """
-        buildFile << """
-            allprojects {
+            gradle.lifecycle.beforeProject {
                 if (name in []) apply plugin: 'java-library'
                 apply plugin: '${language.name}'
-                task emptyDirs(type: Sync) {
+                tasks.register('emptyDirs', Sync) {
                     into 'build/empty-dirs'
                     from 'src/empty-dirs'
                     includeEmptyDirs = true
                 }
             }
-
-            ${language.projectGroovyDependencies()}
         """
 
         if (language == CompiledLanguage.GROOVY) {
-            buildFile << language.projectGroovyDependencies()
+            settingsFile """
+                gradle.lifecycle.beforeProject {
+                    dependencies {
+                        implementation localGroovy()
+                    }
+                }
+            """
             FeaturePreviewsFixture.enableGroovyCompilationAvoidance(settingsFile)
         }
 
@@ -72,8 +72,8 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
             useClassesDir(language)
         }
 
-        buildFile << """
-            allprojects {
+        settingsFile """
+            gradle.lifecycle.beforeProject {
                 tasks.withType(AbstractCompile) {
                     options.incremental = ${isIncremental()}
                 }
@@ -82,8 +82,8 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
     }
 
     def useJar() {
-        buildFile << """
-            allprojects {
+        settingsFile """
+            gradle.lifecycle.beforeProject {
                 jar {
                     from emptyDirs
                 }
@@ -92,8 +92,8 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
     }
 
     def useClassesDir(CompiledLanguage language) {
-        buildFile << """import static org.gradle.api.attributes.Usage.*;
-            allprojects {
+        settingsFile """
+            gradle.lifecycle.beforeProject {
                 configurations.apiElements.outgoing.variants {
                     classes {
                         attributes {
@@ -111,13 +111,11 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
 
     def "doesn't recompile when private element of implementation class changes"() {
         given:
-        buildFile << """
-            project(':b') {
-                dependencies {
-                    implementation project(':a')
-                }
+        buildFile("b/build.gradle", """
+            dependencies {
+                implementation project(':a')
             }
-        """
+        """)
         def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
         sourceFile << """
             public class ToolImpl {
@@ -221,13 +219,11 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
 
     def "doesn't recompile when comments and whitespace of implementation class changes"() {
         given:
-        buildFile << """
-            project(':b') {
-                dependencies {
-                    implementation project(':a')
-                }
+        buildFile("b/build.gradle", """
+            dependencies {
+                implementation project(':a')
             }
-        """
+        """)
         def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
         sourceFile << """
             public class ToolImpl {}
@@ -262,13 +258,11 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
 
     def "doesn't recompile when implementation class code changes"() {
         given:
-        buildFile << """
-            project(':b') {
-                dependencies {
-                    implementation project(':a')
-                }
+        buildFile("b/build.gradle", """
+            dependencies {
+                implementation project(':a')
             }
-        """
+        """)
         def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
         sourceFile << """
             public class ToolImpl {
@@ -304,13 +298,11 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
 
     def "doesn't recompile when initializer, static initializer or constructor is changed"() {
         given:
-        buildFile << """
-            project(':b') {
-                dependencies {
-                    implementation project(':a')
-                }
+        buildFile("b/build.gradle", """
+            dependencies {
+                implementation project(':a')
             }
-        """
+        """)
         def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
         sourceFile << """
             public class ToolImpl {
@@ -348,13 +340,11 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
 
     def "recompiles when type of implementation class changes"() {
         given:
-        buildFile << """
-            project(':b') {
-                dependencies {
-                    implementation project(':a')
-                }
+        buildFile("b/build.gradle", """
+            dependencies {
+                implementation project(':a')
             }
-        """
+        """)
         def sourceFile = file("a/src/main/${language.name}/org/ToolImpl.${language.name}")
         sourceFile << """
             package org;
@@ -411,13 +401,11 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
 
     def "recompiles when constant value of API changes"() {
         given:
-        buildFile << """
-            project(':b') {
-                dependencies {
-                    implementation project(':a')
-                }
+        buildFile("b/build.gradle", """
+            dependencies {
+                implementation project(':a')
             }
-        """
+        """)
         def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
         sourceFile << """
             public class ToolImpl { public static final int CONST = 1; }
@@ -447,13 +435,11 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
 
     def "recompiles when generic type signatures of implementation class changes"() {
         given:
-        buildFile << """
-            project(':b') {
-                dependencies {
-                    implementation project(':a')
-                }
+        buildFile("b/build.gradle", """
+            dependencies {
+                implementation project(':a')
             }
-        """
+        """)
         def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
         sourceFile << """
             public interface ToolImpl { void m(java.util.List<String> s); }
@@ -516,13 +502,11 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
 
     def "doesn't recompile when implementation resource is changed in various ways"() {
         given:
-        buildFile << """
-            project(':b') {
-                dependencies {
-                    implementation project(':a')
-                }
+        buildFile("b/build.gradle", """
+            dependencies {
+                implementation project(':a')
             }
-        """
+        """)
         def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
         sourceFile << """
             public class ToolImpl { public void execute() { int i = 12; } }
@@ -567,13 +551,11 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
 
     def "doesn't recompile when empty directories are changed in various ways"() {
         given:
-        buildFile << """
-            project(':b') {
-                dependencies {
-                    implementation project(':a')
-                }
+        buildFile("b/build.gradle", """
+            dependencies {
+                implementation project(':a')
             }
-        """
+        """)
         def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
         sourceFile << """
             public class ToolImpl { public void execute() { int i = 12; } }
@@ -611,21 +593,19 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
     def "change to transitive super-class in different project should trigger recompilation"() {
         given:
         settingsFile << "include 'c'"
-        buildFile.text = buildFile.text.replace(
+        settingsFile.text = settingsFile.text.replace(
             "(name in [])",
             "(name in ['b'])")
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
             }
-            project(':b') {
-                dependencies {
-                    api project(':c')
-                }
+        """)
+        buildFile("b/build.gradle", """
+            dependencies {
+                api project(':c')
             }
-        """
+        """)
 
         file("a/src/main/${language.name}/A.${language.name}") << """
             public class A extends B {
@@ -664,26 +644,24 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
     def "change to transitive super-class in different project should trigger recompilation 2"() {
         given:
         settingsFile << "include 'c', 'd'"
-        buildFile.text = buildFile.text.replace(
+        settingsFile.text = settingsFile.text.replace(
             "(name in [])",
             "(name in ['b', 'c'])")
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
             }
-            project(':b') {
-                dependencies {
-                    api project(':c')
-                }
+        """)
+        buildFile("b/build.gradle", """
+            dependencies {
+                api project(':c')
             }
-            project(':c') {
-                dependencies {
-                    api project(':d')
-                }
+        """)
+        buildFile("c/build.gradle", """
+            dependencies {
+                api project(':d')
             }
-        """
+        """)
 
         file("a/src/main/${language.name}/A.${language.name}") << """
             public class A extends B {
@@ -826,22 +804,19 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
     @Issue("https://github.com/gradle/gradle/issues/20398")
     def "doesn't recompile when private element of implementation class changes and there are malformed classes on the classpath"() {
         given:
-        buildFile << """
-            project(':b') {
-                dependencies {
-                    implementation project(':a')
+        buildFile("b/build.gradle", """
+            dependencies {
+                implementation project(':a')
+            }
+        """)
+        buildFile("a/build.gradle", """
+            compileJava {
+                doLast {
+                    // Create a poison class file on the classpath
+                    destinationDirectory.file('Poison.class').get().asFile.text = "foo"
                 }
             }
-
-            project(':a') {
-                compileJava {
-                    doLast {
-                        // Create a poison class file on the classpath
-                        destinationDirectory.file('Poison.class').get().asFile.text = "foo"
-                    }
-                }
-            }
-        """
+        """)
         def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
         sourceFile << """
             public class ToolImpl {

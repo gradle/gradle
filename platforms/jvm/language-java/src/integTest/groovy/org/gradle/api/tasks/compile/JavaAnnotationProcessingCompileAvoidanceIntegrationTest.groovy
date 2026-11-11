@@ -17,17 +17,15 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 
 @Requires(TestExecutionPreconditions.NotParallelExecutor)
-@ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
 class JavaAnnotationProcessingCompileAvoidanceIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
-        settingsFile << "include 'a', 'b'"
-        buildFile << '''
-            allprojects {
+        settingsFile '''
+            include 'a', 'b'
+            gradle.lifecycle.beforeProject {
                 apply plugin: 'java'
             }
         '''
