@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.execution.DefaultTaskCacheabilityResolver;
 import org.gradle.api.internal.tasks.execution.DefaultTaskNodeExecutor;
 import org.gradle.api.internal.tasks.execution.TaskCacheabilityResolver;
+import org.gradle.api.internal.tasks.execution.TaskLifecycleListenerInstantiator;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.MissingTaskDependencyDetector;
 import org.gradle.execution.plan.TaskNodeExecutor;
@@ -46,6 +47,7 @@ import org.gradle.internal.file.ReservedFileSystemLocation;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.impl.FileCollectionFingerprinterRegistrations;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.ManagedServiceRegistry;
 import org.gradle.internal.service.Provides;
@@ -127,7 +129,8 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
         TaskExecutionModeResolver repository,
         ExecutionEngine executionEngine,
         InputFingerprinter inputFingerprinter,
-        MissingTaskDependencyDetector missingTaskDependencyDetector
+        MissingTaskDependencyDetector missingTaskDependencyDetector,
+        TaskLifecycleListenerInstantiator lifecycleListenerInstantiator
     ) {
         return new DefaultTaskNodeExecutor(
             buildOperationRunner,
@@ -146,8 +149,14 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
             fileCollectionFactory,
             taskDependencyFactory,
             fileResolver,
-            missingTaskDependencyDetector
+            missingTaskDependencyDetector,
+            lifecycleListenerInstantiator
         );
+    }
+
+    @Provides
+    TaskLifecycleListenerInstantiator createTaskLifecycleListenerInstantiator(InstantiatorFactory instantiatorFactory) {
+        return new TaskLifecycleListenerInstantiator(instantiatorFactory, projectServices);
     }
 
     @Provides

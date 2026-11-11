@@ -35,6 +35,7 @@ import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
+import org.gradle.api.tasks.TaskLifecycleListener;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
@@ -107,6 +108,11 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     @Override
     public void whenTaskAdded(Closure closure) {
         whenObjectAdded(closure);
+    }
+
+    @Override
+    public void addLifecycleListener(Class<? extends TaskLifecycleListener<? super T>> listenerType) {
+        configureEach(task -> task.addLifecycleListener(listenerType));
     }
 
     @Override
