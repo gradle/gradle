@@ -1,0 +1,6 @@
+// tag::register-task[]
+tasks.register('copyDocs', CopyDocsTask) {
+    sourceDirectory = layout.projectDirectory.dir('docs')
+    outputDirectory = layout.buildDirectory.dir('docs')
+}
+// end::register-task[]

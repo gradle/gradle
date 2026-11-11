@@ -25,6 +25,8 @@ import org.gradle.internal.service.scopes.ServiceScope;
 /**
  * A service that provides access to the test event reporting API.
  *
+ * <p>An instance of this type can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}.</p>
+ *
  * @since 8.12
  */
 @ServiceScope(Scope.Build.class)
