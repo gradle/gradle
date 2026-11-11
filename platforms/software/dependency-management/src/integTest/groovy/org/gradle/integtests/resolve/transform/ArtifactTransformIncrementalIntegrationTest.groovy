@@ -17,12 +17,16 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_ATTRIBUTE
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED
 
 class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
+
+    @Override
+    boolean isTransformsInBuildSrc() {
+        true
+    }
 
     def "incremental artifact transform in buildscript block for included build runs without exception"() {
         createDirs("a", "included")
@@ -96,7 +100,6 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
         outputContains("processing [b.jar]")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "can query incremental changes"() {
         createDirs("a", "b")
         settingsFile << """
@@ -168,6 +171,17 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
             }
         """
 
+        setupBuildWithColorTransform {
+            produceDirs()
+            params("""
+                addedFiles.set(provider { project.added })
+                modifiedFiles.set(provider { project.modified })
+                removedFiles.set(provider { project.removed })
+                incrementalExecution.set(provider { project.incremental })
+                incrementalExecution.set(provider { project.incremental })
+                registerNewOutput.set(provider { project.registerNewOutput })
+            """)
+        }
         setupBuildFile()
 
         when:
@@ -201,7 +215,7 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
     }
 
     private void setupBuildFile() {
-        buildFile .text = """
+        file("a/build.gradle").text = """
             ext {
                 added = []
                 modified = []
@@ -209,43 +223,29 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
                 incremental = true
                 registerNewOutput = false
             }
-        """
-        setupBuildWithColorTransform {
-            produceDirs()
-            params("""
-                addedFiles.set(provider { rootProject.added })
-                modifiedFiles.set(provider { rootProject.modified })
-                removedFiles.set(provider { rootProject.removed })
-                incrementalExecution.set(provider { rootProject.incremental })
-                incrementalExecution.set(provider { rootProject.incremental })
-                registerNewOutput.set(provider { rootProject.registerNewOutput })
-            """)
-        }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
+
+            dependencies {
+                implementation project(':b')
             }
         """
     }
 
     void executesNonIncrementally(String fileChanges = "ext.added = ['', 'b']") {
         setupBuildFile()
-        buildFile << """
+        buildFile("a/build.gradle", """
             ext.incremental = false
             $fileChanges
-        """
+        """)
         succeeds ":a:resolve"
         outputContains("Transforming")
     }
 
     void executesIncrementally(String fileChanges) {
         setupBuildFile()
-        buildFile << """
+        buildFile("a/build.gradle", """
             ext.incremental = true
             $fileChanges
-        """
+        """)
         succeeds ":a:resolve"
         outputContains("Transforming")
     }

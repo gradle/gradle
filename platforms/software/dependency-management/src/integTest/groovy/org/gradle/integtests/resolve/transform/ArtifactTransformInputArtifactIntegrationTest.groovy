@@ -20,28 +20,21 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 import java.util.regex.Pattern
 
 class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
+
+    @Override
+    boolean isTransformsInBuildSrc() {
+        true
+    }
     def "transform does not execute when project artifact cannot be built"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform()
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-            project(':b') {
-                tasks.producer.doLast { throw new RuntimeException('broken') }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -52,7 +45,16 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                     assert input.file
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
+        buildFile("b/build.gradle", """
+            tasks.producer.doLast { throw new RuntimeException('broken') }
+        """)
 
         when:
         executer.withArgument("--continue")
@@ -61,25 +63,17 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         then:
         transformed("c.jar")
         failure.assertHasFailures(1)
-        failure.assertHasDescription("Execution failed for task ':b:producer' (registered in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':b:producer' (registered by plugin 'color-variants').")
         failure.assertHasCause("broken")
     }
 
     // Documents existing behaviour. The absolute path of the input artifact is baked into the workspace identity
     // for incremental transforms, and so when the path changes the outputs are invalidated
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "can attach #description to input artifact property with incrementally transformed artifact but it has no effect when not caching"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform()
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact ${annotation}
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -94,13 +88,19 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                     output.text = input.text + ".green"
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         succeeds(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b.jar", "c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -108,7 +108,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -119,7 +119,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -130,7 +130,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -142,7 +142,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // path has changed, should run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -154,7 +154,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -167,7 +167,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // new file name, should run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue.jar")
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
@@ -180,7 +180,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
@@ -188,7 +188,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // have already seen these artifacts before, but the transform outputs have been overwritten
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -201,21 +201,13 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         "@PathSensitive(PathSensitivity.NONE)"      | "@PathSensitive(PathSensitivity.NONE)"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "can attach #normalization to input artifact property with #type transformed artifact directory but it has no effect when not caching"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform {
             produceDirs()
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 ${sensitivity
@@ -237,13 +229,19 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                     output.text = input.list().length + ".green"
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         succeeds(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b-dir", "c-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -251,7 +249,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -262,7 +260,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // directory content has changed (file renamed)
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -273,7 +271,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -285,7 +283,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // directory content has changed (file contents changed)
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -297,7 +295,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -310,7 +308,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // directory name has changed
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue")
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -323,7 +321,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -337,7 +335,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // directory path has changed
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         if (incremental || sensitivity == null || sensitivity == PathSensitivity.ABSOLUTE) {
             transformed("b-blue")
         } else {
@@ -355,7 +353,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -363,7 +361,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         // have already seen these artifacts before...
         if (incremental) {
             // ...but the transform outputs have been overwritten
@@ -390,19 +388,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         type = (incremental ? "incremental" : "non-incremental")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "re-runs incremental transform when input artifact file changes from file to missing"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform()
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -421,13 +411,19 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                     output.text = "green"
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         succeeds(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b.jar", "c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -435,7 +431,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no changes
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -443,7 +439,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve", "-DbContent=")
 
         then: // file is missing, should run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("missing b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -451,24 +447,17 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // seen these before, but the transform outputs have been overwritten
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "inputs to the build cache key are reported when build cache logging is enabled"() {
         given:
         createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         setupBuildWithColorTransform()
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
-            }
-
+        buildSrcClasses("""
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.NONE)
@@ -482,7 +471,12 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                     output.text = input.text + ".green"
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+            }
+        """)
 
         when:
         file("gradle.properties") << "${StartParameterBuildOptions.BuildCacheDebugLoggingOption.GRADLE_PROPERTY}=true"
@@ -498,19 +492,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         output.contains("Build cache key for MakeGreen")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "honors @PathSensitive(NONE) on input artifact property for project artifact file when caching"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform()
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.NONE)
@@ -524,13 +510,19 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                     output.text = input.text + ".green"
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         withBuildCache().succeeds(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b.jar", "c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -541,7 +533,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -553,7 +545,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, should run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue.jar")
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
@@ -566,7 +558,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -579,7 +571,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -588,26 +580,18 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "honors @PathSensitive(#sensitivity) to input artifact property for incremental artifact directory transforms when caching"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform {
             produceDirs()
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.${sensitivity})
@@ -624,13 +608,19 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                     output.text = input.list().length + ".green"
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         withBuildCache().succeeds(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b-dir", "c-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -641,7 +631,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -653,7 +643,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, should run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue")
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -666,7 +656,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue")
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -679,7 +669,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -693,7 +683,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content (renamed file), should run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue")
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -701,7 +691,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -709,19 +699,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         sensitivity << [PathSensitivity.NAME_ONLY, PathSensitivity.RELATIVE]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "honors @PathSensitive(#sensitivity) on input artifact property for project artifact file when caching"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform()
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.${sensitivity})
@@ -735,13 +717,19 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                     output.text = input.text + ".green"
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         withBuildCache().succeeds(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b.jar", "c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -752,7 +740,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -764,7 +752,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, should run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue.jar")
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
@@ -777,7 +765,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue.jar")
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
@@ -790,7 +778,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
@@ -798,7 +786,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -806,21 +794,13 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         sensitivity << [PathSensitivity.RELATIVE, PathSensitivity.NAME_ONLY]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "honors content changes for @PathSensitive(NONE) on input artifact property for incremental artifact directory transforms when not caching"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform {
             produceDirs()
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.NONE)
                 @InputArtifact
@@ -836,13 +816,19 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                     output.text = input.list().length + ".green"
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         succeeds(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b-dir", "c-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -853,7 +839,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // path has changed, but path is baked into workspace identity
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -865,7 +851,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // name has changed, but path is baked into workspace identity
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue")
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -878,7 +864,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue")
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -891,7 +877,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -905,7 +891,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // new content (renamed file), should not run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -913,26 +899,18 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "honors @PathSensitive(NONE) on input artifact property for incremental artifact directory transforms when caching"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform {
             produceDirs()
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.NONE)
@@ -949,13 +927,19 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                     output.text = input.list().length + ".green"
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         withBuildCache().succeeds(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b-dir", "c-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -966,7 +950,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, should be up to date
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -978,7 +962,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, should run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue")
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -991,7 +975,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue")
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -1004,7 +988,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -1018,7 +1002,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content (renamed file), should not run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -1026,7 +1010,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
     }
@@ -1044,18 +1028,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         def group1lib2v10 = mavenRepo.module("group1", "lib2", "1.0").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
         group1lib2v10.artifactFile.text = "lib2"
 
-        buildFile << """
-            repositories {
-                maven {
-                    url = '${mavenRepo.uri}'
-                    metadataSources { gradleMetadata() }
-                }
-            }
-            dependencies {
-                implementation providers.gradleProperty('externalCoords').orElse('group1:lib:1.0')
-                implementation 'group2:lib2:1.0'
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.NONE)
                 @InputArtifact
@@ -1067,6 +1040,18 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                     def output = outputs.file(input.name + ".green")
                     output.text = input.text + ".green"
                 }
+            }
+        """)
+        buildFile << """
+            repositories {
+                maven {
+                    url = '${mavenRepo.uri}'
+                    metadataSources { gradleMetadata() }
+                }
+            }
+            dependencies {
+                implementation providers.gradleProperty('externalCoords').orElse('group1:lib:1.0')
+                implementation 'group2:lib2:1.0'
             }
         """
 
@@ -1125,18 +1110,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         def lib4 = withColorVariants(mavenRepo.module("group2", "lib2", "1.0")).publish()
         lib4.artifactFile.text = "lib2"
 
-        buildFile << """
-            repositories {
-                maven {
-                    url = '${mavenRepo.uri}'
-                    metadataSources { gradleMetadata() }
-                }
-            }
-            dependencies {
-                implementation providers.gradleProperty('externalCoords').orElse('group1:lib:1.0')
-                implementation 'group2:lib2:1.0'
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.${sensitivity})
                 @InputArtifact
@@ -1148,6 +1122,18 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                     def output = outputs.file(input.name + ".green")
                     output.text = input.text + ".green"
                 }
+            }
+        """)
+        buildFile << """
+            repositories {
+                maven {
+                    url = '${mavenRepo.uri}'
+                    metadataSources { gradleMetadata() }
+                }
+            }
+            dependencies {
+                implementation providers.gradleProperty('externalCoords').orElse('group1:lib:1.0')
+                implementation 'group2:lib2:1.0'
             }
         """
 
@@ -1191,21 +1177,13 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         sensitivity << [PathSensitivity.RELATIVE, PathSensitivity.NAME_ONLY]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "honors content changes with @#annotation on input artifact property with incremental artifact transforms file when not caching"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform {
             produceJars()
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact @${annotation}
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -1220,13 +1198,19 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                     output.text = input.text + ".green"
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         succeeds(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b.jar", "c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1234,7 +1218,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1245,7 +1229,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1256,7 +1240,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1268,7 +1252,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // timestamp change only, should not run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1281,7 +1265,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // path has changed, but path is baked into workspace identity
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1295,7 +1279,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // new file name, but path is baked into workspace identity
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue.jar")
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
@@ -1303,7 +1287,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // have already seen these artifacts before, but outputs have been overwritten
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1311,21 +1295,13 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         annotation << ["Classpath", "CompileClasspath"]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "honors @#annotation on input artifact property with project artifact file when caching"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform {
             produceJars()
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact @${annotation}
@@ -1338,13 +1314,19 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                     output.text = input.text + ".green"
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         withBuildCache().succeeds(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b.jar", "c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1352,7 +1334,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1363,7 +1345,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1374,7 +1356,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksExecuted(":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1386,7 +1368,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // timestamp change only, should not run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1399,7 +1381,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, should not run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1413,7 +1395,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // new file name, should run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue.jar")
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
@@ -1421,7 +1403,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // have already seen these artifacts before, should not run
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1429,27 +1411,13 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         annotation << ["Classpath", "CompileClasspath"]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "honors runtime classpath normalization for input artifact for incremental transform"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform {
             produceJars()
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-
-                normalization {
-                    runtimeClasspath {
-                        ignore("ignored.txt")
-                    }
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact @Classpath
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -1464,7 +1432,19 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                     output.text = input.text + ".green"
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+
+            normalization {
+                runtimeClasspath {
+                    ignore("ignored.txt")
+                }
+            }
+        """)
 
         when:
         withProjectConfig("b") {
@@ -1473,7 +1453,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         run(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b.jar", "c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1485,26 +1465,19 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         run(":a:resolve")
 
         then: // change is ignored due to normalization
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19003")
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "can transform an empty input artifact"() {
         createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         setupBuildWithColorTransform {
             produceDirs()
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 // Make sure empty directories in the input are ignored, making the fingerprint empty.
                 @PathSensitive(PathSensitivity.RELATIVE)
@@ -1519,7 +1492,12 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                     output.text = input.name + ".green"
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+            }
+        """)
 
         when:
         withProjectConfig("b") {
@@ -1528,7 +1506,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         run(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":b:producer", ":a:resolve")
+        result.ignoreBuildSrc.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-dir")
         outputContains("result = [b-dir.green]")
     }

@@ -56,6 +56,10 @@ trait ArtifactTransformTestFixture extends VariantAwareDependencyResolutionTestF
     }
 
     void setupBuildWithColorAttributes(TestFile buildFile = getBuildFile(), Builder builder) {
+        if (transformsInBuildSrc) {
+            setupBuildSrcWithColorAttributes(buildFile, builder)
+            return
+        }
         buildFile << """
 import ${javax.inject.Inject.name}
 // TODO: Default imports should work for of inner classes
@@ -89,6 +93,52 @@ allprojects {
 import ${JarOutputStream.name}
 import ${ZipEntry.name}
 
+${jarProducerTask()}
+
+${showFileCollectionTask()}
+"""
+        taskTypeWithOutputFileProperty(buildFile)
+        taskTypeWithOutputDirectoryProperty(buildFile)
+        taskTypeLogsArtifactCollectionDetails(buildFile)
+    }
+
+    private void setupBuildSrcWithColorAttributes(TestFile buildFile, Builder builder) {
+        def taskTypes = buildSrcSourceFile(buildFile, "ColorVariantTaskTypes")
+        taskTypes << jarProducerTask() << showFileCollectionTask()
+        taskTypeWithOutputFileProperty(taskTypes)
+        taskTypeWithOutputDirectoryProperty(taskTypes)
+        taskTypeLogsArtifactCollectionDetails(taskTypes)
+        configureEachProject(buildFile, """
+            def color = Attribute.of('color', String)
+            // Lets build scripts refer to the attribute as 'color'
+            ext.color = color
+            ${colorVariantConfigurations()}
+            tasks.create('producer', ${builder.producerTaskClassName}) {
+                ${builder.producerConfig}
+            }
+            afterEvaluate {
+                ${builder.producerConfigOverrides}
+            }
+            artifacts {
+                implementation tasks.producer.output
+            }
+
+            tasks.create('resolve', ShowFileCollection) {
+                def view = configurations.resolver.incoming.artifactView {
+                    attributes.attribute(color, 'green')
+                }.files
+                files.from(view)
+            }
+            tasks.create('resolveArtifacts', ShowArtifactCollection) {
+                collection = configurations.resolver.incoming.artifactView {
+                    attributes.attribute(color, 'green')
+                }.artifacts
+            }
+        """, "color-variants")
+    }
+
+    private String jarProducerTask() {
+        """
 class JarProducer extends DefaultTask {
     @OutputFile
     final RegularFileProperty output = project.objects.fileProperty()
@@ -116,12 +166,110 @@ class JarProducer extends DefaultTask {
         }
     }
 }
-
-${showFileCollectionTask()}
 """
-        taskTypeWithOutputFileProperty(buildFile)
-        taskTypeWithOutputDirectoryProperty(buildFile)
-        taskTypeLogsArtifactCollectionDetails(buildFile)
+    }
+
+    /**
+     * Whether the fixture declares its classes in buildSrc and configures each project with plugins from buildSrc,
+     * instead of declaring them in the root build script and configuring all projects from there with {@code allprojects}.
+     * The former works with Isolated Projects. In that mode, the classes used by the build, such as transform actions,
+     * are declared with {@link #buildSrcClasses(java.lang.String)} rather than in the root build script.
+     * The color attribute is available to build scripts as the {@code color} extra property.
+     */
+    boolean isTransformsInBuildSrc() {
+        false
+    }
+
+    /**
+     * Declares the given classes in buildSrc of the build that has the given root build file, so that all its projects can use them.
+     * Default imports of build scripts do not apply to buildSrc, so the commonly used packages are imported.
+     */
+    void buildSrcClasses(TestFile buildFile = getBuildFile(), String classes) {
+        def dir = buildFile.parentFile.file("buildSrc/src/main/groovy")
+        int index = (dir.listFiles()?.count { it.name.startsWith("TestClasses") } ?: 0) + 1
+        buildSrcSourceFile(buildFile, "TestClasses${index}") << classes
+    }
+
+    /**
+     * Applies the given configuration to each project of the build that has the given root build file.
+     * The configuration is the body of a plugin in buildSrc with the given name.
+     * The root build script applies the plugin, at the point where this method is called, as configuration in the root build script would
+     * have been applied to the root project. The settings script applies the plugin to each other project, before its build script runs,
+     * as {@code allprojects {}} in the root build script would have configured it.
+     * It runs with the project as its delegate. As it is not a build script, it declares tasks with {@code tasks.create()} rather than {@code task name(type: T)}.
+     */
+    void configureEachProject(String configuration, String pluginName = "each-project") {
+        configureEachProject(getBuildFile(), configuration, pluginName)
+    }
+
+    void configureEachProject(TestFile buildFile, String configuration, String pluginName = "each-project") {
+        def pluginsDir = buildFile.parentFile.file("buildSrc/src/main/resources/META-INF/gradle-plugins")
+        def pluginId = pluginName
+        for (int index = 2; pluginsDir.file("${pluginId}.properties").exists(); index++) {
+            pluginId = "${pluginName}-${index}"
+        }
+        def pluginClass = pluginId.split('-').collect { it.capitalize() }.join('') + "Plugin"
+        buildSrcSourceFile(buildFile, pluginClass) << """
+            class ${pluginClass} implements Plugin<Project> {
+                void apply(Project project) {
+                    project.with {
+                        ${configuration}
+                    }
+                }
+            }
+        """
+        pluginsDir.file("${pluginId}.properties") << "implementation-class=${pluginClass}"
+        settingsFile(buildFile.parentFile.file("settings.gradle"), """
+            gradle.lifecycle.beforeProject { project ->
+                if (project.path != ':') {
+                    project.plugins.apply('${pluginId}')
+                }
+            }
+        """)
+        buildFile << """
+            apply plugin: '${pluginId}'
+        """
+    }
+
+    private static TestFile buildSrcSourceFile(TestFile buildFile, String name) {
+        def file = buildFile.parentFile.file("buildSrc/src/main/groovy/${name}.groovy")
+        assert !file.exists()
+        file << """
+            import org.gradle.api.*
+            import org.gradle.api.artifacts.*
+            import org.gradle.api.artifacts.transform.*
+            import org.gradle.api.attributes.*
+            import org.gradle.api.file.*
+            import org.gradle.api.model.*
+            import org.gradle.api.provider.*
+            import org.gradle.api.services.*
+            import org.gradle.api.tasks.*
+            import org.gradle.api.tasks.Optional
+            import org.gradle.api.tasks.options.*
+            import org.gradle.process.*
+            import org.gradle.work.*
+            import javax.inject.Inject
+            import ${JarOutputStream.name}
+            import ${ZipEntry.name}
+        """
+        file
+    }
+
+    /**
+     * Adds the given configuration to each project, and declares the given classes.
+     */
+    private void addToAllProjects(TestFile buildFile, String configuration, String classes) {
+        if (transformsInBuildSrc) {
+            if (!configuration.trim().empty) {
+                configureEachProject(buildFile, configuration, "color-transforms")
+            }
+            buildSrcClasses(buildFile, classes)
+        } else {
+            buildFile << """
+                ${configuration.trim().empty ? "" : "allprojects {\n${configuration}\n}"}
+                ${classes}
+            """
+        }
     }
 
     /**
@@ -138,22 +286,20 @@ ${showFileCollectionTask()}
      */
     void setupBuildWithChainedColorTransform(boolean lenient = false) {
         setupBuildWithColorAttributes()
-        buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform(MakeColor) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'red')
-                        parameters.targetColor.set('red')
-                    }
-                    registerTransform(MakeColor) {
-                        from.attribute(color, 'red')
-                        to.attribute(color, 'green')
-                        parameters.targetColor.set('green')
-                    }
+        addToAllProjects(buildFile, """
+            dependencies {
+                registerTransform(MakeColor) {
+                    from.attribute(color, 'blue')
+                    to.attribute(color, 'red')
+                    parameters.targetColor.set('red')
+                }
+                registerTransform(MakeColor) {
+                    from.attribute(color, 'red')
+                    to.attribute(color, 'green')
+                    parameters.targetColor.set('green')
                 }
             }
-
+""", """
             interface TargetColor extends TransformParameters {
                 @Input
                 Property<String> getTargetColor()
@@ -175,7 +321,7 @@ ${showFileCollectionTask()}
                     }
                 }
             }
-        """
+""")
     }
 
     /**
@@ -185,24 +331,22 @@ ${showFileCollectionTask()}
      */
     void setupBuildWithColorTransformWithAnotherTransformOutputAsInput() {
         setupBuildWithColorAttributes()
-        buildFile << """
-            allprojects {
-                configurations {
-                   transform
+        addToAllProjects(buildFile, """
+            configurations {
+               transform
+            }
+            dependencies {
+                registerTransform(MakeGreen) {
+                    from.attribute(color, 'blue')
+                    to.attribute(color, 'green')
+                    parameters.inputFiles.from(configurations.transform.incoming.artifactView { attributes.attribute(color, 'red') }.files)
                 }
-                dependencies {
-                    registerTransform(MakeGreen) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'green')
-                        parameters.inputFiles.from(configurations.transform.incoming.artifactView { attributes.attribute(color, 'red') }.files)
-                    }
-                    registerTransform(MakeRed) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'red')
-                    }
+                registerTransform(MakeRed) {
+                    from.attribute(color, 'blue')
+                    to.attribute(color, 'red')
                 }
             }
-
+""", """
             interface GreenParams extends TransformParameters {
                 @InputFiles
                 ConfigurableFileCollection getInputFiles()
@@ -231,7 +375,7 @@ ${showFileCollectionTask()}
                     output.text = input.text + "-red"
                 }
             }
-        """
+""")
     }
 
     /**
@@ -240,7 +384,7 @@ ${showFileCollectionTask()}
      */
     void setupBuildWithColorTransformImplementation(TestFile buildFile = getBuildFile(), boolean lenient = false) {
         setupBuildWithColorTransform(buildFile)
-        buildFile << """
+        addToAllProjects(buildFile, "", """
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -257,7 +401,7 @@ ${showFileCollectionTask()}
                     }
                 }
             }
-        """
+""")
     }
 
     void setupBuildWithColorTransformImplementation(boolean lenient) {
@@ -270,7 +414,7 @@ ${showFileCollectionTask()}
      */
     void setupBuildWithColorTransformThatTakesUpstreamArtifacts() {
         setupBuildWithColorTransform()
-        buildFile << """
+        addToAllProjects(buildFile, "", """
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifactDependencies
                 abstract FileCollection getInputArtifactDependencies()
@@ -287,7 +431,7 @@ ${showFileCollectionTask()}
                     output.text = input.text + ".green"
                 }
             }
-        """
+""")
     }
 
     /**
@@ -296,20 +440,18 @@ ${showFileCollectionTask()}
      */
     void setupBuildWithChainedColorTransformThatTakesUpstreamArtifacts() {
         setupBuildWithColorAttributes()
-        buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform(MakeRed) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'red')
-                    }
-                    registerTransform(MakeGreen) {
-                        from.attribute(color, 'red')
-                        to.attribute(color, 'green')
-                    }
+        addToAllProjects(buildFile, """
+            dependencies {
+                registerTransform(MakeRed) {
+                    from.attribute(color, 'blue')
+                    to.attribute(color, 'red')
+                }
+                registerTransform(MakeGreen) {
+                    from.attribute(color, 'red')
+                    to.attribute(color, 'green')
                 }
             }
-
+""", """
             abstract class MakeRed implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -339,7 +481,7 @@ ${showFileCollectionTask()}
                     output.text = input.text + ".green"
                 }
             }
-        """
+""")
     }
 
     /**
@@ -354,8 +496,7 @@ ${showFileCollectionTask()}
         cl.call()
 
         setupBuildWithColorAttributes(buildFile, builder)
-        buildFile << """
-allprojects { p ->
+        addToAllProjects(buildFile, """
     dependencies {
         registerTransform(MakeGreen) {
             from.attribute(color, 'blue')
@@ -367,8 +508,7 @@ allprojects { p ->
             """}
         }
     }
-}
-"""
+""", "")
     }
 
     void setupBuildWithColorTransform(@DelegatesTo(TransformBuilder) Closure cl = {}) {

@@ -19,13 +19,11 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
-@ToBeFixedForIsolatedProjects(because = "Transforms registered and configured in root project using allprojects. This allows transform tests to use the same artifact transform implementation Class.")
-class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunctionalTest {
+class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunctionalTest implements ArtifactTransformTestFixture {
     ConsoleOutput consoleType
 
     private static final List<ConsoleOutput> TESTED_CONSOLE_TYPES = [ConsoleOutput.Plain, ConsoleOutput.Colored, ConsoleOutput.Verbose, ConsoleOutput.Rich, ConsoleOutput.Auto]
@@ -39,74 +37,8 @@ class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunction
             include 'app'
         """
 
-        buildFile << """
+        buildSrcClasses("""
             import java.nio.file.Files
-
-            def usage = Attribute.of('usage', String)
-            def artifactType = Attribute.of('artifactType', String)
-
-            allprojects {
-                dependencies {
-                    attributesSchema {
-                        attribute(usage)
-                    }
-                    registerTransform(GreenMultiplier) {
-                        from.attribute(artifactType, "jar")
-                        to.attribute(artifactType, "green")
-                    }
-                    registerTransform(BlueMultiplier) {
-                        from.attribute(artifactType, "green")
-                        to.attribute(artifactType, "blue")
-                    }
-                }
-                configurations {
-                    compile {
-                        attributes.attribute usage, 'api'
-                    }
-                }
-                ["blue", "green"].each { type ->
-                    tasks.register("resolve\${type.capitalize()}") {
-                        def artifacts = configurations.compile.incoming.artifactView {
-                            attributes { it.attribute(artifactType, type) }
-                        }.artifacts
-
-                        inputs.files artifacts.artifactFiles
-
-                        doLast {
-                            println "files: " + artifacts.collect { it.file.name }
-                        }
-                    }
-                }
-            }
-
-            project(':lib') {
-                task jar1(type: Jar) {
-                    archiveFileName = 'lib1.jar'
-                }
-                task jar2(type: Jar) {
-                    archiveFileName = 'lib2.jar'
-                }
-                tasks.withType(Jar) {
-                    destinationDirectory = buildDir
-                }
-                artifacts {
-                    compile tasks.jar1
-                    compile tasks.jar2
-                }
-            }
-
-            project(':util') {
-                dependencies {
-                    compile project(':lib')
-                }
-            }
-
-            project(':app') {
-                dependencies {
-                    compile project(':util')
-                }
-            }
-
             import org.gradle.api.artifacts.transform.TransformParameters
 
             abstract class Multiplier implements TransformAction<TransformParameters.None> {
@@ -141,12 +73,74 @@ class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunction
                     super("green")
                 }
             }
+
             abstract class BlueMultiplier extends Multiplier {
                 BlueMultiplier() {
                     super("blue")
                 }
             }
-        """
+        """)
+        configureEachProject("""
+            def usage = Attribute.of('usage', String)
+            def artifactType = Attribute.of('artifactType', String)
+
+            dependencies {
+                attributesSchema {
+                    attribute(usage)
+                }
+                registerTransform(GreenMultiplier) {
+                    from.attribute(artifactType, "jar")
+                    to.attribute(artifactType, "green")
+                }
+                registerTransform(BlueMultiplier) {
+                    from.attribute(artifactType, "green")
+                    to.attribute(artifactType, "blue")
+                }
+            }
+            configurations {
+                compile {
+                    attributes.attribute usage, 'api'
+                }
+            }
+            ["blue", "green"].each { type ->
+                tasks.register("resolve\${type.capitalize()}") {
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, type) }
+                    }.artifacts
+
+                    inputs.files artifacts.artifactFiles
+
+                    doLast {
+                        println "files: " + artifacts.collect { it.file.name }
+                    }
+                }
+            }
+        """)
+        buildFile("lib/build.gradle", """
+            task jar1(type: Jar) {
+                archiveFileName = 'lib1.jar'
+            }
+            task jar2(type: Jar) {
+                archiveFileName = 'lib2.jar'
+            }
+            tasks.withType(Jar) {
+                destinationDirectory = buildDir
+            }
+            artifacts {
+                compile tasks.jar1
+                compile tasks.jar2
+            }
+        """)
+        buildFile("util/build.gradle", """
+            dependencies {
+                compile project(':lib')
+            }
+        """)
+        buildFile("app/build.gradle", """
+            dependencies {
+                compile project(':util')
+            }
+        """)
     }
 
     def "does not show transformation headers when there is no output for #type console"() {
@@ -188,27 +182,7 @@ class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunction
         consoleType = ConsoleOutput.Rich
         BlockingHttpServer server = new BlockingHttpServer()
         server.start()
-        buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform(Red) {
-                        from.attribute(artifactType, "jar")
-                        to.attribute(artifactType, "red")
-                    }
-                }
-                tasks.register("resolveRed") {
-                    def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'red') }
-                    }.artifacts
-
-                    inputs.files artifacts.artifactFiles
-
-                    doLast {
-                        println "files: " + artifacts.collect { it.file.name }
-                    }
-                }
-            }
-
+        buildSrcClasses("""
             // NOTE: This is named "Red" so that the status message fits on one line
             abstract class Red extends Multiplier {
                 Red() {
@@ -221,7 +195,27 @@ class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunction
                     super.transform(outputs)
                 }
             }
-        """
+        """)
+        configureEachProject("""
+            def artifactType = Attribute.of('artifactType', String)
+            dependencies {
+                registerTransform(Red) {
+                    from.attribute(artifactType, "jar")
+                    to.attribute(artifactType, "red")
+                }
+            }
+            tasks.register("resolveRed") {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'red') }
+                }.artifacts
+
+                inputs.files artifacts.artifactFiles
+
+                doLast {
+                    println "files: " + artifacts.collect { it.file.name }
+                }
+            }
+        """)
 
         when:
         def block = server.expectConcurrentAndBlock("lib1.jar", "lib2.jar")

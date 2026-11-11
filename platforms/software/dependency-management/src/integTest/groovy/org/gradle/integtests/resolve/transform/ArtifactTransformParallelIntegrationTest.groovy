@@ -19,11 +19,10 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
-class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolutionTest {
+class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer(180_000)
@@ -44,33 +43,33 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                 rootProject.name = '${rootProjectName}'
             """
             buildFile << """
+                def artifactType = Attribute.of('artifactType', String)
+            """
+            configureEachProject(buildFile, """
                 def usage = Attribute.of('usage', String)
                 def artifactType = Attribute.of('artifactType', String)
 
-                allprojects {
-                    dependencies {
-                        attributesSchema {
-                            attribute(usage)
-                        }
-                    }
-                    configurations {
-                        compile {
-                            attributes.attribute usage, 'api'
-                        }
-                    }
-                    dependencies {
-                        registerTransform(SynchronizedTransform) {
-                            from.attribute(artifactType, "jar")
-                            to.attribute(artifactType, "size")
-                        }
-                    }
-                    configurations {
-                        compile
+                dependencies {
+                    attributesSchema {
+                        attribute(usage)
                     }
                 }
-
-                import org.gradle.api.artifacts.transform.TransformParameters
-
+                configurations {
+                    compile {
+                        attributes.attribute usage, 'api'
+                    }
+                }
+                dependencies {
+                    registerTransform(SynchronizedTransform) {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                    }
+                }
+                configurations {
+                    compile
+                }
+            """)
+            buildSrcClasses(buildFile, """
                 abstract class SynchronizedTransform implements TransformAction<TransformParameters.None> {
                     @InputArtifact
                     abstract Provider<FileSystemLocation> getInputArtifact()
@@ -94,7 +93,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                         output.text = String.valueOf(input.length())
                     }
                 }
-            """
+            """)
         }
     }
 
@@ -140,7 +139,6 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         outputContains("Transforming test3-3.3.jar to test3-3.3.jar.txt")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Transforms registered and configured in root project using allprojects. This allows transform tests to use the same artifact transform implementation Class.")
     def "transformations are applied in parallel for project artifacts"() {
         given:
         createDirs("lib1", "lib2", "lib3")
@@ -148,9 +146,8 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
             include "lib1", "lib2", "lib3"
         """
 
-        buildFile << """
-            configure([project(":lib1"), project(":lib2"), project(":lib3")]) {
-
+        ["lib1", "lib2", "lib3"].each { lib ->
+            buildFile("${lib}/build.gradle", """
                 task jar(type: Jar) {
                     archiveFileName = "\${project.name}.jar"
                     destinationDirectory = buildDir
@@ -158,8 +155,9 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                 artifacts {
                     compile tasks.jar
                 }
-            }
-
+            """)
+        }
+        buildFile << """
             dependencies {
                 compile project(":lib1")
                 compile project(":lib2")
@@ -387,7 +385,6 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         failure.assertHasCause("Failed to transform bad-c.jar to match attributes {artifactType=size}")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Transforms registered and configured in root project using allprojects. This allows transform tests to use the same artifact transform implementation Class.")
     def "only one transformer execution per workspace"() {
 
         createDirs("lib", "app1", "app2")
@@ -395,22 +392,23 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
             include "lib", "app1", "app2"
         """
 
-        buildFile << """
-            project(":lib") {
-                dependencies {
-                    compile files("lib1.jar")
-                }
-
-                task jar2(type: Jar) {
-                    archiveFileName = 'lib2.jar'
-                    destinationDirectory = buildDir
-                }
-                artifacts {
-                    compile tasks.jar2
-                }
+        buildFile("lib/build.gradle", """
+            dependencies {
+                compile files("lib1.jar")
             }
 
-            configure([project("app1"), project("app2")]) {
+            task jar2(type: Jar) {
+                archiveFileName = 'lib2.jar'
+                destinationDirectory = buildDir
+            }
+            artifacts {
+                compile tasks.jar2
+            }
+        """)
+        ["app1", "app2"].each { app ->
+            buildFile("${app}/build.gradle", """
+                def artifactType = Attribute.of('artifactType', String)
+
                 dependencies {
                     compile project(":lib")
                 }
@@ -424,8 +422,8 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                         println artifacts.artifactFiles.collect { it.name }
                     }
                 }
-            }
-        """
+            """)
+        }
         file("lib/lib1.jar") << "some content"
 
         server.expect("transform-call-lib2.jar")
