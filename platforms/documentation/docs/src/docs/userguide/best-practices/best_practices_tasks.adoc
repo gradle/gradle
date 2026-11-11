@@ -374,6 +374,10 @@ Using `PathSensitivity.NAME_ONLY` or `@PathSensitivity.ABSOLUTE` is generally in
 
 `PathSensitivity.NAME_ONLY` tells Gradle to consider a file's name in addition to its contents, which is rarely useful.
 
+Keep more of the path only when the task's outputs depend on it.
+For example, use `RELATIVE` for file inputs when the output preserves their directory structure, as an archive does.
+Use `NAME_ONLY` when the output records file names but not their location, as a report listing the input files does.
+
 
 `@PathSensitivity.ABSOLUTE` tells Gradle to consider a file's complete absolute path.
 This prevents <<build_cache.adoc#build_cache,Build Cache>> and <<configuration_cache.adoc#config_cache,Configuration Cache>> hits across different machines or checkout locations, making your build non-relocatable.
