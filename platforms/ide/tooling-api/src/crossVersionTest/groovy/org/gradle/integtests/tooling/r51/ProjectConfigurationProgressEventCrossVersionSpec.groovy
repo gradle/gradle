@@ -601,10 +601,13 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
     }
 
     def simulateWork(long durationMillis) {
+        def now = targetVersion >= GradleVersion.version("9.9")
+            ? "org.gradle.internal.time.Time.nanoTime()"
+            : "java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(org.gradle.internal.time.Time.currentTimeMillis())"
         """
-            def deadline = System.nanoTime() + java.util.concurrent.TimeUnit.MILLISECONDS.toNanos($durationMillis)
+            def deadline = $now + java.util.concurrent.TimeUnit.MILLISECONDS.toNanos($durationMillis)
             long remaining
-            while ((remaining = deadline - System.nanoTime()) > 0) {
+            while ((remaining = deadline - $now) > 0) {
                 Thread.sleep(Math.max(1L, (long) Math.ceil(remaining / 1_000_000d)))
             }
         """
