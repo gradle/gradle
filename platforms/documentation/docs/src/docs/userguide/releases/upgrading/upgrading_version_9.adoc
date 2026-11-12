@@ -121,6 +121,43 @@ If your build asserts on an attribute value read from a `ResolutionResult` or fr
 Build operations and published Gradle Module Metadata already reported the name, so assertions against those are unaffected.
 Do not reintroduce the old string by overriding `getName()` to return `toString()`; see <<variant_attributes.adoc#sec:creating-attributes, Creating attributes>> for why the two must agree.
 
+[[variants_with_no_artifacts]]
+==== Primary variants without artifacts are kept when secondary variants are present
+
+You can define <<variant_aware_resolution.adoc#sec:secondary-variants,secondary variants>> on a consumable configuration whose primary variant has no artifacts.
+Earlier versions of Gradle silently dropped such a primary variant from artifact selection.
+Starting with Gradle 9.10.0, the primary variant is kept.
+
+With the `CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS` feature preview enabled, such a primary variant is eligible for artifact selection, and is selected when it is the best match for the request.
+Because it has no artifacts, the request then resolves to no artifacts.
+Since the primary variant also lacks the attributes of artifacts, such as `artifactType`, Gradle compares it with the other variants as follows:
+
+* It is a better match than a variant with artifacts only if it matches the requested attributes strictly better.
+Attributes that the request does not ask for do not make it a better match.
+* A transformation of a variant with artifacts is preferred over it, unless it declares every requested attribute.
+
+Without the feature preview, the primary variant is not eligible, even when it is the best match, and Gradle selects among the secondary variants as before.
+Starting with Gradle 10, the primary variant is always eligible and the feature preview is removed.
+
+When the primary variant would be selected, Gradle now emits a deprecation warning.
+This means the request is underspecified: either it matches the primary variant better than the intended secondary variant, or no secondary variant matches it at all.
+
+To fix the deprecation warning, add attributes to the request so that it is more precise and only matches the intended variant.
+If no variant carries the attributes the request needs, expose one, or add artifacts to the primary variant.
+
+This change has the following visible effects:
+
+* With the feature preview enabled, the `dependencyInsight` report lists the primary variant among the available variants.
+* A lenient artifact view that only the primary variant matches resolves to no artifacts either way, so it does not emit the warning.
+
+To opt into the Gradle 10 behavior and silence the warning, enable the feature preview in your `settings.gradle.kts`:
+
+[source,kotlin]
+----
+// settings.gradle.kts
+enableFeaturePreview("CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS")
+----
+
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier
 
