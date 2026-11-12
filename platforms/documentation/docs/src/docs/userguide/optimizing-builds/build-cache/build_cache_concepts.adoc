@@ -157,6 +157,22 @@ For the same reason, Gradle cannot remove <<incremental_build.adoc#sec:stale_tas
 Tasks that have discrete, non-overlapping outputs can always be handled in a safe fashion by Gradle.
 For the aforementioned reasons, task output caching is automatically disabled for tasks whose output directories overlap with another task.
 
+Gradle detects overlapping outputs by comparing the files in a task's output locations before the task executes with the outputs the task produced in its previous execution.
+Any file that the task did not produce, or whose content changed since, counts as overlapping.
+With `--info`, Gradle logs the reason, for example:
+
+----
+Caching disabled for task ':generate' because:
+  Gradle does not know how file 'src/generated' was created (output property 'outputDir'). Task output caching requires exclusive access to output paths to guarantee correctness (i.e. multiple tasks are not allowed to produce output in the same location).
+----
+
+This can also happen when no other task writes to the same location.
+Gradle keeps the record of previous executions in the project's `.gradle` directory, separately for each Gradle version.
+After you delete that directory or change the Gradle version, Gradle has no record of a task's previous outputs, so any outputs left from earlier builds count as overlapping.
+Inside the build directory, Gradle deletes these <<incremental_build.adoc#sec:stale_task_outputs,stale outputs>> before the task executes, so caching is not affected.
+Outside the build directory, for example in `src/generated`, Gradle leaves the files in place and disables caching for that execution of the task.
+To avoid this, write generated files to the build directory.
+
 A Build Scan shows tasks where caching was disabled due to overlapping outputs in the timeline:
 
 [.screenshot]
