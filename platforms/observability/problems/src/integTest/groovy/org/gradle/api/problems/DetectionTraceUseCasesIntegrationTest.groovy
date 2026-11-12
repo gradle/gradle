@@ -457,6 +457,27 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
         ]
     }
 
+    def "a deprecated Gradle property has no authored cause, so its origin is empty"() {
+        given:
+        def property = "org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization"
+        executer.expectDocumentedDeprecationWarning(
+            "The '$property' Gradle property has been deprecated. This is scheduled to be removed in Gradle 11. " +
+                "Remove the property and fix the build logic or plugins that read the build environment while the task graph is being serialized, " +
+                "so that they no longer cause unnecessary Configuration Cache invalidation. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_configuration_cache_opt_out_properties"
+        )
+
+        when:
+        run("help", "-D$property=true")
+
+        then: "Gradle noticed it outside any project or task"
+        detectionOf("Gradle:Deprecation:The '$property' Gradle property") == ["build :"]
+
+        and: "nobody wrote a line that could be changed: the fix is to drop the property"
+        originsOf(problem) == []
+    }
+
     private void pluginInBuildSrc(String id, String implementationClass, String applyBody) {
         def packageName = implementationClass.substring(0, implementationClass.lastIndexOf('.'))
         def className = implementationClass.substring(implementationClass.lastIndexOf('.') + 1)

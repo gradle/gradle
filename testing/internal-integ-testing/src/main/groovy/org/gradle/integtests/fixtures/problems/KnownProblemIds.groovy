@@ -162,6 +162,7 @@ class KnownProblemIds {
         'Gradle:Deprecation:Subclassing ProblemGroup': ['Subclassing ProblemGroup'],
         'Gradle:Deprecation:Subclassing ProblemId': ['Subclassing ProblemId'],
         'Gradle:Deprecation:Non-required plugin version in version catalog': ['Non-required plugin version in version catalog'],
+        'Gradle:Deprecation:The \'org\\.gradle\\.configuration-cache\\..*\' Gradle property': ['The \'org\\.gradle\\.configuration-cache\\..*\' Gradle property'],
         'Gradle:Plugin Validation:test problem': ['test problem'],
         'Gradle:Invocation:Task not found': ['Task not found'],
         'Gradle:Invocation:Project not found': ['Project not found'],
