@@ -32,6 +32,7 @@ include::sample[dir="snippets/fundamentals/developing-plugins/simple/groovy", fi
 ====
 <1> Extend the `org.gradle.api.Plugin` interface.
 <2> Override the `apply` method.
+<3> Apply the plugin to the project.
 
 === 1. Extend the `org.gradle.api.Plugin` interface
 
@@ -68,7 +69,7 @@ Add tasks and other logic in the `apply()` method:
 .build.gradle.kts
 [source, kotlin]
 ----
-override fun apply() {
+override fun apply(project: Project) {
 }
 ----
 =====
@@ -82,6 +83,37 @@ void apply(Project project) {
 ----
 =====
 ====
+
+=== 3. Apply the plugin
+
+Writing the plugin class does not apply it.
+Because `SamplePlugin` is declared in the build script itself, it has no plugin ID, so it cannot be used in the `plugins {}` block.
+Apply it by class instead:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source, kotlin]
+----
+apply<SamplePlugin>()
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+apply plugin: SamplePlugin
+----
+=====
+====
+
+Gradle creates an instance of the plugin and calls its `apply()` method with the current `Project`.
+In this example, that registers the `ScriptPlugin` task, so you can run it with `./gradlew ScriptPlugin`.
+
+A plugin declared in a build script is only visible in that script.
+To share a plugin across projects, move it to `buildSrc` or an included build and give it an ID, as described in the next sections.
 
 Let's take a look at a more realistic example next.
 
