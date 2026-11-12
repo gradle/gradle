@@ -36,6 +36,7 @@ dependencies {
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
 
+    implementation(libs.jetbrainsAnnotations)
     implementation(libs.kotlinStdlib)
     implementation(libs.slf4jApi)
     implementation(libs.commonsLang)

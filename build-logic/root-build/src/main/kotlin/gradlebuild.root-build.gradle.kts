@@ -1,3 +1,5 @@
+import com.autonomousapps.DependencyAnalysisExtension
+
 /*
  * Copyright 2020 the original author or authors.
  *
@@ -19,5 +21,15 @@ plugins {
     id("gradlebuild.ide") // Local development: Tweak IDEA import
     id("gradlebuild.warmup-ec2") // Warm up EC2 AMI
 
-    id("com.autonomousapps.dependency-analysis") apply false // Applied via pre-compiled script plugin to relevant projects
+    id("com.autonomousapps.dependency-analysis")
+}
+
+configure<DependencyAnalysisExtension> {
+    usage {
+        analysis {
+            checkSuperClasses(true)
+        }
+    }
+
+    useTypesafeProjectAccessors(true)
 }
