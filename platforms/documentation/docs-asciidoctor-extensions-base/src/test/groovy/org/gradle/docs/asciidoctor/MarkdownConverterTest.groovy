@@ -103,6 +103,55 @@ Use the link:{javadocPath}/org/gradle/api/Project.html[Project] API.
         md.contains('[Project](../javadoc/org/gradle/api/Project.html)')
     }
 
+    def "points at llms.txt when the base URL is set"() {
+        when:
+        String md = toMarkdown("""
+= The Java Plugin
+:markdown-base-url: https://docs.gradle.org/9.9.0/userguide/
+
+Apply it.
+""")
+
+        then:
+        md.startsWith("# The Java Plugin\n\n> For the complete documentation index, see [llms.txt](https://docs.gradle.org/llms.txt).\n\nApply it.")
+    }
+
+    def "resolves relative links against the base URL"() {
+        when:
+        String md = toMarkdown("""
+= Doc
+:markdown-base-url: https://docs.gradle.org/9.9.0/userguide/
+:imagesdir: img
+
+[[sec:tasks]]
+== Tasks
+
+See <<sec:tasks,the tasks>>, <<building_java_projects.adoc#sec:java_toolchain,toolchains>>,
+the link:../javadoc/org/gradle/api/Project.html[Project] API and https://gradle.org[Gradle].
+
+image::java-plugin.png[Java plugin]
+""")
+
+        then:
+        md.contains('[the tasks](#sec:tasks)')
+        md.contains('[toolchains](https://docs.gradle.org/9.9.0/userguide/building_java_projects.md#sec:java_toolchain)')
+        md.contains('[Project](https://docs.gradle.org/9.9.0/javadoc/org/gradle/api/Project.html)')
+        md.contains('[Gradle](https://gradle.org)')
+        md.contains('![Java plugin](https://docs.gradle.org/9.9.0/userguide/img/java-plugin.png)')
+    }
+
+    def "does not point at llms.txt without a base URL"() {
+        when:
+        String md = toMarkdown("""
+= The Java Plugin
+
+Apply it.
+""")
+
+        then:
+        !md.contains("llms.txt")
+    }
+
     def "keeps only the Kotlin DSL variant of a multi-language sample"() {
         given:
         tmpDir.newFolder("sample", "kotlin")

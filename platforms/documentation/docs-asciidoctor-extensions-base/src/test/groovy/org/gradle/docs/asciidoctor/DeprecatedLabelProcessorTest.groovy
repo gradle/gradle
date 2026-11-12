@@ -21,7 +21,7 @@ import org.asciidoctor.extension.JavaExtensionRegistry
 
 class DeprecatedLabelProcessorTest extends AbstractAsciidoctorTest {
 
-    def setup() {
+    def setupSpec() {
         JavaExtensionRegistry extensionRegistry = asciidoctor.javaExtensionRegistry()
         extensionRegistry.inlineMacro(DeprecatedLabelProcessor.class)
     }

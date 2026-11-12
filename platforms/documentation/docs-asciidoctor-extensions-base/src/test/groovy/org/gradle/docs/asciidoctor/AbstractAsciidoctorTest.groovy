@@ -16,22 +16,24 @@
 package org.gradle.docs.asciidoctor
 
 import org.asciidoctor.Asciidoctor
+import spock.lang.Shared
 import spock.lang.Specification
 
 /**
- * Creates an {@link Asciidoctor} instance for each test and shuts it down afterwards.
+ * Creates an {@link Asciidoctor} instance for each spec and shuts it down afterwards.
  */
 abstract class AbstractAsciidoctorTest extends Specification {
 
+    @Shared
     Asciidoctor asciidoctor
 
-    def setup() {
+    def setupSpec() {
         // Picks up GradleDocsConverterRegistry and GradleDocsAsciidoctorExtensionRegistry from META-INF/services
         asciidoctor = Asciidoctor.Factory.create()
     }
 
-    def cleanup() {
-        // Each instance holds a JRuby runtime, which is large enough to exhaust the test JVM heap if leaked
+    def cleanupSpec() {
+        // Each instance holds a JRuby runtime. Shutdown does not release all of it, so one per test exhausts the test JVM heap
         asciidoctor.shutdown()
     }
 }
