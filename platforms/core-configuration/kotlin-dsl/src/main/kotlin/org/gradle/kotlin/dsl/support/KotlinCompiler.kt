@@ -21,7 +21,10 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentContainerContributor
 import org.jetbrains.kotlin.assignment.plugin.CliAssignPluginResolutionAltererExtension
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
@@ -506,6 +509,7 @@ fun CompilerConfiguration.addScriptDefinition(scriptDef: ScriptDefinition) {
 
 private
 fun Disposable.kotlinCoreEnvironmentFor(configuration: CompilerConfiguration): KotlinCoreEnvironment {
+    assertEmbeddedKotlinSupportsCurrentJvm()
     org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
     return SystemProperties.getInstance().withSystemProperty(
         KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.property,
@@ -516,6 +520,28 @@ fun Disposable.kotlinCoreEnvironmentFor(configuration: CompilerConfiguration): K
             configuration,
             EnvironmentConfigFiles.JVM_CONFIG_FILES
         )
+    }
+}
+
+
+/**
+ * The embedded Kotlin compiler fails with a bare `IllegalArgumentException` carrying
+ * only the version string when it cannot parse the version of the current JVM.
+ */
+private
+fun assertEmbeddedKotlinSupportsCurrentJvm() {
+    try {
+        org.jetbrains.kotlin.com.intellij.util.lang.JavaVersion.current()
+    } catch (e: IllegalArgumentException) {
+        val gradleVersion = GradleVersion.current().version
+        val javaVersion = Jvm.current().javaVersionMajor
+        throw UnsupportedJavaRuntimeException(
+            "Gradle $gradleVersion cannot compile Kotlin DSL scripts on Java $javaVersion.",
+            listOf(
+                "Run Gradle with a Java version that Gradle $gradleVersion supports, or upgrade to a Gradle version that supports Java $javaVersion.",
+                "See https://docs.gradle.org/current/userguide/compatibility.html for the Java versions each Gradle version supports."
+            )
+        ).apply { initCause(e) }
     }
 }
 
