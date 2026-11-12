@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
@@ -76,6 +77,7 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
@@ -145,6 +147,7 @@ public class ResolutionExecutor {
     private final VariantTransformRegistry transformRegistry;
     private final AttributeDesugaring attributeDesugaring;
     private final NamedObjectInstantiator namedObjectInstantiator;
+    private final FeatureFlags featureFlags;
 
     @Inject
     public ResolutionExecutor(
@@ -177,7 +180,8 @@ public class ResolutionExecutor {
         VariantArtifactSetCache variantArtifactSetCache,
         VariantTransformRegistry transformRegistry,
         AttributeDesugaring attributeDesugaring,
-        NamedObjectInstantiator namedObjectInstantiator
+        NamedObjectInstantiator namedObjectInstantiator,
+        FeatureFlags featureFlags
     ) {
         this.dependencyGraphResolver = dependencyGraphResolver;
         this.storeFactory = storeFactory;
@@ -209,6 +213,14 @@ public class ResolutionExecutor {
         this.transformRegistry = transformRegistry;
         this.attributeDesugaring = attributeDesugaring;
         this.namedObjectInstantiator = namedObjectInstantiator;
+        this.featureFlags = featureFlags;
+    }
+
+    /**
+     * Read at resolution time, because this executor can be created before the settings script enables the preview.
+     */
+    private boolean considerArtifactlessPrimaryVariants() {
+        return featureFlags.isEnabled(FeaturePreviews.Feature.CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS);
     }
 
     /**
@@ -286,7 +298,8 @@ public class ResolutionExecutor {
             moduleIdentifierFactory,
             attributesFactory,
             namedObjectInstantiator,
-            params.getIncludeAllSelectableVariantResults()
+            params.getIncludeAllSelectableVariantResults(),
+            considerArtifactlessPrimaryVariants()
         );
 
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter, instanceIdentity);
@@ -397,7 +410,8 @@ public class ResolutionExecutor {
             params.getArtifactTypeRegistry(),
             resolvedVariantCache,
             graphVariantSelector,
-            transformRegistry
+            transformRegistry,
+            considerArtifactlessPrimaryVariants()
         );
     }
 

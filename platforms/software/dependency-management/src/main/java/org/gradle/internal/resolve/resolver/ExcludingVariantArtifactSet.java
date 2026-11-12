@@ -76,6 +76,11 @@ public class ExcludingVariantArtifactSet implements ResolvedVariant, VariantReso
     }
 
     @Override
+    public boolean isPreviouslyUnselectable() {
+        return delegate.isPreviouslyUnselectable();
+    }
+
+    @Override
     public ResolvedArtifactSet getArtifacts() {
         ResolvedArtifactSet artifacts = delegate.getArtifacts();
         return new FilteringResolvedArtifactSet(artifacts, this::include);

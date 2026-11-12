@@ -53,6 +53,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     private final ImmutableCapabilities capabilities;
     private final List<? extends ComponentArtifactMetadata> artifacts;
     private final ComponentArtifactResolver componentArtifactResolver;
+    private final boolean previouslyUnselectable;
 
     public ArtifactBackedResolvedVariant(
         VariantResolveMetadata.@Nullable Identifier identifier,
@@ -61,7 +62,8 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         ImmutableAttributes attributes,
         ImmutableCapabilities capabilities,
         List<? extends ComponentArtifactMetadata> artifacts,
-        ComponentArtifactResolver componentArtifactResolver
+        ComponentArtifactResolver componentArtifactResolver,
+        boolean previouslyUnselectable
     ) {
         this.identifier = identifier;
         this.sourceVariantId = sourceVariantId;
@@ -70,6 +72,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         this.capabilities = capabilities;
         this.artifacts = artifacts;
         this.componentArtifactResolver = componentArtifactResolver;
+        this.previouslyUnselectable = previouslyUnselectable;
     }
 
     @Override
@@ -124,6 +127,11 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     @Override
     public ImmutableCapabilities getCapabilities() {
         return capabilities;
+    }
+
+    @Override
+    public boolean isPreviouslyUnselectable() {
+        return previouslyUnselectable;
     }
 
     private static class SingleArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
