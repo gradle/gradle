@@ -30,7 +30,8 @@ dependencies {
         // Gradle distribution - minify: remove unused transitive dependencies
         applyRule<DependencyRemovalByNameRule>("com.amazonaws:aws-java-sdk-core", setOf("jackson-dataformat-cbor"))
         applyRule<DependencyRemovalByGroupRule>("org.eclipse.jgit:org.eclipse.jgit", setOf("com.googlecode.javaewah"))
-        // S3 repositories use the synchronous client over apache-client only
+        // The SDK's service modules inherit apache5-client and netty-nio-client as default HTTP clients.
+        // S3 repositories use apache-client only, which reuses the httpclient 4 that Gradle already ships.
         applyRule<DependencyRemovalByNameRule>("software.amazon.awssdk:s3", setOf("apache5-client", "crt-core", "netty-nio-client"))
         applyRule<DependencyRemovalByNameRule>("software.amazon.awssdk:sts", setOf("apache5-client", "netty-nio-client"))
         // Marker annotations only, and the module name collides with org.jetbrains:annotations in the distribution
