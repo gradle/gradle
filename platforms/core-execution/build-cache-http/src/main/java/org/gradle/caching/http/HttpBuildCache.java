@@ -46,8 +46,9 @@ import java.net.URL;
  * <p>
  * When credentials are configured (see {@link #getCredentials()}), they are sent using HTTP Basic Auth.
  * <p>
- * Requests that fail during request transmission, after having established a TCP connection, will automatically be retried.
- * This includes dropped connections, read or write timeouts, and low level network failures such as a connection resets.
+ * {@literal GET} requests are retried automatically when the connection drops or is reset.
+ * {@literal PUT} requests are retried only if the connection fails before the whole entry is sent.
+ * Timeouts, failures to connect, and error responses are not retried.
  *
  * @since 3.5
  */
