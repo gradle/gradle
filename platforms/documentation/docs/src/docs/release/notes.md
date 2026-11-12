@@ -10,9 +10,15 @@
 <meta name="twitter:description" content="We are excited to announce Gradle @version@.">
 <meta name="twitter:image" content="https://gradle.org/assets/images/releases/gradle-default.png">
 
-Gradle @version@ is the first patch release for Gradle 9.9.0 (released [@releaseDate@](https://gradle.org/releases/)).
+Gradle @version@ is the second patch release for Gradle 9.9.0 (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release addreses three security vulnerabilities:
+The following issues were resolved:
+
+* TODO
+
+Issues fixed in the first patch release:
+
+This release addresses three security vulnerabilities:
 - [Version catalog values run as code in generated accessors](https://github.com/gradle/gradle/security/advisories/GHSA-3cfg-jpcr-gfp3) - 9.3 Critical
 - [Gradle client trusts the content of the daemon registry](https://github.com/gradle/gradle/security/advisories/GHSA-gqrr-4j89-5267) - 8.6 High
 - [Daemon client trusts stale registry entries (port squatting)](https://github.com/gradle/gradle/security/advisories/GHSA-pcp8-98xm-c6pr) - 7.0 High
