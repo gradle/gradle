@@ -57,7 +57,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.snapshot { run language.compileTaskName }
 
         when:
-        file("impl/build.gradle").text = file("impl/build.gradle").text.replace('3.3', '3.3.1')
+        file("impl/build.gradle").replace('3.3', '3.3.1')
         run "impl:${language.compileTaskName}"
 
         then:

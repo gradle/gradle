@@ -593,7 +593,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
     def "change to transitive super-class in different project should trigger recompilation"() {
         given:
         settingsFile << "include 'c'"
-        settingsFile.text = settingsFile.text.replace(
+        settingsFile.replace(
             "(name in [])",
             "(name in ['b'])")
         buildFile("a/build.gradle", """
@@ -644,7 +644,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
     def "change to transitive super-class in different project should trigger recompilation 2"() {
         given:
         settingsFile << "include 'c', 'd'"
-        settingsFile.text = settingsFile.text.replace(
+        settingsFile.replace(
             "(name in [])",
             "(name in ['b', 'c'])")
         buildFile("a/build.gradle", """

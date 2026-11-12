@@ -26,20 +26,20 @@ abstract class AbstractCrossTaskIncrementalCompilationSupport extends AbstractJa
     def setup() {
         impl = new CompilationOutputsFixture(file("impl/build/classes"))
         settingsFile """
+            include "api", "impl"
+            dependencyResolutionManagement {
+                ${mavenCentralRepository()}
+            }
             gradle.lifecycle.beforeProject {
                 if (path != ':') {
                     apply plugin: '${language.name}'
                     apply plugin: 'java-library'
-                    ${mavenCentralRepository()}
                     configurations.compileClasspath.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.${useJar ? 'JAR' : 'CLASSES'}))
-                }
-                if (path == ':impl') {
-                    dependencies { api project(':api') }
                 }
             }
         """
         createDirs("api", "impl")
-        settingsFile << "include 'api', 'impl'\n"
+        addDependency("impl", "api")
 
         if (language == CompiledLanguage.GROOVY) {
             configureGroovyIncrementalCompilationForSubprojects()
@@ -58,7 +58,6 @@ abstract class AbstractCrossTaskIncrementalCompilationSupport extends AbstractJa
         buildFile("impl/build.gradle", """
             configurations.api.dependencies.clear() //so that api jar is no longer on classpath
         """)
-        configureGroovyIncrementalCompilationForSubprojects()
     }
 
     File source(Map projectToClassBodies) {

@@ -39,16 +39,8 @@ class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
 
         settingsFile """
             include ${projectNames.collect { "'$it'" }.join(', ')}
-            gradle.lifecycle.beforeProject {
-                if (path != ':') {
-                    apply plugin: 'java'
-
-                    ${mavenCentralRepository()}
-
-                    dependencies {
-                        implementation 'commons-lang:commons-lang:2.5'
-                    }
-                }
+            dependencyResolutionManagement {
+                ${mavenCentralRepository()}
             }
         """
 
@@ -57,6 +49,9 @@ class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
             def javaHome = TextUtil.escapeString(jdk.javaHome.absolutePath)
             def version = jdk.javaVersion
             buildFile("${projectName}/build.gradle", """
+
+apply plugin: 'java'
+
 tasks.withType(JavaCompile) {
     sourceCompatibility = '${version}'
     targetCompatibility = '${version}'
@@ -65,6 +60,10 @@ tasks.withType(JavaCompile) {
         fork = true
         forkOptions.javaHome = file("${javaHome}")
     }
+}
+
+dependencies {
+    implementation 'commons-lang:commons-lang:2.5'
 }
 """)
             file("${projectName}/src/main/java/Foo.java") << """

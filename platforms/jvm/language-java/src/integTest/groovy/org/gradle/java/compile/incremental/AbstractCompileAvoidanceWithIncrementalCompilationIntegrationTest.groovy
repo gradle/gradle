@@ -19,7 +19,7 @@ package org.gradle.java.compile.incremental
 abstract class AbstractCompileAvoidanceWithIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
     def setup() {
         settingsFile """
-            gradle.lifecycle.beforeProject {
+            dependencyResolutionManagement {
                 ${mavenCentralRepository()}
             }
         """
@@ -48,7 +48,7 @@ abstract class AbstractCompileAvoidanceWithIncrementalCompilationIntegrationTest
         executedAndNotSkipped ":a:${language.compileTaskName}"
 
         when:
-        file("a/build.gradle").text = file("a/build.gradle").text.replace("3.4", "3.4.1")
+        file("a/build.gradle").replace("3.4", "3.4.1")
 
         then:
         succeeds "a:${language.compileTaskName}"
