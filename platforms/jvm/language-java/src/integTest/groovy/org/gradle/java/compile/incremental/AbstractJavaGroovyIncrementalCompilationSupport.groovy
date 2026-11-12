@@ -84,10 +84,8 @@ abstract class AbstractJavaGroovyIncrementalCompilationSupport extends AbstractI
         if (language == CompiledLanguage.GROOVY) {
             buildFile(language.projectGroovyDependencies())
             buildFile """
-                allprojects {
-                    tasks.withType(GroovyCompile) {
-                        options.incremental = true
-                    }
+                tasks.withType(GroovyCompile) {
+                    options.incremental = true
                 }
             """
             FeaturePreviewsFixture.enableGroovyCompilationAvoidance(settingsFile)
