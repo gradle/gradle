@@ -97,6 +97,27 @@ class OriginTracesTest extends Specification {
         OriginTraces.withLineage([file], null)[0].frames*.displayName == ["/work/build.gradle:3"]
     }
 
+    def "a task the reporter named gets its own lineage, whichever task is running"() {
+        given:
+        def script = new UserCodeSource.Script(Describables.of("build file 'build.gradle'"), new File("/work/build.gradle").toURI(), Locality.LOCAL)
+        def plugin = new UserCodeSource.Binary(Describables.of("plugin 'com.acme.foo'"), "com.acme.FooPlugin", "com.acme.foo", Locality.EXTERNAL, script)
+        def named = new Trace([new PropertyFrame("output property", "outputDir", Locality.EXTERNAL), new org.gradle.api.problems.internal.location.TaskFrame(":app:generate", plugin)])
+        def running = new TaskIdentity(":app:report", ":app", ":", "com.acme.ReportTask", null)
+
+        expect:
+        OriginTraces.withLineage([named], running)[0].frames*.displayName == [
+            "output property outputDir",
+            "task :app:generate",
+            "plugin com.acme.foo",
+            new File("/work/build.gradle").absolutePath
+        ]
+        OriginTraces.withLineage([named], null)[0].frames.size() == 4
+
+        and: "a task frame without a registration record stays as it is"
+        def bare = new Trace([new org.gradle.api.problems.internal.location.TaskFrame(":app:generate", Locality.UNKNOWN)])
+        OriginTraces.withLineage([bare], running)[0].frames*.displayName == ["task :app:generate"]
+    }
+
     def "a task type that is a nested class matches the dotted name validation gives it"() {
         given:
         def task = new TaskIdentity(":acme", ":", ":", 'com.acme.Tasks$AcmeTask', null)

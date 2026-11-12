@@ -165,31 +165,39 @@ final class OriginTraces {
 
     // A relative path has no base Gradle knows: the write API takes a plain string, and resolving it against the daemon's working directory would be a guess
     /**
-     * Adds the lineage of a validation problem: when its type is the type of the task that was running, the task comes next,
-     * then the code that registered the task and, above that, the code that applied each piece of code, up to the script.
+     * Adds the lineage of a trace: the code that registered a task and, above that, the code that applied each piece of code, up to the script.
+     * <p>
+     * A validation problem whose type is the type of the task that was running gets that task first.
+     * A trace that ends in a task the reporter named, with its registration record, gets the lineage of that task, whichever task was running.
      * Other problems get no lineage yet: nothing links their leaf to an entity Gradle keeps a record for.
      */
     static List<Trace> withLineage(List<Trace> traces, @Nullable TaskIdentity task) {
-        if (task == null) {
-            return traces;
-        }
         ImmutableList.Builder<Trace> result = ImmutableList.builder();
         for (Trace trace : traces) {
             List<Frame> frames = trace.getFrames();
             Frame root = frames.get(frames.size() - 1);
             // Validation names a nested class with dots, the task type with a dollar sign
-            if (root instanceof ClassFrame && ((ClassFrame) root).getClassName().equals(task.getTypeName().replace('$', '.'))) {
-                ImmutableList.Builder<Frame> withLineage = ImmutableList.<Frame>builder().addAll(frames);
-                withLineage.add(new TaskFrame(task.getTaskPath(), task.getLocality()));
-                for (UserCodeSource source = task.getRegisteredBy(); source != null; source = source.getAppliedBy()) {
-                    withLineage.add(frameOf(source));
-                }
-                result.add(new Trace(withLineage.build()));
+            if (task != null && root instanceof ClassFrame && ((ClassFrame) root).getClassName().equals(task.getTypeName().replace('$', '.'))) {
+                result.add(new Trace(ImmutableList.<Frame>builder()
+                    .addAll(frames)
+                    .add(new TaskFrame(task.getTaskPath(), task.getLocality()))
+                    .addAll(lineageOf(task.getRegisteredBy()))
+                    .build()));
+            } else if (root instanceof TaskFrame && ((TaskFrame) root).getRegisteredBy() != null) {
+                result.add(new Trace(ImmutableList.<Frame>builder().addAll(frames).addAll(lineageOf(((TaskFrame) root).getRegisteredBy())).build()));
             } else {
                 result.add(trace);
             }
         }
         return result.build();
+    }
+
+    private static List<Frame> lineageOf(@Nullable UserCodeSource registeredBy) {
+        ImmutableList.Builder<Frame> lineage = ImmutableList.builder();
+        for (UserCodeSource source = registeredBy; source != null; source = source.getAppliedBy()) {
+            lineage.add(frameOf(source));
+        }
+        return lineage.build();
     }
 
     // Matches the wording of task provenance: a task is registered by a plugin or in a script

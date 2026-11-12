@@ -17,6 +17,8 @@
 package org.gradle.api.problems.internal.location;
 
 import org.gradle.internal.code.Locality;
+import org.gradle.internal.code.UserCodeSource;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A task of the build.
@@ -24,10 +26,22 @@ import org.gradle.internal.code.Locality;
 public final class TaskFrame extends Frame {
 
     private final String buildTreePath;
+    private final @Nullable UserCodeSource registeredBy;
 
     public TaskFrame(String buildTreePath, Locality locality) {
         super("task " + buildTreePath, locality);
         this.buildTreePath = buildTreePath;
+        this.registeredBy = null;
+    }
+
+    /**
+     * A task with the record of the code that registered it. The task takes that code's locality.
+     * A reporter that names a task other than the running one gives the record, so the runtime can add the task's lineage.
+     */
+    public TaskFrame(String buildTreePath, @Nullable UserCodeSource registeredBy) {
+        super("task " + buildTreePath, registeredBy == null ? Locality.UNKNOWN : registeredBy.getLocality());
+        this.buildTreePath = buildTreePath;
+        this.registeredBy = registeredBy;
     }
 
     /**
@@ -35,6 +49,13 @@ public final class TaskFrame extends Frame {
      */
     public String getBuildTreePath() {
         return buildTreePath;
+    }
+
+    /**
+     * The code that registered the task, when the reporter gave it. It stays inside the build process: no consumer receives it.
+     */
+    public @Nullable UserCodeSource getRegisteredBy() {
+        return registeredBy;
     }
 
     @Override
