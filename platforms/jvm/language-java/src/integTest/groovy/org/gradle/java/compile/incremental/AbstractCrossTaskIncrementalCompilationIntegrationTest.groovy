@@ -18,10 +18,8 @@
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
-@ToBeFixedForIsolatedProjects(because = "subprojects/allprojects, configure projects from root")
 abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends AbstractCrossTaskIncrementalCompilationSupport {
 
     def "detects change to dependency and ensures class dependency info refreshed"() {
@@ -47,12 +45,10 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
 
     def "doesn't recompile if external dependency has ABI incompatible change but not on class we use"() {
         given:
-        buildFile << """
-            project(':impl') {
-                ${mavenCentralRepository()}
-                dependencies { implementation 'org.apache.commons:commons-lang3:3.3' }
-            }
-        """
+        buildFile("impl/build.gradle", """
+            ${mavenCentralRepository()}
+            dependencies { implementation 'org.apache.commons:commons-lang3:3.3' }
+        """)
         source api: ["class A {}", "class B { }"], impl: ["class ImplA extends A {}", """import org.apache.commons.lang3.StringUtils;
 
             class ImplB extends B {
@@ -61,7 +57,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.snapshot { run language.compileTaskName }
 
         when:
-        buildFile.text = buildFile.text.replace('3.3', '3.3.1')
+        file("impl/build.gradle").replace('3.3', '3.3.1')
         run "impl:${language.compileTaskName}"
 
         then:

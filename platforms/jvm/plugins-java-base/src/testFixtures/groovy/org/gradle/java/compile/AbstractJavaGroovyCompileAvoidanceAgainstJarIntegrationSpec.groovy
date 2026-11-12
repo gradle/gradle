@@ -23,13 +23,11 @@ import spock.lang.Issue
 trait AbstractJavaGroovyCompileAvoidanceAgainstJarIntegrationSpec {
     def "doesn't recompile when implementation manifest is changed"() {
         given:
-        buildFile << """
-            project(':b') {
-                dependencies {
-                    implementation project(':a')
-                }
+        buildFile("b/build.gradle", """
+            dependencies {
+                implementation project(':a')
             }
-        """
+        """)
         def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
         sourceFile << """
             public class ToolImpl { public void execute() { int i = 12; } }
@@ -46,11 +44,9 @@ trait AbstractJavaGroovyCompileAvoidanceAgainstJarIntegrationSpec {
         executedAndNotSkipped ":b:${language.compileTaskName}"
 
         when:
-        buildFile << """
-            project(':a') {
-                jar.manifest.attributes(attr1: 'value')
-            }
-"""
+        buildFile("a/build.gradle", """
+            jar.manifest.attributes(attr1: 'value')
+        """)
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -61,16 +57,14 @@ trait AbstractJavaGroovyCompileAvoidanceAgainstJarIntegrationSpec {
     @Issue("gradle/gradle#1457")
     def "doesn't fail when jar is missing"() {
         given:
-        buildFile << """
-            project(':b') {
-                dependencies {
-                    implementation project(':a')
-                }
+        buildFile("b/build.gradle", """
+            dependencies {
+                implementation project(':a')
             }
-            project(':a') {
-                jar.enabled = false
-            }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            jar.enabled = false
+        """)
         file("b/src/main/${language.name}/Main.${language.name}") << """
             public class Main { }
         """
