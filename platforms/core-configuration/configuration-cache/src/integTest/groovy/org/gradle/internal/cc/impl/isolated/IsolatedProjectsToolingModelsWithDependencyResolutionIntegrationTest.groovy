@@ -551,6 +551,66 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         }
     }
 
+    def "reused project metadata keeps primary variant without artifacts out of artifact selection"() {
+        given:
+        withSomeToolingModelBuilderPluginThatPerformsDependencyResolutionInBuildSrc()
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        file("a/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+            dependencies {
+                implementation project(":b")
+            }
+        """
+        // If the reused metadata lost track of the primary variant having no artifacts, it would compete with the
+        // secondary variant and the classpath would no longer contain exactly the secondary artifact
+        file("b/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+            configurations.runtimeElements {
+                outgoing.artifacts.clear()
+                outgoing.variants.create("secondary") {
+                    artifact(layout.buildDirectory.file("secondary.txt"))
+                }
+            }
+        """
+
+        when:
+        withIsolatedProjects()
+        def model = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model[0].message == "project :a classpath = 1"
+
+        and:
+        fixture.assertModelStored {
+            projectConfigured(":buildSrc")
+            projectConfigured(":")
+            buildModelCreated()
+            modelsCreated(":a", ":b")
+        }
+
+        when:
+        file("a/build.gradle") << """
+            // some change
+        """
+        withIsolatedProjects()
+        def model2 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model2[0].message == "project :a classpath = 1"
+
+        and:
+        fixture.assertModelUpdated {
+            fileChanged("a/build.gradle")
+            projectConfigured(":buildSrc")
+            projectConfigured(":")
+            modelsCreated(":a")
+            modelsReused(":", ":b", ":buildSrc")
+        }
+    }
+
     def "caches BuildAction when there are cycles in the dependency graph"() {
         given:
         withSomeToolingModelBuilderPluginThatPerformsDependencyResolutionInBuildSrc()

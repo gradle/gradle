@@ -62,6 +62,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         new DefaultImmutableModuleIdentifierFactory(),
         AttributeTestUtil.attributesFactory(),
         TestUtil.objectInstantiator(),
+        false,
         false
     )
 
