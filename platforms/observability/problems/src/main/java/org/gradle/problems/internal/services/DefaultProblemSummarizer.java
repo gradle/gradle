@@ -89,7 +89,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         TaskIdentity taskIdentity = detection.getTask();
         String taskPath = taskIdentity == null ? null : taskIdentity.getTaskPath();
         // The leaf is part of what tells two problems apart, so it is settled before repeated problems are dropped
-        problem = withUserCodeCallers(problem, detection);
+        problem = withUserCodeCallers(withDerivedOrigins(problem), detection);
         if (summarizerStrategy.shouldEmit(problem, taskPath)) {
             problem = locate(problem, detection);
             problemReportCreator.addProblem(problem);
@@ -110,10 +110,19 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
             return problem;
         }
         TaskIdentity taskIdentity = detection.getTask();
-        problem = withUserCodeCallers(problem, detection);
+        problem = withUserCodeCallers(withDerivedOrigins(problem), detection);
         return maybeAddTaskLocation(problem, taskIdentity == null ? null : taskIdentity.getTaskPath())
             .withDetectionTrace(DetectionTraces.detectedIn(detection))
             .withOriginTraces(OriginTraces.withLineage(OriginTraces.withFileLocalities(problem.getOriginTraces(), buildTreeRootDirectory), taskIdentity));
+    }
+
+    // A reporter that gives whole traces, such as Configuration Cache, keeps them; for any other problem they come from its flat locations
+    private static ProblemInternal withDerivedOrigins(ProblemInternal problem) {
+        if (!problem.getOriginTraces().isEmpty()) {
+            return problem;
+        }
+        List<Trace> derived = OriginTraces.derivedFrom(problem);
+        return derived.isEmpty() ? problem : problem.withOriginTraces(derived);
     }
 
     private ProblemInternal withUserCodeCallers(ProblemInternal problem, DetectionContext detection) {

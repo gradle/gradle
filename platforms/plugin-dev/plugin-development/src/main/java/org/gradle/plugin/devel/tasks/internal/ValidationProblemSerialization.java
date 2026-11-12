@@ -463,6 +463,9 @@ public class ValidationProblemSerialization {
     /**
      * The position of a frame in an origin trace. Only file positions exist today; Gson can't create the interface on its own.
      * The frames themselves come back as plain frames, which keeps their display name, locality and position but not their kind.
+     * <p>
+     * A problem crosses with the origin traces its reporter gave. The traces Gradle derives from a problem's flat locations
+     * and validation data are not among them: the problems runtime adds those after the problem has been read back.
      */
     private static class PositionAdapter extends TypeAdapter<Position> {
         @Override

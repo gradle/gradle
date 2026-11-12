@@ -42,4 +42,10 @@ public interface StackTraceLocation extends ProblemLocation {
      * The stack trace elements that lead to the problem.
      */
     List<StackTraceElement> getStackTrace();
+
+    /**
+     * The name of the API class whose caller the reporter named as the cause, or {@code null} if it named none.
+     */
+    @Nullable
+    String getCallerApi();
 }

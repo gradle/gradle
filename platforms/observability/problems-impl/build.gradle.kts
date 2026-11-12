@@ -30,7 +30,7 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.core)
     implementation(projects.hashing)
-    runtimeOnly(projects.logging)
+    implementation(projects.logging)
     implementation(projects.problemsApi)
 }
 

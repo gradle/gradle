@@ -114,45 +114,4 @@ class DefaultProblemTest extends Specification {
         then:
         newProblem.class == DefaultProblem
     }
-
-    def "problems whose origin traces differ in an authored frame are different problems"() {
-        expect:
-        problemWithOrigin(field("a"), task(":x")) != problemWithOrigin(field("b"), task(":x"))
-        problemWithOrigin(field("a"), task(":x")).hashCode() != problemWithOrigin(field("b"), task(":x")).hashCode()
-    }
-
-    def "problems whose origin traces differ only in build model frames or in locality are the same problem"() {
-        expect: "a field that a type declares is one problem, however many tasks of that type there are"
-        problemWithOrigin(field("a"), type("AcmeTask"), task(":x")) == problemWithOrigin(field("a"), type("AcmeTask"), task(":y"))
-        problemWithOrigin(field("a"), type("AcmeTask"), task(":x")).hashCode() == problemWithOrigin(field("a"), type("AcmeTask"), task(":y")).hashCode()
-        problemWithOrigin(new org.gradle.api.problems.internal.location.PropertyFrame("field", "a", org.gradle.internal.code.Locality.LOCAL)) == problemWithOrigin(field("a"))
-    }
-
-    def "a task counts when no type stands between it and the leaf"() {
-        expect: "a property of one task is that task's, so the same name on another task is another problem"
-        problemWithOrigin(field("a"), task(":x")) != problemWithOrigin(field("a"), task(":y"))
-        problemWithOrigin(field("a"), task(":x")) == problemWithOrigin(field("a"), task(":x"))
-        problemWithOrigin(field("a"), task(":x")).hashCode() == problemWithOrigin(field("a"), task(":x")).hashCode()
-
-        and: "so is a task that is the leaf itself"
-        problemWithOrigin(task(":x")) != problemWithOrigin(task(":y"))
-    }
-
-    private static org.gradle.api.problems.internal.location.Frame type(String name) {
-        new org.gradle.api.problems.internal.location.ClassFrame(name, org.gradle.internal.code.Locality.UNKNOWN)
-    }
-
-    private static org.gradle.api.problems.internal.location.Frame field(String name) {
-        new org.gradle.api.problems.internal.location.PropertyFrame("field", name, org.gradle.internal.code.Locality.UNKNOWN)
-    }
-
-    private static org.gradle.api.problems.internal.location.Frame task(String path) {
-        new org.gradle.api.problems.internal.location.TaskFrame(path, org.gradle.internal.code.Locality.UNKNOWN)
-    }
-
-    private static ProblemInternal problemWithOrigin(org.gradle.api.problems.internal.location.Frame... frames) {
-        def group = org.gradle.api.problems.ProblemGroup.create("g", "G")
-        def definition = new DefaultProblemDefinition(new DefaultProblemId("p", "P", group), org.gradle.api.problems.Severity.WARNING, null)
-        new DefaultProblem(definition, "label", [], [], []).withOriginTraces([new org.gradle.api.problems.internal.location.Trace(frames.toList())])
-    }
 }

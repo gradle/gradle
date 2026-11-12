@@ -27,17 +27,7 @@ import org.gradle.api.problems.ProblemGroups;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.LineInFileLocation;
-import org.gradle.api.problems.OffsetInFileLocation;
-import org.gradle.api.problems.internal.location.ClassFrame;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.location.CompiledCodeFrame;
-import org.gradle.api.problems.internal.location.CompiledCodePosition;
-import org.gradle.api.problems.internal.location.FileLocationFrame;
-import org.gradle.api.problems.internal.location.FilePosition;
-import org.gradle.api.problems.internal.location.Frame;
-import org.gradle.api.problems.internal.location.PropertyFrame;
-import org.gradle.internal.code.Locality;
 import org.gradle.api.problems.internal.location.Trace;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.isolation.Isolatable;
@@ -51,7 +41,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class DefaultProblemBuilder implements ProblemBuilderInternal {
     private static final String MISSING_ID = "Reported problem has no id";
@@ -71,7 +60,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
     private Throwable exception;
     private AdditionalData additionalData;
     private boolean collectStackLocation = false;
-    // The API whose caller is at fault: the origin leaf is the first stack frame outside Gradle and outside its package
+    // The API whose caller is at fault. The runtime picks the origin leaf from the captured stack.
     private Class<?> callerApi;
     private final List<Trace> explicitOriginTraces = new ArrayList<Trace>();
     private boolean writtenToConsole = false;
@@ -85,13 +74,6 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         this.problemsInfrastructure = infrastructure;
         this.additionalData = null;
         this.solutions = new ArrayList<String>();
-    }
-
-    private DefaultProblemBuilder(DefaultProblemBuilder original, List<ProblemLocation> originLocations) {
-        this(original.problemsInfrastructure);
-        this.originLocations.addAll(originLocations);
-        this.additionalData = original.additionalData;
-        this.callerApi = original.callerApi;
     }
 
     public DefaultProblemBuilder(
@@ -146,97 +128,8 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             additionalData,
             writtenToConsole,
             detectionTrace,
-            originTraces()
+            ImmutableList.copyOf(explicitOriginTraces)
         );
-    }
-
-    /**
-     * The origin traces: one per file location the reporter gave, with that location as its leaf, and one for the
-     * property and type of a validation problem. The flat origin list stays the reporters' input for now, so the traces
-     * are derived from it; the localities of file frames are resolved later by the runtime, which knows the build's root.
-     */
-    private List<Trace> originTraces() {
-        if (!explicitOriginTraces.isEmpty()) {
-            return ImmutableList.copyOf(explicitOriginTraces);
-        }
-        ImmutableList.Builder<Trace> originTraces = ImmutableList.builder();
-        originLocations.stream()
-            .map(this::originLeafOf)
-            .filter(Objects::nonNull)
-            .map(leaf -> new Trace(ImmutableList.of(leaf)))
-            .forEach(originTraces::add);
-
-        if (additionalData instanceof TypeValidationData) {
-            TypeValidationData data = (TypeValidationData) additionalData;
-            ImmutableList.Builder<Frame> frames = ImmutableList.builder();
-            if (data.getPropertyName() != null) {
-                String name = data.getParentPropertyName() == null ? data.getPropertyName() : data.getParentPropertyName() + "." + data.getPropertyName();
-                frames.add(new PropertyFrame(name, Locality.UNKNOWN));
-            }
-            if (data.getTypeName() != null) {
-                frames.add(new ClassFrame(data.getTypeName(), Locality.UNKNOWN));
-            }
-            ImmutableList<Frame> validated = frames.build();
-            if (!validated.isEmpty()) {
-                originTraces.add(new Trace(validated));
-            }
-        }
-        return originTraces.build();
-    }
-
-    private @Nullable Frame originLeafOf(ProblemLocation location) {
-        if (location instanceof StackTraceLocation) {
-            return stackLeaf((StackTraceLocation) location);
-        }
-        if (location instanceof FileLocation) {
-            return new FileLocationFrame(positionOf((FileLocation) location), Locality.UNKNOWN);
-        }
-        return null;
-    }
-
-    /**
-     * The leaf a captured stack gives. Without a named API it is the script line Gradle located, as before.
-     * With one, it is the caller of that API: the script line when the caller is a script, or else the compiled code's file and line from its debug information.
-     */
-    @Nullable
-    private Frame stackLeaf(StackTraceLocation location) {
-        FileLocation scriptLocation = location.getFileLocation();
-        Frame scriptLeaf = scriptLocation == null ? null : new FileLocationFrame(positionOf(scriptLocation), Locality.UNKNOWN);
-        if (callerApi == null) {
-            return scriptLeaf;
-        }
-        StackTraceElement caller = CallerFrames.firstOutside(location.getStackTrace(), callerApi);
-        if (caller == null) {
-            return scriptLeaf;
-        }
-        if (scriptLocation instanceof LineInFileLocation && isSameLine((LineInFileLocation) scriptLocation, caller)) {
-            return scriptLeaf;
-        }
-        return new CompiledCodeFrame(new CompiledCodePosition(caller.getFileName(), caller.getClassName(), null, caller.getLineNumber()), Locality.UNKNOWN);
-    }
-
-    private static boolean isSameLine(LineInFileLocation scriptLocation, StackTraceElement frame) {
-        String path = scriptLocation.getPath();
-        String fileName = frame.getFileName();
-        return scriptLocation.getLine() == frame.getLineNumber() && (path.equals(fileName) || path.endsWith("/" + fileName) || path.endsWith("\\" + fileName));
-    }
-
-    // Line and column count from 1 and offset from 0; the flat locations use -1 for a missing value, the position uses null (spec Q12)
-    private static FilePosition positionOf(FileLocation location) {
-        if (location instanceof LineInFileLocation) {
-            LineInFileLocation line = (LineInFileLocation) location;
-            return new FilePosition(line.getPath(), valueOrNull(line.getLine()), valueOrNull(line.getColumn()), null, valueOrNull(line.getLength()));
-        }
-        if (location instanceof OffsetInFileLocation) {
-            OffsetInFileLocation offset = (OffsetInFileLocation) location;
-            return new FilePosition(offset.getPath(), null, null, valueOrNull(offset.getOffset()), valueOrNull(offset.getLength()));
-        }
-        return new FilePosition(location.getPath(), null, null, null, null);
-    }
-
-    @Nullable
-    private static Integer valueOrNull(int value) {
-        return value < 0 ? null : value;
     }
 
     @Nullable
@@ -270,7 +163,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             locations.remove(fileLocation);
         }
         if (collectStackLocation || fileLocation != null) {
-            locations.add(new DefaultStackTraceLocation(fileLocation, diagnostics.getStack()));
+            locations.add(new DefaultStackTraceLocation(fileLocation, diagnostics.getStack(), callerApi == null ? null : callerApi.getName()));
         }
 
         PluginIdLocation pluginIdLocation = getDefaultPluginIdLocation(diagnostics);
@@ -318,7 +211,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             ImmutableList.<String>of(),
             problemLocations,
             ImmutableList.<ProblemLocation>of()
-        ).withOriginTraces(new DefaultProblemBuilder(this, problemLocations).originTraces());
+        );
     }
 
     protected Severity getSeverity() {

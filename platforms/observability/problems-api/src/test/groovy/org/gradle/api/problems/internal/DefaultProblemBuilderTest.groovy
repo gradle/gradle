@@ -22,14 +22,11 @@ import org.gradle.api.problems.GradleSecondLevelProblemGroup
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemGroups
 import org.gradle.api.problems.ProblemId
-import org.gradle.api.problems.internal.location.CompiledCodeFrame
-import org.gradle.api.problems.internal.location.CompiledCodePosition
-import org.gradle.internal.Describables
 import org.gradle.problems.Location
 import org.gradle.problems.ProblemDiagnostics
-import org.gradle.api.problems.internal.location.ClassFrame
-import org.gradle.api.problems.internal.location.FileLocationFrame
 import org.gradle.api.problems.internal.location.PropertyFrame
+import org.gradle.api.problems.internal.location.Trace
+import org.gradle.internal.code.Locality
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.internal.reflect.Instantiator
@@ -327,153 +324,46 @@ class DefaultProblemBuilderTest extends Specification {
         problem.contextualLabel == "line1 line2 line3"
     }
 
-    def "each file location the reporter gives is an origin trace with that location as its leaf"() {
+    def "the builder keeps the reporter's locations and derives no origin trace: the runtime does that"() {
         when:
         def problem = createProblemBuilder()
             .id(problemId)
             .lineInFileLocation("build.gradle", 12, 5)
-            .offsetInFileLocation("settings.gradle", 40, 3)
-            .fileLocation("gradle.properties")
             .build()
 
         then:
-        problem.originTraces.size() == 3
-        problem.originTraces.every { it.frames.size() == 1 && it.frames[0] instanceof FileLocationFrame }
-        problem.originTraces*.frames*.displayName.flatten() == [
-            "build.gradle:12:5",
-            "settings.gradle",
-            "gradle.properties"
-        ]
-
-        and: "line and column count from 1, offset from 0, and a missing value is null"
-        with(problem.originTraces[0].frames[0].position) {
-            path == "build.gradle"
-            line == 12
-            column == 5
-            offset == null
-            length == null
-        }
-        with(problem.originTraces[1].frames[0].position) {
-            offset == 40
-            length == 3
-            line == null
-        }
-        with(problem.originTraces[2].frames[0].position) {
-            line == null
-            column == null
-            offset == null
-            length == null
-        }
-
-        and: "the flat list is still filled"
-        problem.originLocations.size() == 3
+        problem.originLocations.size() == 1
+        problem.originTraces.empty
     }
 
-    def "the property and the type of a validation problem are its origin"() {
-        when:
-        def problem = createProblemBuilder()
-            .id(problemId)
-            .additionalDataInternal(TypeValidationDataSpec) {
-                it.typeName("com.acme.AcmeTask").propertyName("bar")
-            }
-            .build()
+    def "an origin trace the reporter gives is kept"() {
+        given:
+        def trace = new Trace([new PropertyFrame("bar", Locality.UNKNOWN)])
 
-        then:
-        problem.originTraces.size() == 1
-        problem.originTraces[0].frames*.displayName == [
-            "property bar",
-            "class com.acme.AcmeTask"
-        ]
-        problem.originTraces[0].frames*.class == [
-            PropertyFrame,
-            ClassFrame
-        ]
-        problem.originTraces[0].frames*.position == [null, null]
-    }
-
-    def "a nested property names its parent"() {
-        when:
-        def problem = createProblemBuilder()
-            .id(problemId)
-            .additionalDataInternal(TypeValidationDataSpec) {
-                it.typeName("com.acme.AcmeTask").parentPropertyName("options").propertyName("bar")
-            }
-            .build()
-
-        then:
-        problem.originTraces[0].frames*.displayName == [
-            "property options.bar",
-            "class com.acme.AcmeTask"
-        ]
-    }
-
-    def "a problem without file locations or validation data has no origin"() {
         expect:
-        createProblemBuilder().id(problemId).build().originTraces.empty
+        createProblemBuilder().id(problemId).originTrace(trace).build().originTraces == [trace]
     }
 
-    // Guava's ImmutableList stands in for a plugin's API: its package is com.google.common.collect, which Gradle doesn't treat as internal
-    private static final Class<?> API = com.google.common.collect.ImmutableList
-
-    def "callerLocation takes the first frame outside Gradle and outside the API's package as the origin leaf"() {
+    def "callerLocation records the stack and the API whose caller is meant"() {
         given:
         def stack = [
-            frame("org.gradle.api.problems.internal.DefaultProblemReporter", "report", "DefaultProblemReporter.java", 58),
             frame("com.google.common.collect.ImmutableList", "of", "ImmutableList.java", 20),
-            frame("com.google.common.collect.internal.Checks", "run", "Checks.java", 7),
             frame("com.acme.util.Helper", "callCheck", "Helper.java", 31),
-            frame("build_abc", "run", "build.gradle", 12),
         ]
 
         when:
         def problem = createProblemBuilder()
             .id(problemId)
             .diagnostics(diagnostics(stack, null))
-            .callerLocation(API)
+            .callerLocation(com.google.common.collect.ImmutableList)
             .build()
 
         then:
-        problem.originTraces.size() == 1
-        with(problem.originTraces[0].frames[0]) {
-            it instanceof CompiledCodeFrame
-            displayName == "Helper.java:31"
-            with(position as CompiledCodePosition) {
-                fileName == "Helper.java"
-                className == "com.acme.util.Helper"
-                line == 31
-                module == null
-            }
+        problem.originLocations.size() == 1
+        with(problem.originLocations[0] as StackTraceLocation) {
+            stackTrace == stack
+            callerApi == "com.google.common.collect.ImmutableList"
         }
-    }
-
-    def "callerLocation keeps the script line when the caller is the script Gradle located"() {
-        given:
-        def stack = [
-            frame("com.google.common.collect.ImmutableList", "of", "ImmutableList.java", 20),
-            frame("build_abc", "run", "build.gradle", 12),
-        ]
-        def scriptLocation = new Location(Describables.of("build file 'build.gradle'"), Describables.of("build file"), "/work/build.gradle", 12)
-
-        when:
-        def problem = createProblemBuilder()
-            .id(problemId)
-            .diagnostics(diagnostics(stack, scriptLocation))
-            .callerLocation(API)
-            .build()
-
-        then:
-        problem.originTraces[0].frames[0] instanceof FileLocationFrame
-        problem.originTraces[0].frames[0].displayName == "/work/build.gradle:12"
-    }
-
-    def "callerLocation falls back to the script line when no frame is outside the API"() {
-        given:
-        def stack = [frame("com.google.common.collect.ImmutableList", "of", "ImmutableList.java", 20)]
-        def scriptLocation = new Location(Describables.of("build file 'build.gradle'"), Describables.of("build file"), "/work/build.gradle", 3)
-
-        expect:
-        createProblemBuilder().id(problemId).diagnostics(diagnostics(stack, scriptLocation)).callerLocation(API).build()
-            .originTraces[0].frames[0].displayName == "/work/build.gradle:3"
     }
 
     private static StackTraceElement frame(String className, String method, String file, int line) {

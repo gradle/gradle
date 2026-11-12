@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.problems.internal.services;
 
 import org.gradle.internal.problems.failure.InternalStackTraceClassifier;
 import org.jspecify.annotations.Nullable;
@@ -27,14 +27,16 @@ import java.util.List;
  * A package rather than a class, because a plugin's API spans many classes and Gradle's generated subclasses share their package;
  * not the jar or the class loader, because plugins ship as several jars and convention plugins share a class loader with the plugins they apply.
  */
-public final class CallerFrames {
+final class CallerFrames {
 
     private CallerFrames() {
     }
 
-    @Nullable
-    public static StackTraceElement firstOutside(List<StackTraceElement> stack, Class<?> api) {
-        String apiPackage = packagePrefixOf(api);
+    /**
+     * @param apiClassName the name of a class of the API whose caller is wanted
+     */
+    static @Nullable StackTraceElement firstOutside(List<StackTraceElement> stack, String apiClassName) {
+        String apiPackage = packagePrefixOf(apiClassName);
         for (StackTraceElement frame : stack) {
             String className = frame.getClassName();
             if (InternalStackTraceClassifier.isInternal(className) || className.startsWith(apiPackage)) {
@@ -47,10 +49,9 @@ public final class CallerFrames {
         return null;
     }
 
-    // Derived from the name, since Class.getPackageName() is Java 9; a nested class keeps its outer class's package
-    private static String packagePrefixOf(Class<?> api) {
-        String name = api.getName();
-        int lastDot = name.lastIndexOf('.');
-        return lastDot < 0 ? "" : name.substring(0, lastDot + 1);
+    // A nested class keeps its outer class's package
+    private static String packagePrefixOf(String className) {
+        int lastDot = className.lastIndexOf('.');
+        return lastDot < 0 ? "" : className.substring(0, lastDot + 1);
     }
 }

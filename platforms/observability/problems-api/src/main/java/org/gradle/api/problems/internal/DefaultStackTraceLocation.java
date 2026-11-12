@@ -25,10 +25,16 @@ public class DefaultStackTraceLocation implements StackTraceLocation {
 
     private final FileLocation location;
     private final List<StackTraceElement> stackTrace;
+    private final @Nullable String callerApi;
 
     public DefaultStackTraceLocation(@Nullable FileLocation location, List<StackTraceElement> stackTrace) {
+        this(location, stackTrace, null);
+    }
+
+    public DefaultStackTraceLocation(@Nullable FileLocation location, List<StackTraceElement> stackTrace, @Nullable String callerApi) {
         this.location = location;
         this.stackTrace = stackTrace;
+        this.callerApi = callerApi;
     }
 
     @Nullable
@@ -42,6 +48,12 @@ public class DefaultStackTraceLocation implements StackTraceLocation {
         return stackTrace;
     }
 
+    @Nullable
+    @Override
+    public String getCallerApi() {
+        return callerApi;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
@@ -49,13 +61,16 @@ public class DefaultStackTraceLocation implements StackTraceLocation {
         }
 
         DefaultStackTraceLocation that = (DefaultStackTraceLocation) o;
-        return (location == null ? that.location == null : location.equals(that.location)) && stackTrace.equals(that.stackTrace);
+        return (location == null ? that.location == null : location.equals(that.location))
+            && stackTrace.equals(that.stackTrace)
+            && (callerApi == null ? that.callerApi == null : callerApi.equals(that.callerApi));
     }
 
     @Override
     public int hashCode() {
         int result = location != null ? location.hashCode() : 0;
         result = 31 * result + stackTrace.hashCode();
+        result = 31 * result + (callerApi != null ? callerApi.hashCode() : 0);
         return result;
     }
 }

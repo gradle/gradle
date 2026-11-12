@@ -16,7 +16,12 @@
 
 package org.gradle.problems.internal.services;
 
+import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.problems.OffsetInFileLocation;
 import org.gradle.api.problems.internal.DetectionContext;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.TypeValidationData;
+import org.gradle.api.problems.internal.location.PropertyFrame;
 import org.gradle.api.problems.internal.StackTraceLocation;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.FileLocation;
@@ -46,6 +51,66 @@ import java.util.List;
 final class OriginTraces {
 
     private OriginTraces() {
+    }
+
+    /**
+     * The origin traces of a problem whose reporter gave none: one per file location, with that location as its leaf,
+     * and one for the property and type of a validation problem. The flat origin list is still what reporters fill in,
+     * so the traces are derived from it. Localities and lineage are added afterwards.
+     */
+    static List<Trace> derivedFrom(ProblemInternal problem) {
+        ImmutableList.Builder<Trace> traces = ImmutableList.builder();
+        for (ProblemLocation location : problem.getOriginLocations()) {
+            Frame leaf = originLeafOf(location);
+            if (leaf != null) {
+                traces.add(new Trace(ImmutableList.of(leaf)));
+            }
+        }
+        AdditionalData additionalData = problem.getAdditionalData();
+        if (additionalData instanceof TypeValidationData) {
+            TypeValidationData data = (TypeValidationData) additionalData;
+            ImmutableList.Builder<Frame> frames = ImmutableList.builder();
+            if (data.getPropertyName() != null) {
+                String name = data.getParentPropertyName() == null ? data.getPropertyName() : data.getParentPropertyName() + "." + data.getPropertyName();
+                frames.add(new PropertyFrame(name, Locality.UNKNOWN));
+            }
+            if (data.getTypeName() != null) {
+                frames.add(new ClassFrame(data.getTypeName(), Locality.UNKNOWN));
+            }
+            ImmutableList<Frame> validated = frames.build();
+            if (!validated.isEmpty()) {
+                traces.add(new Trace(validated));
+            }
+        }
+        return traces.build();
+    }
+
+    private static @Nullable Frame originLeafOf(ProblemLocation location) {
+        if (location instanceof StackTraceLocation) {
+            return stackLeaf((StackTraceLocation) location);
+        }
+        if (location instanceof FileLocation) {
+            return new FileLocationFrame(positionOf((FileLocation) location), Locality.UNKNOWN);
+        }
+        return null;
+    }
+
+    /**
+     * The leaf a captured stack gives. Without a named API it is the script line Gradle located.
+     * With one, it is the caller of that API: the script line when the caller is a script, or else the compiled code's file and line from its debug information.
+     */
+    private static @Nullable Frame stackLeaf(StackTraceLocation location) {
+        FileLocation scriptLocation = location.getFileLocation();
+        Frame scriptLeaf = scriptLocation == null ? null : new FileLocationFrame(positionOf(scriptLocation), Locality.UNKNOWN);
+        String callerApi = location.getCallerApi();
+        if (callerApi == null) {
+            return scriptLeaf;
+        }
+        StackTraceElement caller = CallerFrames.firstOutside(location.getStackTrace(), callerApi);
+        if (caller == null || isScriptLine(scriptLocation, caller)) {
+            return scriptLeaf;
+        }
+        return new CompiledCodeFrame(new CompiledCodePosition(caller.getFileName(), caller.getClassName(), null, caller.getLineNumber()), Locality.UNKNOWN);
     }
 
     /**
@@ -108,7 +173,7 @@ final class OriginTraces {
             for (StackTraceElement element : stack.subList(leafIndex, stack.size())) {
                 if (isScriptLine(scriptLocation, element)) {
                     // Whether the script is the build's own is decided with the other file leaves
-                    return new FileLocationFrame(positionOf((LineInFileLocation) scriptLocation), Locality.UNKNOWN);
+                    return new FileLocationFrame(positionOf(scriptLocation), Locality.UNKNOWN);
                 }
                 if (element.getFileName() == null || element.getLineNumber() <= 0) {
                     continue;
@@ -124,8 +189,17 @@ final class OriginTraces {
         return null;
     }
 
-    private static FilePosition positionOf(LineInFileLocation line) {
-        return new FilePosition(line.getPath(), valueOrNull(line.getLine()), valueOrNull(line.getColumn()), null, valueOrNull(line.getLength()));
+    // Line and column count from 1 and offset from 0; the flat locations use -1 for a missing value, the position uses null (spec Q12)
+    private static FilePosition positionOf(FileLocation location) {
+        if (location instanceof LineInFileLocation) {
+            LineInFileLocation line = (LineInFileLocation) location;
+            return new FilePosition(line.getPath(), valueOrNull(line.getLine()), valueOrNull(line.getColumn()), null, valueOrNull(line.getLength()));
+        }
+        if (location instanceof OffsetInFileLocation) {
+            OffsetInFileLocation offset = (OffsetInFileLocation) location;
+            return new FilePosition(offset.getPath(), null, null, valueOrNull(offset.getOffset()), valueOrNull(offset.getLength()));
+        }
+        return new FilePosition(location.getPath(), null, null, null, null);
     }
 
     private static @Nullable Integer valueOrNull(int value) {

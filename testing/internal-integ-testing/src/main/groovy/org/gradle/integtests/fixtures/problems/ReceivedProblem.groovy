@@ -493,6 +493,8 @@ class ReceivedProblem implements ProblemInternal {
     static class ReceivedStackTraceLocation implements StackTraceLocation {
         final List<StackTraceElement> stackTrace
         final FileLocation fileLocation
+        // Only the build needs the API a reporter named; a received problem has its origin traces already
+        final String callerApi = null
 
         ReceivedStackTraceLocation(Map<String, Object> location) {
             def fileLocationJson = location['fileLocation']
