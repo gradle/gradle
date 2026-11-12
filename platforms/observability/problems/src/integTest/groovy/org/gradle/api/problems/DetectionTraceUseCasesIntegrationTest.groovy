@@ -85,6 +85,14 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
                 file("app/build.gradle").absolutePath
             ]
         ]
+
+        and: "the task and the script are the build's own; whose property and type it is isn't known yet"
+        problem.originTraces[0].frames*.locality == [
+            Locality.UNKNOWN,
+            Locality.UNKNOWN,
+            Locality.LOCAL,
+            Locality.LOCAL
+        ]
     }
 
     def "UC4 in a task action: a deprecation from a compiled plugin keeps its compiled origin when the task location is added"() {
@@ -117,7 +125,10 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
             "project :app",
             "build :"
         ]
-        problem.originTraces[0].frames[0].displayName == "AcmePlugin.java:" + nagLineOf(file("buildSrc/src/main/java/com/acme/AcmePlugin.java"))
+
+        and: "the origin is the line in the compiled plugin, which is the build's own here: the plugin that registered the task comes from buildSrc"
+        originsOf(problem) == [["AcmePlugin.java:" + nagLineOf(file("buildSrc/src/main/java/com/acme/AcmePlugin.java"))]]
+        problem.originTraces[0].frames[0].locality == Locality.LOCAL
     }
 
     def "UC3: deprecation called from a build script in a task action is detected in the task"() {
@@ -183,17 +194,20 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
         def leaf = problem.originTraces[0].frames[0]
         leaf.displayName == "AcmePlugin.java:" + nagLineOf(file("buildSrc/src/main/java/com/acme/AcmePlugin.java"))
         (leaf.position as CompiledCodePosition).className == "com.acme.AcmePlugin"
+        leaf.locality == Locality.LOCAL
+        problem.originTraces*.frames*.size() == [1]
         problem.oneLocation(StackTraceLocation).fileLocation == null
     }
 
-    def "UC6: problem reported from an unmanaged thread is detected in the build"() {
+    def "UC6: problem reported from an unmanaged thread is detected in the build and keeps its origin line"() {
         given:
         settingsFile """
             include "app"
         """
         pluginInBuildSrc("com.acme.foo", "com.acme.AcmePlugin", """
             Thread thread = new Thread(() -> getProblems().getReporter().report(
-                getProblems().getGroups().getOthers().group("Generic").problemId("problem from spawned thread"), spec -> {}));
+                getProblems().getGroups().getOthers().group("Generic").problemId("problem from spawned thread"),
+                spec -> spec.callerLocation(org.gradle.api.problems.Problems.class)));
             thread.start();
             try {
                 thread.join();
@@ -210,8 +224,15 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
         when:
         run(":app:help")
 
-        then:
+        then: "no build operation runs on that thread, so Gradle only knows the build"
         detectionOf("Others:Generic:problem from spawned thread") == ["build :"]
+
+        and: "the stack is the thread's own, so the line that reported is still found"
+        def source = file("buildSrc/src/main/java/com/acme/AcmePlugin.java")
+        originsOf(problem) == [["AcmePlugin.java:" + (source.readLines().findIndexOf { it.contains("getReporter().report(") } + 1)]]
+
+        and: "whose line it is stays unknown: no plugin is being applied on that thread, so no jar is searched for the class"
+        problem.originTraces[0].frames[0].locality == Locality.UNKNOWN
     }
 
     def "UC7: Java compilation error from the compiler worker is detected in the compile task"() {
@@ -242,6 +263,9 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
             "project :app",
             "build :"
         ]
+
+        and: "the compile task belongs to Gradle: a core plugin registered it"
+        problem.detectionTrace.frames[0].locality == Locality.CORE
 
         and: "the origin is the line of the Java file, local"
         originsOf(problem) == [[file("app/src/main/java/Foo.java").absolutePath + ":4:29"]]
@@ -393,6 +417,10 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
             "project :app",
             "build :"
         ]
+
+        and: "the origin survives the hit too: the script line, local, though no build script ran in this build"
+        originsOf(problem) == [[file("app/build.gradle").absolutePath + ":6"]]
+        problem.originTraces[0].frames[0].locality == Locality.LOCAL
     }
 
     def "UC11: plugin type problem found by validatePlugins is detected in that task"() {
@@ -449,11 +477,18 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
             "project :plugin",
             "build :"
         ]
+        problem.detectionTrace.frames[0].locality == Locality.CORE
+
+        and: "the origin is the property and its type; that they are the author's own isn't known yet"
         originsOf(problem) == [
             [
                 "property bar",
                 "class com.acme.AcmeTask"
             ]
+        ]
+        problem.originTraces[0].frames*.locality == [
+            Locality.UNKNOWN,
+            Locality.UNKNOWN
         ]
     }
 
