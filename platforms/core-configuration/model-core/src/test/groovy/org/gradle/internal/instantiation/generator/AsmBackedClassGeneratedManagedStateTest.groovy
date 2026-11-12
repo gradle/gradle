@@ -36,6 +36,7 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedProviderPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanWithAbstractSetterOfOtherType
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanRedeclaringGetter
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanWithEagerSetterInSubclass
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractLazyPropertyBeanWithEagerSetter
@@ -123,6 +124,16 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         then:
         def e = thrown(ClassGenerationException)
         e.cause.message.contains("Cannot have abstract method AbstractUpgradedProviderPropertyBean.getProp()")
+    }
+
+    // Claiming the property would leave the other setter abstract, failing only when it is called
+    def "does not claim property with a forwarder setter when another setter is abstract"() {
+        when:
+        create(AbstractUpgradedPropertyBeanWithAbstractSetterOfOtherType)
+
+        then:
+        def e = thrown(ClassGenerationException)
+        e.cause.message.contains("Cannot have abstract method AbstractUpgradedPropertyBeanWithAbstractSetterOfOtherType.getProp()")
     }
 
     def "claims property when @ReplacesEagerProperty is inherited from a super-interface getter"() {

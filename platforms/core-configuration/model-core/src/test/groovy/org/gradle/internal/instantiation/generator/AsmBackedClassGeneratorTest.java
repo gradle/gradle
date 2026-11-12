@@ -86,6 +86,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -2171,6 +2172,18 @@ public class AsmBackedClassGeneratorTest {
         // The eager accessor of an upgraded property whose original type erases to Object
         public void setProp(Object value) {
         }
+    }
+
+    // The forwarder keeps its body, but nothing implements the other abstract setter
+    public static abstract class AbstractUpgradedPropertyBeanWithAbstractSetterOfOtherType {
+        @ReplacesEagerProperty
+        public abstract Property<String> getProp();
+
+        public void setProp(String value) {
+            getProp().set(value);
+        }
+
+        public abstract void setProp(File value);
     }
 
     // Not upgraded, so the generated set(Object) overload is a second method with the same signature and the JVM

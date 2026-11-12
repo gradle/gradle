@@ -455,6 +455,19 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     /**
+     * The read-only treatment implements no setter other than the {@code set<Name>(Object)} overload of the Groovy
+     * DSL support. Any other abstract setter would stay abstract in the generated class and fail only when called.
+     */
+    private static boolean hasAbstractSetterNotTakingObject(PropertyMetadata property) {
+        for (Method setter : property.setters) {
+            if (Modifier.isAbstract(setter.getModifiers()) && !setter.getParameterTypes()[0].equals(Object.class)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * A property upgraded to the Provider API that still declares the eager setter it replaced. Every getter being
      * abstract is what makes the setter safe to keep: there is no backing field for it to manage, so it can only be
      * writing through the getter.
@@ -1277,7 +1290,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 // The eager setter must keep its own body, and only the read-only treatment leaves setters alone.
                 // So the property is ours only if we can create it — whatever the setter's parameter type, which is
                 // the part isProvidedManagedProperty and isNestedManagedProperty would additionally test.
-                if (!isManagedPropertyType(property)) {
+                if (!isManagedPropertyType(property) || hasAbstractSetterNotTakingObject(property)) {
                     return false;
                 }
                 claimAsReadOnly(property);
