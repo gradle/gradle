@@ -16,8 +16,6 @@
 
 package org.gradle.performance.fixture
 
-
-import org.gradle.performance.generator.JavaTestProjectGenerator
 import org.gradle.performance.mutator.ApplyAbiChangeToGroovySourceFileMutator
 import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
 import org.gradle.profiler.BuildMutator
@@ -27,6 +25,14 @@ import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.language.Language
 import org.jspecify.annotations.Nullable
 
+/**
+ * A generated JVM performance test project.
+ *
+ * <p>The generators that produce these projects live in
+ * <a href="https://github.com/gradle/build-builder">gradle/build-builder</a>. This fixture reads the
+ * {@code perf-project.json} descriptor they write next to each generated project, rather than
+ * consulting a generator enum in this repository.
+ */
 class JavaTestProject implements IncrementalTestProject {
 
     static JavaTestProject projectFor(String testProject) {
@@ -39,15 +45,41 @@ class JavaTestProject implements IncrementalTestProject {
 
     @Nullable
     static JavaTestProject findProjectFor(String testProject) {
-        def generator = JavaTestProjectGenerator.values().find { it.projectName == testProject }
-        return generator == null ? null : new JavaTestProject(generator)
+        def descriptor = GeneratedProjectDescriptor.findFor(testProject)
+        return descriptor == null ? null : new JavaTestProject(descriptor)
     }
 
-    @Delegate(interfaces = false)
-    private final JavaTestProjectGenerator generator
+    private final GeneratedProjectDescriptor descriptor
 
-    private JavaTestProject(JavaTestProjectGenerator generator) {
-        this.generator = generator
+    private JavaTestProject(GeneratedProjectDescriptor descriptor) {
+        this.descriptor = descriptor
+    }
+
+    String getProjectName() {
+        return descriptor.projectName
+    }
+
+    String getDaemonMemory() {
+        return descriptor.daemonMemory
+    }
+
+    boolean getParallel() {
+        return descriptor.parallel
+    }
+
+    int getMaxWorkers() {
+        return descriptor.maxWorkers
+    }
+
+    boolean isGroovy() {
+        return descriptor.language == Language.GROOVY
+    }
+
+    /**
+     * The production source file the named scenario mutates, relative to the project directory.
+     */
+    String fileToChangeFor(String scenario) {
+        return descriptor.fileToChangeFor(scenario)
     }
 
     @Override
@@ -63,7 +95,7 @@ class JavaTestProject implements IncrementalTestProject {
     }
 
     private List<String> getMemoryOptions() {
-        ["-Xms${generator.daemonMemory}".toString(), "-Xmx${generator.daemonMemory}".toString()]
+        ["-Xms${descriptor.daemonMemory}".toString(), "-Xmx${descriptor.daemonMemory}".toString()]
     }
 
     @Override
@@ -83,8 +115,8 @@ class JavaTestProject implements IncrementalTestProject {
     }
 
     private BuildMutator abiChangeBuildMutator(InvocationSettings invocationSettings) {
-        File fileToChange = new File(invocationSettings.projectDir, generator.config.fileToChangeByScenario['assemble'])
-        return (generator.config.language == Language.GROOVY) ?
+        File fileToChange = new File(invocationSettings.projectDir, descriptor.fileToChangeFor('assemble'))
+        return (descriptor.language == Language.GROOVY) ?
             new ApplyAbiChangeToGroovySourceFileMutator(fileToChange) :
             new ApplyAbiChangeToJavaSourceFileMutator(fileToChange)
     }
@@ -106,8 +138,8 @@ class JavaTestProject implements IncrementalTestProject {
     }
 
     private BuildMutator nonAbiChangeBuildMutator(InvocationSettings invocationSettings) {
-        File fileToChange = new File(invocationSettings.projectDir, generator.config.fileToChangeByScenario['assemble'])
-        return (generator.config.language == Language.GROOVY) ?
+        File fileToChange = new File(invocationSettings.projectDir, descriptor.fileToChangeFor('assemble'))
+        return (descriptor.language == Language.GROOVY) ?
             new ApplyNonAbiChangeToGroovySourceFileMutator(fileToChange) :
             new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
     }
