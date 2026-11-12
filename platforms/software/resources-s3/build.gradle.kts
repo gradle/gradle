@@ -19,7 +19,7 @@ dependencies {
     implementation(projects.baseServices)
     implementation(projects.hashing)
 
-    implementation(libs.awsApache5HttpClient)
+    implementation(libs.awsApacheHttpClient)
     implementation(libs.awsSdkAuth)
     implementation(libs.awsSdkAwsCore)
     implementation(libs.awsSdkHttpClientSpi)

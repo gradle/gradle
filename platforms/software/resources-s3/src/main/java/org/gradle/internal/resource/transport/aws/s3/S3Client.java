@@ -41,8 +41,8 @@ import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache5.Apache5HttpClient;
-import software.amazon.awssdk.http.apache5.ProxyConfiguration;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache.ProxyConfiguration;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.regions.Region;
@@ -224,7 +224,10 @@ public class S3Client {
             .build());
     }
 
-    private SdkHttpClient.Builder<Apache5HttpClient.Builder> createProxyConfiguration() {
+    // The SDK deprecates its Apache 4 client in favor of an Apache 5 one, which would add a second HTTP stack to the distribution.
+    // The Apache 4 client reuses the httpclient that Gradle already ships.
+    @SuppressWarnings("deprecation")
+    private SdkHttpClient.Builder<ApacheHttpClient.Builder> createProxyConfiguration() {
         ProxyConfiguration.Builder proxyConfigurationBuilder = ProxyConfiguration.builder();
         Optional<HttpProxySettings.HttpProxy> proxyOptional = s3ConnectionProperties.getProxy();
         if (proxyOptional.isPresent()) {
@@ -238,7 +241,7 @@ public class S3Client {
                     .password(credentials.getPassword());
             }
         }
-        return Apache5HttpClient.builder()
+        return ApacheHttpClient.builder()
             .connectionTimeout(CONNECTION_TIMEOUT)
             .socketTimeout(SOCKET_TIMEOUT)
             .proxyConfiguration(proxyConfigurationBuilder.build());

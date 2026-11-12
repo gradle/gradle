@@ -30,9 +30,9 @@ dependencies {
         // Gradle distribution - minify: remove unused transitive dependencies
         applyRule<DependencyRemovalByNameRule>("com.amazonaws:aws-java-sdk-core", setOf("jackson-dataformat-cbor"))
         applyRule<DependencyRemovalByGroupRule>("org.eclipse.jgit:org.eclipse.jgit", setOf("com.googlecode.javaewah"))
-        // S3 repositories use the synchronous client over apache5-client only
-        applyRule<DependencyRemovalByNameRule>("software.amazon.awssdk:s3", setOf("apache-client", "crt-core", "netty-nio-client"))
-        applyRule<DependencyRemovalByNameRule>("software.amazon.awssdk:sts", setOf("apache-client", "netty-nio-client"))
+        // S3 repositories use the synchronous client over apache-client only
+        applyRule<DependencyRemovalByNameRule>("software.amazon.awssdk:s3", setOf("apache5-client", "crt-core", "netty-nio-client"))
+        applyRule<DependencyRemovalByNameRule>("software.amazon.awssdk:sts", setOf("apache5-client", "netty-nio-client"))
         // Marker annotations only, and the module name collides with org.jetbrains:annotations in the distribution
         all(RemoveAwsSdkAnnotationsRule::class.java)
 

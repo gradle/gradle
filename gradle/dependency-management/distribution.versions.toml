@@ -57,7 +57,7 @@ antLauncher = { group = "org.apache.ant", name = "ant-launcher", version.ref = "
 asm = { group = "org.ow2.asm", name = "asm", version.ref = "asm" }
 asmCommons = { group = "org.ow2.asm", name = "asm-commons", version.ref = "asm" }
 asmTree = { group = "org.ow2.asm", name = "asm-tree", version.ref = "asm" }
-awsApache5HttpClient = { group = "software.amazon.awssdk", name = "apache5-client", version.ref = "awsS3" }
+awsApacheHttpClient = { group = "software.amazon.awssdk", name = "apache-client", version.ref = "awsS3" }
 awsS3S3 = { group = "software.amazon.awssdk", name = "s3", version.ref = "awsS3" }
 awsS3Sts = { group = "software.amazon.awssdk", name = "sts", version.ref = "awsS3" }
 awsSdkAuth = { group = "software.amazon.awssdk", name = "auth", version.ref = "awsS3" }
