@@ -235,10 +235,14 @@ fun ScriptCompilationConfiguration.Builder.defaultImportsForPrecompiledScript() 
         beforeCompiling { context ->
             val environment = scriptResolverEnvironmentOf(context)
             require(environment != null)
+            // The name is the bare file name for scripts compiled from source roots; fall back to the location.
+            val scriptFileName = context.script.name
+                ?: context.script.locationId?.substringAfterLast('/')?.substringAfterLast('\\')
             context.compilationConfiguration.with {
                 defaultImports(
                     PrecompiledScriptsEnvironment.implicitImportsForScript(
                         textOf(context.script),
+                        scriptFileName,
                         environment
                     )
                 )
