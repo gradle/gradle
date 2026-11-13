@@ -67,4 +67,59 @@ class ContinuousBuildFileWatchingIntegrationTest extends AbstractContinuousInteg
         executedAndNotSkipped(":compileJava")
         executed(":build")
     }
+
+    def "arming the watch probe does not retrigger a continuous build"() {
+        given:
+        executer.withArgument(FileSystemWatchingHelper.getDropVfsArgument(false))
+        executer.beforeExecute {
+            withWatchFs()
+            // Outside the project directory, which is declared as an input below: <projectDir>/.gradle
+            // then holds nothing but the watch probe, and cache writes are not input changes either.
+            withArgument("--project-cache-dir")
+            withArgument(file("../project-cache").absolutePath)
+        }
+
+        def input = file("input.txt")
+        input.text = "original"
+
+        // The whole project directory is an input, unfiltered, so Gradle's own probe artifacts under
+        // .gradle count as inputs. The task writes nothing under the project directory, so anything
+        // that changes there is Gradle's doing.
+        buildFile << """
+            tasks.register("checkInput") {
+                inputs.dir(projectDir)
+                outputs.upToDateWhen { false }
+                doLast {
+                    println "input is " + file("input.txt").text
+                }
+            }
+        """
+
+        when:
+        succeeds("checkInput")
+
+        then:
+        outputContains("input is original")
+
+        when: "a real change arrives, and the build it triggers re-arms the probe at its start"
+        input.text = "changed"
+
+        then: "the build still reacts, so the filter did not silence everything"
+        buildTriggeredAndSucceeded()
+        outputContains("input is changed")
+
+
+        and: """no build follows. The first build of a session cannot re-arm - watchRegistry is read
+                before the lock and is null there - so this window, after a build that did rotate the
+                probe, is the only one that covers arming. The window is wider than the default because
+                the notification it must not see can take seconds to arrive here, and a window shorter
+                than that latency passes whether the filter works or not. It stays an ambiguous
+                assertion, as the fixture's own TODO at AbstractContinuousIntegrationTest:284 says, so
+                the results check below carries what it cannot."""
+        def buildsBeforeTheWindow = results.size()
+        noBuildTriggered(15)
+
+        and: "and none completed inside it either, which the output of the last one would hide"
+        results.size() == buildsBeforeTheWindow
+    }
 }

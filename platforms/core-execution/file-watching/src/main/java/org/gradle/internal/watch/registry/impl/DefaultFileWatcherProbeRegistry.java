@@ -26,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -36,6 +37,7 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
     private final Map<String, WatchProbe> watchProbesByPath = new ConcurrentHashMap<>();
 
     private final Function<File, File> probeLocationResolver;
+    private final AtomicLong nextProbeGeneration = new AtomicLong();
 
     public DefaultFileWatcherProbeRegistry(Function<File, File> probeLocationResolver) {
         this.probeLocationResolver = probeLocationResolver;
@@ -59,6 +61,49 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
         return watchProbesByHierarchy.values().stream()
             .filter(WatchProbe::leftArmed)
             .map(WatchProbe::getWatchableHierarchy);
+    }
+
+    @Override
+    public boolean isProbeFile(String path) {
+        File file = new File(path);
+        File directory = file.getParentFile();
+        if (directory == null) {
+            return false;
+        }
+        return watchProbesByHierarchy.values().stream()
+            .anyMatch(probe -> probe.ownsProbeFile(directory, file.getName()));
+    }
+
+    @Override
+    public boolean isProbeDirectory(String path) {
+        File directory = new File(path);
+        return watchProbesByHierarchy.values().stream().anyMatch(probe -> probe.ownsProbeDirectory(directory));
+    }
+
+    @Override
+    public boolean hasUnprovenHierarchies() {
+        return watchProbesByHierarchy.values().stream().anyMatch(WatchProbe::leftArmed);
+    }
+
+    @Override
+    public void rearmWatchProbe(File watchableHierarchy) {
+        WatchProbe probe = watchProbesByHierarchy.get(watchableHierarchy);
+        if (probe == null) {
+            LOGGER.debug("Did not find watchable hierarchy to re-arm probe for: {}", watchableHierarchy);
+            return;
+        }
+        File previousProbeFile = probe.getProbeFile();
+        File probeFile = new File(previousProbeFile.getParentFile(),
+            probe.nameForGeneration(nextProbeGeneration.incrementAndGet()));
+        // Both mappings move before the file is written: no event for the new name is dropped because
+        // the map was not ready, and none for the old name still resolves to this probe.
+        watchProbesByPath.remove(previousProbeFile.getAbsolutePath());
+        watchProbesByPath.put(probeFile.getAbsolutePath(), probe);
+        try {
+            probe.rearm(probeFile);
+        } catch (IOException e) {
+            LOGGER.debug("Could not re-arm watch probe for hierarchy {}", watchableHierarchy, e);
+        }
     }
 
     @Override
@@ -93,7 +138,7 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
         WatchProbe probe = watchProbesByPath.get(path);
         if (probe != null) {
             LOGGER.debug("Triggering watch probe for {}", probe.getWatchableHierarchy());
-            probe.trigger();
+            probe.trigger(path);
         }
     }
 
@@ -130,13 +175,65 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
         }
 
         private final File watchableHierarchy;
-        private final File probeFile;
-        private State state = State.UNARMED;
+        /**
+         * Name every probe file of this hierarchy starts with, before the generation suffix. The probe
+         * directory holds unrelated files, so {@link #rearm(File)} sweeps by this prefix rather than
+         * emptying the directory.
+         */
+        private final String baseName;
+        private final String extension;
+        private volatile File probeFile;
+        private volatile State state = State.UNARMED;
 
         public WatchProbe(File watchableHierarchy, File probeFile) {
             this.watchableHierarchy = watchableHierarchy;
             this.probeFile = probeFile;
+            String name = probeFile.getName();
+            int dot = name.lastIndexOf('.');
+            this.baseName = dot < 0 ? name : name.substring(0, dot);
+            this.extension = dot < 0 ? "" : name.substring(dot);
         }
+
+        /**
+         * Names the given generation of this probe. The generation is a suffix on the original name, so
+         * a base name that itself contains a hyphen keeps it.
+         */
+        public String nameForGeneration(long generation) {
+            return baseName + "-" + generation + extension;
+        }
+
+        /**
+         * Returns whether the name is one this probe writes: the name it was registered with, or any
+         * generation of it. The sweep and {@link DefaultFileWatcherProbeRegistry#isProbeFile} share
+         * this so they cannot drift apart.
+         */
+        boolean isOwnProbeFileName(String name) {
+            if (!name.startsWith(baseName) || !name.endsWith(extension)) {
+                return false;
+            }
+            String generation = name.substring(baseName.length(), name.length() - extension.length());
+            if (generation.isEmpty()) {
+                return true;
+            }
+            if (generation.length() < 2 || generation.charAt(0) != '-') {
+                return false;
+            }
+            for (int i = 1; i < generation.length(); i++) {
+                if (!Character.isDigit(generation.charAt(i))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        boolean ownsProbeFile(File directory, String name) {
+            return directory.equals(probeFile.getParentFile()) && isOwnProbeFileName(name);
+        }
+
+        boolean ownsProbeDirectory(File directory) {
+            return directory.equals(probeFile.getParentFile());
+        }
+
 
         public synchronized void arm() throws IOException {
             switch (state) {
@@ -175,27 +272,43 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
             }
         }
 
-        public synchronized void trigger() {
+        public synchronized void trigger(String eventPath) {
+            if (!probeFile.getAbsolutePath().equals(eventPath)) {
+                // An event for a generation this probe has already superseded.
+                LOGGER.debug("Ignoring watch probe event for a superseded generation: {}", eventPath);
+                return;
+            }
             if (state != State.TRIGGERED) {
                 LOGGER.debug("Watch probe in state {} has been triggered for hierarchy: {}", state, watchableHierarchy);
                 state = State.TRIGGERED;
             }
         }
 
-        public synchronized boolean leftArmed() {
+        public synchronized void rearm(File newProbeFile) throws IOException {
+            File[] previousGenerations = probeFile.getParentFile()
+                .listFiles((directory, name) -> isOwnProbeFileName(name));
+            if (previousGenerations != null) {
+                for (File file : previousGenerations) {
+                    //noinspection ResultOfMethodCallIgnored
+                    file.delete();
+                }
+            }
+            probeFile = newProbeFile;
+            state = State.UNARMED;
+            arm();
+        }
+
+        public boolean leftArmed() {
             return state == State.ARMED;
         }
 
         public synchronized void deleteProbeFile() {
             if (!probeFile.delete() && probeFile.exists()) {
                 LOGGER.debug("Could not delete probe file: {}", probeFile);
-                return;
             }
-            File probeDirectory = probeFile.getParentFile();
-            String[] remaining = probeDirectory.list();
-            if (remaining != null && remaining.length == 0 && !probeDirectory.delete()) {
-                LOGGER.debug("Could not delete empty probe directory: {}", probeDirectory);
-            }
+            // The directory stays. Arming re-creates it at the start of every build, so removing it
+            // here would make Gradle emit a create and a remove for it per build, in a location a
+            // continuous build can be watching.
         }
 
         public File getProbeFile() {
