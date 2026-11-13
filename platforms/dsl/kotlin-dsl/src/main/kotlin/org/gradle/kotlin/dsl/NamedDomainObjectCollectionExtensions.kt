@@ -66,7 +66,7 @@ inline val <T : Any, C : NamedDomainObjectCollection<T>> C.existing: ExistingDom
             .nagUser()
         return DeprecationLogger.whileDisabled(Factory {
             ExistingDomainObjectDelegateProvider.of(this)
-        })!!
+        })
     }
 
 
@@ -91,7 +91,7 @@ fun <T : Any, C : NamedDomainObjectCollection<T>> C.existing(action: T.() -> Uni
         .nagUser()
     return DeprecationLogger.whileDisabled(Factory {
         ExistingDomainObjectDelegateProviderWithAction.of(this, action)
-    })!!
+    })
 }
 
 
@@ -116,7 +116,7 @@ fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> C.existing(type: KClass
         .nagUser()
     return DeprecationLogger.whileDisabled(Factory {
         ExistingDomainObjectDelegateProviderWithType.of(this, type)
-    })!!
+    })
 }
 
 
@@ -142,7 +142,7 @@ fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> C.existing(type: KClass
         .nagUser()
     return DeprecationLogger.whileDisabled(Factory {
         ExistingDomainObjectDelegateProviderWithTypeAndAction.of(this, type, action)
-    })!!
+    })
 }
 
 
@@ -289,7 +289,7 @@ operator fun <T : Any, C : NamedDomainObjectCollection<T>> ExistingDomainObjectD
     ExistingDomainObjectDelegate.of(
         delegateProvider.named(property.name)
     )
-})!!
+})
 
 
 /**
@@ -307,7 +307,7 @@ operator fun <T : Any, C : NamedDomainObjectCollection<T>> ExistingDomainObjectD
     ExistingDomainObjectDelegate.of(
         delegateProvider.named(property.name).apply { configure(action) }
     )
-})!!
+})
 
 
 /**
@@ -325,7 +325,7 @@ operator fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> ExistingDomain
     ExistingDomainObjectDelegate.of(
         delegateProvider.named(property.name, type)
     )
-})!!
+})
 
 
 /**
@@ -343,7 +343,7 @@ operator fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> ExistingDomain
     ExistingDomainObjectDelegate.of(
         delegateProvider.named(property.name, type, action)
     )
-})!!
+})
 
 
 /**
@@ -528,7 +528,7 @@ inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.getByName(name
 inline val <T : Any, U : NamedDomainObjectCollection<out T>> U.getting
     get() = DeprecationLogger.whileDisabled(Factory {
         NamedDomainObjectCollectionDelegateProvider.of(this)
-    })!!.also {
+    }).also {
         DeprecationLogger.deprecate("The 'val name by getting' property delegate syntax")
             .withAdvice("Use 'val element = getByName(name)' instead.")
             .willBeRemovedInGradle10()
@@ -550,7 +550,7 @@ inline val <T : Any, U : NamedDomainObjectCollection<out T>> U.getting
 fun <T : Any, U : NamedDomainObjectCollection<T>> U.getting(configuration: T.() -> Unit) =
     DeprecationLogger.whileDisabled(Factory {
         NamedDomainObjectCollectionDelegateProvider.of(this, configuration)
-    })!!.also {
+    }).also {
         DeprecationLogger.deprecate("The 'val name by getting { }' property delegate syntax")
             .withAdvice("Use 'val element = getByName(name) { }' instead.")
             .willBeRemovedInGradle10()
@@ -603,7 +603,7 @@ private constructor(
                     else -> collection.getByName(property.name, configuration)
                 }
             )
-        })!!
+        })
 }
 
 

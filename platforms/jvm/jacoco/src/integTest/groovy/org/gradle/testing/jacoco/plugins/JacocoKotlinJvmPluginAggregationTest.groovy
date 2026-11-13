@@ -36,7 +36,7 @@ import spock.lang.Issue
 @ToBeFixedForIsolatedProjects(because = "aggregation plugin resolves subproject artifacts at config time")
 class JacocoKotlinJvmPluginAggregationTest extends AbstractIntegrationSpec {
 
-    def kotlinVersion = new KotlinGradlePluginVersions().latestStableOrRC
+    def kotlinVersion = new KotlinGradlePluginVersions().latest
 
     def setup() {
         JacocoCoverage.assumeDefaultJacocoWorksOnCurrentJdk()

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION", "DEPRECATION_ERROR")
 
 package org.gradle.kotlin.dsl.precompile
 

@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION", "DEPRECATION_ERROR")
+
 package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf

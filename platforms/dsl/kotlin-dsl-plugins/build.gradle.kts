@@ -7,7 +7,7 @@ description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 // Published to the Gradle Plugin Portal under its own coordinates
 // Keep the version of the trusted gradle-kotlin-dsl-plugins artifact in gradle/verification-metadata.xml equal to it
-val portalVersion = "6.7.14"
+val portalVersion = "6.8.1"
 gradleModule {
     identity {
         group = "org.gradle.kotlin"
