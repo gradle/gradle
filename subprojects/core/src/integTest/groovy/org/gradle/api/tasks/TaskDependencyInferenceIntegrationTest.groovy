@@ -1292,4 +1292,29 @@ The following types/formats are supported:
         // outputContains(":a SKIPPED")
         // outputContains(":b SKIPPED")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/22799")
+    def "can query #description derived from task output file property before the task has completed"() {
+        taskTypeWithOutputFileProperty()
+        file("file.txt").text = "old"
+        buildFile << """
+            def task = tasks.create("a", FileProducer) {
+                output = file("file.txt")
+                content = "new"
+            }
+            println("value=" + ${provider}.getOrNull())
+        """
+
+        when:
+        run("a")
+
+        then:
+        outputContains("value=old")
+
+        where:
+        description              | provider
+        "file contents"          | "providers.fileContents(task.output).asText"
+        "mapped file contents"   | "providers.fileContents(task.output).asText.map { it.trim() }"
+        "filtered file contents" | "providers.fileContents(task.output).asText.filter { true }"
+    }
 }

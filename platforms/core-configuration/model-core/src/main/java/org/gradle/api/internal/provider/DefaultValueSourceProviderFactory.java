@@ -253,17 +253,21 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         /**
          * The value is external to the build, but its parameters may carry the producers
          * of the providers they were wired to, such as task outputs.
+         * <p>
+         * These producers are unguarded: mapping or filtering the value before they have
+         * completed is permitted, just like querying it directly. Otherwise,
+         * {@code fileContents(task.output).asText.map { ... }} would fail where
+         * {@code fileContents(task.output).asText.get()} does not.
          */
         @Override
         public ValueProducer getProducer() {
             try (EvaluationScopeContext ignored = openScope()) {
                 List<ValueProducer> parameterProducers = new ArrayList<>();
                 collectProducers(value.parameters, parameterProducers, Collections.newSetFromMap(new IdentityHashMap<>()));
-                ValueProducer producer = ValueProducer.externalValue();
-                for (ValueProducer parameterProducer : parameterProducers) {
-                    producer = producer.plus(parameterProducer);
+                if (parameterProducers.isEmpty()) {
+                    return ValueProducer.externalValue();
                 }
-                return producer;
+                return ValueProducer.unguarded(ValueProducer.composite(parameterProducers));
             }
         }
 
