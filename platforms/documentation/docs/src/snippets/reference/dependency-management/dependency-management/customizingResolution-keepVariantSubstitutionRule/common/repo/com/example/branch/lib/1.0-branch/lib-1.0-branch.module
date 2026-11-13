@@ -1,0 +1,92 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.example.branch",
+    "module": "lib",
+    "version": "1.0-branch",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.10.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "lib-1.0-branch.jar",
+          "url": "lib-1.0-branch.jar"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "lib-1.0-branch.jar",
+          "url": "lib-1.0-branch.jar"
+        }
+      ]
+    },
+    {
+      "name": "testFixturesApiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "lib-1.0-branch-test-fixtures.jar",
+          "url": "lib-1.0-branch-test-fixtures.jar"
+        }
+      ],
+      "capabilities": [
+        {
+          "group": "com.example.branch",
+          "name": "lib-test-fixtures",
+          "version": "1.0-branch"
+        }
+      ]
+    },
+    {
+      "name": "testFixturesRuntimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "lib-1.0-branch-test-fixtures.jar",
+          "url": "lib-1.0-branch-test-fixtures.jar"
+        }
+      ],
+      "capabilities": [
+        {
+          "group": "com.example.branch",
+          "name": "lib-test-fixtures",
+          "version": "1.0-branch"
+        }
+      ]
+    }
+  ]
+}

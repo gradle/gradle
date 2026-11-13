@@ -118,6 +118,31 @@ Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engine
 ### Dependency management enhancements
 Gradle provides a flexible [dependency management](userguide/getting_started_dep_man.html) engine for declaring, resolving, and verifying the dependencies your build needs.
 
+#### Substitute a dependency without losing its attributes and capabilities
+
+A [dependency substitution](userguide/resolution_rules.html#sec:dependency-substitution-rules) rule that redirects a dependency with `useTarget` replaces the requested dependency entirely, including its attributes and requested capabilities.
+Previously, substituting a `platform(...)` dependency dropped its attributes and substituting a `testFixtures(...)` dependency dropped its requested capabilities, so both resolved to the main variant.
+
+The new `withModule` and `withProject` methods on [`DependencySubstitutions`](javadoc/org/gradle/api/artifacts/DependencySubstitutions.html) create a target that keeps the attributes and capabilities of the requested dependency:
+
+```kotlin
+configurations.runtimeClasspath {
+    resolutionStrategy.dependencySubstitution {
+        all {
+            requested.let {
+                if (it is ModuleComponentSelector && it.group == "com.example") {
+                    useTarget(withModule(it, "com.example.branch", it.module, "1.0-branch"))
+                }
+            }
+        }
+    }
+}
+```
+
+`withModule` accepts a version in dependency notation, such as `1.0!!`, or an action that configures a rich version.
+
+See the [Changing the target while keeping the requested variant](userguide/resolution_rules.html#sec:substitution-keeping-variant) section in the Gradle User Manual for more details.
+
 ### Platform and toolchain management
 Gradle provides comprehensive support for [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
 

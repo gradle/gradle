@@ -21,9 +21,11 @@ import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ComponentSelectorNotationConverter;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.BuildTreeLocalComponentProvider;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.catalog.parser.StrictVersionParser;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.Problems;
 import org.gradle.composite.internal.plugins.CompositeBuildPluginResolverContributor;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildFactory;
@@ -39,6 +41,7 @@ import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.service.scopes.BrokenBuildsCapturingListener;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
+import org.gradle.util.internal.SimpleMapInterner;
 
 public class CompositeBuildServices extends AbstractGradleModuleServices {
 
@@ -87,10 +90,13 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
             Instantiator instantiator,
             ObjectFactory objectFactory,
             ComponentSelectorNotationConverter componentSelectorNotationParser,
-            AttributesFactory attributesFactory
+            AttributesFactory attributesFactory,
+            SimpleMapInterner stringInterner,
+            Problems problems
         ) {
             NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
-            return new IncludedBuildDependencySubstitutionsBuilder(context, instantiator, objectFactory, attributesFactory, componentSelectorNotationParser, capabilityNotationParser);
+            StrictVersionParser versionParser = StrictVersionParser.forDependencyNotation(stringInterner, problems);
+            return new IncludedBuildDependencySubstitutionsBuilder(context, instantiator, objectFactory, attributesFactory, componentSelectorNotationParser, capabilityNotationParser, versionParser);
         }
 
         @Provides
