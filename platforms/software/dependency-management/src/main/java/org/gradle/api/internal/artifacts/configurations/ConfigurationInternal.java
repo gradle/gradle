@@ -167,8 +167,21 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
     }
 
     interface VariantVisitor {
-        // This configuration as a variant. May not always be present
-        void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts);
+        /**
+         * Visits the primary variant of this configuration, which represents the configuration itself.
+         * <p>
+         * The primary variant is always visited, even when it has no artifacts. If it has no artifacts but the configuration
+         * declares child variants, it is marked as previously unselectable. Such a variant is not eligible for artifact selection,
+         * even when it is the best match, unless the {@code CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS} feature preview is enabled.
+         * The feature preview will be removed in Gradle 10, where such variants are always eligible. The marker remains, because
+         * artifact selection compares such a variant with the other variants on the requested attributes only.
+         *
+         * @param displayName the display name of the configuration
+         * @param attributes the attributes of the primary variant
+         * @param artifacts the artifacts of the primary variant, which may be empty
+         * @param previouslyUnselectable true if the primary variant has no artifacts but the configuration declares child variants
+         */
+        void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts, boolean previouslyUnselectable);
 
         // A child variant. May not always be present
         void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts);

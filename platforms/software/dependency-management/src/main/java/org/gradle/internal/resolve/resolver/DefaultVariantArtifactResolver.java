@@ -129,7 +129,8 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
             attributes,
             capabilities,
             artifacts,
-            new DefaultComponentArtifactResolver(component, artifactResolver)
+            new DefaultComponentArtifactResolver(component, artifactResolver),
+            artifactVariant.isPreviouslyUnselectable()
         );
     }
 
