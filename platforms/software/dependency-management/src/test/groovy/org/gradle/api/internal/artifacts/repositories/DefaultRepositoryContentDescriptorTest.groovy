@@ -486,4 +486,112 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
         0 * details.notFound()
     }
 
+    def "the same rule declared on independent descriptors is a single spec instance"() {
+        given:
+        def first = new DefaultRepositoryContentDescriptor({ "first" }, new VersionParser())
+        def second = new DefaultRepositoryContentDescriptor({ "second" }, new VersionParser())
+
+        when:
+        first.includeGroup("org")
+        second.includeGroup("org")
+        second.includeGroup("other")
+
+        then:
+        first.includeSpecs.size() == 1
+        second.includeSpecs.size() == 2
+        second.includeSpecs.any { it.is(first.includeSpecs.first()) }
+        !second.includeSpecs.every { it.is(first.includeSpecs.first()) }
+    }
+
+    def "an include and an exclude of the same coordinates are not the same spec"() {
+        given:
+        def including = new DefaultRepositoryContentDescriptor({ "including" }, new VersionParser())
+        def excluding = new DefaultRepositoryContentDescriptor({ "excluding" }, new VersionParser())
+
+        when:
+        including.includeGroup("org")
+        excluding.excludeGroup("org")
+
+        then:
+        !excluding.excludeSpecs.first().is(including.includeSpecs.first())
+    }
+
+    def "descriptors sharing a spec filter independently, including dynamic versions"() {
+        def fooMod = DefaultModuleIdentifier.newId('org', 'foo')
+        def firstDetails = Mock(ArtifactResolutionDetails)
+        def secondDetails = Mock(ArtifactResolutionDetails)
+
+        given:
+        def first = new DefaultRepositoryContentDescriptor({ "first" }, new VersionParser())
+        def second = new DefaultRepositoryContentDescriptor({ "second" }, new VersionParser())
+        first.excludeVersion("org", "foo", "[1.0,1.2]")
+        second.excludeVersion("org", "foo", "[1.0,1.2]")
+
+        expect: "the rule is declared once and both descriptors see the same spec"
+        first.excludeSpecs.first().is(second.excludeSpecs.first())
+
+        when: "each descriptor resolves the shared spec through its own selector scheme"
+        def firstAction = first.toContentFilter()
+        def secondAction = second.toContentFilter()
+        firstDetails.moduleId >> fooMod
+        firstDetails.componentId >> DefaultModuleComponentIdentifier.newId(fooMod, '1.1')
+        secondDetails.moduleId >> fooMod
+        secondDetails.componentId >> DefaultModuleComponentIdentifier.newId(fooMod, '1.1')
+        firstAction.execute(firstDetails)
+        secondAction.execute(secondDetails)
+
+        then: "a version inside the range is excluded by both"
+        1 * firstDetails.notFound()
+        1 * secondDetails.notFound()
+
+        when:
+        firstDetails.componentId >> DefaultModuleComponentIdentifier.newId(fooMod, '1.3')
+        secondDetails.componentId >> DefaultModuleComponentIdentifier.newId(fooMod, '1.3')
+        firstAction.execute(firstDetails)
+        secondAction.execute(secondDetails)
+
+        then: "a version outside it is excluded by neither"
+        0 * firstDetails.notFound()
+        0 * secondDetails.notFound()
+    }
+
+    def "a mutable copy of a descriptor holding shared specs can take further rules"() {
+        def fooMod = DefaultModuleIdentifier.newId('org', 'foo')
+        def barMod = DefaultModuleIdentifier.newId('org', 'bar')
+        def originalDetails = Mock(ArtifactResolutionDetails)
+        def copyDetails = Mock(ArtifactResolutionDetails)
+
+        given: "another descriptor already declared the rule, so the spec is shared"
+        new DefaultRepositoryContentDescriptor({ "other" }, new VersionParser()).excludeModule("org", "foo")
+        descriptor.excludeModule("org", "foo")
+
+        when:
+        def copy = descriptor.asMutableCopy()
+        copy.excludeModule("org", "bar")
+        def originalAction = descriptor.toContentFilter()
+        def copyAction = copy.toContentFilter()
+        originalDetails.moduleId >> barMod
+        originalDetails.componentId >> DefaultModuleComponentIdentifier.newId(barMod, '1.0')
+        copyDetails.moduleId >> barMod
+        copyDetails.componentId >> DefaultModuleComponentIdentifier.newId(barMod, '1.0')
+        originalAction.execute(originalDetails)
+        copyAction.execute(copyDetails)
+
+        then: "the rule added to the copy does not reach the original"
+        0 * originalDetails.notFound()
+        1 * copyDetails.notFound()
+
+        when:
+        originalDetails.moduleId >> fooMod
+        originalDetails.componentId >> DefaultModuleComponentIdentifier.newId(fooMod, '1.0')
+        copyDetails.moduleId >> fooMod
+        copyDetails.componentId >> DefaultModuleComponentIdentifier.newId(fooMod, '1.0')
+        originalAction.execute(originalDetails)
+        copyAction.execute(copyDetails)
+
+        then: "and the shared rule still applies to both"
+        1 * originalDetails.notFound()
+        1 * copyDetails.notFound()
+    }
+
 }
