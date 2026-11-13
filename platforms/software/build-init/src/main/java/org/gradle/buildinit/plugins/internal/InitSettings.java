@@ -16,7 +16,6 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
@@ -46,18 +45,20 @@ public class InitSettings {
     @Nullable
     private final JavaLanguageVersion javaLanguageVersion;
     private final boolean comments;
+    @Nullable
+    private final String customMavenRepo;
 
     public InitSettings(
         String projectName, boolean useIncubatingAPIs, List<String> subprojects, ModularizationOption modularizationOption,
         BuildInitDsl dsl, @Nullable String packageName, BuildInitTestFramework testFramework, Directory target
     ) {
-        this(projectName, useIncubatingAPIs, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target, null, true);
+        this(projectName, useIncubatingAPIs, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target, null, true, null);
     }
 
     public InitSettings(
         String projectName, boolean useIncubatingAPIs, List<String> subprojects, ModularizationOption modularizationOption,
         BuildInitDsl dsl, @Nullable String packageName, BuildInitTestFramework testFramework, InsecureProtocolOption insecureProtocolOption, Directory target,
-        @Nullable JavaLanguageVersion javaLanguageVersion, boolean comments
+        @Nullable JavaLanguageVersion javaLanguageVersion, boolean comments, @Nullable String customMavenRepo
     ) {
         this.projectName = projectName;
         this.useIncubatingAPIs = useIncubatingAPIs;
@@ -70,6 +71,7 @@ public class InitSettings {
         this.target = target;
         this.javaLanguageVersion = javaLanguageVersion;
         this.comments = comments;
+        this.customMavenRepo = customMavenRepo;
     }
 
     private static List<String> getSubprojects(List<String> subprojects, ModularizationOption modularizationOption) {
@@ -112,23 +114,24 @@ public class InitSettings {
         return insecureProtocolOption;
     }
 
-    @Incubating
     public boolean isUseIncubatingAPIs() {
         return useIncubatingAPIs;
     }
 
-    @Incubating
     public boolean isUseTestSuites() {
         return useIncubatingAPIs;
     }
 
-    @Incubating
     public Optional<JavaLanguageVersion> getJavaLanguageVersion() {
         return Optional.ofNullable(javaLanguageVersion);
     }
 
-    @Incubating
     public boolean isWithComments() {
         return comments;
+    }
+
+    @Nullable
+    public String getCustomMavenRepo() {
+        return customMavenRepo;
     }
 }
