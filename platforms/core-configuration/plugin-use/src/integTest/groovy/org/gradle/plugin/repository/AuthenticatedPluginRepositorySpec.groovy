@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpModule
+import spock.lang.Issue
 
 import static org.gradle.test.fixtures.server.http.AuthScheme.BASIC
 import static org.gradle.test.fixtures.server.http.AuthScheme.DIGEST
@@ -142,4 +143,36 @@ class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolution
         'basic'            | 'authentication { auth(BasicAuthentication) }'                                | HIDE_UNAUTHORIZED | ['Basic']
         'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | DIGEST            | ['Basic', 'Digest']
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/39756")
+    def "can resolve plugin from Maven repo that refuses the jar of a pom-only plugin marker"() {
+        given:
+        def pluginResults = publishTestPlugin(MAVEN)
+        def pluginModule = (MavenHttpModule) pluginResults.pluginModule
+        // Plugin markers published by java-gradle-plugin have pom packaging and no jar
+        def markerModule = ((MavenHttpModule) pluginResults.markerModules.get(0)).hasPackaging("pom").publishPom()
+
+        settingsFile("""
+            pluginManagement {
+                repositories {
+                    maven { url = "${mavenHttpRepo.uri}" }
+                }
+            }
+        """)
+        buildFile("""
+            plugins {
+                id("org.example.plugin").version("1.0")
+            }
+        """)
+
+        expect:
+        markerModule.pom.expectGet()
+        // Some repositories answer requests for missing files with 401 instead of 404
+        markerModule.artifact.expectGetUnauthorized()
+        pluginModule.pom.expectGet()
+        pluginModule.artifact.expectGet()
+        succeeds("pluginTask")
+        output.contains("from plugin")
+    }
+
 }
