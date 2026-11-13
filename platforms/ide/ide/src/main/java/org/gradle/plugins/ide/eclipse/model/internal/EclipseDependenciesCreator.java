@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -114,7 +113,7 @@ public class EclipseDependenciesCreator {
             if (componentIdentifier.equals(currentProjectId)) {
                 return;
             }
-            if (isNotJar(artifact)) {
+            if (!IdeDependencySet.isJar(artifact) && !IdeDependencySet.isClassesDirectory(artifact)) {
                 return;
             }
             ComponentArtifactIdentifier artifactId = artifact.getId();
@@ -253,11 +252,5 @@ public class EclipseDependenciesCreator {
 
             return out;
         }
-    }
-
-    private static boolean isNotJar(ResolvedArtifactResult artifact) {
-        LibraryElements libraryElements = artifact.getVariant().getAttributes().getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
-        return libraryElements == null
-            || !libraryElements.getName().equals(LibraryElements.JAR);
     }
 }
