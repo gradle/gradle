@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -24,6 +25,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 abstract class AndroidProjectSmokeTest extends AbstractAndroidProjectSmokeTest {
 }
 
+@ToBeFixedForIsolatedProjects(because = "AGP reads ProjectDependency.getGroup() of project dependencies in checkMultidexDependency, a cross-project access")
 class AndroidProjectDeprecationSmokeTest extends AndroidProjectSmokeTest {
     def "check deprecation warnings produced by building android project (agp=#agpVersion)"() {
 
@@ -47,6 +49,7 @@ class AndroidProjectDeprecationSmokeTest extends AndroidProjectSmokeTest {
     }
 }
 
+@ToBeFixedForIsolatedProjects(because = "AGP reads ProjectDependency.getGroup() of project dependencies in checkMultidexDependency, a cross-project access")
 class AndroidProjectIncrementalCompilationSmokeTest extends AndroidProjectSmokeTest {
     def "incremental compilation works for android project (agp=#agpVersion)"() {
 
@@ -84,6 +87,7 @@ class AndroidProjectIncrementalCompilationSmokeTest extends AndroidProjectSmokeT
     }
 }
 
+@ToBeFixedForIsolatedProjects(because = "AGP reads ProjectDependency.getGroup() of project dependencies in checkMultidexDependency, a cross-project access")
 class AndroidProjectLintSmokeTest extends AndroidProjectSmokeTest {
     def "can lint android project (agp=#agpVersion)"() {
         given:
