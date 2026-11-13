@@ -134,7 +134,6 @@ class OriginTraceDerivationTest extends Specification {
                 fileName == "Helper.java"
                 className == "com.acme.util.Helper"
                 line == 31
-                module == null
             }
         }
     }

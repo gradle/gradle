@@ -110,7 +110,7 @@ final class OriginTraces {
         if (caller == null || isScriptLine(scriptLocation, caller)) {
             return scriptLeaf;
         }
-        return new CompiledCodeFrame(new CompiledCodePosition(caller.getFileName(), caller.getClassName(), null, caller.getLineNumber()), Locality.UNKNOWN);
+        return new CompiledCodeFrame(new CompiledCodePosition(caller.getFileName(), caller.getClassName(), caller.getLineNumber()), Locality.UNKNOWN);
     }
 
     /**
@@ -180,7 +180,7 @@ final class OriginTraces {
                 }
                 for (UserCodeSource.Binary plugin : plugins) {
                     if (classFiles.contains(plugin.getCodeLocation(), element.getClassName())) {
-                        return new CompiledCodeFrame(new CompiledCodePosition(element.getFileName(), element.getClassName(), null, element.getLineNumber()), plugin.getLocality());
+                        return new CompiledCodeFrame(new CompiledCodePosition(element.getFileName(), element.getClassName(), element.getLineNumber()), plugin.getLocality());
                     }
                 }
             }

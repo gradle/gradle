@@ -215,7 +215,7 @@ class OriginTracesTest extends Specification {
     }
 
     private static Trace compiledLeaf(String className, int line) {
-        new Trace([new CompiledCodeFrame(new CompiledCodePosition(className.substring(className.lastIndexOf('.') + 1) + ".java", className, null, line), Locality.UNKNOWN)])
+        new Trace([new CompiledCodeFrame(new CompiledCodePosition(className.substring(className.lastIndexOf('.') + 1) + ".java", className, line), Locality.UNKNOWN)])
     }
 
     /**

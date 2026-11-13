@@ -26,14 +26,11 @@ public class DefaultCompiledCodePosition implements CompiledCodePosition {
     private final String fileName;
     private final String className;
     @Nullable
-    private final String module;
-    @Nullable
     private final Integer line;
 
-    public DefaultCompiledCodePosition(String fileName, String className, @Nullable String module, @Nullable Integer line) {
+    public DefaultCompiledCodePosition(String fileName, String className, @Nullable Integer line) {
         this.fileName = fileName;
         this.className = className;
-        this.module = module;
         this.line = line;
     }
 
@@ -45,12 +42,6 @@ public class DefaultCompiledCodePosition implements CompiledCodePosition {
     @Override
     public String getClassName() {
         return className;
-    }
-
-    @Nullable
-    @Override
-    public String getModule() {
-        return module;
     }
 
     @Nullable

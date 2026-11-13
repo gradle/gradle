@@ -131,7 +131,6 @@ class OriginTraceCallerIntegrationTest extends AbstractIntegrationSpec {
             fileName == "Helper.java"
             className == "com.acme.util.Helper"
             line == 8
-            module == null
         }
 
         and: "a helper in the plugin's own jar stays the leaf, and takes the plugin's locality"

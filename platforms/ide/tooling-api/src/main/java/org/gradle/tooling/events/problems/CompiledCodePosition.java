@@ -17,13 +17,12 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
-import org.jspecify.annotations.Nullable;
 
 /**
  * A position in compiled code, such as a line in a plugin's class.
  * <p>
  * The file name and line come from the class's debug information. The file isn't in the build;
- * with the class and the module coordinates, an IDE can find the line in the module's sources.
+ * an IDE that knows the class can find the line in the sources it has for it.
  *
  * @since 9.10.0
  */
@@ -45,13 +44,4 @@ public interface CompiledCodePosition extends Position {
      * @since 9.10.0
      */
     String getClassName();
-
-    /**
-     * Returns the coordinates of the module the class came from, such as {@code com.acme:acme-plugin:1.0}.
-     *
-     * @return the module, or {@code null} if not known
-     * @since 9.10.0
-     */
-    @Nullable
-    String getModule();
 }

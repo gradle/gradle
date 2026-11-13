@@ -208,7 +208,7 @@ public class ProblemsProgressEventUtils {
         }
         if (position instanceof CompiledCodePosition) {
             CompiledCodePosition compiled = (CompiledCodePosition) position;
-            return new DefaultProblemCompiledCodePosition(compiled.getFileName(), compiled.getClassName(), compiled.getModule(), compiled.getLine());
+            return new DefaultProblemCompiledCodePosition(compiled.getFileName(), compiled.getClassName(), compiled.getLine());
         }
         return null;
     }

@@ -1152,7 +1152,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
         if (position instanceof InternalCompiledCodePosition) {
             InternalCompiledCodePosition compiled = (InternalCompiledCodePosition) position;
-            return new DefaultCompiledCodePosition(compiled.getFileName(), compiled.getClassName(), compiled.getModule(), compiled.getLine());
+            return new DefaultCompiledCodePosition(compiled.getFileName(), compiled.getClassName(), compiled.getLine());
         }
         return null;
     }

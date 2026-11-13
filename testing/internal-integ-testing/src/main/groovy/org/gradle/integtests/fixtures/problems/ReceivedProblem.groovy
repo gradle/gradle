@@ -89,7 +89,7 @@ class ReceivedProblem implements ProblemInternal {
             return null
         }
         if (position['className'] != null) {
-            return new CompiledCodePosition(position['fileName'] as String, position['className'] as String, position['module'] as String, position['line'] as Integer)
+            return new CompiledCodePosition(position['fileName'] as String, position['className'] as String, position['line'] as Integer)
         }
         new FilePosition(position['path'] as String, position['line'] as Integer, position['column'] as Integer, position['offset'] as Integer, position['length'] as Integer)
     }

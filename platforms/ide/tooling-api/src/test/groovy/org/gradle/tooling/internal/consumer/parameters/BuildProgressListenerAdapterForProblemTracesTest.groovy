@@ -156,10 +156,10 @@ class BuildProgressListenerAdapterForProblemTracesTest extends Specification {
         BuildProgressListenerAdapter.toOriginTraces(Stub(InternalBasicProblemDetailsVersion4)).empty
     }
 
-    def "a compiled-code position arrives with file name, class and module"() {
+    def "a compiled-code position arrives with file name and class"() {
         given:
         def details = Stub(InternalBasicProblemDetailsVersion5) {
-            getOriginTraces() >> [new DefaultTrace([new DefaultFrame("AcmePlugin.java:42", "EXTERNAL", new DefaultProblemCompiledCodePosition("AcmePlugin.java", "com.acme.AcmePlugin", "com.acme:acme-plugin:1.0", 42))])]
+            getOriginTraces() >> [new DefaultTrace([new DefaultFrame("AcmePlugin.java:42", "EXTERNAL", new DefaultProblemCompiledCodePosition("AcmePlugin.java", "com.acme.AcmePlugin", 42))])]
         }
 
         when:
@@ -168,7 +168,6 @@ class BuildProgressListenerAdapterForProblemTracesTest extends Specification {
         then:
         position.fileName == "AcmePlugin.java"
         position.className == "com.acme.AcmePlugin"
-        position.module == "com.acme:acme-plugin:1.0"
         position.line == 42
         position.column == null
     }

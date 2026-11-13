@@ -28,14 +28,11 @@ public class DefaultProblemCompiledCodePosition implements InternalCompiledCodeP
     private final String fileName;
     private final String className;
     @Nullable
-    private final String module;
-    @Nullable
     private final Integer line;
 
-    public DefaultProblemCompiledCodePosition(String fileName, String className, @Nullable String module, @Nullable Integer line) {
+    public DefaultProblemCompiledCodePosition(String fileName, String className, @Nullable Integer line) {
         this.fileName = fileName;
         this.className = className;
-        this.module = module;
         this.line = line;
     }
 
@@ -47,12 +44,6 @@ public class DefaultProblemCompiledCodePosition implements InternalCompiledCodeP
     @Override
     public String getClassName() {
         return className;
-    }
-
-    @Nullable
-    @Override
-    public String getModule() {
-        return module;
     }
 
     @Nullable

@@ -17,10 +17,9 @@
 package org.gradle.tooling.internal.protocol.problem;
 
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 
 /**
- * A position in compiled code: the source file name and line from the class's debug information, the class, and its module if known.
+ * A position in compiled code: the source file name and line from the class's debug information, and the class.
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
  * @since 9.10.0
@@ -31,7 +30,4 @@ public interface InternalCompiledCodePosition extends InternalPosition {
     String getFileName();
 
     String getClassName();
-
-    @Nullable
-    String getModule();
 }

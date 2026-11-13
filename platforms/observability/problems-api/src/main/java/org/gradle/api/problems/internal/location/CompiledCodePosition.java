@@ -23,19 +23,17 @@ import java.util.Objects;
 
 /**
  * A position in compiled code, from the debug information of a class: the source file name, the class, and the line.
- * The module coordinates of the jar the class came from, when known, let an IDE open the line from a sources jar.
+ * It names no module: a jar has coordinates only if it was resolved as a module, and many jars of a build were not.
  */
 public final class CompiledCodePosition implements Position, Serializable {
 
     private final String fileName;
     private final String className;
-    private final String module;
     private final Integer line;
 
-    public CompiledCodePosition(String fileName, String className, @Nullable String module, @Nullable Integer line) {
+    public CompiledCodePosition(String fileName, String className, @Nullable Integer line) {
         this.fileName = fileName;
         this.className = className;
-        this.module = module;
         this.line = line;
     }
 
@@ -45,14 +43,6 @@ public final class CompiledCodePosition implements Position, Serializable {
 
     public String getClassName() {
         return className;
-    }
-
-    /**
-     * The coordinates of the module the class came from, such as {@code com.acme:acme-plugin:1.0}, or null if not known.
-     */
-    @Nullable
-    public String getModule() {
-        return module;
     }
 
     @Nullable
@@ -92,12 +82,12 @@ public final class CompiledCodePosition implements Position, Serializable {
             return false;
         }
         CompiledCodePosition that = (CompiledCodePosition) o;
-        return fileName.equals(that.fileName) && className.equals(that.className) && Objects.equals(module, that.module) && Objects.equals(line, that.line);
+        return fileName.equals(that.fileName) && className.equals(that.className) && Objects.equals(line, that.line);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fileName, className, module, line);
+        return Objects.hash(fileName, className, line);
     }
 
     @Override
