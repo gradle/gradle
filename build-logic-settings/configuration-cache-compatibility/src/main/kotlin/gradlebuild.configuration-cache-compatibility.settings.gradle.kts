@@ -61,7 +61,6 @@ run {
         task.name.endsWith("Wrapper") -> true
         task.name == "serveDocs" -> true
         task.typeSimpleName() in listOf(
-            "JavaExecProjectGeneratorTask",
             "NativeProjectWithDepsGeneratorTask",
             "PerformanceTest",
             "DetermineBaselines",
