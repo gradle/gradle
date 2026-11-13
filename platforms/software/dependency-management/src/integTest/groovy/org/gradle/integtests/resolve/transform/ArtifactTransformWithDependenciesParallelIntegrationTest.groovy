@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -26,8 +25,12 @@ import spock.lang.Issue
 @Requires(TestExecutionPreconditions.NotParallelExecutor)
 class ArtifactTransformWithDependenciesParallelIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture {
 
+    @Override
+    boolean isTransformsInBuildSrc() {
+        true
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/20975")
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform is applied to project output when project and external library have conflicting group and module name"() {
         mavenRepo.module("libs", "producer", "1.0").publish()
 
@@ -37,34 +40,34 @@ class ArtifactTransformWithDependenciesParallelIntegrationTest extends AbstractH
         """
 
         setupBuildWithColorTransformThatTakesUpstreamArtifacts()
-        buildFile """
-            allprojects {
-                repositories {
-                    maven { url = "$mavenRepo.uri" }
-                }
+        configureEachProject("""
+            repositories {
+                maven { url = "$mavenRepo.uri" }
             }
+        """)
+        buildFile """
             dependencies {
                 implementation project(':consumer')
                 implementation project(':producer')
             }
-            project(':producer') {
-                group = "libs"
-                version = "2.0"
-                // Introduce a task to delay the production of the jar
-                task slow {
-                    doLast {
-                        // Block production of the jar but allow other nodes to run
-                        services.get(${ProjectLeaseRegistry.name}.class).runAsIsolatedTask()
-                        sleep(500)
-                    }
+        """
+        buildFile "producer/build.gradle", """
+            group = "libs"
+            version = "2.0"
+            // Introduce a task to delay the production of the jar
+            task slow {
+                doLast {
+                    // Block production of the jar but allow other nodes to run
+                    services.get(${ProjectLeaseRegistry.name}.class).runAsIsolatedTask()
+                    sleep(500)
                 }
-                tasks.producer.dependsOn(tasks.slow)
             }
-            project(':consumer') {
-                dependencies {
-                    // An external dependency that will be substituted with a dependency on project 'producer'
-                    implementation "libs:producer:1.0"
-                }
+            tasks.producer.dependsOn(tasks.slow)
+        """
+        buildFile "consumer/build.gradle", """
+            dependencies {
+                // An external dependency that will be substituted with a dependency on project 'producer'
+                implementation "libs:producer:1.0"
             }
         """
 

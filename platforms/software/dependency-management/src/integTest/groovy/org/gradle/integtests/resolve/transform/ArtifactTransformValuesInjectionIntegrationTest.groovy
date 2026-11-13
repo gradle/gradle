@@ -42,7 +42,6 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.UntrackedTask
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
 import spock.lang.Issue
@@ -53,33 +52,18 @@ import static org.gradle.util.Matchers.matchesRegexp
 
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
+    @Override
+    boolean isTransformsInBuildSrc() {
+        true
+    }
+
     def "transform can receive parameters, workspace and input artifact via abstract getter"() {
         createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
         setupBuildWithColorAttributes()
-        buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform(MakeGreen) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'green')
-                        parameters {
-                            extension = 'green'
-                        }
-                    }
-                }
-            }
-
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
@@ -97,7 +81,24 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     output.text = "ok"
                 }
             }
-        """
+        """)
+        configureEachProject("""
+            dependencies {
+                registerTransform(MakeGreen) {
+                    from.attribute(color, 'blue')
+                    to.attribute(color, 'green')
+                    parameters {
+                        extension = 'green'
+                    }
+                }
+            }
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         run(":a:resolve")
@@ -108,7 +109,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive parameter of type #type"() {
         createDirs("a", "b", "c")
         settingsFile << """
@@ -120,19 +120,11 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 nested.nestedProp = ${value}
             """)
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             interface NestedType {
                 @Input
                 ${type} getNestedProp()
             }
-
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
@@ -148,7 +140,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     assert parameters.otherProp.getOrNull() == ${expectedNullValue}
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         run("a:resolve")
@@ -166,7 +164,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @Issue("https://github.com/gradle/gradle/issues/16982")
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can set convention on parameter of type #type"() {
         given:
         createDirs("a", "b", "c")
@@ -175,14 +172,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         """
         setupBuildWithColorTransform()
 
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
 
                 abstract static class Parameters implements TransformParameters {
@@ -197,7 +187,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     println "processing using prop: \${parameters.prop.get()}"
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         run("a:resolve")
@@ -215,16 +211,14 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         "MapProperty<String, Number>" | "[a: 1, b: 2]"   | "[a:1, b:2]"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive a build service as a parameter"() {
         createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
-        buildFile << """
+        buildSrcClasses("""
             import ${BuildServiceParameters.name}
             import ${AtomicInteger.name}
-
             abstract class CountingService implements BuildService<BuildServiceParameters.None> {
                 private final value = new AtomicInteger()
 
@@ -234,22 +228,14 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     return value
                 }
             }
-
-            def countingService = gradle.sharedServices.registerIfAbsent("counting", CountingService) {
-            }
-        """
+        """)
         setupBuildWithColorTransform {
             params("""
-                service = countingService
+                service = gradle.sharedServices.registerIfAbsent("counting", CountingService) {
+                }
             """)
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Internal
@@ -261,7 +247,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     outputs.file("out-\${n}.txt").text = n
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+            }
+        """)
 
         when:
         run(":a:resolve")
@@ -271,20 +262,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("result = [out-1.txt]")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive Gradle provided service #serviceType via injection"() {
         createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
         setupBuildWithColorTransform()
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 private final ${serviceType} service
 
@@ -298,7 +282,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     println("received service")
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+            }
+        """)
 
         when:
         run(":a:resolve")
@@ -315,20 +304,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ].collect { it.name }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform cannot receive Gradle provided service #serviceType via injection"() {
         createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
         setupBuildWithColorTransform()
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @Inject
                 abstract ${serviceType} getService()
@@ -338,13 +320,18 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     throw new RuntimeException()
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+            }
+        """)
 
         when:
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered by plugin 'color-variants').")
         failure.assertHasCause("Failed to transform b.jar (project ':b') to match attributes {artifactType=jar, color=green}.")
         failure.assertHasCause("No service of type interface ${serviceType} available.")
 
@@ -355,14 +342,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ].collect { it.name }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform parameters are validated for input output annotations"() {
         enableProblemsApiCheck()
         createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
-        buildFile << """
+        buildSrcClasses("""
             interface NestedType {
                 @InputFile
                 RegularFileProperty getInputFile()
@@ -370,20 +356,14 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 DirectoryProperty getOutputDirectory()
                 Property<String> getStringProperty()
             }
-        """
+        """)
         setupBuildWithColorTransform {
             params("""
                 extension = 'green'
                 nested.inputFile = file("some")
             """)
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
-            }
-
+        buildSrcClasses("""
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
@@ -430,13 +410,18 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     throw new RuntimeException()
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+            }
+        """)
 
         when:
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered by plugin 'color-variants').")
         failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
         failure.assertHasCause("Failed to transform b.jar (project ':b') to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
@@ -594,7 +579,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "can query parameters for transform with None parameters"() {
         createDirs("a", "b", "c")
         settingsFile << """
@@ -605,20 +589,19 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 println("Configure closure parameters: " + it)
             """)
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 void transform(TransformOutputs outputs) {
                     println("Parameters: " + getParameters())
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         expect:
         succeeds(":a:resolve")
@@ -626,7 +609,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("Parameters: TransformParameters.None")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform parameters type cannot use caching annotations"() {
         createDirs("a", "b")
         settingsFile << """
@@ -637,13 +619,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 extension = 'green'
             """)
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 @CacheableTask @CacheableTransform
                 interface Parameters extends TransformParameters {
@@ -656,13 +632,18 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     throw new RuntimeException()
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+            }
+        """)
 
         when:
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered by plugin 'color-variants').")
         failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
         failure.assertHasCause("Failed to transform b.jar (project ':b') to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
@@ -671,7 +652,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasErrorOutput("Type 'MakeGreen.Parameters' is incorrectly annotated with @CacheableTransform")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform parameters type cannot use annotation @#ann.simpleName"() {
         enableProblemsApiCheck()
         createDirs("a", "b")
@@ -683,13 +663,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 extension = 'green'
             """)
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
@@ -704,13 +678,18 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     throw new RuntimeException()
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+            }
+        """)
 
         when:
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered by plugin 'color-variants').")
         failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
         failure.assertHasCause("Failed to transform b.jar (project ':b') to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
@@ -733,7 +712,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ann << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform parameters type cannot use injection annotation @#annotation.simpleName"() {
         createDirs("a", "b", "c")
         settingsFile << """
@@ -744,14 +722,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 extension = 'green'
             """)
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     String getExtension()
@@ -765,7 +736,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     throw new RuntimeException()
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         fails(":a:resolve")
@@ -780,7 +757,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         annotation << [InputArtifact, InputArtifactDependencies]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform action is validated for input output annotations"() {
         enableProblemsApiCheck()
         createDirs("a", "b", "c")
@@ -792,14 +768,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 extension = 'green'
             """)
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
@@ -828,7 +797,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     throw new RuntimeException()
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         fails(":a:resolve")
@@ -905,28 +880,26 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform action type cannot use @#ann.simpleName"() {
         createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
         setupBuildWithColorTransform()
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             @${ann.simpleName}
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         fails(":a:resolve")
@@ -940,7 +913,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ann << [CacheableTask, UntrackedTask]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform action type cannot use annotation @#ann.simpleName"() {
         enableProblemsApiCheck()
         createDirs("a", "b", "c")
@@ -952,14 +924,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 extension = 'green'
             """)
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
@@ -974,7 +939,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     throw new RuntimeException()
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         fails(":a:resolve")
@@ -1000,25 +971,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ann << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive dependencies via abstract getter of type #targetType"() {
         createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
         setupBuildWithColorTransform()
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
-            }
-            project(':b') {
-                dependencies {
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifactDependencies
                 abstract ${targetType} getDependencies()
@@ -1032,7 +991,17 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     output.text = "ok"
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+            }
+        """)
+        buildFile("b/build.gradle", """
+            dependencies {
+                implementation project(':c')
+            }
+        """)
 
         when:
         run(":a:resolve")
@@ -1046,7 +1015,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         targetType << ["FileCollection", "Iterable<File>"]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive parameter object via constructor parameter"() {
         createDirs("a", "b", "c")
         settingsFile << """
@@ -1057,14 +1025,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 extension = 'green'
             """)
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
@@ -1082,13 +1043,18 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 void transform(TransformOutputs outputs) {
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         expect:
         succeeds(":a:resolve")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform cannot use @InputArtifact to receive #propertyType"() {
         createDirs("a", "b")
         settingsFile << """
@@ -1096,13 +1062,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         """
         setupBuildWithColorTransform()
         def typeName = propertyType instanceof Class ? propertyType.name : propertyType.toString()
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract ${typeName} getInput()
@@ -1112,7 +1072,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     throw new RuntimeException("broken")
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+            }
+        """)
 
         when:
         fails(":a:resolve")
@@ -1131,20 +1096,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform cannot use @InputArtifactDependencies to receive #propertyType"() {
         createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
         setupBuildWithColorTransform()
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @${annotation.name}
                 abstract ${propertyType.name} getDependencies()
@@ -1154,7 +1112,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     throw new RuntimeException("broken")
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+            }
+        """)
 
         when:
         fails(":a:resolve")
@@ -1170,20 +1133,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         InputArtifactDependencies | String
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform cannot use @Inject to receive input file"() {
         createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
         setupBuildWithColorTransform()
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
-            }
-
+        buildSrcClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @Inject
                 abstract File getWorkspace()
@@ -1193,14 +1149,19 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     throw new RuntimeException("broken")
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+            }
+        """)
 
         when:
         fails(":a:resolve")
 
         then:
         // Documents existing behaviour. Should fail eagerly and with a better error message
-        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered by plugin 'color-variants').")
         failure.assertHasCause("Execution failed for MakeGreen: ${file('b/build/b.jar')}.")
         failure.assertHasCause("No service of type class ${File.name} available.")
     }

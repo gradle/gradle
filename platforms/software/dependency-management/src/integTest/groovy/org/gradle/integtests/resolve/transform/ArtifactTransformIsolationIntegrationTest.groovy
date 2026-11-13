@@ -24,7 +24,6 @@ import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
@@ -33,6 +32,11 @@ import spock.lang.Issue
  * Ensures that artifact transform parameters are isolated from one another and the surrounding project state.
  */
 class ArtifactTransformIsolationIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture {
+
+    @Override
+    boolean isTransformsInBuildSrc() {
+        true
+    }
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
@@ -366,13 +370,13 @@ abstract class Resolve extends Copy {
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "cannot register a transform from a custom classloader"() {
         createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
-        buildFile << """
+        setupBuildWithColorAttributes()
+        buildFile("consumer/build.gradle", """
             def classLoader = new GroovyClassLoader(this.class.classLoader)
             def MakeGreen = classLoader.parseClass(\"\"\"abstract class MakeGreen implements ${TransformAction.name}<${TransformParameters.name}.None> {
                 @${InputArtifact.name}
@@ -383,22 +387,22 @@ abstract class Resolve extends Copy {
                     def output = outputs.file(input.name + ".green")
                     output.text = input.text + ".green"
                 }
-            }\"\"\")"""
-        setupBuildWithColorTransform(buildFile)
+            }\"\"\")
 
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
+            dependencies {
+                registerTransform(MakeGreen) {
+                    from.attribute(color, 'blue')
+                    to.attribute(color, 'green')
                 }
+                implementation project(":producer")
             }
-        """
+        """)
         def isConfigCache = GradleContextualExecuter.configCache
 
         when:
         fails ':consumer:resolve'
         then:
-        failureDescriptionContains(isConfigCache ? "MakeGreen" : "Execution failed for task ':consumer:resolve' (registered in build file 'build.gradle').")
+        failureDescriptionContains(isConfigCache ? "MakeGreen" : "Execution failed for task ':consumer:resolve' (registered by plugin 'color-variants').")
         failureCauseContains(isConfigCache ? "MakeGreen" : "Could not isolate parameters TransformParameters.None of artifact transform MakeGreen")
     }
 }
