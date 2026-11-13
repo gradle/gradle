@@ -25,7 +25,11 @@ import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 import org.gradle.process.internal.worker.MultiRequestClient;
 import org.gradle.process.internal.worker.WorkerProcess;
 
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 class WorkerDaemonClient implements Stoppable, Describable {
     public static final String DISABLE_EXPIRATION_PROPERTY_KEY = "org.gradle.workers.internal.disable-daemons-expiration";
@@ -55,8 +59,16 @@ class WorkerDaemonClient implements Stoppable, Describable {
         workerClient.clearProblemsService();
     }
 
-    public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec) {
-        TransportableActionExecutionSpec transportableSpec = actionExecutionSpecFactory.newTransportableSpec(spec);
+    /**
+     * Executes the work with the system properties of the requested fork options, which may differ from those this daemon was started with.
+     */
+    public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec, DaemonForkOptions requestedForkOptions) {
+        Map<String, String> systemProperties = new LinkedHashMap<>();
+        requestedForkOptions.getJvmOptions().getMutableSystemProperties().forEach((name, value) -> systemProperties.put(name, value.toString()));
+        Set<String> clearedSystemProperties = new HashSet<>(forkOptions.getJvmOptions().getMutableSystemProperties().keySet());
+        clearedSystemProperties.removeAll(systemProperties.keySet());
+
+        TransportableActionExecutionSpec transportableSpec = actionExecutionSpecFactory.newTransportableSpec(spec).withSystemProperties(systemProperties, clearedSystemProperties);
         uses++;
         executing = true;
         try {

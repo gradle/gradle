@@ -18,12 +18,12 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Assume
+import spock.lang.Issue
 
 @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requiring a daemon")
 abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegrationSpec {
@@ -43,14 +43,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
             import org.gradle.workers.internal.WorkerDaemonClientsManager
             import org.gradle.workers.internal.DaemonForkOptions
 
-            allprojects {
-                ${applyAndConfigure}
-
-                tasks.withType(${compileTaskType}) {
-                    options.fork = true
-                    finalizedBy ":writeCompilerIdentities"
-                }
-            }
+            ${projectConfiguration}
 
             task writeCompilerIdentities {
                 def compilerDaemonIdentityFile = file("$compilerDaemonIdentityFileName")
@@ -60,7 +53,18 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
             }
 
             task compileAll {
-                dependsOn allprojects.collect { it.tasks.withType(${compileTaskType}) }
+                dependsOn tasks.withType(${compileTaskType})
+            }
+        """
+    }
+
+    String getProjectConfiguration() {
+        return """
+            ${applyAndConfigure}
+
+            tasks.withType(${compileTaskType}) {
+                options.fork = true
+                finalizedBy ":writeCompilerIdentities"
             }
         """
     }
@@ -112,15 +116,12 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
     }
 
     @Requires(TestExecutionPreconditions.NotParallelExecutor)
-    // IP assumes parallel execution, so these tests shouldn't be run ideally.
-    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def "starts a new daemon when different options are used"() {
         withMultiProjectSources()
-        buildFile << """
-            project(':child') {
-                tasks.withType(${compileTaskType}) {
-                    options.forkOptions.jvmArgs = ["-Dfoo=bar"]
-                }
+        file("child/build.gradle") << """
+            tasks.withType(${compileTaskType}) {
+                options.forkOptions.jvmArgs = ["${jvmArg}"]
+                ${runAfterRootProject()}
             }
         """
 
@@ -132,6 +133,36 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
 
         and:
         assertTwoCompilerDaemonsAreRunning()
+
+        where:
+        jvmArg << ["-Xss2m", "-Duser.language=tlh"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38395")
+    def "reuses compiler daemon when only system properties differ"() {
+        withMultiProjectSources()
+        file("child/build.gradle") << """
+            tasks.withType(${compileTaskType}) {
+                options.forkOptions.jvmArgs = ["-Dfoo=bar"]
+                ${runAfterRootProject()}
+            }
+        """
+
+        when:
+        succeeds("compileAll")
+
+        then:
+        executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
+
+        and:
+        assertOneCompilerDaemonIsRunning()
+    }
+
+    String runAfterRootProject() {
+        return """
+            // Run after the root project so that its compiler daemon is a reuse candidate
+            mustRunAfter("${compileTaskPath('main')}")
+        """
     }
 
     List<String> getRunningCompilerDaemons() {
@@ -199,6 +230,12 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         TestFile child = file("child").createDir()
         component.writeSources(file("src/main"))
         component.writeSources(child.file("src/main"))
+        child.file("build.gradle") << projectConfiguration
+        buildFile << """
+            compileAll {
+                dependsOn(":child${compileTaskPath('main')}")
+            }
+        """
         settingsFile << """
             include ":child"
         """
