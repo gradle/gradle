@@ -16,13 +16,8 @@
 
 package org.gradle.internal.resource.transport.aws.s3
 
-//import software.amazon.awssdk.regions.RegionUtils
-//import software.amazon.awssdk.regions.Regions
 import software.amazon.awssdk.regions.Region
-//import software.amazon.awssdk.services.s3.model.Region
 import spock.lang.Specification
-
-//import static software.amazon.awssdk.regions.Region.getRegion
 
 class S3RegionalResourceTest extends Specification {
 
