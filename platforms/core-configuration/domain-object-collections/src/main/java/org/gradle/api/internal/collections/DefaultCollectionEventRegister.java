@@ -34,6 +34,8 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
 
     private boolean baseTypeSubscribed;
     private Set<Class<?>> subscribedTypes;
+    private boolean baseTypeForwarded;
+    private @Nullable Set<Class<?>> forwardedTypes;
 
     public DefaultCollectionEventRegister(Class<? extends T> baseType, CollectionCallbackActionDecorator decorator) {
         this.baseType = baseType;
@@ -42,6 +44,11 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
 
     @Override
     public boolean isSubscribed(@Nullable Class<? extends T> type) {
+        return isSubscribedByListener(type) || isForwarded(type);
+    }
+
+    @Override
+    public boolean isSubscribedByListener(@Nullable Class<? extends T> type) {
         if (baseTypeSubscribed) {
             return true;
         }
@@ -53,6 +60,24 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
                 if (subscribedType.isAssignableFrom(type)) {
                     return true;
                 }
+            }
+        }
+        return false;
+    }
+
+    private boolean isForwarded(@Nullable Class<? extends T> type) {
+        if (baseTypeForwarded) {
+            return true;
+        }
+        if (forwardedTypes == null) {
+            return false;
+        }
+        if (type == null) {
+            return true;
+        }
+        for (Class<?> forwardedType : forwardedTypes) {
+            if (forwardedType.isAssignableFrom(type)) {
+                return true;
             }
         }
         return false;
@@ -81,6 +106,19 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
     @Override
     public Action<? super T> registerEagerAddAction(Class<? extends T> type, Action<? super T> addAction) {
         return registerEagerAddDecoratedAction(type, addAction);
+    }
+
+    @Override
+    public Action<? super T> registerForwardingAddAction(Class<? extends T> type, Action<? super T> addAction) {
+        if (type.equals(baseType)) {
+            baseTypeForwarded = true;
+        } else {
+            if (forwardedTypes == null) {
+                forwardedTypes = new HashSet<>();
+            }
+            forwardedTypes.add(type);
+        }
+        return registerLazyAddDecoratedAction(addAction);
     }
 
     @Override
@@ -164,6 +202,11 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
         @Override
         public Action<? super S> registerEagerAddAction(Class<? extends S> type, Action<? super S> addAction) {
             return delegate.registerEagerAddAction(type, filter.filtered(addAction));
+        }
+
+        @Override
+        public Action<? super S> registerForwardingAddAction(Class<? extends S> type, Action<? super S> addAction) {
+            return delegate.registerForwardingAddAction(type, filter.filtered(addAction));
         }
 
         @Override

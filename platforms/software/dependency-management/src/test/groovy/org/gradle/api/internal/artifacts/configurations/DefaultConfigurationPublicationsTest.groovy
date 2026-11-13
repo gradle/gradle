@@ -52,10 +52,6 @@ class DefaultConfigurationPublicationsTest extends Specification {
         TestUtil.domainObjectCollectionFactory(), TestFiles.taskDependencyFactory()
     )
 
-    def setup() {
-        artifacts.whenObjectAdded { allArtifacts.add(it) }
-    }
-
     def "converts to OutgoingVariant when nothing defined"() {
         expect:
         def variants = getOutgoingVariants(publications)
@@ -136,6 +132,7 @@ class DefaultConfigurationPublicationsTest extends Specification {
         def artifact2 = Stub(PublishArtifact)
 
         given:
+        artifacts.whenObjectAdded { allArtifacts.add(it) }
         publications.artifacts.add(artifact1)
         publications.attributes.attribute(Attribute.of("thing", String), "value1")
         def variantDef = publications.variants.create("child")

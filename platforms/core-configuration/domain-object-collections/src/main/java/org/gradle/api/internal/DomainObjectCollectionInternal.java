@@ -35,4 +35,10 @@ public interface DomainObjectCollectionInternal<T> extends DomainObjectCollectio
      */
     void beforeCollectionChanges(Action<String> action);
 
+    /**
+     * Like {@link #all(Action)}, for forwarding the elements to a composite collection.
+     * Unlike with {@code all}, pending elements realized on add are queried again when this collection is read.
+     */
+    void forwardElements(Action<? super T> action);
+
 }
