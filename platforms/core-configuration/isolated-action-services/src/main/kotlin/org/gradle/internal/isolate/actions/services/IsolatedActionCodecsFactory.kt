@@ -43,7 +43,7 @@ import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
-import org.gradle.internal.serialize.graph.codecs.Bindings
+import org.gradle.internal.serialize.graph.codecs.BindingsBlueprint
 import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 import org.gradle.internal.serialize.graph.codecs.ServicesCodec
 import org.gradle.internal.serialize.graph.unsupported
@@ -71,7 +71,7 @@ class IsolatedActionCodecsFactory(
 
 ) : IsolationCodecsProvider {
 
-    override fun isolationCodecs(): Codec<Any?> = Bindings.of {
+    override fun isolationCodecs(): Codec<Any?> = BindingsBlueprint.of {
         allUnsupportedTypes()
         baseTypes(objectOpener)
         supportedPropertyTypes()
@@ -112,7 +112,7 @@ class IsolatedActionCodecsFactory(
     private
     fun fixedValueReplacingProviderCodec() =
         FixedValueReplacingProviderCodec(
-            Bindings.of {
+            BindingsBlueprint.of {
                 unsupportedProviderTypes()
                 bind(BeanCodec)
             }.build()

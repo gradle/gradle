@@ -143,7 +143,7 @@ data class Binding(
     val tag: Int,
     val encoding: EncodingProducer,
     val decoding: Decoding
-) {
+) : BindingsBlueprint.Entry {
     fun encodingForType(type: Class<*>) = encoding.encodingForType(type)
 }
 
@@ -167,30 +167,90 @@ typealias Decoding = DecodingProvider<Any>
 
 
 /**
- * An immutable set of bindings, from which a [Codec] can be created.
+ * A typed placeholder in a [BindingsBlueprint] for a codec that is provided anew for every [BindingsBackedCodec].
+ *
+ * The slot determines which types its binding encodes, so the blueprint can be validated once,
+ * while the codec instance, which may be stateful, is only provided when the [BindingsBackedCodec] is built.
+ *
+ * @see BindingsBlueprint.build
  */
-class Bindings(
-    private val bindings: ImmutableList<Binding>
-) {
-    companion object {
-        fun of(builder: BindingsBuilder.() -> Unit) = BindingsBuilder(emptyList()).apply(builder).build()
-    }
-
-    /**
-     * Builds a new set of bindings based on the current bindings plus any bindings created via the given builder.
-     */
-    fun append(builder: BindingsBuilder.() -> Unit) = BindingsBuilder(bindings).apply(builder).build()
-
-    fun build() = BindingsBackedCodec(bindings)
+class BindingSlot<T : Any>(val type: Class<T>) : BindingsBlueprint.Entry {
+    override fun toString(): String = "slot for ${type.name}"
 }
 
 
-class BindingsBuilder(initialBindings: List<Binding>) {
+inline fun <reified T : Any> bindingSlot(): BindingSlot<T> = BindingSlot(T::class.java)
+
+
+/**
+ * An immutable set of bindings, from which a [Codec] can be created.
+ *
+ * The blueprint may contain [slots][BindingSlot] that must be filled with codec instances to build a codec.
+ */
+class BindingsBlueprint internal constructor(
+    private val entries: ImmutableList<Entry>
+) {
+    companion object {
+        fun of(builder: BindingsBuilder.() -> Unit) = BindingsBuilder().apply(builder).build()
+    }
+
+    /**
+     * An entry of the blueprint: either a complete [Binding] or a [BindingSlot] to be filled.
+     */
+    sealed interface Entry
+
+    /**
+     * Builds a codec from a blueprint without slots.
+     */
+    fun build(): BindingsBackedCodec = build {}
+
+    /**
+     * Builds a codec, filling all slots of this blueprint with the codecs provided by [filler].
+     */
+    fun build(filler: BindingSlotFiller.() -> Unit): BindingsBackedCodec {
+        val slotCodecs = BindingSlotFiller(HashMap()).apply(filler).codecs
+        var filledSlots = 0
+        val bindings = entries.mapIndexed { tag, entry ->
+            when (entry) {
+                is Binding -> entry
+                is BindingSlot<*> -> {
+                    val codec = requireNotNull(slotCodecs[entry]) {
+                        "Cannot build a codec with an unfilled $entry"
+                    }
+                    filledSlots++
+                    Binding(tag, producerForSubtypesOf(entry.type, codec), codec)
+                }
+            }
+        }
+        require(filledSlots == slotCodecs.size) {
+            "Slots are not part of the blueprint: ${slotCodecs.keys.filter { it !in entries }}"
+        }
+        return BindingsBackedCodec(bindings)
+    }
+}
+
+
+/**
+ * Fills [slots][BindingSlot] of a [BindingsBlueprint] with codec instances.
+ */
+@JvmInline
+value class BindingSlotFiller internal constructor(
+    internal val codecs: MutableMap<BindingSlot<*>, Codec<Any>>
+) {
+    fun <T : Any> fill(slot: BindingSlot<T>, codec: Codec<T>) {
+        require(codecs.putIfAbsent(slot, codec.uncheckedCast()) == null) {
+            "The $slot is already filled"
+        }
+    }
+}
+
+
+class BindingsBuilder internal constructor() {
 
     private
-    val bindings = ArrayList(initialBindings)
+    val entries = ArrayList<BindingsBlueprint.Entry>()
 
-    fun build() = Bindings(ImmutableList.copyOf(bindings))
+    fun build() = BindingsBlueprint(ImmutableList.copyOf(entries))
 
     inline fun <reified T> bind(codec: Codec<T>) =
         bind(T::class.java, codec)
@@ -208,21 +268,32 @@ class BindingsBuilder(initialBindings: List<Binding>) {
         bind(type, SerializerCodec(serializer))
 
     fun bind(type: Class<*>, codec: Codec<*>) {
-        require(bindings.all { it.encodingForType(type) == null }) {
-            "There's already an encoding for type '$type'"
-        }
+        requireNoEncodingFor(type)
         val codecForAny = codec.uncheckedCast<Codec<Any>>()
         val encodingProducer = producerForSubtypesOf(type, codecForAny)
         bind(encodingProducer, codecForAny)
+    }
+
+    /**
+     * Reserves a binding for the [slot]'s type, to be filled with a codec instance when building a codec.
+     *
+     * @see BindingsBlueprint.build
+     */
+    fun bind(slot: BindingSlot<*>) {
+        require(slot !in entries) {
+            "The $slot is already bound"
+        }
+        requireNoEncodingFor(slot.type)
+        entries.add(slot)
     }
 
     fun <T> bind(codec: T) where T : EncodingProducer, T : Decoding =
         bind(codec, codec)
 
     fun bind(encodingProducer: EncodingProducer, decoding: Decoding) {
-        bindings.add(
+        entries.add(
             Binding(
-                tag = bindings.size,
+                tag = entries.size,
                 encoding = encodingProducer,
                 decoding = decoding
             )
@@ -230,12 +301,26 @@ class BindingsBuilder(initialBindings: List<Binding>) {
     }
 
     private
-    fun producerForSubtypesOf(
-        superType: Class<*>,
-        codec: Codec<Any>
-    ): EncodingProducer = object : EncodingProducer {
-
-        override fun encodingForType(type: Class<*>) =
-            codec.takeIf { superType.isAssignableFrom(type) }
+    fun requireNoEncodingFor(type: Class<*>) {
+        require(entries.none { it.encodes(type) }) {
+            "There's already an encoding for type '$type'"
+        }
     }
+
+    private
+    fun BindingsBlueprint.Entry.encodes(type: Class<*>): Boolean = when (this) {
+        is Binding -> encodingForType(type) != null
+        is BindingSlot<*> -> this.type.isAssignableFrom(type)
+    }
+}
+
+
+private
+fun producerForSubtypesOf(
+    superType: Class<*>,
+    codec: Codec<Any>
+): EncodingProducer = object : EncodingProducer {
+
+    override fun encodingForType(type: Class<*>) =
+        codec.takeIf { superType.isAssignableFrom(type) }
 }

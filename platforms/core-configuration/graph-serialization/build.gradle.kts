@@ -28,7 +28,6 @@ dependencies {
     api(projects.loggingApi)
     api(projects.serialization)
 
-    api(libs.guava)
     api(libs.kotlinStdlib)
 
     implementation(projects.baseServices)
@@ -37,6 +36,7 @@ dependencies {
     implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.fastutil)
+    implementation(libs.guava)
 
     compileOnly(libs.jspecify)
 }

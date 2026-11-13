@@ -20,7 +20,7 @@ import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.codecs.Bindings
+import org.gradle.internal.serialize.graph.codecs.BindingsBlueprint
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.hamcrest.CoreMatchers.equalTo
@@ -92,7 +92,7 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
                     ref
                 }
         }
-        val codec = Bindings.of { bind(brokenCodec) }.build()
+        val codec = BindingsBlueprint.of { bind(brokenCodec) }.build()
 
         val self = SelfRef().also { it.inner = it }
 
@@ -140,7 +140,7 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
                 TwoItems(read() as Item, read() as Item)
         }
 
-        val codec = Bindings.of {
+        val codec = BindingsBlueprint.of {
             bind(twoItemsCodec)
             bind(pollutingItemCodec)
         }.build()
