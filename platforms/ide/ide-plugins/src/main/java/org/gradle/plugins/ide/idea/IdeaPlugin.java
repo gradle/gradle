@@ -49,12 +49,14 @@ import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleInternal;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleMetadata;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleSupport;
+import org.gradle.plugins.ide.idea.internal.GenerateIdeaModuleModel;
 import org.gradle.plugins.ide.idea.internal.IdeaProjectInternal;
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
@@ -71,6 +73,8 @@ import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.plugins.ide.internal.IdePluginHelper;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.testing.base.TestingExtension;
+
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -298,6 +302,68 @@ public abstract class IdeaPlugin extends IdePlugin {
         return allJavaProjects;
     }
 
+    private void configureIdeaModuleModelTask(GenerateIdeaModuleModel task, ProjectInternal project, IdeaModuleInternal module) {
+        task.getModuleName().set(project.provider(module::getName));
+        task.getJdkName().set(project.provider(module::getJdkName));
+        task.getProjectBuildTreePath().set(project.getOwner().getComponentIdentifier().getBuildTreePath());
+        // Only exposed when the 'java' plugin is applied, as in IsolatedIdeaModuleInternalBuilder
+        task.getExplicitSourceLanguageLevel().set(project.provider(() -> {
+            IdeaLanguageLevel level = project.getPlugins().hasPlugin(JavaPlugin.class) ? module.getRawLanguageLevel() : null;
+            return level == null ? null : level.getLevel();
+        }));
+        task.getExplicitTargetBytecodeVersion().set(project.provider(() -> project.getPlugins().hasPlugin(JavaPlugin.class) ? module.getRawTargetBytecodeVersion() : null));
+        // Only exposed when the 'java-base' plugin is applied, as in IsolatedIdeaModuleInternalBuilder
+        task.getJavaSourceCompatibility().set(project.provider(() -> project.getPlugins().hasPlugin(JavaBasePlugin.class) ? project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility() : null));
+        task.getJavaTargetCompatibility().set(project.provider(() -> project.getPlugins().hasPlugin(JavaBasePlugin.class) ? project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility() : null));
+        task.getContentRoot().set(project.provider(() -> module.getContentRoot().getAbsolutePath()));
+        task.getSourceDirs().set(project.provider(() -> absolutePaths(module.getSourceDirs())));
+        task.getGeneratedSourceDirs().set(project.provider(() -> absolutePaths(module.getGeneratedSourceDirs())));
+        task.getTestSourceDirs().set(project.provider(() -> absolutePaths(module.getTestSources().getFiles())));
+        task.getResourceDirs().set(project.provider(() -> absolutePaths(module.getResourceDirs())));
+        task.getTestResourceDirs().set(project.provider(() -> absolutePaths(module.getTestResources().getFiles())));
+        task.getExcludeDirs().set(project.provider(() -> absolutePaths(module.getExcludeDirs())));
+        task.getInheritOutputDirs().set(project.provider(() -> Boolean.TRUE.equals(module.getInheritOutputDirs())));
+        task.getOutputDir().set(project.provider(() -> module.getOutputDir() == null ? null : module.getOutputDir().getAbsolutePath()));
+        task.getTestOutputDir().set(project.provider(() -> module.getTestOutputDir() == null ? null : module.getTestOutputDir().getAbsolutePath()));
+        task.getSingleEntryLibraries().set(project.provider(() -> {
+            Map<String, List<String>> libraries = new LinkedHashMap<>();
+            if (module.getSingleEntryLibraries() != null) {
+                module.getSingleEntryLibraries().forEach((scope, files) -> libraries.put(scope, absolutePaths(files)));
+            }
+            return libraries;
+        }));
+        task.getDownloadSources().set(project.provider(module::isDownloadSources));
+        task.getDownloadJavadoc().set(project.provider(module::isDownloadJavadoc));
+        task.getProjectModuleNames().set(project.provider(() -> {
+            Map<String, String> names = new LinkedHashMap<>();
+            for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeProjects(IdeaModuleMetadata.class)) {
+                names.put(reference.getOwningProject().getBuildTreePath(), reference.get().getName());
+            }
+            return names;
+        }));
+        for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
+            Map<String, Collection<Configuration>> plusMinus = module.getScopes().get(scope.name());
+            if (plusMinus != null) {
+                task.dependencyScope(
+                    scope.name(),
+                    plusMinus.getOrDefault(IdeaDependenciesProvider.SCOPE_PLUS, Collections.emptyList()),
+                    plusMinus.getOrDefault(IdeaDependenciesProvider.SCOPE_MINUS, Collections.emptyList())
+                );
+            }
+        }
+        task.getOutputFile().set(project.getLayout().getBuildDirectory().file("ide-sync/idea-module.bin"));
+    }
+
+    private static List<String> absolutePaths(@Nullable Iterable<File> files) {
+        List<String> paths = new ArrayList<>();
+        if (files != null) {
+            for (File file : files) {
+                paths.add(file.getAbsolutePath());
+            }
+        }
+        return paths;
+    }
+
     @SuppressWarnings("deprecation")
     private void configureIdeaModule(final ProjectInternal project) {
         // Instantiating an internal subclass is required for Isolated Projects-safe model building
@@ -314,6 +380,12 @@ public abstract class IdeaPlugin extends IdePlugin {
         });
         task.configure(IdePluginHelper.withGracefulDegradation());
         ideaModel.setModule(module);
+
+        if (project.getServices().get(InternalOptions.class).getBoolean(GenerateIdeaModuleModel.ENABLED)) {
+            TaskProvider<?> t = project.getTasks().register(GenerateIdeaModuleModel.TASK_NAME, GenerateIdeaModuleModel.class, modelTask ->
+                configureIdeaModuleModelTask(modelTask, project, (IdeaModuleInternal) module));
+            project.getRootProject().getTasks().named("prepareKotlinBuildScriptModel", tt -> tt.dependsOn(t));
+        }
 
         final String defaultModuleName = uniqueProjectNameProvider.getUniqueName(project.getProjectIdentity());
         module.setName(defaultModuleName);
