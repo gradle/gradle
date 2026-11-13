@@ -49,7 +49,7 @@ import java.util.Optional;
 /* package */ final class TransformationChainsDisambiguator {
     private final ResolutionFailureHandler failureHandler;
     private final ResolvedVariantSet producer;
-    private final ImmutableAttributes targetAttributes;
+    private final ImmutableAttributes reportAttributes;
 
     /**
      * The preferred matching chains are the best matches of the chains supplied to the constructor for assessment.
@@ -78,13 +78,14 @@ import java.util.Optional;
      * @param failureHandler resolution failure handler to use to report any unresolvable ambiguity
      * @param producer the resolved variant set that produced the chains to assess
      * @param targetAttributes the attributes we are aiming to match via a transformation chain
+     * @param reportAttributes the attributes to report if the chains are ambiguous
      * @param attributeMatcher the attribute matcher to use to determine compatible results
      * @param chainsToAssess the candidate transformation chains to disambiguate
      */
-    public TransformationChainsDisambiguator(ResolutionFailureHandler failureHandler, ResolvedVariantSet producer, ImmutableAttributes targetAttributes, AttributeMatcher attributeMatcher, List<TransformedVariant> chainsToAssess) {
+    public TransformationChainsDisambiguator(ResolutionFailureHandler failureHandler, ResolvedVariantSet producer, ImmutableAttributes targetAttributes, ImmutableAttributes reportAttributes, AttributeMatcher attributeMatcher, List<TransformedVariant> chainsToAssess) {
         this.failureHandler = failureHandler;
         this.producer = producer;
-        this.targetAttributes = targetAttributes;
+        this.reportAttributes = reportAttributes;
 
         this.preferredChains = attributeMatcher.matchMultipleCandidates(chainsToAssess, targetAttributes);
         this.preferredChainsByFingerprint = Lazy.unsafe().of(() -> {
@@ -125,7 +126,7 @@ import java.util.Optional;
             // Multiple unique fingerprints in the preferred chains is a problem.
             // This now fails the build.  The error message should report one representative of each
             // distinct chain, so that the author can understand what's happening here and correct it.
-            throw failureHandler.ambiguousArtifactTransformsFailure(producer, targetAttributes, getDistinctPreferredChainRepresentatives());
+            throw failureHandler.ambiguousArtifactTransformsFailure(producer, reportAttributes, getDistinctPreferredChainRepresentatives());
         } else {
             return getArbitraryPreferredMatchingChain();
         }

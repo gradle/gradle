@@ -146,7 +146,10 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
             $header
 
             configurations {
-                compile.attributes.attribute(usage, 'compile')
+                compile {
+                    attributes.attribute(usage, 'compile')
+                    attributes.attribute(Attribute.of('other', String), 'select')
+                }
             }
 
             dependencies {
@@ -177,6 +180,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
                             var1 {
                                 artifact file('a1.jar')
                                 attributes.attribute(flavor, 'one')
+                                attributes.attribute(Attribute.of('other', String), 'select')
                             }
                         }
                     }
@@ -198,6 +202,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
                             var1 {
                                 artifact file('b2.jar')
                                 attributes.attribute(flavor, 'two')
+                                attributes.attribute(Attribute.of('other', String), 'select')
                             }
                         }
                     }
@@ -213,7 +218,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         outputContains("files: [a1.jar, b2.jar]")
         outputContains("ids: [a1.jar (project ':a'), b2.jar (project ':b')]")
         outputContains("components: [project ':a', project ':b']")
-        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, usage=compile}, {artifactType=jar, flavor=two, usage=compile}]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, org.gradle.fallback-variant=false, other=select, usage=compile}, {artifactType=jar, flavor=two, org.gradle.fallback-variant=false, other=select, usage=compile}]")
 
         where:
         expression                                                    | _
@@ -334,7 +339,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         outputContains("files: [a1.jar, b2.jar]")
         outputContains("ids: [a1.jar (project ':a'), b2.jar (project ':b')]")
         outputContains("components: [project ':a', project ':b']")
-        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, usage=compile}, {artifactType=jar, flavor=two, usage=compile}]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, org.gradle.fallback-variant=false, usage=compile}, {artifactType=jar, flavor=two, org.gradle.fallback-variant=false, usage=compile}]")
 
         and:
         result.assertTasksScheduled(':a:oneJar', ':b:twoJar', ':show')
@@ -451,7 +456,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         outputContains("files: [a1.jar, b2.jar]")
         outputContains("ids: [a1.jar (project ':a'), b2.jar (project ':b')]")
         outputContains("components: [project ':a', project ':b']")
-        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, usage=compile}, {artifactType=jar, flavor=two, usage=compile}]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, org.gradle.fallback-variant=false, usage=compile}, {artifactType=jar, flavor=two, org.gradle.fallback-variant=false, usage=compile}]")
 
         and:
         result.assertTasksScheduled(':a:oneJar', ':b:twoJar', ':show')
@@ -475,6 +480,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
             configurations {
                 compile {
                     attributes.attribute(usage, 'compile')
+
                 }
             }
 
@@ -499,16 +505,14 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
             configurations {
                 compile {
                     attributes.attribute(buildType, 'debug')
-                    outgoing {
-                        variants {
-                            var1 {
-                                artifact tasks.oneJar
-                                attributes.attribute(flavor, 'one')
-                            }
-                            var2 {
-                                artifact tasks.twoJar
-                                attributes.attribute(flavor, 'two')
-                            }
+                    outgoing.variants {
+                        var1 {
+                            artifact tasks.oneJar
+                            attributes.attribute(flavor, 'one')
+                        }
+                        var2 {
+                            artifact tasks.twoJar
+                            attributes.attribute(flavor, 'two')
                         }
                     }
                     attributes.attribute(usage, 'compile')
@@ -526,16 +530,14 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
             task twoJar(type: Jar) { archiveBaseName = 'b2' }
             configurations {
                 compile {
-                    outgoing {
-                        variants {
-                            var1 {
-                                artifact tasks.oneJar
-                                attributes.attribute(flavor, 'one')
-                            }
-                            var2 {
-                                artifact tasks.twoJar
-                                attributes.attribute(flavor, 'two')
-                            }
+                    outgoing.variants {
+                        var1 {
+                            artifact tasks.oneJar
+                            attributes.attribute(flavor, 'one')
+                        }
+                        var2 {
+                            artifact tasks.twoJar
+                            attributes.attribute(flavor, 'two')
                         }
                     }
                     attributes.attribute(usage, 'compile')
@@ -611,7 +613,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
 
             task show {
                 def artifacts = configurations.compile.incoming.artifactView {
-                    attributes({it.attribute(usage, 'transformed')})
+                    attributes({it.attribute(usage, 'transformed').attribute(Attribute.of('other', String), 'select')})
                 }.artifacts
                 inputs.files(artifacts.artifactFiles)
                 doLast {
@@ -634,6 +636,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
                             var1 {
                                 artifact file('a1.jar')
                                 attributes.attribute(flavor, 'one')
+                                attributes.attribute(Attribute.of('other', String), 'select')
                             }
                         }
                     }
@@ -648,6 +651,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
             configurations {
                 compile {
                     attributes.attribute(usage, 'compile')
+                    attributes.attribute(Attribute.of('other', String), 'select')
                 }
             }
 
@@ -663,7 +667,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         then:
         outputContains("files: [test-lib.jar, transformed-a1.jar, transformed-b2.jar, test-1.0.jar]")
         outputContains("components: [test-lib.jar, project ':a', project ':b', org:test:1.0]")
-        outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, org.gradle.status=release}]")
+        outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, org.gradle.fallback-variant=false, other=select, usage=transformed}, {artifactType=jar, other=select, usage=transformed}, {artifactType=jar, org.gradle.status=release}]")
     }
 
     def "more than one local file can have a given base name"() {
@@ -1135,6 +1139,7 @@ Searched in the following locations:
             }
 
             configurations.compile.attributes.attribute(usage, "compile")
+
 
             task resolveLenient {
                 def lenientViewFiles = configurations.compile.incoming.artifactView({lenient(true)}).files

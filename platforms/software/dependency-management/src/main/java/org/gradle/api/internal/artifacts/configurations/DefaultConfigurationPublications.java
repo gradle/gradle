@@ -27,12 +27,14 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.FallbackVariant;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DomainObjectCollectionInternal;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -101,14 +103,62 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
 
     public void collectVariants(ConfigurationInternal.VariantVisitor visitor) {
         PublishArtifactSet allArtifactSet = allArtifacts.getPublishArtifactSet();
-        if (variants == null || variants.isEmpty() || !allArtifactSet.isEmpty()) {
-            visitor.visitOwnVariant(displayName, attributes.asImmutable(), allArtifactSet);
-        }
-        if (variants != null) {
+        boolean secondaryVariantsExist = variants != null && !variants.isEmpty();
+
+        ImmutableAttributes primaryAttrs = addFallbackIfNecessary(attributes.asImmutable(), true, allArtifactSet, secondaryVariantsExist);
+        visitor.visitOwnVariant(displayName, primaryAttrs, allArtifactSet);
+
+        if (secondaryVariantsExist) {
             for (ConfigurationVariantInternal variant : variants.withType(ConfigurationVariantInternal.class)) {
-                visitor.visitChildVariant(variant.getName(), variant.getDisplayName(), variant.getAttributes().asImmutable(), variant.getArtifacts());
+                ImmutableAttributes secondaryAttrs = addFallbackIfNecessary(variant.getAttributes().asImmutable(), false, allArtifactSet, secondaryVariantsExist);
+                visitor.visitChildVariant(variant.getName(), variant.getDisplayName(), secondaryAttrs, variant.getArtifacts());
             }
         }
+    }
+
+    /**
+     * Augments a variant's attributes with the {@link FallbackVariant#FALLBACK_VARIANT_ATTRIBUTE}
+     * marker when the enclosing configuration is shaped as a "fallback configuration".
+     * <p>
+     * A configuration is a fallback configuration when its primary variant declares no
+     * artifacts but the configuration defines one or more secondary variants. In that case
+     * the primary is augmented with {@link FallbackVariant#TRUE} and each secondary with
+     * {@link FallbackVariant#FALSE}, so that the default schema disambiguation rule prefers
+     * the secondaries over the primary during variant selection. This method is invoked
+     * once per variant of the configuration (primary and each secondary), always with the
+     * same {@code primaryArtifacts} set, so the "is fallback?" decision is consistent across
+     * all calls for a given configuration.
+     * <p>
+     * "No declared artifacts" means {@link PublishArtifactSet#isEmpty()} is true when this is called.
+     * A lazily added artifact counts as declared; a lazily added collection is evaluated and counts only if non-empty.
+     * <p>
+     * User-supplied attributes take precedence: if {@code attrs} already carries the
+     * {@link FallbackVariant#FALLBACK_VARIANT_ATTRIBUTE} the value is preserved as-is and
+     * the method returns {@code attrs} unchanged. This lets a build author opt into or out
+     * of the marker explicitly on a per-variant basis.
+     *
+     * @param attrs the variant's attributes before augmentation
+     * @param isPrimary {@code true} if {@code attrs} belong to the configuration's primary variant
+     * @param primaryArtifacts the configuration's primary variant artifact set (same instance for every call within one configuration)
+     * @param secondaryVariantsExist whether the enclosing configuration declares secondary variants
+     * @return the input attributes, possibly augmented with {@link FallbackVariant#FALLBACK_VARIANT_ATTRIBUTE}
+     */
+    private ImmutableAttributes addFallbackIfNecessary(
+        ImmutableAttributes attrs,
+        boolean isPrimary,
+        PublishArtifactSet primaryArtifacts,
+        boolean secondaryVariantsExist
+    ) {
+        // Check secondaries first: isEmpty() can evaluate lazily added artifact collections
+        boolean configIsFallback = secondaryVariantsExist && primaryArtifacts.isEmpty();
+        if (!configIsFallback) {
+            return attrs;
+        }
+        if (attrs.findEntry(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE.getName()) != null) {
+            return attrs;
+        }
+        String value = isPrimary ? FallbackVariant.TRUE : FallbackVariant.FALSE;
+        return attributesFactory.concat(attrs, FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE, objectFactory.named(FallbackVariant.class, value));
     }
 
     @Override

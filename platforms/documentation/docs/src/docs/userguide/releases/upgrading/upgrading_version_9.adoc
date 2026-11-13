@@ -121,6 +121,31 @@ If your build asserts on an attribute value read from a `ResolutionResult` or fr
 Build operations and published Gradle Module Metadata already reported the name, so assertions against those are unaffected.
 Do not reintroduce the old string by overriding `getName()` to return `toString()`; see <<variant_attributes.adoc#sec:creating-attributes, Creating attributes>> for why the two must agree.
 
+[[variants_with_no_artifacts]]
+==== Primary variants without artifacts are kept when secondary variants are present
+
+You can define <<variant_aware_resolution.adoc#sec:secondary-variants,secondary variants>> on a consumable configuration whose primary variant has no artifacts.
+Earlier versions of Gradle silently dropped such a primary variant from artifact selection.
+Starting with Gradle 9.10.0, the primary variant is kept.
+
+To keep the previous selection result, Gradle tags the variants of such a configuration with the new link:{javadocPath}/org/gradle/api/attributes/FallbackVariant.html[`org.gradle.fallback-variant`] attribute: the primary variant gets `true` and each secondary variant gets `false`.
+During artifact selection, a consumer that does not request `org.gradle.fallback-variant` is treated as requesting `false`.
+This excludes the primary variant, so a compatible secondary variant, or a transformation of one, is selected as before.
+A consumer that wants the primary variant can request `org.gradle.fallback-variant=true` explicitly.
+
+This change has the following visible effects:
+
+* The attributes of a variant selected from such a configuration, for example in `ResolvedArtifactResult.getVariant().getAttributes()`, include `org.gradle.fallback-variant=false`.
+* When no secondary variant matches the request, Gradle retries the selection without excluding the primary variant.
+Earlier versions of Gradle failed such a request with a "No variants ... match" error.
+Now, if the primary variant matches, the request resolves to no artifacts, and Gradle emits a deprecation warning.
+This retry is deprecated and will become an error in Gradle 10.
+Artifact views that request attributes tolerate no match, so they do not emit the warning.
+
+To fix the deprecation warning, either request `org.gradle.fallback-variant=true` explicitly when the empty primary variant is the intended target, or expose a variant that carries the attributes the request needs.
+
+NOTE: A configuration whose primary variant has its own or inherited artifacts is unaffected; Gradle does not tag its variants.
+
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier
 

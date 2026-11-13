@@ -668,6 +668,7 @@ The following Attributes have disambiguation rules defined.
     - flavor (1)
     - org.gradle.category
     - org.gradle.dependency.bundling
+    - org.gradle.fallback-variant
     - org.gradle.jvm.environment
     - org.gradle.jvm.version
     - org.gradle.libraryelements
@@ -728,6 +729,7 @@ The following Attributes have disambiguation rules defined.
     - flavor
     - org.gradle.category (1)
     - org.gradle.dependency.bundling (5)
+    - org.gradle.fallback-variant
     - org.gradle.jvm.environment (6)
     - org.gradle.jvm.version (3)
     - org.gradle.libraryelements (4)
