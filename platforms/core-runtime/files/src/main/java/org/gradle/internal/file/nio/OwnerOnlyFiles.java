@@ -16,6 +16,8 @@
 
 package org.gradle.internal.file.nio;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -23,11 +25,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.nio.file.attribute.UserPrincipal;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -86,6 +92,68 @@ public final class OwnerOnlyFiles {
     }
 
     /**
+     * Creates the directory, accessible only to its owner, or verifies that the existing one can be trusted.
+     * Missing parents are created with default permissions.
+     *
+     * @throws UntrustedDirectoryException when something exists at that location that cannot be trusted
+     */
+    public static void createOrVerifyPrivateDirectory(File directory) throws IOException {
+        Path path = directory.toPath().toAbsolutePath();
+        Path parent = path.getParent();
+        if (parent == null) {
+            verifyPrivateDirectory(path, currentUser(path));
+            return;
+        }
+        createDirectoryFollowingLinks(parent);
+        if (!isPosix(parent)) {
+            try {
+                Files.createDirectory(path);
+            } catch (FileAlreadyExistsException e) {
+                verifyPrivateDirectory(path, currentUser(parent));
+            }
+            return;
+        }
+        try {
+            Files.createDirectory(path, OWNER_ONLY_DIRECTORY);
+        } catch (FileAlreadyExistsException e) {
+            // Another user may have created it: only verify, as changing it would not undo what they already did with it
+            verifyPrivateDirectory(path, currentUser(parent));
+        }
+    }
+
+    @VisibleForTesting
+    static void verifyPrivateDirectory(Path path, UserPrincipal currentUser) throws IOException {
+        BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+        if (attributes.isSymbolicLink()) {
+            throw new UntrustedDirectoryException(path, "it is a symbolic link");
+        }
+        if (!attributes.isDirectory()) {
+            throw new UntrustedDirectoryException(path, "it is not a directory");
+        }
+        if (!Files.getOwner(path, LinkOption.NOFOLLOW_LINKS).equals(currentUser)) {
+            throw new UntrustedDirectoryException(path, "it is owned by another user");
+        }
+        PosixFileAttributeView posixView = Files.getFileAttributeView(path, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
+        if (posixView == null) {
+            return;
+        }
+        Set<PosixFilePermission> permissions = posixView.readAttributes().permissions();
+        if (permissions.contains(PosixFilePermission.GROUP_WRITE) || permissions.contains(PosixFilePermission.OTHERS_WRITE)) {
+            throw new UntrustedDirectoryException(path, "it is writable by other users");
+        }
+    }
+
+    // The owner of a file this process creates, which may differ from the user named by the user.name system property
+    private static UserPrincipal currentUser(Path directory) throws IOException {
+        Path probe = Files.createTempFile(directory, ".owner", null);
+        try {
+            return Files.getOwner(probe, LinkOption.NOFOLLOW_LINKS);
+        } finally {
+            Files.deleteIfExists(probe);
+        }
+    }
+
+    /**
      * Opens a new file accessible only to its owner, replacing an existing one.
      *
      * <p>The new file is created next to it and moved over it atomically, so the file exists at all times,
@@ -131,5 +199,24 @@ public final class OwnerOnlyFiles {
 
     private static boolean isPosix(Path existingDirectory) throws IOException {
         return Files.getFileStore(existingDirectory).supportsFileAttributeView("posix");
+    }
+
+    /**
+     * Thrown when an existing directory cannot be trusted, as other users may control it.
+     */
+    public static final class UntrustedDirectoryException extends IOException {
+        private final String reason;
+
+        UntrustedDirectoryException(Path directory, String reason) {
+            super(String.format("Directory '%s' cannot be trusted: %s", directory, reason));
+            this.reason = reason;
+        }
+
+        /**
+         * Why the directory cannot be trusted, such as "it is a symbolic link".
+         */
+        public String getReason() {
+            return reason;
+        }
     }
 }

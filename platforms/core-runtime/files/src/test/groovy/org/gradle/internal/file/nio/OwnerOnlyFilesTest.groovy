@@ -25,20 +25,43 @@ import spock.lang.Specification
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermissions
+import java.nio.file.attribute.UserPrincipal
 
 @Requires(UnitTestPreconditions.NotWindows)
 class OwnerOnlyFilesTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
 
-    def "creates a directory and its missing parents"() {
+    def "#method creates a directory and its missing parents"() {
         def dir = tmp.file("parent/dir")
 
         when:
-        OwnerOnlyFiles.createDirectory(dir)
+        create(dir)
 
         then:
         permissions(dir) == "rwx------"
+
+        where:
+        method                           | create
+        "createDirectory"                | { File f -> OwnerOnlyFiles.createDirectory(f) }
+        "createOrVerifyPrivateDirectory" | { File f -> OwnerOnlyFiles.createOrVerifyPrivateDirectory(f) }
+    }
+
+    def "#method creates a directory under a symlink to a directory"() {
+        def target = tmp.createDir("target")
+        def link = tmp.file("link")
+        Files.createSymbolicLink(link.toPath(), target.toPath())
+
+        when:
+        create(new File(link, "dir"))
+
+        then:
+        permissions(new File(target, "dir")) == "rwx------"
+
+        where:
+        method                           | create
+        "createDirectory"                | { File f -> OwnerOnlyFiles.createDirectory(f) }
+        "createOrVerifyPrivateDirectory" | { File f -> OwnerOnlyFiles.createOrVerifyPrivateDirectory(f) }
     }
 
     def "restricts an existing directory"() {
@@ -50,18 +73,6 @@ class OwnerOnlyFilesTest extends Specification {
 
         then:
         permissions(dir) == "rwx------"
-    }
-
-    def "creates a directory under a symlink to a directory"() {
-        def target = tmp.createDir("target")
-        def link = tmp.file("link")
-        Files.createSymbolicLink(link.toPath(), target.toPath())
-
-        when:
-        OwnerOnlyFiles.createDirectory(new File(link, "dir"))
-
-        then:
-        permissions(new File(target, "dir")) == "rwx------"
     }
 
     def "does not turn an existing file into a directory"() {
@@ -86,6 +97,54 @@ class OwnerOnlyFilesTest extends Specification {
         then:
         def e = thrown(IOException)
         e.message == "Failed to create directory '${dir}'"
+    }
+
+    def "uses an existing private directory of the current user that others cannot write to, unchanged"() {
+        def dir = createDir(tmp.file("dir"), existingPermissions)
+
+        when:
+        OwnerOnlyFiles.createOrVerifyPrivateDirectory(dir)
+
+        then:
+        permissions(dir) == existingPermissions
+        tmp.testDirectory.list() as List == ["dir"]
+
+        where:
+        existingPermissions << ["rwx------", "rwxr-xr-x"]
+    }
+
+    def "refuses #existing as a private directory"() {
+        def location = tmp.file("location")
+        create(location)
+        def existingPermissions = permissions(location)
+
+        when:
+        OwnerOnlyFiles.createOrVerifyPrivateDirectory(location)
+
+        then:
+        def e = thrown(OwnerOnlyFiles.UntrustedDirectoryException)
+        e.reason == reason
+        e.message == "Directory '${location}' cannot be trusted: ${reason}"
+        permissions(location) == existingPermissions
+
+        where:
+        existing                            | create                                                                   | reason
+        "a symbolic link to a directory"    | { File f -> Files.createSymbolicLink(f.toPath(), f.parentFile.toPath()) } | "it is a symbolic link"
+        "a file"                            | { File f -> f.text = "" }                                                | "it is not a directory"
+        "a directory writable by its group" | { File f -> createDir(f, "rwxrwx---") }                                  | "it is writable by other users"
+        "a directory writable by others"    | { File f -> createDir(f, "rwx---rwx") }                                  | "it is writable by other users"
+        "a directory only others can write" | { File f -> createDir(f, "rwxr-x-w-") }                                  | "it is writable by other users"
+    }
+
+    def "refuses an existing private directory owned by another user"() {
+        def dir = createDir(tmp.file("dir"), "rwx------")
+
+        when:
+        OwnerOnlyFiles.verifyPrivateDirectory(dir.toPath(), { "someone-else" } as UserPrincipal)
+
+        then:
+        def e = thrown(OwnerOnlyFiles.UntrustedDirectoryException)
+        e.reason == "it is owned by another user"
     }
 
     def "opens a new file accessible only to the owner"() {
@@ -170,6 +229,13 @@ class OwnerOnlyFilesTest extends Specification {
 
         then:
         file.text == "first second"
+    }
+
+    private static File createDir(File dir, String permissions) {
+        Files.createDirectory(dir.toPath())
+        // Set separately, as the umask applies to permissions given at creation
+        Files.setPosixFilePermissions(dir.toPath(), PosixFilePermissions.fromString(permissions))
+        dir
     }
 
     private static String permissions(File file) {

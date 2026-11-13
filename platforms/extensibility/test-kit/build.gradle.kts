@@ -25,6 +25,7 @@ dependencies {
     implementation(projects.baseServices)
     implementation(projects.core)
     implementation(projects.fileTemp)
+    implementation(projects.files)
     implementation(projects.io)
     implementation(projects.wrapperShared)
     implementation(projects.buildProcessServices)

@@ -138,12 +138,25 @@ include::sample[dir="snippets/testKit/automaticClasspathInjectionCustomTestSourc
 [[sec:controlling_the_build_environment]]
 == Controlling the build environment
 
-The runner executes the test builds in an isolated environment by specifying a dedicated "working directory" in a directory inside the JVM's temp directory (i.e. the location specified by the `java.io.tmpdir` system property, typically `/tmp`). Any configuration in the default Gradle User Home (e.g. `~/.gradle/gradle.properties`) is not used for test execution. The TestKit does not expose a mechanism for fine grained control of all aspects of the environment (e.g., JDK). Future versions of the TestKit will provide improved configuration options.
+The runner executes the test builds in an isolated environment, using a dedicated directory, the TestKit directory, as their Gradle User Home. All the builds run by the same test process share that directory, and it is reused between test runs. Any configuration in the default Gradle User Home (e.g. `~/.gradle/gradle.properties`) is not used for test execution. The TestKit does not expose a mechanism for fine grained control of all aspects of the environment (e.g., JDK). Future versions of the TestKit will provide improved configuration options.
+
+By default, the location of the TestKit directory depends on where the runner runs:
+
+* When tests run in a Gradle `Test` task, it is the `.gradle-test-kit` directory inside the temporary directory of that task, in the project's build directory.
+* Otherwise, such as when tests run in the test runner of an IDE, it is the `.gradle-test-kit-<user name>` directory inside the JVM's temp directory (i.e. the location specified by the `java.io.tmpdir` system property, typically `/tmp`).
+Gradle creates this directory with access restricted to the current user.
+If that path already exists, TestKit uses it only when all of the following hold:
+** it is a directory, and not a symbolic link to one
+** it is owned by the current user
+** only its owner can write to it
+
++
+Otherwise, TestKit refuses it and the test fails with an error naming the reason.
 
 The TestKit uses dedicated daemon processes that are automatically shut down after test execution.
 
-The dedicated working directory is not deleted by the runner after the build.
-The TestKit provides two ways to specify a location that is regularly cleaned, such as the project's build folder:
+The TestKit directory is not deleted by the runner after the build.
+The TestKit provides two ways to specify a location of your choice, such as one that is regularly cleaned:
 
 * The `org.gradle.testkit.dir` system property;
 * The link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withTestKitDir-java.io.File-[GradleRunner.withTestKitDir(file testKitDir)] method.
