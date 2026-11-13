@@ -18,7 +18,6 @@ package org.gradle.internal.serialize.codecs.core.jos
 
 import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.graph.BeanStateReader
-import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.EncodingProvider
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -31,18 +30,16 @@ import org.gradle.internal.serialize.graph.encodeBean
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.readEnum
 import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.internal.serialize.graph.withBeanTrace
 import org.gradle.internal.serialize.graph.withImmediateMode
 import org.gradle.internal.serialize.graph.writeEnum
-import java.io.Externalizable
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
-import java.lang.invoke.MethodType.methodType
 import java.lang.reflect.Method
-import java.lang.reflect.Modifier.isPrivate
 
 
 /**
@@ -65,21 +62,37 @@ import java.lang.reflect.Modifier.isPrivate
  *    - `readLine()`, `readFully(ByteArray)`, `readFully(ByteArray, Int, Int)`, `readUnshared()`, `readFields()`, `transferTo(OutputStream)` and `readAllBytes()`.
  * - validations registered via [ObjectInputStream.registerValidation] are simply ignored;
  * - the `readObjectNoData` method, if present, is never invoked;
+ *
+ * The codec is stateless and shared by all builds, so the per-type reflection work is done once per type.
  */
+@ServiceScope(Scope.Global::class)
 class JavaObjectSerializationCodec(
-    private val lookup: JavaSerializationEncodingLookup,
     private val objectOpener: ObjectOpener
 ) : EncodingProducer, Decoding {
 
-    private
-    val readResolveMethod = ReadResolveCache(objectOpener)
+    // The cached values are attached to classes that may outlive any build,
+    // so they must only reach objects that live at least as long as the class they're attached to.
 
     private
-    val readObjectHierarchy = HashMap<Class<*>, List<MethodHandle>>()
+    val encodings = object : ClassValue<Encoding?>() {
+        override fun computeValue(type: Class<*>): Encoding? = calculateEncoding(type)
+    }
+
+    private
+    val readResolveMethods = object : ClassValue<MethodHandle?>() {
+        override fun computeValue(type: Class<*>): MethodHandle? =
+            SerializationMethods.of(type).readResolve?.let { accessibleHandle(it).asReadResolve() }
+    }
+
+    private
+    val readObjectMethodHierarchies = object : ClassValue<List<MethodHandle>>() {
+        override fun computeValue(type: Class<*>): List<MethodHandle> =
+            SerializationMethods.of(type).readObjectMethodHierarchy.map { accessibleHandle(it).asReadObject() }
+    }
 
     override fun encodingForType(type: Class<*>): Encoding? =
         type.takeIf { Serializable::class.java.isAssignableFrom(it) }?.let { serializableType ->
-            lookup.encodingFor(serializableType)
+            encodings.get(serializableType)
         }
 
     override suspend fun ReadContext.decode(): Any =
@@ -89,7 +102,7 @@ class JavaObjectSerializationCodec(
                     withImmediateMode {
                         decodingBeanWithId(id) { bean, beanType, beanStateReader ->
                             val objectInputStream = objectInputStreamAdapterFor(bean, beanStateReader)
-                            val readObject = readObjectMethodHierarchyForDecoding(beanType)
+                            val readObject = readObjectMethodHierarchies.get(beanType)
                             when {
                                 readObject.isNotEmpty() -> invokeAllExact(readObject, bean, objectInputStream)
                                 else -> objectInputStream.defaultReadObject()
@@ -102,7 +115,7 @@ class JavaObjectSerializationCodec(
                     withImmediateMode {
                         decodingBeanWithId(id) { bean, beanType, beanStateReader ->
                             invokeAllExact(
-                                readObjectMethodHierarchyForDecoding(beanType),
+                                readObjectMethodHierarchies.get(beanType),
                                 bean,
                                 objectInputStreamAdapterFor(bean, beanStateReader)
                             )
@@ -126,7 +139,7 @@ class JavaObjectSerializationCodec(
     fun ReadContext.objectInputStreamAdapterFor(bean: Any, beanStateReader: BeanStateReader): ObjectInputStreamAdapter =
         ObjectInputStreamAdapter(bean, beanStateReader, this)
 
-    internal
+    private
     class WriteObjectEncoding(private val writeObject: List<MethodHandle>) : EncodingProvider<Any> {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
@@ -147,7 +160,7 @@ class JavaObjectSerializationCodec(
             }
     }
 
-    internal
+    private
     object ReadObjectEncoding : Encoding {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
@@ -157,14 +170,8 @@ class JavaObjectSerializationCodec(
         }
     }
 
-    internal
-    class WriteReplaceEncoding(writeReplace: Method) : EncodingProvider<Any> {
-
-        private
-        val writeReplaceHandle = MethodHandles.lookup()
-            .unreflect(writeReplace)
-            .asType(methodType(Any::class.java, Any::class.java))
-
+    private
+    class WriteReplaceEncoding(private val writeReplaceHandle: MethodHandle) : EncodingProvider<Any> {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 val replacement = writeReplaceHandle.invokeExact(value)
@@ -185,7 +192,7 @@ class JavaObjectSerializationCodec(
         }
     }
 
-    internal
+    private
     object ReadResolveEncoding : Encoding {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
@@ -205,94 +212,42 @@ class JavaObjectSerializationCodec(
 
     private
     fun readResolve(bean: Any): Any =
-        when (val readResolve = readResolveMethod.forObject(bean)) {
+        when (val readResolve = readResolveMethods.get(bean.javaClass)) {
             null -> bean
             else -> readResolve.invokeExact(bean)
         }
 
+    private
+    fun calculateEncoding(type: Class<*>): Encoding? {
+        val candidates = SerializationMethods.of(type)
+        return candidates.writeReplace
+                ?.let { WriteReplaceEncoding(accessibleHandle(it).asWriteReplace()) }
+            ?: candidates.writeObjectMethodHierarchy
+                .takeIf { it.isNotEmpty() }
+                ?.let { methods -> WriteObjectEncoding(methods.map { accessibleHandle(it).asWriteObject() }) }
+            // Only the presence of the reading methods matters here, they are made accessible when reading
+            ?: ReadResolveEncoding.takeIf { candidates.readResolve != null }
+            ?: ReadObjectEncoding.takeIf { candidates.readObjectMethodHierarchy.isNotEmpty() }
+    }
+
+    private
+    fun ReadContext.putIdentity(id: Int, instance: Any) {
+        isolate.identities.putInstance(id, instance)
+    }
+
+    private
+    fun invokeAllExact(methods: List<MethodHandle>, bean: Any, stream: ObjectInputStream) {
+        for (method in methods) {
+            method.invokeExact(bean, stream)
+        }
+    }
+
     /**
-     * Caches the computed `readObject` method hierarchies during decoding because [ReadContext.decode] might
-     * be called multiple times for the same type.
+     * Builds an access-unrestricted `MethodHandle` for the `method`.
      */
     private
-    fun readObjectMethodHierarchyForDecoding(type: Class<*>): List<MethodHandle> =
-        readObjectHierarchy.computeIfAbsent(type) {
-            readObjectMethodHierarchyFrom(it.allMethods(), objectOpener)
-        }
-}
-
-
-internal
-fun readObjectMethodHierarchyFrom(candidates: List<Method>, objectOpener: ObjectOpener): List<MethodHandle> = candidates
-    .serializationMethodHierarchy("readObject", ObjectInputStream::class.java, objectOpener)
-
-
-internal
-fun Iterable<Method>.serializationMethodHierarchy(methodName: String, parameterType: Class<*>, objectOpener: ObjectOpener): List<MethodHandle> = asSequence()
-    .filter { method ->
-        method.run {
-            isPrivate(modifiers)
-                && parameterCount == 1
-                && returnType == Void.TYPE
-                && name == methodName
-                && parameterTypes[0].isAssignableFrom(parameterType)
-        }
-    }.onEach { serializationMethod ->
-        objectOpener.makeAccessible(serializationMethod)
-    }.map {
-        MethodHandles.lookup()
-            .unreflect(it)
-            .asType(methodType(Void.TYPE, Any::class.java, parameterType))
-    }.toList().asReversed()
-
-
-private
-inline fun ReadContext.decodingBeanWithId(id: Int, decode: (Any, Class<*>, BeanStateReader) -> Unit): Any {
-    val beanType = readClass()
-    return withBeanTrace(beanType) {
-        val beanStateReader = beanStateReaderFor(beanType)
-        beanStateReader.run { newBeanWithId(id) }.also { bean ->
-            decode(bean, beanType, beanStateReader)
-        }
-    }
-}
-
-
-private
-fun ReadContext.putIdentity(id: Int, instance: Any) {
-    isolate.identities.putInstance(id, instance)
-}
-
-
-object ExternalizableCodec : Codec<Externalizable> {
-    override suspend fun WriteContext.encode(value: Externalizable) {
-        encodePreservingIdentityOf(value) {
-            val beanType = value.javaClass
-            writeClass(beanType)
-            val record = recordWritingOf(beanType, value)
-            record.run { playback() }
-        }
-    }
-
-    private
-    fun recordWritingOf(beanType: Class<Externalizable>, value: Externalizable): RecordingObjectOutputStream =
-        RecordingObjectOutputStream(beanType, value).also { recordingObjectOutputStream ->
-            value.writeExternal(recordingObjectOutputStream)
-        }
-
-    override suspend fun ReadContext.decode(): Externalizable =
-        decodePreservingIdentity { id ->
-            decodingBeanWithId(id) { bean, _, beanStateReader ->
-                val objectInputStream = ObjectInputStreamAdapter(bean, beanStateReader, this)
-                (bean as Externalizable).readExternal(objectInputStream)
-            } as Externalizable
-        }
-}
-
-
-private
-fun invokeAllExact(methods: List<MethodHandle>, bean: Any, stream: ObjectInputStream) {
-    for (method in methods) {
-        method.invokeExact(bean, stream)
+    fun accessibleHandle(method: Method): MethodHandle {
+        objectOpener.makeAccessible(method)
+        return MethodHandles.lookup().unreflect(method)
     }
 }

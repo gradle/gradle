@@ -37,7 +37,7 @@ import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.FlushableEncoder
 import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
 import org.gradle.internal.serialize.beans.services.test.beanStateReaderLookupForTesting
-import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
+import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
@@ -233,7 +233,7 @@ abstract class AbstractUserTypeCodecTest {
         includedTaskGraph = mock(),
         buildStateRegistry = mock(),
         documentationRegistry = mock(),
-        javaSerializationEncodingLookup = JavaSerializationEncodingLookup(ObjectOpener.agentless()),
+        javaObjectSerializationCodec = JavaObjectSerializationCodec(ObjectOpener.agentless()),
         transformStepNodeFactory = mock(),
         problems = mock(),
         taskDependencyFactory = mock(),
