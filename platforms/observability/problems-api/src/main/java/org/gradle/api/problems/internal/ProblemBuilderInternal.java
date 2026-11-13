@@ -23,6 +23,7 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
+import org.jspecify.annotations.Nullable;
 
 public interface ProblemBuilderInternal extends ProblemSpecInternal {
 
@@ -43,7 +44,7 @@ public interface ProblemBuilderInternal extends ProblemSpecInternal {
     ProblemBuilderInternal taskLocation(String buildTreePath);
 
     @Override
-    ProblemBuilderInternal documentedAt(DocLink doc);
+    ProblemBuilderInternal documentedAt(@Nullable DocLink doc);
 
     @Override
     ProblemBuilderInternal contextualLabel(String contextualLabel);

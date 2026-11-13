@@ -40,6 +40,8 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Objects.requireNonNull;
+
 public class DefaultProblemBuilder implements ProblemBuilderInternal {
     private static final String MISSING_ID = "Reported problem has no id";
     private static final String MISSING_PARENT = "Reported problem id has no group";
@@ -47,19 +49,19 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
 
     private final ProblemsInfrastructure problemsInfrastructure;
 
-    private ProblemId id;
-    private String contextualLabel;
-    private Severity severity;
+    private @Nullable ProblemId id;
+    private @Nullable String contextualLabel;
+    private @Nullable Severity severity;
     private final List<ProblemLocation> originLocations = new ArrayList<ProblemLocation>();
     private final List<ProblemLocation> contextLocations = new ArrayList<ProblemLocation>();
-    private String details;
-    private DocLink docLink;
+    private @Nullable String details;
+    private @Nullable DocLink docLink;
     private List<String> solutions;
-    private Throwable exception;
-    private AdditionalData additionalData;
+    private @Nullable Throwable exception;
+    private @Nullable AdditionalData additionalData;
     private boolean collectStackLocation = false;
     private boolean writtenToConsole = false;
-    private ProblemDiagnostics diagnostics;
+    private @Nullable ProblemDiagnostics diagnostics;
 
     public DefaultProblemBuilder(
         ProblemsInfrastructure infrastructure
@@ -90,9 +92,10 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
     @Override
     public ProblemInternal build() {
         // id is mandatory
-        if (getId() == null) {
+        ProblemId id = this.id;
+        if (id == null) {
             return invalidProblem(MISSING_ID, null);
-        } else if (getId().getGroup() == null) {
+        } else if (id.getGroup() == null) {
             return invalidProblem(MISSING_PARENT, null);
         }
 
@@ -107,7 +110,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             addLocationsFromDiagnostics(collectStackLocation ? this.originLocations : this.contextLocations, diagnostics);
         }
 
-        ProblemDefinition problemDefinition = new DefaultProblemDefinition(getId(), getSeverity(), docLink);
+        ProblemDefinition problemDefinition = new DefaultProblemDefinition(id, getSeverity(), docLink);
         return new DefaultProblem(
             problemDefinition,
             contextualLabel,
@@ -189,7 +192,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             throw new IllegalStateException("Cannot report invalid problem '" + name + "' without the predefined problem groups");
         }
         id(groups.getGradle().getBuildLogic().problemId(name)).stackLocation();
-        ProblemDefinition problemDefinition = new DefaultProblemDefinition(this.getId(), Severity.WARNING, null);
+        ProblemDefinition problemDefinition = new DefaultProblemDefinition(requireNonNull(this.id), Severity.WARNING, null);
         List<ProblemLocation> problemLocations = new ArrayList<ProblemLocation>();
         ProblemDiagnostics diagnostics = determineDiagnostics();
         if (diagnostics != null) {
@@ -329,6 +332,8 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
      * Groups owned by Gradle (including the predefined hierarchy) are kept as they are, so that descriptions and identity survive.
      * Foreign implementations are copied into a Gradle-owned group, so that reported problems only carry known, serializable types.
      */
+    // owned() returns non-null for a non-null argument; NullAway ignores the assert below
+    @SuppressWarnings("NullAway")
     private static ProblemGroup cloneGroup(ProblemGroup original) {
         ProblemGroup owned = DefaultProblemGroup.owned(original);
         assert owned != null;
@@ -400,6 +405,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         return exception;
     }
 
+    @Nullable
     public ProblemId getId() {
         return id;
     }

@@ -16,6 +16,7 @@
 package org.gradle.cache.internal;
 
 import java.util.Map;
+import org.jspecify.annotations.Nullable;
 
 public class MapBackedCache<K, V> extends CacheSupport<K, V> {
 
@@ -25,6 +26,7 @@ public class MapBackedCache<K, V> extends CacheSupport<K, V> {
         this.map = map;
     }
 
+    @Nullable
     @Override
     protected <T extends K> V doGet(T key) {
         return map.get(key);

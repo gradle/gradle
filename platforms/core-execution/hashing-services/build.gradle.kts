@@ -32,3 +32,7 @@ dependencies {
     testImplementation(testFixtures(projects.hashing))
     testImplementation(projects.internalTesting)
 }
+
+errorprone {
+    nullawayEnabled = true
+}

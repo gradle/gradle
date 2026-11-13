@@ -16,6 +16,7 @@
 package org.gradle.cache.internal.btree;
 
 import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -27,10 +28,15 @@ import java.io.RandomAccessFile;
 public class FileBackedBlockStore implements BlockStore {
     static final long FILE_GROWTH_CHUNK_SIZE = 64 * 1024;
     private final File cacheFile;
+    // The following fields are initialized by open()
+    @SuppressWarnings("NullAway.Init")
     private RandomAccessFile file;
+    @SuppressWarnings("NullAway.Init")
     private ByteOutput output;
+    @SuppressWarnings("NullAway.Init")
     private ByteInput input;
     private long nextBlock;
+    @SuppressWarnings("NullAway.Init")
     private Factory factory;
     private long currentFileSize;
 
@@ -115,7 +121,7 @@ public class FileBackedBlockStore implements BlockStore {
 
     @Override
     public void attach(BlockPayload block) {
-        if (block.getBlock() == null) {
+        if (!block.isAttached()) {
             block.setBlock(new BlockImpl(block));
         }
     }
@@ -172,7 +178,7 @@ public class FileBackedBlockStore implements BlockStore {
         private static final int HEADER_SIZE = 1 + INT_SIZE; // type, payload size
         private static final int TAIL_SIZE = INT_SIZE;
 
-        private BlockPointer pos;
+        private @Nullable BlockPointer pos;
         private int payloadSize;
 
         private BlockImpl(BlockPayload payload, BlockPointer pos) {

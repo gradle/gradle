@@ -32,3 +32,7 @@ gradleModule {
         worker = true
     }
 }
+
+errorprone {
+    nullawayEnabled = true
+}

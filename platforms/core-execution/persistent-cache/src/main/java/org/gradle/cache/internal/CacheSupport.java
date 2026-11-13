@@ -16,6 +16,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.Cache;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.Function;
 
@@ -33,6 +34,7 @@ public abstract class CacheSupport<K, V> implements Cache<K, V> {
     }
 
     @Override
+    @Nullable
     public V getIfPresent(K key) {
         return doGet(key);
     }
@@ -42,6 +44,7 @@ public abstract class CacheSupport<K, V> implements Cache<K, V> {
         doCache(key, value);
     }
 
+    @Nullable
     abstract protected <T extends K> V doGet(T key);
 
     abstract protected <T extends K, N extends V> void doCache(T key, N value);

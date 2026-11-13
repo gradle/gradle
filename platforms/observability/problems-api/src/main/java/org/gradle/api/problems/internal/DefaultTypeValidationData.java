@@ -25,13 +25,13 @@ import static com.google.common.base.Objects.equal;
 
 public class DefaultTypeValidationData implements TypeValidationData, Serializable {
 
-    private final String pluginId;
-    private final String propertyName;
-    private final String functionName;
-    private final String parentPropertyName;
-    private final String typeName;
+    private final @Nullable String pluginId;
+    private final @Nullable String propertyName;
+    private final @Nullable String functionName;
+    private final @Nullable String parentPropertyName;
+    private final @Nullable String typeName;
 
-    public DefaultTypeValidationData(String pluginId, String propertyName, String functionName, String parentPropertyName, String typeName) {
+    public DefaultTypeValidationData(@Nullable String pluginId, @Nullable String propertyName, @Nullable String functionName, @Nullable String parentPropertyName, @Nullable String typeName) {
         this.pluginId = pluginId;
         this.propertyName = propertyName;
         this.functionName = functionName;
@@ -39,26 +39,31 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
         this.typeName = typeName;
     }
 
+    @Nullable
     @Override
     public String getPluginId() {
         return pluginId;
     }
 
+    @Nullable
     @Override
     public String getPropertyName() {
         return propertyName;
     }
 
+    @Nullable
     @Override
     public String getFunctionName() {
         return functionName;
     }
 
+    @Nullable
     @Override
     public String getParentPropertyName() {
         return parentPropertyName;
     }
 
+    @Nullable
     @Override
     public String getTypeName() {
         return typeName;
@@ -91,11 +96,11 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
 
     private static class DefaultTypeValidationDataBuilder implements TypeValidationDataSpec, AdditionalDataBuilder<TypeValidationData> {
 
-        private String pluginId;
-        private String propertyName;
-        private String functionName;
-        private String parentPropertyName;
-        private String typeName;
+        private @Nullable String pluginId;
+        private @Nullable String propertyName;
+        private @Nullable String functionName;
+        private @Nullable String parentPropertyName;
+        private @Nullable String typeName;
 
         public DefaultTypeValidationDataBuilder() {
         }

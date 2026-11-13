@@ -49,6 +49,7 @@ public class UnusedVersionsCacheCleanup extends AbstractCacheCleanup {
     private final CacheVersionMapping cacheVersionMapping;
     private final UsedGradleVersions usedGradleVersions;
 
+    @SuppressWarnings("NullAway.Init") // set by clean() before shouldDelete() is invoked
     private Set<CacheVersion> usedVersions;
 
     public static UnusedVersionsCacheCleanup create(String cacheName, CacheVersionMapping cacheVersionMapping, UsedGradleVersions usedGradleVersions) {

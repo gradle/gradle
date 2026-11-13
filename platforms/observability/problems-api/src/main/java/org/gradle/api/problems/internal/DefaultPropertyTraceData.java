@@ -19,6 +19,8 @@ package org.gradle.api.problems.internal;
 import com.google.common.base.Objects;
 import org.jspecify.annotations.Nullable;
 
+import static java.util.Objects.requireNonNull;
+
 public class DefaultPropertyTraceData implements PropertyTraceData {
     private final String trace;
 
@@ -57,7 +59,7 @@ public class DefaultPropertyTraceData implements PropertyTraceData {
     }
 
     private static class DefaultPropertyTraceDataBuilder implements PropertyTraceDataSpec, AdditionalDataBuilder<PropertyTraceData> {
-        private String trace;
+        private @Nullable String trace;
 
         public DefaultPropertyTraceDataBuilder(PropertyTraceData from) {
             this.trace = from.getTrace();
@@ -74,7 +76,7 @@ public class DefaultPropertyTraceData implements PropertyTraceData {
 
         @Override
         public PropertyTraceData build() {
-            return new DefaultPropertyTraceData(trace);
+            return new DefaultPropertyTraceData(requireNonNull(trace, "trace must be set"));
         }
     }
 }

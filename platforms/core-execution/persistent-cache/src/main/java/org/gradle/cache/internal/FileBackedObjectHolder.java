@@ -23,6 +23,7 @@ import org.gradle.internal.file.Chmod;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.serialize.OutputStreamBackedEncoder;
 import org.gradle.internal.serialize.Serializer;
+import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -59,6 +60,7 @@ public class FileBackedObjectHolder<T> implements ObjectHolder<T> {
         class Updater implements Runnable {
             private final UpdateAction<T> updateAction;
 
+            @SuppressWarnings("NullAway.Init") // assigned by run(), which is invoked synchronously by fileAccess.updateFile()
             private T result;
 
             private Updater(UpdateAction<T> updateAction) {
@@ -83,6 +85,7 @@ public class FileBackedObjectHolder<T> implements ObjectHolder<T> {
         class MaybeUpdater implements Runnable {
             private final UpdateAction<T> updateAction;
 
+            @SuppressWarnings("NullAway.Init") // assigned by run(), which is invoked synchronously by fileAccess.updateFile()
             private T result;
 
             private MaybeUpdater(UpdateAction<T> updateAction) {
@@ -90,6 +93,8 @@ public class FileBackedObjectHolder<T> implements ObjectHolder<T> {
             }
 
             @Override
+            // In the else branch below, oldValue and result are either both null or both non-null, which NullAway cannot prove
+            @SuppressWarnings("NullAway")
             public void run() {
                 T oldValue = deserialize();
                 result = updateAction.update(oldValue);
@@ -124,6 +129,7 @@ public class FileBackedObjectHolder<T> implements ObjectHolder<T> {
         }
     }
 
+    @Nullable
     private T deserialize() {
         if (!cacheFile.isFile()) {
             return null;

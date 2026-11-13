@@ -22,6 +22,7 @@ import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.function.Consumer;
@@ -40,7 +41,7 @@ public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProc
     private final CacheInitializationAction initializationAction;
     private final Consumer<FileLock> onOpenAction;
     private final Consumer<FileLock> onCloseAction;
-    private FileLock fileLock;
+    private @Nullable FileLock fileLock;
 
     public FixedExclusiveModeCrossProcessCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, FileLockManager lockManager, CacheInitializationAction initializationAction, Consumer<FileLock> onOpenAction, Consumer<FileLock> onCloseAction) {
         assert lockOptions.getMode() == Exclusive;
