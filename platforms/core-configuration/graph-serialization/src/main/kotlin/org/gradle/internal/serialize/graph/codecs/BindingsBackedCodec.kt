@@ -43,7 +43,10 @@ const val CORRUPTED_CACHE_ENTRY = "Corrupted cache entry"
  *
  * @see Binding.tag
  */
-class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
+class BindingsBackedCodec internal constructor(
+    private val bindings: List<Binding>,
+    private val bindingTagsCache: ConcurrentHashMap<Class<*>, Int>
+) : Codec<Any?> {
 
     internal
     companion object {
@@ -53,9 +56,6 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
         private
         const val SENTINEL_VALUE: Byte = 0
     }
-
-    private
-    val bindingsByType = ConcurrentHashMap<Class<*>, Binding>()
 
     override suspend fun WriteContext.encode(value: Any?) = when (value) {
         null -> writeSmallInt(NULL_VALUE)
@@ -117,7 +117,8 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
 
     private
     fun bindingFor(type: Class<*>): Binding =
-        bindingsByType.computeIfAbsent(type, ::findBinding)
+        bindingTagsCache.get(type)?.let { tag -> bindings.get(tag) }
+            ?: findBinding(type).also { bindingTagsCache.put(type, it.tag) }
 
     private
     fun findBinding(type: Class<*>): Binding =
@@ -176,6 +177,8 @@ class BindingsBlueprint internal constructor(
         fun of(builder: BindingsBuilder.() -> Unit) = BindingsBuilder().apply(builder).build()
     }
 
+    private val bindingTagsCache = ConcurrentHashMap<Class<*>, Int>()
+
     /**
      * An entry of the blueprint: either a complete [Binding] or a [BindingSlot] to be filled.
      */
@@ -207,7 +210,7 @@ class BindingsBlueprint internal constructor(
         require(filledSlots == slotCodecs.size) {
             "Slots are not part of the blueprint: ${slotCodecs.keys.filter { it !in entries }}"
         }
-        return BindingsBackedCodec(bindings)
+        return BindingsBackedCodec(bindings, bindingTagsCache)
     }
 }
 

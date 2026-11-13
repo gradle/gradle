@@ -97,6 +97,25 @@ class BindingsBackedCodecTest : AbstractUserTypeCodecTest() {
     }
 
     @Test
+    fun `codecs built from the same blueprint ask each binding about a type only once`() {
+        val rejecting = PrefixingCodec("rejecting", Int::class.javaObjectType)
+        val slot = BindingSlot(String::class.java)
+        val blueprint = BindingsBlueprint.of {
+            bind(rejecting)
+            bind(slot)
+        }
+        // Binding the slot checks that no other binding accepts its type
+        rejecting.acceptsCalls = 0
+
+        repeat(3) {
+            val codec = blueprint.build { fill(slot, StringPrefixingCodec("codec$it")) }
+            assertThat(readFromByteArray(writeToByteArray("value", codec), codec), equalTo("codec$it:value"))
+        }
+
+        assertThat(rejecting.acceptsCalls, equalTo(1))
+    }
+
+    @Test
     fun `fills slots with a codec per built codec`() {
         val slot = BindingSlot(String::class.java)
         val blueprint = BindingsBlueprint.of {
