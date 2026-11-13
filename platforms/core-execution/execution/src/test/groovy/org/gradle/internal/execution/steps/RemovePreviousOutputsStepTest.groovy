@@ -22,8 +22,10 @@ import org.gradle.internal.execution.MutableUnitOfWork
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.OutputVisitor
 import org.gradle.internal.execution.history.BeforeExecutionState
+import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.execution.history.PreviousExecutionState
+import org.gradle.internal.file.Deleter
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -139,6 +141,28 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
 
         !outputs.file.exists()
         !outputs.dir.exists()
+    }
+
+    def "invalidates execution history when exclusive output cleanup fails"() {
+        def outputs = new WorkOutputs()
+        outputs.createContents()
+        def history = Mock(ExecutionHistoryStore)
+        def failingDeleter = Mock(Deleter)
+        def failingStep = new RemovePreviousOutputsStep<>(failingDeleter, outputChangeListener, delegate)
+        work.history >> Optional.of(history)
+
+        when:
+        failingStep.execute(work, context)
+
+        then:
+        def failure = thrown(UncheckedIOException)
+        failure.cause.message == "output is still being written"
+        interaction {
+            cleanupExclusiveOutputs(outputs)
+        }
+        1 * failingDeleter.ensureEmptyDirectory(outputs.dir) >> { throw new IOException("output is still being written") }
+        1 * history.remove(workId)
+        0 * delegate.execute(_, _)
     }
 
     def "does not cleanup outputs when build is incremental"() {

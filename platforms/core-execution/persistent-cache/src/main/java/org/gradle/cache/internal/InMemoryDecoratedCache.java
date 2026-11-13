@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V>, InMemoryCacheController {
     private final static Logger LOG = LoggerFactory.getLogger(InMemoryDecoratedCache.class);
@@ -101,6 +102,17 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
         } else {
             return Cast.uncheckedCast(value);
         }
+    }
+
+    @Override
+    public boolean putIf(K key, V value, Predicate<? super V> condition) {
+        boolean stored = delegate.putIf(key, value, condition);
+        if (stored) {
+            inMemoryCache.put(key, value);
+        } else {
+            inMemoryCache.invalidate(key);
+        }
+        return stored;
     }
 
     @Override
