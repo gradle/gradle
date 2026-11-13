@@ -42,13 +42,11 @@ import org.gradle.api.internal.project.CrossBuildModelAccess;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
-import org.gradle.api.internal.services.PublicServiceLookups;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.invocation.GradleLifecycle;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.BuildServiceRegistry;
-import org.gradle.api.services.GradleService;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
@@ -58,10 +56,10 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.MutableActionSet;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.composite.IncludedBuildInternal;
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -82,6 +80,7 @@ import java.util.function.Supplier;
 
 public abstract class DefaultGradle extends AbstractPluginAware implements GradleInternal, Closeable {
 
+    private final BuildIdentity buildIdentity;
     private final BuildState buildState;
     private final StartParameter startParameter;
     private final ServiceRegistry buildScopeServices;
@@ -103,7 +102,8 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private boolean projectsLoaded;
 
     @SuppressWarnings("this-escape")
-    public DefaultGradle(BuildState buildState, StartParameter startParameter, ServiceRegistry buildScopeServices) {
+    public DefaultGradle(BuildIdentity buildIdentity, BuildState buildState, StartParameter startParameter, ServiceRegistry buildScopeServices) {
+        this.buildIdentity = buildIdentity;
         this.buildState = buildState;
         this.startParameter = startParameter;
         this.buildScopeServices = buildScopeServices;
@@ -132,10 +132,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
                 projectsLoaded = true;
             }
         });
-
-        if (buildState.getParent() == null) {
-            buildScopeServices.get(GradleEnterprisePluginManager.class).registerMissingPluginWarning(this);
-        }
     }
 
     @Override
@@ -150,16 +146,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public Path getIdentityPath() {
-        return buildState.getIdentityPath();
-    }
-
-    @Override
-    public String contextualize(String description) {
-        if (isRootBuild()) {
-            return description;
-        } else {
-            return description + " (" + getIdentityPath().asString() + ")";
-        }
+        return buildIdentity.getBuildPath();
     }
 
     @Override
@@ -182,7 +169,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public boolean isRootBuild() {
-        return buildState.getParent() == null;
+        return buildIdentity.isRootBuild();
     }
 
     @Override
@@ -327,11 +314,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Inject
     @Override
     public abstract ProviderFactory getProviders();
-
-    @Override
-    public <T extends GradleService> T service(Class<T> serviceType) {
-        return PublicServiceLookups.lookup(serviceType, PublicServiceLookups.EntryPoint.GRADLE, getServices());
-    }
 
     @Override
     public ProjectEvaluationListener addProjectEvaluationListener(ProjectEvaluationListener listener) {

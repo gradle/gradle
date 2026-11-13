@@ -79,7 +79,7 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue, Supports
      *
      * <p>
      * This method can NOT be used to discard the value of the property. Specifying a {@code null} provider will result
-     * in an {@code IllegalArgumentException} being thrown. When the provider has no value, this property will also have
+     * in a {@code NullPointerException} being thrown. When the provider has no value, this property will also have
      * no value - regardless of whether or not a convention has been set.
      * </p>
      *
@@ -117,7 +117,7 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue, Supports
      *
      * <p>
      * This method can NOT be used to discard the value of the property. Specifying a {@code null} provider will result
-     * in an {@code IllegalArgumentException} being thrown. When the provider has no value, this property will also have
+     * in a {@code NullPointerException} being thrown. When the provider has no value, this property will also have
      * no value - regardless of whether or not a convention has been set.
      * </p>
      *
@@ -169,7 +169,7 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue, Supports
      *
      * <p>
      * This method can't be used to specify that a property does not have a default value. Passing in a {@code null}
-     * provider will result in an {@code IllegalArgumentException} being thrown. When the provider doesn't have
+     * provider will result in a {@code NullPointerException} being thrown. When the provider doesn't have
      * a value, then the property will behave as if it wouldn't have a convention specified.
      * </p>
      *

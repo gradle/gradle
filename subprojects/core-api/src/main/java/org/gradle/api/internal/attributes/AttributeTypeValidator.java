@@ -39,10 +39,10 @@ import java.lang.reflect.Type;
  */
 public final class AttributeTypeValidator {
     /**
-     * Fully-qualified name of a plain enum used as an attribute value type by the Kotlin Gradle
-     * Plugin 2.0.x line (empirically observed in 2.0.0 through 2.0.21). KGP 2.1.0+ no longer
-     * uses this enum. Not referenced by class literal because the enum lives in the KGP
-     * distribution and is not on Gradle's compile classpath.
+     * Fully-qualified name of a plain enum used as an attribute value type by Kotlin Gradle
+     * Plugin 2.0.0 through 2.4.x. KGP 2.5.0 makes this enum implement {@link Named} (KT-89265).
+     * Not referenced by class literal because the enum lives in the KGP distribution and is not
+     * on Gradle's compile classpath.
      */
     private static final String KGP_NATIVE_BUNDLE_ENUM_FQN =
         "org.jetbrains.kotlin.gradle.targets.native.toolchain.KotlinNativeBundleArtifactFormat$KotlinNativeBundleArtifactsTypes";
@@ -61,13 +61,14 @@ public final class AttributeTypeValidator {
 
     /**
      * Returns whether the given type is the specific plain-enum class
-     * {@code KotlinNativeBundleArtifactsTypes} used as an attribute value type by the Kotlin
-     * Gradle Plugin 2.0.x line (empirically observed in 2.0.0 through 2.0.21). KGP 2.1.0+ no
-     * longer uses this enum. Callers may accept this type with a targeted deprecation warning
-     * identifying KGP as the source, instead of the generic unsupported-type deprecation.
+     * {@code KotlinNativeBundleArtifactsTypes} used as an attribute value type by Kotlin Gradle
+     * Plugin 2.0.0 through 2.4.x. KGP 2.5.0 makes this enum implement {@link Named} (KT-89265).
+     * Callers may accept this type with a targeted deprecation warning identifying KGP as the
+     * source, instead of the generic unsupported-type deprecation.
      * <p>
-     * This special case should be removed when compatibility with KGP 2.0.x is no longer required.
+     * This special case should be removed when compatibility with KGP 2.0.0 through 2.4.x is no longer required.
      */
+    // TODO: Remove support for raw Enums in Gradle 10.0.0
     public static boolean isKGPSpecialCase(Class<?> type) {
         return KGP_NATIVE_BUNDLE_ENUM_FQN.equals(type.getName());
     }
@@ -131,6 +132,7 @@ public final class AttributeTypeValidator {
         if (!isSupportedAttributeType(typeArg)) {
             DeprecationLogger.deprecate("Using type '" + typeArg.getName() + "' as the type parameter of attribute rule '" + ruleClass.getName() + "'")
                 .withContext("Attribute values must be of type String, Boolean, a subtype of Number, or implement " + Named.class.getName() + ". Using an unsupported type may cause failures during dependency resolution, publishing, or configuration cache serialization.")
+                .withProblemName("Unsupported type used as the type parameter of an attribute rule")
                 .willBecomeAnErrorInGradle10()
                 .withUpgradeGuideSection(9, "unsupported_attribute_value_type")
                 .nagUser();

@@ -53,7 +53,7 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
     public void started(final TestDescriptorInternal test, TestStartEvent event) {
         processor.started(test, event);
 
-        outputRedirector.setOutputOwner(test.getId());
+        outputRedirector.testStarted(test.getId());
 
         if (rootId == null) {
             outputRedirector.startRedirecting();
@@ -82,7 +82,7 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
             //when test is completed we should redirect output for the parent
             //so that log events emitted during @AfterSuite, @AfterClass are processed
             Object newOwner = parents.remove(testId);
-            outputRedirector.setOutputOwner(newOwner);
+            outputRedirector.testCompleted(testId, newOwner);
         }
         processor.completed(testId, event);
     }

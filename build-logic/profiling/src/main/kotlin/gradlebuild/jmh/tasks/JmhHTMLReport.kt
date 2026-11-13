@@ -31,7 +31,7 @@ import org.gradle.work.DisableCachingByDefault
 abstract class JmhHTMLReport : DefaultTask() {
 
     @get:InputFile
-    @get:PathSensitive(PathSensitivity.NAME_ONLY)
+    @get:PathSensitive(PathSensitivity.NONE)
     abstract val csv: RegularFileProperty
 
     @get:OutputDirectory

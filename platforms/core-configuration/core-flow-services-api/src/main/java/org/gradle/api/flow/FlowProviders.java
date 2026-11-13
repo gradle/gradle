@@ -25,6 +25,8 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * Exposes build lifecycle events as {@link Provider providers} so they can be used as inputs
  * to {@link FlowAction dataflow actions}.
  *
+ * <p>An instance of this type can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}.</p>
+ *
  * @since 8.1
  */
 @Incubating

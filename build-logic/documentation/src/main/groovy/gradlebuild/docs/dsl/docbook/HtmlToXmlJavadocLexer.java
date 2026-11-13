@@ -39,6 +39,7 @@ public class HtmlToXmlJavadocLexer implements JavadocLexer {
         blockElements.add("h5");
         blockElements.add("h6");
         blockElements.add("table");
+        blockElements.add("caption");
         blockElements.add("thead");
         blockElements.add("tbody");
         blockElements.add("tr");

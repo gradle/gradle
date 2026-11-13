@@ -24,6 +24,7 @@ import org.gradle.api.file.FileCollection.AntType
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.tasks.ant.AntTarget
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.TestUtil
 import spock.lang.Issue
 
 import java.lang.reflect.Field
@@ -37,7 +38,7 @@ class DefaultAntBuilderTest extends AbstractProjectBuilderSpec {
     def ant
 
     def setup() {
-        ant = new DefaultAntBuilder(project, loggingAdapter)
+        ant = new DefaultAntBuilder(project, loggingAdapter, TestUtil.taskDependencyFactory())
     }
 
     def "ant properties are available as properties of builder"() {

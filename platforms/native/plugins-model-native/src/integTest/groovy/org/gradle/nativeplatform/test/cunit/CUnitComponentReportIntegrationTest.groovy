@@ -21,6 +21,7 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 class CUnitComponentReportIntegrationTest extends AbstractNativeComponentReportIntegrationTest {
     @RequiresInstalledToolChain
     def "fails with a reasonable error if component under test is not specified"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 plugins {
@@ -49,6 +50,7 @@ model {
 
     @RequiresInstalledToolChain
     def "shows details of native C executable with test suite"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 plugins {

@@ -16,6 +16,11 @@
 
 package org.gradle.internal.tools.api
 
+import org.objectweb.asm.AnnotationVisitor
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 import spock.lang.Issue
 
 import java.lang.annotation.ElementType
@@ -164,6 +169,158 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         extractedAnnotations.size() == 1
         extractedAnnotations[0].annotations[0].annotationType() == extractedAnn
         extractedAnnotations[0].annotations[0].path() == 'somePath'
+    }
+
+    void "type annotations on every method param are retained"() {
+        given:
+        def api = toApi([
+            A  : '''
+                public class A {
+                    public void foo(@Ann(path="first") String first, @Ann(path="second") String second) {}
+                }
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE_USE})
+                public @interface Ann {
+                    String path();
+                }
+            '''
+        ])
+
+        when:
+        def clazz = api.classes.A
+        def annotations = clazz.clazz.getDeclaredMethod('foo', String, String).annotatedParameterTypes
+        def extractedAnn = api.extractAndLoadApiClassFrom(api.classes.Ann)
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
+        def extractedAnnotations = extractedClass.getDeclaredMethod('foo', String, String).annotatedParameterTypes
+
+        then:
+        annotations.collect { it.annotations[0].path() } == ['first', 'second']
+        extractedAnnotations.collect { it.annotations[0].annotationType() } == [extractedAnn, extractedAnn]
+        extractedAnnotations.collect { it.annotations[0].path() } == ['first', 'second']
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38792")
+    void "type annotations on class type parameter bounds are retained"() {
+        given:
+        def api = toApi([
+            A  : '''
+                public class A<OUT extends @Ann(path="out") Object, IN extends @Ann(path="in") Object> {}
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE_USE})
+                public @interface Ann {
+                    String path();
+                }
+            '''
+        ])
+
+        when:
+        def clazz = api.classes.A
+        def bounds = clazz.clazz.typeParameters.collect { it.annotatedBounds[0] }
+        def extractedAnn = api.extractAndLoadApiClassFrom(api.classes.Ann)
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
+        def extractedBounds = extractedClass.typeParameters.collect { it.annotatedBounds[0] }
+
+        then:
+        bounds.collect { it.annotations[0].path() } == ['out', 'in']
+        extractedBounds.collect { it.annotations[0].annotationType() } == [extractedAnn, extractedAnn]
+        extractedBounds.collect { it.annotations[0].path() } == ['out', 'in']
+    }
+
+    void "type annotations on implemented interfaces are retained"() {
+        given:
+        def api = toApi([
+            A  : '''
+                import java.util.concurrent.Callable;
+
+                public class A implements Callable<@Ann(path="somePath") String> {
+                    public String call() { return null; }
+                }
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE_USE})
+                public @interface Ann {
+                    String path();
+                }
+            '''
+        ])
+
+        when:
+        def clazz = api.classes.A
+        def typeArgument = clazz.clazz.annotatedInterfaces[0].annotatedActualTypeArguments[0]
+        def extractedAnn = api.extractAndLoadApiClassFrom(api.classes.Ann)
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
+        def extractedTypeArgument = extractedClass.annotatedInterfaces[0].annotatedActualTypeArguments[0]
+
+        then:
+        typeArgument.annotations.size() == 1
+        typeArgument.annotations[0].annotationType().name == 'Ann'
+        extractedTypeArgument.annotations.size() == 1
+        extractedTypeArgument.annotations[0].annotationType() == extractedAnn
+        extractedTypeArgument.annotations[0].path() == 'somePath'
+    }
+
+    void "type annotations on field are retained"() {
+        given:
+        def api = toApi([
+            A  : '''
+                import java.util.List;
+
+                public class A {
+                    public @Ann(path="onType") String foo;
+                    public List<@Ann(path="onTypeArgument") String> bar;
+                }
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE_USE})
+                public @interface Ann {
+                    String path();
+                }
+            '''
+        ])
+
+        when:
+        def clazz = api.classes.A
+        def annotations = clazz.clazz.getDeclaredField('foo').annotatedType.annotations
+        def extractedAnn = api.extractAndLoadApiClassFrom(api.classes.Ann)
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
+        def extractedAnnotations = extractedClass.getDeclaredField('foo').annotatedType.annotations
+        def extractedTypeArgumentAnnotations = extractedClass.getDeclaredField('bar').annotatedType.annotatedActualTypeArguments[0].annotations
+
+        then:
+        annotations.size() == 1
+        annotations[0].annotationType().name == 'Ann'
+        extractedAnnotations.size() == 1
+        extractedAnnotations[0].annotationType() == extractedAnn
+        extractedAnnotations[0].path() == 'onType'
+        extractedTypeArgumentAnnotations.size() == 1
+        extractedTypeArgumentAnnotations[0].annotationType() == extractedAnn
+        extractedTypeArgumentAnnotations[0].path() == 'onTypeArgument'
     }
 
     void "mixed annotations on method params are retained"() {
@@ -594,6 +751,161 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
 
         then:
         consumer.classes.Main.clazz.name == "Main"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38828")
+    void "annotation value member is retained next to an array member"() {
+        given:
+        def api = toApi([
+            A  : '''
+                @Ann(value = "v", names = {"x", "y"})
+                public class A {}
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE})
+                public @interface Ann {
+                    String value();
+                    String[] names();
+                }
+            '''
+        ])
+
+        when:
+        def extractedAnn = api.extractAndLoadApiClassFrom(api.classes.Ann)
+        def extractedClass = api.extractAndLoadApiClassFrom(api.classes.A)
+        def extractedAnnotations = extractedClass.annotations
+
+        then:
+        extractedAnnotations.size() == 1
+        def annotation = extractedAnnotations[0]
+        annotation.annotationType() == extractedAnn
+        annotation.value() == 'v'
+        annotation.names() == ['x', 'y']
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38828")
+    void "an array member does not add a value member to the extracted annotation"() {
+        given:
+        def api = toApi([
+            A  : '''
+                @Ann(names = {"x", "y"})
+                public class A {}
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE})
+                public @interface Ann {
+                    String[] names();
+                }
+            '''
+        ])
+
+        expect:
+        classAnnotationMemberNames(api.extractApiClassFrom(api.classes.A)) == ['names']
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38828")
+    void "extracted class changes when an annotation value member changes"() {
+        given:
+        def annotation = [Ann: '''
+            import java.lang.annotation.ElementType;
+            import java.lang.annotation.Retention;
+            import java.lang.annotation.RetentionPolicy;
+            import java.lang.annotation.Target;
+
+            @Retention(RetentionPolicy.RUNTIME)
+            @Target({ElementType.TYPE})
+            public @interface Ann {
+                String value();
+                String[] names();
+            }
+        ''']
+        def before = toApi(annotation + [A: '@Ann(value = "v", names = {"x", "y"}) public class A {}'])
+        def beforeBytes = before.extractApiClassFrom(before.classes.A)
+        def after = toApi(annotation + [A: '@Ann(value = "w", names = {"x", "y"}) public class A {}'])
+        def afterBytes = after.extractApiClassFrom(after.classes.A)
+
+        expect:
+        beforeBytes != afterBytes
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38873")
+    def "annotation members keep their declaration order"() {
+        given:
+        def api = toApi([
+            Ann: '''
+                public @interface Ann {
+                    String option() default "";
+                    String description();
+                    int alpha() default 0;
+                }
+            '''
+        ])
+
+        when:
+        def extractedBytes = api.extractApiClassFrom(api.classes.Ann)
+
+        then:
+        methodNamesInOrder(extractedBytes) == ['option', 'description', 'alpha']
+    }
+
+    /**
+     * The names of the members of every annotation on the given class, in the order they are written.
+     */
+    private static List<String> classAnnotationMemberNames(byte[] apiClassBytes) {
+        List<String> names = []
+        new ClassReader(apiClassBytes).accept(new ClassVisitor(Opcodes.ASM9) {
+            @Override
+            AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+                return new AnnotationVisitor(Opcodes.ASM9) {
+                    @Override
+                    void visit(String name, Object value) {
+                        names << name
+                    }
+
+                    @Override
+                    void visitEnum(String name, String desc, String value) {
+                        names << name
+                    }
+
+                    @Override
+                    AnnotationVisitor visitAnnotation(String name, String desc) {
+                        names << name
+                        return null
+                    }
+
+                    @Override
+                    AnnotationVisitor visitArray(String name) {
+                        names << name
+                        return null
+                    }
+                }
+            }
+        }, 0)
+        return names
+    }
+
+    private static List<String> methodNamesInOrder(byte[] classBytes) {
+        def names = []
+        new ClassReader(classBytes).accept(new ClassVisitor(Opcodes.ASM9) {
+            @Override
+            MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+                names << name
+                return null
+            }
+        }, 0)
+        names
     }
 
     private static Map<String, Method> mapMethods(Method[] methods) {

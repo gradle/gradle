@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider.action
 
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.internal.build.event.BuildEventSubscriptions
+import org.gradle.internal.buildoption.Option
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.tooling.events.OperationType
@@ -64,6 +65,28 @@ class BuildActionSerializerTest extends SerializerSpec {
             .findAll { it.propertyType == boolean }
             .findAll { p -> StartParameterInternal.methods.find { m -> m.name == "set" + p.name.capitalize() && m.parameterCount == 1 && m.parameterTypes[0] == Boolean.TYPE } }
             .collect { it.name }
+    }
+
+    def "serializes #buildOptionName explicit build option as #value"() {
+        def startParameter = new StartParameterInternal()
+        startParameter."${buildOptionName}" = value
+        def action = new ExecuteBuildAction(startParameter)
+
+        expect:
+        def result = serialize(action, BuildActionSerializer.create())
+        result instanceof ExecuteBuildAction
+        def deserialized = result.startParameter."${buildOptionName}"
+        deserialized.explicit == value.explicit
+        deserialized.get() == value.get()
+
+        where:
+        [buildOptionName, value] << [
+            // Check all Option.Value-typed properties
+            Introspector.getBeanInfo(StartParameterInternal).propertyDescriptors
+                .findAll { it.propertyType == Option.Value && it.writeMethod != null }
+                .collect { it.name },
+            [Option.Value.defaultValue(false), Option.Value.value(false), Option.Value.value(true)]
+        ].combinations()
     }
 
     def "serializes BuildModelAction"() {

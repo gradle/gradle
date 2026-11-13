@@ -68,7 +68,7 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
         e.failures.size() == 1
         e.failures[0] instanceof Failure
         (e.failures[0].causes[0]).problems[0].contextualLabel.contextualLabel == "Task 'doesNotExist' not found in root project 'root'."
-        (e.failures[0].causes[0]).problems[0].definition.id.displayName == 'Selection failed'
+        (e.failures[0].causes[0]).problems[0].definition.id.displayName == taskNotFoundName
     }
 
     def "failure does not contains report from the previous build"() {
@@ -96,7 +96,7 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
         e.failures.size() == 1
         e.failures[0] instanceof Failure
         e.failures[0].causes[0].problems[0].contextualLabel.contextualLabel == "Task 'doesNotExist2' not found in root project 'root'."
-        e.failures[0].causes[0].problems[0].definition.id.displayName == 'Selection failed'
+        e.failures[0].causes[0].problems[0].definition.id.displayName == taskNotFoundName
     }
 
     def "failure from worker using process isolation"() {
@@ -172,7 +172,7 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
         GradleConnectionException e = thrown(GradleConnectionException)
         def problem = e.failures[0]?.causes[0]?.causes[0]?.problems[0]
         problem != null
-        problem.definition.id.name == 'type'
+        problem.definition.id.name == (ProblemsApiGroovyScriptUtils.hasPredefinedGroups(targetVersion) ? 'label' : 'type')
         problem.definition.id.displayName == 'label'
         problem.failure.message == 'Exception message'
     }
@@ -181,7 +181,7 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
     private String throwAsProblem(String exception) {
         if (targetVersion >= GradleVersion.version('8.13')) {
             """
-                getProblems().getReporter().throwing($exception, ${ProblemsApiGroovyScriptUtils.createIdExpression()}, problem ->
+                getProblems().getReporter().throwing($exception, ${ProblemsApiGroovyScriptUtils.createIdExpression(targetVersion)}, problem ->
                     problem.stackLocation()
                 );
             """
@@ -194,5 +194,9 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
                 );
             """
         }
+    }
+
+    private String getTaskNotFoundName() {
+        targetVersion.baseVersion >= GradleVersion.version("9.9") ? 'Task not found' : 'Selection failed'
     }
 }

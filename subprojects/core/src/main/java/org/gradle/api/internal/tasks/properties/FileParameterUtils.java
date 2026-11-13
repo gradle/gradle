@@ -17,15 +17,21 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 public class FileParameterUtils {
@@ -67,5 +73,42 @@ public class FileParameterUtils {
         return inputFilePropertyType == InputFilePropertyType.DIRECTORY
             ? fileCollection.getAsFileTree()
             : fileCollection;
+    }
+
+    /**
+     * Collects providers nested in collections and object arrays.
+     *
+     * Root providers are handled by the caller's top-level presence check, and domain object collections and
+     * task providers are skipped. The result preserves the encounter order, and collecting does not query
+     * any provider or evaluate any deferred value.
+     */
+    public static List<Provider<?>> findNestedProviders(@Nullable Object value) {
+        List<Provider<?>> providers = new ArrayList<>();
+        collectNestedProviders(value, false, providers);
+        return providers;
+    }
+
+    private static void collectNestedProviders(@Nullable Object value, boolean nested, List<Provider<?>> providers) {
+        if (value instanceof DomainObjectCollection) {
+            // DomainObjectCollection is live and can realize or mutate elements when iterated.
+            return;
+        }
+        if (value instanceof TaskProvider) {
+            // TaskProvider is always present and can only be serialized as part of a file collection.
+            return;
+        }
+        if (value instanceof Provider) {
+            if (nested) {
+                providers.add((Provider<?>) value);
+            }
+        } else if (value instanceof Collection) {
+            for (Object element : (Collection<?>) value) {
+                collectNestedProviders(element, true, providers);
+            }
+        } else if (value instanceof Object[]) {
+            for (Object element : (Object[]) value) {
+                collectNestedProviders(element, true, providers);
+            }
+        }
     }
 }

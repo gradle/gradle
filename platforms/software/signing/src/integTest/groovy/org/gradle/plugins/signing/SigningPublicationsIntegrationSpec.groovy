@@ -874,4 +874,201 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-1.0.jar.asc").text
         file("build", "publications", "mavenJava", "pom-default.xml.asc").text
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/38909")
+    def "signing a Maven publication does not observe the component, so it can still be mutated afterwards"() {
+        given:
+        buildFile << """
+            apply plugin: 'maven-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            publishing {
+                publications {
+                    mavenJava(MavenPublication) {
+                        from(components.java)
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign(publishing.publications.mavenJava)
+            }
+
+            java {
+                withSourcesJar()
+            }
+        """
+
+        when:
+        run("signMavenJavaPublication")
+
+        then:
+        executedAndNotSkipped(":signMavenJavaPublication")
+
+        and:
+        file("build", "libs", "sign-1.0.jar.asc").text
+        file("build", "libs", "sign-1.0-sources.jar.asc").text
+        file("build", "publications", "mavenJava", "pom-default.xml.asc").text
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38909")
+    def "signing a version-mapped Maven publication does not resolve mapped configurations, so dependencies can still be declared afterwards"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+
+        buildFile << """
+            apply plugin: 'maven-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+
+            publishing {
+                publications {
+                    mavenJava(MavenPublication) {
+                        from(components.java)
+                        artifactId = '$artifactId'
+                        versionMapping {
+                            allVariants {
+                                fromResolutionResult()
+                            }
+                        }
+                    }
+                }
+                repositories {
+                    maven { url = "${mavenRepo.uri}" }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign(publishing.publications.mavenJava)
+            }
+
+            dependencies {
+                implementation("org:foo:1.+")
+            }
+        """
+
+        when:
+        succeeds("publish")
+
+        then:
+        executedAndNotSkipped(":publishMavenJavaPublicationToMavenRepository")
+
+        and:
+        def module = mavenRepo.module("sign", artifactId, version)
+        module.parsedPom.scopes.runtime.assertDependsOn("org:foo:1.0")
+
+        and:
+        module.pomFile.assertExists()
+        signatureFileFor(module.pomFile).assertExists()
+        module.artifactFile.assertExists()
+        signatureFileFor(module.artifactFile).assertExists()
+        module.getArtifactFile(type: "module").assertExists()
+        signatureFileFor(module.getArtifactFile(type: "module")).assertExists()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38909")
+    def "signing an Ivy publication does not observe the component, so it can still be mutated afterwards"() {
+        given:
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            publishing {
+                publications {
+                    ivyJava(IvyPublication) {
+                        from(components.java)
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign(publishing.publications.ivyJava)
+            }
+
+            java {
+                withSourcesJar()
+            }
+        """
+
+        when:
+        run("signIvyJavaPublication")
+
+        then:
+        executedAndNotSkipped(":signIvyJavaPublication")
+
+        and:
+        file("build", "libs", "sign-1.0.jar.asc").text
+        file("build", "libs", "sign-1.0-sources.jar.asc").text
+        file("build", "publications", "ivyJava", "ivy.xml.asc").text
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38909")
+    def "signing a version-mapped Ivy publication does not resolve mapped configurations, so dependencies can still be declared afterwards"() {
+        given:
+        ivyRepo.module("org", "foo", "1.0").publish()
+
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            repositories {
+                ivy { url = "${ivyRepo.uri}" }
+            }
+
+            publishing {
+                publications {
+                    ivyJava(IvyPublication) {
+                        from(components.java)
+                        module = '$artifactId'
+                        versionMapping {
+                            allVariants {
+                                fromResolutionResult()
+                            }
+                        }
+                    }
+                }
+                repositories {
+                    ivy { url = "${ivyRepo.uri}" }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign(publishing.publications.ivyJava)
+            }
+
+            dependencies {
+                implementation("org:foo:1.+")
+            }
+        """
+
+        when:
+        succeeds("publish")
+
+        then:
+        executedAndNotSkipped(":publishIvyJavaPublicationToIvyRepository")
+
+        and:
+        def module = ivyRepo.module("sign", artifactId, version)
+        module.parsedIvy.assertDependsOn("org:foo:1.0@runtime")
+
+        and:
+        module.ivyFile.assertExists()
+        signatureFileFor(module.ivyFile).assertExists()
+        module.jarFile.assertExists()
+        signatureFileFor(module.jarFile).assertExists()
+        module.moduleMetadataFile.assertExists()
+        signatureFileFor(module.moduleMetadataFile).assertExists()
+    }
+
+    private static TestFile signatureFileFor(TestFile file) {
+        new TestFile(file.parentFile, "${file.name}.asc")
+    }
+
 }

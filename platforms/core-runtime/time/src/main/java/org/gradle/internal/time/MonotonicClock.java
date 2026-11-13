@@ -48,18 +48,12 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 class MonotonicClock implements Clock {
 
-    private static final long SYNC_INTERVAL_MILLIS = TimeUnit.SECONDS.toMillis(3);
-
     private final long syncIntervalMillis;
     private final TimeSource timeSource;
 
     private final AtomicLong syncMillisRef;
     private final AtomicLong syncNanosRef;
     private final AtomicLong currentTime = new AtomicLong();
-
-    MonotonicClock() {
-        this(TimeSource.SYSTEM, SYNC_INTERVAL_MILLIS);
-    }
 
     MonotonicClock(TimeSource timeSource, long syncIntervalMillis) {
         long nanoTime = timeSource.nanoTime();
@@ -116,4 +110,5 @@ class MonotonicClock implements Clock {
             }
         }
     }
+
 }

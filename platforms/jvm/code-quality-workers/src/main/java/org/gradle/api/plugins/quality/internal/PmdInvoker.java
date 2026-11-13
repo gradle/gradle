@@ -153,7 +153,7 @@ public abstract class PmdInvoker extends AntWorkAction<PmdActionParameters> {
 
             reports.forEach(report -> {
                 File file = report.getOutputLocation().getAsFile().get();
-                checkArgument(file.getParentFile().exists(), "Parent directory of report file '" + file + "' does not exist.");
+                checkArgument(file.getParentFile().exists(), "Parent directory of report file '%s' does not exist.", file);
                 String type;
                 String name = report.getName().get();
                 switch (name) {

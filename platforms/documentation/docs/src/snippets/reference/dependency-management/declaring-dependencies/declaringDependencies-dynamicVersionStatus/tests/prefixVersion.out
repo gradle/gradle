@@ -1,0 +1,2 @@
+compileClasspath - Compile classpath for source set 'main'.
+\--- com.example:lib:1.+ -> 1.1

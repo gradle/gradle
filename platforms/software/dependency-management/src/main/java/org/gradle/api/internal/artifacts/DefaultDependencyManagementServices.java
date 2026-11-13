@@ -33,7 +33,6 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
@@ -74,6 +73,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenMirrorResolver;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
@@ -82,7 +82,6 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenVariantAttributesFactory;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformRegistrationFactory;
@@ -147,6 +146,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.internal.resource.transport.RepositoryTransportFactory;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -157,6 +157,7 @@ import java.io.File;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import org.gradle.internal.model.DomainObjectContext;
 
 public class DefaultDependencyManagementServices implements DependencyManagementServices {
 
@@ -393,7 +394,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
             ChecksumService checksumService,
             ProviderFactory providerFactory,
-            VersionParser versionParser
+            VersionParser versionParser,
+            MavenMirrorResolver mavenMirrorResolver
         ) {
             return new DefaultBaseRepositoryFactory(
                 localMavenRepositoryLocator,
@@ -418,7 +420,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 urlArtifactRepositoryFactory,
                 checksumService,
                 providerFactory,
-                versionParser
+                versionParser,
+                mavenMirrorResolver
             );
         }
 
@@ -500,7 +503,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ListenerManager listenerManager,
             PropertyFactory propertyFactory,
             FilePropertyFactory filePropertyFactory,
-            FileResourceListener fileResourceListener
+            FileResourceListener fileResourceListener,
+            BuildOperationRunner buildOperationRunner
         ) {
             if (!params.isDependencyLockingEnabled()) {
                 return NoOpDependencyLockingProvider.getInstance();
@@ -515,7 +519,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 globalDependencyResolutionRules.getDependencySubstitutionRules(),
                 propertyFactory,
                 filePropertyFactory,
-                fileResourceListener
+                fileResourceListener,
+                buildOperationRunner
             );
             if (startParameter.isWriteDependencyLocks()) {
                 listenerManager.addListener(new BuildModelLifecycleListener() {

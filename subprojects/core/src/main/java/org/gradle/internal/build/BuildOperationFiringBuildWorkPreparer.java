@@ -23,6 +23,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.QueryableExecutionPlan;
+import org.gradle.execution.plan.ScheduledWork;
 import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -95,7 +96,7 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             QueryableExecutionPlan contents = plan.getContents();
             Set<Task> requestedTasks = contents.getRequestedTasks();
             Set<Task> filteredTasks = contents.getFilteredTasks();
-            QueryableExecutionPlan.ScheduledNodes scheduledWork = contents.getScheduledNodes();
+            ScheduledWork scheduledWork = contents.getScheduledNodes();
 
             PlannedNodeGraph plannedNodeGraph = computePlannedNodeGraph(scheduledWork);
 
@@ -109,8 +110,8 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
         @Override
         public BuildOperationDescriptor.@NonNull Builder description() {
             //noinspection Convert2Lambda
-            return BuildOperationDescriptor.displayName(gradle.contextualize("Calculate task graph"))
-                .progressDisplayName(buildingTaskGraphDisplayName(gradle))
+            return BuildOperationDescriptor.displayName("Calculate task graph").owner(gradle.getOwner())
+                .progressDisplayName("Building task graph")
                 .details(new Details() {
                     @Override
                     public String getBuildPath() {
@@ -119,17 +120,9 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
                 });
         }
 
-        private static String buildingTaskGraphDisplayName(GradleInternal gradle) {
-            if (gradle.isRootBuild()) {
-                return "Building task graph of root build";
-            } else {
-                return "Building task graph of build '" + gradle.getIdentityPath().asString() + "'";
-            }
-        }
-
-        private PlannedNodeGraph computePlannedNodeGraph(QueryableExecutionPlan.ScheduledNodes scheduledWork) {
+        private PlannedNodeGraph computePlannedNodeGraph(ScheduledWork scheduledWork) {
             PlannedNodeGraph.Collector collector = new PlannedNodeGraph.Collector(converterRegistry);
-            scheduledWork.visitNodes((nodes, entryNodes) -> collector.collectNodes(nodes));
+            collector.collectNodes(scheduledWork.getScheduledNodes());
             return collector.getGraph();
         }
 

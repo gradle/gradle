@@ -29,7 +29,8 @@ public interface MessagingServer {
      * Creates an endpoint that peers can connect to. Assigns an arbitrary address.
      *
      * @param action The action to execute when a connection has been established.
+     * @param connectionToken The token a peer must present to be accepted.
      * @return The local address of the endpoint, for the peer to connect to.
      */
-    ConnectionAcceptor accept(Action<ObjectConnection> action);
+    ConnectionAcceptor accept(Action<ObjectConnection> action, byte[] connectionToken);
 }

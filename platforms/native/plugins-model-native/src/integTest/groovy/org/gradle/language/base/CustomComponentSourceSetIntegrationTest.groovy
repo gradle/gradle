@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 class CustomComponentSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
     @Managed interface SampleLibrary extends GeneralComponentSpec {}
     @Managed interface SampleBinary extends BinarySpec {}
@@ -49,6 +50,7 @@ class CustomComponentSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "source order is retained"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << '''
 class Dump extends RuleSource {
     @Mutate
@@ -132,6 +134,7 @@ model {
     }
 
     def "fail when multiple source sets are registered with the same name"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
 model {
     components {
@@ -165,6 +168,7 @@ model {
     }
 
     def "user can attach unmanaged internal views to custom unmanaged `LanguageSourceSet`"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             interface HaxeSourceSet extends LanguageSourceSet {
@@ -227,6 +231,7 @@ model {
     }
 
     def "fails on creation when model type extends `LanguageSourceSet` without a default implementation"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             interface HaxeSourceSet extends LanguageSourceSet {}
@@ -256,6 +261,7 @@ model {
     }
 
     def "user can declare and use a custom managed LanguageSourceSet"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             @Managed interface CustomManagedLSS extends LanguageSourceSet {
@@ -306,6 +312,7 @@ model {
     }
 
     def "user can declare custom managed LanguageSourceSet based on custom LanguageSourceSet component"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             @Managed interface ChildCustomManagedLSS extends LanguageSourceSet {}
@@ -342,6 +349,7 @@ model {
     }
 
     def "user can target managed internal views of a custom managed LanguageSourceSet with rules"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             @Managed interface CustomManagedLSS extends LanguageSourceSet {}

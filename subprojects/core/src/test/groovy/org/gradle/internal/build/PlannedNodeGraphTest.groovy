@@ -16,6 +16,7 @@
 
 package org.gradle.internal.build
 
+import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeComparator
 import org.gradle.execution.plan.PlannedNodeInternal
@@ -308,7 +309,10 @@ class PlannedNodeGraphTest extends Specification {
         void resolveDependencies(TaskDependencyResolver dependencyResolver) {}
 
         @Override
-        String toString() {
+        void execute(NodeExecutionContext context) {}
+
+        @Override
+        String getDisplayName() {
             return "TestNode($name)"
         }
 

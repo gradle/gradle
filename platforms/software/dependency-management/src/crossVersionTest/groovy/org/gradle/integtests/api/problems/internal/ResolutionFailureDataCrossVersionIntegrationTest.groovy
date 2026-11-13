@@ -18,6 +18,7 @@ package org.gradle.integtests.api.problems.internal
 
 import org.gradle.api.problems.internal.ResolutionFailureData
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -54,11 +55,7 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
 
         then:
         failureData.size() >= 1 // Depending on Java version, we might get a Java version test execution failure first, so just check the last one
-        failureData.last().asMap.tap { Map d ->
-            assert d.problemId == "UNKNOWN_RESOLUTION_FAILURE"
-            assert d.requestTarget == "test failure"
-            assert d.problemDisplayName == "Unknown resolution failure"
-        }
+        assertResolutionFailureData(failureData.last().asMap)
     }
 
     @ToolingApiVersion(">=8.12")
@@ -80,10 +77,17 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
 
         then:
         failureData.size() >= 1 // Depending on Java version, we might get a Java version test execution failure first, so just check the last one
-        failureData.last().asMap.tap { Map d ->
-            assert d.problemId == "UNKNOWN_RESOLUTION_FAILURE"
-            assert d.requestTarget == "test failure"
-            assert d.problemDisplayName == "Unknown resolution failure"
+        assertResolutionFailureData(failureData.last().asMap)
+    }
+
+    void assertResolutionFailureData(Map<String, Object> data) {
+        if (targetVersion.baseVersion >= GradleVersion.version("9.9")) {
+            assert data == [requestTarget: "test failure"]
+        } else {
+            // before 9.9, the data also repeated the problem id and its display name
+            assert data.problemId == "UNKNOWN_RESOLUTION_FAILURE"
+            assert data.requestTarget == "test failure"
+            assert data.problemDisplayName == "Unknown resolution failure"
         }
     }
 
@@ -97,24 +101,12 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
         return listener.problems
     }
 
-    String id(GradleVersion targetVersion) {
-        if (targetVersion < GradleVersion.version("8.13")) {
-            'id("type", "label")'
-        } else {
-            'id(org.gradle.api.problems.ProblemId.create("type", "label", org.gradle.api.problems.ProblemGroup.create("generic", "Generic")))'
-        }
+    static String id(GradleVersion targetVersion) {
+        ProblemsApiGroovyScriptUtils.id(targetVersion, "type", "label")
     }
 
     static String report(GradleVersion targetVersion) {
-        if (targetVersion < GradleVersion.version("8.6")) {
-            'create'
-        } else if (targetVersion < GradleVersion.version("8.11")) {
-            'forNamespace("org.example.plugin").reporting '
-        } else if (targetVersion < GradleVersion.version("8.13")) {
-            'getReporter().reporting '
-        } else {
-            'getReporter().report(org.gradle.api.problems.ProblemId.create("type", "label", org.gradle.api.problems.ProblemGroup.create("generic", "Generic"))) '
-        }
+        ProblemsApiGroovyScriptUtils.report(targetVersion, "type", "label")
     }
 
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {

@@ -16,13 +16,13 @@
 
 package org.gradle.internal.serialize.codecs.dm.transform
 
-import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.transform.Transform
 import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory
 import org.gradle.api.internal.artifacts.transform.TransformStep
 import org.gradle.internal.cc.base.serialize.readProjectRef
 import org.gradle.internal.cc.base.serialize.writeProjectRef
 import org.gradle.internal.execution.InputFingerprinter
+import org.gradle.internal.model.DomainObjectContext
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext

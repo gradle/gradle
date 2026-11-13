@@ -49,16 +49,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
-import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
-import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.DefaultExternalResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.artifacts.transform.TransformExecutionListener;
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeDependencyResolver;
 import org.gradle.api.internal.artifacts.verification.signatures.DefaultSignatureVerificationServiceFactory;
@@ -112,6 +109,8 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
+import org.gradle.internal.resource.transport.RepositoryTransport;
+import org.gradle.internal.resource.transport.RepositoryTransportFactory;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -265,13 +264,8 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     }
 
     @Provides
-    MavenSettingsProvider createMavenSettingsProvider() {
-        return new DefaultMavenSettingsProvider(new DefaultMavenFileLocations());
-    }
-
-    @Provides
-    LocalMavenRepositoryLocator createLocalMavenRepositoryLocator(MavenSettingsProvider mavenSettingsProvider) {
-        return new DefaultLocalMavenRepositoryLocator(mavenSettingsProvider);
+    LocalMavenRepositoryLocator createLocalMavenRepositoryLocator(MavenSettingsProvider mavenSettingsProvider, MavenFileLocations mavenFileLocations) {
+        return new DefaultLocalMavenRepositoryLocator(mavenSettingsProvider, mavenFileLocations);
     }
 
     @Provides
@@ -299,7 +293,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         ProducerGuard<ExternalResourceName> producerGuard,
         FileResourceRepository fileResourceRepository,
         ChecksumService checksumService,
-        StartParameterResolutionOverride startParameterResolutionOverride
+        StartParameter startParameter
     ) {
         return artifactCachesProvider.withWritableCache((md, manager) -> new RepositoryTransportFactory(
             resourceConnectorFactories,
@@ -308,7 +302,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
             buildCommencedTimeProvider,
             manager,
             buildOperationRunner,
-            startParameterResolutionOverride,
+            startParameter,
             producerGuard,
             fileResourceRepository,
             checksumService
@@ -325,10 +319,12 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         ListenerManager listenerManager,
         BuildCommencedTimeProvider timeProvider,
         ServiceRegistry serviceRegistry,
-        FileResourceListener fileResourceListener
+        FileResourceListener fileResourceListener,
+        BuildOperationRunner buildOperationRunner
     ) {
         DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(
             buildOperationExecutor,
+            buildOperationRunner,
             checksumService,
             signatureVerificationServiceFactory,
             documentationRegistry,

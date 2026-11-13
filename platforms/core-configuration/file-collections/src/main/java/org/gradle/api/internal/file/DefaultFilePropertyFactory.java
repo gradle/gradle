@@ -39,7 +39,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.bifunction;
 
 public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFactory {
@@ -129,6 +129,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public Provider<Directory> dir(Provider<? extends CharSequence> path) {
+            requireNonNull(path, "Cannot resolve a path using a null provider.");
             return new MappingProvider<Directory, CharSequence>(Directory.class, Providers.internal(path), new ResolvingDirectoryTransformer(fileResolver, fileCollectionFactory));
         }
 
@@ -139,6 +140,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public Provider<RegularFile> file(Provider<? extends CharSequence> path) {
+            requireNonNull(path, "Cannot resolve a path using a null provider.");
             return new MappingProvider<RegularFile, CharSequence>(RegularFile.class, Providers.internal(path), new ResolvingRegularFileTransform(fileResolver));
         }
 
@@ -205,7 +207,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
             convention(provider.map(value -> {
                 if (value instanceof File) {
                     return fromFile((File) value);
-                } else if (checkNotNull(getType()).isAssignableFrom(value.getClass())) {
+                } else if (requireNonNull(getType(), "File system location property must have a type.").isAssignableFrom(value.getClass())) {
                     return Cast.uncheckedNonnullCast(value);
                 } else {
                     throw new IllegalArgumentException("Cannot convert " + value.getClass() + " to " + getType());
@@ -400,6 +402,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public Provider<Directory> dir(final Provider<? extends CharSequence> path) {
+            requireNonNull(path, "Cannot resolve a path using a null provider.");
             return new BiProvider<>(Directory.class, this, path, bifunction((dir, relativePath) -> dir.dir(relativePath.toString())));
         }
 
@@ -410,6 +413,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public Provider<RegularFile> file(final Provider<? extends CharSequence> path) {
+            requireNonNull(path, "Cannot resolve a path using a null provider.");
             return new BiProvider<>(RegularFile.class, this, path, bifunction((dir, relativePath) -> dir.file(relativePath.toString())));
         }
 

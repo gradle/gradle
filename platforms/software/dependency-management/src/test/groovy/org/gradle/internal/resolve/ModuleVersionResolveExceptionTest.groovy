@@ -16,6 +16,7 @@
 package org.gradle.internal.resolve
 
 import org.gradle.api.Describable
+import org.gradle.api.GradleException
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.Describables
@@ -60,5 +61,30 @@ Required by:
 Required by:
     org:a:1.2 > org:b:5 > org:c:1.0
     org:a:1.2 > org:c:1.0''')
+    }
+
+    def "withIncomingPaths preserves resolutions added directly to the exception"() {
+        def exception = new ModuleVersionResolveException(DefaultModuleComponentSelector.newSelector(mid("a", "b"), "c"), new RuntimeException())
+        exception.addResolution("direct resolution")
+
+        when:
+        def copy = exception.withIncomingPaths([[Describables.of("org:a:1.2")]])
+
+        then:
+        copy.resolutions == ["direct resolution"]
+    }
+
+    def "withIncomingPaths preserves direct and cause-contributed resolutions without duplicating either"() {
+        def cause = new GradleException("cause")
+        cause.addResolution("cause resolution")
+
+        def exception = new ModuleVersionResolveException(DefaultModuleComponentSelector.newSelector(mid("a", "b"), "c"), [cause])
+        exception.addResolution("direct resolution")
+
+        when:
+        def copy = exception.withIncomingPaths([[Describables.of("org:a:1.2")]])
+
+        then:
+        copy.resolutions == ["direct resolution", "cause resolution"]
     }
 }

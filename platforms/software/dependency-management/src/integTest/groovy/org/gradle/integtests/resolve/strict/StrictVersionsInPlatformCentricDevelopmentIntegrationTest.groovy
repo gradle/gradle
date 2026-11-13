@@ -176,7 +176,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
             root(':', ':test:') {
                 edge(platformType == ENFORCED_PLATFORM ? "org:platform:${expectStrictVersion(platformType, '1.+')}" : 'org:platform:1.+', 'org:platform:1.0') {
                     if (platformType != MODULE) {
-                        configuration(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
+                        variant(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
                         noArtifacts()
                     }
                     if (platformType != ENFORCED_PLATFORM) {
@@ -237,7 +237,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
             root(':', ':test:') {
                 edge(platformType == ENFORCED_PLATFORM ? "org:platform:${expectStrictVersion(platformType, '1.+')}" : 'org:platform:1.+', 'org:platform:1.1') {
                     if (platformType != MODULE) {
-                        configuration(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
+                        variant(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
                         noArtifacts()
                     }
                     if (platformType != ENFORCED_PLATFORM) {
@@ -389,7 +389,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
                     constraint('org:foo:{strictly 3.2}', "org:foo:$expectedFooVersion").byConstraint()
                     edge('org:platform:1.+', 'org:platform:1.1') {
                         if (platformType != MODULE) {
-                            configuration(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
+                            variant(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
                             noArtifacts()
                         }
                         constraint("org:bar:${expectStrictVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()

@@ -32,12 +32,12 @@ dependencies {
     api(projects.processServices)
     api(projects.processServicesBase)
     api(projects.persistentCache)
+    api(projects.problemsApi)
 
     api(libs.inject)
     api(libs.jspecify)
     api(libs.nativePlatform)
 
-    implementation(projects.functional)
     implementation(projects.native)
     implementation(projects.processServicesApi)
     implementation(projects.serialization)
@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.asm)
     implementation(libs.commonsLang)
     implementation(libs.guava)
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     testImplementation(projects.native)

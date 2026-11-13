@@ -102,9 +102,26 @@ class CallablePropertyIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/22041")
     def "can configure dynamic property without call method"() {
         buildFile << """
-            task test {
+            class DynamicThing {
+                def invokeMethod(String name, Object args) {
+                    throw new RuntimeException("Unexpected call to DynamicThing.\$name()")
+                }
+            }
+
+            abstract class MyTask extends DefaultTask {
+                @Internal
+                DynamicThing getThing() {
+                    return new DynamicThing()
+                }
+            }
+
+            void thing(Closure action) {
+                action()
+            }
+
+            tasks.register("test", MyTask) {
                 doLast {
-                    ant { echo(message: 'hello world!') }
+                    thing { println('hello world!') }
                 }
             }
         """
@@ -112,5 +129,6 @@ class CallablePropertyIntegrationTest extends AbstractIntegrationSpec {
         expect:
         args('--stacktrace')
         succeeds("test")
+        outputContains("hello world!")
     }
 }

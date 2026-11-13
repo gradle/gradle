@@ -180,4 +180,84 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         succeeds "help"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/38884")
+    def "plugin being applied is detectable by plugin manager from plugin it applies - #scenario"() {
+        given:
+        def pluginBuilder = new PluginBuilder(file("buildSrc"))
+        pluginBuilder.addPlugin("""
+            project.pluginManager.apply("y")
+        """, "x", "PluginX")
+        pluginBuilder.addPlugin("""
+            println("y sees x applied: " + project.pluginManager.hasPlugin("x"))
+            println("y sees x in container: " + project.plugins.hasPlugin("x"))
+        """, "y", "PluginY")
+        pluginBuilder.addPlugin("""
+            $registration
+        """, "z", "PluginZ")
+        pluginBuilder.generateForBuildSrc()
+
+        buildFile """
+            plugins {
+                id 'z'
+                id 'x'
+            }
+        """
+
+        when:
+        succeeds "help"
+
+        then:
+        outputContains("y sees x applied: true")
+        outputContains("y sees x in container: false")
+
+        where:
+        scenario                        | registration
+        "nothing waiting for x"         | ""
+        "withPlugin registered first"   | 'project.pluginManager.withPlugin("x") {}'
+        "withId registered first"       | 'project.plugins.withId("x") {}'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38884")
+    def "#callback registered during application fires after the plugin is applied - #scenario"() {
+        given:
+        def pluginBuilder = new PluginBuilder(file("buildSrc"))
+        pluginBuilder.addPlugin("""
+            project.pluginManager.apply("y")
+            println("x applied")
+        """, "x", "PluginX")
+        pluginBuilder.addPlugin("""
+            project.${callback}("x") {
+                println("callback fired")
+            }
+        """, "y", "PluginY")
+        pluginBuilder.addPlugin("""
+            $registration
+        """, "z", "PluginZ")
+        pluginBuilder.generateForBuildSrc()
+
+        buildFile """
+            plugins {
+                id 'z'
+                id 'x'
+            }
+        """
+
+        when:
+        succeeds "help"
+
+        then:
+        outputContains("x applied")
+        outputContains("callback fired")
+        output.indexOf("callback fired") > output.indexOf("x applied")
+
+        where:
+        scenario                        | registration                                  | callback
+        "nothing waiting for x"         | ""                                            | "pluginManager.withPlugin"
+        "withPlugin registered first"   | 'project.pluginManager.withPlugin("x") {}'    | "pluginManager.withPlugin"
+        "withId registered first"       | 'project.plugins.withId("x") {}'              | "pluginManager.withPlugin"
+        "nothing waiting for x"         | ""                                            | "plugins.withId"
+        "withPlugin registered first"   | 'project.pluginManager.withPlugin("x") {}'    | "plugins.withId"
+        "withId registered first"       | 'project.plugins.withId("x") {}'              | "plugins.withId"
+    }
+
 }

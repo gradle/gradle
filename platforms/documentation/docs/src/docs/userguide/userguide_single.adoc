@@ -33,6 +33,7 @@ toc::[leveloffset=+2]
 
 include::userguide.adoc[leveloffset=+2]
 include::getting_started.adoc[leveloffset=+2]
+include::troubleshooting.adoc[leveloffset=+2]
 
 [[part:releases]]
 == RELEASES
@@ -187,6 +188,7 @@ include::more_about_tasks.adoc[leveloffset=+2]
 include::controlling_task_execution.adoc[leveloffset=+2]
 include::organizing_tasks.adoc[leveloffset=+2]
 include::implementing_custom_tasks.adoc[leveloffset=+2]
+include::incremental_build.adoc[leveloffset=+2]
 include::lazy_configuration.adoc[leveloffset=+2]
 include::worker_api.adoc[leveloffset=+2]
 include::custom_tasks.adoc[leveloffset=+2]
@@ -200,6 +202,7 @@ include::implementing_gradle_plugins_precompiled.adoc[leveloffset=+2]
 include::implementing_gradle_plugins_convention.adoc[leveloffset=+2]
 include::implementing_gradle_plugins_binary.adoc[leveloffset=+2]
 include::testing_gradle_plugins.adoc[leveloffset=+2]
+include::validation_problems.adoc[leveloffset=+2]
 include::preparing_to_publish.adoc[leveloffset=+2]
 include::publishing_gradle_plugins.adoc[leveloffset=+2]
 include::reporting_problems.adoc[leveloffset=+2]
@@ -344,7 +347,9 @@ include::isolated_projects.adoc[leveloffset=+2]
 == SECURING BUILDS
 
 include::security.adoc[leveloffset=+2]
-include::dependency_verification.adoc[leveloffset=+2]
+include::securing_repositories.adoc[leveloffset=+2]
+include::securing_dependencies.adoc[leveloffset=+2]
+include::securing_build_tool.adoc[leveloffset=+2]
 
 [[part:integration]]
 == INTEGRATION

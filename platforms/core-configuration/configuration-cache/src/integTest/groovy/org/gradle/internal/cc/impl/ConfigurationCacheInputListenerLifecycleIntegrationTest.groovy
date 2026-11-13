@@ -18,8 +18,9 @@ package org.gradle.internal.cc.impl
 
 
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.internal.cc.impl.fixtures.ConfigurationCacheOptOutDeprecations
 
-class ConfigurationCacheInputListenerLifecycleIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheInputListenerLifecycleIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements ConfigurationCacheOptOutDeprecations {
 
     def "configuration inputs are tracked during task graph serialization"() {
         given:
@@ -54,6 +55,9 @@ class ConfigurationCacheInputListenerLifecycleIntegrationTest extends AbstractCo
         }
 
         when:
+        if (isOptOut) {
+            expectDeprecatedOptOutWarning(IGNORE_INPUTS_PROPERTY)
+        }
         configurationCacheRun "myTask"
 
         then:
@@ -62,6 +66,9 @@ class ConfigurationCacheInputListenerLifecycleIntegrationTest extends AbstractCo
 
         when: "the file that is used in the undeclared configuration input changes and the build runs again"
         testDirectory.file("test").createNewFile()
+        if (isOptOut) {
+            expectDeprecatedOptOutWarning(IGNORE_INPUTS_PROPERTY)
+        }
         configurationCacheRun "myTask"
 
         then: "the cache entry is invalidated because of the file system input"
@@ -83,6 +90,7 @@ class ConfigurationCacheInputListenerLifecycleIntegrationTest extends AbstractCo
     def 'switching the opt-out flag should invalidate the configuration cache entry'() {
         when:
         configurationCacheRun()
+        expectDeprecatedOptOutWarning(IGNORE_INPUTS_PROPERTY)
         configurationCacheRun("-D$IGNORE_INPUTS_PROPERTY=true")
 
         then:

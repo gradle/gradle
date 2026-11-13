@@ -25,7 +25,7 @@ public class NotSpec<T> implements Spec<T> {
     private Spec<? super T> sourceSpec;
 
     /**
-     * Creates a new {@code NotSpec}.
+     * Creates a spec that is satisfied exactly when the given spec is not.
      *
      * @since 0.7
      */

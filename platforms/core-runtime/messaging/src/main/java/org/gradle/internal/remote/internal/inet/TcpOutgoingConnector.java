@@ -31,18 +31,20 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 
 public class TcpOutgoingConnector implements OutgoingConnector {
     static final byte[] CONNECTION_PREAMBLE = "Gradle Magic".getBytes(StandardCharsets.UTF_8);
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpOutgoingConnector.class);
     private static final int CONNECT_TIMEOUT = 10000;
+    // Longer than the server's handshake timeout, since the server may be busy with another client's handshake
+    private static final int HANDSHAKE_TIMEOUT = 30000;
 
     @Override
-    public ConnectCompletion connect(Address destinationAddress) throws ConnectException {
+    public ConnectCompletion connect(Address destinationAddress, byte[] connectionToken) throws ConnectException {
         if (!(destinationAddress instanceof InetEndpoint)) {
             throw new IllegalArgumentException(String.format("Cannot create a connection to address of unknown type: %s.", destinationAddress));
         }
@@ -53,20 +55,34 @@ public class TcpOutgoingConnector implements OutgoingConnector {
         // is on - the default for debian and others), so we will try each of them until we can connect
         List<InetAddress> candidateAddresses = address.getCandidates();
 
+        byte[] clientProof = ConnectionHandshake.clientProof(connectionToken);
+        byte[] handshake = Arrays.copyOf(CONNECTION_PREAMBLE, CONNECTION_PREAMBLE.length + clientProof.length);
+        System.arraycopy(clientProof, 0, handshake, CONNECTION_PREAMBLE.length, clientProof.length);
+        byte[] expectedServerProof = ConnectionHandshake.serverProof(connectionToken);
+
         // Now try each address
         try {
             Exception lastFailure = null;
             for (InetAddress candidate : candidateAddresses) {
+                if (!InetAddressFactory.isLocalAddress(candidate)) {
+                    LOGGER.debug("Address {} is not an address of this machine, skipping.", candidate);
+                    lastFailure = new java.net.ConnectException(String.format("%s is not an address of this machine.", candidate));
+                    continue;
+                }
                 LOGGER.debug("Trying to connect to address {}.", candidate);
                 SocketChannel socketChannel;
                 try {
-                    socketChannel = tryConnect(address, candidate);
+                    socketChannel = tryConnect(address, candidate, handshake, expectedServerProof);
                 } catch (SocketException e) {
                     LOGGER.debug("Cannot connect to address {}, skipping.", candidate);
                     lastFailure = e;
                     continue;
                 } catch (SocketTimeoutException e) {
                     LOGGER.debug("Timeout connecting to address {}, skipping.", candidate);
+                    lastFailure = e;
+                    continue;
+                } catch (IOException e) {
+                    LOGGER.debug("Failed connection handshake with address {}, skipping.", candidate);
                     lastFailure = e;
                     continue;
                 }
@@ -83,13 +99,17 @@ public class TcpOutgoingConnector implements OutgoingConnector {
         }
     }
 
-    private SocketChannel tryConnect(InetEndpoint address, InetAddress candidate) throws IOException {
+    private SocketChannel tryConnect(InetEndpoint address, InetAddress candidate, byte[] handshake, byte[] expectedServerProof) throws IOException {
         SocketChannel socketChannel = SocketChannel.open();
         try {
             socketChannel.socket().connect(new InetSocketAddress(candidate, address.getPort()), CONNECT_TIMEOUT);
             if (!detectSelfConnect(socketChannel)) {
                 SocketBlockingUtil.configureNonblocking(socketChannel);
-                socketChannel.write(ByteBuffer.wrap(CONNECTION_PREAMBLE));
+                ConnectionHandshake.write(socketChannel, handshake);
+                byte[] serverProof = ConnectionHandshake.read(socketChannel, ConnectionHandshake.PROOF_LENGTH, HANDSHAKE_TIMEOUT);
+                if (!ConnectionHandshake.matches(expectedServerProof, serverProof)) {
+                    throw new IOException("Peer did not prove it holds the expected connection token");
+                }
                 return socketChannel;
             }
             socketChannel.close();

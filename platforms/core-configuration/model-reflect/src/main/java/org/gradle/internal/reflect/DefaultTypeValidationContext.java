@@ -17,8 +17,6 @@
 package org.gradle.internal.reflect;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.jspecify.annotations.Nullable;
@@ -44,16 +42,9 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
         this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
 
-    public static final ProblemId MISSING_NORMALIZATION_ID = ProblemId.create("missing-normalization-annotation", "Missing normalization", GradleCoreProblemGroup.validation().property());
-
-    public static boolean onlyAffectsCacheableWork(ProblemId id) {
-        return MISSING_NORMALIZATION_ID.equals(id);
-    }
-
-
     @Override
     protected void recordError(ProblemInternal problem) {
-        if (onlyAffectsCacheableWork(problem.getDefinition().getId()) && !reportCacheabilityProblems) {
+        if (onlyAffectsCacheableWork(problem) && !reportCacheabilityProblems) {
             return;
         }
         errors.add(problem);

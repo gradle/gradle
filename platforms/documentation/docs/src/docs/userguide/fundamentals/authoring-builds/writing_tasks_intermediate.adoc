@@ -30,15 +30,6 @@ When a user runs `./gradlew build` in the command line, Gradle will execute the 
 A *task type* defines what kind of work a *task* can do.
 It’s like a blueprint or class.
 
-++++
-<p>
-  <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/UNwswHpGptA?si=vlXlxz5o2TXl-RsK&rel=0" frameborder="0" allowfullscreen
-      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
-  </div>
-</p>
-++++
-
 Gradle includes many *built-in task types*, such as `Copy`, `Jar`, and `Test`, and you can also define your own.
 By default, a *task* is of *type* link:{javadocPath}/org/gradle/api/DefaultTask.html[`DefaultTask`] .
 
@@ -81,15 +72,6 @@ include::sample[dir="snippets/fundamentals/authoring-builds/taskTutorial/groovy"
 [[sec:built_in_task_types]]
 == Built-in Task Types
 
-++++
-<p>
-  <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/yIxZhQJ8WSY?si=c_gAiWAkS52dAHsZ&rel=0" frameborder="0" allowfullscreen
-      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
-  </div>
-</p>
-++++
-
 Gradle provides many *built-in task types* with common and popular functionality, such as copying or deleting files.
 
 This registers a Gradle *task* named `removeOutput` of *type* `Delete`.
@@ -106,15 +88,6 @@ There are many *task types* developers can take advantage of, including `GroovyD
 == Custom Task Types
 
 Gradle *tasks* are a subclass of link:{javadocPath}/org/gradle/api/Task.html[`Task`].
-
-++++
-<p>
-  <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/2CSMFt0a7YQ?si=Hs8iz_0s7oQJOU9K&rel=0" frameborder="0" allowfullscreen
-      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
-  </div>
-</p>
-++++
 
 In the example below, the `HelloTask` class, a *custom task type*, is created by extending link:{javadocPath}/org/gradle/api/DefaultTask.html[`DefaultTask`] (our default task type):
 
@@ -169,15 +142,6 @@ Custom tasks
 
 For a *custom task* to do useful work, it typically needs some *inputs* which it uses to produce *outputs*.
 
-++++
-<p>
-  <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/Fgb9miYkVak?si=Wy6SoTxST7Y2NofO&rel=0" frameborder="0" allowfullscreen
-      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
-  </div>
-</p>
-++++
-
 A *task* can declare those *inputs* (files, values) and *outputs* (files it creates).
 Ideally, these inputs and outputs leverage Gradle managed types.
 This helps Gradle skip work when nothing has changed:
@@ -190,30 +154,12 @@ include::sample[dir="snippets/fundamentals/authoring-builds/tutorialTask/groovy"
 Now Gradle knows what the *task* needs and what it produces.
 If nothing changes, the *task* is skipped.
 
-++++
-<p>
-  <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/McB2d4zp6f8?si=igUl4VCg-tPeuG3I&rel=0" frameborder="0" allowfullscreen
-      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
-  </div>
-</p>
-++++
-
 [[sec:task_action]]
 == Task Action
 
 *Task actions* are the blocks of code that define what the *custom task* does when it runs.
 
 Every *task* can have one or more actions, and they’re executed during the execution phase of the Gradle build lifecycle.
-
-++++
-<p>
-  <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/l3MT7Ie5Dcs?si=FfK8MWQpOC6fqfJc&rel=0" frameborder="0" allowfullscreen
-      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
-  </div>
-</p>
-++++
 
 In the example below, a *custom task type* is created called `GreetingTask`.
 The `@TaskAction` annotation marks a method that Gradle should call when the *task* of this *type* is executed:
@@ -239,15 +185,6 @@ It will run when the *task* is executed.
 **Group** and **description** are metadata properties used to organize and document tasks.
 They are primarily used to make the project easier to navigate for developers.
 
-++++
-<p>
-  <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/lU0KG3AESaY?si=Zuii3NrayOKTJt89&rel=0" frameborder="0" allowfullscreen
-      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
-  </div>
-</p>
-++++
-
 1. The group acts as a **category** for the task.
 When you run `./gradlew tasks`, Gradle clusters all tasks with the same group name together.
 2. The description is a **short summary** explaining what the task actually does.
@@ -270,15 +207,6 @@ $ gradle -q intro
 ----
 include::{snippetsPath}/fundamentals/authoring-builds/intro/tests/intro.out[]
 ----
-
-++++
-<p>
-  <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/nQczpMWYI7g?si=4fZ7oU_ROLUZCWZE&rel=0" frameborder="0" allowfullscreen
-      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
-  </div>
-</p>
-++++
 
 The dependency of `taskX` to `taskY` may be declared before `taskY` is defined:
 
@@ -366,15 +294,6 @@ Typically, a *lifecycle* tasks depends on many *actionable* tasks, and is used t
 == Task Performance
 
 To write "good" Gradle tasks, you should focus on three things: **speed**, **clarity**, and **intelligence**.
-
-++++
-<p>
-  <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/c8fgpky91rE?si=pDdpmC0Nvpbm-SyX&rel=0" frameborder="0" allowfullscreen
-      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
-  </div>
-</p>
-++++
 
 === 1. Load configuration lazily
 

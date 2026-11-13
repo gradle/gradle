@@ -28,6 +28,7 @@ import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.remote.ObjectConnection;
+import org.gradle.internal.remote.internal.inet.ConnectionHandshake;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.JavaExecHandleBuilder;
@@ -224,6 +225,9 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     public WorkerProcess build() {
         final WorkerJvmMemoryStatus memoryStatus = shouldPublishJvmMemoryInfo ? new WorkerJvmMemoryStatus() : null;
         final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS, memoryStatus);
+
+        byte[] connectionToken = ConnectionHandshake.newConnectionToken();
+
         ConnectionAcceptor acceptor = server.accept(connection ->
             workerProcess.onConnect(connection, () -> {
                 DefaultWorkerLoggingProtocol defaultWorkerLoggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
@@ -234,7 +238,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
                     connection.useParameterSerializers(WorkerJvmMemoryInfoSerializer.create());
                     connection.addIncoming(WorkerJvmMemoryInfoProtocol.class, memoryStatus);
                 }
-            }));
+            }), connectionToken);
         workerProcess.startAccepting(acceptor);
         Address localAddress = acceptor.getAddress();
 
@@ -254,7 +258,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         int javaVersionMajor = jvmVersionDetector.getJavaVersionMajor(javaCommand.getExecutable());
 
         boolean java9Compatible = javaVersionMajor >= 9;
-        workerImplementationFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, implementationModulePath, localAddress, javaCommand, shouldPublishJvmMemoryInfo, java9Compatible);
+        workerImplementationFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, implementationModulePath, localAddress, connectionToken, javaCommand, shouldPublishJvmMemoryInfo, java9Compatible);
 
         if (addJpmsCompatibilityFlags) {
             javaCommand.jvmArgs(JpmsConfiguration.forWorkerProcesses(javaVersionMajor, nativeServicesMode.isPotentiallyEnabled()));
@@ -301,6 +305,11 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         @Override
         public Optional<ExecResult> getExecResult() {
             return delegate.getExecResult();
+        }
+
+        @Override
+        public Optional<Integer> getProcessExitValue() {
+            return delegate.getProcessExitValue();
         }
 
         @Override

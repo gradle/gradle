@@ -88,7 +88,6 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             import java.util.Collections;
             import org.gradle.api.problems.Problems;
             import org.gradle.api.problems.ProblemId;
-            import org.gradle.api.problems.ProblemGroup;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.internal.operations.CurrentBuildOperationRef;
 
@@ -107,7 +106,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                 @Override
                 public void execute() {
                     Exception wrappedException = new Exception("Wrapped cause");
-                    ProblemId problemId = ProblemId.create("type", "label", ProblemGroup.create("generic", "Generic"));
+                    ProblemId problemId = getProblems().getGroups().getOthers().group("Generic").problemId("label");
                     getProblems().getReporter().report(problemId, problem -> problem
                             .stackLocation()
                             .additionalData(SomeData.class, d -> {
@@ -165,11 +164,11 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             operationId == Long.parseLong(buildOperationIdFile.text)
             exception.message == "Exception message"
             exception.stacktrace.contains("Caused by: java.lang.Exception: Wrapped cause")
-            definition.id.name == 'type'
+            definition.id.name == 'label'
             definition.id.displayName == 'label'
             definition.id.group.displayName == 'Generic'
-            definition.id.group.name == 'generic'
-            definition.id.group.parent == null
+            definition.id.group.name == 'Generic'
+            definition.id.group.parent.name == 'Others'
             definition.documentationLink == null
             definition.severity == Severity.WARNING
             contextualLabel == null
@@ -194,12 +193,12 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperationsFixture))
             with(problem) {
                 this.with(definition) {
-                    name == 'type'
+                    name == 'label'
                     displayName == 'label'
                     this.with(group) {
                         displayName == 'Generic'
-                        name == 'generic'
-                        parent == null
+                        name == 'Generic'
+                        parent.name == 'Others'
                     }
                     documentationLink == null
                 }
@@ -221,6 +220,67 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                 }
                 failure != null
             }
+        }
+
+        where:
+        isolationMode << WorkerExecutorFixture.ISOLATION_MODES
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38670")
+    def "problems reported into predefined groups survive the worker boundary with #isolationMode"() {
+        setupBuild()
+        enableProblemsApiCheck()
+        file('buildSrc/src/main/java/org/someorg/test/PredefinedGroupProblemWorkerTask.java') << """
+            package org.someorg.test;
+
+            import org.gradle.api.problems.Problems;
+            import org.gradle.workers.WorkAction;
+
+            import javax.inject.Inject;
+
+            public abstract class PredefinedGroupProblemWorkerTask implements WorkAction<ProblemsWorkerTaskParameter> {
+
+                @Inject
+                public abstract Problems getProblems();
+
+                @Override
+                public void execute() {
+                    getProblems().getReporter().report(getProblems().getGroups().getCompilation().getJava().problemId("Unused import"), problem -> {});
+                    getProblems().getReporter().report(getProblems().getGroups().getTransformation().group("KMP").problemId("Compilation failed"), problem -> {});
+                }
+            }
+        """
+
+        given:
+        buildFile """
+            import javax.inject.Inject
+            import org.someorg.test.PredefinedGroupProblemWorkerTask
+
+            abstract class ProblemTask extends DefaultTask {
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor();
+
+                @TaskAction
+                void executeTask() {
+                    getWorkerExecutor().${isolationMode}().submit(PredefinedGroupProblemWorkerTask.class) {}
+                }
+            }
+
+            tasks.register("reportProblem", ProblemTask)
+        """
+
+        when:
+        run("reportProblem")
+
+        then:
+        findReceivedProblem { it.definition.id.fqid == "Transformation:KMP:Compilation failed" }
+        with(findReceivedProblem { it.definition.id.fqid == "Compilation:Java:Unused import" }.definition.id) {
+            displayName == "Unused import"
+            group.name == "Java"
+            group.displayName == "Java"
+            group.description == "Java code compilation, including the compiler's configuration, compiler invocation, or compiler plugins."
+            group.parent.name == "Compilation"
+            group.parent.parent == null
         }
 
         where:
@@ -255,7 +315,6 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             import java.io.FileWriter;
             import org.gradle.api.problems.Problems;
             import org.gradle.api.problems.ProblemId;
-            import org.gradle.api.problems.ProblemGroup;
             import org.gradle.internal.operations.CurrentBuildOperationRef;
 
             import org.gradle.workers.WorkAction;
@@ -269,7 +328,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
                 @Override
                 public void execute() {
-                    ProblemId problemId = ProblemId.create("spawned", "problem from spawned thread", ProblemGroup.create("generic", "Generic"));
+                    ProblemId problemId = getProblems().getGroups().getOthers().group("Generic").problemId("problem from spawned thread");
                     Thread thread = new Thread(() -> getProblems().getReporter().report(problemId, problem -> {}));
                     thread.start();
                     try {
@@ -311,7 +370,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem) {
-            definition.id.fqid == 'generic:spawned'
+            definition.id.fqid == 'Others:Generic:problem from spawned thread'
             definition.id.displayName == 'problem from spawned thread'
             if (isolationMode == "'${WorkerExecutorFixture.IsolationMode.PROCESS_ISOLATION.method}'") {
                 // In a worker process the problem is attributed to the work request's build operation

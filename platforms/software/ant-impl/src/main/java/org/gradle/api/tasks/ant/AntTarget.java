@@ -19,7 +19,7 @@ import org.apache.tools.ant.Target;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
 
@@ -30,7 +30,9 @@ import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegra
 /**
  * A task which executes an Ant target.
  * @since 0.7
+ * @deprecated This type will be removed in Gradle 10.
  */
+@Deprecated
 @DisableCachingByDefault(because = "Gradle would require more information to cache this task")
 public abstract class AntTarget extends ConventionTask {
 
@@ -44,6 +46,11 @@ public abstract class AntTarget extends ConventionTask {
      */
     @SuppressWarnings("this-escape")
     public AntTarget() {
+        DeprecationLogger.deprecateType(AntTarget.class)
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_ant_builder")
+            .nagUser();
+
         requireDegradation(this, "Task is not compatible with the Configuration Cache");
     }
 
@@ -68,7 +75,6 @@ public abstract class AntTarget extends ConventionTask {
      * @since 0.7
      */
     @Internal
-    @ToBeReplacedByLazyProperty
     public Target getTarget() {
         return target;
     }
@@ -86,7 +92,6 @@ public abstract class AntTarget extends ConventionTask {
      * @since 0.7
      */
     @Internal
-    @ToBeReplacedByLazyProperty
     public File getBaseDir() {
         return baseDir;
     }
@@ -105,7 +110,6 @@ public abstract class AntTarget extends ConventionTask {
     @Internal
     @Override
     @Nullable
-    @ToBeReplacedByLazyProperty
     public String getDescription() {
         return target == null ? null : target.getDescription();
     }

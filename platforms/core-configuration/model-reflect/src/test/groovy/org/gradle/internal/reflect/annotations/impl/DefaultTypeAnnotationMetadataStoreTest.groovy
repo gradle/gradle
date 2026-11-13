@@ -1028,8 +1028,10 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             }
         }
 
-        def validationContext = DefaultTypeValidationContext.withoutRootType(false, TestUtil.problemsService())
+        def problems = TestUtil.problemsService()
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false, problems)
         metadata.visitValidationFailures(validationContext)
+        assert (validationContext.warnings + validationContext.errors).every { it.definition.id.group == problems.groups.gradle.pluginValidation }
         List<String> actualErrors = validationContext.warnings
             .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it))) })
         actualErrors += validationContext.errors
@@ -1065,8 +1067,10 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             }
         }
 
-        def validationContext = DefaultTypeValidationContext.withoutRootType(false, TestUtil.problemsService())
+        def problems = TestUtil.problemsService()
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false, problems)
         metadata.visitValidationFailures(validationContext)
+        assert (validationContext.warnings + validationContext.errors).every { it.definition.id.group == problems.groups.gradle.pluginValidation }
         List<String> actualErrors = validationContext.warnings
             .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it))) })
         actualErrors += validationContext.errors

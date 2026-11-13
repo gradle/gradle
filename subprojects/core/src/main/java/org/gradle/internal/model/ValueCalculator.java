@@ -26,7 +26,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * Produces a value, potentially based on values produced by tasks or other work nodes.
  */
-public interface ValueCalculator<T> extends TaskDependencyContainer {
+public interface ValueCalculator<T extends @Nullable Object> extends TaskDependencyContainer {
     /**
      * See {@link WorkNodeAction#usesMutableProjectState()}.
      */

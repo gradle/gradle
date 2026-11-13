@@ -19,14 +19,13 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.DependencyManagementParameters;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.ManagedServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.scopes.SettingsScopeServices;
@@ -60,7 +59,7 @@ public class SettingsFactory {
             gradle,
             classLoaderScope,
             baseClassLoaderScope,
-            scriptHandlerFactory.create(settingsScript, classLoaderScope, new DependencyManagementParameters(settingsScript.getShortDisplayName(), "settings-", true, true, true)),
+            scriptHandlerFactory.create(settingsScript, classLoaderScope),
             settingsDir,
             settingsScript,
             startParameter
@@ -71,7 +70,7 @@ public class SettingsFactory {
     }
 
     private class SettingsServiceRegistryFactory implements ServiceRegistryFactory {
-        private CloseableServiceRegistry services;
+        private ManagedServiceRegistry services;
 
         @Override
         public ServiceRegistry createFor(Object domainObject) {

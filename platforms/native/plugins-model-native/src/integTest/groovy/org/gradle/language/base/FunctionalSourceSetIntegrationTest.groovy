@@ -27,6 +27,7 @@ import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "can create a top level functional source set with a rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile """
         apply plugin: 'language-base'
 
@@ -56,6 +57,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can view a functional source set as a ModelElement"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile """
         apply plugin: 'language-base'
 
@@ -85,6 +87,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can create a top level functional source set via the model dsl"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
         apply plugin: 'language-base'
 
@@ -98,6 +101,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "model report renders a functional source set and elements"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
         apply plugin: 'language-base'
 
@@ -128,6 +132,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can define a FunctionalSourceSet as a property of a managed type"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
         apply plugin: 'language-base'
 
@@ -154,6 +159,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can have FunctionalSourceSets as managed collection"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
         apply plugin: 'language-base'
 
@@ -193,6 +199,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can register a language source set"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile """
         apply plugin: 'language-base'
 
@@ -215,6 +222,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "non-component language source sets are not added to the project source set"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
         ${registerJavaLanguage()}
         ${addPrintSourceDirTask()}
@@ -244,6 +252,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can reference sourceSet elements in a rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << registerJavaLanguage()
         buildFile << '''
@@ -274,6 +283,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can reference sourceSet elements using specialized type in a rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << registerJavaLanguage()
         buildFile << '''
@@ -308,6 +318,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "elements in FunctionalSourceSet are not created when defined"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
             ${registerJavaLanguage()}
@@ -346,6 +357,7 @@ after ss1
 
     @NotYetImplemented // Needs the ability to specify a rule for top-level nodes by type
     def "a LSS is initialized with a default source set"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
         ${registerJavaLanguage()}
 

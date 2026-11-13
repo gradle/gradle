@@ -125,7 +125,7 @@ dependencies {
         resolve.expectGraph {
             root(':', ':testproject:') {
                 module('org.test:maven:1.0') {
-                    configuration = 'compile'
+                    variant('runtime')
                     module('org.test:ivy:1.0') {
                         module('org.test:in-default:1.0')
                         artifact(name: 'in-default')
@@ -254,7 +254,7 @@ configurations.conf.resolutionStrategy.force('org.test:ivy:1.2')
         resolve.expectGraph {
             root(':', ':testproject:') {
                 module('org.test:maven:1.0') {
-                    configuration = 'compile'
+                    variant('runtime')
                     edge('org.test:ivy:1.0', 'org.test:ivy:1.2') {
                         forced()
                         artifact(name: 'default')
@@ -308,7 +308,6 @@ dependencies {
         resolve.expectGraph {
             root(':', ':testproject:') {
                 module('org.test:maven:1.0:runtime') {
-                    configuration = 'compile'
                     edge('org.test:ivy:1.+', 'org.test:ivy:1.2') {
                         artifact(name: 'in-default')
                         module('org.test:in-default:1.0') {

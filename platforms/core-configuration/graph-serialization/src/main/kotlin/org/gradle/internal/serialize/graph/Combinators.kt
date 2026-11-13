@@ -368,7 +368,7 @@ fun ReadContext.decodeUsingJavaSerialization(): Any? =
 
 
 fun WriteContext.reportCollectionWriteFailure(collectionKind: String, size: Int, totalWritten: Int, sizeAfterIteration: Int) {
-    onError(ConcurrentModificationException("Collection corrupted or changed while iterating")) {
+    onError("Collection changed while serializing", ConcurrentModificationException("Collection corrupted or changed while iterating")) {
         text("The $collectionKind size() is $size, but $totalWritten entries were available when iterating over it. ")
         if (sizeAfterIteration != size) {
             text("The size changed to $sizeAfterIteration after iterating.")
@@ -405,6 +405,7 @@ fun warnAboutCustomImplementation(actualType: Class<*>, kind: String, supportedT
             "Serializing a custom $kind type '${actualType.name}', a subtype of '${baseType.name}', " +
                 "which will be restored as a standard $kind, losing any custom state and behavior."
         )
+        .withProblemName("Custom $kind type restored as a standard $kind")
         .willBecomeAnErrorInGradle10()
         .withUserManual("configuration_cache_requirements", "config_cache:requirements:custom_collection_types")
         .nagUser()

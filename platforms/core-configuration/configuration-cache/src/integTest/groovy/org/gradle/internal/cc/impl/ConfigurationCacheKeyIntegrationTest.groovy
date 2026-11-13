@@ -48,6 +48,48 @@ class ConfigurationCacheKeyIntegrationTest extends AbstractConfigurationCacheInt
         configurationCache.assertStateLoaded()
     }
 
+    def "excluded tasks are part of the cache key"() {
+        given:
+        buildFile """
+            tasks.register("fooDep") {
+                doLast {}
+            }
+            tasks.register("foo") {
+                dependsOn("fooDep")
+                doLast {}
+            }
+            tasks.register("top") {
+                dependsOn("foo")
+                doLast {}
+            }
+        """
+
+        when:
+        configurationCacheRun "top"
+        then:
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(":fooDep", ":foo", ":top")
+
+        when:
+        configurationCacheRun "top", "-x", "foo"
+        then:
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(":top")
+
+        // Now repeat invocations in different order to make sure both entries can be reused
+        when:
+        configurationCacheRun "top"
+        then:
+        configurationCache.assertStateLoaded()
+        result.assertTasksExecuted(":fooDep", ":foo", ":top")
+
+        when:
+        configurationCacheRun "top", "-x", "foo"
+        then:
+        configurationCache.assertStateLoaded()
+        result.assertTasksExecuted(":top")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/26049")
     // Isolated Projects option is explicitly controlled by the test
     @Requires(TestExecutionPreconditions.NotIsolatedProjects)

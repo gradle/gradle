@@ -64,6 +64,7 @@ public class ConfigurationVariantMapping {
             DeprecationLogger.deprecateBehaviour(String.format("Publishing non-transitive configuration '%s'.", outgoingConfigurationName))
                 .withContext("Setting 'transitive = false' at the configuration level is ignored by publishing.")
                 .withAdvice("Consider using 'transitive = false' on each dependency if this needs to be published.")
+                .withProblemName("Non-transitive configuration published")
                 .willBecomeAnErrorInGradle10()
                 .undocumented() // TODO: We don't have documentation for this anymore?
                 .nagUser();

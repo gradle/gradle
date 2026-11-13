@@ -26,6 +26,7 @@ import spock.lang.Issue
 @UnsupportedWithConfigurationCache(because = "software model")
 class ModelMapIntegrationTest extends AbstractIntegrationSpec {
     def "provides basic meta-data for map"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile '''
             @Managed
@@ -64,6 +65,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can view as ModelElement"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile '''
             @Managed
@@ -99,6 +101,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "cannot add unregistered type to specialized model map"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
         @Managed interface SampleComponent extends ComponentSpec {}
         interface NonRegisteredComponent extends ComponentSpec {}
@@ -122,6 +125,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "cannot add unregistered type to model map of extensible type"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
         @Managed interface SampleComponent extends ComponentSpec {}
         interface NonRegisteredComponent extends ComponentSpec {}
@@ -147,6 +151,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "cannot add unregistered type to model map of specialized extensible type"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
         @Managed interface SampleComponent extends ComponentSpec {}
         @Managed interface Sample2Component extends ComponentSpec {}
@@ -175,6 +180,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "cannot add unregistered subtype to filtered specialized model map"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
         @Managed interface SampleComponent extends ComponentSpec {}
         @Managed interface Sample2Component extends ComponentSpec {}
@@ -201,6 +207,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "cannot add type to filtered specialized model map when it does not satisfied all type constraints"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
         @Managed interface SampleComponent extends ComponentSpec {}
         @Managed interface Sample2Component extends ComponentSpec {}
@@ -226,6 +233,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can add type to filtered specialized model map when it satisfies all type constraints"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
         @Managed interface SampleComponent extends ComponentSpec {}
         interface Thing { }
@@ -251,6 +259,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "cannot add invalid type to model map"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             @Managed interface Thing {}
 
@@ -274,6 +283,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "cannot add invalid type to specialized model map"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
         apply plugin: ComponentModelBasePlugin
 
@@ -290,6 +300,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "withType() returns empty collection for type not implementing ModelMap's base interface"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
         apply plugin: ComponentModelBasePlugin
 
@@ -312,6 +323,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
 
 
     def "can create a ModelMap of List<String>"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             class Rules extends RuleSource {
                 @Model void things(ModelMap<List<String>> things) { }
@@ -336,6 +348,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3376")
     def "reasonable error message when trying to create unknown type in ModelMap"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             @Managed interface Thing {}
             interface UnknownThing {}

@@ -75,6 +75,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
         visitedArtifacts.select(configuration.getImplicitSelectionSpec()).visitArtifacts(visitor, false);

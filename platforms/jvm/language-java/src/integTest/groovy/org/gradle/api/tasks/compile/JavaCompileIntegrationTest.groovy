@@ -279,15 +279,14 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         javaClassFile("com/example/Foo.class").assertDoesNotExist()
     }
 
-    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "implementation dependencies should not leak into compile classpath of consumer"() {
         mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
         mavenRepo.module('org.gradle.test', 'other', '1.0').publish()
 
         given:
-        settingsFile << "include 'a', 'b'"
-        buildFile << """
-            allprojects {
+        settingsFile """
+            include 'a', 'b'
+            gradle.lifecycle.beforeProject {
                 apply plugin: 'java-library'
 
                 repositories {
@@ -933,7 +932,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         fails 'compileJava'
 
         then:
-        failureHasCause("Java compilation initialization error")
+        failureHasCause("Compiler initialization failed")
         failureCauseContains("Cannot specify -sourcepath or --source-path via `CompileOptions.compilerArgs`. Use the `CompileOptions.sourcepath` property instead.")
     }
 
@@ -953,7 +952,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         fails 'compileJava'
 
         then:
-        failureHasCause("Java compilation initialization error")
+        failureHasCause("Compiler initialization failed")
         failureCauseContains("Cannot specify -processorpath or --processor-path via `CompileOptions.compilerArgs`. Use the `CompileOptions.annotationProcessorPath` property instead.")
     }
 
@@ -973,7 +972,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         fails 'compileJava'
 
         then:
-        failureHasCause("Java compilation initialization error")
+        failureHasCause("Compiler initialization failed")
         failureCauseContains("Cannot specify -J flags via `CompileOptions.compilerArgs`. Use the `CompileOptions.forkOptions.jvmArgs` property instead.")
     }
 

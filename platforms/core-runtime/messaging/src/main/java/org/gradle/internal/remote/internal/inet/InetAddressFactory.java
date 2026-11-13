@@ -16,6 +16,7 @@
 package org.gradle.internal.remote.internal.inet;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Set;
@@ -56,6 +58,22 @@ public class InetAddressFactory {
     }
 
     /**
+     * Determines if the IP address belongs to this machine: a loopback or wildcard address, or an address of one of its network interfaces.
+     * Unlike {@link #isCommunicationAddress(InetAddress)}, it does not depend on this process's bind address configuration,
+     * so it also accepts the address of a daemon that was started with a different one.
+     */
+    public static boolean isLocalAddress(InetAddress address) {
+        if (address.isLoopbackAddress() || address.isAnyLocalAddress()) {
+            return true;
+        }
+        try {
+            return NetworkInterface.getByInetAddress(address) != null;
+        } catch (SocketException e) {
+            return false;
+        }
+    }
+
+    /**
      * Local communication address for this machine
      */
     public InetAddress getLocalBindingAddress() {
@@ -64,6 +82,8 @@ public class InetAddressFactory {
                 init();
                 return localBindingAddress;
             }
+        } catch (InvalidUserDataException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Could not determine a usable local IP for this machine.", e);
         }
@@ -78,6 +98,8 @@ public class InetAddressFactory {
                 init();
                 return wildcardBindingAddress;
             }
+        } catch (InvalidUserDataException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Could not determine a usable wildcard IP for this machine.", e);
         }
@@ -143,7 +165,7 @@ public class InetAddressFactory {
             logger.debug("Environment variable {} detected. Using bind address {}.", envVarName, address);
             return InetAddress.getByName(address);
         } catch (UnknownHostException e) {
-            throw new RuntimeException(String.format("Invalid bind address '%s' specified in environment variable '%s'.", address, envVarName), e);
+            throw new InvalidUserDataException(String.format("Invalid bind address '%s' specified in environment variable '%s'.", address, envVarName), e);
         }
     }
 

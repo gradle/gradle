@@ -101,12 +101,13 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         resolve.expectGraph {
             root(':', ':test:') {
                 constraint('org:foo:{strictly 1.0}', 'org:foo:1.0') {
-                    notRequested()
                     byConstraint()
-                    byAncestor()
                 }
                 module('org:bar:1.0') {
-                    edge('org:foo:2.0', 'org:foo:1.0')
+                    edge('org:foo:2.0', 'org:foo:1.0') {
+                        byAncestor()
+                        notRequested()
+                    }
                 }
             }
         }
@@ -339,8 +340,11 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             'org:a:1.0' {
                 expectGetMetadata()
             }
-            'org:c:1.0' {
-                expectGetMetadata()
+            if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
+                // Selected while b's request for c is still ignored for the strict version of a:1.0
+                id("org:c:1.0") {
+                    expectGetMetadata()
+                }
             }
         }
         run ':checkDeps'
@@ -403,12 +407,13 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         resolve.expectGraph {
             root(':', ':test:') {
                 constraint('org:foo:{strictly 1.0}', 'org:foo:1.0') {
-                    notRequested()
                     byConstraint()
-                    byAncestor()
                 }
                 module('org:bar:1.0') {
-                    edge("org:foo:$publishedFooDependencyVersion", 'org:foo:1.0')
+                    edge("org:foo:$publishedFooDependencyVersion", 'org:foo:1.0') {
+                        byAncestor()
+                        notRequested()
+                    }
                 }
             }
         }
@@ -453,12 +458,13 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         resolve.expectGraph {
             root(':', ':test:') {
                 constraint('org:foo:{strictly 1.0}', 'org:foo:1.0') {
-                    notRequested()
                     byConstraint()
-                    byAncestor()
                 }
                 module('org:bar:1.0') {
-                    edge("org:foo:[2.0,3.0)", 'org:foo:1.0')
+                    edge("org:foo:[2.0,3.0)", 'org:foo:1.0') {
+                        byAncestor()
+                        notRequested()
+                    }
                 }
             }
         }
@@ -512,7 +518,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                     edge('org:foo:2.0', ':foo', 'org:foo:1.0') {}.byAncestor()
                 }
                 project(':foo', 'org:foo:1.0') {
-                    configuration = 'default'
+                    variant('default')
                     noArtifacts()
                 }
             }
@@ -702,4 +708,149 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             }
         }
     }
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    def "a strict version applies to a cycle below its declarer"() {
+        given:
+        repository {
+            id("org:x:1")
+            id("org:x:2")
+            id("org:declarer:1") {
+                dependsOn("org:first:1")
+                dependsOn(group: "org", artifact: "x", version: "1", strictly: "1")
+            }
+            id("org:first:1") {
+                dependsOn("org:second:1")
+            }
+            id("org:second:1") {
+                dependsOn("org:first:1")
+                dependsOn("org:x:2")
+            }
+        }
+        buildFile << """
+            dependencies {
+                conf("org:declarer:1")
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            allowAll()
+        }
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:declarer:1") {
+                    module("org:first:1") {
+                        module("org:second:1") {
+                            module("org:first:1")
+                            edge("org:x:2", "org:x:1") {
+                                byAncestor()
+                            }
+                        }
+                    }
+                    edge("org:x:{strictly 1}", "org:x:1")
+                }
+            }
+        }
+    }
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    def "a strict version applies to a cycle through its declarer, entered at the declarer"() {
+        given:
+        repository {
+            id("org:x:1")
+            id("org:x:2")
+            id("org:declarer:1") {
+                dependsOn(group: "org", artifact: "x", version: "1", strictly: "1")
+                dependsOn("org:back:1")
+            }
+            id("org:back:1") {
+                dependsOn("org:declarer:1")
+                dependsOn("org:x:2")
+            }
+        }
+        buildFile << """
+            dependencies {
+                conf("org:declarer:1")
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            allowAll()
+        }
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:declarer:1") {
+                    edge("org:x:{strictly 1}", "org:x:1")
+                    module("org:back:1") {
+                        module("org:declarer:1")
+                        edge("org:x:2", "org:x:1") {
+                            byAncestor()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    def "a strict version does not apply to a requester reached without going through its declarer"() {
+        given:
+        repository {
+            id("org:x:1")
+            id("org:x:2")
+            if (outside) {
+                // The cycle first <-> second is below declarer, and also reached from outside
+                id("org:declarer:1") {
+                    dependsOn("org:first:1")
+                    dependsOn(group: "org", artifact: "x", version: "1", strictly: "1")
+                }
+                id("org:first:1") {
+                    dependsOn("org:second:1")
+                }
+                id("org:second:1") {
+                    dependsOn("org:first:1")
+                    dependsOn("org:x:2")
+                }
+                id("org:outside:1") {
+                    dependsOn("org:second:1")
+                }
+            } else {
+                // The cycle requester <-> declarer is entered at the requester
+                id("org:requester:1") {
+                    dependsOn("org:declarer:1")
+                    dependsOn("org:x:2")
+                }
+                id("org:declarer:1") {
+                    dependsOn("org:requester:1")
+                    dependsOn(group: "org", artifact: "x", version: "1", strictly: "1")
+                }
+            }
+        }
+        buildFile << """
+            dependencies {
+                ${outside ? 'conf("org:declarer:1")\nconf("org:outside:1")' : 'conf("org:requester:1")'}
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            allowAll()
+        }
+        fails(":checkDeps")
+
+        then:
+        failure.assertHasCause("Cannot find a version of 'org:x' that satisfies the version constraints")
+
+        where:
+        outside << [false, true]
+    }
+
 }

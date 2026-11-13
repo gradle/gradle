@@ -27,6 +27,7 @@ import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
 class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "source dependency on source set of same type"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         def app = new CHelloWorldApp()
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/library"))
@@ -56,6 +57,7 @@ model {
     }
 
     def "source dependency on source set of headers"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         def app = new CHelloWorldApp()
         app.executable.writeSources(file("src/main"))
         app.library.sourceFiles*.writeToDir(file("src/main"))
@@ -83,6 +85,7 @@ model {
     }
 
     def "source dependency on source set of different type"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         def app = new CppCallingCHelloWorldApp()
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/library"))
@@ -113,6 +116,7 @@ model {
     }
 
     def "source files in depended-on source set are not included"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CHelloWorldApp()
         app.writeSources(file("src/main"))
@@ -140,6 +144,7 @@ model {
     }
 
     def "binary depending on source set has no effect"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CHelloWorldApp()
         app.writeSources(file("src/main"))

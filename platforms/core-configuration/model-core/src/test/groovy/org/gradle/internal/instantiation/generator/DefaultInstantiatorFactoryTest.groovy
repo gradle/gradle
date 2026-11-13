@@ -16,9 +16,11 @@
 
 package org.gradle.internal.instantiation.generator
 
+import org.gradle.api.tasks.Nested
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Specification
 
 import javax.inject.Inject
@@ -66,6 +68,16 @@ class DefaultInstantiatorFactoryTest extends Specification {
         instanceFactory.serviceInjectionTriggeredByAnnotation(Annotation2)
     }
 
+    @ToBeImplemented("serviceInjectionTriggeredByAnnotation only inspects the type itself, not its nested managed types")
+    def "detects properties injected by annotation in nested managed types"() {
+        def scheme = instantiatorFactory.injectScheme([Annotation1, Annotation2])
+        when:
+        def instanceFactory = scheme.forType(NestsUsesAnnotation1ForInjection)
+        then:
+        !instanceFactory.serviceInjectionTriggeredByAnnotation(Annotation1) // should be detected through the nested type
+        !instanceFactory.serviceInjectionTriggeredByAnnotation(Annotation2)
+    }
+
     def handler(Class<? extends Annotation> annotation) {
         InjectAnnotationHandler handler = Stub(InjectAnnotationHandler)
         handler.annotationType >> annotation
@@ -97,4 +109,9 @@ interface UsesAnnotationsForInjection {
     String getPropertyOne()
     @Annotation2
     Integer getPropertyTwo()
+}
+
+interface NestsUsesAnnotation1ForInjection {
+    @Nested
+    UsesAnnotation1ForInjection getNested()
 }

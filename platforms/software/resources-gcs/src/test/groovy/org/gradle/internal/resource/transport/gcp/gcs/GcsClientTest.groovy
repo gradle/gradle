@@ -23,6 +23,7 @@ import com.google.api.services.storage.Storage
 import com.google.api.services.storage.model.StorageObject
 import com.google.api.services.storage.model.Objects
 import org.gradle.api.resources.ResourceException
+import org.gradle.internal.resource.HttpErrorStatusCodeException
 import spock.lang.Ignore
 import spock.lang.Specification
 import spock.mock.MockMakers
@@ -101,6 +102,31 @@ class GcsClientTest extends Specification {
         then:
         def ex = thrown(ResourceException)
         ex.message.startsWith("Could not get resource 'https://somehost/file.txt'")
+    }
+
+    def "reports the status code GCS answered with"() {
+        def gcsStorageClient = Mock(Storage)
+        URI uri = new URI("https://somehost/file.txt")
+        GcsClient gcsClient = new GcsClient(gcsStorageClient)
+        def forbidden = Mock(GoogleJsonResponseException, mockMaker: MockMakers.mockito) {
+            getStatusCode() >> 403
+            getStatusMessage() >> "Forbidden"
+        }
+
+        gcsStorageClient.objects(*_) >> Mock(Storage.Objects) {
+            get(*_) >> Mock(Storage.Objects.Get) {
+                execute() >> { throw forbidden }
+            }
+        }
+
+        when:
+        gcsClient.getResource(uri)
+
+        then:
+        def ex = thrown(HttpErrorStatusCodeException)
+        ex.statusCode == 403
+        ex.cause == forbidden
+        ex.message == "Could not get resource 'https://somehost/file.txt'."
     }
 
     def "should include uri when upload fails"() {

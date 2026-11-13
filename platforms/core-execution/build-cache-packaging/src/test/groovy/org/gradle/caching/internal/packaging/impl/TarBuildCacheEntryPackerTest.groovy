@@ -21,8 +21,12 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
+import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.OsTestPreconditions
+import spock.lang.Issue
 
 
 import static org.gradle.internal.file.TreeType.DIRECTORY
@@ -64,6 +68,45 @@ class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec 
         then:
         targetDataFile.text == "output"
         result.entries == 4
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39770")
+    def "unpacked file snapshot records the file's length and last modified time for #type output"() {
+        def sourceOutput = temporaryFolder.file("source")
+        def targetOutput = temporaryFolder.file("target")
+        def targetDataFile = type == FILE ? targetOutput : targetOutput.file("data.txt")
+        if (type == FILE) {
+            sourceOutput << "output"
+        } else {
+            sourceOutput.createDir().file("data.txt") << "output"
+        }
+        def output = new ByteArrayOutputStream()
+        pack output, prop("out", type, sourceOutput)
+
+        when:
+        def input = new ByteArrayInputStream(output.toByteArray())
+        def result = unpack input, prop("out", type, targetOutput)
+
+        then:
+        def fileSnapshot = findRegularFile(result.snapshots["out"])
+        fileSnapshot.absolutePath == targetDataFile.absolutePath
+        fileSnapshot.metadata.length == "output".length()
+        fileSnapshot.metadata.lastModified == targetDataFile.lastModified()
+
+        where:
+        type << [FILE, DIRECTORY]
+    }
+
+    private static RegularFileSnapshot findRegularFile(FileSystemLocationSnapshot root) {
+        RegularFileSnapshot found = null
+        root.accept { FileSystemLocationSnapshot snapshot ->
+            if (snapshot instanceof RegularFileSnapshot) {
+                found = snapshot
+            }
+            SnapshotVisitResult.CONTINUE
+        }
+        assert found != null
+        found
     }
 
     def "can pack tree with missing #type (pre-existing as: #preExistsAs)"() {

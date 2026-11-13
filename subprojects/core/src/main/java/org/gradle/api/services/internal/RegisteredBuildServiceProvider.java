@@ -17,10 +17,10 @@
 package org.gradle.api.services.internal;
 
 import com.google.errorprone.annotations.concurrent.GuardedBy;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.Try;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.collect.PersistentList;
@@ -58,7 +58,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     private boolean keepAlive;
 
     public RegisteredBuildServiceProvider(
-        BuildIdentifier buildIdentifier,
+        BuildIdentity buildIdentity,
         String name,
         Class<T> implementationType,
         P parameters,
@@ -69,7 +69,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         Listener listener,
         @Nullable Integer maxUsages
     ) {
-        this.serviceDetails = new BuildServiceDetails<>(buildIdentifier, name, implementationType, parameters, maxUsages);
+        this.serviceDetails = new BuildServiceDetails<>(buildIdentity, name, implementationType, parameters, maxUsages);
         this.internalServices = internalServices;
         this.isolationScheme = isolationScheme;
         this.instantiationScheme = instantiationScheme;
@@ -83,8 +83,8 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     }
 
     @Override
-    public BuildIdentifier getBuildIdentifier() {
-        return serviceDetails.getBuildIdentifier();
+    public BuildIdentity getBuildIdentity() {
+        return serviceDetails.getBuildIdentity();
     }
 
     @Override
@@ -187,8 +187,10 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         }
     }
 
-    @Override
-    public void maybeStop() {
+    /**
+     * Stops the service. When it has an instance to close, the closing is run by the given runner.
+     */
+    void maybeStop(Consumer<Runnable> closeRunner) {
         // We don't want to call stop actions with the lock held.
         ExecutionResult<Void> stopResult = ExecutionResult.forEach(getStopActions(), action -> action.accept(this));
         synchronized (instanceLock) {
@@ -196,13 +198,15 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
                 if (instance != null) {
                     instance.ifSuccessful(t -> {
                         if (t instanceof AutoCloseable) {
-                            try {
-                                ((AutoCloseable) t).close();
-                            } catch (Exception e) {
-                                ServiceLifecycleException failure = new ServiceLifecycleException("Failed to stop service '" + getName() + "'.", e);
-                                stopResult.getFailures().forEach(failure::addSuppressed);
-                                throw failure;
-                            }
+                            closeRunner.accept(() -> {
+                                try {
+                                    ((AutoCloseable) t).close();
+                                } catch (Exception e) {
+                                    ServiceLifecycleException failure = new ServiceLifecycleException("Failed to stop service '" + getName() + "'.", e);
+                                    stopResult.getFailures().forEach(failure::addSuppressed);
+                                    throw failure;
+                                }
+                            });
                         }
                     });
                 }

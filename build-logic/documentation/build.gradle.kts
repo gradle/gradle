@@ -11,7 +11,6 @@ dependencies {
 
     implementation(projects.buildUpdateUtils)
 
-    implementation(buildLibs.gradleGuidesPlugin)
     implementation(buildLibs.javaParserCore)
     implementation(buildLibs.guava)
     implementation(buildLibs.jhighlight) {
@@ -22,6 +21,7 @@ dependencies {
     implementation(buildLibs.commonsLang3)
     implementation(buildLibs.asciidoctor)
     implementation(buildLibs.asciidoctorJvm)
+    implementation(platform(buildLibs.nettyBom))
     implementation(buildLibs.dokkaPlugin)
     implementation(buildLibs.jspecify)
 
@@ -33,6 +33,10 @@ gradlePlugin {
         register("gradleDocumentation") {
             id = "gradlebuild.documentation"
             implementationClass = "gradlebuild.docs.GradleBuildDocumentationPlugin"
+        }
+        register("gradleSnippetsTesting") {
+            id = "gradlebuild.docs-snippets-testing"
+            implementationClass = "gradlebuild.docs.GradleSnippetsTestingPlugin"
         }
     }
 }

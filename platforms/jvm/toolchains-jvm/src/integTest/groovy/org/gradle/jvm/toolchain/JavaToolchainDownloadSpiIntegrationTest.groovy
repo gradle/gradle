@@ -297,6 +297,45 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Duplicate configuration for repository implementation 'UselessToolchainResolver'.")
     }
 
+    def "fails when a repository has no resolver class"() {
+        settingsFile << """
+            ${applyToolchainResolverPlugin("UselessToolchainResolver", noUrlResolverCode(), DEFAULT_PLUGIN,
+                """
+                    toolchainManagement {
+                        jvm {
+                            javaRepositories {
+                                repository('useless') {
+                                }
+                            }
+                        }
+                    }
+                """
+            )}
+        """
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(99)
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        failure = executer
+                .withTasks("compileJava")
+                .requireOwnGradleUserHomeDir("needs to not have cached toolchains")
+                .withToolchainDownloadEnabled()
+                .runWithFailure()
+
+        then:
+        failure.assertHasDescription("Java toolchain repository `useless` must have the `resolverClass` property set")
+    }
+
     def "fails on repository name collision"() {
         settingsFile << """
             ${applyToolchainResolverPlugin("UselessToolchainResolver1", noUrlResolverCode(), DEFAULT_PLUGIN, NO_TOOLCHAIN_MANAGEMENT)}

@@ -22,15 +22,14 @@ import org.jspecify.annotations.Nullable;
 
 import javax.annotation.CheckReturnValue;
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * A {@link org.gradle.internal.concurrent.Stoppable} that stops a collection of things. If an element implements
- * {@link java.io.Closeable} or {@link org.gradle.internal.concurrent.Stoppable} then the appropriate close/stop
- * method is called on that object; otherwise the element is ignored. Elements may be {@code null}, in which case they
- * are ignored.
+ * {@link AutoCloseable} or {@link org.gradle.internal.concurrent.Stoppable} then the appropriate close/stop
+ * method is called on that object; otherwise the element is ignored. An element that implements both is stopped,
+ * not closed. Elements may be {@code null}, in which case they are ignored.
  *
  * <p>Attempts to stop as many elements as possible in the presence of failures.</p>
  */
@@ -89,8 +88,8 @@ public class CompositeStoppable implements Stoppable {
         if (object instanceof Stoppable) {
             return (Stoppable) object;
         }
-        if (object instanceof Closeable) {
-            final Closeable closeable = (Closeable) object;
+        if (object instanceof AutoCloseable) {
+            final AutoCloseable closeable = (AutoCloseable) object;
             return new Stoppable() {
                 @Override
                 public String toString() {
@@ -101,7 +100,7 @@ public class CompositeStoppable implements Stoppable {
                 public void stop() {
                     try {
                         closeable.close();
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }

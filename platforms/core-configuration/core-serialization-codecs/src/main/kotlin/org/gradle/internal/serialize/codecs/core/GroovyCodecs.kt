@@ -27,12 +27,12 @@ import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
-import org.gradle.groovy.scripts.BasicScript
 import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsGradleModelTypes
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.metaobject.ConfigureDelegate
+import org.gradle.internal.scripts.ScriptTargetAware
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -87,9 +87,9 @@ object ClosureCodec : Codec<Closure<*>> {
         // So instead, warn when the script object is used by the closure when executing
         writeEnum(
             when {
-                value is BasicScript && value.scriptTarget is Project -> ClosureReference.Project
-                value is BasicScript && value.scriptTarget is Settings -> ClosureReference.Settings
-                value is BasicScript && value.scriptTarget is Gradle -> ClosureReference.Init
+                value is ScriptTargetAware && value.scriptTarget is Project -> ClosureReference.Project
+                value is ScriptTargetAware && value.scriptTarget is Settings -> ClosureReference.Settings
+                value is ScriptTargetAware && value.scriptTarget is Gradle -> ClosureReference.Init
                 else -> ClosureReference.NotScript
             }
         )
@@ -161,15 +161,11 @@ object ClosureCodec : Codec<Closure<*>> {
 
         private
         fun scriptReferenced(invocationDescription: String): Nothing {
-            val exceptionMessage =
-                "Invocation of '$invocationDescription' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache."
-
-            val problem = problemFactory.problem {
+            val problem = problemFactory.problem("Gradle script object referenced from closure at execution time") {
                 text("invocation of ")
                 reference(invocationDescription)
                 text(" references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
             }
-                .exception(exceptionMessage)
                 .documentationSection(RequirementsGradleModelTypes)
                 .mapLocation { trace }
                 .build()
@@ -179,7 +175,7 @@ object ClosureCodec : Codec<Closure<*>> {
             // We normally fail immediately on execution-time problems, except when in the warning mode.
             // However, even in the warning mode, we don't have a reasonable way of proceeding in this situation
             // so we make sure to throw
-            throw problem.exception ?: InvalidUserCodeException(exceptionMessage)
+            throw problem.exception ?: InvalidUserCodeException(problem.message.renderCapitalized())
         }
     }
 }

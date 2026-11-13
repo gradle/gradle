@@ -35,6 +35,7 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
     }
 
     def "does not recompile when include path has #testCase"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         outputs.snapshot { run "mainExecutable" }
 
@@ -76,6 +77,7 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
     }
 
     def "recompiles only source file that imported changed header file"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         sourceFile << """
             #import "${otherHeaderFile.name}"
@@ -98,6 +100,7 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
     }
 
     def "source is always recompiled if it imported header via complex macro"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def notIncluded = file("src/main/headers/notIncluded.h")
         notIncluded.text = """#pragma message("should not be used")"""
@@ -138,6 +141,7 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
     }
 
     def "recompiles source file when transitively imported header file is changed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def transitiveHeaderFile = file("src/main/headers/transitive.h") << """
            // Dummy header file

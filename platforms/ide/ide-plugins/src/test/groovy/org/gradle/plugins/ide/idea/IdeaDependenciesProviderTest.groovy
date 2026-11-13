@@ -22,7 +22,6 @@ import org.gradle.plugins.ide.idea.model.Dependency
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry
-import org.gradle.plugins.ide.internal.resolver.NullGradleApiSourcesResolver
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -35,7 +34,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
     def setup() {
         childProject = TestUtil.createChildProject(project, "child", temporaryFolder.testDirectory.file("child"))
         artifactRegistry = Stub(IdeArtifactRegistry)
-        dependenciesProvider = new IdeaDependenciesProvider(project, artifactRegistry, NullGradleApiSourcesResolver.INSTANCE)
+        dependenciesProvider = new IdeaDependenciesProvider(project, artifactRegistry)
 
         Specification._ * artifactRegistry.getIdeProject(Specification._, Specification._) >> { Class c, def m ->
             return Stub(c)

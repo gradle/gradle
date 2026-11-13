@@ -29,6 +29,7 @@ abstract class AbstractComponentReportIntegrationTest extends AbstractIntegratio
     String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << "rootProject.name = 'test'"
     }
 
@@ -42,7 +43,7 @@ abstract class AbstractComponentReportIntegrationTest extends AbstractIntegratio
         return output.readLines().findAll {
             !it.isEmpty() && !(it ==~ /^Download http.*$/) && !(it ==~ /.*has been deprecated.*$/)
                 && !(it ==~ /.*Problem found.*$/)
-                && !(it ==~ /.*invocation of 'Task.project' at execution time is unsupported.*$/)
+                && !(it ==~ /.*[Ii]nvocation of 'Task.project' at execution time is unsupported.*$/)
                 && !(it ==~ /.*Possible solution:.*$/)
                 && !(it ==~ /.*For more information, please refer to https:\/\/docs.gradle.org\/.*$/)
         }.join('\n')

@@ -18,7 +18,7 @@ dependencies {
     implementation(projects.packaging)
     implementation(projects.profiling)
 
-    implementation(buildLibs.kgp)
+    implementation(buildLibs.kotlinGradlePlugin)
     implementation(buildLibs.dependencyAnalysisPlugin) {
         exclude(group = "com.google.j2objc", module = "j2objc-annotations") // This has no use in Gradle
     }

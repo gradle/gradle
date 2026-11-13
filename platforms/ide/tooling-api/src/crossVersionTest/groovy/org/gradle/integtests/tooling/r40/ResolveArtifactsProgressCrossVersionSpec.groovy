@@ -205,7 +205,14 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         and:
         def resolveArtifacts = events.operation(resolveConfigurationFiles(':configurationWithDependency'))
         resolveArtifacts.parent.descriptor.displayName.matches("Execute .* for :resolve")
-        resolveArtifacts.children.size() == 0
+        resolveArtifacts.children*.descriptor*.displayName.toSet() == expectedOptionalArtifactDownloads()
+    }
+
+    private Set<String> expectedOptionalArtifactDownloads() {
+        if (targetVersion.baseVersion < GradleVersion.version("9.9")) {
+            return [] as Set
+        }
+        return ["Resolve provider-1.0.jar (test:provider:1.0)", "Resolve other-1.0.jar (test:other:1.0)"] as Set
     }
 
     def "generates event for resolving artifact view even if the view is empty"() {

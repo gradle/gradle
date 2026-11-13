@@ -25,20 +25,23 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.jspecify.annotations.Nullable;
 
 public class DefaultCollectionCallbackActionDecorator implements CollectionCallbackActionDecorator {
+
     private final BuildOperationRunner buildOperationRunner;
     private final UserCodeApplicationContext userCodeApplicationContext;
 
-    public DefaultCollectionCallbackActionDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
+    public DefaultCollectionCallbackActionDecorator(
+        BuildOperationRunner buildOperationRunner,
+        UserCodeApplicationContext userCodeApplicationContext
+    ) {
         this.buildOperationRunner = buildOperationRunner;
         this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
     @Override
-    public <T> Action<T> decorate(@Nullable Action<T> action) {
-        if (action == null || action instanceof InternalListener) {
+    public <T> Action<T> decorate(Action<T> action) {
+        if (action instanceof InternalListener) {
             return action;
         }
 
@@ -46,7 +49,7 @@ public class DefaultCollectionCallbackActionDecorator implements CollectionCallb
         if (application == null) {
             return action;
         }
-        return new BuildOperationEmittingAction<>(application.getId(), application.reapplyLater(action));
+        return new BuildOperationEmittingAction<>(application, action);
     }
 
     @Override
@@ -55,12 +58,7 @@ public class DefaultCollectionCallbackActionDecorator implements CollectionCallb
         if (application == null) {
             return spec;
         }
-        return new Spec<T>() {
-            @Override
-            public boolean isSatisfiedBy(T element) {
-                return application.reapply(() -> spec.isSatisfiedBy(element));
-            }
-        };
+        return new ReapplyingSpec<>(application, spec);
     }
 
     private static abstract class Operation implements RunnableBuildOperation {
@@ -92,21 +90,38 @@ public class DefaultCollectionCallbackActionDecorator implements CollectionCallb
         }
     }
 
+    private static class ReapplyingSpec<T> implements Spec<T> {
+
+        private final UserCodeApplicationContext.Application application;
+        private final Spec<T> delegate;
+
+        ReapplyingSpec(UserCodeApplicationContext.Application application, Spec<T> delegate) {
+            this.application = application;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean isSatisfiedBy(T element) {
+            return application.reapplySpec(delegate, element, UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK);
+        }
+
+    }
+
     private class BuildOperationEmittingAction<T> implements Action<T> {
-        private final UserCodeApplicationId applicationId;
+        private final UserCodeApplicationContext.Application application;
         private final Action<T> delegate;
 
-        BuildOperationEmittingAction(UserCodeApplicationId applicationId, Action<T> delegate) {
-            this.applicationId = applicationId;
+        BuildOperationEmittingAction(UserCodeApplicationContext.Application application, Action<T> delegate) {
+            this.application = application;
             this.delegate = delegate;
         }
 
         @Override
         public void execute(final T arg) {
-            buildOperationRunner.run(new Operation(applicationId) {
+            buildOperationRunner.run(new Operation(application.getId()) {
                 @Override
                 public void run(final BuildOperationContext context) {
-                    delegate.execute(arg);
+                    application.reapplyAction(delegate, arg, UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK);
                     context.setResult(ExecuteDomainObjectCollectionCallbackBuildOperationType.RESULT);
                 }
             });

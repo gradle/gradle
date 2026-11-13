@@ -45,7 +45,6 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(libs.ant)
     implementation(libs.commonsIo)
     implementation(libs.groovyTemplates)
     implementation(libs.slf4jApi)

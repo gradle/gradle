@@ -52,7 +52,7 @@ Because the project cache directory is not watched, it can be placed on any file
 
 There is no public mechanism to configure additional file system watch excludes.
 
-To reduce unnecessary watching and re-execution, consider limiting the inputs of specific tasks using link:{javadocPath}/org/gradle/api/tasks/util/PatternFilterable.html#exclude(java.lang.String...)[`fileTree.exclude()`].
+To reduce unnecessary watching and re-execution, consider limiting the inputs of specific tasks using link:{javadocPath}/org/gradle/api/tasks/util/PatternFilterable.html#exclude(java.lang.String++...++)[`fileTree.exclude()`].
 
 [[sec:supported_operating_systems]]
 == Supported Operating Systems

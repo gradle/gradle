@@ -29,6 +29,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
     final app = new CppHelloWorldApp()
 
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << "rootProject.name = 'test'"
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("libs/src/hello"))
@@ -60,6 +61,7 @@ model {
     }
 
     def "can link to a prebuilt header-only library with api linkage"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         app.alternateLibrarySources*.writeToDir(file("src/main"))
         buildFile << """
@@ -90,6 +92,7 @@ model {
     }
 
     def "can link to a prebuilt library with static and shared linkage"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         preBuildLibrary()
 
@@ -150,6 +153,7 @@ model {
     }
 
     def "searches all prebuilt library repositories"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         preBuildLibrary()
 
@@ -192,6 +196,7 @@ model {
 
     @UnsupportedWithIsolatedProjects(because = "software model")
     def "locates prebuilt library in another project"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         app.executable.writeSources(file("projectA/src/main"))
         app.librarySources*.writeToDir(file("projectA/src/main"))
@@ -237,6 +242,7 @@ model {
 
     @ToBeFixedForConfigurationCache
     def "produces reasonable error message when no output file is defined for binary"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 apply plugin: 'cpp'
@@ -268,6 +274,7 @@ model {
 
     @ToBeFixedForConfigurationCache
     def "produces reasonable error message when prebuilt library output file does not exist"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 apply plugin: 'cpp'
@@ -302,6 +309,7 @@ model {
     }
 
     def "produces reasonable error message when prebuilt library does not exist"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 apply plugin: 'cpp'
@@ -334,6 +342,7 @@ model {
 
     @UnsupportedWithIsolatedProjects(because = "software model")
     def "produces reasonable error message when prebuilt library does not exist in a different project"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         settingsFile.text = "include ':projectA', ':projectB'"
         file("projectA/build.gradle") << """

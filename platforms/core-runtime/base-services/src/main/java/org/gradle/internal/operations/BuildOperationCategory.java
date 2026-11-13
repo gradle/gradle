@@ -58,6 +58,11 @@ public enum BuildOperationCategory implements BuildOperationMetadata {
     TRANSFORM(true, true, false),
 
     /**
+     * Execute a work action, such as one submitted with the Worker API.
+     */
+    WORK_ACTION(false, false, false),
+
+    /**
      * Operation doesn't belong to any category.
      */
     UNCATEGORIZED(false, false, false);

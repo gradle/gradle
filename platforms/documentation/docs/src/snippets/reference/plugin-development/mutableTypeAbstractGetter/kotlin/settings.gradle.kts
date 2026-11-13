@@ -1,0 +1,1 @@
+rootProject.name = "mutable-type-abstract-getter"

@@ -129,13 +129,9 @@ package org.gradle.internal.service;
  * The lookup for private services will fail if no other service can fulfil the lookup request.
  * The private services are also not collected as part of the <em>aggregated</em> injection.
  *
- * <h3>Service lifetime</h3>
+ * <h3>Service lifecycle</h3>
  *
- * Services are created lazily and might not be instantiated at all during the lifetime of the owning service registry.
- * <p>
- * If a service instance was created and the service implements {@link java.io.Closeable#close() Closeable} or
- * {@link org.gradle.internal.concurrent.Stoppable#stop() Stoppable} then the appropriate
- * method is called to dispose of it when the owning service registry is {@link CloseableServiceRegistry#close() closed}.
+ * See {@link ManagedServiceRegistry} for when service instances are created and disposed of.
  */
 public interface ServiceRegistrationProvider {
 }

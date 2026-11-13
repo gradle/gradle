@@ -226,7 +226,7 @@ class WorkNodeCodec(
     }
 
     private
-    fun ReadContext.readEdgesAndGroupMembership(nodeForId: NodeForId, taskReferences: MutableList<RestoredTaskReference>): List<Node> =
+    fun ReadContext.readEdgesAndGroupMembership(nodeForId: NodeForId, taskReferences: MutableList<RestoredTaskReference>): ImmutableList<Node> =
         buildCollection({ ImmutableList.builderWithExpectedSize<Node>(it) }) {
             val node = nodeForId(readSmallInt())
             readSuccessorReferencesOf(node, nodeForId)
@@ -433,6 +433,10 @@ class WorkNodeCodec(
             setupNode.run(object : NodeExecutionContext {
                 override fun <T : Any> getService(type: Class<T>): T {
                     return ownerService(type)
+                }
+
+                override fun isPartOfExecutionGraph(): Boolean {
+                    return false
                 }
             })
             val postExecutionNodes = setupNode.postExecutionNodes

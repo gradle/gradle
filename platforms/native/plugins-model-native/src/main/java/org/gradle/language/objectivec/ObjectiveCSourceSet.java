@@ -27,7 +27,7 @@ import org.gradle.language.base.LanguageSourceSet;
  *
  * <p>An ObjectiveC source set contains a set of source files, together with an optional set of exported header files.</p>
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'objective-c'
  * }

@@ -38,7 +38,7 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
         then:
         fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(*accessLocation.configuredProjects)
-            problem("Build file '${accessLocation.buildFileName}': line 8: Project '${accessLocation.accessor}' cannot access Gradle.extensions")
+            problem("Build file '${accessLocation.buildFileName}': line 8: Project '${accessLocation.accessor}' cannot access 'Gradle.extensions'")
         }
 
         where:
@@ -93,7 +93,7 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
         then:
         fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(*accessLocation.configuredProjects)
-            problem("Build file '${accessLocation.buildFileName}': line 2: Project '${accessLocation.accessor}' cannot access Gradle.$problemAccess")
+            problem("Build file '${accessLocation.buildFileName}': line 2: Project '${accessLocation.accessor}' cannot access 'Gradle.$problemAccess'")
         }
 
         where:
@@ -148,13 +148,13 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
         "addListener(new Object())"                         | { IsolatedProjectsMode mode, String project, GradleTarget which -> expectedProblemsOnUnsupportedListener(mode, project, "addListener", which) }
         "addBuildListener(${buildListener()})"              | { IsolatedProjectsMode mode, String project, GradleTarget which -> expectedProblemsOnUnsupportedListener(mode, project, "addBuildListener", which) }
         "useLogger(new Object())"                           | { IsolatedProjectsMode mode, String project, GradleTarget which -> expectedProblemsOnUnsupportedListener(mode, project, "useLogger", which) }
-        "removeListener(new Object())"                      | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access Gradle.removeListener"] }
-        "addListener(${projectEvaluationListener()})"       | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access Gradle.addListener"] }
-        "removeListener(${projectEvaluationListener()})"    | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access Gradle.removeListener"] }
-        "addListener(${taskExecutionGraphListener()})"      | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access Gradle.addListener"] }
-        "removeListener(${taskExecutionGraphListener()})"   | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access Gradle.removeListener"] }
-        "addListener(${dependencyResolutionListener()})"    | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access Gradle.addListener"] }
-        "removeListener(${dependencyResolutionListener()})" | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access Gradle.removeListener"] }
+        "removeListener(new Object())"                      | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access 'Gradle.removeListener'"] }
+        "addListener(${projectEvaluationListener()})"       | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access 'Gradle.addListener'"] }
+        "removeListener(${projectEvaluationListener()})"    | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access 'Gradle.removeListener'"] }
+        "addListener(${taskExecutionGraphListener()})"      | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access 'Gradle.addListener'"] }
+        "removeListener(${taskExecutionGraphListener()})"   | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access 'Gradle.removeListener'"] }
+        "addListener(${dependencyResolutionListener()})"    | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access 'Gradle.addListener'"] }
+        "removeListener(${dependencyResolutionListener()})" | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access 'Gradle.removeListener'"] }
 
         combined:
         gradleTarget << GradleTarget.values().toList()
@@ -226,15 +226,15 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
     private static List<String> expectedProblemsOnUnsupportedListener(IsolatedProjectsMode mode, String accessor, String method, GradleTarget gradleTarget) {
         // In FAIL_FAST the build halts on the first (IP) problem, so only it is reported.
         if (mode == IsolatedProjectsMode.FAIL_FAST) {
-            return ["Project '$accessor' cannot access Gradle.$method"]
+            return ["Project '$accessor' cannot access 'Gradle.$method'"]
         }
         // In DIAGNOSTICS, CC also reports the unsupported-listener registration, except in buildSrc,
         // which CC exempts (see ConfigurationCacheProblemsListener.isBuildSrcBuild).
         // That exemption only applies to direct access: via `gradle.parent` the listener registers on
         // the (root) parent build, which CC does not exempt, so the registration is still reported.
         (accessor == ":buildSrc" && gradleTarget == GradleTarget.CURRENT)
-            ? ["Project '$accessor' cannot access Gradle.$method"]
-            : ["Project '$accessor' cannot access Gradle.$method", "registration of listener on 'Gradle.$method' is unsupported"]
+            ? ["Project '$accessor' cannot access 'Gradle.$method'"]
+            : ["Project '$accessor' cannot access 'Gradle.$method'", "registration of listener on 'Gradle.$method' is unsupported"]
     }
 
     private static String projectEvaluationListener() {

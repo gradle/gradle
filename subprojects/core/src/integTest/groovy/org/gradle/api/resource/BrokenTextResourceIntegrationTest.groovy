@@ -17,9 +17,9 @@
 package org.gradle.api.resource
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
+import spock.lang.Issue
 
 class BrokenTextResourceIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -67,10 +67,7 @@ task text(type: TextTask)
         failure.assertHasCause("Cannot expand TAR '${file}' as it does not exist.")
     }
 
-    @ToBeFixedForConfigurationCache(
-        issue = "https://github.com/gradle/gradle/issues/36695",
-        because = "the underlying file collection looses its display name"
-    )
+    @Issue("https://github.com/gradle/gradle/issues/36695")
     def "reports read of missing archive entry"() {
         given:
         buildFile << """

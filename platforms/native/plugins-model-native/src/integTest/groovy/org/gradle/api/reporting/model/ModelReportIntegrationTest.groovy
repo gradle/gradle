@@ -26,6 +26,7 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             plugins {
                 id 'model-reporting-tasks'

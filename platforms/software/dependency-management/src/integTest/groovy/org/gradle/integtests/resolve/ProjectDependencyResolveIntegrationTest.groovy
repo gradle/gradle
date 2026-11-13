@@ -203,7 +203,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
-                    configuration("configA1")
+                    variant("configA1")
                     artifact(name: "A1")
                 }
             }
@@ -217,7 +217,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
-                    configuration("configA2")
+                    variant("configA2")
                     artifact(name: "A2")
                 }
             }
@@ -447,7 +447,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
-                    configuration("runtimeElements")
+                    variant("runtimeElements")
                 }
             }
         }
@@ -505,7 +505,10 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             root(":a", "test:a:") {
                 project(":b", "test:b:") {
                     project(":c", "test:c:") {
-                        project(":a", "test:a:")
+                        project(":a", "test:a:") {
+                            variant("default")
+                            project(":b", "test:b:")
+                        }
                     }
                 }
             }
@@ -712,13 +715,14 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
-                    configuration("configOne")
-                    configuration("configTwo")
+                    variant("configOne")
                     artifact(fileName: "A1.jar")
+                }
+                project(":a", "test:a:") {
+                    variant("configTwo")
                     artifact(fileName: "A2.jar")
                     artifact(fileName: "A3.jar")
                 }
-                project(":a", "test:a:")
             }
         }
     }

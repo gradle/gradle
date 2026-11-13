@@ -176,7 +176,7 @@ It is a good place to define and maintain shared configuration or imperative bui
 
 `buildSrc` is automatically included in your build as a special subproject if a `build.gradle(.kts)` file is found under `buildSrc`.
 
-Consult the <<sharing_build_logic_between_subprojects.adoc#sharing_build_logic_between_subprojects,Sharing Build Logic using `buildSrc`>> chapter to learn more.
+Consult the <<sharing_build_logic_between_subprojects.adoc#sharing_build_logic_between_subprojects,Sharing Build Logic>> chapter to learn more.
 
 [[sec:composite_builds_build_logic]]
 == Composite Builds including `build-logic`

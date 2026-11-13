@@ -17,9 +17,68 @@
 package org.gradle.internal.reflect.validation
 
 import org.gradle.api.problems.internal.DefaultTypeValidationData
+import org.gradle.internal.reflect.DefaultTypeValidationContext
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultTypeAwareProblemBuilderTest extends Specification {
+
+    def "exposes the Gradle root group of the problems service"() {
+        given:
+        def problems = TestUtil.problemsService()
+        def context = DefaultTypeValidationContext.withRootType(String, false, problems)
+        def exposed = null
+
+        when:
+        context.visitTypeError { TypeAwareProblemBuilder problem ->
+            exposed = problem.gradleGroup
+            problem.id(exposed.pluginValidation.problemId("Test problem"))
+        }
+
+        then:
+        exposed.is(problems.groups.gradle)
+        context.errors.size() == 1
+    }
+
+    def "leaves the type out of the message of '#name' in Build Logic"() {
+        given:
+        def problems = TestUtil.problemsService()
+        def context = DefaultTypeValidationContext.withRootType(String, false, problems)
+
+        when:
+        context.visitPropertyError { TypeAwareProblemBuilder problem ->
+            problem.forProperty("bar").id(problem.gradleGroup.buildLogic.problemId(name)).contextualLabel("is broken")
+        }
+
+        then:
+        context.errors*.contextualLabel == ["Property 'bar' is broken"]
+
+        where:
+        name << [
+            DefaultTypeAwareProblemBuilder.UNKNOWN_IMPLEMENTATION,
+            DefaultTypeAwareProblemBuilder.UNKNOWN_PROPERTY_IMPLEMENTATION,
+            DefaultTypeAwareProblemBuilder.IMPLICIT_DEPENDENCY
+        ]
+    }
+
+    def "keeps the type in the message of '#name' in #group"() {
+        given:
+        def problems = TestUtil.problemsService()
+        def context = DefaultTypeValidationContext.withRootType(String, false, problems)
+
+        when:
+        context.visitPropertyError { TypeAwareProblemBuilder problem ->
+            problem.forProperty("bar").id(problem.gradleGroup."$group".problemId(name)).contextualLabel("is broken")
+        }
+
+        then:
+        context.errors*.contextualLabel == ["Type 'java.lang.String' property 'bar' is broken"]
+
+        where:
+        group              | name
+        "buildLogic"       | "Missing project feature annotation"
+        "pluginValidation" | DefaultTypeAwareProblemBuilder.UNKNOWN_IMPLEMENTATION
+    }
 
     def "render introduction without type"() {
         given:

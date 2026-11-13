@@ -20,7 +20,8 @@ package org.gradle.internal.operations;
  * An individual active, single use, queue of build operations.
  * <p>
  * The queue is active in that operations may start running on another thread as soon as they are added.
- * The queue is single use in that no further work can be added once {@link #waitForCompletion()} has completed.
+ * The queue is single use in that no further work can be added once {@link #waitForCompletion()} has been called or the queue has been
+ * {@linkplain #cancel() cancelled}, with the exception that in-progress work may add further work during the wait for completion.
  * <p>
  * A queue instance is threadsafe. Build operations can submit further operations to the queue but must not block waiting for them to complete.
  *
@@ -70,7 +71,8 @@ public interface BuildOperationQueue<T extends BuildOperation> {
     void cancel();
 
     /**
-     * Waits for all previously added operations to complete, or for the queue to finish after cancellation.
+     * Waits for all added operations to complete, including any added by running operations in the meantime.
+     * If the queue has been canceled, this method will wait for it to finish cancelling before returning.
      *
      * @throws MultipleBuildOperationFailures if <em>any</em> operation failed
      */

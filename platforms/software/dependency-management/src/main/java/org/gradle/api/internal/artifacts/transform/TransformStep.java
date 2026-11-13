@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.project.ProjectDomainObjectContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
@@ -29,7 +29,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.InputFingerprinter;
-import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
+import org.gradle.internal.model.DomainObjectContext;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -44,6 +44,7 @@ import java.io.File;
 public class TransformStep implements TaskDependencyContainer, Describable {
     private final Transform transform;
     private final TransformInvocationFactory transformInvocationFactory;
+    private final DomainObjectContext owner;
     private final @Nullable ProjectState owningProject;
     private final InputFingerprinter globalInputFingerprinter;
 
@@ -51,11 +52,16 @@ public class TransformStep implements TaskDependencyContainer, Describable {
         this.transform = transform;
         this.transformInvocationFactory = transformInvocationFactory;
         this.globalInputFingerprinter = globalInputFingerprinter;
+        this.owner = owner;
         this.owningProject = owner instanceof ProjectDomainObjectContext pdoc ? pdoc.getModel() : null;
     }
 
     public Transform getTransform() {
         return transform;
+    }
+
+    public void deprecateIfQueriedFromTransformAction() {
+        UndeclaredTransformQueryDeprecation.deprecateIfFromTransformAction(transform.getImplementationClass(), owner);
     }
 
     @Nullable

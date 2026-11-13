@@ -40,7 +40,7 @@ Switch your build to use Gradle @version@.
         def result = PreparePatchReleaseNotesKt.patchReleaseNotes(MINOR_NOTES, version)
 
         then:
-        result.contains("Gradle @version@ is the $ordinal patch release for Gradle $base. (released [@releaseDate@](https://gradle.org/releases/)).")
+        result.contains("Gradle @version@ is the $ordinal patch release for Gradle $base (released [@releaseDate@](https://gradle.org/releases/)).")
         // the minor-release intro line is gone
         !result.contains("We are excited to announce Gradle @version@ (released")
 

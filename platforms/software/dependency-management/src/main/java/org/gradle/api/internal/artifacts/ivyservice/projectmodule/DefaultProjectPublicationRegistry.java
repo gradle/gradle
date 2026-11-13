@@ -18,10 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
-import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectIdentity;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.Cast;
 import org.gradle.util.Path;
 
@@ -32,7 +31,7 @@ import java.util.List;
 
 public class DefaultProjectPublicationRegistry implements ProjectPublicationRegistry, HoldsProjectState {
     private final SetMultimap<Path, ProjectPublication> publicationsByProjectId = LinkedHashMultimap.create();
-    private final SetMultimap<BuildIdentifier, PublicationForProject<?>> publicationsByBuildId = LinkedHashMultimap.create();
+    private final SetMultimap<BuildIdentity, PublicationForProject<?>> publicationsByBuildId = LinkedHashMultimap.create();
 
     @Override
     @SuppressWarnings("MixedMutabilityReturnType")
@@ -54,7 +53,7 @@ public class DefaultProjectPublicationRegistry implements ProjectPublicationRegi
 
     @Override
     @SuppressWarnings("MixedMutabilityReturnType")
-    public <T extends ProjectPublication> Collection<PublicationForProject<T>> getPublicationsForBuild(Class<T> type, BuildIdentifier buildIdentity) {
+    public <T extends ProjectPublication> Collection<PublicationForProject<T>> getPublicationsForBuild(Class<T> type, BuildIdentity buildIdentity) {
         synchronized (publicationsByBuildId) {
             Collection<PublicationForProject<?>> buildPublications = publicationsByBuildId.get(buildIdentity);
             if (buildPublications.isEmpty()) {
@@ -77,7 +76,7 @@ public class DefaultProjectPublicationRegistry implements ProjectPublicationRegi
         }
         synchronized (publicationsByBuildId) {
             DefaultPublicationForProject publicationReference = new DefaultPublicationForProject(publication, projectIdentity);
-            publicationsByBuildId.put(new DefaultBuildIdentifier(projectIdentity.getBuildPath()), publicationReference);
+            publicationsByBuildId.put(new BuildIdentity(projectIdentity.getBuildPath()), publicationReference);
         }
     }
 

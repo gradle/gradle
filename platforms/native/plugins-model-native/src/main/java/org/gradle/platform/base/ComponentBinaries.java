@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
  * {@link org.gradle.platform.base.ComponentBinaries} annotation.
  * Furthermore the plugin registers 'DefaultSampleBinary' as implementation for {@link org.gradle.platform.base.BinarySpec}.
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * interface SampleComponent extends VariantComponentSpec {}
  * interface SampleBinary extends BinarySpec {}
  * class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}

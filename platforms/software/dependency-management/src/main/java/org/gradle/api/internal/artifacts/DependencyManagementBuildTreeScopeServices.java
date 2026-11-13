@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
@@ -57,8 +58,16 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifac
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VariantArtifactSetCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ThisBuildTreeOnlyGraphElementStore;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
+import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
+import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenMirrorResolver;
+import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenMirrorResolver;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMetadataFileSourceCodec;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
@@ -83,6 +92,7 @@ import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.resource.cached.TwoStageByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.TwoStageExternalResourceFileStore;
+import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -123,11 +133,6 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
     }
 
     @Provides
-    BuildCommencedTimeProvider createBuildTimeProvider(StartParameter startParameter) {
-        return new BuildCommencedTimeProvider(startParameter);
-    }
-
-    @Provides
     ResolutionResultsStoreFactory createResolutionResultsStoreFactory(TemporaryFileProvider temporaryFileProvider) {
         return new ResolutionResultsStoreFactory(temporaryFileProvider);
     }
@@ -164,12 +169,30 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
     }
 
     @Provides
-    ModuleSourcesSerializer createModuleSourcesSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileStoreAndIndexProvider fileStoreAndIndexProvider) {
+    ModuleSourcesSerializer createModuleSourcesSerializer(FileStoreAndIndexProvider fileStoreAndIndexProvider) {
         Map<Integer, PersistentModuleSource.Codec<? extends PersistentModuleSource>> codecs = ImmutableMap.of(
-            MetadataFileSource.CODEC_ID, new DefaultMetadataFileSourceCodec(moduleIdentifierFactory, fileStoreAndIndexProvider.getArtifactIdentifierFileStore()),
+            MetadataFileSource.CODEC_ID, new DefaultMetadataFileSourceCodec(
+                new ComponentArtifactIdentifierSerializer(new ComponentIdentifierSerializer()),
+                fileStoreAndIndexProvider.getArtifactIdentifierFileStore()
+            ),
             ModuleDescriptorHashModuleSource.CODEC_ID, new ModuleDescriptorHashCodec()
         );
         return new ModuleSourcesSerializer(codecs);
+    }
+
+    @Provides
+    MavenFileLocations createMavenFileLocations() {
+        return new DefaultMavenFileLocations();
+    }
+
+    @Provides
+    MavenSettingsProvider createMavenSettingsProvider(MavenFileLocations mavenFileLocations, FileResourceListener fileResourceListener) {
+        return new DefaultMavenSettingsProvider(mavenFileLocations, fileResourceListener);
+    }
+
+    @Provides
+    MavenMirrorResolver createMavenMirrorResolver(MavenSettingsProvider mavenSettingsProvider, StartParameterInternal startParameter) {
+        return new DefaultMavenMirrorResolver(mavenSettingsProvider, startParameter);
     }
 
     @Provides

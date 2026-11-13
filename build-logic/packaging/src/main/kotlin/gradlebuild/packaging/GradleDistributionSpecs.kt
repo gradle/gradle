@@ -95,6 +95,7 @@ object GradleDistributionSpecs {
 
         with(binDistributionSpec())
         from(sourcesPath.incoming.artifactView { lenient(true) }.files) {
+            includeEmptyDirs = false
             eachFile {
                 val subprojectFolder = file.containingSubprojectFolder(listOf("src", "main", "java").size + relativeSourcePath.segments.size)
                 val leadingSegments = relativePath.segments.size - relativeSourcePath.segments.size
@@ -102,7 +103,6 @@ object GradleDistributionSpecs {
                 relativePath = relativeSourcePath
                     .prepend("src", subprojectFolder.name)
                     .prepend(*(relativePath.segments.subArray(leadingSegments)))
-                includeEmptyDirs = false
             }
         }
         into("docs") {

@@ -601,6 +601,59 @@ org:testB:+ -> 1.0
 
     }
 
+    def "correctly reports attributes declared on a project dependency"() {
+        given:
+        settingsFile << "include 'producer'"
+
+        file('producer/build.gradle') << """
+            def CUSTOM_ATTRIBUTE = Attribute.of('custom', String)
+
+            configurations {
+                consumable('confValueElements') {
+                    attributes.attribute(CUSTOM_ATTRIBUTE, 'conf_value')
+                }
+                consumable('depValueElements') {
+                    attributes.attribute(CUSTOM_ATTRIBUTE, 'dep_value')
+                }
+            }
+        """
+
+        buildFile << """
+            def CUSTOM_ATTRIBUTE = Attribute.of('custom', String)
+            dependencies.attributesSchema.attribute(CUSTOM_ATTRIBUTE)
+
+            configurations {
+                conf {
+                    attributes.attribute(CUSTOM_ATTRIBUTE, 'conf_value')
+                }
+            }
+            dependencies {
+                conf(project(':producer')) {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, 'dep_value')
+                    }
+                }
+            }
+        """
+
+        when:
+        run 'dependencyInsight', '--dependency', ':producer', '--configuration', 'conf'
+
+        then:
+        // The dependency-level attribute overrides the configuration's 'conf_value', both for variant
+        // selection and in the report.
+        outputContains """
+project ':producer'
+  Variant depValueElements:
+    | Attribute Name | Provided  | Requested |
+    |----------------|-----------|-----------|
+    | custom         | dep_value | dep_value |
+
+project ':producer'
+\\--- conf
+"""
+    }
+
     private String variantOf(String name, Map<String, AttributeValueTuple> attributes) {
         return "  Variant $name:\n" + StyledTableUtil.toString(new StyledTable(
             Strings.repeat(' ', 4),

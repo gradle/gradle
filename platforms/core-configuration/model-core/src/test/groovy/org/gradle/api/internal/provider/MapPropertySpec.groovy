@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider
 import com.google.common.collect.ImmutableMap
 import org.gradle.api.Task
 import org.gradle.api.Transformer
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -504,6 +505,52 @@ The value of this property is derived from: <source>""")
         then:
         def ex = thrown NullPointerException
         ex.message == "Cannot add an entry with a null value to a property of type ${type().simpleName}."
+    }
+
+    def "throws NullPointerException when adding all from a null map to the property"() {
+        when:
+        property.putAll((Map) null)
+
+        then:
+        def ex = thrown(NullPointerException)
+        ex.message == "Cannot add a null map to a property of type ${type().simpleName}."
+    }
+
+    def "throws NullPointerException when adding all from a null provider to the property"() {
+        when:
+        property.putAll((Provider) null)
+
+        then:
+        def ex = thrown(NullPointerException)
+        ex.message == "Cannot add a null provider to a property of type ${type().simpleName}."
+    }
+
+    def "cannot set convention using a null provider"() {
+        when:
+        property.convention((Provider) null)
+
+        then:
+        def ex = thrown(NullPointerException)
+        ex.message == "Cannot set the convention of a property using a null provider."
+    }
+
+    def "cannot set convention using a provider whose type is known to be incompatible"() {
+        when:
+        property.convention(Providers.of(123))
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "Cannot set the convention of a property of type java.util.Map using a provider of type java.lang.Integer."
+    }
+
+    def "cannot set convention using a map provider with incompatible key and value types"() {
+        when:
+        property.convention(new DefaultMapProperty<Integer, Boolean>(host, Integer, Boolean))
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "Cannot set the convention of a property of type java.util.Map with key type java.lang.String and value type java.lang.String " +
+            "using a provider with key type java.lang.Integer and value type java.lang.Boolean."
     }
 
     def "has no producer and fixed execution time value by default"() {
@@ -1775,12 +1822,13 @@ The value of this property is derived from: <source>""")
 
     def "can add a lot of providers"() {
         given:
+        def context = Mock(TaskDependencyResolveContext)
         (0..<100000).each {
             property.putAll(supplierWithProducer(Mock(Task), ImmutableMap.of(it.toString(), it.toString())))
         }
 
         expect:
         property.get().size() == 100000
-        property.getProducer().visitProducerTasks {}
+        property.getProducer().visitDependencies(context)
     }
 }

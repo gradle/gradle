@@ -70,8 +70,8 @@ abstract class AbstractUserTypeCodecTest {
                         problems += problem
                     }
 
-                    override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
-                        onProblem(PropertyProblem(trace, StructuredMessage.build(message), error))
+                    override fun onError(trace: PropertyTrace, name: String, error: Exception, message: StructuredMessageBuilder) {
+                        onProblem(PropertyProblem(trace, name, StructuredMessage.build(message), error))
                     }
 
                     override fun onExecutionTimeProblem(problem: PropertyProblem) {
@@ -190,7 +190,7 @@ abstract class AbstractUserTypeCodecTest {
             println(problem)
         }
 
-        override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+        override fun onError(trace: PropertyTrace, name: String, error: Exception, message: StructuredMessageBuilder) {
             throw ConfigurationCacheError(StructuredMessage.build(message).render(), error)
         }
 
@@ -217,6 +217,7 @@ abstract class AbstractUserTypeCodecTest {
         fileSystemOperations = mock(),
         inputFingerprinter = mock(),
         buildOperationRunner = mock(),
+        buildOperationExecutor = mock(),
         classLoaderHierarchyHasher = mock(),
         isolatableFactory = mock(),
         managedFactoryRegistry = mock(),
@@ -229,7 +230,6 @@ abstract class AbstractUserTypeCodecTest {
         patternSetFactory = mock(),
         fileOperations = mock(),
         fileFactory = mock(),
-        includedTaskGraph = mock(),
         buildStateRegistry = mock(),
         documentationRegistry = mock(),
         javaSerializationEncodingLookup = JavaSerializationEncodingLookup(ObjectOpener.agentless()),

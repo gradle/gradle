@@ -268,13 +268,17 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     private RegularFileSnapshot unpackFile(TarArchiveInputStream input, TarArchiveEntry entry, File file, String fileName) throws IOException {
+        HashCode hash;
+        long length;
         try (CountingOutputStream output = new CountingOutputStream(new FileOutputStream(file))) {
-            HashCode hash = streamHasher.hashCopy(input, output);
-            chmodUnpackedFile(entry, file);
-            String internedAbsolutePath = stringInterner.intern(file.getAbsolutePath());
-            String internedFileName = stringInterner.intern(fileName);
-            return new RegularFileSnapshot(internedAbsolutePath, internedFileName, hash, DefaultFileMetadata.file(output.getCount(), file.lastModified(), DIRECT));
+            hash = streamHasher.hashCopy(input, output);
+            length = output.getCount();
         }
+        chmodUnpackedFile(entry, file);
+        String internedAbsolutePath = stringInterner.intern(file.getAbsolutePath());
+        String internedFileName = stringInterner.intern(fileName);
+        // Read after closing the stream: some file systems only settle the modification time on close
+        return new RegularFileSnapshot(internedAbsolutePath, internedFileName, hash, DefaultFileMetadata.file(file.lastModified(), length, DIRECT));
     }
 
     @Nullable

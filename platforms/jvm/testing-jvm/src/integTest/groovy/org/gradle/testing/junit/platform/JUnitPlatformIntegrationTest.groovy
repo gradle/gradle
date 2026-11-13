@@ -28,6 +28,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT5_VERSION
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_PLATFORM
 import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.equalTo
 
 class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
     @Override
@@ -350,6 +351,63 @@ public class StaticInnerTest {
 
         where:
         version << JUNIT_JUPITER
+    }
+
+    @Timeout(60)
+    @Issue([
+        "https://github.com/gradle/gradle/issues/16270",
+        "https://github.com/gradle/gradle/issues/34274"
+    ])
+    def "attributes output to the correct test when tests run in parallel for #numTests"() {
+        given:
+        buildScriptWithJupiterDependencies("""
+            test {
+                useJUnitPlatform()
+                systemProperty('junit.jupiter.execution.parallel.enabled', 'true')
+                systemProperty('junit.jupiter.execution.parallel.mode.default', 'concurrent')
+                systemProperty('junit.jupiter.execution.parallel.config.strategy', 'fixed')
+                systemProperty('junit.jupiter.execution.parallel.config.fixed.parallelism', '$numTests')
+            }
+        """, jupiterVersion)
+        file('src/test/java/org/gradle/ParallelOutputTest.java') << """
+            package org.gradle;
+
+            import java.util.concurrent.*;
+            import org.junit.jupiter.api.*;
+
+            public class ParallelOutputTest {
+                static final CyclicBarrier BARRIER = new CyclicBarrier($numTests);
+
+                ${(1..numTests).collect { testNumber -> """
+                    @Test
+                    public void test$testNumber() throws Exception {
+                        System.out.println("test$testNumber before");
+                        BARRIER.await();
+                        System.out.println("test$testNumber after");
+                    }
+                """ }.join("") }
+            }
+        """
+
+        when:
+        succeeds(':test')
+
+        then:
+        def results = resultsFor(testDirectory)
+        (1..numTests).each { testNumber ->
+            results.testPath(":org.gradle.ParallelOutputTest:test${testNumber}()").onlyRoot()
+                .assertStdout(equalTo("test$testNumber before\ntest$testNumber after\n".toString()))
+        }
+
+        where:
+        numTests << [
+            // Small amount
+            2,
+            // Large amount
+            100,
+            // Scaling amount
+            2 * Runtime.getRuntime().availableProcessors()
+        ]
     }
 
     @Issue("https://github.com/junit-team/junit5/issues/2028 and https://github.com/gradle/gradle/issues/12073")

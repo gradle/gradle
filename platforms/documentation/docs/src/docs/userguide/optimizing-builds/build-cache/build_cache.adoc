@@ -45,6 +45,14 @@ Gradle will try to reuse outputs from previous builds for all builds, unless exp
 When the build cache is enabled, it will store build outputs in the Gradle User Home.
 For configuring this directory or different kinds of build caches see <<#sec:build_cache_configure,Configure the Build Cache>>.
 
+IMPORTANT: The `org.gradle.caching` property and the `--build-cache` option are the only ways to turn on the build cache.
+The `enabled` settings of the local and remote caches in the `buildCache {}` block only select which caches Gradle uses once the build cache is on.
+If the build cache is off, Gradle ignores them, even when they are set to `true`.
+
+When you turn on the build cache, Gradle reuses outputs based on the inputs and outputs that each cacheable task declares.
+If a task does not declare all of its inputs, Gradle can load outputs that don't match the current inputs.
+Before you turn on the build cache, check that your build works with <<incremental_build#incremental_build,incremental build>>, and that custom tasks declare their inputs and outputs correctly.
+
 [[sec:task_output_caching]]
 == Task Output Caching
 
@@ -193,7 +201,7 @@ NOTE: The task path is _not_ an input to the build cache key.
 This means that tasks with different task paths can re-use each other's outputs as long as Gradle determines that executing them yields the same result.
 
 In order to ensure that the inputs and outputs are properly declared use integration tests (for example using TestKit) to check that a task produces the same outputs for identical inputs and captures all output files for the task.
-We suggest adding tests to ensure that the task inputs are relocatable, i.e. that the task can be loaded from the cache into a different build directory (see link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[@PathSensitive]).
+We suggest adding tests to ensure that the task inputs are relocatable, i.e. that the task can be loaded from the cache into a different build directory (see link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[`@PathSensitive`] and <<best_practices_tasks.adoc#default_path_sensitivities,choosing a path sensitivity>>).
 
 In order to handle volatile inputs for your tasks consider <<incremental_build.adoc#sec:configure_input_normalization,configuring input normalization>>.
 
@@ -258,7 +266,7 @@ include::sample[dir="snippets/optimizing-builds/build-cache/cacheable-bundle-tas
 
 If for some reason you cannot create a new custom task class, it is also possible to make a task cacheable using the <<incremental_build.adoc#sec:task_input_output_runtime_api,runtime API>> to declare the inputs and outputs.
 
-For enabling caching for the task you need to use the link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#cacheIf-org.gradle.api.specs.Spec-[TaskOutputs.cacheIf()] method.
+For enabling caching for the task you need to use the link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#cacheIf(org.gradle.api.specs.Spec)[TaskOutputs.cacheIf()] method.
 
 The declarations via the runtime API have the same effect as the annotations described above.
 Note that you cannot override file inputs and outputs via the runtime API.
@@ -273,11 +281,12 @@ include::sample[dir="snippets/optimizing-builds/build-cache/cacheable-bundle/gro
 == Configure the Build Cache
 
 You can configure the build cache by using the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:buildCache(org.gradle.api.Action)[Settings.buildCache(org.gradle.api.Action)] block in `settings.gradle`.
+This configuration only takes effect when the build cache is turned on, as described in <<#sec:build_cache_enable,Enable the Build Cache>>.
 
 Gradle supports a `local` and a `remote` build cache that can be configured separately.
 When both build caches are enabled, Gradle tries to load build outputs from the local build cache first, and then tries the remote build cache if no build outputs are found.
 If outputs are found in the remote cache, they are also stored in the local cache, so next time they will be found locally.
-Gradle stores ("pushes") build outputs in any build cache that is enabled and has link:{javadocPath}/org/gradle/caching/configuration/BuildCache.html#isPush--[BuildCache.isPush()] set to `true`.
+Gradle stores ("pushes") build outputs in any build cache that is enabled and has link:{javadocPath}/org/gradle/caching/configuration/BuildCache.html#isPush()[BuildCache.isPush()] set to `true`.
 
 By default, the local build cache has push enabled, and the remote build cache has push disabled.
 
@@ -326,7 +335,8 @@ The response must have a `2xx` status and the cache entry as the body, or a `404
 
 When attempting to store an entry, a `PUT` request is made to `\https://example.com:8123/cache/«cache-key»`.
 Any `2xx` response status is interpreted as success.
-A `413 Payload Too Large` response may be returned to indicate that the payload is larger than the server will accept, which will not be treated as an error.
+A server can return a `413 Payload Too Large` response to reject an entry that is too large.
+Gradle treats it like any other error response, as described in <<#sec:build_cache_error_handling,Network error handling>>.
 
 ==== Specifying access credentials
 
@@ -349,12 +359,23 @@ without the entry payload as the body.
 [[sec:build_cache_error_handling]]
 ==== Network error handling
 
-Requests that fail during request transmission, after having established a TCP connection, will be retried automatically.
+Gradle retries some failed requests automatically, up to 3 times:
 
-This prevents temporary problems, such as connection drops, read or write timeouts, and low level network failures such as a connection resets, causing cache operations to fail and disabling the remote cache for the remainder of the build.
+* Load (`GET`) requests are retried when the connection drops or is reset.
+* Store (`PUT`) requests are retried only if the connection fails before Gradle has sent the whole entry.
 
-Requests will be retried up to 3 times.
-If the problem persists, the cache operation will fail and the remote cache will be disabled for the remainder of the build.
+Gradle does not retry requests that time out, requests that fail to connect, or requests that receive an error response, such as `500 Internal Server Error`.
+
+When a load or store request fails, Gradle logs a warning such as:
+
+----
+Could not store entry 7a4f1b0c9d2e3f45a6b7c8d9e0f1a2b3 in remote build cache: Read timed out
+----
+
+The failure does not fail the build.
+Instead, Gradle disables the remote build cache for the rest of the build, so it doesn't load or store any more entries, including the one that failed.
+At the end of the build, Gradle logs `The remote build cache was disabled during the build due to errors.`
+To include the stack trace in the warning, run the build with `--stacktrace`.
 
 ==== Using SSL
 
@@ -436,6 +457,6 @@ The cache node can also be used without a Develocity installation with restricte
 
 Using a different build cache backend to store build outputs (which is not covered by the built-in support for connecting to an HTTP backend) requires implementing
 your own logic for connecting to your custom build cache backend.
-To this end, custom build cache types can be registered via link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#registerBuildCacheService-java.lang.Class-java.lang.Class-[BuildCacheConfiguration.registerBuildCacheService(java.lang.Class, java.lang.Class)].
+To this end, custom build cache types can be registered via link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#registerBuildCacheService(java.lang.Class,java.lang.Class)[BuildCacheConfiguration.registerBuildCacheService(java.lang.Class, java.lang.Class)].
 
-link:https://gradle.com/gradle-enterprise-solutions/build-cache/[Develocity] includes a high-performance, easy to install and operate, shared build cache backend.
+link:https://develocity.ai/product/build-cache/[Develocity] includes a high-performance, easy to install and operate, shared build cache backend.

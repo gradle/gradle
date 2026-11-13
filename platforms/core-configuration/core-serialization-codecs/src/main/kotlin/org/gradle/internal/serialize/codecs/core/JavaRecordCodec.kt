@@ -70,7 +70,7 @@ class JavaRecordCodec(
                 if (fieldValue == null || field.type.isInstance(fieldValue) || field.type.isPrimitive) {
                     args.add(fieldValue)
                 } else {
-                    logPropertyProblem("deserialize") {
+                    logPropertyProblem("deserialize", "Value not assignable to field") {
                         text("value ")
                         reference(fieldValue.toString())
                         text(" is not assignable to ")

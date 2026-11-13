@@ -28,8 +28,8 @@ abstract class BasePublishGradleDistribution(
     val promotedBranch: String,
     val prepTask: String?,
     val triggerName: String,
-    val gitUserName: String = "bot-teamcity",
-    val gitUserEmail: String = "bot-teamcity@gradle.com",
+    val gitUserName: String = "bot-gradle",
+    val gitUserEmail: String = "bot-gradle@gradle.com",
     val extraParameters: String = "",
     cleanCheckout: Boolean = true,
 ) : BasePromotionBuildType(cleanCheckout) {
@@ -38,6 +38,7 @@ abstract class BasePublishGradleDistribution(
             """
             **/build/git-checkout/platforms/core-runtime/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
             **/build/git-checkout/build/distributions/*.zip => promote-build-distributions
+            **/build/git-checkout/build/checksums/*.sha256 => promote-build-checksums
             **/build/git-checkout/build/reports/integTest/** => distribution-tests
             **/build/releases-data-checkout/data/releases.xml
             **/smoke-tests/build/reports/tests/** => post-smoke-tests

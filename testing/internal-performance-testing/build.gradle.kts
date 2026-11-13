@@ -1,4 +1,4 @@
-import gradlebuild.basics.googleApisJs
+import gradlebuild.requestRuntimeLibrary
 
 plugins {
     id("gradlebuild.internal.java")
@@ -13,12 +13,10 @@ sourceSets {
     }
 }
 
-val reports = configurations.create("reports")
-val flamegraph = configurations.create("flamegraph")
-configurations.compileOnly { extendsFrom(flamegraph) }
-
-repositories {
-    googleApisJs()
+val reports = configurations.dependencyScope("reports")
+val reportsPath = configurations.resolvable("reportsPath") {
+    extendsFrom(reports.get())
+    requestRuntimeLibrary(objects)
 }
 
 dependencies {
@@ -51,7 +49,6 @@ dependencies {
     implementation(projects.core)
     implementation(projects.internalIntegTesting)
     implementation(projects.languageNative)
-    implementation(projects.projectFeaturesApi)
     implementation(testFixtures(projects.platformNative))
 
     implementation(libs.commonsIo)
@@ -74,19 +71,13 @@ dependencies {
 }
 
 val reportResources = tasks.register<Copy>("reportResources") {
-    from(reports)
+    group = "build"
+    description = "Copies the JavaScript resources used by performance test reports into the generated resources directory."
+    from(reportsPath)
     into(layout.buildDirectory.file("generated-resources/report-resources/org/gradle/reporting"))
 }
 
 sourceSets.main {
     output.dir(reportResources.map { it.destinationDir.parentFile.parentFile.parentFile })
-}
-
-tasks.jar {
-    inputs.files(flamegraph)
-        .withPropertyName("flamegraph")
-        .withPathSensitivity(PathSensitivity.RELATIVE)
-
-    from(files(provider{ flamegraph.map { zipTree(it) } }))
 }
 

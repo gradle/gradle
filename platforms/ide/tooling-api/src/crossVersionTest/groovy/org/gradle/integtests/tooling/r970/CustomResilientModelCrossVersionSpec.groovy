@@ -37,7 +37,7 @@ class CustomResilientModelCrossVersionSpec extends KotlinDslPluginRelatedTooling
 
     private static final List<String> IP_CONFIGURE_ON_DEMAND_FLAGS = [
         "-Dorg.gradle.internal.isolated-projects.configure-on-demand=true",
-        "-Dorg.gradle.unsafe.isolated-projects=true"
+        "-Dorg.gradle.isolated-projects=true"
     ]
 
     def setup() {

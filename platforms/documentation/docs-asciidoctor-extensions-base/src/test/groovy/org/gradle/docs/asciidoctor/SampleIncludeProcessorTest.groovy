@@ -15,25 +15,23 @@
  */
 package org.gradle.docs.asciidoctor
 
-import org.asciidoctor.Asciidoctor
 import org.asciidoctor.Options
 import org.asciidoctor.extension.JavaExtensionRegistry
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import spock.lang.Specification
 
 
-class SampleIncludeProcessorTest extends Specification {
+class SampleIncludeProcessorTest extends AbstractAsciidoctorTest {
     @Rule
     TemporaryFolder tmpDir = new TemporaryFolder()
 
-    Asciidoctor asciidoctor
+    def setupSpec() {
+        JavaExtensionRegistry extensionRegistry = asciidoctor.javaExtensionRegistry()
+        extensionRegistry.includeProcessor(SampleIncludeProcessor.class)
+    }
 
     def setup() {
         tmpDir.newFolder("src", "samples")
-        asciidoctor = Asciidoctor.Factory.create()
-        JavaExtensionRegistry extensionRegistry = asciidoctor.javaExtensionRegistry()
-        extensionRegistry.includeProcessor(SampleIncludeProcessor.class)
     }
 
     def "requires dir and files attributes"() {

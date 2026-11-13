@@ -227,10 +227,6 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         }
     }
 
-    private TestFile getConfigurationCacheDir() {
-        file('.gradle/configuration-cache')
-    }
-
     private static List<TestFile> subDirsOf(TestFile dir) {
         dir.listFiles().findAll { it.directory }
     }

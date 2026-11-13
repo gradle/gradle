@@ -438,12 +438,14 @@ class ConfigurationCacheFingerprintController internal constructor(
             report.onInput(input)
 
         override fun reportProblem(
+            name: String,
             exception: Throwable?,
             documentationSection: DocumentationSection?,
             message: StructuredMessageBuilder
         ) =
             problems.onProblem(
                 problemFactory.problem(
+                    name,
                     StructuredMessage.build(message),
                     exception,
                     documentationSection
@@ -516,7 +518,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             when (propertyScope) {
                 is GradlePropertyScope.Build -> {
                     propertiesController.loadGradleProperties(
-                        propertyScope.buildIdentifier,
+                        propertyScope.buildIdentity,
                         propertiesDir,
                         true
                     )

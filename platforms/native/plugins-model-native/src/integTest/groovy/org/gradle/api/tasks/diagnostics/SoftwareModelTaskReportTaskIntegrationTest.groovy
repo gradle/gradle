@@ -24,6 +24,7 @@ class SoftwareModelTaskReportTaskIntegrationTest extends AbstractIntegrationSpec
     private final static String GROUP = 'Hello world'
 
     def "task report includes tasks defined via model rules running #tasks"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile """
             model {
@@ -53,6 +54,7 @@ class SoftwareModelTaskReportTaskIntegrationTest extends AbstractIntegrationSpec
     }
 
     def "task report includes tasks with dependencies defined via model rules running #tasks"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile """
             model {
@@ -81,6 +83,7 @@ b
     }
 
     def "task report includes task container rule based tasks defined via model rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile """
             tasks.addRule("Pattern: containerRule<ID>") { taskName ->

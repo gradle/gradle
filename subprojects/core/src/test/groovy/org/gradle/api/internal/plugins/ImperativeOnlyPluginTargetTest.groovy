@@ -42,7 +42,7 @@ class ImperativeOnlyPluginTargetTest extends Specification {
         e.message == "The plugin must be applied in a settings script (or to the Settings object), but was applied in a build script (or to the Project object)"
 
         and:
-        problems.assertProblemEmittedOnce(_)
+        problems.singleEmittedProblem()
     }
 
     def "custom ClassCastExceptions are not replaced on apply"() {

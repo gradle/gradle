@@ -111,6 +111,20 @@ public interface ConsoleMetaData {
         return false;
     }
 
+    /**
+     * <p>Returns true if the font of the console has the eighth blocks, such as ▏ and ▉, when the console supports Unicode.</p>
+     *
+     * <p>The fonts of the Linux console have no eighth blocks.</p>
+     *
+     * @return false if the font of the console is known to lack the eighth blocks, true otherwise
+     */
+    default boolean supportsEighthBlocks() {
+        // TERM is linux on the Linux console, or a variant such as linux-16color, and screen.linux in GNU screen there.
+        // In tmux, and in GNU screen without the screen.linux terminfo entry, the outer terminal is not named in TERM.
+        String term = System.getenv("TERM");
+        return term == null || !(term.startsWith("linux") || term.startsWith("screen.linux"));
+    }
+
     boolean TASK_BAR_PROGRESS_SUPPORTED = evaluateTaskBarProgressSupport();
 
     /**
@@ -119,7 +133,7 @@ public interface ConsoleMetaData {
      * <p>This sequence (ESC ] 9 ; 4 ; state ; progress ST) allows applications to control
      * progress indicators in the Windows taskbar or terminal window decorations.</p>
      *
-     * <p>Supported by: ConEmu, Ghostty, and potentially other terminals.</p>
+     * <p>Supported by: ConEmu, Windows Terminal, Ghostty, kitty, iTerm2 and potentially other terminals.</p>
      *
      * @return true if OSC 9;4 sequences are supported, false otherwise
      */
@@ -130,6 +144,13 @@ public interface ConsoleMetaData {
     static boolean evaluateTaskBarProgressSupport() {
         // ConEmu explicitly supports OSC 9;4 sequences
         if (System.getenv("ConEmuPID") != null) {
+            return true;
+        }
+
+        // Windows Terminal supports OSC 9;4 sequences since version 1.6 (early 2021).
+        // It sets WT_SESSION for every shell it hosts, including WSL distributions,
+        // but does not expose its version, so any WT_SESSION is treated as supported.
+        if (System.getenv("WT_SESSION") != null) {
             return true;
         }
 

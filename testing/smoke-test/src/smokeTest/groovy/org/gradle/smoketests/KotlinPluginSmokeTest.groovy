@@ -132,9 +132,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'
             }
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             tasks.named('compileGroovy') {
                 classpath = sourceSets.main.compileClasspath
@@ -185,9 +183,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'
             }
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
@@ -259,12 +255,13 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             deprecations << "Declaring a Usage attribute with a legacy value has been deprecated. This will fail with an error in Gradle 10. A Usage attribute was declared with value 'java-api-jars'. Declare a Usage attribute with value 'java-api' and a LibraryElements attribute with value 'jar' instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#deprecate_legacy_usage_values".toString()
             deprecations << "Declaring a Usage attribute with a legacy value has been deprecated. This will fail with an error in Gradle 10. A Usage attribute was declared with value 'java-runtime-jars'. Declare a Usage attribute with value 'java-runtime' and a LibraryElements attribute with value 'jar' instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#deprecate_legacy_usage_values".toString()
         }
-        // The KGP 2.0.x line declares an attribute of type KotlinNativeBundleArtifactsTypes,
-        // a plain enum that does not implement Named. Attribute.of allows this via a targeted
-        // compatibility exception and emits a KGP-specific deprecation warning. KGP 2.1.0+ no
-        // longer uses the plain enum, so the deprecation is expected only for the 2.0.x range.
+        // KGP 2.0.0 through 2.4.x declare an attribute of type KotlinNativeBundleArtifactsTypes, a plain
+        // enum that does not implement Named. Attribute.of allows this via a targeted compatibility
+        // exception and emits a KGP-specific deprecation warning.
+        // This test has no Kotlin/Native targets. Without them, only KGP 2.0.x declares the attribute,
+        // so only 2.0.x warns here. KGP 2.1.0 through 2.4.x also warn, but only in builds with native targets.
         if (kotlinVersionNumber.baseVersion >= KotlinGradlePluginVersions.KOTLIN_2_0_0 && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_1_0) {
-            deprecations << "Using the enum type KotlinNativeBundleArtifactsTypes as an attribute value type has been deprecated. This will fail with an error in Gradle 10. This enum does not implement Named. All Enums used as Attribute values should implement Named. This enum type is used by the Kotlin Gradle Plugin 2.0.x line. Upgrade to KGP 2.1.0 or later, in which the plugin no longer uses a plain enum for this attribute. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#kgp_native_bundle_attribute_enum".toString()
+            deprecations << "Using the enum type KotlinNativeBundleArtifactsTypes as an attribute value type has been deprecated. This will fail with an error in Gradle 10. This enum does not implement Named. All Enums used as Attribute values should implement Named. This enum type is used by Kotlin Gradle Plugin 2.0.0 through 2.4.x. Upgrade to KGP 2.5.0 or later, in which the plugin no longer uses a plain enum for this attribute. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#kgp_native_bundle_attribute_enum".toString()
         }
         return deprecations
     }

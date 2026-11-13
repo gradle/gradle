@@ -29,6 +29,8 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
 import org.jspecify.annotations.Nullable;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * A partial {@link Provider} implementation. Subclasses must implement {@link ProviderInternal#getType()} and {@link AbstractMinimalProvider#calculateOwnValue(ValueConsumer)}.
  */
@@ -37,17 +39,20 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends @Nullable S, ? super T> transformer) {
+        requireNonNull(transformer, "Cannot map a provider using a null transformer.");
         // Could do a better job of inferring the type
         return new TransformBackedProvider<>(null, this, transformer);
     }
 
     @Override
     public ProviderInternal<T> filter(final Spec<? super T> spec) {
+        requireNonNull(spec, "Cannot filter a provider using a null spec.");
         return new FilteringProvider<>(this, spec);
     }
 
     @Override
     public <S> Provider<S> flatMap(final Transformer<? extends @Nullable Provider<? extends S>, ? super T> transformer) {
+        requireNonNull(transformer, "Cannot flat map a provider using a null transformer.");
         return new FlatMapProvider<>(this, transformer);
     }
 
@@ -117,11 +122,13 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public Provider<T> orElse(T value) {
+        requireNonNull(value, "Cannot set a fallback for a provider using a null value.");
         return new OrElseFixedValueProvider<>(this, value);
     }
 
     @Override
     public Provider<T> orElse(Provider<? extends T> provider) {
+        requireNonNull(provider, "Cannot set a fallback for a provider using a null provider.");
         return new OrElseProvider<>(this, Providers.internal(provider));
     }
 

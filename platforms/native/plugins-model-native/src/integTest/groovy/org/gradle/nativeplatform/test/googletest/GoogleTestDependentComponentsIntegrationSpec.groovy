@@ -35,6 +35,7 @@ class GoogleTestDependentComponentsIntegrationSpec extends AbstractInstalledTool
     def app = new CppHelloWorldApp()
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         prebuiltDir.file("/googleTest/1.7.0/lib/${toolChain.unitTestPlatform}/${googleTestLib}").assumeExists()
         buildFile << """
             apply plugin: 'google-test-test-suite'

@@ -22,7 +22,8 @@ A *service* is a collaborator object whose lifecycle Gradle manages; a single in
 These services aren't meant to be constructed directly, since they rely on internal Gradle state.
 
 To use a *service*, your custom type declares a dependency on it and Gradle supplies the instance.
-This pattern is called _service injection_, and it works uniformly across every type Gradle instantiates for you, including tasks, plugins, extensions, value sources, build services, and worker actions.
+This pattern is called _service injection_, and it works for every type Gradle instantiates for you, including tasks, plugins, extensions, value sources, build services, and work actions.
+Which services a type can inject depends on where Gradle creates it, as described in <<#services_for_injection,Available services>>.
 
 The most common form is constructor injection on an abstract type.
 The same `CleanTempTask` is shown below as a Kotlin DSL class, a Groovy DSL class, and a stand-alone Java class that you would typically place in `buildSrc` or a binary plugin:
@@ -41,10 +42,21 @@ See <<#service_injection_patterns,Service injection patterns>> for the full set 
 [[services_for_injection]]
 == Available services
 
-WARNING: You should avoid injecting types not listed below. Internal services can sometimes technically be injected, but this practice is not supported and may lead to breaking changes in the future.
-Only inject the services explicitly listed below to ensure stability and compatibility.
+This section lists every service that Gradle supports for injection.
+The Javadoc of each listed service also states that it can be injected.
 
-The following services are available for injection in all Gradle instantiated objects:
+WARNING: Only inject the services listed below.
+Other types, including internal services and model objects such as `DependencyHandler`, can sometimes be injected, but this is not supported and can break in any Gradle release.
+
+The services you can inject depend on where Gradle creates the object:
+
+* The first table lists services available to every type Gradle instantiates, with the exception of value sources.
+* The following sections list additional services that are only available in a specific scope.
+An object can only inject a service from a scope it belongs to.
+For example, `ProjectLayout` is listed under projects, so a work action, which does not belong to a project, cannot inject it.
+* A link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] can only inject `ExecOperations`.
+
+The following services are available for injection in all Gradle instantiated objects except value sources:
 
 [%header,cols="1,4"]
 |===
@@ -67,19 +79,34 @@ The following services are available for injection in all Gradle instantiated ob
 
 | <<problems,`Problems`>> incubating-label:[]
 | Reports structured problems that surface in the console, the HTML problems report, and the Tooling API. Use it to surface errors or warnings consistently to the IDE, the problems report, and Build Scan.
+
+| <<buildserviceregistry,`BuildServiceRegistry`>>
+| Registers and looks up shared build services. Use it to register a build service from a plugin without a `Gradle` reference. Not available in work actions that use `processIsolation()`.
 |===
 
-=== Additional services in workers
+[[additional_services_in_workers]]
+=== Services in work actions
 
-The following services are available for injection in worker API actions and parameters:
+A link:{javadocPath}/org/gradle/workers/WorkAction.html[`WorkAction`] submitted through the <<worker_api.adoc#worker_api,Worker API>> can inject the services in the table above, with one exception: `BuildServiceRegistry` is not available with `processIsolation()`.
+`WorkerExecutor` is also available, but only with `noIsolation()`:
 
-[%header,cols="1,4"]
+[%header,cols="2,1,1,1"]
 |===
-| Service | Description
+| Service | `noIsolation()` | `classLoaderIsolation()` | `processIsolation()`
 
 | <<workerexecutor,`WorkerExecutor`>>
-| Schedules work to run in parallel via the Worker API. Use it from a task that needs to run CPU-bound work in parallel or in an isolated classloader.
+| Yes
+| No
+| No
+
+| <<buildserviceregistry,`BuildServiceRegistry`>>
+| Yes
+| Yes
+| No
 |===
+
+Work actions do not belong to a project or settings, so services from those scopes, such as `ProjectLayout`, are not available.
+Pass the values the work needs through the work parameters instead, as shown in <<worker_api.adoc#worker_api_services,Injecting services into work actions>>.
 
 === Additional services in projects and settings
 
@@ -106,6 +133,9 @@ The following services are available for injection in both project and settings 
 
 | <<buildinvocationdetails,`BuildInvocationDetails`>> incubating-label:[]
 | Exposes information about the current build invocation, such as its wall-clock start time. Use it to read the build's start time for timing or reporting.
+
+| <<buildeventslistenerregistry,`BuildEventsListenerRegistry`>>
+| Registers listeners for task completion events. Use it to receive task results in a build service without `Gradle` or `Project` listeners.
 |===
 
 === Additional services in projects
@@ -127,6 +157,9 @@ The following services are available for injection in project plugins, extension
 
 | <<softwarecomponentfactory,`SoftwareComponentFactory`>>
 | Creates adhoc software components for publishing. Use it to define a custom publishable software component without a full component model.
+
+| <<javatoolchainservice,`JavaToolchainService`>>
+| Resolves Java toolchains such as compilers, launchers, and Javadoc tools. Use it to run a tool with a specific Java version from a custom task.
 |===
 
 === Additional services in settings
@@ -140,64 +173,6 @@ The following services are available for injection in settings plugins, extensio
 | <<buildlayout,`BuildLayout`>>
 | Provides access to important locations for a Gradle build, such as the root directory and settings file. Use it from a settings plugin to resolve paths relative to the root settings directory.
 |===
-
-[[looking_up_services]]
-== Looking up services in scripts incubating-label:[]
-
-Instead of declaring an `@Inject` point, build, settings, and init scripts, as well as task actions, can look up a curated set of Gradle services directly with `service(Class)` in the Groovy DSL or `service<Type>()` in the Kotlin DSL.
-This avoids the ad-hoc `objects.newInstance(...)` ceremony shown in the per-service sections below, while remaining compatible with the <<configuration_cache.adoc#config_cache,Configuration Cache>> and <<isolated_projects.adoc#isolated_projects,Isolated Projects>>.
-
-The most common use is from a task action:
-
-====
-include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=service-lookup]"]
-include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=service-lookup]"]
-====
-
-A looked-up service can also be captured at configuration time and used later from a task action; the captured instance is safe to store in the Configuration Cache:
-
-====
-include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=service-lookup-capture]"]
-include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=service-lookup-capture]"]
-====
-
-=== Services available for lookup
-
-The set of services you can look up depends on where the lookup happens:
-
-[%header,cols="2,1,1,1,1"]
-|===
-| Service | Project scripts & project plugins | Tasks | Settings scripts & settings plugins | Init scripts & init plugins
-
-| <<objectfactory,`ObjectFactory`>>               | ✓ | ✓ | ✓ | ✓
-| <<providerfactory,`ProviderFactory`>>           | ✓ | ✓ | ✓ | ✓
-| <<filesystemoperations,`FileSystemOperations`>> | ✓ | ✓ | ✓ | ✓
-| <<archiveoperations,`ArchiveOperations`>>       | ✓ | ✓ | ✓ | ✓
-| <<execoperations,`ExecOperations`>>             |   | ✓ |   |
-| <<sec:projectlayout,`ProjectLayout`>>           | ✓ | ✓ |   |
-| <<buildlayout,`BuildLayout`>>                   |   |   | ✓ |
-|===
-
-In the Kotlin and Java DSLs each `service(...)` is bounded to the scopes above, so requesting a service that is not available in the current scope — or a type that is not a Gradle service at all — is a compile error.
-In the Groovy DSL, where the bound is not enforced (or when the type is supplied reflectively as a `Class`), the same request instead fails at runtime with an `InvalidUserDataException`: for a service requested outside its scope the message names the scopes where it _is_ available, and for a type that is not a Gradle service at all it lists the services available in the current scope; for a <<build_services.adoc#build_services,shared build service>> it points you to `@ServiceReference` and `gradle.sharedServices` instead.
-This check covers only _where_ a service can be looked up; it does not distinguish configuration-time from execution-time use, nor does it police cross-project access (see below).
-
-Relative paths passed to a looked-up `FileSystemOperations` or `ArchiveOperations` are resolved the same way as for the enclosing scope: against the project directory for a project script or task action, and against the build's root directory for a settings or init script.
-
-=== Cross-project access and Isolated Projects
-
-`service(...)` resolves against the scope in which it is called.
-Calling it on another project — for example `project(":other").service(ObjectFactory)` — reaches across the project boundary and is reported as a problem under <<isolated_projects.adoc#isolated_projects,Isolated Projects>>, exactly like `project(":other").getObjects()`.
-Look services up from the owning project instead.
-
-NOTE: A service that is only available in the settings scope (such as `BuildLayout`) can be captured in a settings script and referenced from a task action, and the captured instance is preserved when that task runs from the Configuration Cache.
-
-=== When to use a lookup
-
-Prefer a looked-up `FileSystemOperations`, `ArchiveOperations`, or `ExecOperations` over hand-rolled `java.io`/`java.nio` code or `Runtime.exec(...)`.
-The Gradle services give you path resolution, copy and sync specs, and robust deletion, and they keep your code compatible with the Configuration Cache.
-
-`ExecOperations` can be looked up only through a task (via `Task.service`), not from a project, settings, or init script.
 
 [[objectfactory]]
 == `ObjectFactory`
@@ -325,8 +300,8 @@ The `ProviderFactory` service is injected into the `MyProviderFactoryTask` task'
 link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[`WorkerExecutor`] is a service that allows you to perform parallel execution of tasks using worker processes.
 This is particularly useful for tasks that perform CPU-intensive or long-running operations, as it allows them to be executed in parallel, improving build performance.
 
-Using `WorkerExecutor`, you can submit units of work (called actions) to be executed in separate worker processes.
-This helps isolate the work from the main Gradle process, providing better reliability and performance.
+Using `WorkerExecutor`, you can submit units of work (called actions) to a work queue.
+Depending on the isolation mode of the queue, the work runs in a thread of the Gradle daemon or in a separate worker process.
 
 Here's a basic example of how you might use `WorkerExecutor` in a build script:
 
@@ -352,17 +327,14 @@ include::sample[dir="snippets/reference/gradle-types/services/groovy",files="bui
 
 The `FileSystemOperations` service is injected into the `MyFileSystemOperationsTask` task's constructor using the `@Inject` annotation.
 
-To use `FileSystemOperations` in an ad-hoc task without writing a dedicated class, look it up with `service()` — see <<looking_up_services,Looking up services in scripts>>.
-
-It can also be obtained through an injection point created with `ObjectFactory.newInstance`.
-This is more verbose, but works for any injectable service, including those not available through `service()`:
+With some ceremony, it is possible to use `FileSystemOperations` in an ad-hoc task defined in a build script:
 
 ====
 include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=file-system-adhoc]"]
 include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=file-system-adhoc]"]
 ====
 
-First, you declare an interface with a property of type `FileSystemOperations`, here named `InjectedFsOps`, to serve as an injection point.
+First, you need to declare an interface with a property of type `FileSystemOperations`, here named `InjectedFsOps`, to serve as an injection point.
 Then call the method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object%2E%2E%2E)[`ObjectFactory.newInstance`] to generate an implementation of the interface that holds an injected service.
 
 TIP: This is a good time to consider extracting the ad-hoc task into a proper class.
@@ -380,14 +352,20 @@ include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="bui
 include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=archive-op-inject]"]
 ====
 
-The `ArchiveOperations` service is injected into the `MyArchiveOperationsTask` task's constructor using the `@Inject` annotation.
+The `ArchiveOperations` service is injected into the `MyArchiveOperationsTask` task using the `@Inject` annotation.
+The task unpacks the archive produced by a `Zip` task, which it declares as an input file.
 
-To use `ArchiveOperations` in an ad-hoc task without writing a dedicated class, look it up with `service()` — see <<looking_up_services,Looking up services in scripts>>.
+With some ceremony, it is possible to use `ArchiveOperations` in an ad-hoc task defined in a build script:
 
 ====
-include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=archive-op-lookup]"]
-include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=archive-op-lookup]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=archive-op-adhoc]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=archive-op-adhoc]"]
 ====
+
+First, you need to declare an interface with a property of type `ArchiveOperations`, here named `InjectedArcOps`, to serve as an injection point.
+Then call the method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object%2E%2E%2E)[`ObjectFactory.newInstance`] to generate an implementation of the interface that holds an injected service.
+
+TIP: This is a good time to consider extracting the ad-hoc task into a proper class.
 
 [[execoperations]]
 == `ExecOperations`
@@ -404,13 +382,17 @@ include::sample[dir="snippets/reference/gradle-types/services/groovy",files="bui
 
 The `ExecOperations` is injected into the `MyExecOperationsTask` task's constructor using the `@Inject` annotation.
 
-To run an external process from an ad-hoc task, look `ExecOperations` up with `service()` from the task action — see <<looking_up_services,Looking up services in scripts>>.
-To run one at configuration time instead, use `providers.exec` or a `ValueSource`, which are compatible with the Configuration Cache.
+With some ceremony, it is possible to use `ExecOperations` in an ad-hoc task defined in a build script:
 
 ====
-include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=exec-op-lookup]"]
-include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=exec-op-lookup]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=exec-op-adhoc]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=exec-op-adhoc]"]
 ====
+
+First, you need to declare an interface with a property of type `ExecOperations`, here named `InjectedExecOps`, to serve as an injection point.
+Then call the method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object%2E%2E%2E)[`ObjectFactory.newInstance`] to generate an implementation of the interface that holds an injected service.
+
+TIP: This is a good time to consider extracting the ad-hoc task into a proper class.
 
 [[toolingmodelbuilderregistry]]
 == `ToolingModelBuilderRegistry`
@@ -524,6 +506,49 @@ include::sample[dir="snippets/reference/gradle-types/services/groovy",files="bui
 
 The `ReportBuildStartTask` task receives a `BuildInvocationDetails` instance through its constructor using the `@Inject` annotation.
 
+[[buildserviceregistry]]
+== `BuildServiceRegistry`
+
+link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html[`BuildServiceRegistry`] is a service that registers and looks up <<build_services.adoc#build_services,shared build services>>.
+It is the same registry that `gradle.sharedServices` returns, so a plugin can register a build service without a reference to the `Gradle` object:
+
+====
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=build-service-registry-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=build-service-registry-inject]"]
+====
+
+The `CounterPlugin` plugin receives a `BuildServiceRegistry` instance through its constructor using the `@Inject` annotation, and registers a `CounterService` that its `count` task uses.
+
+`BuildServiceRegistry` is available in all Gradle instantiated objects except value sources and work actions that use `processIsolation()`.
+
+[[buildeventslistenerregistry]]
+== `BuildEventsListenerRegistry`
+
+link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html[`BuildEventsListenerRegistry`] is a service that registers listeners for events from the build, such as task completion.
+The listener is a <<build_services.adoc#build_services,build service>> that implements link:{javadocPath}/org/gradle/tooling/events/OperationCompletionListener.html[`OperationCompletionListener`], which keeps it compatible with the <<configuration_cache.adoc#config_cache,Configuration Cache>>:
+
+====
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=build-events-listener-registry-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=build-events-listener-registry-inject]"]
+====
+
+The `TaskEventsPlugin` plugin receives `BuildEventsListenerRegistry` and `BuildServiceRegistry` instances through its constructor, registers the `TaskEventsService` build service, and subscribes it to task completion events.
+
+You can learn more in <<build_services.adoc#operation_listener,Receiving information about task execution>>.
+
+[[javatoolchainservice]]
+== `JavaToolchainService`
+
+link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainService.html[`JavaToolchainService`] is a service that resolves <<toolchains.adoc#toolchains,Java toolchains>>, returning a compiler, launcher, or Javadoc tool for a given Java version.
+A custom task uses it to run a tool with a specific Java version, independent of the JVM that runs Gradle:
+
+====
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=java-toolchain-service-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=java-toolchain-service-inject]"]
+====
+
+The `PrintJavaVersionTask` task receives a `JavaToolchainService` instance through its constructor and uses it to set the convention of its `launcher` property.
+
 [[softwarecomponentfactory]]
 == `SoftwareComponentFactory`
 
@@ -578,3 +603,11 @@ Here is an example that shows a task type that receives two services via propert
 ----
 include::{snippetsPath}/reference/plugin-development/propertyServiceInjection/groovy/buildSrc/src/main/java/Download.java[tags=download]
 ----
+
+[[service_lookup]]
+=== Looking up services at runtime
+
+Gradle has no public API for looking up a service by type at runtime.
+Declare each service your type needs with `@Inject`, using constructor or property injection.
+
+The Kotlin DSL `serviceOf()` extension in `org.gradle.kotlin.dsl.support` is internal API and can change without notice.

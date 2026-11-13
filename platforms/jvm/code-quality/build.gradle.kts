@@ -38,6 +38,7 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
+    implementation(projects.jvmServices)
     implementation(projects.logging)
     implementation(projects.native)
     implementation(projects.pluginsGroovy)
@@ -68,6 +69,7 @@ dependencies {
     integTestImplementation(libs.jsoup) {
         because("We need to validate generated HTML reports")
     }
+    integTestImplementation(testFixtures(projects.resourcesHttp))
 }
 
 gradleModule {

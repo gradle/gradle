@@ -27,7 +27,10 @@ import java.lang.annotation.Target;
 /**
  * <p>Attached to a task property to indicate that the property has been replaced by another. Like {@link Internal}, the property is ignored during up-to-date checks.</p>
  *
- * <p>This annotation should be attached to the getter method in Java or the property field in Groovy. You should also consider adding {@link Deprecated} to any replaced property.</p>
+ * <p>This annotation should be attached to the getter method in Java or the property field in Groovy.
+ * In Kotlin, use the {@code get:} use-site target to attach it to the property getter, for example {@code @get:ReplacedBy("newProperty")}.
+ * This also works on abstract properties, where the annotation without a use-site target does not compile.
+ * You should also consider adding {@link Deprecated} to any replaced property.</p>
  *
  * <p>This will cause the task <em>not</em> to be considered out-of-date when the property has changed.</p>
  *

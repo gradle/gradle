@@ -26,5 +26,5 @@ public interface OutgoingConnector {
      *
      * @throws ConnectException when there is nothing listening on the remote address.
      */
-    ConnectCompletion connect(Address destinationAddress) throws ConnectException;
+    ConnectCompletion connect(Address destinationAddress, byte[] connectionToken) throws ConnectException;
 }

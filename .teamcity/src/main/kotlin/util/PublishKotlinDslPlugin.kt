@@ -19,6 +19,7 @@ package util
 import common.BuildToolBuildJvm
 import common.Os
 import common.VersionedSettingsBranch
+import common.buildToolGradleParameters
 import common.gradleWrapper
 import common.javaHome
 import common.requiresOs
@@ -41,6 +42,7 @@ object PublishKotlinDslPlugin : BuildType({
         param("env.JAVA_HOME", javaHome(BuildToolBuildJvm, Os.LINUX))
         param("env.GRADLE_PUBLISH_KEY", "%plugin.portal.publish.key%")
         param("env.GRADLE_PUBLISH_SECRET", "%plugin.portal.publish.secret%")
+        param("env.PGP_SIGNING_KEY_ID", "%pgpSigningKeyId%")
         param("env.PGP_SIGNING_KEY", "%pgpSigningKey%")
         param("env.PGP_SIGNING_KEY_PASSPHRASE", "%pgpSigningPassphrase%")
     }
@@ -48,6 +50,7 @@ object PublishKotlinDslPlugin : BuildType({
         gradleWrapper {
             name = "Publish Kotlin DSL Plugin"
             tasks = "clean :kotlin-dsl-plugins:publishPlugins"
+            gradleParams = buildToolGradleParameters(isContinue = false).joinToString(" ")
         }
     }
 })

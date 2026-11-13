@@ -167,6 +167,16 @@ class LockfileFixture {
         assert !lockFile.exists()
     }
 
+    String legacyLockfileDeprecation(String lockOwner, String lockId) {
+        def lockFile = testDirectory.file(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER, "$lockId$LockFileReaderWriter.FILE_SUFFIX")
+        return "Storing dependency lock state using the legacy format has been deprecated. " +
+            "This is scheduled to be removed in Gradle 10. " +
+            "Lock state for $lockOwner was loaded from the legacy lock file '$lockFile'. " +
+            "Since Gradle 6.4, dependency lock state is stored in a single file per project. " +
+            "Regenerate the lock state of all locked configurations using --write-locks. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#legacy_dependency_lock_format"
+    }
+
     private enum LockScope {
         PROJECT, BUILDSCRIPT, SETTINGS
     }

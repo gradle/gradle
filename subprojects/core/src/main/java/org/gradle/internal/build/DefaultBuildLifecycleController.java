@@ -21,7 +21,6 @@ import org.gradle.BuildResult;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
@@ -50,6 +49,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.gradle.execution.plan.Node;
 import static org.gradle.util.Path.path;
 
 @SuppressWarnings("deprecation")
@@ -296,7 +296,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
         @Nullable
         private BuildState findBuild(Path buildPath) {
-            return getBuildStateRegistry().findBuild(new DefaultBuildIdentifier(buildPath));
+            return getBuildStateRegistry().findBuild(buildPath);
         }
 
         private BuildStateRegistry getBuildStateRegistry() {
@@ -373,7 +373,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         private final ExecutionPlan plan;
         private final List<Consumer<LocalTaskNode>> handlers = new ArrayList<>();
         private final List<BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan>> finalizations = new ArrayList<>();
-        private FinalizedExecutionPlan finalizedPlan;
+        private @Nullable FinalizedExecutionPlan finalizedPlan;
         private boolean empty = true;
 
         public DefaultBuildWorkPlan(DefaultBuildLifecycleController owner, ExecutionPlan plan) {
@@ -415,9 +415,9 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
 
         @Override
-        public void addEntryTasks(List<? extends Task> tasks) {
-            for (Task task : tasks) {
-                plan.addEntryTask(task);
+        public void addEntryNodes(List<? extends Node> nodes) {
+            for (Node node : nodes) {
+                plan.addEntryNode(node);
             }
         }
 

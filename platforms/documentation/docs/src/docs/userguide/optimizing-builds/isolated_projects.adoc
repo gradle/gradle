@@ -54,8 +54,8 @@ Such changes are highlighted in the release notes for each release.
 
 * Gradle 9.7.0
 ** Isolated Projects is promoted from experimental to <<feature_lifecycle.adoc#sec:incubating_state,incubating>>.
-** The stable `org.gradle.isolated-projects` property names are now preferred, and the earlier `.unsafe` names are <<sec:enable,deprecated>>.
-** The build now <<sec:enable,fails immediately>> on the first violation by default. Use the <<sec:diagnostics_mode,Diagnostics mode>> to discover as many violations as possible in a single run.
+** The stable `org.gradle.isolated-projects` property names are now preferred, and the earlier `.unsafe` names are <<sec:enable_ip,deprecated>>.
+** The build now <<sec:enable_ip,fails immediately>> on the first violation by default. Use the <<sec:diagnostics_mode,Diagnostics mode>> to discover as many violations as possible in a single run.
 ** Many `Gradle` APIs are now treated as incompatible when accessed during project configuration, protecting the <<sec:project_to_build_access,mutable build-scoped state>>.
 ** The new <<sec:dangerously_ignore_problems,temporarily ignore violations>> mode reports violations without failing the build, so you can evaluate performance before fixing them.
 ** The Configuration Cache `--configuration-cache-problems=warn` flag no longer downgrades Isolated Projects violations to warnings.
@@ -148,6 +148,7 @@ When running tasks, the configuration phase consists of multiple steps.
 . Configure projects
 +
 Isolated Projects makes this step run in **parallel**, which can significantly improve performance for builds with many projects.
+Configuring a project includes compiling its build script, so project build scripts are <<sec:faq_parallel_script_compilation,compiled in parallel>> as well.
 In the current implementation, all projects are always configured; there is no project configuration avoidance yet, whether by skipping unneeded projects or by using cached results.
 
 . Discover the work graph
@@ -179,6 +180,7 @@ From Gradle's point of view, an IDE sync or a tooling invocation in general cons
 . Configure projects
 +
 Isolated Projects makes this step run in **parallel**, which can significantly improve performance for builds with many projects.
+Configuring a project includes compiling its build script, so project build scripts are <<sec:faq_parallel_script_compilation,compiled in parallel>> as well.
 In the current implementation, all projects are always configured; there is no project configuration avoidance yet, whether by skipping unneeded projects or by using cached results.
 
 . Run model builders
@@ -521,7 +523,7 @@ of a child project lists only the properties defined on that project itself.
 Properties inherited from parent projects are not present in the report.
 This is a consequence of the <<sec:no_implicit_parents_lookup,no implicit parent lookup>> behavior.
 
-Direct uses of link:{javadocPath}/org/gradle/api/Project.html#getProperties--[`Project.getProperties()`]
+Direct uses of link:{javadocPath}/org/gradle/api/Project.html#getProperties()[`Project.getProperties()`]
 continue to be reported as an Isolated Projects violation, as that API is being <<upgrading_version_9.adoc#deprecated_get_properties,phased out>>.
 
 [[sec:migration]]
@@ -562,7 +564,7 @@ The Isolated Projects feature builds on top of the Configuration Cache feature a
 +
 Follow the guidance for each behavior change to ensure expected build results when gradually migrating workflows to run with Isolated Projects.
 
-[[sec:enable]]
+[[sec:enable_ip]]
 === Enabling Isolated Projects
 
 Isolated Projects can be enabled by setting the `org.gradle.isolated-projects` Gradle option to `true`, or by passing the `--isolated-projects` flag on the command line:
@@ -743,7 +745,7 @@ This is expected, since incompatible build logic can hide behind lazy task confi
 This section collects the strategies for resolving Isolated Projects violations in your own build logic.
 They are ordered by preference: prefer refactoring cross-project configuration into convention plugins or state-isolating callbacks, and reach for guarding only as a last resort.
 
-[[sec:convention_plugins]]
+[[sec:convention_plugins_ip]]
 === Use convention plugins
 
 <<plugins.adoc#sec:convention_plugins,Convention plugins>> package shared build logic so that it is defined once and then explicitly applied in each project that needs it.
@@ -759,7 +761,7 @@ This allows for more elaborate reuse of build logic without compromising Isolate
 [[sec:isolating_lifecycle_callbacks]]
 === Use state-isolating lifecycle callbacks
 
-<<sec:convention_plugins,Convention plugins>> cover most cases, but sometimes it is still desirable to apply configuration to many projects at once, from a single place.
+<<sec:convention_plugins_ip,Convention plugins>> cover most cases, but sometimes it is still desirable to apply configuration to many projects at once, from a single place.
 This is usually done with a callback such as `allprojects {}` called from a project or registered in the build scope via `gradle`.
 
 One problem with these callbacks is that the owner of the callback ends up touching state of another scope.
@@ -926,7 +928,7 @@ These patterns are workarounds for the current implementation limitation listed 
 The previous strategies address configuring other projects; this one addresses _reading_ their state.
 When build logic needs some data from another project, prefer the isolated view over the full `Project`, so that only safe cross-project data is reachable.
 
-You can get a simplified view of a project by calling link:{javadocPath}/org/gradle/api/Project.html#getIsolated--[`project.isolated`],
+You can get a simplified view of a project by calling link:{javadocPath}/org/gradle/api/Project.html#getIsolated()[`project.isolated`],
 which returns link:{javadocPath}/org/gradle/api/project/IsolatedProject.html[`IsolatedProject`] type.
 This works in all contexts and is especially useful when accessing an instance of another project,
 such as `project(":foo").isolated` or `rootProject.isolated`.
@@ -1091,3 +1093,46 @@ All projects are always configured regardless of how they depend on each other, 
 
 The benefit varies from build to build, so the best way to find out what you'll gain is to <<sec:evaluating,measure it for your build>>.
 
+[[sec:faq_parallel_script_compilation]]
+=== Does Isolated Projects compile build scripts in parallel?
+
+Yes.
+Compiling a project's build script is part of <<sec:perf_tasks,configuring that project>>.
+Because Isolated Projects runs project configuration in parallel, the build scripts of different projects are compiled in parallel too.
+
+Without Isolated Projects, build scripts are compiled sequentially, one project after another.
+This can be a noticeable cost in large multi-project builds, especially when a change to shared build logic (such as `buildSrc` or a <<composite_builds.adoc#composite_builds,build-logic composite build>>) invalidates the compiled scripts and forces them all to be recompiled.
+
+Note that this applies only to project build scripts, which are compiled during project configuration.
+Settings and init scripts are compiled earlier during the initialization phase, and remain sequential even with Isolated Projects enabled.
+
+[[sec:faq_cross_project_task_dependencies]]
+=== Can tasks depend on tasks from other projects?
+
+Yes, but only by task path, and usually only worth doing for lifecycle tasks.
+
+Referencing the task object of another project is not allowed:
+
+[source,kotlin]
+.build.gradle.kts
+----
+tasks.register("aggregate") {
+    dependsOn(project(":other").tasks.named("someTask")) // <1>
+}
+----
+<1> Violation: `tasks` is <<sec:mutable_cross_project,mutable state>> of another project.
+
+Declaring the dependency by path is allowed, because Gradle resolves the path itself without giving build logic access to the other project:
+
+[source,kotlin]
+.build.gradle.kts
+----
+tasks.register("aggregate") {
+    dependsOn(":other:someTask")
+}
+----
+
+Use this with care.
+A task path only orders the two tasks, so it fits an aggregating <<organizing_tasks.adoc#sec:lifecycle_tasks,lifecycle task>> that schedules work it never consumes.
+If the depending task consumes what the other one produces, the data dependency is still missing, and Isolated Projects does not change the usual advice to <<best_practices_tasks.adoc#avoid_depends_on,avoid `dependsOn`>> and wire outputs into inputs instead.
+Across project boundaries, that wiring should always go through <<multi_project_builds.adoc#sec:depending_on_output_of_another_project,dependency management>>.

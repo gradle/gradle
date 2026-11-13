@@ -21,20 +21,24 @@ import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.LoggingManagerInternal
+import org.gradle.internal.logging.events.BuildStartTimeEvent
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.launcher.exec.BuildActionExecutor
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
+import spock.lang.Issue
 import spock.lang.Specification
 
 class LoggingBridgingBuildActionExecuterTest extends Specification {
     final BuildActionExecutor<ConnectionOperationParameters, BuildRequestContext> target = Mock()
     final LoggingManagerInternal loggingManager = Mock()
+    final OutputEventListener outputEventListener = Mock()
     final BuildAction action = Mock()
     final ClientBuildRequestContext buildRequestContext = Mock()
     final ConnectionOperationParameters parameters = Stub()
     final ProviderOperationParameters providerParameters = Stub()
 
     //declared type-lessly to work around groovy eclipse plugin bug
-    final executer = new LoggingBridgingBuildActionExecuter(target, loggingManager, new CompositeStoppable())
+    final executer = new LoggingBridgingBuildActionExecuter(target, loggingManager, outputEventListener, new CompositeStoppable())
 
     def configuresLoggingWhileActionIsExecuting() {
         when:
@@ -71,5 +75,23 @@ class LoggingBridgingBuildActionExecuterTest extends Specification {
 
         then:
         1 * loggingManager.setLevelInternal(LogLevel.QUIET)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39523")
+    def "sends the build start time to the console before it runs the build"() {
+        given:
+        buildRequestContext.startTime >> 42
+
+        when:
+        executer.execute(action, parameters, buildRequestContext)
+
+        then:
+        1 * loggingManager.start()
+
+        then:
+        1 * outputEventListener.onOutput({ it instanceof BuildStartTimeEvent && it.startTime == 42 })
+
+        then:
+        1 * target.execute(action, parameters, buildRequestContext)
     }
 }

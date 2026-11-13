@@ -41,6 +41,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
     }
 
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         app = getHelloWorldApp()
         compileTask = ":compileMainExecutableMain${sourceType}"
 
@@ -69,6 +70,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
     }
 
     def "recompiles changed source file only"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         outputs.snapshot { run "mainExecutable" }
 
@@ -87,6 +89,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
     }
 
     def "recompiles all source files that include changed header file"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         outputs.snapshot { run "mainExecutable" }
 
@@ -105,6 +108,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
     }
 
     def "recompiles only source file that includes changed header file"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         sourceFile << """
             #include "${otherHeaderFile.name}"
@@ -127,6 +131,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
     }
 
     def "does not recompile when fallback mechanism is used and empty directory added to include directory"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         file("src/main/headers/empty/directory").mkdirs()
         sourceFile << """
@@ -144,6 +149,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
     }
 
     def "does not recompile when included header has the same name as a directory"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {
@@ -182,6 +188,7 @@ model {
     }
 
     def "recompiles when included header has the same name as a directory and the directory becomes a file"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {
@@ -224,6 +231,7 @@ model {
     }
 
     def "source is always recompiled if it includes header via complex macro"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def notIncluded = file("src/main/headers/notIncluded.h")
         notIncluded.text = """#pragma message("should not be used")"""
@@ -276,6 +284,7 @@ model {
     }
 
     def "source is recompiled when headers form a cycle and one is changed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def headerFile1 = file("src/main/headers/bar.h")
         def headerFile2 = file("src/main/headers/foo.h")
@@ -319,6 +328,7 @@ model {
     }
 
     def "source is not recompiled when preprocessor removed header is changed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def notIncluded = file("src/main/headers/notIncluded.h")
         notIncluded.text = """#pragma message("should not be used")"""
@@ -362,6 +372,7 @@ model {
     }
 
     def "source is compiled when preprocessor removed header does not exist"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         sourceFile << """
             #if 0
@@ -394,6 +405,7 @@ model {
     }
 
     def "recompiles source file when transitively included header file is changed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def transitiveHeaderFile = file("src/main/headers/transitive.h") << """
            // Dummy header file
@@ -423,6 +435,7 @@ model {
     }
 
     def "recompiles source file when an included header file is renamed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         outputs.snapshot { run "mainExecutable" }
 
@@ -440,6 +453,7 @@ model {
     }
 
     def "does not recompile any sources when unused header file is changed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         outputs.snapshot { run "mainExecutable" }
 
@@ -459,6 +473,7 @@ model {
     }
 
     def "recompiles when include path is changed so that replacement header file occurs before previous header"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         outputs.snapshot { run "mainExecutable" }
 
@@ -492,6 +507,7 @@ model {
     }
 
     def "recompiles when replacement header file is added before previous header to existing include path"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {
@@ -525,6 +541,7 @@ model {
     }
 
     def "recompiles when replacement header file with different content is added to source directory"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         outputs.snapshot { run "mainExecutable" }
 
@@ -543,6 +560,7 @@ model {
     }
 
     def "does not recompile when replacement header file with same content is added to source directory"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         outputs.snapshot { run "mainExecutable" }
 
@@ -561,6 +579,7 @@ model {
     }
 
     def "recompiles all source files and removes stale outputs when compiler arg changes"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def extraSource = file("src/main/${app.sourceType}/extra.${app.sourceExtension}")
         extraSource << sourceFile.text.replaceAll("main", "main2")
@@ -598,6 +617,7 @@ model {
     }
 
     def "recompiles all source files when generated object files are removed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         outputs.snapshot { run "mainExecutable" }
 
@@ -614,6 +634,7 @@ model {
     }
 
     def "removes output file when source file is renamed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         outputs.snapshot { run "mainExecutable" }
 
@@ -631,6 +652,7 @@ model {
     }
 
     def "removes output file when source file is removed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def extraSource = file("src/main/${app.sourceType}/extra.${app.sourceExtension}")
         extraSource << sourceFile.text.replaceAll("main", "main2")
@@ -655,6 +677,7 @@ model {
     }
 
     def "removes output files when all source files are removed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         run "mainExecutable"
 
@@ -699,6 +722,7 @@ model {
     }
 
     def "incremental compile is not effected by other compile tasks"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {

@@ -46,6 +46,9 @@ include::sample[dir="snippets/how-to/dependency-management/dependency-management
 
 This mismatch can lead to **incompatibility issues** and unexpected failures.
 
+TIP: A link:https://develocity.ai/product/build-scan/[Build Scan] shows the same dependency tree in a browser, including version conflicts.
+See <<viewing_debugging_dependencies.adoc#sec:dependencies-build-scans,Get a holistic view using Build Scan>>.
+
 Gradle provides **dependency version alignment** through <<platforms.adoc#platforms,**platforms**>>, ensuring related modules use **consistent versions**.
 
 [[sec:align_bom_platform]]
@@ -71,14 +74,15 @@ include::sample[dir="snippets/how-to/dependency-management/dependency-management
 If no public BOM exists, you can create a **virtual platform**.
 
 In this case, Gradle builds the platform **dynamically** based on the modules being used.
-For this, you must define <<component_metadata_rules.adoc#component-metadata-rules,**component metadata rules**>>:
+For this, you must define <<component_metadata_rules.adoc#component-metadata-rules,**component metadata rules**>>.
+The following example aligns Apache Kafka modules because Kafka does not publish a BOM, and otherwise `kafka-streams` could remain on an older version than `kafka-clients`.
 
 ====
 include::sample[dir="snippets/how-to/dependency-management/dependency-management/aligning-versions/kotlin",files="build.gradle.kts[tags=dependency-full-platform]"]
 include::sample[dir="snippets/how-to/dependency-management/dependency-management/aligning-versions/groovy",files="build.gradle[tags=dependency-full-platform]"]
 ====
 
-This ensures that all **Jackson modules align to the same version**, even if brought in transitively.
+This ensures that all **Kafka modules align to the same version**, even if brought in transitively.
 
 Running `./gradlew dependencies --configuration runtimeClasspath` showcases the aligned dependencies:
 

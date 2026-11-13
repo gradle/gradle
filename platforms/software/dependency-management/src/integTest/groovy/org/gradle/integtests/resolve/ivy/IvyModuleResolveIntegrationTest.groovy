@@ -392,7 +392,7 @@ task retrieve(type: Sync) {
         resolve.expectGraph {
             root(":", "org.test:test:1.0") {
                 module("ivy.configuration:projectA:1.2") {
-                    configuration("a")
+                    variant("a")
                     module("ivy.configuration:projectB:1.5") {
                         variant('a', ['org.gradle.status': 'integration'])
                     }

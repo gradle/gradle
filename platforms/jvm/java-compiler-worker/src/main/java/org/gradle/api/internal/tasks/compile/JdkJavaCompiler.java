@@ -21,7 +21,7 @@ import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDecla
 import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.SecondLevelProblemGroup;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.tasks.WorkResult;
@@ -62,7 +62,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         this.context = new Context();
         this.compilerFactory = compilerFactory;
         this.problemsService = problemsService;
-        this.diagnosticToProblemListener = new DiagnosticToProblemListener(problemsService.getInternalReporter(), context);
+        this.diagnosticToProblemListener = new DiagnosticToProblemListener(problemsService.getInternalReporter(), javaCompilationGroup(), context);
     }
 
     @Override
@@ -74,7 +74,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         try {
             task = createCompileTask(spec, result);
         } catch (RuntimeException ex) {
-            ProblemId id = ProblemId.create("initialization-failed", "Java compilation initialization error", GradleCoreProblemGroup.compilation().java());
+            ProblemId id = javaCompilationGroup().problemId("Compiler initialization failed");
             throw problemsService.getInternalReporter().throwing(ex, id, builder -> {
                 buildProblemFrom(ex, builder);
             });
@@ -91,6 +91,10 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
             problemsService.getInternalReporter().report(diagnosticToProblemListener.getReportedProblems());
         }
         return result;
+    }
+
+    private SecondLevelProblemGroup javaCompilationGroup() {
+        return problemsService.getGroups().getCompilation().getJava();
     }
 
     @SuppressWarnings("DefaultCharset")

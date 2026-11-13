@@ -21,16 +21,20 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 class KotlinModel implements Serializable {
 
     final Map<File, KotlinDslScriptModel> scriptModels;
-    final Map<File, String> failures;
+    final Map<File, List<String>> failures;
 
-    KotlinModel(Map<File, KotlinDslScriptModel> scriptModels, Map<File, Failure> failures) {
+    KotlinModel(Map<File, KotlinDslScriptModel> scriptModels, Map<File, List<Failure>> failures) {
         this.scriptModels = scriptModels;
-        this.failures = failures.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getDescription()));
+        this.failures = failures.entrySet().stream().collect(Collectors.toMap(
+            Map.Entry::getKey,
+            e -> e.getValue().stream().map(Failure::getDescription).collect(Collectors.toList())
+        ));
     }
 }

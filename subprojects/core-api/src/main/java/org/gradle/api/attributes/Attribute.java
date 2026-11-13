@@ -59,9 +59,12 @@ public class Attribute<T> implements Named {
 
     private static void validateSupportedType(String name, Class<?> type) {
         if (!AttributeTypeValidator.isSupportedAttributeType(type)) {
+            // TODO: Remove support for raw Enums in Gradle 10.0.0
+            // Both deprecation branches below become hard failures then, and the partial raw-Enum
+            // handling downstream (serialization, desugaring, coercion, publishing) can be scrubbed.
             if (AttributeTypeValidator.isKGPSpecialCase(type)) {
                 DeprecationLogger.deprecate("Using the enum type " + type.getSimpleName() + " as an attribute value type")
-                    .withContext("This enum does not implement Named. All Enums used as Attribute values should implement Named. This enum type is used by the Kotlin Gradle Plugin 2.0.x line. Upgrade to KGP 2.1.0 or later, in which the plugin no longer uses a plain enum for this attribute.")
+                    .withContext("This enum does not implement Named. All Enums used as Attribute values should implement Named. This enum type is used by Kotlin Gradle Plugin 2.0.0 through 2.4.x. Upgrade to KGP 2.5.0 or later, in which the plugin no longer uses a plain enum for this attribute.")
                     .willBecomeAnErrorInGradle10()
                     .withUpgradeGuideSection(9, "kgp_native_bundle_attribute_enum")
                     .nagUser();
@@ -75,6 +78,7 @@ public class Attribute<T> implements Named {
             } else {
                 DeprecationLogger.deprecate("Using type '" + type.getName() + "' as a value type for attribute '" + name + "'")
                     .withContext("Attribute values must be of type String, Boolean, a subtype of Number, or implement " + Named.class.getName() + ". Using an unsupported type may cause failures during dependency resolution, publishing, or configuration cache serialization.")
+                    .withProblemName("Unsupported type used as an attribute value type")
                     .willBecomeAnErrorInGradle10()
                     .withUpgradeGuideSection(9, "unsupported_attribute_value_type")
                     .nagUser();

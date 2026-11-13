@@ -44,13 +44,22 @@ plugins.withId("java-base") {
             }
         }
     }
-    afterEvaluate {
-        // Without afterEvaluate, configurations.all runs before the configurations' roles are set.
-        // This is yet another reason we need configuration factory methods.
-        configurations.all {
-            if (isCanBeResolved && !isCanBeConsumed) {
+    // Not every context that applies this plugin has the libs catalog, but one that does must declare jspecify
+    versionCatalogs.find("libs").ifPresent { libs ->
+        val jspecify = libs.findLibrary("jspecify").get().get()
+        configurations.configureEach {
+            // Legacy configurations only lose roles after creation, so this covers every configuration that
+            // ends up resolvable-only; the rest are never resolved.
+            // The roles cannot be checked here: a legacy configuration is still consumable when this runs, so
+            // checking isCanBeConsumed would skip all of them, including the distribution and tooling API
+            // classpaths. A check against final roles has to run at resolution, which needs either an all {}
+            // rule, forcing early graph resolution, or a beforeResolve mutation, which Gradle plans to reject.
+            // Instead, the configurations third-party plugins leave consumable and resolvable are skipped by name.
+            // No more are expected: none of this build's own configurations stay both consumable and resolvable.
+            // If one appears, it only receives jspecify without the MODULE annotation target.
+            if (isCanBeResolved && name != "jmh" && name != "shadow" && name != "gr8Gr") {
                 resolutionStrategy.dependencySubstitution {
-                    substitute(module("org.jspecify:jspecify")).using(variant(module("org.jspecify:jspecify:1.0.0")) {
+                    substitute(module("${jspecify.group}:${jspecify.name}")).using(variant(module("${jspecify.group}:${jspecify.name}:${jspecify.versionConstraint.requiredVersion}")) {
                         attributes {
                             attribute(noModuleAnnotation, true)
                         }

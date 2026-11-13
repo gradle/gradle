@@ -20,8 +20,8 @@ import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.FromString
 import org.apache.commons.lang3.NotImplementedException
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.WorkNodeAction
-import org.gradle.composite.internal.IncludedBuildTaskResource
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -131,7 +131,12 @@ class NodeComparatorTest extends Specification {
             }
 
             @Override
-            String toString() {
+            void execute(NodeExecutionContext context) {
+                throw new NotImplementedException()
+            }
+
+            @Override
+            String getDisplayName() {
                 "CreationOrderedNode($order)"
             }
         }
@@ -149,9 +154,14 @@ class NodeComparatorTest extends Specification {
     }
 
     protected TaskInAnotherBuild createTaskInAnotherBuild(int index) {
-        return new TaskInAnotherBuild(path(index), null, null) {
+        return new TaskInAnotherBuild(path(index)) {
             @Override
-            protected IncludedBuildTaskResource getTarget() {
+            TaskNode getTargetNode() {
+                throw new NotImplementedException()
+            }
+
+            @Override
+            protected void queueTargetForExecution() {
                 throw new NotImplementedException()
             }
         }

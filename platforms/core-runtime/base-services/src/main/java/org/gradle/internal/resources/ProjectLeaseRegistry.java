@@ -29,10 +29,6 @@ import java.util.Collection;
 @ServiceScope(Scope.BuildSession.class)
 @NullMarked
 public interface ProjectLeaseRegistry extends BlockingNotifier {
-    /**
-     * Get the lock for the state of all projects of the given build. This lock provides exclusive access to the state of all projects in the build.While this lock is held, no project state locks can be held.
-     */
-    ResourceLock getAllProjectsLock(Path buildIdentityPath);
 
     /**
      * Get a lock for access to the specified project's state.
@@ -46,10 +42,13 @@ public interface ProjectLeaseRegistry extends BlockingNotifier {
 
     /**
      * Returns any project state locks currently held by this thread.
-     *
-     * Note: may contain either locks for specific projects (returned by {@link #getProjectLock(Path, Path)}) or the lock for all projects (returned by {@link #getAllProjectsLock(Path)}.
      */
     Collection<? extends ResourceLock> getCurrentProjectLocks();
+
+    /**
+     * Returns true if this thread holds the given project state lock.
+     */
+    boolean holdsProjectLock(ResourceLock lock);
 
     /**
      * Releases any project state locks or task execution locks currently held by this thread, allowing the current
@@ -108,4 +107,5 @@ public interface ProjectLeaseRegistry extends BlockingNotifier {
      * For now, this is an opt-in behaviour.</p>
      */
     <T> T whileDisallowingProjectLockChanges(Factory<T> action);
+
 }

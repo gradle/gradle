@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -26,7 +23,6 @@ import org.gradle.internal.Factory;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BuildableBackedProvider<T> extends AbstractProviderWithValue<T> {
@@ -49,21 +45,7 @@ public class BuildableBackedProvider<T> extends AbstractProviderWithValue<T> {
 
     @Override
     public ValueProducer getProducer() {
-        // not a lambda for readability purposes.
-        //noinspection Convert2Lambda
-        return new ValueProducer() {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                dependencies.visitDependencies(context);
-            }
-
-            @Override
-            public void visitProducerTasks(Action<? super Task> visitor) {
-                for (Task dependency : buildableDependencies()) {
-                    visitor.execute(dependency);
-                }
-            }
-        };
+        return ValueProducer.from(dependencies);
     }
 
     @Override
@@ -99,10 +81,6 @@ public class BuildableBackedProvider<T> extends AbstractProviderWithValue<T> {
             }
         });
         return hasDependency.get();
-    }
-
-    private Set<? extends Task> buildableDependencies() {
-        return AbstractTaskDependency.getTaskDependencies(dependencies, null);
     }
 
     @Override

@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.dsl;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
@@ -89,7 +88,6 @@ public abstract class DependencyModifier {
      * @return a provider to the modified dependency
      * @since 8.0
      */
-    @Incubating
     public final Provider<? extends MinimalExternalModuleDependency> modify(ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
         return providerConvertibleToDependency.asProvider().map(this::modify);
     }

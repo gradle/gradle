@@ -16,6 +16,8 @@
 
 package org.gradle.internal.build
 
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
@@ -25,15 +27,15 @@ import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.QueryableExecutionPlan
+import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.ToPlannedNodeConverterRegistry
 import org.gradle.execution.plan.ToPlannedTaskConverter
+import org.gradle.internal.operations.ProgressDisplayName
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.NodeIdentity
 import org.gradle.util.Path
 import spock.lang.Specification
-
-import java.util.function.BiConsumer
 
 class BuildOperationFiringBuildWorkPreparerTest extends Specification {
     def "build operation provides execution plan when queries with all node types"() {
@@ -46,12 +48,10 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
                 getTaskIdentity() >> ti1
             }
         }
-        List<Node> nodes = [t]
 
-        def scheduledNodesStub = Stub(QueryableExecutionPlan.ScheduledNodes) {
-            visitNodes(_) >> { BiConsumer<List<Node>, Set<Node>> consumer ->
-                consumer.accept(nodes, new HashSet<Node>(nodes))
-            }
+        def scheduledNodesStub = Stub(ScheduledWork) {
+            getScheduledNodes() >> ImmutableList.of(t)
+            getEntryNodes() >> ImmutableSet.of(t)
         }
 
         def executionPlan = Stub(ExecutionPlan) {
@@ -81,12 +81,14 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
         def gradle = Stub(GradleInternal) {
             isRootBuild() >> true
             getIdentityPath() >> Path.ROOT
-            contextualize(_) >> { String desc -> desc }
+            getOwner() >> Stub(BuildState) {
+                getOwnerToShow() >> null
+            }
         }
 
         def executionPlan = Stub(ExecutionPlan) {
             getContents() >> Stub(QueryableExecutionPlan) {
-                getScheduledNodes() >> Stub(QueryableExecutionPlan.ScheduledNodes)
+                getScheduledNodes() >> Stub(ScheduledWork)
             }
         }
 
@@ -99,19 +101,22 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
 
         then:
         def record = buildOperationRunner.log.mostRecent(CalculateTaskGraphBuildOperationType)
-        record.descriptor.progressDisplayName == "Building task graph of root build"
+        record.descriptor.displayName == "Calculate task graph"
+        record.descriptor.progressDisplayName == ProgressDisplayName.of(null, "Building task graph")
     }
 
     def "build operation has good progress display name for included build"() {
         def gradle = Stub(GradleInternal) {
             isRootBuild() >> false
             getIdentityPath() >> Path.path(":buildB")
-            contextualize(_) >> { String desc -> desc + " (:buildB)" }
+            getOwner() >> Stub(BuildState) {
+                getOwnerToShow() >> ":buildB"
+            }
         }
 
         def executionPlan = Stub(ExecutionPlan) {
             getContents() >> Stub(QueryableExecutionPlan) {
-                getScheduledNodes() >> Stub(QueryableExecutionPlan.ScheduledNodes)
+                getScheduledNodes() >> Stub(ScheduledWork)
             }
         }
 
@@ -124,6 +129,7 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
 
         then:
         def record = buildOperationRunner.log.mostRecent(CalculateTaskGraphBuildOperationType)
-        record.descriptor.progressDisplayName == "Building task graph of build ':buildB'"
+        record.descriptor.displayName == "Calculate task graph (:buildB)"
+        record.descriptor.progressDisplayName == ProgressDisplayName.of(":buildB", "Building task graph")
     }
 }

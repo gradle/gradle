@@ -29,8 +29,12 @@ import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultRunClosedProjectBu
 import org.gradle.tooling.model.eclipse.EclipseRuntime;
 import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject;
 import org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultProjectModulePathResolver;
+import org.gradle.plugins.ide.eclipse.model.internal.ProjectModulePathResolver;
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
+import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +46,14 @@ public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingMode
 
     private static final String MODEL_NAME = RunClosedProjectBuildDependencies.class.getName();
 
+    private final @Nullable IntermediateToolingModelProvider intermediateToolingModelProvider;
+
     private Map<String, Boolean> projectOpenStatus;
+    private ProjectModulePathResolver modulePathResolver = new DefaultProjectModulePathResolver();
+
+    public RunBuildDependenciesTaskBuilder(@Nullable IntermediateToolingModelProvider intermediateToolingModelProvider) {
+        this.intermediateToolingModelProvider = intermediateToolingModelProvider;
+    }
 
     @Override
     public Class<EclipseRuntime> getParameterType() {
@@ -55,6 +66,7 @@ public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingMode
             .collect(Collectors.toMap(EclipseWorkspaceProject::getName, EclipseModelBuilder::isProjectOpen, (a, b) -> a || b));
 
         ProjectState rootProjectState = ((ProjectInternal) project.getRootProject()).getOwner();
+        this.modulePathResolver = EclipseModulePathGatherer.resolverFor(rootProjectState, intermediateToolingModelProvider);
         List<TaskDependency> buildDependencies = populate(rootProjectState);
         if (!buildDependencies.isEmpty()) {
             GradleInternal rootGradle = ((ProjectInternal) project).getGradle().getRoot();
@@ -76,7 +88,7 @@ public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingMode
             EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
             EclipseClasspath eclipseClasspath = eclipseModel.getClasspath();
 
-            EclipseModelBuilder.ClasspathElements elements = EclipseModelBuilder.gatherClasspathElements(projectOpenStatus, eclipseClasspath, false);
+            EclipseModelBuilder.ClasspathElements elements = EclipseModelBuilder.gatherClasspathElements(projectOpenStatus, eclipseClasspath, false, modulePathResolver);
             return elements.getBuildDependencies();
         });
 

@@ -317,10 +317,10 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         expect:
         direct.pom.expectGet()
         transitive.pom.expectGet()
-        direct.artifact(classifier: "sources").expectHeadMissing()
-        transitive.artifact(classifier: "sources").expectHeadMissing()
-        direct.artifact(classifier: "javadoc").expectHeadMissing()
-        transitive.artifact(classifier: "javadoc").expectHeadMissing()
+        direct.artifact(classifier: "sources").expectGetMissing()
+        transitive.artifact(classifier: "sources").expectGetMissing()
+        direct.artifact(classifier: "javadoc").expectGetMissing()
+        transitive.artifact(classifier: "javadoc").expectGetMissing()
 
         succeeds( 'resolveSources', 'resolveJavadoc')
         outputContains("artifacts: []")
@@ -337,8 +337,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         expect:
         direct.pom.expectGet()
         transitive.pom.expectGet()
-        direct.artifact(classifier: "sources").expectHead()
-        transitive.artifact(classifier: "sources").expectHead()
         direct.artifact(classifier: "sources").expectGet()
         transitive.artifact(classifier: "sources").expectGet()
 
@@ -357,8 +355,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         expect:
         direct.pom.expectGet()
         transitive.pom.expectGet()
-        direct.artifact(classifier: "javadoc").expectHead()
-        transitive.artifact(classifier: "javadoc").expectHead()
         direct.artifact(classifier: "javadoc").expectGet()
         transitive.artifact(classifier: "javadoc").expectGet()
 
@@ -377,8 +373,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         expect:
         direct.pom.expectGet()
         transitive.pom.expectGet()
-        direct.artifact(classifier: "sources").expectHead()
-        transitive.artifact(classifier: "sources").expectHead()
         direct.artifact(classifier: "sources").expectGet()
         transitive.artifact(classifier: "sources").expectGet()
 
@@ -388,8 +382,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
 
         and:
         // POMs and GMM are already cached; querying for javadoc should do minimal additional work to fetch javadoc jars
-        direct.artifact(classifier: "javadoc").expectHead()
-        transitive.artifact(classifier: "javadoc").expectHead()
         direct.artifact(classifier: 'javadoc').expectGet()
         transitive.artifact(classifier: 'javadoc').expectGet()
 
@@ -406,8 +398,7 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         expect:
         direct.pom.expectGet()
         transitive.pom.expectGet()
-        direct.artifact(classifier: "sources").expectHeadMissing()
-        transitive.artifact(classifier: "sources").expectHead()
+        direct.artifact(classifier: "sources").expectGetMissing()
         transitive.artifact(classifier: "sources").expectGet()
 
         succeeds( "resolveSources")

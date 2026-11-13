@@ -32,6 +32,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
@@ -50,7 +51,6 @@ class DefaultProjectState implements ProjectState, Closeable {
     private final WorkerLeaseService workerLeaseService;
     private final ProjectStateLookup projectStateLookup;
 
-    private final ResourceLock allProjectsLock;
     private final ResourceLock projectLock;
     private final ResourceLock taskLock;
 
@@ -72,7 +72,6 @@ class DefaultProjectState implements ProjectState, Closeable {
         this.controller = new ProjectLifecycleController(getDisplayName(), stateTransitionControllerFactory, this::withProjectLock, buildServices);
         this.workerLeaseService = workerLeaseService;
         this.projectStateLookup = projectStateLookup;
-        this.allProjectsLock = workerLeaseService.getAllProjectsLock(owner.getIdentityPath());
         this.projectLock = workerLeaseService.getProjectLock(owner.getIdentityPath(), identity.getBuildTreePath());
         this.taskLock = workerLeaseService.getTaskExecutionLock(owner.getIdentityPath(), identity.getBuildTreePath());
     }
@@ -238,24 +237,15 @@ class DefaultProjectState implements ProjectState, Closeable {
 
     @Override
     public <S extends @Nullable Object> S runWithModelLock(Supplier<S> action) {
-        Thread currentThread = Thread.currentThread();
-        if (canDoAnythingToThisProject.contains(currentThread)) {
+        if (canDoAnythingToThisProject.contains(Thread.currentThread())) {
             // Current thread is allowed to access anything at any time, so run the action
             return action.get();
         }
-
-        Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
-        if (currentLocks.contains(projectLock) || currentLocks.contains(allProjectsLock)) {
-            // if we already hold the project lock for this project
-            if (currentLocks.size() == 1) {
-                // the lock for this project is the only lock we hold, can run the action
-                return action.get();
-            } else {
-                throw new IllegalStateException("Current thread holds more than one project lock. It should hold only one project lock at any given time.");
-            }
-        } else {
-            return workerLeaseService.withReplacedLocks(currentLocks, projectLock, action::get);
+        if (workerLeaseService.holdsProjectLock(projectLock)) {
+            // We're already holding the lock for this project.
+            return action.get();
         }
+        return workerLeaseService.withReplacedLocks(workerLeaseService.getCurrentProjectLocks(), Collections.singletonList(projectLock), action::get);
     }
 
     @Override
@@ -273,12 +263,8 @@ class DefaultProjectState implements ProjectState, Closeable {
 
     @Override
     public boolean hasMutableState() {
-        Thread currentThread = Thread.currentThread();
-        if (canDoAnythingToThisProject.contains(currentThread)) {
-            return true;
-        }
-        Collection<? extends ResourceLock> locks = workerLeaseService.getCurrentProjectLocks();
-        return locks.contains(projectLock) || locks.contains(allProjectsLock);
+        return canDoAnythingToThisProject.contains(Thread.currentThread())
+            || workerLeaseService.holdsProjectLock(projectLock);
     }
 
     @Override

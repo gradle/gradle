@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -41,7 +40,8 @@ import java.util.Set;
  */
 @HasInternalProtocol
 @HiddenInDefinition
-public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildable {
+@SuppressWarnings("deprecation")
+public interface FileCollection extends Iterable<File>, org.gradle.api.tasks.AntBuilderAware, Buildable {
     /**
      * Returns the content of this collection, asserting it contains exactly one file.
      *
@@ -163,7 +163,9 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
     /**
      * Ant types which a {@code FileCollection} can be mapped to.
      * @since 0.8
+     * @deprecated This type will be removed in Gradle 10.
      */
+    @Deprecated
     enum AntType {
         /**
          * @since 0.8
@@ -203,13 +205,18 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      * @param nodeName The target node name.
      * @param type The target Ant type
      * @since 0.8
+     * @deprecated This method will be removed in Gradle 10.
      */
+    @Deprecated
     void addToAntBuilder(Object builder, String nodeName, AntType type);
 
     /**
      * Adds this collection to an Ant task as a nested node. Equivalent to calling {@code addToAntBuilder(builder,
      * nodeName,AntType.ResourceCollection)}.
+     *
+     * @deprecated This method will be removed in Gradle 10.
      */
     @Override
+    @Deprecated
     Object addToAntBuilder(Object builder, String nodeName);
 }

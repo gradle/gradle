@@ -17,6 +17,7 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.problems.internal.DefaultProblemId;
 import org.gradle.api.problems.internal.ProblemInternal;
 
 import java.util.Arrays;
@@ -47,6 +48,8 @@ public class WorkValidationUtils {
     public static void reportAsDeprecation(Iterable<? extends ProblemInternal> problems) {
         problems.forEach(warning ->
             withDocumentation(warning, deprecateBehaviour(singleLineWarning(warning))
+                // the validation problem already has an identity; the rendered line carries the type and property
+                .withProblemName(DefaultProblemId.displayNameOf(warning.getDefinition().getId()))
                 .withContext("Execution optimizations are disabled to ensure correctness.")
                 .willBecomeAnErrorInGradle10())
                 .nagUser()
@@ -56,7 +59,7 @@ public class WorkValidationUtils {
     private static String singleLineWarning(ProblemInternal problem) {
         String label = problem.getContextualLabel() != null
             ? problem.getContextualLabel()
-            : problem.getDefinition().getId().getDisplayName();
+            : DefaultProblemId.displayNameOf(problem.getDefinition().getId());
         String details = problem.getDetails();
         return details != null ? label + ". Reason: " + details.replaceAll("\\s+", " ") : label;
     }

@@ -32,7 +32,7 @@ class DiagnosticToProblemListenerTest extends Specification {
 
     def spec = Mock(ProblemSpecInternal)
 
-    def diagnosticToProblemListener = new DiagnosticToProblemListener(null, null)
+    def diagnosticToProblemListener = new DiagnosticToProblemListener(null, null, null)
 
     def "file location is correctly reported"() {
         given:

@@ -32,22 +32,40 @@ The diagram below shows the current set of architecture modules and platforms:
     ide["ide module"]
     style ide stroke:#1abc9c,fill:#b1f4e7,stroke-width:2px,color:#000;
 
+    observability["observability module"]
+    style observability stroke:#1abc9c,fill:#b1f4e7,stroke-width:2px,color:#000;
+
+    subgraph reporting_plugins["reporting-plugins platform"]
+    end
+    style reporting_plugins fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
+    reporting_plugins --> core
+
     subgraph software["software platform"]
     end
     style software fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
     software --> core
+    software --> reporting_plugins
 
     subgraph jvm["jvm platform"]
     end
     style jvm fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
     jvm --> core
+    jvm --> reporting_plugins
     jvm --> software
 
-    subgraph extensibility["extensibility platform"]
+    subgraph plugin_dev["plugin-dev platform"]
     end
-    style extensibility fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
-    extensibility --> core
-    extensibility --> jvm
+    style plugin_dev fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
+    plugin_dev --> core
+    plugin_dev --> jvm
+
+    subgraph dsl["dsl platform"]
+    end
+    style dsl fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
+    dsl --> core
+    dsl --> software
+    dsl --> jvm
+    dsl --> plugin_dev
 
     subgraph native["native platform"]
     end
@@ -72,8 +90,12 @@ This platform does not provide special support for a particular kind of automati
 It is made up of 3 architecture modules:
 
 - **core-runtime**: Provides the runtimes or "containers" in which code runs. These runtimes include the Gradle client, the daemon and the worker processes. This is the base module on which all other architecture modules depend.
-- **core-configuration**: Allows the build structure and work, such as tasks, to be specified. This includes the project model, the DSL and so on.
+- **core-configuration**: Allows the build structure and work, such as tasks, to be specified. This includes the project model, the DSL, plugin resolution and so on.
 - **core-execution**: Runs the work efficiently. This includes scheduling, execution, caching and so on.
+
+### Reporting plugins platform
+
+This is a platform that builds on the core platform to provide the `reporting-base` plugin with the reporting extension and the public reporting API, and the `build-dashboard` plugin.
 
 ### Software development platform
 
@@ -91,9 +113,9 @@ This includes software that is implemented using Java, Kotlin or some other JVM 
 
 This platform provides specific support for Java, Groovy and Scala, and includes the foojay toolchain plugin.
 
-### Extensibility platform
+### Plugin development platform
 
-This is a platform that builds on the core, software and JVM platforms to add support for extending Gradle by implementing and applying plugins.
+This is a platform that builds on the core, software and JVM platforms to add support for extending Gradle by implementing and testing plugins.
 
 This platform includes the plugin publishing plugin and the plugin portal.
 
@@ -102,6 +124,10 @@ This platform includes the plugin publishing plugin and the plugin portal.
 This is a platform that builds on the core and software platforms to add support for developing native software.
 
 This platform provides specific support for Swift, C++ and C.
+
+### DSL platform
+
+This is a platform that builds on the core, software, JVM and plugin development platforms. It provides the Groovy DSL and the Kotlin DSL. This covers the Groovy script compiler and the base classes of Groovy build scripts, the Kotlin DSL plugins, Kotlin precompiled script plugins and the tooling models that IDEs use for Kotlin build scripts. Core keeps the DSL-agnostic parts, such as script sources and the selection of a DSL by file extension.
 
 ## Cross-cutting architecture modules
 
@@ -114,6 +140,10 @@ Provides cross-cutting integration with Gradle's commercial product.
 ### IDE integration
 
 Provides cross-cutting integration with IDEs and other tooling.
+
+### Observability
+
+Provides cross-cutting support for reporting what happens during a build. This includes logging, build operations, the Problems API, their implementations, the rendering of problems and the shared HTML report rendering.
 
 ### Build infrastructure
 

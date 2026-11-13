@@ -28,7 +28,7 @@ class ProjectDirectoryProjectSpecTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
     private final File dir = temporaryFolder.createDir("build");
-    private final ProjectDirectoryProjectSpec spec = new ProjectDirectoryProjectSpec(dir);
+    private final ProjectDirectoryProjectSpec spec = new ProjectDirectoryProjectSpec(dir, false);
 
     def "contains match when at least one project has specified project dir"() {
         expect:
@@ -88,9 +88,29 @@ class ProjectDirectoryProjectSpecTest extends Specification {
         e.message == "Project directory '" + dir + "' is not a directory."
     }
 
+    def "falls back to the root project when requested and no project has specified project dir"() {
+        given:
+        def spec = new ProjectDirectoryProjectSpec(dir, true)
+        ProjectDescriptorInternal rootProject = project(new File("other"))
+
+        expect:
+        spec.containsProject(registry(rootProject))
+        spec.selectProject("settings 'foo'", registry(rootProject)) == rootProject
+    }
+
+    def "prefers a matching project over the root project fallback"() {
+        given:
+        def spec = new ProjectDirectoryProjectSpec(dir, true)
+        ProjectDescriptorInternal matching = project(dir)
+
+        expect:
+        spec.selectProject("settings 'foo'", registry(matching)) == matching
+    }
+
     private ProjectDescriptorRegistry registry(final ProjectDescriptorInternal... projects) {
         final ProjectDescriptorRegistry registry = Stub(ProjectDescriptorRegistry)
         registry.getAllProjects() >> toSet(projects)
+        registry.getRootProject() >> (projects.length > 0 ? projects[0] : null)
         return registry
     }
 

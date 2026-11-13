@@ -23,6 +23,12 @@ import org.gradle.util.Path
 sealed class CheckedFingerprint {
 
     /**
+     * Whether the entry can be reused as is, leaving nothing to configure again.
+     */
+    val isFullReuse: Boolean
+        get() = this is Valid && invalidProjects == null
+
+    /**
      * No fingerprint, which means no cache entry
      */
     object NotFound : CheckedFingerprint() {

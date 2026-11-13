@@ -330,6 +330,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
     def "can init two projects in a row"() {
         def configurationCache = new ConfigurationCacheFixture(this)
+        mirrorMavenCentralForInit()
         when:
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
         configurationCacheRun "init", "--dsl", "groovy", "--type", "basic"

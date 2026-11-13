@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.junit.Test
 import spock.lang.Issue
 
@@ -132,9 +133,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
             group = "org.example"
             version = "1.0-SNAPSHOT"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
 
             dependencies {
                 testImplementation(platform("org.junit:junit-bom:5.9.1"))
@@ -161,9 +160,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
             group = "org.example"
             version = "1.0-SNAPSHOT"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
 
             dependencies {
                 implementation("org.example:GradleEclipseWTPWithIncludedBuild_Included:1.0-SNAPSHOT")

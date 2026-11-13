@@ -297,15 +297,15 @@ See the complete report at $REPORT_URL
 
     @Test
     fun `problem causes are built from problems as expected`() {
-        val gradleRuntime = ProblemCause.of(PropertyProblem(PropertyTrace.Gradle, StructuredMessage.forText("failure")))
+        val gradleRuntime = ProblemCause.of(PropertyProblem(PropertyTrace.Gradle, "Problem", StructuredMessage.forText("failure")))
         assertThat(gradleRuntime.message, equalTo("failure"))
         assertThat(gradleRuntime.userCodeLocation, equalTo("Gradle runtime"))
 
-        val unknown = ProblemCause.of(PropertyProblem(PropertyTrace.Unknown, StructuredMessage.forText("failure")))
+        val unknown = ProblemCause.of(PropertyProblem(PropertyTrace.Unknown, "Problem", StructuredMessage.forText("failure")))
         assertThat(unknown.message, equalTo("failure"))
         assertThat(unknown.userCodeLocation, equalTo("unknown location"))
 
-        val projectAtUnknown = ProblemCause.of(PropertyProblem(PropertyTrace.Project(":p1", PropertyTrace.Unknown), StructuredMessage.forText("failure")))
+        val projectAtUnknown = ProblemCause.of(PropertyProblem(PropertyTrace.Project(":p1", PropertyTrace.Unknown), "Problem", StructuredMessage.forText("failure")))
         assertThat(projectAtUnknown.message, equalTo("failure"))
         assertThat(projectAtUnknown.userCodeLocation, equalTo("unknown location"))
     }
@@ -313,13 +313,13 @@ See the complete report at $REPORT_URL
     @Test
     fun `problem causes include property trace tail in comparison`() {
         val message = StructuredMessage.forText("")
-        val gradle = ProblemCause.of(PropertyProblem(PropertyTrace.Gradle, message))
-        val gradle2 = ProblemCause.of(PropertyProblem(PropertyTrace.Gradle, message))
-        val unknown = ProblemCause.of(PropertyProblem(PropertyTrace.Unknown, message))
-        val project1 = ProblemCause.of(PropertyProblem(PropertyTrace.Project(":p1", PropertyTrace.Gradle), message))
-        val project1b = ProblemCause.of(PropertyProblem(PropertyTrace.Project(":p1", PropertyTrace.Gradle), message))
-        val project2 = ProblemCause.of(PropertyProblem(PropertyTrace.Project(":p2", PropertyTrace.Gradle), message))
-        val project2ThenUnknown = ProblemCause.of(PropertyProblem(PropertyTrace.Project(":p2", PropertyTrace.Unknown), message))
+        val gradle = ProblemCause.of(PropertyProblem(PropertyTrace.Gradle, "Problem", message))
+        val gradle2 = ProblemCause.of(PropertyProblem(PropertyTrace.Gradle, "Problem", message))
+        val unknown = ProblemCause.of(PropertyProblem(PropertyTrace.Unknown, "Problem", message))
+        val project1 = ProblemCause.of(PropertyProblem(PropertyTrace.Project(":p1", PropertyTrace.Gradle), "Problem", message))
+        val project1b = ProblemCause.of(PropertyProblem(PropertyTrace.Project(":p1", PropertyTrace.Gradle), "Problem", message))
+        val project2 = ProblemCause.of(PropertyProblem(PropertyTrace.Project(":p2", PropertyTrace.Gradle), "Problem", message))
+        val project2ThenUnknown = ProblemCause.of(PropertyProblem(PropertyTrace.Project(":p2", PropertyTrace.Unknown), "Problem", message))
         assertEquals(gradle, gradle2)
         assertNotEquals(gradle, unknown)
         assertEquals(project1, project1b)
@@ -454,6 +454,7 @@ See the complete report at $REPORT_URL
     private
     fun buildLogicProblem(propertyTrace: PropertyTrace, message: String, exception: Throwable? = null) = PropertyProblem(
         propertyTrace,
+        "Problem",
         StructuredMessage.build { text(message) },
         exception
     )

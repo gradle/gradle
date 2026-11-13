@@ -82,8 +82,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
     void verifyErrorProblem(ReceivedProblem problem, boolean expectLineLocation = true, boolean checkSolutions = true) {
         assertLocations(problem, expectLineLocation)
         assert problem.severity == Severity.ERROR
-        assert problem.fqid == 'compilation:java:compiler.err.expected'
-        assert problem.definition.id.displayName == "';' expected"
+        assert problem.fqid == 'Compilation:Java:... expected'
+        assert problem.definition.id.displayName == '... expected'
         assert problem.contextualLabel == '\';\' expected'
         if (checkSolutions) {
             assert !problem.solutions.empty
@@ -100,8 +100,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
     void verifyRedundantCastProblem(ReceivedProblem problem, boolean expectLineLocation = true, String fileLocation = null, Severity severity = Severity.WARNING) {
         assertLocations(problem, expectLineLocation)
         assert problem.severity == severity
-        assert problem.fqid == 'compilation:java:compiler.warn.redundant.cast'
-        assert problem.definition.id.displayName == 'redundant cast to java.lang.String'
+        assert problem.fqid == 'Compilation:Java:Redundant cast to ...'
+        assert problem.definition.id.displayName == 'Redundant cast to ...'
         assertRedundantCastInContextualLabel(problem.contextualLabel)
 
         // Optional verification for details if file location is provided
@@ -119,8 +119,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
     void verifyWerrorProblem(ReceivedProblem problem) {
         assertLocations(problem, false, false)
         assert problem.severity == Severity.ERROR
-        assert problem.fqid == 'compilation:java:compiler.err.warnings.and.werror'
-        assert problem.definition.id.displayName == 'warnings found and -Werror specified'
+        assert problem.fqid == 'Compilation:Java:Warnings found and -Werror specified'
+        assert problem.definition.id.displayName == 'Warnings found and -Werror specified'
         assert problem.contextualLabel == 'warnings found and -Werror specified'
         assert !problem.solutions.empty
         assert problem.details == "error: warnings found and -Werror specified"
@@ -135,9 +135,9 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
     void verifyJdkSpecificWarningProblem(ReceivedProblem problem, boolean isJava9Compatible) {
         assertLocations(problem, true)
         assert problem.severity == Severity.WARNING
-        assert problem.fqid == 'compilation:java:compiler.warn.redundant.cast'
+        assert problem.fqid == 'Compilation:Java:Redundant cast to ...'
         def message = getRedundantMessage(isJava9Compatible)
-        assert problem.definition.id.displayName == 'redundant cast to java.lang.String'
+        assert problem.definition.id.displayName == 'Redundant cast to ...'
         assert problem.contextualLabel == message
         assert problem.details.contains(message)
     }
@@ -196,13 +196,13 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         verifyAll(receivedProblem(0)) {
             assertLocations(it, false, false)
             severity == Severity.WARNING
-            fqid == 'compilation:java:compiler.note.unchecked.filename'
+            fqid == 'Compilation:Java:... uses unchecked or unsafe operations.'
             contextualLabel == "${buildFile.parentFile.path}/src/main/java/Foo.java uses unchecked or unsafe operations.".replace('/', File.separator)
         }
         verifyAll(receivedProblem(1)) {
             assertLocations(it, false, false)
             severity == Severity.WARNING
-            fqid == 'compilation:java:compiler.note.unchecked.recompile'
+            fqid == 'Compilation:Java:Recompile with -Xlint:unchecked for details.'
             contextualLabel == "Recompile with -Xlint:unchecked for details."
         }
     }
@@ -268,12 +268,12 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         fails("compileJava")
 
         then:
-        // Special -Werror error
-        verifyWerrorProblem(receivedProblem(0))
+        // Received problems are ordered by their id: the two expected warnings first
+        verifyRedundantCastProblem(receivedProblem(0), true, "$fooFileLocation:11", Severity.ERROR)
+        verifyRedundantCastProblem(receivedProblem(1), true, "$fooFileLocation:7", Severity.ERROR)
 
-        // The two expected warnings
-        verifyRedundantCastProblem(receivedProblem(1), true, "$fooFileLocation:11", Severity.ERROR)
-        verifyRedundantCastProblem(receivedProblem(2), true, "$fooFileLocation:7", Severity.ERROR)
+        // Special -Werror error
+        verifyWerrorProblem(receivedProblem(2))
 
         result.error.contains("1 error\n")
         result.error.contains("2 warnings\n")
@@ -408,7 +408,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'compilation:java:initialization-failed'
+            fqid == 'Compilation:Java:Compiler initialization failed'
             // Message can change between JDK versions:
             //  - JDK1.8: error: invalid flag: -invalid-flag
             //  - JDK11:         invalid flag: -invalid-flag

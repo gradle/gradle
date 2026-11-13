@@ -20,7 +20,7 @@ For migrating from Gradle 5.x, see the <<upgrading_version_5.adoc#upgrading_vers
 
 We recommend the following steps for all users:
 
-. Try running `gradle help --scan` and view the https://docs.gradle.com/develocity/get-started/#identifying_deprecated_gradle_functionality[deprecations view] of the generated Build Scan.
+. Try running `gradle help --scan` and view the https://docs.develocity.ai/gradle/current/getting-started/#identifying-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
 +
 image::deprecations.png[Deprecations View in a Build Scan]
 +
@@ -381,7 +381,7 @@ You can use link:{javadocPath}/org/gradle/api/DefaultTask.html[DefaultTask] inst
 ==== Removal of `BuildListener.buildStarted(Gradle)`
 
 `BuildListener.buildStarted(Gradle)` was deprecated in Gradle 6.0 and is now removed in Gradle 7.0.
-Please use link:{javadocPath}/org/gradle/BuildListener.html#beforeSettings-org.gradle.api.initialization.Settings-[BuildListener.beforeSettings(Settings)] instead.
+Please use link:{javadocPath}/org/gradle/BuildListener.html#beforeSettings(org.gradle.api.initialization.Settings)[BuildListener.beforeSettings(Settings)] instead.
 
 [[v6_removal_of_unused_start_parameter_apis]]
 ==== Removal of unused `StartParameter` APIs
@@ -417,8 +417,8 @@ The `ValidateTaskProperties` task has been removed and replaced by the link:{jav
 ==== Removal of `ImmutableFileCollection`
 
 The `ImmutableFileCollection` type has been removed.
-Use the link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object...-[factory method] instead.
-A handle to the project layout can be obtained via link:{javadocPath}/org/gradle/api/Project.html#getLayout--[Project.layout].
+Use the link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files(java.lang.Object++...++)[factory method] instead.
+A handle to the project layout can be obtained via link:{javadocPath}/org/gradle/api/Project.html#getLayout()[Project.layout].
 
 [[v6_removal_of_component_selection_reason_get_description]]
 ==== Removal of `ComponentSelectionReason.getDescription`
@@ -439,7 +439,7 @@ The following deprecated constructors were removed:
 [[v6_removal_of_arbitrary_local_cache_configuration]]
 ==== Removal of arbitrary local cache configuration
 
-The local build cache configuration now needs to be done via link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#local-org.gradle.api.Action-[BuildCacheConfiguration.local()].
+The local build cache configuration now needs to be done via link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#local(org.gradle.api.Action)[BuildCacheConfiguration.local()].
 
 [[v6_removal_of_default_version_selector_scheme_constructor]]
 ==== Removal of DefaultVersionSelectorScheme constructor
@@ -503,7 +503,7 @@ A fix for this problem is to <<incremental_build.adoc#sec:link_output_dir_to_inp
 ==== Duplicates strategy
 
 Gradle 7 now fails when a copy operation (or any operation which uses a `org.gradle.api.file.CopySpec`) encounters a duplicate entry, and that the duplicates strategy isn't set.
-Please look at link:{javadocPath}/org/gradle/api/file/CopySpec.html#setDuplicatesStrategy-org.gradle.api.file.DuplicatesStrategy-[the CopySpec docs] for details.
+Please look at link:{javadocPath}/org/gradle/api/file/CopySpec.html#setDuplicatesStrategy(org.gradle.api.file.DuplicatesStrategy)[the CopySpec docs] for details.
 
 [[changes_6.9]]
 == Upgrading from 6.8 and earlier
@@ -527,7 +527,7 @@ This may impact Kotlin consumers where the return types of APIs are no longer nu
 ==== Updates to default tool integration versions
 
 - JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.6].
-- Checkstyle has been updated to https://checkstyle.sourceforge.io/releasenotes.html#Release_8.37[Checkstyle 8.37].
+- Checkstyle has been updated to https://checkstyle.org/releasenotes.html#Release_8.37[Checkstyle 8.37].
 - CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v2.0.0/CHANGELOG.md[CodeNarc 2.0.0].
 
 [[v6_updates_to_bundled_gradle_dependencies_6_8]]
@@ -628,7 +628,7 @@ This may also change the order in which some builds are executed if an included 
 ==== Updates to default tool integration versions
 
 - PMD has been updated to https://github.com/pmd/pmd/releases/tag/pmd_releases%2F6.26.0[PMD 6.26.0].
-- Checkstyle has been updated to https://checkstyle.sourceforge.io/releasenotes.html#Release_8.35[Checkstyle 8.35].
+- Checkstyle has been updated to https://checkstyle.org/releasenotes.html#Release_8.35[Checkstyle 8.35].
 - CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v1.6.1/CHANGELOG.md[CodeNarc 1.6.1].
 
 [[v6_deprecations_6_7]]

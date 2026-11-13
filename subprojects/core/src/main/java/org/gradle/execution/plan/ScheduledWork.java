@@ -19,27 +19,18 @@ package org.gradle.execution.plan;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.function.BiConsumer;
-
 /**
  * An immutable snapshot of the currently scheduled nodes, together with the information about which nodes are entry points.
  */
-public class ScheduledWork implements QueryableExecutionPlan.ScheduledNodes {
+public class ScheduledWork {
+
     private final ImmutableList<Node> scheduledNodes;
     private final ImmutableSet<Node> entryNodes;
 
-    public ScheduledWork(List<? extends Node> scheduledNodes, Collection<? extends Node> entryNodes) {
+    public ScheduledWork(ImmutableList<Node> scheduledNodes, ImmutableSet<Node> entryNodes) {
         // Checking that entryNodes are a subset of scheduledNodes can be expensive, so it is omitted from here.
-        this.scheduledNodes = ImmutableList.copyOf(scheduledNodes);
-        this.entryNodes = ImmutableSet.copyOf(entryNodes);
-    }
-
-    @Override
-    public void visitNodes(BiConsumer<List<Node>, Set<Node>> visitor) {
-        visitor.accept(scheduledNodes, entryNodes);
+        this.scheduledNodes = scheduledNodes;
+        this.entryNodes = entryNodes;
     }
 
     /**
@@ -61,4 +52,5 @@ public class ScheduledWork implements QueryableExecutionPlan.ScheduledNodes {
     public ImmutableSet<Node> getEntryNodes() {
         return entryNodes;
     }
+
 }

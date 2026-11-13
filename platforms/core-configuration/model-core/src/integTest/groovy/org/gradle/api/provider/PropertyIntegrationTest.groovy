@@ -1013,7 +1013,7 @@ assert custom.prop.get() == "value 4"
 
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:value-not-set'
+            fqid == 'Gradle:Build Definition:Value not set'
             definition.id.displayName == 'Value not set'
             contextualLabel == "Type 'MyTask' property 'strings' doesn't have a configured value"
             details == "This property isn't marked as optional and no value has been configured"

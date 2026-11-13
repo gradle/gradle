@@ -13,10 +13,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
 # Pre-build hook entry point (file name required by the teamcity-hooks-plugin).
-# All logic lives in hooks.sh.
+# Clean first, so leftovers from earlier builds on a shared agent are removed even if the
+# restore fails. The restore script removes the ~/.m2/.develocity it writes itself.
 
 set -euo pipefail
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-exec "${SCRIPT_DIR}/hooks.sh" pre
+SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/scripts"
+
+"${SCRIPTS}/clean-maven-and-android-home.sh"
+"${SCRIPTS}/restore-int-test-gradle-home.sh"

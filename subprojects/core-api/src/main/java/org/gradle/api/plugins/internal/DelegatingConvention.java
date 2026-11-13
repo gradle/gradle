@@ -27,7 +27,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Implementation of the custom {@code org.gradle.api.pliugns.Convention} interface that delegates all {@code ExtensionContainer} methods
+ * Implementation of the custom {@code org.gradle.api.plugins.Convention} interface that delegates all {@code ExtensionContainer} methods
  * to another {@code ExtensionContainer} implementation.
  *
  * This class is used in {@link org.gradle.initialization.DefaultLegacyTypesSupport} to create an instance of the runtime only convention interface.

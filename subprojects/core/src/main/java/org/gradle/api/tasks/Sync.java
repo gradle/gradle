@@ -25,7 +25,7 @@ import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
 import org.gradle.api.internal.file.copy.FileCopyAction;
 import org.gradle.api.internal.file.copy.SyncCopyActionDecorator;
-import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.Deleter;
@@ -74,6 +74,43 @@ public abstract class Sync extends AbstractCopyTask {
 
     private final PatternFilterable preserveInDestination = new PatternSet();
 
+    /**
+     * Creates a new {@code Sync} task.
+     *
+     * @since 9.9.0
+     */
+    @SuppressWarnings("this-escape")
+    public Sync() {
+        getSkipWhenSourceIsEmpty().convention(true);
+    }
+
+    /**
+     * Whether this task is skipped when its source contains no files and no directories.
+     *
+     * <p>
+     * When this is {@code true}, which is the default, a task with an empty source does not run and its
+     * destination directory is not synchronized. What is left in the destination then depends on whether it is
+     * a build-owned directory: if it is, the destination is cleaned up; otherwise it keeps the files
+     * the source no longer contains.
+     *
+     * <p>
+     * When this is {@code false}, the task always runs its copy action, so an empty source empties the
+     * destination. Note that this task always deletes the entire contents of its destination directory, not
+     * only the files it copied there, except for anything matched by {@link #preserve(Action)}; disabling this
+     * extends that to a source that is empty, including one that is empty by mistake.
+     *
+     * @return whether this task is skipped when its source is empty
+     * @since 9.9.0
+     */
+    @Incubating
+    @Input
+    public abstract Property<Boolean> getSkipWhenSourceIsEmpty();
+
+    @Override
+    boolean shouldSkipWhenSourceIsEmpty() {
+        return getSkipWhenSourceIsEmpty().get();
+    }
+
     @Override
     protected CopyAction createCopyAction() {
         File destinationDir = getDestinationDir();
@@ -108,8 +145,9 @@ public abstract class Sync extends AbstractCopyTask {
      *
      * @return the destination directory property
      * @since 9.8.0
-     */
+    */
     @Incubating
+    @Optional
     @OutputDirectory
     public DirectoryProperty getDestinationDirectory() {
         return getRootSpec().getDestinationDirectory();
@@ -121,7 +159,7 @@ public abstract class Sync extends AbstractCopyTask {
      * @return The destination dir.
      * @since 0.9
      */
-    @ReplacedBy("destinationDirectory")
+    @OutputDirectory
     @NotToBeReplacedByLazyProperty(because = "Superseded by the lazy getDestinationDirectory() property", willBeDeprecated = true)
     public File getDestinationDir() {
         return getRootSpec().getDestinationDir();

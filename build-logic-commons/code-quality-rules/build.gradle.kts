@@ -25,7 +25,9 @@ dependencies {
     api(platform(projects.buildPlatform))
     compileOnly(localGroovy())
     compileOnly(buildLibs.codenarc) {
+        // Groovy is provided by localGroovy() above, so none of CodeNarc's Groovy
+        // distribution is wanted. The exclusion is group-wide on purpose: narrowing it
+        // to today's modules would silently let a future CodeNarc Groovy artifact back in.
         exclude(group = "org.apache.groovy")
-        exclude(group = "org.codehaus.groovy")
     }
 }

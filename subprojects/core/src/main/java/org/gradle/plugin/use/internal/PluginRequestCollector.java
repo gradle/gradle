@@ -44,7 +44,7 @@ import static org.gradle.util.internal.CollectionUtils.collect;
 /**
  * The real delegate of the plugins {} block.
  *
- * The {@link PluginUseScriptBlockMetadataCompiler} interacts with this type.
+ * The {@code PluginUseScriptBlockMetadataCompiler} in the Groovy DSL interacts with this type.
  */
 public class PluginRequestCollector {
     public static final String EMPTY_VALUE = "cannot be null or empty";

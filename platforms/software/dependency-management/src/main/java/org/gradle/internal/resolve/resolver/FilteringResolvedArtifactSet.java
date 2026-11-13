@@ -16,8 +16,6 @@
 
 package org.gradle.internal.resolve.resolver;
 
-import org.gradle.api.Action;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -28,6 +26,7 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -58,11 +57,6 @@ public final class FilteringResolvedArtifactSet implements ResolvedArtifactSet {
     @Override
     public void visitTransformSources(TransformSourceVisitor visitor) {
         artifacts.visitTransformSources(new FilteringTransformSourceVisitor(filter, visitor));
-    }
-
-    @Override
-    public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
-        artifacts.visitExternalArtifacts(new FilteringArtifactAction(filter, visitor));
     }
 
     @Override
@@ -183,22 +177,4 @@ public final class FilteringResolvedArtifactSet implements ResolvedArtifactSet {
         }
     }
 
-    private static class FilteringArtifactAction implements Action<ResolvableArtifact> {
-
-        private final Action<ResolvableArtifact> visitor;
-        private final Predicate<ResolvableArtifact> filter;
-
-        public FilteringArtifactAction(Predicate<ResolvableArtifact> filter, Action<ResolvableArtifact> visitor) {
-            this.visitor = visitor;
-            this.filter = filter;
-        }
-
-        @Override
-        public void execute(ResolvableArtifact artifact) {
-            if (filter.test(artifact)) {
-                visitor.execute(artifact);
-            }
-        }
-
-    }
 }

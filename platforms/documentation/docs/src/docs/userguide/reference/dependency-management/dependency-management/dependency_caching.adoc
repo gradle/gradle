@@ -192,6 +192,14 @@ To help with this scenario, Gradle provides a couple of options:
 - <<sec:cache-copy,copying the dependency cache>> into each container
 - <<sec:shared-readonly-cache,sharing a read-only dependency cache>> between multiple containers
 
+[TIP]
+.Every CI runner downloading the same dependencies?
+====
+Develocity Artifact Cache serves dependencies from cache instead of the remote repository on every run.
+
+link:https://develocity.ai/product/artifact-cache/[Learn about Artifact Cache]
+====
+
 [[sec:cache-copy]]
 === Copying and reusing the cache
 
@@ -221,7 +229,8 @@ If multiple incompatible Gradle versions are in play, all should be used when se
 | `modules-2`           | `files-2.1`           | `metadata-2.100`          | Gradle 8.0
 | `modules-2`           | `files-2.1`           | `metadata-2.105`          | Gradle 8.1
 | `modules-2`           | `files-2.1`           | `metadata-2.106`          | Gradle 8.2 to Gradle 8.10.2
-| `modules-2`           | `files-2.1`           | `metadata-2.107`          | Gradle 8.11 and above
+| `modules-2`           | `files-2.1`           | `metadata-2.107`          | Gradle 8.11 to Gradle 9.9.x
+| `modules-2`           | `files-2.1`           | `metadata-2.108`          | Gradle 9.10.0 and above
 |===
 
 [[sec:shared-readonly-cache]]

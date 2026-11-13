@@ -17,6 +17,7 @@
 package org.gradle.ide.sync
 
 import org.gradle.profiler.mutations.ApplyBuildScriptChangeFileMutator
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 
 class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
 
@@ -47,22 +48,24 @@ class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
         projectFile("settings.gradle") << """
             pluginManagement {
                 repositories {
-                    google {
+                    maven {
+                        name = 'GOOGLE_MIRROR'
+                        url = '${RepoScriptBlockUtil.googleMirrorUrl}'
                         content {
                             includeGroupByRegex("com.android.*")
                             includeGroupByRegex("com.google.*")
                             includeGroupByRegex("androidx.*")
                         }
                     }
-                    mavenCentral()
-                    gradlePluginPortal()
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition()}
                 }
             }
 
             dependencyResolutionManagement {
                 repositories {
-                    google()
-                    mavenCentral()
+                    ${RepoScriptBlockUtil.googleRepositoryDefinition()}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
                 }
             }
 

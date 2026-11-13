@@ -19,13 +19,13 @@ package org.gradle.internal.locking;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectDomainObjectContext;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.resource.local.FileResourceListener;
-import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.util.internal.GFileUtils;
 import org.jspecify.annotations.Nullable;
 
@@ -50,7 +50,7 @@ public class LockFileReaderWriter {
 
     private static final Logger LOGGER = Logging.getLogger(LockFileReaderWriter.class);
     private static final String LIMITATIONS_DOC_LINK = new DocumentationRegistry().getDocumentationRecommendationFor("information on limitations", "dependency_locking", "locking_limitations");
-    static final String FORMATTING_DOC_LINK = "Verify the lockfile content. " + new DocumentationRegistry().getDocumentationRecommendationFor("information on lock file format", "dependency_locking", "lock_state_location_and_format");
+    static final String FORMATTING_DOC_LINK = "Verify the lockfile content. " + new DocumentationRegistry().getDocumentationRecommendationFor("information on lock file format", "dependency_locking", "sec:lock-state");
 
     static final String UNIQUE_LOCKFILE_NAME = "gradle.lockfile";
     static final String FILE_SUFFIX = ".lockfile";
@@ -89,11 +89,13 @@ public class LockFileReaderWriter {
         LOGGER.debug("Lockfiles root: {}", lockFilesRoot);
     }
 
+    /**
+     * Read a lock file for a given lock ID from its legacy location,
+     * returning null if there is no legacy lock file for the given lock ID.
+     */
     @Nullable
-    public List<String> readLockFile(String lockId) {
-        checkValidRoot();
-
-        Path lockFile = lockFilesRoot.resolve(decorate(lockId) + FILE_SUFFIX);
+    public List<String> readLegacyLockFile(String lockId) {
+        Path lockFile = getLegacyLockFile(lockId);
         listener.fileObserved(lockFile.toFile());
         if (Files.exists(lockFile)) {
             List<String> result;
@@ -108,6 +110,14 @@ public class LockFileReaderWriter {
         } else {
             return null;
         }
+    }
+
+    /**
+     * The location of the legacy lock file for a given lock ID.
+     */
+    public Path getLegacyLockFile(String lockId) {
+        checkValidRoot();
+        return lockFilesRoot.resolve(decorate(lockId) + FILE_SUFFIX);
     }
 
     private String decorate(String lockId) {
@@ -230,7 +240,7 @@ public class LockFileReaderWriter {
 
     private @Nullable String buildRegenerationComment() {
         if (context instanceof ProjectDomainObjectContext pdoc) {
-            org.gradle.util.Path taskPath = pdoc.getModel().getIdentity().getBuildTreePath().child("dependencies");
+            org.gradle.util.Path taskPath = pdoc.getIdentity().getBuildTreePath().child("dependencies");
             return "# To regenerate this file, run: ./gradlew " + taskPath + " --write-locks";
         }
 

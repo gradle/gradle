@@ -19,4 +19,8 @@ package org.gradle.language.rc.plugins
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class WindowsResourceScriptPluginIntegrationTest extends WellBehavedPluginTest {
+    def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
+    }
+
 }

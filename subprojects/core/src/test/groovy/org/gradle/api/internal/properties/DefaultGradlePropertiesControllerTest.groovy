@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.properties
 
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
+import org.gradle.internal.build.BuildIdentity
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.initialization.properties.GradlePropertiesLoader
 import org.gradle.initialization.properties.SystemPropertiesInstaller
@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class DefaultGradlePropertiesControllerTest extends Specification {
 
-    private final rootBuildId = DefaultBuildIdentifier.ROOT
+    private final rootBuildId = new BuildIdentity(Path.ROOT)
     private final rootProjectId = ProjectIdentity.forRootProject(Path.ROOT, "root")
     private final buildRootDir = new File("buildRootDir")
 
@@ -293,7 +293,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         def controller = newDefaultGradlePropertiesController()
 
         def rootBuildId = this.rootBuildId
-        def includedBuildId = new DefaultBuildIdentifier(Path.path(":included"))
+        def includedBuildId = new BuildIdentity(Path.path(":included"))
 
         def rootProperties = controller.getGradleProperties(rootBuildId)
         def includedProperties = controller.getGradleProperties(includedBuildId)

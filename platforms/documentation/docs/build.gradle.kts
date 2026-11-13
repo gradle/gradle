@@ -7,15 +7,13 @@ import gradlebuild.integrationtests.configureTestSourceSetInIde
 import gradlebuild.integrationtests.model.GradleDistribution
 import java.io.FileFilter
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
-import org.gradle.docs.internal.tasks.CheckLinks
-import org.gradle.docs.samples.internal.tasks.InstallSample
 import org.gradle.internal.os.OperatingSystem
 
 plugins {
     id("java-library") // Needed for the dependency-analysis plugin. However, we should not need this. This is not a real library.
     id("gradlebuild.internal.java")
     id("gradlebuild.documentation")
-    id("org.gradle.samples")
+    id("gradlebuild.docs-snippets-testing")
     id("gradlebuild.android-home-warmup")
 }
 
@@ -37,9 +35,9 @@ androidHomeWarmup {
 configurations {
     consumable("gradleFullDocsElements") {
         attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-documentation"))
+            attribute(Usage.USAGE_ATTRIBUTE, named(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, named(Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, named("gradle-documentation"))
         }
     }
 }
@@ -61,6 +59,7 @@ dependencies {
     runtimeOnly(project(":distributions-full"))
 
     userGuideTask(buildLibs.xalan)
+    userGuideTask(buildLibs.xalanSerializer)
     userGuideTask(buildLibs.xerces)
     userGuideTask(buildLibs.xslthl)
 
@@ -80,6 +79,18 @@ dependencies {
     docsTestRuntimeOnly(testLibs.junitPlatform)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
+
+    constraints {
+        "dokkaHtmlGeneratorRuntime"(buildLibs.jsoup) {
+            because("Bump version brought in transitively by Dokka, to resolve CVE-2026-71497")
+        }
+        docsTestImplementation(libs.commonsLang) {
+            because("Bump version brought in transitively by Exemplar, to resolve CVE-2025-48924")
+        }
+        "dokkaHtmlGeneratorRuntime"(buildLibs.freemarker) {
+            because("Bump version brought in transitively by Dokka, to resolve CVE-2026-84939")
+        }
+    }
 }
 
 jvmCompile {
@@ -97,45 +108,15 @@ gradleDocumentation {
         groovyApi = libs.versions.groovy.map { v -> project.uri("https://docs.groovy-lang.org/docs/groovy-$v/html/gapi") }
         groovyPackageListSrc = libs.versions.groovy.map { v -> "org.apache.groovy:groovy-all:$v:groovydoc" }
     }
-}
-
-tasks.named<Sync>("stageDocs") {
-    // Add samples to generated documentation
-    from(samples.distribution.renderedDocumentation) {
-        into("samples")
+    userManual {
+        resources.from(repoRoot().file("gradle/dependency-management/embedded-kotlin-versions.csv"))
     }
 }
 
-samples {
-    // TODO: Do this lazily so we don't need to walk the filesystem during configuration
-    // iterate through each snippets and record their names and locations
-    val directoriesOnly = FileFilter { it.isDirectory }
-    val snippetsRoot = file("src/snippets")
-    val variantDirNames = setOf("groovy", "kotlin", "common", "tests", "tests-groovy", "tests-kotlin", "tests-common")
-
-    // Recursively find snippet directories (those containing a groovy/ or kotlin/ variant subdirectory)
-    val snippetDirs = mutableListOf<File>()
-    fun findSnippets(dir: File) {
-        for (child in dir.listFiles(directoriesOnly).orEmpty()) {
-            if (child.name in variantDirNames || child.name == "integration-tests" || child.name == "unused") continue
-            if (File(child, "kotlin").exists() || File(child, "groovy").exists()) {
-                snippetDirs.add(child)
-            } else {
-                findSnippets(child)
-            }
-        }
-    }
-    findSnippets(snippetsRoot)
-
-    snippetDirs.forEach { snippetDir ->
-        val relativePath = snippetsRoot.toPath().relativize(snippetDir.toPath()).toString()
-        val id = org.gradle.docs.internal.StringUtils.toLowerCamelCase("snippet-${relativePath.replace(File.separatorChar, '-')}")
-        publishedSamples.create(id) {
-            description = "Snippet from $snippetDir"
-            category = "Other"
-            readmeFile = file("src/snippets/default-readme.adoc")
-            sampleDirectory = snippetDir
-            promoted = false
+dokka {
+    dokkaSourceSets {
+        named("javaMain") {
+            suppress = true
         }
     }
 }
@@ -145,19 +126,6 @@ samples {
 tasks.named<Wrapper>("generateWrapperForSamples") {
     gradleVersion = project.version.toString()
     validateDistributionUrl = false
-}
-
-// TODO: The rich console to plain text is flaky
-tasks.named("checkAsciidoctorSampleContents") {
-    enabled = false
-}
-
-// exclude (unused and non-existing) wrapper of development Gradle version, as well as README, because the timestamp in the Gradle version break the cache
-tasks.withType<InstallSample>().configureEach {
-    if (name.contains("ForTest")) {
-        excludes.add("gradle/wrapper/**")
-        excludes.add("README")
-    }
 }
 
 tasks.named("quickTest") {
@@ -170,20 +138,28 @@ tasks.named<Test>("docsTest") {
 
     dependsOn("androidHomeWarmup")
 
-    // The org.gradle.samples plugin uses Exemplar to execute integration tests on the samples.
+    // docsTest uses Exemplar to execute the snippets installed by 'installSnippetsForTest'.
     // Exemplar doesn't know about that it's running in the context of the gradle/gradle build
     // so it uses the Gradle distribution from the running build. This is not correct, because
     // we want to verify that the samples work with the Gradle distribution being built.
     val installationEnvProvider = objects.newInstance<GradleInstallationForTestEnvironmentProvider>().apply {
         gradleDistribution.homeDir.fileProvider(configurations.integTestDistributionRuntimeClasspath.getSingleFileProvider())
-        samplesdir = project.layout.buildDirectory.dir("working/samples/testing")
+        samplesdir.fileProvider(tasks.named<Sync>("installSnippetsForTest").map { it.destinationDir })
         repoRoot = project.repoRoot()
     }
     jvmArgumentProviders.add(installationEnvProvider)
 
-    // For unknown reason, this is set to 'sourceSet.getRuntimeClasspath()' in the 'org.gradle.samples' plugin
-    testClassesDirs = sourceSets.docsTest.get().output.classesDirs
-    // 'integTest.samplesdir' is set to an absolute path by the 'org.gradle.samples' plugin
+    // IntegrationTestSamplesExecutor gives each docsTest worker its own Gradle user home next to the shared one, so
+    // that the sample daemons of parallel workers never share - and deadlock on - a cache. Delete those homes before
+    // the run: they live in intTestHomeDir, which is not wiped by `clean`, so leftovers of an earlier (possibly
+    // crashed) build would otherwise pile up on long-lived CI checkouts.
+    val intTestHomeDir = repoRoot().dir("intTestHomeDir").asFile
+    doFirst {
+        intTestHomeDir.listFiles(FileFilter { it.isDirectory && it.name.contains("-sample-worker-") })
+            ?.forEach { it.deleteRecursively() }
+    }
+
+    // 'integTest.samplesdir' and the Gradle installation are passed by installationEnvProvider above
     systemProperties.clear()
 
     filter {
@@ -216,6 +192,11 @@ tasks.named<Test>("docsTest") {
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_27)) {
             // PMD doesn't support Java 27
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-core-plugins-code-quality*")
+        }
+
+        if (libs.versions.kotlin.get().matches(Regex(".+-\\d+"))) {
+            // The init script of the sample resolves the embedded Kotlin from repositories that do not have dev builds
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-plugin-development-init-kotlin_*")
         }
 
         if (OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64") {
@@ -326,12 +307,9 @@ abstract class GradleInstallationForTestEnvironmentProvider : CommandLineArgumen
     }
 }
 
-tasks.withType<CheckLinks>().configureEach {
-    enabled = !gradle.startParameter.taskNames.contains("docs:docsTest")
-}
-
 tasks.register("checkLinks") {
-    dependsOn(tasks.withType<CheckLinks>())
+    group = "verification"
+    description = "Checks the user manual for dead internal and external links."
     dependsOn("checkDeadInternalLinks")
     dependsOn("checkDeadExternalLinks")
 }

@@ -16,6 +16,7 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.problems.internal.DefaultProblemId;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -39,7 +40,7 @@ public class TypeValidationProblemRenderer {
 
     public static String renderMinimalInformationAbout(ProblemInternal problem, boolean renderDocLink, boolean renderSolutions) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node(endLineWithDot(Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> problem.getDefinition().getId().getDisplayName())));
+        formatter.node(endLineWithDot(Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> DefaultProblemId.displayNameOf(problem.getDefinition().getId()))));
         ofNullable(problem.getDetails()).ifPresent(reason -> {
             formatter.blankLine();
             formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDetails())));

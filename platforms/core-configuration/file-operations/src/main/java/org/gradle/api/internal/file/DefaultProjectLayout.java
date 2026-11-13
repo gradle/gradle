@@ -35,6 +35,8 @@ import org.gradle.api.tasks.util.internal.PatternSetFactory;
 
 import java.io.File;
 
+import static java.util.Objects.requireNonNull;
+
 public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     private final Directory settingsDir;
@@ -96,6 +98,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     @Override
     public Provider<RegularFile> file(Provider<File> provider) {
+        requireNonNull(provider, "Cannot resolve a path using a null provider.");
         return new MappingProvider<>(RegularFile.class, Providers.internal(provider), new Transformer<RegularFile, File>() {
             @Override
             public RegularFile transform(File file) {
@@ -106,6 +109,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     @Override
     public Provider<Directory> dir(Provider<File> provider) {
+        requireNonNull(provider, "Cannot resolve a path using a null provider.");
         return new MappingProvider<>(Directory.class, Providers.internal(provider), new Transformer<Directory, File>() {
             @Override
             public Directory transform(File file) {

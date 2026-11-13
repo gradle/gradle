@@ -116,6 +116,6 @@ public abstract class MissingAttributeAmbiguousVariantsFailureDescriber extends 
     }
 
     private String suggestDependencyInsight() {
-        return "Use the dependencyInsight report with the --all-variants option to view all variants of the ambiguous dependency.  This report is described at " + getDocumentationRegistry().getDocumentationFor("viewing_debugging_dependencies", "sec:identifying_reason_dependency_selection") + ".";
+        return "Use the dependencyInsight report with the --all-variants option to view all variants of the ambiguous dependency.  This report is described at " + getDocumentationRegistry().getDocumentationFor("viewing_debugging_dependencies", "sec:identifying-reason-dependency-selection") + ".";
     }
 }

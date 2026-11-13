@@ -7,6 +7,7 @@ import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
 import gradlebuild.integrationtests.configureTestSourceSetInIde
 import gradlebuild.integrationtests.tasks.SmokeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
+import gradlebuild.testing.skipWhenNoFlakyTests
 
 plugins {
     id("gradlebuild.internal.java")
@@ -120,6 +121,7 @@ tasks {
         group = "Verification"
         testClassesDirs = smokeTestSourceSet.output.classesDirs
         classpath = smokeTestSourceSet.runtimeClasspath
+        skipWhenNoFlakyTests(smokeTestSourceSet)
         inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
         inputs.property("androidSdkRootIsSet", System.getenv("ANDROID_SDK_ROOT") != null)
 

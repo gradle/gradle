@@ -55,6 +55,11 @@ dependencies {
         applyRule<DependencyRemovalByNameRule>("org.gradle:sample-discovery", setOf("asciidoctorj", "asciidoctorj-api"))
 
         withModule<RemoveXmlApisRule>("jaxen:jaxen")
+        // The synthetic project used to generate precompiled script plugin accessors has no version catalogs
+        if (project.name != "gradle-kotlin-dsl-accessors") {
+            val lz4Fork = versionCatalogs.named("testLibs").findLibrary("lz4").get().get()
+            applyRule<ReplaceLz4WithMaintainedForkRule>("org.openjdk.jmc:common", "${lz4Fork.group}:${lz4Fork.name}:${lz4Fork.versionConstraint.requiredVersion}")
+        }
         withModule<RemoveXmlApisRule>("jdom:jdom")
         withModule<RemoveXmlApisRule>("xalan:xalan")
         withModule<RemoveXmlApisRule>("jaxen:jaxen")
@@ -293,6 +298,21 @@ abstract class GroovyTargetJvmVersionRule : ComponentMetadataRule {
     }
 }
 
+
+// org.lz4:lz4-java is abandoned and has unfixed CVEs; at.yawk.lz4 is its maintained drop-in fork
+abstract class ReplaceLz4WithMaintainedForkRule @Inject constructor(
+    private val forkCoordinates: String
+) : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                if (removeAll { it.group == "org.lz4" && it.name == "lz4-java" }) {
+                    add(forkCoordinates)
+                }
+            }
+        }
+    }
+}
 
 /**
  * The JDK now provides these.

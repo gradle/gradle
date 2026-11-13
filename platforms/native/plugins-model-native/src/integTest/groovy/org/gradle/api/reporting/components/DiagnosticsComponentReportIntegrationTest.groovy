@@ -23,6 +23,7 @@ class DiagnosticsComponentReportIntegrationTest extends AbstractNativeComponentR
 
     @RequiresInstalledToolChain
     def "informs the user when project has no components defined"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             plugins {
@@ -42,6 +43,7 @@ No components defined for this project.
 
     @RequiresInstalledToolChain
     def "shows details of multiple components"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 plugins {

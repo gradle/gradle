@@ -30,6 +30,10 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
 
+private
+const val CORRUPTED_CACHE_ENTRY = "Corrupted cache entry"
+
+
 /**
  * An implementation of the Codec protocol that (based on a [Binding.tag]) chooses and delegates
  * to the proper binding (if one is found).
@@ -80,7 +84,7 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
                 val binding = try {
                     bindings[tag]
                 } catch (e: IndexOutOfBoundsException) {
-                    onError(e) {
+                    onError(CORRUPTED_CACHE_ENTRY, e) {
                         text("Cannot deserialize the value because the type tag $tag is not in the valid range [-1..${bindings.size}). ")
                         text("The value may have been written incorrectly or its data is corrupted.")
                     }
@@ -95,8 +99,11 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
                     val sentinel = readByte()
 
                     if (tag != tagGuard || sentinel != SENTINEL_VALUE) {
-                        onError(IllegalArgumentException(
-                            "Tag guard mismatch for ${decoding.displayName}: expected <$tag><$SENTINEL_VALUE>, found <$tagGuard><$sentinel>")
+                        onError(
+                            CORRUPTED_CACHE_ENTRY,
+                            IllegalArgumentException(
+                                "Tag guard mismatch for ${decoding.displayName}: expected <$tag><$SENTINEL_VALUE>, found <$tagGuard><$sentinel>"
+                            )
                         ) {
                             text("The value cannot be decoded properly with ")
                             reference(decoding.displayName)

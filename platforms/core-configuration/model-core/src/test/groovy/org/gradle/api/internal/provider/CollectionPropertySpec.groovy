@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider
 import com.google.common.collect.ImmutableCollection
 import org.gradle.api.Task
 import org.gradle.api.Transformer
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
@@ -301,6 +302,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
     def "queries values of provider on every call to get()"() {
         def provider = Stub(ProviderInternal)
+        _ * provider.type >> type()
         _ * provider.calculatePresence(_) >> true
         _ * provider.calculateValue(_) >>> [["abc"], ["def"]].collect { ValueSupplier.Value.of(it) }
 
@@ -594,6 +596,81 @@ The value of this property is derived from: <source>""")
         ex.message == "Cannot add a null element to a property of type ${type().simpleName}."
     }
 
+    def "throws NullPointerException when adding a null provider to the property"() {
+        when:
+        property.add((Provider) null)
+
+        then:
+        def ex = thrown(NullPointerException)
+        ex.message == "Cannot add a null provider to a property of type ${type().simpleName}."
+    }
+
+    def "throws NullPointerException when adding all from a null provider to the property"() {
+        when:
+        property.addAll((Provider) null)
+
+        then:
+        def ex = thrown(NullPointerException)
+        ex.message == "Cannot add a null provider to a property of type ${type().simpleName}."
+    }
+
+    def "throws NullPointerException when adding all from a null array to the property"() {
+        when:
+        property.addAll((String[]) null)
+
+        then:
+        def ex = thrown(NullPointerException)
+        ex.message == "Cannot add a null array to a property of type ${type().simpleName}."
+    }
+
+    def "throws NullPointerException when adding all from a null collection to the property"() {
+        when:
+        property.addAll((Iterable) null)
+
+        then:
+        def ex = thrown(NullPointerException)
+        ex.message == "Cannot add a null collection to a property of type ${type().simpleName}."
+    }
+
+    def "cannot set convention using a null provider"() {
+        when:
+        property.convention((Provider) null)
+
+        then:
+        def ex = thrown(NullPointerException)
+        ex.message == "Cannot set the convention of a property using a null provider."
+    }
+
+    def "#method fails when provider type is known to be incompatible"() {
+        when:
+        property."$method"(Providers.of(123))
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "Cannot set the $valueKind of a property of type ${type().name} using a provider of type java.lang.Integer."
+
+        where:
+        method       | valueKind
+        "set"        | "value"
+        "addAll"     | "value"
+        "convention" | "convention"
+    }
+
+    def "#method fails when provider element type is known to be incompatible"() {
+        when:
+        property."$method"(new DefaultListProperty<Integer>(host, Integer))
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "Cannot set the $valueKind of a property of type ${type().name} with element type java.lang.String using a provider with element type java.lang.Integer."
+
+        where:
+        method       | valueKind
+        "set"        | "value"
+        "addAll"     | "value"
+        "convention" | "convention"
+    }
+
     def "ignores convention after element added"() {
         when:
         property.add("a")
@@ -880,7 +957,7 @@ The value of this property is derived from: <source>""")
         e2.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.addAll(Stub(ProviderInternal))
+        property.addAll(Stub(ProviderInternal) { getType() >> type() })
 
         then:
         def e3 = thrown(IllegalStateException)
@@ -908,7 +985,7 @@ The value of this property is derived from: <source>""")
         e2.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.addAll(Stub(ProviderInternal))
+        property.addAll(Stub(ProviderInternal) { getType() >> type() })
 
         then:
         def e3 = thrown(IllegalStateException)
@@ -936,7 +1013,7 @@ The value of this property is derived from: <source>""")
         e2.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.addAll(Stub(ProviderInternal))
+        property.addAll(Stub(ProviderInternal) { getType() >> type() })
 
         then:
         def e3 = thrown(IllegalStateException)
@@ -1080,6 +1157,24 @@ The value of this property is derived from: <source>""")
         "get"       | _
         "getOrNull" | _
         "getOrElse" | _
+    }
+
+    def "size is zero when property has no value"() {
+        given:
+        property.set((Iterable) null)
+
+        expect:
+        !property.present
+        property.size() == 0
+    }
+
+    def "size is zero when property is set to provider with no value"() {
+        given:
+        property.set(notDefined())
+
+        expect:
+        !property.present
+        property.size() == 0
     }
 
     def "does not run side effect when calling 'size'"() {
@@ -1512,13 +1607,14 @@ The value of this property is derived from: <source>""")
 
     def "can add a lot of providers"() {
         given:
+        def context = Mock(TaskDependencyResolveContext)
         (0..<100000).each {
             property.addAll(supplierWithProducer(Mock(Task), toImmutable([it.toString()])))
         }
 
         expect:
         property.get().size() == 100000
-        property.getProducer().visitProducerTasks {}
+        property.getProducer().visitDependencies(context)
     }
 
     def "value coercion is applied to #description after configuration cache round-trip"() {

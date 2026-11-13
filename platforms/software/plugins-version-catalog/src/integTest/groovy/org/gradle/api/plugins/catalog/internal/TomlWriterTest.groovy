@@ -23,6 +23,7 @@ import org.gradle.api.internal.catalog.DefaultVersionCatalog
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder
 import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser
 import org.gradle.api.problems.internal.ProblemsInternal
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -53,8 +54,19 @@ class TomlWriterTest extends Specification {
         file << [
             'dependencies',
             'dependencies-notations',
-            'plugin-notations',
         ]
+    }
+
+    @ExpectDeprecation("Declaring a plugin version in a version catalog with constraints other than a required version.")
+    def "generates an equivalent file from an input with plugin notations"() {
+        given:
+        def sourceModel = parse("/org/gradle/api/plugins/catalog/internal/plugin-notations.toml")
+
+        when:
+        def outputModel = generateFromModel(sourceModel)
+
+        then:
+        outputModel == sourceModel
     }
 
     def "generated file contains model version"() {

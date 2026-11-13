@@ -33,7 +33,7 @@ import org.gradle.internal.remote.MessagingClient;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
-import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.ManagedServiceRegistry;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -109,7 +109,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         ObjectConnection connection = null;
         try {
             // Read server address and start connecting
-            connection = basicWorkerServices.get(MessagingClient.class).getConnection(config.getServerAddress());
+            connection = basicWorkerServices.get(MessagingClient.class).getConnection(config.getServerAddress(), config.getConnectionToken());
             connection.addUnrecoverableErrorHandler(unrecoverableErrorHandler);
             configureLogging(loggingManager, connection, workerLogEventListener);
             // start logging now that the logging manager is connected
@@ -202,7 +202,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
     private static class WorkerServices implements ServiceRegistrationProvider {
 
-        public static CloseableServiceRegistry create(ServiceRegistry parent, File gradleUserHomeDir) {
+        public static ManagedServiceRegistry create(ServiceRegistry parent, File gradleUserHomeDir) {
             return ServiceRegistryBuilder.builder()
                 .displayName("worker services")
                 .parent(parent)

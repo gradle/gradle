@@ -79,6 +79,8 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         when:
+        expectSoftwareModelDeprecations("MyPlugin")
+        expectModelDslDeprecation()
         run 'show'
 
         then:
@@ -138,6 +140,8 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         when:
+        expectSoftwareModelDeprecations("MyPlugin")
+        expectModelDslDeprecation()
         run 'show'
 
         then:
@@ -187,6 +191,8 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         when:
+        expectSoftwareModelDeprecations("MyPlugin")
+        expectModelDslDeprecation()
         run 'show'
 
         then:
@@ -242,6 +248,8 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         when:
+        expectSoftwareModelDeprecations("MyPlugin")
+        expectModelDslDeprecation()
         run 'show'
 
         then:
@@ -318,6 +326,8 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         when:
+        expectSoftwareModelDeprecations("MyPlugin")
+        expectModelDslDeprecation()
         run 'show'
 
         then:
@@ -396,6 +406,8 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         when:
+        expectSoftwareModelDeprecations("MyPlugin")
+        expectModelDslDeprecation()
         run 'show'
 
         then:
@@ -423,6 +435,8 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         expect:
+        expectSoftwareModelDeprecations("MyPlugin")
+        expectModelReportTaskDeprecation()
         fails("model")
         failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#rules")
         failure.assertHasCause("broken")
@@ -458,6 +472,8 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         expect:
+        expectSoftwareModelDeprecations("MyPlugin")
+        expectModelReportTaskDeprecation()
         fails 'model'
         failure.assertHasCause("Exception thrown while executing model rule: CalculateName#defaultName")
         failure.assertHasCause("broken")
@@ -492,6 +508,8 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         expect:
+        expectSoftwareModelDeprecations("MyPlugin")
+        expectModelReportTaskDeprecation()
         fails 'model'
         failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#rules")
         failure.assertHasCause("broken")
@@ -513,6 +531,7 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         expect:
+        expectSoftwareModelDeprecations("MyPlugin")
         fails("model")
     }
 
@@ -527,6 +546,7 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         expect:
+        expectSoftwareModelDeprecations("MyPlugin")
         fails 'model'
         failure.assertHasCause("""Type MyPlugin is not a valid rule source:
 - Method rules(${LanguageSourceSet.name}, ${String.name}) is not a valid rule method: The first parameter of a method annotated with @Rules must be a subtype of ${RuleSource.name}""")
@@ -553,6 +573,8 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         expect:
+        expectSoftwareModelDeprecations("MyPlugin")
+        expectModelReportTaskDeprecation()
         fails("model")
         failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#rules")
         failure.assertHasCause('''Type BrokenRuleSource is not a valid rule source:
@@ -582,6 +604,8 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         expect:
+        expectSoftwareModelDeprecations("MyPlugin")
+        expectModelReportTaskDeprecation()
         fails "model"
         failure.assertHasCause('''The following model rules could not be applied due to unbound inputs and/or subjects:
 
@@ -653,6 +677,8 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         when:
+        expectSoftwareModelDeprecations("MyPlugin")
+        expectModelDslDeprecation()
         fails 'show'
 
         then:
@@ -660,4 +686,18 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         failure.assertHasCause("Attempt to modify a read only view of model element 'things.thingA' of type 'Thing' given to rule CalculateName#broken(Thing)")
     }
 
+
+    private void expectSoftwareModelDeprecations(String... pluginNames) {
+        for (String name : pluginNames) {
+            executer.expectDocumentedDeprecationWarning("The ${name} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+        }
+    }
+
+    private void expectModelDslDeprecation() {
+        executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
+
+    private void expectModelReportTaskDeprecation() {
+        executer.expectDocumentedDeprecationWarning("The task type org.gradle.api.reporting.model.ModelReport (used by the :model task) has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
 }

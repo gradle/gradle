@@ -47,7 +47,7 @@ public class ForwardStdinStreamsHandler implements StreamsHandler {
             will run forever. It would be better to ensure that this thread stops when the process does.
          */
         InputStream instr = new DisconnectableInputStream(input);
-        standardInputWriter = new ExecOutputHandleRunner("write standard input to " + processName, instr, process.getOutputStream(), completed);
+        standardInputWriter = new ExecOutputHandleRunner("write standard input to " + processName, instr, process.getOutputStream(), completed::countDown);
     }
 
     @Override

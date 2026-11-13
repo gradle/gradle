@@ -107,8 +107,20 @@ public class DefaultFailure implements Serializable, InternalFailure {
     }
 
     public static InternalFailure fromThrowable(Throwable t, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper) {
+        return fromThrowable(t, mapper, FailureCache.NONE);
+    }
+
+    public static InternalFailure fromThrowable(
+        Throwable t,
+        Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper,
+        FailureCache cache
+    ) {
+        InternalFailure cached = cache.get(t);
+        if (cached != null) {
+            return cached;
+        }
         Failure failure = DefaultFailureFactory.withDefaultClassifier().create(t);
-        return fromFailure(failure, mapper);
+        return fromFailure(failure, mapper, cache);
     }
 
     public static InternalFailure fromFailure(Failure buildFailure, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper) {

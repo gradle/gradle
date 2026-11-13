@@ -27,7 +27,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class ActionNode extends Node implements SelfExecutingNode {
+public class ActionNode extends Node {
     private WorkNodeAction action;
     private List<Node> postExecutionNodes;
     private final ProjectInternal owningProject;
@@ -64,18 +64,18 @@ public class ActionNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    public String toString() {
+    public String getDisplayName() {
         return "work action " + action;
     }
 
     @Override
     public boolean isPriority() {
-        return getProjectToLock() != null;
+        return getResourceToLock() != null;
     }
 
     @Nullable
     @Override
-    public ResourceLock getProjectToLock() {
+    public ResourceLock getResourceToLock() {
         if (projectToLock != null) {
             return projectToLock.getOwner().getAccessLock();
         }

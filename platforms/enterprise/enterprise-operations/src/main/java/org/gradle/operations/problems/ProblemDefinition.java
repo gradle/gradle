@@ -23,7 +23,7 @@ import org.jspecify.annotations.Nullable;
  * <p>
  * For example, in the domain of Java compilation problems, an unused variable warning could be described as such:
  * <ul>
- *     <li>group: compilation:java</li>
+ *     <li>group: Compilation:Java</li>
  *     <li>unused variable</li>
  *     <li>severity: WARNING</li>
  *     <li>...</li>

@@ -65,7 +65,7 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
         succeeds('test')
     }
 
-    def "does not fail when previous binary test results are corrupted"() {
+    def "does not fail when previous binary test results are #corruption"() {
         given:
         file('src/test/java/Broken.java') << """
             ${testFrameworkImports}
@@ -79,11 +79,17 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
         fails('test').assertTestsFailed()
 
         when:
-        file('build/test-results/test/binary/results-generic.bin').text = 'garbage'
+        def results = file('build/test-results/test/binary/results-generic.bin')
+        corrupt(results)
         file('src/test/java/Broken.java').assertIsFile().delete()
 
         then:
         succeeds('test')
+
+        where:
+        corruption  | corrupt
+        'corrupted' | { f -> f.text = 'garbage' }
+        'truncated' | { f -> f.bytes = Arrays.copyOf(f.bytes, f.bytes.length.intdiv(2)) }
     }
 
     def executesTestsWhenSourceChanges() {

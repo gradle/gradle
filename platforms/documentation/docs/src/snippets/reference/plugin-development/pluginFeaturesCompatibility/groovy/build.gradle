@@ -1,0 +1,30 @@
+// tag::compatibility[]
+plugins {
+    id 'com.gradle.plugin-publish' version '2.2.1'
+}
+
+group = 'io.github.johndoe'
+version = '1.0'
+
+gradlePlugin {
+    website = 'https://github.com/johndoe/greetings'
+    vcsUrl = 'https://github.com/johndoe/greetings.git'
+    plugins {
+        greetingsPlugin {
+            id = 'io.github.johndoe.greeting'
+            implementationClass = 'example.GreetingPlugin'
+            displayName = 'Gradle Greeting plugin'
+            description = 'Gradle plugin to say hello!'
+            tags.set(['hello', 'greeting'])
+
+            // Groovy DSL requires passing `it` as the receiver
+            compatibility(it) {
+                features {
+                    configurationCache = true
+                    isolatedProjects = true
+                }
+            }
+        }
+    }
+}
+// end::compatibility[]

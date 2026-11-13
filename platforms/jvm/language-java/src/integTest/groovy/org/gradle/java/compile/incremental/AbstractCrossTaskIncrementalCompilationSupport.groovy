@@ -25,48 +25,39 @@ abstract class AbstractCrossTaskIncrementalCompilationSupport extends AbstractJa
 
     def setup() {
         impl = new CompilationOutputsFixture(file("impl/build/classes"))
-        buildFile << """
-            subprojects {
-                apply plugin: '${language.name}'
-                apply plugin: 'java-library'
+        settingsFile """
+            include "api", "impl"
+            dependencyResolutionManagement {
                 ${mavenCentralRepository()}
-                configurations.compileClasspath.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.${useJar ? 'JAR' : 'CLASSES'}))
             }
-            $projectDependencyBlock
+            gradle.lifecycle.beforeProject {
+                if (path != ':') {
+                    apply plugin: '${language.name}'
+                    apply plugin: 'java-library'
+                    configurations.compileClasspath.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.${useJar ? 'JAR' : 'CLASSES'}))
+                }
+            }
         """
         createDirs("api", "impl")
-        settingsFile << "include 'api', 'impl'\n"
+        addDependency("impl", "api")
 
         if (language == CompiledLanguage.GROOVY) {
-            configureGroovyIncrementalCompilation('subprojects')
+            configureGroovyIncrementalCompilationForSubprojects()
         }
     }
 
-    protected String getProjectDependencyBlock() {
-        '''
-            project(':impl') {
-                dependencies { api project(':api') }
-            }
-        '''
-    }
-
     protected void addDependency(String from, String to) {
-        buildFile << """
-            project(':$from') {
-                dependencies { api project(':$to') }
-            }
-        """
+        buildFile("$from/build.gradle", """
+            dependencies { api project(':$to') }
+        """)
     }
 
     protected abstract boolean isUseJar()
 
     protected void clearImplProjectDependencies() {
-        buildFile << """
-            project(':impl') {
-                configurations.api.dependencies.clear() //so that api jar is no longer on classpath
-            }
-        """
-        configureGroovyIncrementalCompilation('subprojects')
+        buildFile("impl/build.gradle", """
+            configurations.api.dependencies.clear() //so that api jar is no longer on classpath
+        """)
     }
 
     File source(Map projectToClassBodies) {

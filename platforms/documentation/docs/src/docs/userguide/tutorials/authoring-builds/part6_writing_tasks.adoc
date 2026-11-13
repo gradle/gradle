@@ -57,7 +57,7 @@ include::sample[dir="snippets/tutorials/authoring-builds/writingTasks-registerCo
 [[ab_part6_step3]]
 == Step 3. Create a custom Task
 
-To create a custom task, you must subclass link:{groovyDslPath}/org.gradle.api.DefaultTask.html#org.gradle.api.DefaultTask[`DefaultTask`] in Groovy DSL or link:{kotlinDslPath}/gradle/org.gradle.api/-default-task/index.html[`DefaultTask`] in Kotlin DSL.
+To create a custom task, you must subclass link:{javadocPath}/org/gradle/api/DefaultTask.html[`DefaultTask`] in Groovy DSL or link:{kotlinDslPath}/gradle/org.gradle.api/-default-task/index.html[`DefaultTask`] in Kotlin DSL.
 
 Create a custom class called `LicenseTask` with the code below and add it to the bottom of the `gradle/license-plugin/plugin/src/main/kotlin/license/LicensePlugin.kt` or `gradle/license-plugin/plugin/src/main/groovy/license/LicensePlugin.groovy` file:
 

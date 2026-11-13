@@ -17,5 +17,7 @@
 description = "Provides a set of plugins that are shared between the Gradle and build-logic builds"
 
 tasks.register("check") {
+    group = "verification"
+    description = "Runs the check task of every build-logic-commons subproject."
     dependsOn(subprojects.map { "${it.name}:check" })
 }

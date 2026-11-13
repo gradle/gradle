@@ -27,5 +27,7 @@
  * {@link org.gradle.api.internal.project.CrossProjectModelAccess CrossProjectModelAccess} enforces stricter
  * cross-project access rules, primarily for Isolated Projects.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.internal.project;
+
+import org.jspecify.annotations.NullMarked;

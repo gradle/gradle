@@ -31,6 +31,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
     def helloWorldApp = new ExeWithLibraryUsingLibraryHelloWorldApp()
 
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << "rootProject.name = 'test'"
 
         buildFile << """
@@ -67,6 +68,7 @@ model {
     }
 
     def "can configure components for a single flavor"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {
@@ -92,6 +94,7 @@ model {
     }
 
     def "builds executable for each defined flavor when not configured for component"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         succeeds "installMainEnglishExecutable", "installMainFrenchExecutable", "installMainGermanExecutable"
 
@@ -102,6 +105,7 @@ model {
     }
 
     def "executable with flavors depends on library with matching flavors"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
 model {
@@ -135,6 +139,7 @@ model {
     }
 
     def "build fails when library has no matching flavour"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
 apply plugin: "cpp"
@@ -160,6 +165,7 @@ model {
     }
 
     def "fails with reasonable error message when trying to target an unknown flavor"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
 model {

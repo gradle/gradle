@@ -16,10 +16,9 @@
 
 plugins {
     id("gradlebuild.distribution.implementation-java")
-    id("gradlebuild.launchable-jar")
 }
 
-description = "Entry point for the Gradle daemon process. Implementation of the Gradle daemon server."
+description = "Implementation of the Gradle daemon server"
 
 dependencies {
     api(projects.launcher)

@@ -42,7 +42,7 @@ public class DependencyStringNotationConverter<T> implements NotationConverter<S
         this.instantiator = instantiator;
         this.wantedType = wantedType;
         this.stringInterner = stringInterner;
-        this.strictVersionParser = new StrictVersionParser(stringInterner, problems);
+        this.strictVersionParser = StrictVersionParser.forDependencyNotation(stringInterner, problems);
     }
 
     @Override

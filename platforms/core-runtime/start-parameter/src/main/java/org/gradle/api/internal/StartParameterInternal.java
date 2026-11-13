@@ -43,9 +43,9 @@ public class StartParameterInternal extends StartParameter {
     private Option.Value<Boolean> isolatedProjects = Option.Value.defaultValue(false);
     private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
     private boolean configurationCacheDebug;
-    private boolean configurationCacheIgnoreInputsDuringStore = false;
-    private boolean configurationCacheIgnoreUnsupportedBuildEventsListeners = false;
-    private boolean configurationCacheSkipTaskLoggingListenersSerialization = false;
+    private Option.Value<Boolean> configurationCacheIgnoreInputsDuringStore = Option.Value.defaultValue(false);
+    private Option.Value<Boolean> configurationCacheIgnoreUnsupportedBuildEventsListeners = Option.Value.defaultValue(false);
+    private Option.Value<Boolean> configurationCacheSkipTaskLoggingListenersSerialization = Option.Value.defaultValue(false);
     private int configurationCacheMaxProblems = 512;
     private @Nullable String configurationCacheIgnoredFileSystemCheckInputs = null;
     private boolean configurationCacheParallel;
@@ -67,6 +67,7 @@ public class StartParameterInternal extends StartParameter {
     private Option.Value<Boolean> parallelToolingModelBuilding = Option.Value.defaultValue(false);
     private @Nullable String develocityUrl;
     private @Nullable String develocityPluginVersion;
+    private boolean sharedMavenMirrorSettings = false;
     // Runtime-only wiring, deliberately transient: a StartParameter captured in task state must be
     // serializable to the configuration cache without dragging the listener (and its services) along.
     private transient @Nullable Consumer<String> mutationListener;
@@ -193,6 +194,7 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheProblems = configurationCacheProblems;
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
         p.configurationCacheIgnoredFileSystemCheckInputs = configurationCacheIgnoredFileSystemCheckInputs;
+        p.configurationCacheIgnoreInputsDuringStore = configurationCacheIgnoreInputsDuringStore;
         p.configurationCacheIgnoreUnsupportedBuildEventsListeners = configurationCacheIgnoreUnsupportedBuildEventsListeners;
         p.configurationCacheSkipTaskLoggingListenersSerialization = configurationCacheSkipTaskLoggingListenersSerialization;
         p.configurationCacheDebug = configurationCacheDebug;
@@ -211,6 +213,7 @@ public class StartParameterInternal extends StartParameter {
         p.enableProblemReportGeneration = enableProblemReportGeneration;
         p.daemonJvmCriteriaConfigured = daemonJvmCriteriaConfigured;
         p.parallelToolingModelBuilding = parallelToolingModelBuilding;
+        p.sharedMavenMirrorSettings = sharedMavenMirrorSettings;
         return p;
     }
 
@@ -324,30 +327,30 @@ public class StartParameterInternal extends StartParameter {
         this.configurationCacheDebug = configurationCacheDebug;
     }
 
-    public boolean isConfigurationCacheIgnoreInputsDuringStore() {
+    public Option.Value<Boolean> getConfigurationCacheIgnoreInputsDuringStore() {
         return configurationCacheIgnoreInputsDuringStore;
     }
 
-    public void setConfigurationCacheIgnoreInputsDuringStore(boolean ignoreInputsDuringStore) {
-        onMutableCall("setConfigurationCacheIgnoreInputsDuringStore(boolean)");
+    public void setConfigurationCacheIgnoreInputsDuringStore(Option.Value<Boolean> ignoreInputsDuringStore) {
+        onMutableCall("setConfigurationCacheIgnoreInputsDuringStore(Option.Value)");
         configurationCacheIgnoreInputsDuringStore = ignoreInputsDuringStore;
     }
 
-    public void setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(boolean configurationCacheIgnoreUnsupportedBuildEventsListeners) {
-        onMutableCall("setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(boolean)");
+    public void setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(Option.Value<Boolean> configurationCacheIgnoreUnsupportedBuildEventsListeners) {
+        onMutableCall("setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(Option.Value)");
         this.configurationCacheIgnoreUnsupportedBuildEventsListeners = configurationCacheIgnoreUnsupportedBuildEventsListeners;
     }
 
-    public boolean isConfigurationCacheIgnoreUnsupportedBuildEventsListeners() {
+    public Option.Value<Boolean> getConfigurationCacheIgnoreUnsupportedBuildEventsListeners() {
         return configurationCacheIgnoreUnsupportedBuildEventsListeners;
     }
 
-    public void setConfigurationCacheSkipTaskLoggingListenersSerialization(boolean configurationCacheSkipTaskLoggingListenersSerialization) {
-        onMutableCall("setConfigurationCacheSkipTaskLoggingListenersSerialization(boolean)");
+    public void setConfigurationCacheSkipTaskLoggingListenersSerialization(Option.Value<Boolean> configurationCacheSkipTaskLoggingListenersSerialization) {
+        onMutableCall("setConfigurationCacheSkipTaskLoggingListenersSerialization(Option.Value)");
         this.configurationCacheSkipTaskLoggingListenersSerialization = configurationCacheSkipTaskLoggingListenersSerialization;
     }
 
-    public boolean isConfigurationCacheSkipTaskLoggingListenersSerialization() {
+    public Option.Value<Boolean> getConfigurationCacheSkipTaskLoggingListenersSerialization() {
         return configurationCacheSkipTaskLoggingListenersSerialization;
     }
 
@@ -494,6 +497,18 @@ public class StartParameterInternal extends StartParameter {
     public void setDaemonJvmCriteriaConfigured(boolean daemonJvmCriteriaConfigured) {
         onMutableCall("setDaemonJvmCriteriaConfigured(boolean)");
         this.daemonJvmCriteriaConfigured = daemonJvmCriteriaConfigured;
+    }
+
+    /**
+     * Whether the mirrors and server entries of the local Maven settings.xml apply to this build's Maven repositories.
+     */
+    public boolean isSharedMavenMirrorSettings() {
+        return sharedMavenMirrorSettings;
+    }
+
+    public void setSharedMavenMirrorSettings(boolean sharedMavenMirrorSettings) {
+        onMutableCall("setSharedMavenMirrorSettings(boolean)");
+        this.sharedMavenMirrorSettings = sharedMavenMirrorSettings;
     }
 
     public Option.Value<Boolean> getParallelToolingModelBuilding() {

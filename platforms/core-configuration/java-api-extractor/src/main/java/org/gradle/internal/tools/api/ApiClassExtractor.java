@@ -98,7 +98,9 @@ public class ApiClassExtractor {
         ApiMemberSelector visitor;
         try {
             visitor = new ApiMemberSelector(originalClassReader.getClassName(), apiMemberWriterFactory.makeApiMemberWriter(apiClassWriter), apiIncludesPackagePrivateMembers);
-            originalClassReader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+            // SKIP_CODE discards method bodies and all the debug information they contain, but
+            // unlike SKIP_DEBUG it keeps the MethodParameters attribute, which is part of the API.
+            originalClassReader.accept(visitor, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
         } catch (ApiClassExtractionException e) {
             throw e.withClass(originalClassReader.getClassName());
         }

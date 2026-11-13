@@ -398,14 +398,13 @@ hamcrest-core-1.3.jar
         resolve.expectGraph {
             root(":", ":root:unspecified") {
                 module('junit:junit:4.13') {
-                    configuration = 'compile' // external POM
+                    variant('compile') // external POM
                     module("org.hamcrest:hamcrest-core:1.3")
                 }
                 module('com.acme:external-module:1.3') {
                     variant("testFixturesApiElements", [
                             'org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar'
                     ])
-                    firstLevelConfigurations = ['testFixturesApiElements']
                     module('com.acme:external-module:1.3') {
                         variant("api", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                         artifact(name: 'external-module')
@@ -422,20 +421,19 @@ hamcrest-core-1.3.jar
         resolve.expectGraph {
             root(":", ":root:unspecified") {
                 module('junit:junit:4.13') {
-                    configuration = 'runtime' // external POM
+                    variant('runtime') // external POM
                     module("org.hamcrest:hamcrest-core:1.3")
                 }
                 module('com.acme:external-module:1.3') {
                     variant("testFixturesRuntimeElements", [
                             'org.gradle.status': 'release', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar'
                     ])
-                    firstLevelConfigurations = ['testFixturesRuntimeElements']
                     module('com.acme:external-module:1.3') {
                         variant("runtime", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                         artifact(name: 'external-module')
                     }
                     module("org.apache.commons:commons-lang3:3.9") {
-                        configuration = 'runtime' // external POM
+                        variant('runtime') // external POM
                     }
                     artifact(name: 'external-module', classifier: 'test-fixtures')
                 }

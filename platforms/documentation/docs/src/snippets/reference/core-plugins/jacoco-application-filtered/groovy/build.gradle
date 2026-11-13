@@ -1,0 +1,32 @@
+plugins {
+    id 'application'
+    id 'jacoco'
+}
+
+application {
+    mainClass = 'org.gradle.MyMain'
+}
+
+// tag::filter-single-task[]
+def runTasks = tasks.withType(JavaExec).matching { it.name == 'run' }
+
+jacoco {
+    applyTo runTasks
+}
+
+def runCoverageData = files()
+runTasks.configureEach {
+    def jacocoExt = extensions.getByType(JacocoTaskExtension)
+    runCoverageData.from(provider { jacocoExt.destinationFile })
+}
+
+tasks.register('applicationCodeCoverageReport', JacocoReport) {
+    dependsOn runTasks
+    executionData runCoverageData
+    sourceSets sourceSets.main
+}
+// end::filter-single-task[]
+
+repositories {
+    mavenCentral()
+}

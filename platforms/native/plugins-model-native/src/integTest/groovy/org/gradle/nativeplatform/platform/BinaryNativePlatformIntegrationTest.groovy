@@ -39,6 +39,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
     def os = OperatingSystem.current()
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
 plugins {
     id 'cpp'

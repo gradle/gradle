@@ -16,22 +16,24 @@
 
 package org.gradle.internal.time;
 
+/**
+ * Provides the current wall clock time and a high-resolution timer for measuring elapsed time.
+ */
 interface TimeSource {
 
+    /**
+     * The current wall clock time, in milliseconds since the epoch.
+     *
+     * @see System#currentTimeMillis()
+     */
     long currentTimeMillis();
 
+    /**
+     * The current reading of a high-resolution timer, in nanoseconds. Only to be used for
+     * measuring elapsed time. Unrelated to the wall clock.
+     *
+     * @see System#nanoTime()
+     */
     long nanoTime();
-
-    TimeSource SYSTEM = new TimeSource() {
-        @Override
-        public long currentTimeMillis() {
-            return System.currentTimeMillis();
-        }
-
-        @Override
-        public long nanoTime() {
-            return System.nanoTime();
-        }
-    };
 
 }

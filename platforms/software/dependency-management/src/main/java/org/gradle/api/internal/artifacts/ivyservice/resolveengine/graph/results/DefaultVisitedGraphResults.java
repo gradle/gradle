@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.result.ResolvedGraphResult;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -40,12 +40,14 @@ public class DefaultVisitedGraphResults implements VisitedGraphResults {
     private final Set<UnresolvedDependency> unresolvedDependencies;
 
     /**
-     * ResolvedGraphResult is a wrapper over the underlying GraphStructure and provides
-     * no additional context. Only hold a soft reference to it to avoid retained memory
-     * if no other references to the wrapper graph exist.
+     * ResolvedGraphResult is a view over the underlying GraphStructure and
+     * provides no additional context. However, we want to avoid having multiple live
+     * instances of the view to avoid additional memory usage and to ensure referenceial
+     * equality of objects in the view, even between different requests for the view.
+     * Only hold a weak reference so the view is GC'd when no longer referenced elsewhere.
      */
     private final Lock lock = new ReentrantLock();
-    private @Nullable SoftReference<ResolvedGraphResult> resolvedGraphResult = null;
+    private @Nullable WeakReference<ResolvedGraphResult> resolvedGraphResult = null;
     private final Supplier<ResolvedGraphResult> resolvedGraphResultSource;
 
     public DefaultVisitedGraphResults(
@@ -70,7 +72,7 @@ public class DefaultVisitedGraphResults implements VisitedGraphResults {
                     graphStructureSource.get(),
                     resolvedDependencyGraph.availableVariantsByComponent()
                 );
-                this.resolvedGraphResult = new SoftReference<>(value);
+                this.resolvedGraphResult = new WeakReference<>(value);
                 return value;
             } finally {
                 lock.unlock();

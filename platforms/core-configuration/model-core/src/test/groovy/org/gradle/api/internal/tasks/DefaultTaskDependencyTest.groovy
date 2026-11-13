@@ -318,11 +318,6 @@ The following types/formats are supported:
         def dependency = new DefaultTaskDependencyFactory(resolver, tracker).configurableDependency()
 
         when:
-        dependency.getDependenciesForInternalUse(null)
-        then:
-        0 * tracker.onTaskDependencyUsage(_)
-
-        when:
         dependency.getDependencies(null)
         then:
         1 * tracker.onTaskDependencyUsage(_)

@@ -20,6 +20,7 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.operations.BuildOperationMetadata
 import org.gradle.internal.operations.TestBuildOperationRunner
 import spock.lang.Specification
@@ -51,19 +52,20 @@ class BuildOperationSettingsProcessorTest extends Specification {
     def "exposes build operation with settings configuration result"() {
         given:
         settings()
-        def contextualizedName = "Contextualized display name"
+        _ * gradleInternal.owner >> Stub(BuildState) {
+            getOwnerToShow() >> ":lib"
+        }
 
         when:
         buildOperationScriptPlugin.process(gradleInternal, settingsLocation, classLoaderScope, startParameter)
 
         then:
         1 * settingsProcessor.process(gradleInternal, settingsLocation, classLoaderScope, startParameter) >> state
-        1 * gradleInternal.contextualize("Evaluate settings") >> contextualizedName
 
         and:
         buildOperationRunner.operations.size() == 1
-        buildOperationRunner.operations.get(0).displayName == contextualizedName
-        buildOperationRunner.operations.get(0).name == contextualizedName
+        buildOperationRunner.operations.get(0).displayName == "Evaluate settings (:lib)"
+        buildOperationRunner.operations.get(0).name == "Evaluate settings (:lib)"
 
         buildOperationRunner.operations.get(0).metadata == BuildOperationMetadata.NONE
         buildOperationRunner.operations.get(0).details.settingsDir == rootDir.absolutePath

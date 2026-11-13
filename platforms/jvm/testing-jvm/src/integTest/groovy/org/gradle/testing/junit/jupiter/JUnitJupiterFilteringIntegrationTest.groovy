@@ -79,6 +79,11 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         'SampleTest$NestedTestClass'                      | true                  | ['SampleTest$NestedTestClass': 1, 'SampleTest$NestedTestClass$SubNestedTestClass': 4]
         'SampleTest$NestedTestClass$SubNestedTestClass'   | false                 | ['SampleTest$NestedTestClass$SubNestedTestClass': 4]
         'SampleTest$NestedTestClass$SubNestedTestClass'   | true                  | ['SampleTest$NestedTestClass$SubNestedTestClass': 4]
+        'SampleTest.nestedTest'                           | false                 | ['SampleTest$NestedTestClass': 1]
+        'SampleTest.subNestedTest'                        | false                 | ['SampleTest$NestedTestClass$SubNestedTestClass': 1]
+        'SampleTest.palindromes'                          | false                 | ['SampleTest$NestedTestClass$SubNestedTestClass': 3]
+        'SampleTest$NestedTestClass.palindromes'          | true                  | ['SampleTest$NestedTestClass$SubNestedTestClass': 3]
+        'SampleTest$NestedTestClass$SubNestedTestClass.palindromes' | false       | ['SampleTest$NestedTestClass$SubNestedTestClass': 3]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/31304")
@@ -110,6 +115,8 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         'SampleTest'                                        | ['SampleTest$NestedTestClass': 1, 'SampleTest$NestedTestClass$SubNestedTestClass': 4]
         'SampleTest$NestedTestClass'                        | ['SampleTest': 1, 'SampleTest$NestedTestClass$SubNestedTestClass': 4]
         'SampleTest$NestedTestClass$SubNestedTestClass'     | ['SampleTest': 1, 'SampleTest$NestedTestClass': 1]
+        'SampleTest$NestedTestClass.nestedTest'             | ['SampleTest': 1, 'SampleTest$NestedTestClass$SubNestedTestClass': 4]
+        'SampleTest$NestedTestClass$SubNestedTestClass.palindromes' | ['SampleTest': 1, 'SampleTest$NestedTestClass': 1, 'SampleTest$NestedTestClass$SubNestedTestClass': 1]
         'SampleTest*'                                       | [:]
     }
 

@@ -17,9 +17,11 @@
 package org.gradle.api.internal.file
 
 import org.gradle.api.file.Directory
+import org.gradle.api.provider.Provider
 import org.gradle.api.internal.provider.MissingValueException
 import org.gradle.api.internal.provider.PropertyInternal
 import org.gradle.internal.state.ManagedFactory
+import spock.lang.Issue
 
 class DirectoryPropertyTest extends FileSystemPropertySpec<Directory> {
     @Override
@@ -107,5 +109,32 @@ class DirectoryPropertyTest extends FileSystemPropertySpec<Directory> {
         fileCollection.files
         then:
         thrown(MissingValueException)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12307")
+    def "cannot resolve #method relative to directory property using a null provider"() {
+        when:
+        baseDirectory."$method"((Provider) null)
+
+        then:
+        def e = thrown(NullPointerException)
+        e.message == "Cannot resolve a path using a null provider."
+
+        where:
+        method << ["file", "dir"]
+    }
+
+    def "cannot resolve #method relative to directory using a null provider"() {
+        def directory = baseDirectory.get()
+
+        when:
+        directory."$method"((Provider) null)
+
+        then:
+        def e = thrown(NullPointerException)
+        e.message == "Cannot resolve a path using a null provider."
+
+        where:
+        method << ["file", "dir"]
     }
 }

@@ -26,8 +26,10 @@ import org.jspecify.annotations.NullMarked;
  * Plugin that adds tasks to report on the deprecated software models configured for the project.
  *
  * @since 9.0.0
+ * @deprecated The software model is deprecated and will be removed in Gradle 10.
  */
 
+@Deprecated
 @NullMarked
 abstract public class ModelReportingTasksPlugin implements Plugin<Project> {
 

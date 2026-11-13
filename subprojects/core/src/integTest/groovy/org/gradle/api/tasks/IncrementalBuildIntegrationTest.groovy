@@ -1095,14 +1095,14 @@ task b(dependsOn: a)
         failureDescriptionStartsWith("Some problems were found with the configuration of task ':customTask' (type 'CustomTask').")
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unknown-implementation'
-            definition.id.displayName == 'Unknown property implementation'
+            fqid == 'Gradle:Build Logic:Unknown implementation'
+            definition.id.displayName == 'Unknown implementation'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unknown-implementation'
-            definition.id.displayName == 'Unknown property implementation'
+            fqid == 'Gradle:Build Logic:Unknown implementation'
+            definition.id.displayName == 'Unknown implementation'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
         }
     }
@@ -1150,8 +1150,8 @@ task b(dependsOn: a)
         failureDescriptionStartsWith("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unknown-implementation'
-            definition.id.displayName == 'Unknown property implementation'
+            fqid == 'Gradle:Build Logic:Unknown implementation'
+            definition.id.displayName == 'Unknown implementation'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
         }
     }
@@ -1289,7 +1289,7 @@ task b(dependsOn: a)
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:private-getter-must-not-be-annotated'
+            fqid == 'Gradle:Plugin Validation:Private property with wrong annotation'
             definition.id.displayName == 'Private property with wrong annotation'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#private_getter_must_not_be_annotated"
         }
@@ -1386,8 +1386,8 @@ task b(dependsOn: a)
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:ignored-property-must-not-be-annotated'
-            definition.id.displayName == 'Has wrong combination of annotations'
+            fqid == 'Gradle:Plugin Validation:Ignored property has other annotations'
+            definition.id.displayName == 'Ignored property has other annotations'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#ignored_property_must_not_be_annotated"
         }
     }

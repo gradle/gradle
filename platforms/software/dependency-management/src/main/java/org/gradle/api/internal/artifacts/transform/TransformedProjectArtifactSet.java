@@ -16,11 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.Action;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EndCollection;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -28,6 +25,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -84,6 +82,7 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
     public void visit(ArtifactVisitor visitor) {
         DisplayName artifactSetName = Describables.of(targetVariant.getComponentId());
         for (TransformStepNode node : transformedArtifacts) {
+            node.getTransformStep().deprecateIfQueriedFromTransformAction();
             node.executeIfNotAlready();
             Try<TransformStepSubject> transformedSubject = node.getTransformedSubject();
             if (transformedSubject.isSuccessful()) {
@@ -112,8 +111,4 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
         }
     }
 
-    @Override
-    public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
-        throw new UnsupportedOperationException("Should not be called.");
-    }
 }

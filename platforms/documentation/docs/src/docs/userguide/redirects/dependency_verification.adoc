@@ -1,0 +1,6 @@
+++++
+<script>
+// Every anchor from the old page exists on the new page, so forward the anchor unchanged.
+window.location.replace("securing_dependencies.html" + (window.location.hash || "#verifying-dependencies"));
+</script>
+++++

@@ -64,7 +64,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * @return this
      * @since 0.8
      */
-    SourceDirectorySet srcDir(Object srcPath);
+    SourceDirectorySet srcDir(@Nullable Object srcPath);
 
     /**
      * Adds the given source directories to this set. The given directories do not need to exist. Directories that do not exist are ignored.

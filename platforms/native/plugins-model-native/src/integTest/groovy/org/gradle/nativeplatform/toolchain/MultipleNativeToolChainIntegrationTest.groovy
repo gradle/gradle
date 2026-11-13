@@ -32,6 +32,7 @@ class MultipleNativeToolChainIntegrationTest extends AbstractIntegrationSpec {
     def helloWorld = new CppCompilerDetectingTestApp()
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
 plugins { id 'cpp' }
 """

@@ -21,6 +21,7 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableSupplier;
+import org.gradle.api.provider.PresentProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
@@ -29,6 +30,8 @@ import org.jspecify.annotations.Nullable;
 import java.io.Serializable;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
+
+import static java.util.Objects.requireNonNull;
 
 public class Providers {
     private static final NoValueProvider<Object> NULL_PROVIDER = new NoValueProvider<>(ValueSupplier.Value.MISSING);
@@ -62,16 +65,16 @@ public class Providers {
         return Cast.uncheckedCast(NULL_PROVIDER);
     }
 
-    public static <T> ProviderInternal<T> of(T value) {
+    public static <T> FixedValueProvider<T> of(T value) {
         if (value == null) {
-            throw new IllegalArgumentException();
+            throw new NullPointerException("Value cannot be null");
         }
         return new FixedValueProvider<>(value);
     }
 
     public static <T extends Named> NamedDomainObjectProvider<T> ofNamed(T value) {
         if (value == null) {
-            throw new IllegalArgumentException();
+            throw new NullPointerException("Value cannot be null");
         }
         return new NamedFixedValueProvider<>(value);
     }
@@ -102,8 +105,8 @@ public class Providers {
      * The returned provider has the same dependencies as the given provider, but only until computed.
      *
      * @param provider the provider of value to cache
-     * @return the caching provider
      * @param <T> the type of the value
+     * @return the caching provider
      */
     public static <T> ProviderInternal<T> memoizing(ProviderInternal<T> provider) {
         return memoizing(provider, null);
@@ -117,8 +120,8 @@ public class Providers {
      *
      * @param provider the provider of value to cache
      * @param displayName the optional supplier of display name for the returned provider
-     * @return the caching provider
      * @param <T> the type of the value
+     * @return the caching provider
      */
     public static <T> ProviderInternal<T> memoizing(ProviderInternal<T> provider, @Nullable SerializableSupplier<DisplayName> displayName) {
         return new MemoizingProvider<>(provider, displayName);
@@ -182,11 +185,26 @@ public class Providers {
         }
     }
 
-    public static class FixedValueProvider<T> extends AbstractProviderWithValue<T> {
+    public static class FixedValueProvider<T> extends AbstractProviderWithValue<T> implements PresentProvider<T> {
         protected final T value;
 
         FixedValueProvider(T value) {
             this.value = value;
+        }
+
+        @Override
+        public T getOrNull() {
+            return get();
+        }
+
+        @Override
+        public PresentProvider<T> orElse(T value) {
+            return this;
+        }
+
+        @Override
+        public PresentProvider<T> orElse(Provider<? extends T> provider) {
+            return this;
         }
 
         @Nullable
@@ -304,11 +322,13 @@ public class Providers {
 
         @Override
         public Provider<T> orElse(T value) {
+            requireNonNull(value, "Cannot set a fallback for a provider using a null value.");
             return Providers.of(value);
         }
 
         @Override
         public Provider<T> orElse(Provider<? extends T> provider) {
+            requireNonNull(provider, "Cannot set a fallback for a provider using a null provider.");
             return Cast.uncheckedCast(provider);
         }
 

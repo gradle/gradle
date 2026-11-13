@@ -13,10 +13,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# Post-build hook entry point (file name required by the teamcity-hooks-plugin).
-# All logic lives in hooks.sh.
 
-set -euo pipefail
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-exec "${SCRIPT_DIR}/hooks.sh" post
+# Post-build hook entry point (file name required by the teamcity-hooks-plugin).
+# The plugin only logs a failing post-build hook, so run every script even if one fails.
+
+set -uo pipefail
+SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/scripts"
+
+"${SCRIPTS}/check-maven-home-not-polluted.sh"
+"${SCRIPTS}/store-int-test-gradle-home.sh"
+"${SCRIPTS}/clean-maven-and-android-home.sh"

@@ -94,6 +94,8 @@ public class PackageCycleTest {
         // Some cycles have been inherited from the time these classes were in :core
         entry("file-collections", List.of("org/gradle/api/internal/file/collections/**")),
         entry("file-operations", List.of("org/gradle/api/internal/**")),
+        // Cycles inherited from the time these classes were in :core
+        entry("groovy-dsl", List.of("org/gradle/**")),
         entry("ide", List.of(
             "org/gradle/plugins/ide/internal/*",
             "org/gradle/plugins/ide/eclipse/internal/*",
@@ -183,6 +185,8 @@ public class PackageCycleTest {
             "org/gradle/api/plugins/internal/*"
         )),
         entry("start-parameter", List.of("org/gradle/**")),
+        // GradleException implements ResolutionProvider, while DefaultMultiCauseException extends GradleException
+        entry("stdlib-java-extensions", List.of("org/gradle/internal/exceptions/**")),
         entry("test-kit", List.of("org/gradle/testkit/runner/internal/**")),
         entry("testing-base", List.of("org/gradle/api/internal/tasks/testing/**")),
         entry("testing-base-infrastructure", List.of("org/gradle/api/internal/tasks/testing/**")),

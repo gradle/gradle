@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 class SoftwareModelTaskAndBuildScriptIntegrationTest extends AbstractIntegrationSpec {
 
     def "can use camel case to match software model tasks"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             model {
                 tasks {
@@ -40,6 +41,7 @@ class SoftwareModelTaskAndBuildScriptIntegrationTest extends AbstractIntegration
 
     @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "methods defined in project build script are visible to descendant projects when script contains only methods and model block"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         createDirs("child1")
         settingsFile << """
 rootProject.name = 'root'
@@ -62,28 +64,15 @@ println "child: " + doSomething(11)
 
         expect:
         // Invoke twice to exercise script caching
-        expectParentMethodAccessDeprecation('doSomething', ':child1', "root project 'root'")
         succeeds("hello")
         outputContains("child: 11")
 
         and:
-        if (GradleContextualExecuter.notConfigCache) {
-            expectParentMethodAccessDeprecation('doSomething', ':child1', "root project 'root'")
-        }
         succeeds("hello")
         if (GradleContextualExecuter.notConfigCache) {
             outputContains("child: 11")
         } else {
             outputDoesNotContain("child:")
         }
-    }
-
-    private void expectParentMethodAccessDeprecation(String methodName, String childPath, String parentDisplayName) {
-        executer.expectDocumentedDeprecationWarning("Implicit lookup of methods in parent projects has been deprecated. " +
-            "This will fail with an error in Gradle 10. " +
-            "Method '${methodName}' was not declared in project '${childPath}' and was resolved from ${parentDisplayName}. " +
-            "This lookup was initiated by a dynamic invocation in the build script. " +
-            "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
     }
 }

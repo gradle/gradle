@@ -18,10 +18,10 @@ package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.operations.BuildOperationOwner;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
@@ -36,23 +36,41 @@ import java.util.function.Function;
  * Implementations are not yet entirely thread-safe, but should be.
  */
 @ServiceScope(Scope.Build.class)
-public interface BuildState {
+public interface BuildState extends BuildOperationOwner {
 
-    DisplayName getDisplayName();
+    /**
+     * Returns the immutable identity of this build.
+     */
+    BuildIdentity getBuildIdentity();
+
+    @Override
+    @Nullable
+    default String getOwnerToShow() {
+        return getBuildIdentity().getOwnerToShow();
+    }
+
+    /**
+     * Returns the display name of this build.
+     *
+     * @see BuildIdentity#getDisplayName()
+     */
+    default DisplayName getDisplayName() {
+        return getBuildIdentity();
+    }
 
     /**
      * Returns the identifier for this build. The identifier is fixed for the lifetime of the build.
      * <p>
-     * Prefer {@link #getIdentityPath()}.
+     * Prefer {@link #getBuildIdentity()} or plain {@link #getIdentityPath()}.
      */
-    default BuildIdentifier getBuildIdentifier() {
-        return new DefaultBuildIdentifier(getIdentityPath());
-    }
+    BuildIdentifier getBuildIdentifier();
 
     /**
      * Returns an identifying path for this build in the build tree. This path is fixed for the lifetime of the build.
      */
-    Path getIdentityPath();
+    default Path getIdentityPath() {
+        return getBuildIdentity().getBuildPath();
+    }
 
     /**
      * Get the parent build of this build, if any.

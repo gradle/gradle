@@ -52,6 +52,7 @@ public abstract class DefaultTask extends org.gradle.api.internal.AbstractTask i
     // AbstractTask as also deprecated in DefaultTask.
 
     @Override
+    @Deprecated
     public AntBuilder getAnt() {
         return super.getAnt();
     }

@@ -8,11 +8,6 @@ dependencies {
     compileOnly(libs.jetbrainsAnnotations)
 
     api(projects.antApi)
-    api(projects.credentialsApi)
-    api(projects.stdlibJavaExtensions)
-    api(projects.buildCacheSpi)
-    api(projects.loggingApi)
-    api(projects.normalizationApi)
     api(projects.baseServices)
     api(projects.buildCacheSpi)
     api(projects.credentialsApi)
@@ -20,6 +15,7 @@ dependencies {
     api(projects.files)
     api(projects.internalInstrumentationApi)
     api(projects.loggingApi)
+    api(projects.normalizationApi)
     api(projects.persistentCache)
     api(projects.processServicesApi)
     api(projects.resources)
@@ -59,6 +55,7 @@ dependencies {
     javadocReferences(projects.testingJvm)
     javadocReferences(projects.kotlinDsl)
     javadocReferences(projects.coreFlowServicesApi)
+    javadocReferences(projects.workerShared) // for DefaultLegacyTypesSupport
     javadocReferences(libs.groovyTemplates) // for groovy.text.SimpleTemplateEngine references in ContentFilterable / ExpandDetails
 }
 

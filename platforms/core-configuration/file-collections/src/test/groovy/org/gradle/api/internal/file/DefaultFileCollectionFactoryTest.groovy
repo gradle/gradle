@@ -29,6 +29,7 @@ import org.gradle.api.internal.provider.MissingValueException
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDependencyInternal
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
@@ -82,7 +83,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
 
         then:
         tasks == [task] as Set
-        1 * builtBy.getDependenciesForInternalUse(_) >> [task]
+        1 * builtBy.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(task) }
         0 * _
     }
 

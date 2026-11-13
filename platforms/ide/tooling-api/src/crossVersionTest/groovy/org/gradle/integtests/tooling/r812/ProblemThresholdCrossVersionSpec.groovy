@@ -26,6 +26,7 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemSummariesEvent
 import org.gradle.tooling.events.problems.SingleProblemEvent
+import org.gradle.tooling.events.problems.TaskPathLocation
 
 import static org.gradle.api.problems.fixtures.ReportingScript.getProblemReportingScript
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionSpec.getBuildScriptSampleContent
@@ -195,6 +196,39 @@ class ProblemThresholdCrossVersionSpec extends ToolingApiSpecification {
         def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
         def summaries = problemSummariesEvent.problemSummaries
         summaries.size() == 1
+    }
+
+    @ToolingApiVersion(">=8.13")
+    @TargetGradleVersion(">=9.10.0")
+    def "The threshold applies to each task and the summary adds up all tasks"() {
+        given:
+        def exceedingCount = 2
+        buildFile getProblemReportingScript("${getProblemReportingBody(THRESHOLD + exceedingCount)}")
+        buildFile << """
+            tasks.register("reportProblemToo", ProblemReportingTask)
+        """
+        def listener = new ProblemProgressListener()
+
+        when:
+        withConnection {
+            it.newBuild()
+                .forTasks("reportProblem", "reportProblemToo")
+                .addProgressListener(listener)
+                .run()
+        }
+
+        then:
+        def problems = listener.problems
+        def taskPaths = problems.collect { event ->
+            event.problem.contextualLocations.findAll { it instanceof TaskPathLocation }*.buildTreePath
+        }
+        taskPaths.count { it == [':reportProblem'] } == THRESHOLD
+        taskPaths.count { it == [':reportProblemToo'] } == THRESHOLD
+        problems.size() == THRESHOLD * 2
+
+        def summaries = listener.summariesEvent.problemSummaries
+        summaries.size() == 1
+        summaries.get(0).count == exceedingCount * 2
     }
 
     boolean validateProblemsRange(IntRange range, Collection<SingleProblemEvent> problems, String id = "label", String group = "Generic") {

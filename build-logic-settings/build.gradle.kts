@@ -17,5 +17,7 @@
 description = "Provides settings plugins for configuring global build configuration"
 
 tasks.register("check") {
+    group = "verification"
+    description = "Runs the check task of every build-logic-settings subproject."
     dependsOn(subprojects.map { "${it.name}:check" })
 }

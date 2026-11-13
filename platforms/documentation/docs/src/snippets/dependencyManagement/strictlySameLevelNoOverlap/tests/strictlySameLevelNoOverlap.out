@@ -1,0 +1,3 @@
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- org.apache.httpcomponents:httpclient:{strictly [4.0, 4.5[} FAILED
+\--- org.apache.httpcomponents:httpclient:{strictly [4.5, 5.0[} FAILED

@@ -55,6 +55,9 @@ buildscript {
         lockfileFixture.createBuildscriptLockfile('classpath', ['org.foo:foo-plugin:1.0'], unique)
 
         when:
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning(lockfileFixture.legacyLockfileDeprecation("configuration 'classpath'", 'buildscript-classpath'))
+        }
         succeeds 'buildEnvironment'
 
         then:
@@ -159,6 +162,9 @@ task resolve {
         lockfileFixture.createBuildscriptLockfile('classpath', ['org.foo:foo-plugin:1.0'], unique)
 
         when:
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning(lockfileFixture.legacyLockfileDeprecation("configuration 'classpath'", 'buildscript-classpath'))
+        }
         succeeds 'resolve'
 
         then:
@@ -234,6 +240,9 @@ plugins {
         lockfileFixture.createBuildscriptLockfile('classpath', ['org.foo:foo-plugin:1.0', 'org.bar:bar-plugin:1.0', 'bar.plugin:bar.plugin.gradle.plugin:1.0'], unique)
 
         when:
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning(lockfileFixture.legacyLockfileDeprecation("configuration 'classpath'", 'buildscript-classpath'))
+        }
         succeeds 'buildEnvironment'
 
         then:
@@ -303,6 +312,9 @@ buildscript {
         lockfileFixture.createBuildscriptLockfile('classpath', ['org.foo:foo-plugin:1.0'], unique)
 
         when:
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning(lockfileFixture.legacyLockfileDeprecation("configuration 'classpath'", 'buildscript-classpath'))
+        }
         fails 'buildEnvironment'
 
         then:

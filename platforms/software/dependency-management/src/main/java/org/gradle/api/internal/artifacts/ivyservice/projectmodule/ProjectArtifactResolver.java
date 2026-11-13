@@ -33,13 +33,16 @@ import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
+import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -72,17 +75,20 @@ public class ProjectArtifactResolver implements ArtifactResolver, HoldsProjectSt
             LocalComponentArtifactMetadata projectArtifact = (LocalComponentArtifactMetadata) artifact;
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getComponentId();
             File localArtifactFile = projectStateRegistry.stateFor(projectId).fromMutableState(p -> projectArtifact.getFile());
+            CalculatedValue<@Nullable File> artifactSource;
             if (localArtifactFile != null) {
-                CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), resolveArtifactLater(artifact));
-                resolvableArtifact = new DefaultResolvableArtifact(component.getModuleVersionId(), artifact.getName(), artifact.getId(), artifact.getBuildDependencies(), artifactSource, calculatedValueContainerFactory);
-                allResolvedArtifacts.put(artifact.getId(), resolvableArtifact);
+                artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), resolveArtifactLater(artifact));
+            } else if (artifact.isOptionalArtifact()) {
+                // An optional artifact that does not exist is represented by a null file.
+                artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), (File) null);
+            } else {
+                result.failed(new ArtifactNotFoundException(artifact.getId(), Collections.emptyList()));
+                return;
             }
+            resolvableArtifact = new DefaultResolvableArtifact(component.getModuleVersionId(), artifact.getName(), artifact.getId(), artifact.getBuildDependencies(), artifactSource, calculatedValueContainerFactory);
+            allResolvedArtifacts.put(artifact.getId(), resolvableArtifact);
         }
-        if (resolvableArtifact != null) {
-            result.resolved(resolvableArtifact);
-        } else {
-            result.notFound(artifact.getId());
-        }
+        result.resolved(resolvableArtifact);
     }
 
     public ValueCalculator<File> resolveArtifactLater(ComponentArtifactMetadata artifact) {

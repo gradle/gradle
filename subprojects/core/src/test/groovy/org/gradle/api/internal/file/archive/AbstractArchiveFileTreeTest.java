@@ -39,7 +39,6 @@ import java.util.stream.Collectors;
 
 import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting;
 import static org.gradle.api.file.FileVisitorUtil.assertVisits;
-import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
 import static org.gradle.util.internal.WrapUtil.toList;
 import static org.junit.Assert.assertEquals;
 
@@ -149,7 +148,6 @@ public abstract class AbstractArchiveFileTreeTest {
         archiveFileToRoot(getArchiveFile());
 
         assertVisits(getTree(), toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
-        assertSetContainsForAllTypes(getTree(), toList("subdir/file1.txt", "subdir2/file2.txt"));
     }
 
     @Test

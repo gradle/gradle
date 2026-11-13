@@ -1263,7 +1263,6 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                     byConstraint("belongs to platform org:platform:1.1")
                 }
             }
-            virtualConfiguration("org:platform:1.1")
         }
     }
 
@@ -1317,7 +1316,6 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                     }
                 }
             }
-            virtualConfiguration("org:platform:1.1")
         }
     }
 
@@ -1419,7 +1417,6 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 }
                 edge('org:foo:1+', 'org:foo:1.5')
             }
-            virtualConfiguration("org:platform:1.1")
         }
     }
 

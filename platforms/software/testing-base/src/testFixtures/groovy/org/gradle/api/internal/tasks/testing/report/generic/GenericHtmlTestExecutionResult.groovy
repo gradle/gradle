@@ -315,6 +315,18 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
                     }
 
                     @Override
+                    TestPathRootExecutionResult assertSummaryCounts(int tests, int failures, int skipped) {
+                        assert tests == 0 && failures == 0 && skipped == 0
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertChildrenInTab(String tabName, String... testNames) {
+                        assert testNames.length == 0
+                        return this
+                    }
+
+                    @Override
                     TestPathRootExecutionResult assertStdout(Matcher<? super String> matcher) {
                         matcher.matches("")
                         return this
@@ -639,6 +651,30 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         @Override
         int getFailedChildCount() {
             return testsFailures.size()
+        }
+
+        @Override
+        TestPathRootExecutionResult assertSummaryCounts(int tests, int failures, int skipped) {
+            assertThat(
+                "in " + displayName,
+                [summaryCounter("tests"), summaryCounter("failures"), summaryCounter("skipped")],
+                equalTo([tests, failures, skipped])
+            )
+            return this
+        }
+
+        private int summaryCounter(String label) {
+            def infoBox = html.select('.summary .infoBox').find { it.selectFirst('p')?.text() == label }
+            assertThat("no '" + label + "' counter in " + displayName, infoBox, notNullValue())
+            return infoBox.selectFirst('.counter').text() as int
+        }
+
+        @Override
+        TestPathRootExecutionResult assertChildrenInTab(String tabName, String... testNames) {
+            def tab = getTabs(getTabs(html).get("summary")).get(tabName)
+            def children = tab == null ? [] : tab.select('tbody > tr > td:eq(0)').collect { it.text().trim() }
+            assertThat("in " + displayName, children, equalTo(testNames.toList()))
+            return this
         }
 
         @Override

@@ -36,6 +36,7 @@ class WindowsResourcesIncrementalBuildIntegrationTest extends AbstractInstalledT
     def compilerOutputFileNamingScheme = new CompilerOutputFileNamingSchemeFactory(TestFiles.resolver(temporaryFolder.testDirectory)).create()
 
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << helloWorldApp.pluginScript
         buildFile << helloWorldApp.extraConfiguration
         buildFile << """
@@ -59,6 +60,7 @@ model {
 
     @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "does not re-compile sources with no change"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         run "mainExecutable"
 
@@ -67,6 +69,7 @@ model {
     }
 
     def "compiles and links when resource source changes"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         file("src/main/rc/resources.rc").text = """
 #include "hello.h"
@@ -88,6 +91,7 @@ STRINGTABLE
     }
 
     def "compiles and but does not link when resource source changes with comment only"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         file("src/main/rc/resources.rc") << """
 // Comment added to the end of the resource file
@@ -102,6 +106,7 @@ STRINGTABLE
     }
 
     def "compiles and links when resource compiler arg changes"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
 model {
@@ -123,6 +128,7 @@ model {
     }
 
     def "stale .res files are removed when a resource source file is renamed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         setup:
         def outputFileNameScheme = compilerOutputFileNamingScheme
                 .withOutputBaseFolder(file("build/objs/main/mainRc"))
@@ -145,6 +151,7 @@ model {
     }
 
     def "recompiles resource when included header is changed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
 
         given: "set the generated res file timestamp to zero"
         def outputFileNameScheme = compilerOutputFileNamingScheme

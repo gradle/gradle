@@ -101,10 +101,11 @@ org.gradle.configuration-cache.max-problems=5
 [[config_cache:usage:parallel]]
 === Enabling Parallel Configuration Caching
 
-By default, Configuration Cache storing and loading are sequential.
-Enabling parallel storing and loading can improve performance, but not all builds are compatible with it.
+Loading a Configuration Cache entry is always parallel; this option concerns storing, which is sequential by default.
+Enabling parallel storing can improve performance, but not all builds are compatible with it.
+In general, if the project builds with `--parallel` without issues, it should not have problems with parallel storing.
 
-To enable parallel configuration caching at build time, use:
+To enable parallel storing at build time, use:
 
 [source,bash]
 ----
@@ -125,11 +126,16 @@ A common symptom of incompatibility is `ConcurrentModificationException` errors 
 However, this feature is expected to work well for <<configuration_on_demand.adoc#sec:decoupled_projects,decoupled>> multi-project builds.
 ====
 
+NOTE: While incubating, this option delivers less than its full benefit unless parallel project execution is enabled with `--parallel` or `org.gradle.parallel=true`. See <<configuration_cache_status.adoc#config_cache:not_yet_implemented:parallel_store, Parallel Storing of Cache Entries Independent of Parallel Project Execution>>.
+
 [[config_cache:usage:read_only]]
 === Making the Configuration Cache Read-Only
 
 In some builds, such as CI builds running in ephemeral environments, it may be desirable for Gradle to use the Configuration Cache only when there's a cache hit.
 If there's a miss, caching offers no benefit since the disk state won't be preserved across builds.
+
+TIP: To restore Configuration Cache entries on fresh CI machines, use link:https://develocity.ai/product/setup-cache/[Develocity Setup Cache].
+See <<configuration_cache.adoc#config_cache:ci,Using the Configuration Cache on CI>>.
 
 To enable read-only configuration caching at build time, use:
 
@@ -185,7 +191,7 @@ The Configuration Cache is automatically invalidated when inputs to the configur
 However, some inputs are not yet tracked, meaning you may need to manually invalidate the cache when untracked inputs change.
 This is more likely if you have <<configuration_cache_enabling.adoc#config_cache:usage:ignore_problems,ignored problems>>.
 
-See the <<configuration_cache_requirements.adoc#config_cache:requirements>> and <<configuration_cache_status.adoc#config_cache:not_yet_implemented>> sections for more details.
+See the <<configuration_cache_requirements.adoc#config_cache:requirements,Configuration Cache requirements>> and <<configuration_cache_status.adoc#config_cache:not_yet_implemented,Not Yet Implemented>> sections for more details.
 
 The Configuration Cache state is stored in a `.gradle/configuration-cache` directory in the root of your Gradle build.
 
@@ -218,12 +224,11 @@ The remainder of this section is organized around the two categories: input-dete
 [[config_cache:usage:input_opt_outs:input_detection]]
 === Input-detection opt-outs
 
-It is possible to _temporarily_ opt out of configuration input detection in the following cases:
+It is possible to _temporarily_ opt out of configuration input detection using the following Gradle properties:
 
-1. Gradle now tracks file system interactions, including checks such as `File.exists()` or `File.isFile()`, as configuration inputs.
-+
-To prevent input tracking from invalidating the cache due to these file system checks, use the `org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks` property in `gradle.properties`.
-List the paths to be ignored, relative to the root project directory, separated by `;`.
+`org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks=(paths)` deprecated-label:[]::
+Gradle tracks file system interactions, including checks such as `File.exists()` or `File.isFile()`, as configuration inputs.
+To prevent input tracking from invalidating the cache due to these file system checks, list the paths to be ignored, relative to the root project directory, separated by `;`.
 Wildcards (`*` for segments, `pass:[**]` for multiple segments) are supported.
 Paths prefixed with `~/` are relative to the user's home directory.
 For example:
@@ -236,47 +241,56 @@ org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks=\
     ../../externalOutputDirectory/**;\
     build/analytics.json
 ----
-2. Prior to Gradle 8.4, some undeclared configuration inputs that were never used during configuration could still be read when the Configuration Cache serialized the task graph.
-However, these changes did not invalidate the cache.
 +
-Starting in Gradle 8.4, these undeclared inputs are correctly tracked and now cause cache invalidation.
+_Default is empty; no file system checks are ignored._
 +
-To temporarily revert to the previous behavior, set the Gradle property `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization` to `true`.
+Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11.
+See <<upgrading_version_9.adoc#deprecated_configuration_cache_opt_out_properties, the upgrade guide>>.
+
+`org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization=(true,false)` deprecated-label:[]::
+Prior to Gradle 8.4, some configuration inputs that were never used during configuration could still be read when the Configuration Cache serialized the task graph.
+However, changes to those inputs did not invalidate the cache.
+Starting in Gradle 8.4, these inputs are correctly tracked and now cause cache invalidation.
+When set to `true`, Gradle reverts to the previous behavior.
++
+_Default is `false`._
++
+Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11.
+See <<upgrading_version_9.adoc#deprecated_configuration_cache_opt_out_properties, the upgrade guide>>.
 
 [[config_cache:usage:input_opt_outs:serialization_behavior]]
 === Serialization-behavior opt-outs
 
 With the evolution of the Configuration Cache, Gradle may impose additional restrictions on build logic.
-To make adoption smoother, it is possible to _temporarily_ opt out of these restrictions in specific cases:
+To make adoption smoother, it is possible to _temporarily_ opt out of these restrictions using the following Gradle properties:
 
-1. Starting with Gradle 9.0.0, it is an error to use any provider, except a provider of `BuildService` returned from
+`org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners=(true,false)` deprecated-label:[]::
+Starting with Gradle 9.0.0, it is an error to use any provider, except a provider of `BuildService` returned from
 link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent(java.lang.String,java.lang.Class,org.gradle.api.Action)[`BuildServiceRegistry.registerIfAbsent`]
 or
 link:{javadocPath}/org/gradle/api/services/BuildServiceRegistration.html#getService()[`BuildServiceRegistration.getService`]
 as an argument for
 link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html#onTaskCompletion(org.gradle.api.provider.Provider)[`BuildEventsListenerRegistry.onTaskCompletion`].
-+
 Prior to Gradle 9, unsupported providers were silently discarded and never received events during cache-hit builds.
+When set to `true`, Gradle reverts to the previous behavior.
 +
-To temporarily revert to the previous behavior, set the Gradle property:
+_Default is `false`._
 +
-[source,properties]
-----
-org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners=true
-----
+Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11.
+See <<upgrading_version_9.adoc#deprecated_configuration_cache_opt_out_properties, the upgrade guide>>.
 
-2. Starting with Gradle 9.8.0, standard output and error listeners registered on a task's logging manager during configuration (for example via
+`org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization=(true,false)` deprecated-label:[]::
+Starting with Gradle 9.8.0, standard output and error listeners registered on a task's logging manager during configuration (for example via
 link:{javadocPath}/org/gradle/api/logging/LoggingOutput.html#addStandardOutputListener(org.gradle.api.logging.StandardOutputListener)[`LoggingOutput.addStandardOutputListener`] or
 link:{javadocPath}/org/gradle/api/logging/LoggingOutput.html#addStandardErrorListener(org.gradle.api.logging.StandardOutputListener)[`LoggingOutput.addStandardErrorListener`]) are stored in the Configuration Cache and re-registered on a cache hit, so a listener that cannot be serialized is now reported as a problem.
-+
 Prior to Gradle 9.8.0, these listeners were silently discarded and never received output during cache-hit builds.
+When set to `true`, Gradle reverts to the previous behavior.
+Instead of opting out, fix the serialization issues of the listener, or register it at execution time, for example in a task action.
 +
-To temporarily revert to the previous behavior, set the Gradle property:
+_Default is `false`._
 +
-[source,properties]
-----
-org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization=true
-----
+Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11.
+See <<upgrading_version_9.adoc#deprecated_configuration_cache_opt_out_properties, the upgrade guide>>.
 
 Use these opt-out options sparingly and only when they do not impact task execution results.
 These options are intended as temporary workarounds and will be removed in future Gradle releases.
@@ -286,7 +300,7 @@ These options are intended as temporary workarounds and will be removed in futur
 
 Build logic or plugin implementations can detect whether the Configuration Cache is enabled for a given build and adjust behavior accordingly.
 
-The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getActive--[active] status of the Configuration Cache is provided in the corresponding link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache--[build feature].
+The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getActive()[active] status of the Configuration Cache is provided in the corresponding link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache()[build feature].
 You can access it by <<service_injection.adoc#service_injection, injecting>> the link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[`BuildFeatures`] service into your code.
 
 This information can be used to:

@@ -53,8 +53,8 @@ abstract class AbstractKotlinPluginSmokeTest extends AbstractPluginValidatingSmo
             settingsFile << """
                 pluginManagement {
                     repositories {
-                        gradlePluginPortal()
-                        google()
+                        ${gradlePluginRepositoryDefinition()}
+                        ${googleRepositoryDefinition()}
                     }
                 }
             """

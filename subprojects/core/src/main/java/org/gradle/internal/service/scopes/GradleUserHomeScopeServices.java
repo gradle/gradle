@@ -38,7 +38,6 @@ import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.FineGrainedCacheCleanupStrategyFactory;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.GlobalCacheLocations;
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.DefaultFineGrainedCacheCleanupStrategyFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
@@ -51,8 +50,6 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.execution.plan.ToPlannedTaskConverter;
-import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
-import org.gradle.groovy.scripts.internal.GroovyDslWorkspaceProvider;
 import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
@@ -122,7 +119,6 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         registration.add(ClasspathElementTransformFactoryForAgent.class);
         registration.add(ClasspathElementTransformFactoryForLegacy.class);
         registration.add(CachedClasspathTransformer.class, DefaultCachedClasspathTransformer.class);
-        registration.add(GroovyDslWorkspaceProvider.class);
         for (GradleModuleServices services : globalServices.getAll(GradleModuleServices.class)) {
             services.registerGradleUserHomeServices(registration);
         }
@@ -156,11 +152,6 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     @Provides
     ScopedListenerManager createListenerManager(ScopedListenerManager parent) {
         return parent.createChild(Scope.UserHome.class);
-    }
-
-    @Provides
-    CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(CrossBuildInMemoryCacheFactory cacheFactory) {
-        return new CrossBuildInMemoryCachingScriptClassCache(cacheFactory);
     }
 
     @Provides

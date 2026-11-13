@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
@@ -624,19 +623,15 @@ task resolve(type: Copy) {
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:ambiguous-artifact-transform'
-            additionalData.asMap['requestTarget'] == variantName
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACT_TRANSFORM.name()
-            additionalData.asMap['problemDisplayName'] == "Multiple artifacts transforms exist that would satisfy the request"
+            fqid == 'Dependencies:Artifact Resolution:Multiple artifact transforms exist that would satisfy the request'
+            additionalData.asMap == [requestTarget: variantName]
         }
         if (configCache) {
             // With CC the failure surfaces twice: once at CC store time when the codec pre-runs selection,
             // and again at execution time when the cached BrokenResolvedArtifactSet is visited.
             verifyAll(receivedProblem(1)) {
-                fqid == 'dependency-variant-resolution:ambiguous-artifact-transform'
-                additionalData.asMap['requestTarget'] == variantName
-                additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACT_TRANSFORM.name()
-                additionalData.asMap['problemDisplayName'] == "Multiple artifacts transforms exist that would satisfy the request"
+                fqid == 'Dependencies:Artifact Resolution:Multiple artifact transforms exist that would satisfy the request'
+                additionalData.asMap == [requestTarget: variantName]
             }
         }
 

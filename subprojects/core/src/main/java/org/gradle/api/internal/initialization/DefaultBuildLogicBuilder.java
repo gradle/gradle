@@ -21,21 +21,22 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.composite.internal.TaskIdentifier;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.util.Path;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.gradle.api.internal.tasks.TaskDependencyUtil.getDependenciesForInternalUse;
+import java.util.Set;
 
 public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
+
     private final BuildState currentBuild;
     private final ScriptClassPathResolver scriptClassPathResolver;
     private final BuildLogicBuildQueue buildQueue;
@@ -70,7 +71,7 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
             public ClassPath call(BuildOperationContext context) {
                 return buildQueue.build(
                     currentBuild,
-                    taskIdentifiersForBuildDependenciesOf(classpathConfiguration),
+                    buildDependenciesOf(classpathConfiguration),
                     () -> scriptClassPathResolver.resolveClassPath(classpathConfiguration, resolutionContext)
                 );
             }
@@ -82,19 +83,24 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
         });
     }
 
-    private List<TaskIdentifier> taskIdentifiersForBuildDependenciesOf(Configuration classpath) {
-        List<TaskIdentifier> tasksToBuild = new ArrayList<>();
-        for (Task task : getDependenciesForInternalUse(classpath)) {
-            BuildState targetBuild = owningBuildOf(task);
-            if (targetBuild == currentBuild) {
+    private List<TaskInternal> buildDependenciesOf(Configuration classpath) {
+        TaskDependencyContainer taskDependencies = (TaskDependencyContainer) classpath;
+        Set<? extends Task> tasks = TaskDependencyUtil.getDependencies(null, taskDependencies);
+
+        List<TaskInternal> tasksToBuild = new ArrayList<>();
+        for (Task task : tasks) {
+            TaskInternal taskInternal = (TaskInternal) task;
+            Path targetBuild = owningBuildPathOf(taskInternal);
+            if (targetBuild.equals(currentBuild.getIdentityPath())) {
                 throw new InvalidUserDataException("Script classpath dependencies must reside in a separate build from the script itself.");
             }
-            tasksToBuild.add(new TaskIdentifier(targetBuild.getBuildIdentifier(), (TaskInternal) task));
+            tasksToBuild.add(taskInternal);
         }
         return tasksToBuild;
     }
 
-    private static BuildState owningBuildOf(Task task) {
-        return ((ProjectInternal) task.getProject()).getOwner().getOwner();
+    private static Path owningBuildPathOf(TaskInternal task) {
+        return task.getTaskIdentity().getProjectIdentity().getBuildPath();
     }
+
 }

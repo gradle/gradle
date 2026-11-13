@@ -65,7 +65,7 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
         )
 
         verifyAll(receivedProblem(0)) {
-            fqid == "scripts:dcl-schema:illegal-variance-in-parameterized-type-usage"
+            fqid == "Gradle:Build Logic:Illegal variance in parameterized type usage"
             details == "Illegal 'OUT' variance\n" +
                 "  in type argument 'out kotlin.CharSequence'\n" +
                 "  in return value type 'org.gradle.api.provider.Property<out kotlin.CharSequence>'\n" +
@@ -78,7 +78,7 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
             ]
         }
         verifyAll(receivedProblem(1)) {
-            fqid == "scripts:dcl-schema:unsupported-map-factory"
+            fqid == "Gradle:Build Logic:Unsupported map factory"
             details == "Illegal type 'kotlin.collections.Map<kotlin.String, kotlin.String>': functions returning Map types are not supported\n" +
                 "  in return value type 'kotlin.collections.Map<kotlin.String, kotlin.String>'\n" +
                 "  in member 'fun org.gradle.test.FeatureDefinition.anotherMap(): kotlin.collections.(Mutable)Map<kotlin.String!, kotlin.String!>!'\n" +
@@ -90,7 +90,7 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
             ]
         }
         verifyAll(receivedProblem(2)) {
-            fqid == "scripts:dcl-schema:unsupported-map-factory"
+            fqid == "Gradle:Build Logic:Unsupported map factory"
             details == "Illegal type 'kotlin.collections.Map<kotlin.String, kotlin.String>': functions returning Map types are not supported\n" +
                 "  in return value type 'kotlin.collections.Map<kotlin.String, kotlin.String>'\n" +
                 "  in member 'fun org.gradle.test.FeatureDefinition.myMap(): kotlin.collections.(Mutable)Map<kotlin.String!, kotlin.String!>!'\n" +
@@ -148,7 +148,7 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
         )
 
         verifyAll(receivedProblem(0)) {
-            fqid == "scripts:dcl-schema:unsafe-non-interface-type"
+            fqid == "Gradle:Build Logic:Unsafe non-interface type in safe feature API"
             details == "Unsafe declaration in safe definition: non-interface type\n" +
                 "  in schema type 'org.gradle.test.FeatureDefinition.Fizz'\n" +
                 "  in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
@@ -183,7 +183,7 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
         )
 
         verifyAll(receivedProblem(0)) {
-            fqid == "scripts:dcl-schema:unsafe-because-has-hidden-members"
+            fqid == "Gradle:Build Logic:Unsafe hidden members in safe feature API"
             details == "Unsafe declaration in safe definition: hidden member 'getHiddenProp'\n" +
                 "  in schema type 'org.gradle.test.FeatureDefinition'\n" +
                 "  in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
@@ -216,7 +216,7 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
         )
 
         verifyAll(receivedProblem(0)) {
-            fqid == "scripts:dcl-schema:unsafe-because-has-non-public-members"
+            fqid == "Gradle:Build Logic:Non-public members in safe feature API"
             details == "Unsafe declaration in safe definition: non-public member 'nonPublicMember'\n" +
                 "  in schema type 'org.gradle.test.FeatureDefinition'\n" +
                 "  in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
@@ -253,7 +253,7 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
         )
 
         verifyAll(receivedProblem(0)) {
-            fqid == "scripts:dcl-schema:unsafe-java-bean-property"
+            fqid == "Gradle:Build Logic:Unsafe Java bean property in safe feature API"
             details == "Unsafe declaration in safe definition: unsafe property\n" +
                 "  in schema property 'plainText: String'\n" +
                 "  in schema type 'org.gradle.test.FeatureDefinition'\n" +
@@ -288,7 +288,7 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
         )
 
         verifyAll(receivedProblem(0)) {
-            fqid == "scripts:dcl-schema:unsafe-non-abstract-member"
+            fqid == "Gradle:Build Logic:Unsafe non-abstract member in safe feature API"
             details == "Unsafe declaration in safe definition: non-abstract member\n" +
                 "  in schema property 'defaultValue: String'\n" +
                 "  in schema type 'org.gradle.test.FeatureDefinition'\n" +
@@ -325,7 +325,7 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
         )
 
         verifyAll(receivedProblem(0)) {
-            fqid == "scripts:dcl-schema:unsafe-non-pure-function"
+            fqid == "Gradle:Build Logic:Unsafe non-pure function in safe feature API"
             details == "Unsafe declaration in safe definition: function relying on side effects or custom implementation\n" +
                 "  in schema function 'addFizz(): Fizz'\n" +
                 "  in schema type 'org.gradle.test.FeatureDefinition'\n" +
@@ -363,7 +363,7 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
         )
 
         verifyAll(receivedProblem(0)) {
-            fqid == "scripts:dcl-schema:unsafe-inject-property"
+            fqid == "Gradle:Build Logic:Unsafe injected service property in safe feature API"
             details == "Unsafe declaration in safe definition: injected service property\n" +
                 "  in schema property 'injectedFizz: Fizz'\n" +
                 "  in schema type 'org.gradle.test.FeatureDefinition'\n" +
@@ -444,7 +444,7 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
         )
 
         verifyAll(receivedProblem(0)) {
-            fqid == "scripts:dcl-schema:unsafe-because-has-hidden-members"
+            fqid == "Gradle:Build Logic:Unsafe hidden members in safe feature API"
             details == "Unsafe declaration in safe definition: hidden member 'getHiddenProp'\n" +
                 "  in schema type 'org.gradle.test.Shared'\n" +
                 "  in safe feature definitions of 'feature', 'anotherFeature' (plugin 'com.example.test-software-ecosystem')"

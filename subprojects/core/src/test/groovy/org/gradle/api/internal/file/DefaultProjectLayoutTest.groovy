@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file
 
 import org.gradle.api.internal.provider.PropertyHost
+import org.gradle.api.provider.Provider
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.test.fixtures.file.TestFile
@@ -370,5 +371,17 @@ class DefaultProjectLayoutTest extends Specification {
 
         provider.get().getAsFile() == dir1
         provider.get().getAsFile() == dir2
+    }
+
+    def "cannot resolve #method using a null provider"() {
+        when:
+        layout."$method"((Provider) null)
+
+        then:
+        def e = thrown(NullPointerException)
+        e.message == "Cannot resolve a path using a null provider."
+
+        where:
+        method << ["file", "dir"]
     }
 }

@@ -24,7 +24,9 @@ import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectFeatureApplicationContext
 import org.gradle.features.binding.ProjectTypeApplyAction
 import org.gradle.features.binding.ProjectTypeBindingBuilder
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.junit.Before
 import org.junit.Test
 
@@ -301,7 +303,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                 ${plugins.join("\n")}
             }
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
             }
             gradlePlugin {
                 plugins {

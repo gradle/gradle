@@ -31,6 +31,7 @@ import org.jetbrains.dokka.gradle.engine.parameters.DokkaSourceLinkSpec;
 import org.jetbrains.dokka.gradle.engine.parameters.DokkaSourceSetSpec;
 import org.jetbrains.dokka.gradle.engine.plugins.DokkaHtmlPluginParameters;
 import org.jetbrains.dokka.gradle.tasks.DokkaGeneratePublicationTask;
+import org.jetbrains.dokka.gradle.tasks.LogHtmlPublicationLinkTask;
 
 import java.io.File;
 import java.net.URI;
@@ -66,6 +67,16 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
         wireInArtificialSourceSet(project, extension);
         setStyling(project, extension);
         overrideDokkaVersion(project, extension);
+        disableLoggingHtmlPublicationLink(project);
+    }
+
+    /**
+     * Dokka derives the link from the publication output with a lambda that captures the Dokka extension.
+     * The lambda is deferred to execution time, so the configuration cache has to store it, and storing the extension fails.
+     * The link only helps when opening the docs from IntelliJ, so drop it, which makes the task skip itself.
+     */
+    private static void disableLoggingHtmlPublicationLink(Project project) {
+        project.getTasks().withType(LogHtmlPublicationLinkTask.class).configureEach(task -> task.getIndexHtmlPath().unsetConvention());
     }
 
     private static void setStyling(Project project, GradleDocumentationExtension extension) {
@@ -103,6 +114,7 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
             spec.getSourceRoots().from(extension.getDocumentedSource());
             spec.getClasspath().from(extension.getClasspath());
             spec.getIncludes().from(extension.getSourceRoot().file("kotlin/Module.md"));
+            configureJdkVersion(extension, spec);
             configureSourceLinks(project, extension, spec);
         });
 
@@ -113,9 +125,23 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
             spec.getClasspath().from(extension.getClasspath());
             spec.getClasspath().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedClasses));
             spec.getIncludes().from(extension.getSourceRoot().file("kotlin/Module.md"));
+            configureJdkVersion(extension, spec);
             configureSourceLinks(project, extension, spec);
             spec.getDependentSourceSets().addLater(javaApi.flatMap(DokkaSourceSetSpec::getSourceSetId));
         });
+    }
+
+    /**
+     * Links JDK types to the Javadoc of the minimum JDK version Gradle supports,
+     * rather than the JDK used to build Gradle.
+     * <p>
+     * By default, the Dokka Gradle Plugin derives {@code jdkVersion} from the Java toolchain
+     * used to build the project, which would make the Kotlin DSL reference link to Javadoc
+     * of a newer JDK than Gradle actually requires.
+     */
+    private static void configureJdkVersion(GradleDocumentationExtension extension,
+            DokkaSourceSetSpec spec) {
+        spec.getJdkVersion().set(extension.getJavadocs().getMinJdkVersion());
     }
 
     private static void configureSourceLinks(Project project, GradleDocumentationExtension extension, DokkaSourceSetSpec spec) {

@@ -43,6 +43,12 @@ class SpecsTest extends Specification {
         spec.isSatisfiedBy([1,2,3])
     }
 
+    def "shared specs have readable toString"() {
+        expect:
+        Specs.satisfyAll().toString() == "SATISFIES_ALL"
+        Specs.satisfyNone().toString() == "SATISFIES_NONE"
+    }
+
     def "negation of all is none"() {
         expect:
         Specs.negate(Specs.satisfyAll()) == Specs.satisfyNone()

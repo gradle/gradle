@@ -1,0 +1,315 @@
+/*
+ * Copyright 2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.kotlin.dsl.tooling.builders
+
+import org.gradle.api.Project
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectOrderingUtil
+import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.problems.failure.FailureFactory
+import org.gradle.internal.resources.ProjectLeaseRegistry
+import org.gradle.internal.time.Time
+import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
+import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.tooling.model.kotlin.dsl.EditorReport
+import org.gradle.tooling.model.kotlin.dsl.EditorReportSeverity
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
+import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
+import java.io.File
+
+
+/**
+ * Gradle property that restricts the set of scripts the model is built for.
+ * Deprecated for removal in Gradle 10, when the model will always be built for all scripts.
+ */
+@Suppress("DEPRECATION")
+internal
+const val SCRIPTS_GRADLE_PROPERTY_NAME = KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME
+
+
+internal
+fun createStandardKotlinDslScriptsModel(scriptModels: Map<File, KotlinDslScriptModel>): StandardKotlinDslScriptsModel {
+    val commonClassPath = commonPrefixOf(scriptModels.values.map { it.classPath })
+    val commonSourcePath = commonPrefixOf(scriptModels.values.map { it.sourcePath })
+    val commonImplicitImports = commonPrefixOf(scriptModels.values.map { it.implicitImports })
+
+    val commonModel = CommonKotlinDslScriptModel(commonClassPath, commonSourcePath, commonImplicitImports)
+
+    val dehydratedScriptModels = scriptModels.mapValues { (_, model) ->
+        StandardKotlinDslScriptModel(
+            model.classPath.drop(commonClassPath.size),
+            model.sourcePath.drop(commonSourcePath.size),
+            model.implicitImports.drop(commonImplicitImports.size),
+            model.editorReports,
+            model.exceptions
+        )
+    }
+
+    return StandardKotlinDslScriptsModel(commonModel, dehydratedScriptModels)
+}
+
+
+internal
+abstract class AbstractKotlinDslScriptsModelBuilder : ToolingModelBuilder {
+
+    companion object {
+        private
+        const val MODEL_NAME = "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel"
+    }
+
+    override fun canBuild(modelName: String): Boolean =
+        modelName == MODEL_NAME
+
+    override fun buildAll(modelName: String, project: Project): ToolingModelBuilderResultInternal {
+        requireRootProject(project)
+        val timer = Time.startTimer()
+        val parameter = prepareParameter(project)
+        try {
+            val result = buildFor(parameter, project)
+            log("$parameter => ${result.model} - took ${timer.elapsed}")
+            return result.toToolingModelResult(project.serviceOf())
+        } catch (ex: Exception) {
+            log("$parameter => $ex - took ${timer.elapsed}")
+            throw ex
+        }
+    }
+
+    abstract fun prepareParameter(rootProject: Project): KotlinDslScriptsParameter
+
+    abstract fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): ScriptModelResult<KotlinDslScriptsModel>
+
+    private
+    val Project.leaseRegistry: ProjectLeaseRegistry
+        get() = serviceOf()
+
+    private
+    fun requireRootProject(project: Project) =
+        require(project.parent == null) {
+            "$MODEL_NAME can only be requested on the root project, got $project"
+        }
+}
+
+
+internal
+object KotlinDslScriptsModelBuilder : AbstractKotlinDslScriptsModelBuilder() {
+
+    override fun prepareParameter(rootProject: Project) = rootProject.parameterFromRequest()
+
+    override fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): ScriptModelResult<KotlinDslScriptsModel> {
+        val classPathResolver = SourceSetClassPathResolver()
+        val scriptModels = parameter.scriptFiles.associateWith { scriptFile ->
+            buildScriptModel(rootProject, scriptFile, parameter, classPathResolver)
+        }
+        return ScriptModelResult(
+            createStandardKotlinDslScriptsModel(scriptModels.mapValues { (_, result) -> result.model }),
+            // The scripts of one source set share a classpath, so report its failure once, not once per script
+            scriptModels.values.flatMap { it.failures }.distinct()
+        )
+    }
+
+    private
+    fun buildScriptModel(
+        rootProject: Project,
+        scriptFile: File,
+        parameter: KotlinDslScriptsParameter,
+        classPathResolver: SourceSetClassPathResolver
+    ): ScriptModelResult<StandardKotlinDslScriptModel> {
+
+        val scriptModelParameter = KotlinBuildScriptModelParameter(scriptFile, parameter.correlationId)
+        val (scriptModel, failures) = KotlinBuildScriptModelBuilder.kotlinBuildScriptModelFor(rootProject, scriptModelParameter, classPathResolver)
+        return ScriptModelResult(
+            StandardKotlinDslScriptModel(
+                scriptModel.classPath,
+                scriptModel.sourcePath,
+                scriptModel.implicitImports,
+                mapEditorReports(scriptModel.editorReports),
+                scriptModel.exceptions
+            ),
+            failures
+        )
+    }
+}
+
+
+private
+fun Project.parameterFromRequest(): KotlinDslScriptsParameter =
+    KotlinDslScriptsParameter(
+        resolveCorrelationIdParameter(),
+        resolveScriptsParameter()
+    )
+
+
+internal
+fun Project.resolveCorrelationIdParameter(): String? =
+    findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String
+
+
+private
+fun Project.resolveScriptsParameter(): List<File> =
+    resolveExplicitScriptsParameter()
+        ?.takeIf { it.isNotEmpty() }
+        ?: collectKotlinDslScripts()
+
+
+private
+fun Project.resolveExplicitScriptsParameter(): List<File>? {
+    val explicitScripts = findProperty(SCRIPTS_GRADLE_PROPERTY_NAME) as? String ?: return null
+    nagUserAboutExplicitScriptsProperty()
+    return explicitScripts
+        .split("|")
+        .asSequence()
+        .filter { it.isNotBlank() }
+        .map(::canonicalFile)
+        .filter { it.isFile }
+        .toList()
+}
+
+
+private
+fun nagUserAboutExplicitScriptsProperty() {
+    DeprecationLogger.deprecateBehaviour(
+        "Requesting the KotlinDslScriptsModel for an explicit set of scripts using the '$SCRIPTS_GRADLE_PROPERTY_NAME' Gradle property."
+    )
+        .willBeRemovedInGradle10()
+        .withUpgradeGuideSection(9, "kotlin_dsl_scripts_model_explicit_scripts")
+        .nagUser()
+}
+
+
+// TODO:kotlin-dsl naive implementation for now, refine
+private
+fun Project.collectKotlinDslScripts(): List<File> = buildList {
+
+    addAll(discoverInitScripts())
+    addNotNull(discoverSettingScript())
+
+    ProjectOrderingUtil.orderedAllProjectsOf((project as ProjectInternal).owner)
+        .asSequence()
+        .map { it.mutableModelEvenAfterFailure }
+        .forEach { p ->
+            addNotNull(p.discoverBuildScript())
+            addAll(p.discoverPrecompiledScriptPluginScripts())
+        }
+}
+
+
+internal
+fun Project.discoverInitScripts(): List<File> =
+    gradle.startParameter.allInitScripts
+        .filter { it.isKotlinDslFile }
+
+
+internal
+fun Project.discoverSettingScript(): File? =
+    File((this as ProjectInternal).gradle.settings.settingsScript.fileName)
+        .takeIf { it.isKotlinDslFile }
+
+
+internal
+fun Project.discoverBuildScript(): File? =
+    buildFile.takeIf { it.isKotlinDslFile }
+
+
+internal
+fun Project.discoverPrecompiledScriptPluginScripts() =
+    if (plugins.hasPlugin("org.gradle.kotlin.kotlin-dsl"))
+        serviceOf<PrecompiledScriptPluginsSupport>()
+            .collectScriptPluginFilesOf(this)
+    else
+        emptyList()
+
+
+/**
+ * A model together with the failures its builder recovered from by degrading the model of some script, e.g. by
+ * using the base script classpath for a precompiled script plugin whose compile classpath could not be resolved.
+ *
+ * The failures are reported alongside the model through a [ToolingModelBuilderResultInternal], so the tooling
+ * model controller decides what to do with them: a regular model request fails as if the builder had thrown,
+ * while a resilient one returns the degraded model to the client and fails the build once it finishes.
+ */
+internal
+data class ScriptModelResult<T : Any>(
+    val model: T,
+    val failures: List<Throwable> = emptyList()
+) {
+
+    fun toToolingModelResult(failureFactory: FailureFactory): ToolingModelBuilderResultInternal =
+        ToolingModelBuilderResultInternal.of(model, failures.map { failureFactory.create(it) })
+}
+
+
+/**
+ * A script classpath together with the failure it was recovered from, if any.
+ */
+internal
+data class ResolvedClassPath(
+    val classPath: ClassPath,
+    val failure: Throwable? = null
+)
+
+
+internal
+data class KotlinDslScriptsParameter(
+    val correlationId: String?,
+    val scriptFiles: List<File>
+)
+
+
+internal
+fun <T : Any> commonPrefixOf(lists: List<List<T>>): List<T> =
+    lists.minByOrNull { it.size }?.let { maxCommonPrefix ->
+        maxCommonPrefix.indices.asSequence().takeWhile { index ->
+            lists.all { list -> list[index] == maxCommonPrefix[index] }
+        }.lastOrNull()?.let { maxCommonIndex ->
+            maxCommonPrefix.take(maxCommonIndex + 1)
+        }
+    } ?: emptyList()
+
+
+internal
+fun mapEditorReports(internalReports: List<org.gradle.kotlin.dsl.tooling.models.EditorReport>): List<EditorReport> =
+    internalReports.map { internalReport ->
+        StandardEditorReport(
+            EditorReportSeverity.valueOf(internalReport.severity.name),
+            internalReport.message,
+            internalReport.position?.run {
+                StandardEditorPosition(line, column)
+            }
+        )
+    }
+
+
+internal
+val File.isKotlinDslFile: Boolean
+    get() = isFile && hasKotlinDslExtension
+
+
+internal
+val File.hasKotlinDslExtension: Boolean
+    get() = name.endsWith(".gradle.kts")
+
+
+internal
+fun <T> MutableCollection<T>.addNotNull(value: T?) {
+    if (value != null) {
+        add(value)
+    }
+}

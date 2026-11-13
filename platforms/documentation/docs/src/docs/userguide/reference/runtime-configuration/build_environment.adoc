@@ -419,6 +419,11 @@ When set to `false`, Gradle does not prompt the user for input on the console an
 +
 _Default is `true`._
 
+`org.gradle.console.unicode=(auto,enable,disable)` incubating-label:[]::
+Specifies whether the progress bar of the rich console is drawn with Unicode characters, as with <<command_line_interface.adoc#sec:command_line_customizing_log_format,`--console-unicode`>>.
++
+_Default is `auto`._
+
 `org.gradle.continue=(true,false)`::
 If enabled, continue task execution after a task failure, else stop task execution after a task failure.
 +
@@ -525,7 +530,7 @@ _Default is `false`._
 `org.gradle.isolated-projects.diagnostics=(true,false)` since-gradle-label:9.7.0[]::
 
 Enables <<isolated_projects.adoc#sec:diagnostics_mode,Diagnostics mode>> for Isolated Projects, which runs project configuration sequentially to surface violations across all projects in a deterministic manner.
-Requires <<isolated_projects.adoc#sec:enable,Isolated Projects>> to be enabled.
+Requires <<isolated_projects.adoc#sec:enable_ip,Isolated Projects>> to be enabled.
 +
 _Default is `false`._
 
@@ -534,7 +539,7 @@ _Default is `false`._
 Ignores <<isolated_projects.adoc#sec:dangerously_ignore_problems,Isolated Projects violations>> so that a parallel build or sync can be timed to estimate the speedup before violations are fixed.
 Violations are still reported but do not fail the build.
 Build outputs may be incorrect.
-Requires <<isolated_projects.adoc#sec:enable,Isolated Projects>> to be enabled.
+Requires <<isolated_projects.adoc#sec:enable_ip,Isolated Projects>> to be enabled.
 +
 _Default is `false`._
 

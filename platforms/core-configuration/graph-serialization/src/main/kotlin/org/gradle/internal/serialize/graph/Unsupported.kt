@@ -37,20 +37,21 @@ inline fun <reified T : Any> unsupported(
 inline fun <reified T : Any> unsupported(
     description: String,
     documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes
-) = unsupported<T>(documentationSection) {
+) = unsupported<T>(TYPE_UNSUPPORTED_FOR_SERIALIZATION, documentationSection) {
     text(description)
 }
 
 
 inline fun <reified T : Any> unsupported(
+    name: String,
     documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes,
     noinline unsupportedMessage: StructuredMessageBuilder
 ): Codec<T> = codec(
     encode = {
-        logUnsupported("serialize", documentationSection, unsupportedThings = unsupportedMessage)
+        logUnsupported("serialize", name, documentationSection, unsupportedThings = unsupportedMessage)
     },
     decode = {
-        logUnsupported("deserialize", documentationSection, unsupportedThings = unsupportedMessage)
+        logUnsupported("deserialize", name, documentationSection, unsupportedThings = unsupportedMessage)
         null
     }
 )

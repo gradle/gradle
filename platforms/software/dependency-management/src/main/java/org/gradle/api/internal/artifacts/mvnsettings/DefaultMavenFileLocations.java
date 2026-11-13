@@ -39,6 +39,11 @@ public class DefaultMavenFileLocations implements MavenFileLocations {
     }
 
     @Override
+    public File getUserSecuritySettingsFile() {
+        return new File(getUserMavenDir(), "settings-security.xml");
+    }
+
+    @Override
     @Nullable
     public File getGlobalSettingsFile() {
         File dir = getGlobalMavenDir();

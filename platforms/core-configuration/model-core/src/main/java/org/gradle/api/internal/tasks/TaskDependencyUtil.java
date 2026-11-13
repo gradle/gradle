@@ -16,32 +16,73 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Buildable;
+import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse;
+import org.gradle.api.internal.artifacts.transform.TransformNodeDependency;
+import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.Set;
 
+import static java.lang.String.format;
+import static java.util.Arrays.asList;
+import static org.gradle.api.internal.tasks.WorkDependencyResolver.TASK_AS_TASK;
+
 public class TaskDependencyUtil {
+
+    private static final WorkDependencyResolver<Task> IGNORE_ARTIFACT_TRANSFORM_RESOLVER = new WorkDependencyResolver<Task>() {
+        @Override
+        public boolean resolve(Task task, Object node, Action<? super Task> resolveAction) {
+            // Ignore artifact transforms
+            return node instanceof TransformNodeDependency || node instanceof WorkNodeAction;
+        }
+    };
+
     /**
-     * If the {@code taskDependency} implements the {@link TaskDependencyInternal} interface, gets its dependencies through the
-     * method intended for internal use, {@link TaskDependencyInternal#getDependenciesForInternalUse(Task)}.
-     * Otherwise, falls back to accessing them through the public API, {@link TaskDependency#getDependencies(Task)}.
-     *
-     * @param taskDependency the instance to get the dependencies from.
-     * @param task inherits the semantics from the corresponding parameter of {@link TaskDependency#getDependencies(Task)}
-     * @return the set of task dependencies, as {@link TaskDependency#getDependencies(Task)} would.
+     * Return a new resolver which resolves a {@link TaskDependencyContainer} to the set of
+     * Task objects it contains. All other types of work are ignored.
+     * <p>
+     * This method should only be used to support existing public APIs which incorrectly
+     * assume that {@link TaskDependencyContainer}s only contain tasks. To resolve a
+     * task dependency container to the full set of work it contains, use a
+     * {@link org.gradle.execution.plan.TaskDependencyResolver}.
      */
-    @AllowUsingApiForExternalUse
-    public static Set<? extends Task> getDependenciesForInternalUse(TaskDependency taskDependency, @Nullable Task task) {
-        return taskDependency instanceof TaskDependencyInternal ?
-            ((TaskDependencyInternal) taskDependency).getDependenciesForInternalUse(task) :
-            taskDependency.getDependencies(task);
+    public static CachingTaskDependencyResolveContext<Task> newTaskResolver() {
+        return new CachingTaskDependencyResolveContext<>(
+            asList(TASK_AS_TASK, IGNORE_ARTIFACT_TRANSFORM_RESOLVER)
+        );
     }
 
-    public static Set<? extends Task> getDependenciesForInternalUse(Buildable buildable) {
-        return getDependenciesForInternalUse(buildable.getBuildDependencies(), null);
+    /**
+     * Resolves the given {@link TaskDependencyContainer} to the set of Task objects it contains.
+     * All other types of work are ignored.
+     * <p>
+     * This method should only be used to support existing public APIs which incorrectly
+     * assume that {@link TaskDependencyContainer}s only contain tasks. To resolve a
+     * task dependency container to the full set of work it contains, use a
+     * {@link org.gradle.execution.plan.TaskDependencyResolver}.
+     */
+    public static Set<Task> getDependencies(@Nullable Task task, TaskDependencyContainer dependencies) {
+        if (dependencies == TaskDependencyContainer.EMPTY) {
+            return Collections.emptySet();
+        }
+
+        RecordingTaskDependencyResolveContext recording = new RecordingTaskDependencyResolveContext(task);
+        try {
+            dependencies.visitDependencies(recording);
+        } catch (Exception e) {
+            if (task != null) {
+                throw new TaskDependencyResolveException(format("Could not determine the dependencies of %s.", task), e);
+            } else {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+        if (recording.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        return newTaskResolver().getDependencies(task, recording);
     }
+
 }

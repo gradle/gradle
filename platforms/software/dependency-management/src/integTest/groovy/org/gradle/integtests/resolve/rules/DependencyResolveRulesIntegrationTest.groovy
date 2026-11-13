@@ -613,6 +613,45 @@ Required by:
         failure.assertHasCause("Unhappy :(")
     }
 
+    void "dependency with failing rule does not contribute its target to the graph"() {
+        mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
+        mavenRepo.module("org.utils", "api", '1.3').publish()
+        mavenRepo.module("org.utils", "other", '1.0').publish()
+
+        buildFile << """
+            $common
+
+            dependencies {
+                conf 'org.utils:impl:1.3'
+                conf 'org.utils:other:1.0'
+            }
+
+            configurations.conf.resolutionStrategy {
+                eachDependency {
+                    if (it.requested.name == 'impl') {
+                        throw new RuntimeException("Unhappy :(")
+                    }
+                }
+            }
+
+            task show {
+                def files = configurations.conf.incoming.artifactView { lenient = true }.files
+                def rootComponent = configurations.conf.incoming.resolutionResult.rootComponent
+                doLast {
+                    println "files: " + files.collect { it.name }.sort()
+                    println "unresolved: " + rootComponent.get().dependencies.findAll { it instanceof UnresolvedDependencyResult }.collect { it.requested.toString() }
+                }
+            }
+        """
+
+        when:
+        succeeds("show")
+
+        then:
+        outputContains("files: [other-1.0.jar]")
+        outputContains("unresolved: [org.utils:impl:1.3]")
+    }
+
     void "can substitute module name and resolve conflict"() {
         mavenRepo.module("org.utils", "a",  '1.2').publish()
         mavenRepo.module("org.utils", "b",  '2.0').publish()

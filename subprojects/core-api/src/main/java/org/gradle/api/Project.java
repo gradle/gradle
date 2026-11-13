@@ -47,7 +47,6 @@ import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
-import org.gradle.api.services.ProjectService;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
@@ -1186,29 +1185,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     ProjectLayout getLayout();
 
     /**
-     * Looks up a service provided by Gradle for use in this project.
-     *
-     * <p>The services available for lookup are the Gradle types that implement {@link ProjectService}.</p>
-     *
-     * <p>Perform this lookup at configuration time. The returned instance may be captured and used later
-     * from a task action, and is safe to store in the configuration cache. To look a service up from
-     * within a task action, use {@link Task#service(Class)} instead.</p>
-     *
-     * <p>This method does not provide access to {@link org.gradle.api.services.BuildService shared build services};
-     * use {@link org.gradle.api.services.ServiceReference} or {@link org.gradle.api.invocation.Gradle#getSharedServices()}
-     * to access those.</p>
-     *
-     * @param serviceType the type of the service to look up
-     * @param <T> the service type
-     * @return the service instance. Never returns null.
-     * @throws InvalidUserDataException when the given type is not one of the services available in this scope
-     * @since 9.8.0
-     */
-    @Incubating
-    @HiddenInDefinition
-    <T extends ProjectService> T service(Class<T> serviceType);
-
-    /**
      * Creates a directory and returns a file pointing to it.
      *
      * @param path The path for the directory to be created. Evaluated as per {@link #file(Object)}.
@@ -1319,7 +1295,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return The <code>AntBuilder</code> for this project. Never returns null.
      * @since 0.7
+     * @deprecated This method will be removed in Gradle 10.
      */
+    @Deprecated
     @HiddenInDefinition
     AntBuilder getAnt();
 
@@ -1330,7 +1308,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return Creates an <code>AntBuilder</code> for this project. Never returns null.
      * @see #getAnt()
      * @since 0.7
+     * @deprecated This method will be removed in Gradle 10.
      */
+    @Deprecated
     @HiddenInDefinition
     AntBuilder createAntBuilder();
 
@@ -1342,7 +1322,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to execute against the <code>AntBuilder</code>.
      * @return The <code>AntBuilder</code>. Never returns null.
      * @since 0.7
+     * @deprecated This method will be removed in Gradle 10.
      */
+    @Deprecated
     @HiddenInDefinition
     AntBuilder ant(@DelegatesTo(AntBuilder.class) Closure configureClosure);
 
@@ -1353,7 +1335,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureAction The action to execute against the <code>AntBuilder</code>.
      * @return The <code>AntBuilder</code>. Never returns null.
      * @since 3.5
+     * @deprecated This method will be removed in Gradle 10.
      */
+    @Deprecated
     @HiddenInDefinition
     AntBuilder ant(Action<? super AntBuilder> configureAction);
 

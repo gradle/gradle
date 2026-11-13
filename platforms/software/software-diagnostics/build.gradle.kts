@@ -1,4 +1,4 @@
-import gradlebuild.basics.googleApisJs
+import gradlebuild.requestRuntimeLibrary
 
 plugins {
     id("gradlebuild.distribution.api-java")
@@ -9,10 +9,13 @@ description = """Reports related to the dependency management functionality used
 in the Gradle builds of software projects.  Any reports or reporting tasks related to or dependent upon
 dependency management types should be included here."""
 
-val implementationResources = configurations.create("implementationResources")
-
-repositories {
-    googleApisJs()
+val implementationResources = configurations.dependencyScope("implementationResources")
+val implementationResourcesPath = configurations.resolvable("implementationResourcesPath") {
+    extendsFrom(implementationResources.get())
+    // jquery comes from the googleApisJs Ivy repository, which has no metadata, so its only variant carries no
+    // attributes and this request does not change what is selected. It is declared so the resolvable states what
+    // it wants, and so it keeps resolving if jquery moves to a Maven repository, as flot already has.
+    requestRuntimeLibrary(objects)
 }
 
 dependencies {
@@ -79,7 +82,9 @@ gradleModule {
 }
 
 val reportResources = tasks.register<Copy>("reportResources") {
-    from(implementationResources)
+    group = "build"
+    description = "Copies the JavaScript resources used by the HTML dependency report into the generated resources directory."
+    from(implementationResourcesPath)
     into(layout.buildDirectory.file("generated-resources/report-resources/org/gradle/api/tasks/diagnostics/htmldependencyreport"))
     rename { oldName ->
         oldName.split("-").first() + ".js"

@@ -60,42 +60,40 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
 ) : ConfigurationCacheProblemsListener {
 
     override fun disallowedAtExecutionInjectedServiceAccessed(injectedServiceType: Class<*>, getterName: String, consumer: String) {
-        val problem = problemFactory.problem(consumer) {
+        val problem = problemFactory.problem("Non-serializable service accessed at execution time", consumer) {
             text("accessing non-serializable type ")
             reference(injectedServiceType)
             text(" caused by invocation ")
             reference(getterName)
         }
-            .exception("Accessing non-serializable type '$injectedServiceType' during execution time is unsupported.")
             .documentationSection(DocumentationSection.RequirementsDisallowedTypes)
             .build()
         problems.onExecutionTimeProblem(problem)
     }
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
-        onTaskExecutionAccessProblem(invocationDescription, task, runningTask)
+        onTaskExecutionAccessProblem("Project", invocationDescription, task, runningTask)
     }
 
     override fun onTaskExtensionAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
         if (canAccessTaskExtensions(task.javaClass.name, invocationDescription)) {
             return
         }
-        onTaskExecutionAccessProblem(invocationDescription, task, runningTask)
+        onTaskExecutionAccessProblem("Task extensions", invocationDescription, task, runningTask)
     }
 
     override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
-        onTaskExecutionAccessProblem(invocationDescription, task, runningTask)
+        onTaskExecutionAccessProblem("Task dependencies", invocationDescription, task, runningTask)
     }
 
     override fun onExternalProcessStarted(command: String, consumer: String?) {
         if (!atConfigurationTime() || isExecutingWork() || isInputTrackingDisabled()) {
             return
         }
-        val problem = problemFactory.problem(consumer) {
+        val problem = problemFactory.problem("External process started at configuration time", consumer) {
             text("external process started ")
             reference(command)
         }
-            .exception("Starting an external process '$command' during configuration time is unsupported.")
             .documentationSection(RequirementsExternalProcess)
             .build()
         problems.onProblem(problem)
@@ -112,7 +110,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     }
 
     private
-    fun onTaskExecutionAccessProblem(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
+    fun onTaskExecutionAccessProblem(accessed: String, invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
         // It is possible that another task is being executed now and causes `task` to be configured.
         // In this case, we shouldn't attribute the error to the `task` alone, as it can be misleading,
         // and that usage can be benign. This is especially important when the currently running task is
@@ -121,7 +119,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         val contextTask = runningTask ?: task
         val isExecutingOtherTask = contextTask != task
         problemsListenerFor(contextTask).onExecutionTimeProblem(
-            problemFactory.problem {
+            problemFactory.problem("$accessed accessed at execution time") {
                 if (isExecutingOtherTask) {
                     text("execution of task ")
                     reference(contextTask.path)
@@ -134,13 +132,14 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
                     text(" at execution time is unsupported with the configuration cache.")
                 }
             }
-                .exception(
+                .exceptionMessage {
+                    // The exception message is not used for grouping, so it can name the accessing task:
                     if (isExecutingOtherTask) {
                         "Execution of $runningTask caused invocation of '$invocationDescription' by $task at execution time which is unsupported with the configuration cache."
                     } else {
                         "Invocation of '$invocationDescription' by $task at execution time is unsupported with the configuration cache."
                     }
-                )
+                }
                 .documentationSection(RequirementsUseProjectDuringExecution)
                 .mapLocation { locationForTask(it, contextTask) }
                 .build()
@@ -186,6 +185,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         invocationDescription: String,
         exception: InvalidUserCodeException
     ) = problemFactory.problem(
+        "Unsupported build listener registration",
         StructuredMessage.build {
             text("registration of listener on ")
             reference(invocationDescription)

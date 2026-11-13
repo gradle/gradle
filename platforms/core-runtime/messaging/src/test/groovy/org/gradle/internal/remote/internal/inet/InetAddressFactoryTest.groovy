@@ -16,6 +16,7 @@
 
 package org.gradle.internal.remote.internal.inet
 
+import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 
 class InetAddressFactoryTest extends Specification {
@@ -46,6 +47,16 @@ class InetAddressFactoryTest extends Specification {
         factory.isCommunicationAddress(factory.getLocalBindingAddress())
 
         !factory.isCommunicationAddress(ip(127, 0, 0, 3))
+    }
+
+    def "loopback, wildcard and local interface addresses are local addresses"() {
+        expect:
+        InetAddressFactory.isLocalAddress(InetAddress.getLoopbackAddress())
+        InetAddressFactory.isLocalAddress(ip(127, 0, 0, 2))
+        InetAddressFactory.isLocalAddress(new InetSocketAddress(0).address)
+        Collections.list(NetworkInterface.getNetworkInterfaces()).collectMany { Collections.list(it.inetAddresses) }.every { InetAddressFactory.isLocalAddress(it) }
+        // TEST-NET-1, reserved for documentation and never assigned to a local interface
+        !InetAddressFactory.isLocalAddress(ip(192, 0, 2, 1))
     }
 
     def "wildcard address is always present"() {
@@ -95,9 +106,9 @@ class InetAddressFactoryTest extends Specification {
         factory.localBindingAddress
 
         then:
-        def e = thrown(RuntimeException)
-        e.cause.message.contains("OPENSHIFT_FOO_IP")
-        e.cause.message.contains("256.0.0.1")
+        def e = thrown(InvalidUserDataException)
+        e.message.contains("OPENSHIFT_FOO_IP")
+        e.message.contains("256.0.0.1")
     }
 
     def "GRADLE_DAEMON_BIND_ADDRESS skips auto-detection and uses the provided address"() {
@@ -125,9 +136,9 @@ class InetAddressFactoryTest extends Specification {
         factory.localBindingAddress
 
         then:
-        def e = thrown(RuntimeException)
-        e.cause.message.contains("GRADLE_DAEMON_BIND_ADDRESS")
-        e.cause.message.contains("256.0.0.1")
+        def e = thrown(InvalidUserDataException)
+        e.message.contains("GRADLE_DAEMON_BIND_ADDRESS")
+        e.message.contains("256.0.0.1")
     }
 
     private defaultAddresses() {

@@ -17,6 +17,7 @@
 package org.gradle.integtests.configuration
 
 import org.gradle.api.internal.ExecuteDomainObjectCollectionCallbackBuildOperationType
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
 import org.gradle.api.internal.tasks.RealizeTaskBuildOperationType
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
@@ -28,6 +29,10 @@ import org.gradle.integtests.fixtures.TestableBuildOperationRecord
 class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def ops = new BuildOperationsFixture(executer, temporaryFolder)
+
+    def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
+    }
 
     private static Closure fooTaskRealizationOpsQuery = { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':foo' }) }
     private static Closure addingPluginBuildOpQuery = { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
@@ -334,9 +339,9 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         """
         buildFile << """
             buildscript {
-                ${mavenCentralRepository()}
+                repositories { ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()} }
             }
-            ${mavenCentralRepository()}
+            repositories { ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()} }
         """
 
         when:
@@ -371,7 +376,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
             apply from: 'callback.gradle'
 
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
             }
 
             configurations.foo.resolve()

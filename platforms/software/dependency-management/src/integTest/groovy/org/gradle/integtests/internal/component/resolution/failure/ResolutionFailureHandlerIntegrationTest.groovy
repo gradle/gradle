@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.internal.component.resolution.failure
 
-import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
@@ -71,15 +70,13 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:no-version-satisfies'
-            additionalData.asMap['requestTarget'] == "org.apache.httpcomponents:httpclient"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_VERSION_SATISFIES.name()
-            additionalData.asMap['problemDisplayName'] == "No version satisfies the constraints"
+            fqid == 'Dependencies:Graph Resolution:No version satisfies the constraints'
+            additionalData.asMap == [requestTarget: "org.apache.httpcomponents:httpclient"]
         }
         if (GradleContextualExecuter.configCache) {
             verifyAll(receivedProblem(1)) {
-                fqid == 'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection'
-                contextualLabel == 'error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
+                fqid == "Gradle:Configuration Cache:Error writing value"
+                contextualLabel == 'Error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
                 additionalData.asMap == [ 'trace' : 'task `:forceResolution` of type `Build_gradle$ForceResolution`' ]
             }
         }
@@ -101,15 +98,13 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
            Cannot select module because of conflict with root project 'test' (c2). Both provide capability 'org:example:test-nonconflicting'.""")
 
         and: "Helpful resolutions are provided"
-        assertSuggestsViewingDocs("Capability conflicts are explained in more detail at https://docs.gradle.org/current/userguide/component_capabilities.html#sub:capabilities.")
+        assertSuggestsViewingDocs("Capability conflicts are explained in more detail at https://docs.gradle.org/current/userguide/component_capabilities.html#sec:capabilities.")
         assertSuggestsViewingDocs("Use 'resolutionStrategy.capabilitiesResolution' to choose between conflicting capability providers, as described at https://docs.gradle.org/current/userguide/component_capabilities.html#sec:selecting-between-candidates.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:capability-conflict'
-            additionalData.asMap['requestTarget'] == "org.example:test"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.CAPABILITY_CONFLICT.name()
-            additionalData.asMap['problemDisplayName'] == "Module rejected due to a capability conflict"
+            fqid == 'Dependencies:Graph Resolution:Module rejected due to a capability conflict'
+            additionalData.asMap == [requestTarget: "org.example:test"]
         }
     }
     // endregion Component Selection failures
@@ -133,15 +128,13 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
-        assertSuggestsViewingDocs("Use the dependencyInsight report with the --all-variants option to view all variants of the ambiguous dependency.  This report is described at https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying_reason_dependency_selection.")
+        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_aware_resolution.html#sec:step_3_disambiguation_using_requested_attributes.")
+        assertSuggestsViewingDocs("Use the dependencyInsight report with the --all-variants option to view all variants of the ambiguous dependency.  This report is described at https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:ambiguous-variants'
-            additionalData.asMap['requestTarget'] == "root project 'example'"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_VARIANTS.name()
-            additionalData.asMap['problemDisplayName'] == "Multiple variants exist that would match the request"
+            fqid == 'Dependencies:Graph Resolution:Multiple variants exist that would match the request'
+            additionalData.asMap == [requestTarget: "root project 'example'"]
         }
     }
 
@@ -175,14 +168,12 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
+        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_aware_resolution.html#sec:step_3_disambiguation_using_requested_attributes.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:ambiguous-variants'
-            additionalData.asMap['requestTarget'] == "root project 'example'"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_VARIANTS.name()
-            additionalData.asMap['problemDisplayName'] == "Multiple variants exist that would match the request"
+            fqid == 'Dependencies:Graph Resolution:Multiple variants exist that would match the request'
+            additionalData.asMap == [requestTarget: "root project 'example'"]
         }
     }
 
@@ -205,19 +196,17 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
+        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_aware_resolution.html#sec:step_3_disambiguation_using_requested_attributes.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:ambiguous-variants'
-            additionalData.asMap['requestTarget'] == "com.squareup.okhttp3:okhttp:4.4.0"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_VARIANTS.name()
-            additionalData.asMap['problemDisplayName'] == "Multiple variants exist that would match the request"
+            fqid == 'Dependencies:Graph Resolution:Multiple variants exist that would match the request'
+            additionalData.asMap == [requestTarget: "com.squareup.okhttp3:okhttp:4.4.0"]
         }
         if (GradleContextualExecuter.configCache) {
             verifyAll(receivedProblem(1)) {
-                fqid == 'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection'
-                contextualLabel == 'error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
+                fqid == "Gradle:Configuration Cache:Error writing value"
+                contextualLabel == 'Error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
                 additionalData.asMap == ['trace': 'task `:forceResolution` of type `Build_gradle$ForceResolution`']
             }
         }
@@ -242,14 +231,12 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
+        assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_aware_resolution.html#sec:step_6_failure_condition.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:no-compatible-variants'
-            additionalData.asMap['requestTarget'] == "root project 'example'"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS.name()
-            additionalData.asMap['problemDisplayName'] == "No variants exist that would match the request"
+            fqid == 'Dependencies:Graph Resolution:No variants exist that would match the request'
+            additionalData.asMap == [requestTarget: "root project 'example'"]
         }
     }
 
@@ -274,19 +261,17 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
+        assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_aware_resolution.html#sec:step_6_failure_condition.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:no-compatible-variants'
-            additionalData.asMap['requestTarget'] == "com.squareup.okhttp3:okhttp:4.4.0"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS.name()
-            additionalData.asMap['problemDisplayName'] == "No variants exist that would match the request"
+            fqid == 'Dependencies:Graph Resolution:No variants exist that would match the request'
+            additionalData.asMap == [requestTarget: "com.squareup.okhttp3:okhttp:4.4.0"]
         }
         if (GradleContextualExecuter.configCache) {
             verifyAll(receivedProblem(1)) {
-                fqid == 'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection'
-                contextualLabel == 'error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
+                fqid == "Gradle:Configuration Cache:Error writing value"
+                contextualLabel == 'Error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
                 additionalData.asMap == ['trace': 'task `:forceResolution` of type `Build_gradle$ForceResolution`']
             }
         }
@@ -311,14 +296,12 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-incompatible.")
+        assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_aware_resolution.html#sec:step_6_failure_condition.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:configuration-not-compatible'
-            additionalData.asMap['requestTarget'] == "mismatch"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.CONFIGURATION_NOT_COMPATIBLE.name()
-            additionalData.asMap['problemDisplayName'] == "Configuration selected by name is not compatible"
+            fqid == 'Dependencies:Graph Resolution:Configuration selected by name is not compatible'
+            additionalData.asMap == [requestTarget: "mismatch"]
         }
     }
 
@@ -339,14 +322,12 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.")
+        assertSuggestsViewingDocs("Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_configurations.html#sec:resolvable-consumable-configs.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:no-compatible-variants'
-            additionalData.asMap['requestTarget'] == "project ':producer'"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS.name()
-            additionalData.asMap['problemDisplayName'] == "No variants exist that would match the request"
+            fqid == 'Dependencies:Graph Resolution:No variants exist that would match the request'
+            additionalData.asMap == [requestTarget: "project ':producer'"]
         }
     }
 
@@ -370,10 +351,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:configuration-does-not-exist'
-            additionalData.asMap['requestTarget'] == "absent"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.CONFIGURATION_DOES_NOT_EXIST.name()
-            additionalData.asMap['problemDisplayName'] == "Configuration selected by name does not exist"
+            fqid == 'Dependencies:Graph Resolution:Configuration selected by name does not exist'
+            additionalData.asMap == [requestTarget: "absent"]
         }
     }
     // endregion Variant Selection failure
@@ -394,20 +373,18 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve root project 'example'.")
         assertFullMessageCorrect("""     Required by:
          root project 'example'
-      > Multiple incompatible variants of org.example:example:1.0 were selected:
+      > Multiple incompatible variants of root project 'example' were selected:
            - Variant blueElementsCapability1 has attributes {color=blue}
            - Variant greenElementsCapability2 has attributes {color=green}""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-incompatible.")
+        assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_aware_resolution.html#sec:abm-algorithm.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:incompatible-multiple-nodes'
-            additionalData.asMap['requestTarget'] == "org.example:example:1.0"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.INCOMPATIBLE_MULTIPLE_NODES.name()
-            additionalData.asMap['problemDisplayName'] == "Incompatible nodes of a single component were selected"
+            fqid == 'Dependencies:Graph Resolution:Incompatible nodes of a single component were selected'
+            additionalData.asMap == [requestTarget: "root project 'example'"]
         }
     }
 
@@ -428,14 +405,12 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
+        assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/artifact_resolution.html#sec:artifact-selection.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:no-compatible-artifact'
-            additionalData.asMap['requestTarget'] == "root project 'example'"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_ARTIFACT.name()
-            additionalData.asMap['problemDisplayName'] == "No artifacts exist that would match the request"
+            fqid == 'Dependencies:Artifact Resolution:No artifacts exist that would match the request'
+            additionalData.asMap == [requestTarget: "root project 'example'"]
         }
     }
 
@@ -477,14 +452,12 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Helpful resolutions are provided"
         assertSuggestRunningArtifactTransformsReport()
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("Transformation failures are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:transform-ambiguity.")
+        assertSuggestsViewingDocs("Transformation failures are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/artifact_transforms.html#sec:the_artifact_transform_selection_process.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:ambiguous-artifact-transform'
-            additionalData.asMap['requestTarget'] == "root project 'example'"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACT_TRANSFORM.name()
-            additionalData.asMap['problemDisplayName'] == "Multiple artifacts transforms exist that would satisfy the request"
+            fqid == 'Dependencies:Artifact Resolution:Multiple artifact transforms exist that would satisfy the request'
+            additionalData.asMap == [requestTarget: "root project 'example'"]
         }
     }
 
@@ -503,14 +476,12 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
-        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
+        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/artifact_resolution.html#sec:artifact-selection.")
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:ambiguous-artifacts'
-            additionalData.asMap['requestTarget'] == "root project 'example'"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACTS.name()
-            additionalData.asMap['problemDisplayName'] == "Multiple artifacts exist that would match the request"
+            fqid == 'Dependencies:Artifact Resolution:Multiple artifacts exist that would match the request'
+            additionalData.asMap == [requestTarget: "root project 'example'"]
         }
     }
     // endregion Artifact Selection failures
@@ -932,9 +903,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     private void setupConflictingVersionConstraints() {
         buildKotlinFile << """
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
 
             configurations {
                 dependencyScope("deps")
@@ -1289,7 +1258,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void assertSuggestsReviewingAlgorithm() {
-        assertSuggestsViewingDocs("Review the variant matching algorithm at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_attributes.html#sec:abm_algorithm.")
+        assertSuggestsViewingDocs("Review the variant matching algorithm at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_aware_resolution.html#sec:abm-algorithm.")
     }
 
     private void assertSuggestsViewingDocs(String resolution) {

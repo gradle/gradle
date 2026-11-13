@@ -93,7 +93,7 @@ fun patchReleaseNotes(content: String, version: String): String {
         )
 
     val patchIntro = listOf(
-        "Gradle @version@ is the ${patchOrdinal(patchNumber)} patch release for Gradle $baseVersion. $RELEASE_DATE_SUFFIX",
+        "Gradle @version@ is the ${patchOrdinal(patchNumber)} patch release for Gradle $baseVersion $RELEASE_DATE_SUFFIX",
         "",
         FIXED_ISSUES_INTRO,
         "",

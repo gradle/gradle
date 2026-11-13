@@ -39,6 +39,10 @@ class ModuleSpec {
         versionSpec()
     }
 
+    void allowAll() {
+        versions.values()*.allowAll()
+    }
+
     void build(HttpRepository repository) {
         versions.values()*.build(repository)
         metadataExpectations.each {

@@ -23,7 +23,6 @@ import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.Action;
-import org.gradle.api.AntBuilder;
 import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -33,7 +32,6 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectOrderingUtil;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
-import org.gradle.api.internal.services.PublicServiceLookups;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
@@ -57,7 +55,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.services.BuildService;
-import org.gradle.api.services.TaskService;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.specs.Spec;
@@ -69,6 +66,7 @@ import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -237,8 +235,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     @Internal
-    public AntBuilder getAnt() {
-        return project.getAnt();
+    @Deprecated
+    public org.gradle.api.AntBuilder getAnt() {
+        DeprecationLogger.deprecateMethod(Task.class, "getAnt()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_ant_builder")
+            .nagUser();
+
+        return DeprecationLogger.whileDisabled(project::getAnt);
     }
 
     @Internal
@@ -694,11 +698,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public <T extends TaskService> T service(Class<T> serviceType) {
-        return PublicServiceLookups.lookup(serviceType, PublicServiceLookups.EntryPoint.TASK, getServices());
-    }
-
-    @Override
     public Task doFirst(final Closure action) {
         hasCustomActions = true;
         if (action == null) {
@@ -798,7 +797,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             if (application == null) {
                 doExecute(task);
             } else {
-                application.reapply(() -> doExecute(task));
+                application.reapply(() -> doExecute(task), UserCodeApplicationContext.CodeType.GENERAL);
             }
         }
 

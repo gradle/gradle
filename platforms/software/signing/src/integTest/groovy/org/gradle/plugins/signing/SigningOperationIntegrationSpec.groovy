@@ -100,7 +100,7 @@ class SigningOperationIntegrationSpec extends SigningIntegrationSpec {
 
         and:
         verifyAll(receivedProblem) {
-            fqid == 'compilation:groovy-dsl:compilation-failed'
+            fqid == 'Gradle:DSL Evaluation:Script compilation failed'
             contextualLabel == "Could not compile build file '${buildFile.absolutePath}'."
         }
     }

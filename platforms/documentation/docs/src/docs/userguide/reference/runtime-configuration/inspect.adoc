@@ -31,7 +31,7 @@ A Build Scan is created locally but published to a secure external server manage
 They do not run code on your machine, and they never modify your build.
 You can choose whether to publish a scan, and each scan is assigned a unique (private-by-default) URL.
 
-NOTE: For information on what data is collected and how it's handled, see the link:https://gradle.com/privacy[Gradle.com Privacy Policy].
+NOTE: For information on what data is collected and how it's handled, see the link:https://develocity.ai/legal/privacy/[Develocity Privacy Policy].
 
 In Gradle 4.3 and above, you can create a Build Scan using the `--scan` command line option:
 
@@ -41,7 +41,7 @@ $ ./gradlew build --scan
 ----
 
 For older Gradle versions, the
-https://docs.gradle.com/develocity/gradle-plugin/current/#getting_set_up[Develocity Plugin User Manual] explains how to generate a Build Scan.
+https://docs.develocity.ai/gradle/current/gradle-plugin/#getting-set-up[Develocity Plugin User Manual] explains how to generate a Build Scan.
 
 At the end of your build, Gradle displays a URL where you can find your Build Scan:
 

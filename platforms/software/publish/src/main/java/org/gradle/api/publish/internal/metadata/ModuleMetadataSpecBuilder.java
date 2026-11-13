@@ -389,6 +389,7 @@ public class ModuleMetadataSpecBuilder {
         } else if (value instanceof Named) {
             return ((Named) value).getName();
         } else if (value instanceof Enum) {
+            // TODO: Remove support for raw Enums in Gradle 10.0.0
             return ((Enum<?>) value).name();
         } else {
             return null;

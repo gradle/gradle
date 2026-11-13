@@ -374,6 +374,22 @@ text3</para></section>'''
         format(result.docbook) == '''<table><thead><tr><td>column1</td><td>column2</td></tr></thead><tr><td>cell1</td><td>cell2</td></tr></table>'''
     }
 
+    def convertsTableWithCaption() {
+        _ * classMetaData.rawCommentText >> '''
+<table>
+    <caption>a caption</caption>
+    <tr><th>column1</th><th>column2</th></tr>
+    <tr><td>cell1</td><td>cell2</td></tr>
+</table>
+'''
+
+        when:
+        def result = parser.parse(classMetaData, listener)
+
+        then:
+        format(result.docbook) == '''<table><caption>a caption</caption><thead><tr><td>column1</td><td>column2</td></tr></thead><tr><td>cell1</td><td>cell2</td></tr></table>'''
+    }
+
     def convertsPropertyGetterMethodCommentToPropertyComment() {
         PropertyMetaData propertyMetaData = Mock()
         _ * propertyMetaData.rawCommentText >> 'returns the name of the thing.'

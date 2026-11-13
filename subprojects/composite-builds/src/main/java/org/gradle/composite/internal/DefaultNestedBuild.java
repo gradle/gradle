@@ -31,7 +31,7 @@ import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.exception.ExceptionAnalyser;
-import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.ManagedServiceRegistry;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
@@ -41,7 +41,6 @@ import java.util.function.Function;
 
 class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedBuild {
 
-    private final Path identityPath;
     private final BuildState owner;
     private final BuildDefinition buildDefinition;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
@@ -52,12 +51,11 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         BuildState owner,
         BuildTreeServices buildTreeServices
     ) {
-        super(buildTreeServices, buildDefinition, owner);
-        this.identityPath = identityPath;
+        super(buildTreeServices, buildDefinition, identityPath, owner);
         this.buildDefinition = buildDefinition;
         this.owner = owner;
 
-        CloseableServiceRegistry buildScopeServices = getBuildServices();
+        ManagedServiceRegistry buildScopeServices = getBuildServices();
         try {
             ExceptionAnalyser exceptionAnalyser = buildScopeServices.get(ExceptionAnalyser.class);
             BuildTreeWorkExecutor workExecutor = new DefaultBuildTreeWorkExecutor();
@@ -75,11 +73,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     @Override
     public BuildDefinition getBuildDefinition() {
         return buildDefinition;
-    }
-
-    @Override
-    public Path getIdentityPath() {
-        return identityPath;
     }
 
     @Override

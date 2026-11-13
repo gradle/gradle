@@ -103,6 +103,7 @@ Code contributions should follow these guidelines to maximize the chance of them
 * Add Javadoc for new methods and classes, following the [Javadoc Style Guide](contributing/JavadocStyleGuide.md). Javadoc is *required* for new public, top-level types.
 * For new features, the feature should be mentioned in the [Release Notes](platforms/documentation/docs/src/docs/release/notes.md).
 * Use American English spelling in code, comments, and documentation (e.g., "color" not "colour", "initialize" not "initialise"). See [ADR-0009](architecture/standards/0009-use-american-english.md) for details.
+* When reviewing changes - or preparing your own for review — follow the [Code Review guide](contributing/CodeReview.md).
 
 Your code needs to run on [all versions of Java that Gradle supports](platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc) and across all supported operating systems (macOS, Windows, Linux). The Gradle CI system will verify this, but here are some pointers that will avoid surprises:
 
@@ -315,6 +316,8 @@ The Gradle build uses [Java Toolchain](https://docs.gradle.org/current/userguide
 
 Available JDKs on your machine are automatically detected and wired for the various compile and test tasks.
 Some tests require multiple JDKs to be installed on your computer, be aware of this if you make changes related to anything toolchains related.
+Tests that need a specific JDK find it through `AvailableJavaHomes` and are skipped or fail when it is missing; `./gradlew javaToolchains` lists the JDKs Gradle detected.
+CI provisions more JDKs than a local build strictly needs (see `.teamcity/jdks.yaml`), so install only the versions the tests you run ask for.
 
 If you want to explicitly run tests with a different Java version, you need to specify `-PtestJavaVersion=#` with the major version of the JDK you want the tests to run with (e.g. `-PtestJavaVersion=14`).
 

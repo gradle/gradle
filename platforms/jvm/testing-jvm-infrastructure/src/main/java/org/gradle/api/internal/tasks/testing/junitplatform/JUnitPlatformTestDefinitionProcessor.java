@@ -37,12 +37,9 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.TestExecutionResult;
-import org.junit.platform.engine.discovery.DirectorySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
-import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.DirectorySource;
 import org.junit.platform.engine.support.descriptor.FileSource;
-import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.LauncherSession;
@@ -160,9 +157,8 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
             }
             if (isExcludedAndHasNoNestedClasses(klass)) {
                 // Class is explicitly excluded by name and has no nested classes that would
-                // need it as a discovery root. Skip registering as a selector so that
-                // engine-level test generation (e.g. ArchUnit's field-based tests) does not
-                // bypass the exclude filter. See issue #37539.
+                // need it as a discovery root. Skipping it as a selector avoids discovering
+                // tests that the post-discovery filter would exclude anyway.
                 return;
             }
             selectors.add(DiscoverySelectors.selectClass(klass));
@@ -246,29 +242,38 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
             return requestBuilder.build();
         }
 
+        /**
+         * Builds the post-discovery filter applying this task's include and exclude patterns. Nothing is
+         * added to the request when there are no patterns.
+         * <p>
+         * Descriptors are routed by {@link org.junit.platform.engine.TestSource} type:
+         * <ul>
+         *   <li>{@link FileSource} and {@link DirectorySource} to {@link FilePathFilter}, matched by path
+         *       relative to this task's test definition directories.
+         *   <li>Everything else, including descriptors with no source, to {@link ClassMethodNameFilter},
+         *       matched by class and method name.
+         * </ul>
+         * <p>
+         * {@link FilePathFilter} falls back to the class filter for a file under none of those
+         * directories, so it is registered whether or not the run has directory selectors.
+         *
+         * @see FilePathFilter
+         * @see ClassMethodNameFilter
+         */
         private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
             TestFilterSpec filterSpec = spec.getFilter();
             if (isNotEmpty(filterSpec)) {
                 TestSelectionMatcher matcher = new TestSelectionMatcher(filterSpec, testDefinitionDirs);
 
-                DelegatingByTypeFilter delegatingFilter = new DelegatingByTypeFilter();
-
                 ClassMethodNameFilter classFilter = new ClassMethodNameFilter(matcher);
-                delegatingFilter.addDelegate(ClassSource.class, classFilter);
-                delegatingFilter.addDelegate(MethodSource.class, classFilter);
+                DelegatingByTypeFilter delegatingFilter = new DelegatingByTypeFilter(classFilter);
 
-                if (hasDirectorySelectors()) {
-                    FilePathFilter fileFilter = new FilePathFilter(matcher);
-                    delegatingFilter.addDelegate(FileSource.class, fileFilter);
-                    delegatingFilter.addDelegate(DirectorySource.class, fileFilter);
-                }
+                FilePathFilter fileFilter = new FilePathFilter(matcher, classFilter);
+                delegatingFilter.addDelegate(FileSource.class, fileFilter);
+                delegatingFilter.addDelegate(DirectorySource.class, fileFilter);
 
                 requestBuilder.filters(delegatingFilter);
             }
-        }
-
-        private boolean hasDirectorySelectors() {
-            return selectors.stream().anyMatch(it -> it instanceof DirectorySelector);
         }
 
         private void addEnginesFilter(LauncherDiscoveryRequestBuilder requestBuilder) {

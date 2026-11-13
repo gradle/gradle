@@ -20,4 +20,8 @@ import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
 class LanguageBasePluginIntegrationTest extends WellBehavedPluginTest {
+    def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
+    }
+
 }

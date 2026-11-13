@@ -27,8 +27,7 @@ import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOption
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantsAnalysisResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.ProblemReporterInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
@@ -58,7 +57,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final File daemonWorkingDir;
     private final JvmVersionDetector jvmVersionDetector;
-    private final ProblemReporterInternal problemReporter;
+    private final ProblemsInternal problems;
 
     public DaemonGroovyCompiler(
         File daemonWorkingDir,
@@ -67,7 +66,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         ClassLoaderRegistry classLoaderRegistry,
         JavaForkOptionsFactory forkOptionsFactory,
         JvmVersionDetector jvmVersionDetector,
-        ProblemReporterInternal problemReporter
+        ProblemsInternal problems
     ) {
         super(compilerWorkerExecutor);
         this.classPathRegistry = classPathRegistry;
@@ -75,7 +74,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         this.forkOptionsFactory = forkOptionsFactory;
         this.daemonWorkingDir = daemonWorkingDir;
         this.jvmVersionDetector = jvmVersionDetector;
-        this.problemReporter = problemReporter;
+        this.problems = problems;
     }
 
     @Override
@@ -119,8 +118,8 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
             File toolsJar = jvm.getToolsJar();
             if (toolsJar == null) {
                 String contextualMessage = String.format("The 'tools.jar' cannot be found in the JDK '%s'.", jvm.getJavaHome());
-                ProblemId problemId = ProblemId.create("missing-tools-jar", "Missing tools.jar", GradleCoreProblemGroup.compilation().groovy());
-                throw problemReporter.throwing(new IllegalStateException(contextualMessage), problemId, problemSpec -> problemSpec
+                ProblemId problemId = problems.getGroups().getCompilation().getGroovy().problemId("tools.jar is missing");
+                throw problems.getInternalReporter().throwing(new IllegalStateException(contextualMessage), problemId, problemSpec -> problemSpec
                     .contextualLabel(contextualMessage)
                     .solution("Check if the installation is not a JRE but a JDK.")
                 );

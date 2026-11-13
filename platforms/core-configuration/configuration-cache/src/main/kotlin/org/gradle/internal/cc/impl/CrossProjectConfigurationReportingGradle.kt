@@ -36,7 +36,6 @@ import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.invocation.GradleLifecycle
-import org.gradle.api.services.GradleService
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
@@ -50,7 +49,6 @@ import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.extensions.core.serviceOf
-import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
 import java.io.File
@@ -80,13 +78,12 @@ class CrossProjectConfigurationReportingGradle(
 
     private fun onMutableStateAccess(what: String) {
         ipProblems.report {
-            problem {
+            problem("Project cannot access Gradle state") {
                 text("Project ")
                 reference(referrerProject.buildTreePath)
-                text(" cannot access Gradle.$what")
-            }
-                .exception { message -> message.capitalized() }
-                .build()
+                text(" cannot access ")
+                reference("Gradle.$what")
+            }.build()
         }
     }
 
@@ -333,9 +330,6 @@ class CrossProjectConfigurationReportingGradle(
     override fun getProviders(): ProviderFactory =
         delegate.providers
 
-    override fun <T : GradleService> service(serviceType: Class<T>): T =
-        delegate.service(serviceType)
-
     override fun getIncludedBuilds(): MutableCollection<IncludedBuild> =
         delegate.includedBuilds
 
@@ -387,9 +381,6 @@ class CrossProjectConfigurationReportingGradle(
 
     override fun getIdentityPath(): Path =
         delegate.identityPath
-
-    override fun contextualize(description: String): String =
-        delegate.contextualize(description)
 
     override fun getPublicBuildPath(): PublicBuildPath =
         delegate.publicBuildPath

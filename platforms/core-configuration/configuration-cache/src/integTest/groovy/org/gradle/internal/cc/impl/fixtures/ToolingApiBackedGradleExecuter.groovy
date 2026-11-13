@@ -31,6 +31,9 @@ import org.gradle.util.DebugUtil
 
 import java.util.function.Function
 
+import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+
 class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
     private final jvmArgs = []
 
@@ -49,6 +52,15 @@ class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     void assertCanExecute() throws AssertionError {
+    }
+
+    @Override
+    protected List<String> getAllArgs() {
+        def args = super.getAllArgs()
+        if (!pluginRepositoryMirrorDisabled) {
+            args.add("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}".toString())
+        }
+        return args
     }
 
     @Override

@@ -29,6 +29,7 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.AbstractTestForPatternSet
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
@@ -179,6 +180,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         1 * listener.fileCollectionObserved(fileTree)
     }
 
+    @ExpectDeprecation("The FileCollection.addToAntBuilder(Object, String, AntType) method has been deprecated.")
     def testCanAddToAntTask() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
@@ -197,7 +199,6 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         expect:
         fileTree.files.empty
         fileTree.empty
-        assertSetContainsForAllTypes(fileTree)
         assertVisits(fileTree, [], [])
     }
 
@@ -225,7 +226,6 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
 
         expect:
         fileTree.files == [included1, included2] as Set
-        assertSetContainsForAllTypes(fileTree, 'subDir/included1', 'subDir2/included2')
         assertVisits(fileTree, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
         fileTree.contains(included1)
         !fileTree.contains(excluded1)
@@ -249,7 +249,6 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
 
         expect:
         filtered.files == [included1, included2] as Set
-        assertSetContainsForAllTypes(filtered, 'subDir/included1', 'subDir2/included2')
         assertVisits(filtered, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
         filtered.contains(included1)
         !filtered.contains(excluded1)
@@ -271,7 +270,6 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
 
         expect:
         filtered.files == [included1, included2] as Set
-        assertSetContainsForAllTypes(filtered, 'subDir/included1', 'subDir2/included2')
         assertVisits(filtered, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
         filtered.contains(included1)
         !filtered.contains(excluded1)
@@ -298,7 +296,6 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
 
         expect:
         filtered.files == [included1, included2] as Set
-        assertSetContainsForAllTypes(filtered, 'subDir/included1', 'subDir2/included2')
         assertVisits(filtered, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
         filtered.contains(included1)
         !filtered.contains(excluded1)

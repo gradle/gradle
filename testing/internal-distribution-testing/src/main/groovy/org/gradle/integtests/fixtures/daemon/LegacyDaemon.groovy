@@ -57,6 +57,11 @@ Current state is ${lastLogState}.""")
     }
 
     @Override
+    byte[] getToken() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
     void assertRegistryNotWorldReadable() {
         throw new UnsupportedOperationException()
     }

@@ -23,7 +23,7 @@ dependencies {
     compileOnly(buildLibs.kotlinCompilerEmbeddable) {
         because("Required by KotlinSourceParser")
     }
-    implementation(buildLibs.kgp) {
+    implementation(buildLibs.kotlinGradlePlugin) {
         because("For manually defined KotlinSourceSet accessor - sourceSets.main.get().kotlin")
     }
 
@@ -33,6 +33,8 @@ dependencies {
 }
 
 configurations.testRuntimeClasspath {
+    // Configuration-level on purpose: the plugin is a direct dependency above, which no
+    // declaration-level exclude can remove, and it must stay on the main runtime classpath.
     // https://youtrack.jetbrains.com/issue/KT-87492/KGP-jar-bundles-a-partial-and-unshaded-copy-of-org.jetbrains.kotlin.com.intellij.-classes-that-collide-with-kotlin-compiler
     exclude(group = "org.jetbrains.kotlin", module = "kotlin-gradle-plugin")
 }

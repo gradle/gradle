@@ -1,0 +1,8 @@
+------------------------------------------------------------
+Root project 'maven-settings-mirror'
+------------------------------------------------------------
+
+runtimeClasspath - Runtime classpath of source set 'main'.
+\--- org.apache.commons:commons-lang3:3.14.0 FAILED
+
+A web-based, searchable dependency report is available by adding the --scan option.

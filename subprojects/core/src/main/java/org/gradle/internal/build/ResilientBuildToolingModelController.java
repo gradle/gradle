@@ -23,7 +23,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Try;
 import org.gradle.internal.buildtree.ToolingModelRequestContext;
-import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
@@ -33,11 +32,9 @@ import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 import org.gradle.tooling.provider.model.internal.ToolingModelScopeResult;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.ImmutableList.toImmutableList;
 
 public class ResilientBuildToolingModelController extends DefaultBuildToolingModelController {
 
@@ -137,7 +134,9 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
 
             // The project configured successfully, but the model builder itself may still fail.
             //noinspection DataFlowIssue
-            return Try.ofFailable(() -> ToolingModelScopeResult.of(buildModelWithParameter(parameter))).getOrMapFailure(failure -> {
+            return Try.ofFailable(() -> buildModelWithParameter(parameter))
+                .map(clientResult -> ToolingModelScopeResult.withModelBuilderFailures(clientResult, clientResult.getOriginalFailures()))
+                .getOrMapFailure(failure -> {
                 if (failure instanceof UnknownModelException) {
                     throw (UnknownModelException) failure;
                 }
@@ -189,10 +188,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
             ToolingModelBuilderResultInternal clientResult = buildModelWithParameter(parameter);
             // Failures attached by a build-scoped builder (e.g. GradleBuildBuilder) are configuration failures
             // of the visited builds, so they must still fail the build.
-            List<Throwable> configurationFailures = clientResult.getFailures().stream()
-                .map(Failure::getOriginal)
-                .collect(toImmutableList());
-            return ToolingModelScopeResult.withConfigurationFailures(clientResult, configurationFailures);
+            return ToolingModelScopeResult.withConfigurationFailures(clientResult, clientResult.getOriginalFailures());
         }
     }
 

@@ -20,7 +20,7 @@ For migrating from Gradle 4.x, see the <<upgrading_version_4.adoc#upgrading_vers
 
 We recommend the following steps for all users:
 
-. Try running `gradle help --scan` and view the https://docs.gradle.com/develocity/get-started/#identifying_deprecated_gradle_functionality[deprecations view] of the generated Build Scan.
+. Try running `gradle help --scan` and view the https://docs.develocity.ai/gradle/current/getting-started/#identifying-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
 +
 image::deprecations.png[Deprecations View in a Build Scan]
 +
@@ -73,7 +73,7 @@ Use '--warning-mode all' to show the individual deprecation warnings.
 See https://docs.gradle.org/6.0/userguide/command_line_interface.html#sec:command_line_warnings
 ----
 
-The deprecation warnings show up in a https://scans.gradle.com/s/txrptciitl2ha/deprecations[Build Scan] for every build, regardless of the command-line switches used.
+The deprecation warnings show up in a Build Scan for every build, regardless of the command-line switches used.
 
 When the build is executed with `--warning-mode all`, the individual warnings will be shown:
 
@@ -175,7 +175,7 @@ Gradle 6.0 supports Android Gradle Plugin versions 3.4 and later.
 
 For Gradle 6, usage of the Build Scan plugin must be replaced with the Develocity plugin.
 This also requires changing how the plugin is applied.
-Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information.
+Please see link:https://docs.develocity.ai/gradle/current/gradle-plugin/#gradle_6_x_and_later[Develocity Gradle plugin documentation] for more information.
 
 [[v5_updates_to_bundled_gradle_dependencies]]
 ==== Updates to bundled Gradle dependencies
@@ -364,7 +364,7 @@ This change has been made so that plugins applied to the settings script can con
 - The `ValidateTaskProperties` type is replaced by `ValidatePlugins`.
 - The `setClasses()` method is now removed. Use `getClasses().setFrom()` instead.
 - The `setClasspath()` method is also removed. use `getClasspath().setFrom()` instead.
-- The link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html#getFailOnWarning--[failOnWarning] option is now enabled by default.
+- The link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html#getFailOnWarning()[failOnWarning] option is now enabled by default.
 - The following task validation errors now fail the build at runtime and are promoted to errors for link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins]:
   * A task property is annotated with a property annotation not allowed for tasks, like `@InputArtifact`.
 
@@ -533,7 +533,7 @@ They are also free to add a method annotated with `@TaskAction` using an `InputC
   `append` is now always configured to be true for the Jacoco agent.
 * The `configureDefaultOutputPathForJacocoMerge` method on `JacocoPlugin` has been removed.
   The method was never meant to be public.
-* File paths in link:{javadocPath}/org/gradle/plugins/ear/descriptor/DeploymentDescriptor.html#getFileName--[deployment descriptor file name] for the ear plugin are not allowed any more.
+* File paths in link:{javadocPath}/org/gradle/plugins/ear/descriptor/DeploymentDescriptor.html#getFileName()[deployment descriptor file name] for the ear plugin are not allowed any more.
   Use a simple name, like `application.xml`, instead.
 * The `org.gradle.testfixtures.ProjectBuilder` constructor has been removed. Please use `ProjectBuilder.builder()` instead.
 * When <<groovy_plugin.adoc#sec:incremental_groovy_compilation,incremental Groovy compilation>> is enabled, a wrong configuration of the source roots or enabling Java annotation for Groovy now fails the build.
@@ -541,7 +541,7 @@ They are also free to add a method annotated with `@TaskAction` using an `InputC
 * `ComponentSelectionRule` no longer can inject the metadata or ivy descriptor.
   Use the methods on the <<resolution_rules.adoc#sec:component-selection-rules,`ComponentSelection` parameter>> instead.
 * Declaring an <<custom_tasks.adoc#incremental_tasks,incremental task>> without declaring outputs is now an error.
-  Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen()] instead.
+  Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen(groovy.lang.Closure)[TaskOutputs.upToDateWhen()] instead.
 * The `getEffectiveAnnotationProcessorPath()` method is removed from the `JavaCompile` and `ScalaCompile` tasks.
 * Changing the value of a task property with type `Property<T>` after the task has started execution now results in an error.
 * The `isLegacyLayout()` method is removed from `SourceSetOutput`.
@@ -576,7 +576,7 @@ This will become an error in Gradle 6.0.
 ==== Declaring an incremental task without outputs
 
 Declaring an <<custom_tasks.adoc#incremental_tasks,incremental task>> without declaring outputs is now deprecated.
-Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen()] instead.
+Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen(groovy.lang.Closure)[TaskOutputs.upToDateWhen()] instead.
 
 This will become an error in Gradle 6.0.
 
@@ -708,7 +708,7 @@ The built-in <<play_plugin.adoc#play_plugin, Play plugin>> has been deprecated a
 
 The _build comparison_ plugin has been deprecated and will be removed in the next major version of Gradle.
 
-A link:https://develocity.ai/product/build-scan/[Build Scan] shows much deeper insights into your build and you can use link:https://gradle.com/develocity[Develocity] to directly compare two build's build-scans.
+A link:https://develocity.ai/product/build-scan/[Build Scan] shows much deeper insights into your build and you can use link:https://develocity.ai/[Develocity] to directly compare two build's build-scans.
 
 [[v5_potential_breaking_changes_5_5]]
 === Potential breaking changes
@@ -929,7 +929,7 @@ This may break plugins that relied on the previous behaviour.
 [[v5_changes_to_specifying_operating_system_for_native_projects]]
 ==== Changes to specifying operating system for native projects
 
-The incubating `operatingSystems` property on native components has been replaced with the link:{javadocPath}/org/gradle/language/cpp/CppComponent.html#getTargetMachines()[targetMachines] property.
+The incubating `operatingSystems` property on native components has been replaced with the link:{javadocPath}/org/gradle/language/ComponentWithTargetMachines.html#getTargetMachines()[targetMachines] property.
 
 [[v5_changes_for_archive_tasks]]
 ==== Changes for archive tasks (`Zip`, `Jar`, `War`, `Ear`, `Tar`)

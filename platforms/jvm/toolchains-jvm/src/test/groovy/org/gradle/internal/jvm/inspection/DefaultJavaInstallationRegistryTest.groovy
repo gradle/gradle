@@ -18,6 +18,8 @@ package org.gradle.internal.jvm.inspection
 
 
 import org.gradle.api.logging.Logger
+import org.gradle.api.problems.internal.ProblemReporterInternal
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.progress.RecordingProgressLoggerFactory
@@ -26,7 +28,9 @@ import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.jvm.toolchain.internal.InstallationSupplier
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 class DefaultJavaInstallationRegistryTest extends Specification {
@@ -176,7 +180,7 @@ class DefaultJavaInstallationRegistryTest extends Specification {
 
         then:
         installations.isEmpty()
-        1 * logger.log(_, logOutput)
+        1 * logger.warn(logOutput)
 
         when:
         installations = registry.listInstallations()
@@ -197,7 +201,7 @@ class DefaultJavaInstallationRegistryTest extends Specification {
 
         then:
         installations.isEmpty()
-        1 * logger.log(_, logOutput)
+        1 * logger.warn(logOutput)
 
         when:
         installations = registry.listInstallations()
@@ -218,7 +222,7 @@ class DefaultJavaInstallationRegistryTest extends Specification {
 
         then:
         installations.isEmpty()
-        1 * logger.log(_, logOutput)
+        1 * logger.warn(logOutput)
 
         when:
         installations = registry.listInstallations()
@@ -226,6 +230,46 @@ class DefaultJavaInstallationRegistryTest extends Specification {
         then:
         installations.isEmpty()
         0 * logger._
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39358")
+    def "reports problem about invalid user-defined installation"() {
+        given:
+        def jdk8 = temporaryFolder.createDir("non-existent")
+        jdk8.deleteDir()
+        def problems = Mock(ProblemsInternal)
+        def problemReporter = Mock(ProblemReporterInternal)
+        problems.getInternalReporter() >> problemReporter
+        problems.getGroups() >> TestUtil.problemsService().getGroups()
+
+        when:
+        def registry = createRegistry([jdk8], OperatingSystem.current(), problems)
+        def installations = registry.listInstallations()
+
+        then:
+        installations.isEmpty()
+        1 * problemReporter.report({ it.name == "Invalid JVM installation" && it.group.name == "Tools and Toolchains" }, _)
+        0 * logger.warn(_)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39358")
+    def "only logs at info about invalid auto-detected installation"() {
+        given:
+        def jdk8 = temporaryFolder.createDir("no-executable")
+        def logOutput = "Path for java installation '" + jdk8 + "' (testSource) auto-detected does not contain a java executable"
+        def problems = Mock(ProblemsInternal)
+        def problemReporter = Mock(ProblemReporterInternal)
+        problems.getInternalReporter() >> problemReporter
+
+        when:
+        def registry = createRegistry([jdk8], OperatingSystem.current(), problems, true)
+        def installations = registry.listInstallations()
+
+        then:
+        installations.isEmpty()
+        1 * logger.info(logOutput)
+        0 * logger.warn(_)
+        0 * problemReporter._
     }
 
     def "can detect enclosed jre installations"() {
@@ -271,10 +315,10 @@ class DefaultJavaInstallationRegistryTest extends Specification {
         return jdkHome
     }
 
-    private DefaultJavaInstallationRegistry createRegistry(List<File> location, OperatingSystem os = OperatingSystem.current()) {
+    private DefaultJavaInstallationRegistry createRegistry(List<File> location, OperatingSystem os = OperatingSystem.current(), ProblemsInternal problems = null, boolean autoDetected = false) {
         def installations = Mock(InstallationSupplier)
         installations.sourceName >> "testSource"
-        installations.get() >> location.collect { InstallationLocation.userDefined(it, "testSource") }
+        installations.get() >> location.collect { autoDetected ? InstallationLocation.autoDetected(it, "testSource") : InstallationLocation.userDefined(it, "testSource") }
 
         return new DefaultJavaInstallationRegistry(
             toolchainConfiguration,
@@ -285,7 +329,7 @@ class DefaultJavaInstallationRegistryTest extends Specification {
             operations,
             os,
             loggerFactory,
-            new JvmInstallationProblemReporter(),
+            problems,
         )
     }
 }

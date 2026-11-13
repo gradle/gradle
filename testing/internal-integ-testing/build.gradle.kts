@@ -100,6 +100,12 @@ dependencies {
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.configurationCacheReportFixtures) {
+        because("The configuration cache report fixture reads the report data the library writes")
+    }
+    testImplementation(libs.configurationCacheReport) {
+        because("The configuration cache report fixture is tested against reports the library writes")
+    }
     implementation(libs.groovyJson)
     implementation(libs.guava)
     implementation(libs.inject)
@@ -111,7 +117,8 @@ dependencies {
     implementation(testLibs.mavenResolverProvider) {
         because("For ApiMavenResolver. Provides MavenRepositorySystemUtils")
     }
-    implementation(testLibs.netty)
+    implementation(testLibs.nettyCodecHttp)
+    implementation(testLibs.nettyTransport)
     implementation(testLibs.opentest4j)
     implementation(testLibs.socksProxy)
     // we depend on both: sshd platforms and libraries
@@ -141,6 +148,11 @@ dependencies {
     runtimeOnly(testLibs.mavenResolverTransportHttp) {
         because("For ApiMavenResolver. To resolve http:// URLs")
     }
+    runtimeOnly(testLibs.nettyCodecHaproxy) {
+        because("LittleProxy loads HAProxy classes at runtime but does not declare the dependency")
+    }
+    runtimeOnly(testLibs.nettyCommon)
+    runtimeOnly(testLibs.nettyHandler)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

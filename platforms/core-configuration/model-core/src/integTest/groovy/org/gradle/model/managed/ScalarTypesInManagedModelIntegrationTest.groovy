@@ -57,6 +57,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         succeeds "check"
 
     }
@@ -95,6 +96,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         when:
+        expectSoftwareModelDeprecation("RulePlugin")
         run "check"
 
         then:
@@ -125,6 +127,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails "model"
 
         and:
@@ -182,6 +185,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         succeeds "check"
     }
 
@@ -268,6 +272,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         succeeds "check"
     }
 
@@ -367,6 +372,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         succeeds "check"
     }
 
@@ -393,6 +399,8 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectModelDslDeprecation()
+        expectModelReportTaskDeprecation()
         succeeds "model"
     }
 
@@ -460,6 +468,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectSoftwareModelDeprecation("PluginRules")
         succeeds 'check'
 
     }
@@ -539,6 +548,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        expectSoftwareModelDeprecation("RulePlugin")
         succeeds 'check'
 
     }
@@ -611,6 +621,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         datatable.each { propertyDef ->
             def (type, value) = propertyDef
             def propName = type.primitive ? "primitive${type.name.capitalize()}${i++}" : "boxed${type.simpleName}${i++}"
+            expectSoftwareModelDeprecation("PluginRules")
             fails "check${propName.capitalize()}"
             failure.assertHasCause(/Attempt to modify a read only view of model element 'createModel' of type 'ManagedType' given to rule PluginRules#addCheckTask(ModelMap<Task>, ManagedType)/)
         }
@@ -648,6 +659,8 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         when: "we check the contents of the collection"
+        expectSoftwareModelDeprecation("RulePlugin")
+        expectModelDslDeprecation()
         succeeds 'check'
 
         then: "the order is preserved"
@@ -688,6 +701,8 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         when: "we check the contents of the collection"
+        expectSoftwareModelDeprecation("RulePlugin")
+        expectModelDslDeprecation()
         succeeds 'check'
 
         then: "the order is preserved"
@@ -724,6 +739,8 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        expectSoftwareModelDeprecation("RulePlugin")
+        expectModelDslDeprecation()
         succeeds 'check'
     }
 
@@ -757,10 +774,24 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         when: "we try to mutate a read-write collection explicitly set outside of a rule subject"
+        expectSoftwareModelDeprecation("RulePlugin")
+        expectModelDslDeprecation()
         fails 'check'
 
         then: "mutation is not allowed"
         failure.assertHasCause("Attempt to modify a read only view of model element 'user.groups' of type 'Set<String>' given to rule RulePlugin#checkUser(ModelMap<Task>, User)")
     }
 
+
+    private void expectSoftwareModelDeprecation(String pluginName) {
+        executer.expectDocumentedDeprecationWarning("The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
+
+    private void expectModelDslDeprecation() {
+        executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
+
+    private void expectModelReportTaskDeprecation() {
+        executer.expectDocumentedDeprecationWarning("The task type org.gradle.api.reporting.model.ModelReport (used by the :model task) has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
 }

@@ -17,19 +17,50 @@
 package gradlebuild.basics
 
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.os.OperatingSystem
+// Using star import to workaround https://youtrack.jetbrains.com/issue/KTIJ-24390
+import org.gradle.kotlin.dsl.*
 import javax.inject.Inject
 
 
 abstract class BuildEnvironmentService : BuildService<BuildEnvironmentService.Parameters> {
 
+    companion object {
+        // Keep in sync with the corresponding constants in `gradlebuild.basics.BuildParams`,
+        // which this project cannot depend on (`basics` depends on `build-environment`, not the other way around).
+        private
+        const val BUILD_TIMESTAMP_PROPERTY = "buildTimestamp"
+
+        private
+        const val IGNORE_INCOMING_BUILD_RECEIPT_PROPERTY = "ignoreIncomingBuildReceipt"
+
+        private
+        const val ENABLE_CONFIGURATION_CACHE_FOR_DOCS_TESTS_PROPERTY = "enableConfigurationCacheForDocsTests"
+
+        private
+        const val CI_ENVIRONMENT_VARIABLE = "CI"
+    }
+
     interface Parameters : BuildServiceParameters {
         val rootProjectDir: DirectoryProperty
         val rootProjectBuildDir: DirectoryProperty
+
+        /**
+         * Whether `install`/`installAll` was requested on the command line.
+         *
+         * Computed from `StartParameter` at settings time, since a build service cannot see it.
+         */
+        val runningInstallTask: Property<Boolean>
+
+        /**
+         * Whether `:docs:docsTest` was requested on the command line.
+         */
+        val runningDocsTestTask: Property<Boolean>
     }
 
     @get:Inject
@@ -38,6 +69,45 @@ abstract class BuildEnvironmentService : BuildService<BuildEnvironmentService.Pa
     val gitCommitId = git("rev-parse", "HEAD")
     val gitBranch = git("rev-parse", "--abbrev-ref", "HEAD")
     val scriptTemplateCommitId = git("log", "-1", "--format=%H", "--", "platforms/jvm/plugins-application/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt")
+
+    /**
+     * The timestamp identifying the distribution built by this build, shared by every project.
+     *
+     * This service is a build-scoped singleton, so the value source below is instantiated once
+     * per build and its value is memoized. That matters: when `install`, `:docs:docsTest` or CI
+     * selects the current instant rather than local midnight, obtaining the value source more
+     * than once yields *different* timestamps. Creating it per project (as this used to be) made
+     * the projects of a single build disagree about the version of the distribution being built,
+     * so e.g. the installed distribution and the tests exercising it ended up on different versions.
+     *
+     * It stays a value source rather than a plain `Date` captured at settings time so that the
+     * configuration cache keeps tracking it as an input and re-obtains it on the next build.
+     */
+    val buildTimestamp: Provider<String> = providers.of(BuildTimestampValueSource::class) {
+        parameters {
+            buildTimestampFromBuildReceipt.set(this@BuildEnvironmentService.buildTimestampFromBuildReceipt())
+            buildTimestampFromGradleProperty.set(providers.gradleProperty(BUILD_TIMESTAMP_PROPERTY))
+            enableConfigurationCacheForDocsTests.set(providers.gradleProperty(ENABLE_CONFIGURATION_CACHE_FOR_DOCS_TESTS_PROPERTY).map { it.toBoolean() })
+            runningOnCi.set(providers.environmentVariable(CI_ENVIRONMENT_VARIABLE).map { true }.orElse(false))
+            runningInstallTask.set(this@BuildEnvironmentService.parameters.runningInstallTask)
+            runningDocsTestTask.set(this@BuildEnvironmentService.parameters.runningDocsTestTask)
+        }
+    }
+
+    private
+    fun buildTimestampFromBuildReceipt(): Provider<String> =
+        providers.of(BuildTimestampFromBuildReceiptValueSource::class) {
+            parameters {
+                ignoreIncomingBuildReceipt.set(providers.gradleProperty(IGNORE_INCOMING_BUILD_RECEIPT_PROPERTY).map { true }.orElse(false))
+                buildReceiptFileContents.set(
+                    providers.fileContents(
+                        this@BuildEnvironmentService.parameters.rootProjectDir.get()
+                            .dir("incoming-distributions")
+                            .file(BuildTimestampFromBuildReceiptValueSource.BUILD_RECEIPT_FILE_NAME)
+                    ).asText
+                )
+            }
+        }
 
     @Suppress("UnstableApiUsage")
     private

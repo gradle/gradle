@@ -17,14 +17,12 @@
 package org.gradle.internal.serialize.codecs.dm
 
 import com.google.common.collect.ImmutableMap
-import org.gradle.api.Action
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultLocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet
@@ -241,10 +239,6 @@ class RecordingVariantSet(
     }
 
     override fun visitTransformSources(visitor: ResolvedArtifactSet.TransformSourceVisitor) {
-        throw UnsupportedOperationException("Should not be called")
-    }
-
-    override fun visitExternalArtifacts(visitor: Action<ResolvableArtifact>) {
         throw UnsupportedOperationException("Should not be called")
     }
 

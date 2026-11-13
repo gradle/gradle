@@ -15,17 +15,12 @@
  */
 package org.gradle.docs.asciidoctor
 
-import org.asciidoctor.Asciidoctor
 import org.asciidoctor.Options
 import org.asciidoctor.extension.JavaExtensionRegistry
-import spock.lang.Specification
 
-class IncubatingLabelProcessorTest extends Specification {
+class IncubatingLabelProcessorTest extends AbstractAsciidoctorTest {
 
-    Asciidoctor asciidoctor
-
-    def setup() {
-        asciidoctor = Asciidoctor.Factory.create()
+    def setupSpec() {
         JavaExtensionRegistry extensionRegistry = asciidoctor.javaExtensionRegistry()
         extensionRegistry.inlineMacro(IncubatingLabelProcessor.class)
     }

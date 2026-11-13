@@ -96,7 +96,7 @@ class NullableTypesTest {
             Assert.assertEquals("""
                 |Unsupported usage of a nullable type
                 |  in configured type 'org.gradle.internal.declarativedsl.schemaBuidler.NullableTypesTest.Nested?'
-                |  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.NullableTypesTest.HasNullableConfiguredType.configure((org.gradle.internal.declarativedsl.schemaBuidler.NullableTypesTest.Nested?) -> kotlin.Unit): kotlin.Unit'
+                |  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.NullableTypesTest.HasNullableConfiguredType.configure(org.gradle.internal.declarativedsl.schemaBuidler.NullableTypesTest.Nested?.() -> kotlin.Unit): kotlin.Unit'
                 |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.NullableTypesTest.HasNullableConfiguredType'
             """.trimMargin("|"), message)
         }

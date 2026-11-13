@@ -33,6 +33,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.GradleVersion;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -94,7 +95,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.setDescription("Generate Javadocs for all API classes");
 
             // TODO: This breaks if version is changed later
-            task.setTitle("Gradle API " + project.getVersion());
+            task.setTitle("Gradle API " + GradleVersion.version(project.getVersion().toString()).getBaseVersion().getVersion());
 
             StandardJavadocDocletOptions options = (StandardJavadocDocletOptions) task.getOptions();
             options.setEncoding("utf-8");
@@ -102,7 +103,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             options.setCharSet("utf-8");
 
             options.addBooleanOption("-allow-script-in-comments", true);
-            options.setHeader(loadJavadocHeader());
+            options.addStringOption("top", loadJavadocHeader());
 
             // TODO: This would be better to model as separate options
             options.addStringOption("Xdoclint:syntax,html", "-quiet");
@@ -142,6 +143,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
         // TODO: destinationDirectory should be part of Javadoc
         javadocs.getRenderedDocumentation().from(javadocAll.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
 
+        project.getPluginManager().apply("checkstyle");
         CheckstyleExtension checkstyle = project.getExtensions().getByType(CheckstyleExtension.class);
         tasks.register("checkstyleApi", Checkstyle.class, task -> {
             task.source(extension.getDocumentedSource());

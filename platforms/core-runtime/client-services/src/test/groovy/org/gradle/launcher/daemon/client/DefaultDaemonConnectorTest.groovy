@@ -45,7 +45,7 @@ class DefaultDaemonConnectorTest extends Specification {
     def daemonCounter = 0
 
     class OutgoingConnectorStub implements OutgoingConnector {
-        ConnectCompletion connect(Address address) throws ConnectException {
+        ConnectCompletion connect(Address address, byte[] connectionToken) throws ConnectException {
             def connection = [:] as RemoteConnection
             // unsure why I can't add this as property in the map-mock above
             connection.metaClass.num = address.num
@@ -184,7 +184,7 @@ class DefaultDaemonConnectorTest extends Specification {
         startIdleDaemon()
         assert !registry.all.empty
 
-        connector.connector.connect(_ as Address) >> { throw new ConnectException("Problem!", new RuntimeException("foo")) }
+        connector.connector.connect(_ as Address, _) >> { throw new ConnectException("Problem!", new RuntimeException("foo")) }
 
         when:
         def connection = connector.maybeConnect( { true } as ExplainingSpec)

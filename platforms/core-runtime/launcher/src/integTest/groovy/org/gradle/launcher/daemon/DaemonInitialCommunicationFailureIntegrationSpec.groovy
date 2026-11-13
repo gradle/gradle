@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.internal.remote.internal.inet.ConnectionHandshake
 import org.gradle.internal.remote.internal.inet.TcpOutgoingConnector
 import org.gradle.test.preconditions.OsTestPreconditions
 
@@ -100,9 +101,9 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         //most fundamentally, stopping works ok:
         stopDaemonsNow()
 
-        and:
+        and: "the process on the port fails the handshake, so it is treated as a stale address"
         output.contains DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE
-        output.contains DaemonMessages.UNABLE_TO_STOP_DAEMON
+        !output.contains(DaemonMessages.UNABLE_TO_STOP_DAEMON)
 
         when:
         stopDaemonsNow()
@@ -169,11 +170,14 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         def socket = new Socket(new InetAddressFactory().localBindingAddress, daemon.port)
 
         socket.outputStream.write(TcpOutgoingConnector.CONNECTION_PREAMBLE)
+        socket.outputStream.write(ConnectionHandshake.clientProof(daemon.token))
+        socket.outputStream.flush()
+        socket.inputStream.readNBytes(ConnectionHandshake.PROOF_LENGTH)
         socket.outputStream.write("GET / HTTP/1.0\n\n".getBytes())
         socket.outputStream.flush()
 
         then:
-        // Nothing sent back
+        // Nothing sent back after the handshake
         socket.inputStream.read() == -1
 
         // Daemon is still running

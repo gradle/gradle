@@ -18,13 +18,13 @@ package org.gradle.jvm.toolchain.install.internal
 
 import org.gradle.api.Action
 import org.gradle.api.BuildCancelledException
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.authentication.Authentication
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceFactory
 import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.ExternalResourceRepository
+import org.gradle.internal.resource.transport.RepositoryTransport
+import org.gradle.internal.resource.transport.RepositoryTransportFactory
 import org.gradle.internal.verifier.HttpRedirectVerifier
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainHttpRedirectVerifierFactory
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader

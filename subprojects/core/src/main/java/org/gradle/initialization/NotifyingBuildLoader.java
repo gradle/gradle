@@ -49,6 +49,7 @@ public class NotifyingBuildLoader implements BuildLoader {
                 return BuildOperationDescriptor
                     .displayName("Load projects")
                     .progressDisplayName("Loading projects")
+                    .owner(gradle.getOwner())
                     .details(new LoadProjectsBuildOperationType.Details() {
                         @Override
                         public String getBuildPath() {
@@ -77,7 +78,8 @@ public class NotifyingBuildLoader implements BuildLoader {
             public BuildOperationDescriptor.Builder description() {
                 //noinspection Convert2Lambda
                 return BuildOperationDescriptor
-                    .displayName(gradle.contextualize("Notify projectsLoaded listeners"))
+                    .displayName("Notify projectsLoaded listeners").owner(gradle.getOwner())
+                    .progressDisplayName("Running projects loaded listeners")
                     .details(new NotifyProjectsLoadedBuildOperationType.Details() {
                         @Override
                         public String getBuildPath() {

@@ -21,7 +21,7 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
-import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.ManagedServiceRegistry;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -57,9 +57,15 @@ public class ConnectorServices {
     }
 
     public static synchronized void close() {
-        if (sharedConnectorFactory != null) {
-            sharedConnectorFactory.close();
+        GradleConnectorFactory factory = sharedConnectorFactory;
+        if (factory != null) {
+            // Drop the reference before closing. The underlying service registry marks itself as
+            // closed before it stops its services, so a failure while stopping them (for example
+            // an interrupt while shutting a hanging daemon connection down) would otherwise leave
+            // a reachable factory backed by a closed registry, failing every later connector
+            // creation with "connector services has been closed."
             sharedConnectorFactory = null;
+            factory.close();
         }
     }
 
@@ -84,8 +90,11 @@ public class ConnectorServices {
      */
     @VisibleForTesting
     public static synchronized void reset() {
-        close();
-        activeConnectors = 0;
+        try {
+            close();
+        } finally {
+            activeConnectors = 0;
+        }
     }
 
     /**
@@ -97,7 +106,7 @@ public class ConnectorServices {
     }
 
     private static class DefaultGradleConnectorFactory implements GradleConnectorFactory {
-        private final CloseableServiceRegistry ownerRegistry = ConnectorServiceRegistry.create();
+        private final ManagedServiceRegistry ownerRegistry = ConnectorServiceRegistry.create();
 
         @Override
         public GradleConnector createConnector() {
@@ -117,7 +126,7 @@ public class ConnectorServices {
      */
     private static class ConnectorServiceRegistry implements ServiceRegistrationProvider {
 
-        private static CloseableServiceRegistry create() {
+        private static ManagedServiceRegistry create() {
             return ServiceRegistryBuilder.builder()
                 .displayName("connector services")
                 .provider(new ConnectorServiceRegistry())

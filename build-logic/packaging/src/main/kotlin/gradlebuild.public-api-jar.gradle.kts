@@ -16,6 +16,7 @@
 
 import gradlebuild.basics.PublicApiVariants
 import gradlebuild.configureAsRuntimeJarClasspath
+import gradlebuild.identity.registerPomPropertiesTask
 import gradlebuild.packaging.support.includePublicApiAbiStubs
 import gradlebuild.packaging.support.publicApiAbiStubs
 
@@ -39,9 +40,12 @@ val distributionClasspath = configurations.resolvable("distributionClasspath") {
     configureAsRuntimeJarClasspath(objects)
 }
 
+val pomProperties = registerPomPropertiesTask("generatePublicApiLegacyPomProperties", PublicApiVariants.LEGACY_MODULE_NAME)
+
 // Named after the runtime module so the module registry finds it as `gradle-public-api-legacy` in every distribution.
 tasks.register<Jar>("jarGradleApiLegacy") {
     includePublicApiAbiStubs(publicApiAbiStubs(distributionClasspath))
     archiveBaseName = PublicApiVariants.LEGACY_MODULE_NAME
     destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api-legacy")
+    from(pomProperties)
 }

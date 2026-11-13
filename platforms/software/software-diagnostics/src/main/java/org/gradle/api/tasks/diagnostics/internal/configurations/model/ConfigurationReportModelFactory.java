@@ -16,8 +16,10 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Attribute;
@@ -65,9 +67,10 @@ public final class ConfigurationReportModelFactory {
 
         ImmutableCapabilities defaultCapabilities = ImmutableCapabilities.of(new ProjectDerivedCapability(project));
         VariantIdentityUniquenessVerifier.VerificationReport uniquenessReport = VariantIdentityUniquenessVerifier.buildReport(configurations, defaultCapabilities);
-        configurations.stream()
-            .map(ConfigurationInternal.class::cast)
-            .forEach(configuration -> getOrConvert(configuration, uniquenessReport, project, convertedConfigurations, defaultCapabilities));
+        // Converting a configuration can realize artifact tasks that reentrantly add configurations.
+        for (Configuration configuration : ImmutableList.copyOf(configurations)) {
+            getOrConvert((ConfigurationInternal) configuration, uniquenessReport, project, convertedConfigurations, defaultCapabilities);
+        }
 
         return new ConfigurationReportModel(project.getName(),
             convertedConfigurations.values().stream().sorted(Comparator.comparing(ReportConfiguration::getName)).collect(Collectors.toList()),

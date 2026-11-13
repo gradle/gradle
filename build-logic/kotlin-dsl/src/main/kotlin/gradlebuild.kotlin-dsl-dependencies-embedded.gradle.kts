@@ -16,6 +16,7 @@
 
 import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.util.ReproduciblePropertiesWriter
+import gradlebuild.configureAsRuntimeJarClasspath
 import gradlebuild.kotlindsl.generator.tasks.GenerateKotlinDependencyExtensions
 
 plugins {
@@ -26,7 +27,7 @@ plugins {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
-val publishedKotlinDslPluginVersion = "6.7.6"
+val publishedKotlinDslPluginVersion = "6.7.13"
 val libs = project.versionCatalogs.named("libs")
 val kotlinVersion = libs.findVersion("kotlin").get().getStrictVersion()
 
@@ -67,7 +68,11 @@ tasks {
 
 // -- Embedded Kotlin dependencies -------------------------------------
 
-val embeddedKotlinBaseDependencies = configurations.create("embeddedKotlinBaseDependencies")
+val embeddedKotlinBaseDependencies = configurations.dependencyScope("embeddedKotlinBaseDependencies").get()
+val embeddedKotlinBaseClasspath = configurations.resolvable("embeddedKotlinBaseClasspath") {
+    extendsFrom(embeddedKotlinBaseDependencies)
+    configureAsRuntimeJarClasspath(objects)
+}
 
 dependencies {
     embeddedKotlinBaseDependencies(libs.findLibrary("kotlinStdlib").get())
@@ -77,12 +82,12 @@ dependencies {
 val writeEmbeddedKotlinDependencies = tasks.register("writeEmbeddedKotlinDependencies") {
     val outputFile = layout.buildDirectory.file("embeddedKotlinDependencies/gradle-kotlin-dsl-embedded-kotlin.properties")
     outputs.file(outputFile)
-    val values = embeddedKotlinBaseDependencies
+    val values = embeddedKotlinBaseClasspath
     inputs.files(values)
     val skippedModules = setOf(project.name, "distributions-dependencies")
     // https://github.com/gradle/configuration-cache/issues/183
     val modules = provider {
-        embeddedKotlinBaseDependencies.incoming.resolutionResult.allComponents
+        embeddedKotlinBaseClasspath.get().incoming.resolutionResult.allComponents
             .asSequence()
             .mapNotNull { it.moduleVersion }
             .filter { it.name !in skippedModules }

@@ -19,9 +19,12 @@
 This chapter provides the information you need to migrate your Gradle 9.x.y builds to the latest.
 For migrating to Gradle 9.0.0, see the <<upgrading_major_version_9.adoc#upgrading_major_version_9, older migration guide>> first.
 
+NOTE: As soon as Gradle 11.0.0 ships, no security or bug fixes will be made on any release of Gradle 9.
+To receive fixes for these versions, see https://gradle.org/security-subscription/[Gradle Security Subscription].
+
 We recommend the following steps for all users:
 
-. Try running `gradle help --scan` and view the https://docs.gradle.com/develocity/get-started/#identifying_deprecated_gradle_functionality[deprecations view] of the generated Build Scan.
+. Try running `gradle help --scan` and view the https://docs.develocity.ai/gradle/current/getting-started/#identifying-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
 +
 image::deprecations.png[Deprecations View of a Gradle Build Scan]
 +
@@ -36,6 +39,1405 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle :wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_9.10.0]]
+== Upgrading from 9.9.0 and earlier
+
+=== Potential breaking changes
+
+[[architecture_e2k]]
+==== New `E2K` constant in the incubating `Architecture` enum
+
+The incubating link:{javadocPath}/org/gradle/platform/Architecture.html[`Architecture`] enum has a new constant, `E2K`, for MCST Elbrus processors.
+Gradle recognizes the architecture but doesn't support it yet.
+
+This affects builds that add `E2K` to the `toolchainPlatforms` of the `updateDaemonJvm` task:
+
+* A `JavaToolchainResolver` that handles every `Architecture` value explicitly, for example with an exhaustive Kotlin `when` without an `else` branch, fails when it receives `E2K`. Resolvers should return `Optional.empty()` for architectures they don't support.
+* Gradle versions earlier than 9.10.0 can't read a `gradle-daemon-jvm.properties` file that contains `toolchainUrl.<OS>.E2K` entries, and fail at startup.
+
+[[derived_task_output_providers_execution_time]]
+==== Transformations after `asFile`, `dir`, `file` and `zip` on task outputs are deferred
+
+This change affects builds that use the <<configuration_cache.adoc#config_cache,Configuration Cache>>.
+
+A `map` or `filter` on a task output property may read the files the task produces, so Gradle evaluates it after the task runs.
+Before this change, this did not apply when the task output location was first derived with link:{javadocPath}/org/gradle/api/file/FileSystemLocationProperty.html#getAsFile()[`asFile`], link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#dir(java.lang.String)[`dir(...)`] or link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#file(java.lang.String)[`file(...)`].
+The function passed to link:{javadocPath}/org/gradle/api/provider/Provider.html#zip(org.gradle.api.provider.Provider,java.util.function.BiFunction)[`zip(...)`] was not deferred either.
+Gradle evaluated them when storing the Configuration Cache entry, before the task ran, so they could see a missing or outdated file.
+Gradle now evaluates them after the task runs as well:
+
+[source,kotlin]
+.build.gradle.kts
+----
+// Already evaluated after `producer` ran
+inputFiles.add(producer.flatMap { it.outputFile }.map { it.asFile }.filter { it.exists() })
+
+// Previously evaluated before `producer` ran, so the result reflected stale build state; now the same as above
+inputFiles.add(producer.flatMap { it.outputFile.asFile }.filter { it.exists() })
+----
+
+Only the transformations are deferred.
+Locations derived from a task output, such as the `File` returned by `asFile`, are still computed when the Configuration Cache entry is stored.
+
+Because these transformations now run at execution time, the Configuration Cache stores the transformation and everything it references instead of its result.
+A transformation that references objects the Configuration Cache cannot store, such as the `Project` or an extension, now fails with a Configuration Cache problem.
+To fix it, follow the guidance for <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types,types that must not be referenced>> and for <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution,using the `Project` object at execution time>>.
+
+[[named_attribute_value_desugared_by_name]]
+==== Attribute values are reported by name rather than `toString()`
+
+When Gradle reduces a non-`String` attribute value to a String (to report it in a resolution result, or to cache one), it now derives that String from the value's name.
+A value implementing link:{javadocPath}/org/gradle/api/Named.html[`Named`] contributes `getName()`, and a plain `Enum` contributes `name()`.
+Both previously contributed `toString()`.
+
+`getName()` is the representation the rest of Gradle already derived: attribute matching compares it, <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>> publishes it, and build operations report it.
+Reporting `toString()` meant a resolution result could describe a value differently from both the match that selected it and the metadata published for it.
+
+This changes behavior in two cases.
+
+The first is a handwritten `Named` implementation whose `toString()` returns something other than its `getName()`.
+A value created through link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#named(java.lang.Class,java.lang.String)[`ObjectFactory.named`] is unaffected, because the instance Gradle generates returns the name from both methods.
+The most likely affected shape is an `enum` implementing `Named` that overrides `getName()` while leaving `toString()` at `Enum`'s default of returning `name()`:
+
+[source,groovy]
+----
+enum MyType implements Named {
+    TYPE_A
+
+    @Override
+    String getName() { return name().toLowerCase() }   // "type_a"
+    // toString() is still "TYPE_A"
+}
+----
+
+Such a value was reported as `TYPE_A` and published as `type_a`; both are now `type_a`.
+
+The second is a plain `Enum` that does not implement `Named` and overrides `toString()`.
+Such a value is now reduced by `name()`.
+This also repairs a value that could not be read back at all: coercing a desugared String back to a plain enum goes through `Enum.valueOf`, which accepts only `name()`.
+That type remains deprecated as an attribute value type; see <<#unsupported_attribute_value_type, unsupported attribute value types>>.
+
+If your build asserts on an attribute value read from a `ResolutionResult` or from `ResolvedVariantResult.getAttributes()`, update the expected value to the name form.
+Build operations and published Gradle Module Metadata already reported the name, so assertions against those are unaffected.
+Do not reintroduce the old string by overriding `getName()` to return `toString()`; see <<variant_attributes.adoc#sec:creating-attributes, Creating attributes>> for why the two must agree.
+
+[[changes_9.9.0]]
+== Upgrading from 9.8.0 and earlier
+
+=== Potential breaking changes
+
+[[gradle_exception_carries_resolutions]]
+==== `GradleException` now carries resolution suggestions
+
+link:{javadocPath}/org/gradle/api/GradleException.html[`GradleException`] now supplies the resolution suggestions that Gradle prints beneath a failure, rather than leaving that to a handful of exception subtypes.
+
+It does this by implementing the internal `org.gradle.internal.exceptions.ResolutionProvider` interface, which subtypes previously implemented directly.
+`GradleException` gains `getResolutions()` from it, alongside the new `addResolution(String)` and `clearResolutions()`.
+
+This matters only if you had already subclassed `GradleException`, or one of its public subtypes:
+
+* If you directly implemented `ResolutionProvider` on a subclass yourself, you no longer need to, because `GradleException` already implements it.
+* If you added a `getResolutions()` method to a subtype that returns anything other than `List<String>`, this no longer compiles.
+* Similarly, if you added an `addResolution(String)` or `clearResolutions()` method to subtypes, they must return `void`.
+* Custom implementations of `addResolution(String)`, `getResolutions()`, `clearResolutions()` should honor the implicit contract between these methods.
+
+Subclasses of `ResolveException` and `ProjectConfigurationException` also can no longer override `getResolutions()`.
+Those types combine the resolutions added to them directly with the ones contributed by their causes, and an override would silently discard the former.
+Add resolutions to these types with `addResolution(String)` instead.
+
+[[kotlin_2_4_21]]
+==== Upgrade to Kotlin 2.4.21
+
+The embedded Kotlin has been upgraded from 2.4.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.21[Kotlin 2.4.21].
+
+[[configuration_cache_and_problems_report_data_format]]
+==== Configuration Cache and Problems report data format changes
+
+The format of the data embedded in the HTML files of the <<configuration_cache_debugging.adoc#config_cache:troubleshooting,Configuration Cache report>> (including when <<isolated_projects.adoc#isolated_projects,Isolated Projects>> is enabled) and the <<reporting_problems.adoc#sec:generated_html_report,Problems report>> has changed in Gradle 9.9.0.
+The reports themselves are not affected and look the same when opened in a browser.
+
+This change only matters to tools and scripts that extract the embedded data from the report HTML files.
+This data is an internal implementation detail of Gradle: it has never been a public API, and its format may change again in any future release, including patch releases, without notice.
+If you have to extract this data, parse it defensively and expect to adjust your tooling when upgrading Gradle.
+
+To consume problem data in a supported way, use the Problems API bindings of the Tooling API, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
+
+There is no supported way to programmatically inspect Configuration Cache problems yet.
+The following issues track the development of TestKit APIs for this purpose:
+
+- link:https://github.com/gradle/gradle/issues/35595[gradle/gradle#35595]: an API for verifying Configuration Cache compatibility and the inputs used by a build.
+- link:https://github.com/gradle/gradle/issues/38223[gradle/gradle#38223]: an API for verifying whether a Configuration Cache entry was reused, missed, or discarded.
+
+These APIs are intentionally focused on testing use cases.
+If you extract the report data for other purposes, please comment on these issues and describe your use case.
+
+[[deprecation_problem_ids_moved_to_predefined_groups]]
+==== Deprecation problem IDs moved to the predefined problem groups
+
+Gradle's deprecation warnings now report into the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>>, in the `Gradle > Deprecation` group reserved for them, instead of the legacy `deprecation` group.
+A deprecation is now named after the kind of feature being deprecated, instead of a slug derived from its message or subject.
+Details of the usage, such as the name of a task or a configuration, no longer appear in the name; they remain in the problem's contextual label.
+One ID therefore now covers every deprecation of the same kind:
+
+[cols="1,1"]
+|===
+|Before |After
+
+|`deprecation:<message in kebab case>`
+|`Gradle:Deprecation:<kind of deprecation>`
+
+|`deprecation:the-buildneeded-task-has-been-deprecated`
+|`Gradle:Deprecation:Task usage`
+
+|`deprecation:the-detachedconfiguration-configuration-has-been-deprecated-for-consumption`
+|`Gradle:Deprecation:Configuration usage`
+
+|`deprecation:buildsrc-script`
+|`Gradle:Deprecation:BuildSrc script`
+
+|`deprecation:implicit-lookup-of-methods-in-parent-projects`
+|`Gradle:Deprecation:Implicit lookup of methods in parent projects`
+|===
+
+This affects Tooling API clients, Build Scans, and any tooling that matches problems by ID.
+Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
+Matching on the text of a deprecation now means matching the contextual label rather than the name.
+The messages of these deprecations, their solutions, and their documentation links are unchanged.
+
+[[compilation_problem_ids_moved_to_predefined_groups]]
+==== Compilation problem IDs moved to the predefined problem groups
+
+Gradle's own compilation problems now report into the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>> instead of the legacy `compilation` groups.
+Both the group and the name of these problem IDs changed:
+
+[cols="1,1"]
+|===
+|Before |After
+
+|`compilation:java:<javac code>`, for example `compilation:java:compiler.err.cant.resolve.location`
+|`Compilation:Java:<kind of diagnostic>`, for example `Compilation:Java:Cannot find symbol`
+
+|`compilation:java:initialization-failed`
+|`Compilation:Java:Compiler initialization failed`
+
+|`compilation:groovy:missing-tools-jar`
+|`Compilation:Groovy:tools.jar is missing`
+
+|`compilation:groovy-dsl:compilation-failed`
+|`Gradle:DSL Evaluation:Script compilation failed`
+|===
+
+This affects Tooling API clients, Build Scans, and any tooling that matches problems by ID.
+Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
+
+The console heading for a failed compiler start changes accordingly, from `Java compilation initialization error` to `Compiler initialization failed`.
+
+[[dependency_problem_ids_moved_to_predefined_groups]]
+==== Dependency problem IDs moved to the predefined problem groups
+
+Gradle's own version catalog and dependency resolution problems now report into the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>> instead of the legacy `dependency-version-catalog` and `dependency-variant-resolution` groups.
+They report into these groups:
+
+* Version catalog problems: `Dependencies > Declaration`.
+* Failures while resolving the dependency graph, such as selecting a version, a variant, or a capability: `Dependencies > Graph Resolution`.
+* Artifact selection failures: `Dependencies > Artifact Resolution`.
+
+Each problem is now named by its former display name, and the names of version catalog problems mention the version catalog.
+
+[cols="1,1"]
+|===
+|Before |After
+
+|`dependency-version-catalog:accessor-name-clash`
+|`Dependencies:Declaration:Version catalog accessor name clash`
+
+|`dependency-version-catalog:alias-not-finished`
+|`Dependencies:Declaration:Version catalog alias builder not finished`
+
+|`dependency-version-catalog:catalog-file-does-not-exist`
+|`Dependencies:Declaration:Import of external version catalog file failed`
+
+|`dependency-version-catalog:invalid-alias-notation`
+|`Dependencies:Declaration:Invalid version catalog alias notation`
+
+|`dependency-version-catalog:invalid-dependency-notation`
+|`Dependencies:Declaration:Invalid version catalog dependency notation`
+
+|`dependency-version-catalog:invalid-module-notation`
+|`Dependencies:Declaration:Invalid version catalog module notation`
+
+|`dependency-version-catalog:invalid-plugin-notation`
+|`Dependencies:Declaration:Invalid version catalog plugin notation`
+
+|`dependency-version-catalog:invalid-toml-definition`
+|`Dependencies:Declaration:Invalid version catalog TOML definition`
+
+|`dependency-version-catalog:invalid-version-notation`
+|`Dependencies:Declaration:Invalid version notation in version catalog` in a version catalog, `Dependencies:Declaration:Invalid version notation` in a dependency string notation such as `"org:foo:!!1.0"`
+
+|`dependency-version-catalog:no-import-files`
+|`Dependencies:Declaration:No version catalog files were resolved to be imported`
+
+|`dependency-version-catalog:reserved-alias-name`
+|`Dependencies:Declaration:Reserved version catalog alias name`
+
+|`dependency-version-catalog:toml-syntax-error`
+|`Dependencies:Declaration:Version catalog TOML syntax error`
+
+|`dependency-version-catalog:too-many-entries`
+|`Dependencies:Declaration:Too many entries in version catalog`
+
+|`dependency-version-catalog:too-many-import-files`
+|`Dependencies:Declaration:Importing multiple version catalog files is not supported`
+
+|`dependency-version-catalog:too-many-import-invocation`
+|`Dependencies:Declaration:Multiple 'from' invocations in version catalog`
+
+|`dependency-version-catalog:undefined-alias-reference`
+|`Dependencies:Declaration:Version catalog bundle declares dependency on non-existent alias`
+
+|`dependency-version-catalog:undefined-version-reference`
+|`Dependencies:Declaration:Undefined version reference in version catalog`
+
+|`dependency-version-catalog:unsupported-file-format`
+|`Dependencies:Declaration:Unsupported version catalog file format`
+
+|`dependency-version-catalog:unsupported-format-version`
+|`Dependencies:Declaration:Unsupported version catalog format version`
+
+|`dependency-variant-resolution:ambiguous-artifact-transform`
+|`Dependencies:Artifact Resolution:Multiple artifact transforms exist that would satisfy the request`
+
+|`dependency-variant-resolution:ambiguous-artifacts`
+|`Dependencies:Artifact Resolution:Multiple artifacts exist that would match the request`
+
+|`dependency-variant-resolution:ambiguous-variants`
+|`Dependencies:Graph Resolution:Multiple variants exist that would match the request`
+
+|`dependency-variant-resolution:capability-conflict`
+|`Dependencies:Graph Resolution:Module rejected due to a capability conflict`
+
+|`dependency-variant-resolution:configuration-does-not-exist`
+|`Dependencies:Graph Resolution:Configuration selected by name does not exist`
+
+|`dependency-variant-resolution:configuration-not-compatible`
+|`Dependencies:Graph Resolution:Configuration selected by name is not compatible`
+
+|`dependency-variant-resolution:configuration-not-consumable`
+|`Dependencies:Graph Resolution:Configuration selected by name is not consumable`
+
+|`dependency-variant-resolution:incompatible-multiple-nodes`
+|`Dependencies:Graph Resolution:Incompatible nodes of a single component were selected`
+
+|`dependency-variant-resolution:no-compatible-artifact`
+|`Dependencies:Artifact Resolution:No artifacts exist that would match the request`
+
+|`dependency-variant-resolution:no-compatible-variants`
+|`Dependencies:Graph Resolution:No variants exist that would match the request`
+
+|`dependency-variant-resolution:no-variants-with-matching-capabilities`
+|`Dependencies:Graph Resolution:No variants exist with capabilities that would match the request`
+
+|`dependency-variant-resolution:no-version-satisfies`
+|`Dependencies:Graph Resolution:No version satisfies the constraints`
+
+|`dependency-variant-resolution:unknown-artifact-selection-failure`
+|`Dependencies:Artifact Resolution:Unknown artifact selection failure`
+
+|`dependency-variant-resolution:unknown-resolution-failure`
+|`Dependencies:Graph Resolution:Unknown resolution failure`
+|===
+
+This affects Tooling API clients, Build Scans, and any tooling that matches problems by ID.
+Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
+
+The display name of the ambiguous artifact transform failure is corrected from `Multiple artifacts transforms exist that would satisfy the request` to `Multiple artifact transforms exist that would satisfy the request`.
+
+[[validation_problem_ids_moved_to_predefined_groups]]
+==== Validation problem IDs moved to the predefined problem groups
+
+Gradle's own validation problems now report into the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>> instead of the legacy `validation:property-validation`, `validation:type-validation` and `scripts:dcl-schema` groups.
+Problems about input, output, and caching annotations report into `Gradle > Plugin Validation`.
+Problems about how build logic uses the build model, such as an implementation that cannot be tracked, a missing task dependency, or a type that cannot be part of a Declarative schema, report into `Gradle > Build Logic`.
+Problems about a missing or unusable property value report into `Gradle > Build Definition`.
+Each problem is now named by its former display name, with a few names reworded to describe the problem:
+
+[cols="1,1"]
+|===
+|Before |After
+
+|`scripts:dcl-schema:dcl-schema-building-failure`
+|`Gradle:Build Logic:Schema building failure`
+
+|`scripts:dcl-schema:declaration-hidden-type-used-in-definition`
+|`Gradle:Build Logic:A hidden declaration is used in definition`
+
+|`scripts:dcl-schema:declaration-visible-and-hidden`
+|`Gradle:Build Logic:Declaration is both visible and hidden`
+
+|`scripts:dcl-schema:illegal-usage-of-type-parameter-bound-by-class`
+|`Gradle:Build Logic:Illegal usage of type parameter bound by class`
+
+|`scripts:dcl-schema:illegal-variance-in-parameterized-type-usage`
+|`Gradle:Build Logic:Illegal variance in parameterized type usage`
+
+|`scripts:dcl-schema:non-classifiable-type`
+|`Gradle:Build Logic:Non-classifiable type`
+
+|`scripts:dcl-schema:unit-adding-function-with-lambda`
+|`Gradle:Build Logic:Unit-adding function with lambda`
+
+|`scripts:dcl-schema:unrecognized-member`
+|`Gradle:Build Logic:Unrecognized member`
+
+|`scripts:dcl-schema:unsafe-because-has-hidden-members`
+|`Gradle:Build Logic:Unsafe hidden members in safe feature API`
+
+|`scripts:dcl-schema:unsafe-because-has-non-public-members`
+|`Gradle:Build Logic:Non-public members in safe feature API`
+
+|`scripts:dcl-schema:unsafe-inject-property`
+|`Gradle:Build Logic:Unsafe injected service property in safe feature API`
+
+|`scripts:dcl-schema:unsafe-java-bean-property`
+|`Gradle:Build Logic:Unsafe Java bean property in safe feature API`
+
+|`scripts:dcl-schema:unsafe-non-abstract-member`
+|`Gradle:Build Logic:Unsafe non-abstract member in safe feature API`
+
+|`scripts:dcl-schema:unsafe-non-interface-type`
+|`Gradle:Build Logic:Unsafe non-interface type in safe feature API`
+
+|`scripts:dcl-schema:unsafe-non-pure-function`
+|`Gradle:Build Logic:Unsafe non-pure function in safe feature API`
+
+|`scripts:dcl-schema:unsupported-generic-container-type`
+|`Gradle:Build Logic:Unsupported generic container type`
+
+|`scripts:dcl-schema:unsupported-map-factory`
+|`Gradle:Build Logic:Unsupported map factory`
+
+|`scripts:dcl-schema:unsupported-nullable-read-only-property`
+|`Gradle:Build Logic:Unsupported nullable read-only property`
+
+|`scripts:dcl-schema:unsupported-nullable-type`
+|`Gradle:Build Logic:Unsupported nullable type`
+
+|`scripts:dcl-schema:unsupported-pair-factory`
+|`Gradle:Build Logic:Unsupported pair factory`
+
+|`scripts:dcl-schema:unsupported-type-parameter-as-container-type`
+|`Gradle:Build Logic:Unsupported type parameter as container type`
+
+|`scripts:dcl-schema:unsupported-vararg-type`
+|`Gradle:Build Logic:Unsupported vararg type`
+
+|`validation:invalid-java-toolchain`
+|`Gradle:Build Definition:Running task ValidatePlugins with an unsupported Java Toolchain`
+
+|`validation:missing-java-toolchain-plugin`
+|`Gradle:Build Definition:Using task ValidatePlugins without applying the Java Toolchain plugin`
+
+|`validation:property-validation:annotation-invalid-in-context`
+|`Gradle:Plugin Validation:Invalid annotation in context`
+
+|`validation:property-validation:artifact-transform-should-not-declare-output`
+|`Gradle:Plugin Validation:Artifact transform should not declare output`
+
+|`validation:property-validation:cacheable-transform-cant-use-absolute-sensitivity`
+|`Gradle:Plugin Validation:Property declared to be sensitive to absolute paths`
+
+|`validation:property-validation:cannot-use-optional-on-primitive-types`
+|`Gradle:Plugin Validation:Primitive property annotated with @Optional`
+
+|`validation:property-validation:cannot-write-output`
+|`Gradle:Build Definition:Property is not writable`
+
+|`validation:property-validation:cannot-write-to-reserved-location`
+|`Gradle:Build Definition:Cannot write to reserved location`
+
+|`validation:property-validation:conflicting-annotations`
+|`Gradle:Plugin Validation:Conflicting annotations`
+
+|`validation:property-validation:ignored-annotations-on-field`
+|`Gradle:Plugin Validation:Incorrect annotations on field`
+
+|`validation:property-validation:ignored-property-must-not-be-annotated`
+|`Gradle:Plugin Validation:Ignored property has other annotations`
+
+|`validation:property-validation:implicit-dependency`
+|`Gradle:Build Logic:Property has implicit dependency`
+
+|`validation:property-validation:incompatible-annotations`
+|`Gradle:Plugin Validation:Incompatible annotations`
+
+|`validation:property-validation:incorrect-use-of-input-annotation`
+|`Gradle:Plugin Validation:Incorrect use of @Input annotation`
+
+|`validation:property-validation:input-file-does-not-exist`
+|`Gradle:Build Definition:Input file does not exist`
+
+|`validation:property-validation:invalid-dependency`
+|`Gradle:Build Logic:Property cannot carry dependency`
+
+|`validation:property-validation:missing-annotation`
+|`Gradle:Plugin Validation:Missing annotation`
+
+|`validation:property-validation:missing-normalization-annotation`
+|`Gradle:Plugin Validation:Missing normalization`
+
+|`validation:property-validation:mutable-type-with-setter`
+|`Gradle:Plugin Validation:Mutable type with setter`
+
+|`validation:property-validation:nested-map-unsupported-key-type`
+|`Gradle:Plugin Validation:Unsupported nested map key`
+
+|`validation:property-validation:nested-type-unsupported`
+|`Gradle:Plugin Validation:Nested type unsupported`
+
+|`validation:property-validation:private-getter-must-not-be-annotated`
+|`Gradle:Plugin Validation:Private property with wrong annotation`
+
+|`validation:property-validation:private-method-must-not-be-annotated`
+|`Gradle:Plugin Validation:Private method with wrong annotation`
+
+|`validation:property-validation:redundant-getters`
+|`Gradle:Plugin Validation:Property has redundant getters`
+
+|`validation:property-validation:service-reference-must-be-a-build-service`
+|`Gradle:Plugin Validation:@ServiceReference property is not a build service`
+
+|`validation:property-validation:unexpected-input-file-type`
+|`Gradle:Build Definition:Unexpected input file type`
+
+|`validation:property-validation:unknown-implementation`
+|`Gradle:Build Logic:Unknown implementation`
+
+|`validation:property-validation:unknown-implementation-nested`
+|`Gradle:Build Logic:Unknown property implementation`
+
+|`validation:property-validation:unsupported-notation`
+|`Gradle:Build Definition:Property has unsupported value`
+
+|`validation:property-validation:unsupported-value-type`
+|`Gradle:Plugin Validation:Unsupported value type`
+
+|`validation:property-validation:unsupported-value-type-for-input`
+|`Gradle:Plugin Validation:Unsupported value type for @Input annotation`
+
+|`validation:property-validation:value-not-set`
+|`Gradle:Build Definition:Value not set`
+
+|`validation:type-validation:annotation-invalid-in-context`
+|`Gradle:Plugin Validation:Invalid annotation in context`
+
+|`validation:type-validation:conflicting-annotations`
+|`Gradle:Plugin Validation:Conflicting annotations`
+
+|`validation:type-validation:ignored-annotations-on-method`
+|`Gradle:Plugin Validation:Ignored annotations on method`
+
+|`validation:type-validation:ignored-annotations-on-property`
+|`Gradle:Plugin Validation:Ignored annotations on property`
+
+|`validation:type-validation:incompatible-annotations`
+|`Gradle:Plugin Validation:Incompatible annotations`
+
+|`validation:type-validation:invalid-use-of-type-annotation`
+|`Gradle:Plugin Validation:Incorrect use of type annotation`
+
+|`validation:type-validation:missing-software-type`
+|`Gradle:Build Logic:Missing project feature annotation`
+
+|`validation:type-validation:not-cacheable-without-reason`
+|`Gradle:Plugin Validation:Not cacheable without reason`
+|===
+
+The two `ValidatePlugins` problems about the Java toolchain were reported directly into the legacy `validation` group.
+`annotation-invalid-in-context`, `incompatible-annotations` and `conflicting-annotations` existed in both legacy validation groups and are now one problem ID each.
+
+This affects Tooling API clients, Build Scans, and any tooling that matches problems by ID.
+Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
+The messages of these problems, their solutions, and their documentation links are unchanged.
+
+[[runtime_problem_ids_moved_to_predefined_groups]]
+==== Runtime problem IDs moved to the predefined problem groups
+
+The remaining problems Gradle reports now use the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>>, and the legacy groups `configuration-usage`, `daemon-toolchain`, `jvm-toolchain`, `packaging`, `plugin-application`, `problems-api`, `scripts`, `task-selection` and `validation` are gone.
+Problems with the requested tasks report into `Gradle > Invocation`.
+Configuration Cache problems report into `Gradle > Configuration Cache` and Isolated Projects problems into `Gradle > Isolated Projects`; they previously shared the legacy `validation:configuration-cache` group.
+Problems with the configured build, such as a reserved configuration name, a project with an invalid directory, or several build scripts in one directory, report into `Gradle > Build Definition`.
+Problems with how build logic uses the build model, including the contract of project features and misuse of the Problems API itself, report into `Gradle > Build Logic`.
+JVM toolchain problems report into `Provisioning > Tools and Toolchains` and signing problems into `Packaging > Signing`.
+For the full set of groups Gradle reports into, see <<reporting_problems.adoc#sec:groups_gradle_reports_into,Groups Gradle reports into>>.
+Each problem is now named by its former display name, or by a reworded name that describes the problem, as listed in the table below.
+The most notable changes are:
+
+* Configuration Cache and Isolated Projects problems are named after the kind of problem, for example `Error writing value` or `Cross-project model access`, instead of the message in kebab case.
+  Details such as types, members, and projects no longer appear in the name; they remain in the problem's contextual label.
+* Task selection problems name what Gradle looked for, and a project that cannot be found in a task path has its own name, for example `Task not found` and `Project not found` instead of `No matches` and `Selection failed`.
+* Names that relied on their legacy group for context now carry it, for example `Configuration method call not allowed` instead of `Method call not allowed`, and `Reported problem has no id` instead of `Problem id must be specified`.
+* `Init invocation problem` is now `Exclusive task run with other tasks`.
+* `Project features binds to BuildModel.None` is now `Project feature binds to BuildModel.None`.
+* The `updateDaemonJvm` task configuration problem is split into two problems, one for missing toolchain download repositories and one for repositories that cannot resolve the requested toolchain.
+
+[cols="1,1"]
+|===
+|Before |After
+
+|`configuration-usage:configuring-project-with-invalid-directory`
+|`Gradle:Build Definition:Configuring project with invalid directory`
+
+|`configuration-usage:duplicate-project-feature-registration`
+|`Gradle:Build Definition:Duplicate project feature registration`
+
+|`configuration-usage:name-not-allowed`
+|`Gradle:Build Definition:Configuration name not allowed`
+
+|`configuration-usage:unexpected configuration usage`
+|`Gradle:Build Definition:Reserved configuration name used`
+
+|`configuration-usage:bind=to-build-model-none`
+|`Gradle:Build Logic:Project feature binds to BuildModel.None`
+
+|`configuration-usage:extend-detached-not-allowed`
+|`Gradle:Build Logic:Detached configuration cannot extend other configurations`
+
+|`configuration-usage:method-not-allowed`
+|`Gradle:Build Logic:Configuration method call not allowed`
+
+|`configuration-usage:safe-apply-action-uses-unsafe-service`
+|`Gradle:Build Logic:Project feature apply action declared safe injects an unsafe service`
+
+|`configuration-usage:unsafe-apply-action-uses-unknown-service`
+|`Gradle:Build Logic:Project feature apply action injects an unknown service`
+
+|`configuration-usage:unsafe-definition-implementation-type`
+|`Gradle:Build Logic:Project feature definition declared safe has an implementation type`
+
+|`daemon-toolchain:configuration-generation:task-configuration`
+|`Provisioning:Tools and Toolchains:No toolchain download repositories configured` or `Provisioning:Tools and Toolchains:Daemon JVM toolchain not resolvable for requested platforms`
+
+|`jvm-toolchain:invalid-jvm-installation`
+|`Provisioning:Tools and Toolchains:Invalid JVM installation`
+
+|`packaging:signing:no-configured-signatory`
+|`Packaging:Signing:No configured signatory`
+
+|`plugin-application:target-type-mismatch`
+|`Gradle:Build Definition:Plugin applied to the wrong target`
+
+|`problems-api:missing-id`
+|`Gradle:Build Logic:Reported problem has no id`
+
+|`problems-api:missing-parent`
+|`Gradle:Build Logic:Reported problem id has no group`
+
+|`problems-api:unsupported-additional-data`
+|`Gradle:Build Logic:Unsupported additional data type in reported problem`
+
+|`scripts:multiple-scripts`
+|`Gradle:Build Definition:Multiple script files in one directory`
+
+|`task-selection:ambiguous-matches`
+|`Gradle:Invocation:Ambiguous task name` or `Gradle:Invocation:Ambiguous project name`
+
+|`task-selection:empty-path`
+|`Gradle:Invocation:Empty task path`
+
+|`task-selection:empty-segments`
+|`Gradle:Invocation:Task path with empty segments`
+
+|`task-selection:init invocation problem`
+|`Gradle:Invocation:Exclusive task run with other tasks`
+
+|`task-selection:missing-task-name`
+|`Gradle:Invocation:Missing task name`
+
+|`task-selection:no-matches`
+|`Gradle:Invocation:Task not found` or `Gradle:Invocation:Project not found`
+
+|`task-selection:selection-failed`
+|`Gradle:Invocation:Task not found` or `Gradle:Invocation:Project not found`
+
+|`validation:configuration-cache:configuration-cache-warn-mode`
+|`Gradle:Configuration Cache:Configuration Cache warn mode is enabled`
+
+|`validation:configuration-cache:isolated-projects-dangerously-ignoring-problems`
+|`Gradle:Isolated Projects:Isolated Projects problems are dangerously ignored`
+
+|`validation:configuration-cache:<message as kebab case>`, for a Configuration Cache problem
+|`Gradle:Configuration Cache:<kind of problem>`, for example `Gradle:Configuration Cache:Project accessed at execution time`
+
+|`validation:configuration-cache:<message as kebab case>`, for an Isolated Projects problem
+|`Gradle:Isolated Projects:<kind of problem>`, for example `Gradle:Isolated Projects:Cross-project model access`
+|===
+
+This affects Tooling API clients, Build Scans, and any tooling that matches problems by ID.
+Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
+The messages of these problems, their solutions, and their documentation links are unchanged.
+
+Problems reported with groups created through `ProblemGroup.create()` whose names match a predefined group, for example `ProblemGroup.create("Java", "Java", problems.getGroups().getCompilation())`, now carry that predefined group, including its description.
+
+[[relocated_root_project_settings_kept]]
+==== Builds that move the root project directory now load their settings file
+
+A build can move its root project with `rootProject.projectDir`.
+When such a build was started with an explicit project directory, Gradle evaluated the settings file, found no project at that directory, and discarded the settings.
+It then ran with a single root project at that directory, named after the directory and configured by any build script found there, as if the settings file did not exist.
+With the Build Cache enabled, it failed with `Build cache controller already set` instead.
+The Tooling API always sets a project directory, so every IDE run and every IDE sync was affected.
+
+Gradle now keeps the evaluated settings and selects the root project for the build's root directory, so these builds load and run as written.
+
+Two consequences are worth checking when you upgrade:
+
+* A build that silently ignored its settings file now uses it.
+Configuration problems that were never reached before can surface.
+* `beforeSettings`, `settingsEvaluated` and the `Evaluate settings` build operation each fired twice in the affected case and now fire once.
+Init scripts and build operation consumers that observed the second firing will see one.
+
+[[gradle_in_non_project_directory]]
+==== Running Gradle in a directory that is not part of the build now fails
+
+When Gradle is invoked in a directory that lies inside a build's directory tree, other than the build's root directory, and is not a project directory of that build, `gradle help` and `gradle` with no task names previously discarded the surrounding build's settings and reported an undefined build:
+
+[source,text]
+----
+Directory '/home/user/project/sub' does not contain a Gradle build.
+
+To create a new build in this directory, run gradle init
+----
+
+Gradle now reports that the directory is not part of the surrounding build, and fails:
+
+[source,text]
+----
+Project directory '/home/user/project/sub' is not part of the build defined by settings file '/home/user/project/settings.gradle'. If this is an unrelated build, it must have its own settings file.
+----
+
+`gradle <task>` has always produced this message in the same directory, so Gradle now behaves consistently whether or not you name a task.
+
+The same applies to Tooling API clients that request a model for such a directory without running a task.
+Such a request previously treated the directory as a separate build with its own root project, or failed with `Build cache controller already set` when the Build Cache was enabled.
+It now fails with the message above.
+Running a task in that directory through the Tooling API already failed this way.
+
+If you hit this failure, pick whichever option matches your intent:
+
+* Run Gradle from a project directory of the build, or from the build's root directory.
+* If the directory is meant to be an independent build, give it its own settings file.
+Running `gradle init` in the directory creates one for you.
+* If the directory is meant to be part of the surrounding build, add it to that build's settings file with `include`.
+
+Two cases are unaffected:
+
+* Running Gradle in a directory with no settings or build script anywhere in its parent hierarchy still reports an undefined build and still suggests `gradle init`.
+* Running `gradle init` in a directory inside an existing build still creates a new build there.
+
+[[required_input_files_absent_nested_providers]]
+==== Required input file properties reject absent providers nested in collections
+
+Required task input file properties now fail validation when a provider nested in a plain collection or array (such as a `List` passed to link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#files(java.lang.Object++...++)[`TaskInputs.files(...)`]) has no value.
+Previously, Gradle silently ignored such absent providers.
+This applies to `TaskInputs.files(...)` declarations and to required link:{javadocPath}/org/gradle/api/tasks/InputFiles.html[`@InputFiles`] properties whose value is such a collection or array.
+Gradle reports the failure as the <<validation_problems.adoc#value_not_set, Required value isn't set>> validation problem.
+
+Passing several providers as varargs, such as `inputs.files(providerA, providerB)`, was ignored in the same way.
+The collection and varargs forms now fail just like the direct form when the task runs:
+
+[source,kotlin]
+.build.gradle.kts
+----
+val absent = objects.fileProperty() // no value configured
+
+// Failed before this change, and still fails
+tasks.register("direct") {
+    inputs.files(absent).withPropertyName("p")
+    doLast { }
+}
+
+// Succeeded before this change, silently resolving to an empty collection; now fails
+tasks.register("wrapped") {
+    inputs.files(listOf(absent)).withPropertyName("p")
+    doLast { }
+}
+----
+
+To fix this, make sure every provider in the collection has a value.
+If the input is genuinely optional, declare it as such with link:{javadocPath}/org/gradle/api/tasks/TaskInputFilePropertyBuilder.html#optional()[`optional()`] on the `TaskInputs.files(...)` registration, or with link:{javadocPath}/org/gradle/api/tasks/Optional.html[`@Optional`] on the `@InputFiles` property.
+Optional inputs are not affected by this change and continue to ignore absent providers.
+
+[[filters_apply_to_non_method_tests]]
+==== Test filters apply to tests that are not declared as methods
+
+Some JUnit Platform engines declare tests on something other than a method.
+link:https://www.archunit.org/[ArchUnit] declares rules on fields, and link:https://www.spekframework.org/[Spek] declares scopes.
+Gradle previously ran such tests unconditionally, whatever <<java_testing.adoc#test_filtering,test filters>> were in effect.
+They are now matched by their enclosing class and the name they are reported with, in the same way as test methods.
+
+A filtered run that used to include these tests by accident no longer does.
+For example, `gradle test --tests "SomeUnrelatedTest"` previously ran every ArchUnit rule in the source set as well, and now runs only `SomeUnrelatedTest`.
+Review the `--tests` arguments, `filter` blocks and `include`/`exclude` patterns in your build and CI configuration, because a filtered run may now execute fewer tests than before.
+
+To keep such a test running under a filter, name it or its class in the pattern:
+
+* `--tests "ArchRulesTest"` runs every rule declared in `ArchRulesTest`.
+* `--tests "ArchRulesTest.firstRule"` runs the rule declared in the `firstRule` field on its own.
+* Rules grouped with `ArchTests.in(...)` are reported as `GroupedClass > ruleName`, after the class passed to `ArchTests.in(...)` and not the field that holds the set.
+For a set held in a field `nested` of `ArchRulesTest` that wraps `NestedRules`, `--tests "ArchRulesTest.NestedRules > nestedRule"` runs that rule.
+
+WARNING: For a test that is not declared as a method, the name after the class is the name its engine reports, not a method name Gradle derives.
+Engines own these names and may change them in any release, including a patch release.
+A pattern like `ArchRulesTest.NestedRules > nestedRule` can therefore stop matching, or start matching something else, when you upgrade ArchUnit or Spek, with no deprecation warning from Gradle.
+Prefer naming the enclosing class alone where that is specific enough, and treat a pattern that names an individual non-method test as something to re-check on every engine upgrade.
+
+Tests that an engine registers only while a class is executing, as link:https://kotest.io/[Kotest] does, are not affected by this change.
+Gradle applies filters before those tests exist, so they can still only be selected by their spec class.
+
+See <<java_testing.adoc#filtering_non_method_tests,Test filtering>> for details.
+
+[[legacy_apis_download_artifacts_in_parallel]]
+==== Legacy dependency resolution APIs download artifacts eagerly
+
+The following methods of the legacy link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html[`ResolvedConfiguration`] and link:{javadocPath}/org/gradle/api/artifacts/ResolvedDependency.html[`ResolvedDependency`] APIs now download the files of all returned artifacts in parallel before returning:
+
+- link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html#getResolvedArtifacts()[`ResolvedConfiguration.getResolvedArtifacts()`]
+- link:{javadocPath}/org/gradle/api/artifacts/ResolvedDependency.html#getModuleArtifacts()[`ResolvedDependency.getModuleArtifacts()`]
+- link:{javadocPath}/org/gradle/api/artifacts/ResolvedDependency.html#getAllModuleArtifacts()[`ResolvedDependency.getAllModuleArtifacts()`]
+
+Previously, these methods returned artifacts without downloading them, and each artifact's file was downloaded one at a time when link:{javadocPath}/org/gradle/api/artifacts/ResolvedArtifact.html#getFile()[`ResolvedArtifact.getFile()`] was called.
+link:{javadocPath}/org/gradle/api/artifacts/LenientConfiguration.html#getArtifacts()[`LenientConfiguration.getArtifacts()`] already downloaded the files of the returned artifacts, and now downloads them in parallel as well.
+
+This change makes the artifact download behavior of `ResolvedConfiguration` and `ResolvedDependency` consistent with `LenientConfiguration`, `FileCollection`, `ArtifactCollection`, and `ArtifactView`.
+
+As a result:
+
+- These methods now fail if any artifact they return cannot be downloaded, instead of failing later when the file of that artifact is accessed.
+- Builds that call these methods without accessing every file may now download artifacts not downloaded previously.
+
+To mitigate this change, consider the following:
+
+- To inspect the dependency graph without downloading any artifacts, use the <<graph_resolution.adoc#sec:resolved-dep-graph,`ResolutionResult`>> API.
+- To download the artifacts of only some dependencies, use an <<artifact_views.adoc#sec:filtering_selected_artifacts,`ArtifactView`>> with a component filter.
+- If you cannot migrate away from the legacy APIs, call `ResolvedDependency.getModuleArtifacts()` only on the dependencies whose artifacts you need, instead of calling `ResolvedConfiguration.getResolvedArtifacts()` or `ResolvedDependency.getAllModuleArtifacts()`.
+- To ignore artifacts that cannot be downloaded, use a <<artifact_views.adoc#sec:performing_lenient_artifact_selection,lenient `ArtifactView`>> or `LenientConfiguration.getArtifacts()`, which omit such artifacts from the result instead of failing.
+
+Neither the legacy APIs nor `ArtifactView` can download a single artifact of a dependency in isolation.
+
+In general, the `ResolvedConfiguration`, `LenientConfiguration`, `ResolvedDependency`, and `ResolvedArtifact` APIs are discouraged.
+They are not compatible with the <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types,Configuration Cache>> and, unlike the modern APIs, do not carry the task dependencies required to build the artifacts they return.
+Prefer the `ResolutionResult`, `ArtifactView`, link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`], and link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[`ArtifactCollection`] APIs, described in <<artifact_resolution.adoc#sec:available_apis,Artifact Resolution>>.
+
+[[wrapper_preserves_existing_properties]]
+==== The `wrapper` task preserves existing wrapper properties
+
+When the link:{groovyDslPath}/org.gradle.api.tasks.wrapper.Wrapper.html[`wrapper`] task regenerates an existing `gradle-wrapper.properties` file, it now keeps the values already in that file instead of resetting them to defaults.
+This applies to the distribution type (`bin` or `all`), `distributionBase`, `distributionPath`, `zipStoreBase`, `zipStorePath`, `networkTimeout`, `validateDistributionUrl`, `retries`, and `retryBackOffMs`.
+Values configured on the task or passed on the command line still take precedence.
+
+For example, given this existing file:
+
+[source,properties]
+.gradle/wrapper/gradle-wrapper.properties
+----
+distributionUrl=https\://services.gradle.org/distributions/gradle-9.8.0-all.zip
+networkTimeout=60000
+----
+
+Running `./gradlew wrapper --gradle-version 9.9.0` previously wrote a `-bin.zip` URL and `networkTimeout=10000`.
+It now writes a `-all.zip` URL and keeps `networkTimeout=60000`.
+
+This changes the result for builds and scripts that relied on regeneration to reset these values:
+
+* A single `--no-validate-url` run now disables URL validation until you run the task again with `--validate-url`.
+* An invalid value in the existing file, such as a non-numeric `networkTimeout`, now fails the task with `Invalid value '<value>' for property '<name>'`.
+Previously, the task ignored it and overwrote it with the default.
+* A `Wrapper` task that you register yourself now writes the default `networkTimeout`, `retries`, and `retryBackOffMs` when you don't configure them.
+Previously, only the built-in `wrapper` task wrote these defaults.
+
+To set a value explicitly, pass the matching option, for example `--distribution-type bin`, `--network-timeout 10000`, or `--validate-url`, or configure the property on the task.
+The `distributionUrl` is regenerated for the requested Gradle version, so a custom host is not preserved; pass `--gradle-distribution-url` to keep one.
+
+See <<gradle_wrapper.adoc#sec:preserving_wrapper_properties,Preserving Existing Wrapper Properties>> for details.
+
+=== Deprecations
+
+[[querying_transform_output_from_transform_action]]
+==== Deprecation of querying artifact transform outputs from an artifact transform action
+
+Querying the output of one artifact transform from the action of another, without declaring that output as an input of the querying action, is deprecated and will become an error in Gradle 10.
+
+This happens when a transform action resolves a configuration or artifact view that isn't declared on its parameters, and that resolution requires another artifact transform.
+A common case is a configuration held by a shared build service.
+
+In the following deprecated example, `MakeGreen` reads files transformed by `MakeRed` through a build service:
+
+[source,kotlin]
+----
+abstract class FilesService : BuildService<FilesService.Params> {
+    interface Params : BuildServiceParameters {
+        val files: ConfigurableFileCollection
+    }
+}
+
+interface Parameters : TransformParameters {
+    @get:Internal
+    val service: Property<FilesService>
+}
+
+abstract class MakeGreen : TransformAction<Parameters> {
+    override fun transform(outputs: TransformOutputs) {
+        // Deprecated: resolving these files runs MakeRed, which MakeGreen doesn't declare as an input
+        val redNames = parameters.service.get().parameters.files.files.map { it.name }
+        // ...
+    }
+}
+----
+
+To fix this warning, declare the files the transform action uses as one of its inputs.
+Use a parameter annotated with `@InputFiles`, and set it when registering the transform.
+In the following example, `MakeGreen` keeps only the input artifacts that also appear in the `resolved` configuration.
+It reads those files after `MakeRed` transforms them, so it declares them on its `redFiles` parameter:
+
+[source,kotlin]
+----
+val color = Attribute.of("color", String::class.java)
+
+interface Parameters : TransformParameters {
+    @get:InputFiles
+    val redFiles: ConfigurableFileCollection
+}
+
+abstract class MakeGreen : TransformAction<Parameters> {
+    @get:InputArtifact
+    abstract val inputArtifact: Provider<FileSystemLocation>
+
+    override fun transform(outputs: TransformOutputs) {
+        val input = inputArtifact.get().asFile
+        // Use the files declared on the parameters, rather than files
+        // reached in another way, like through a build service
+        val redNames = parameters.redFiles.files.map { it.name }
+        if (input.name + ".red" in redNames) {
+            input.copyTo(outputs.file(input.name + ".green"))
+        }
+    }
+}
+
+val deps = configurations.dependencyScope("deps")
+val resolved = configurations.resolvable("resolved") {
+    extendsFrom(deps)
+    attributes.attribute(color, "blue")
+}
+
+dependencies {
+    attributesSchema {
+        attribute(color)
+    }
+    deps("org:bar:1")
+    // MakeRed is any transform from "blue" to "red"
+    registerTransform(MakeRed::class) {
+        from.attribute(color, "blue")
+        to.attribute(color, "red")
+    }
+    registerTransform(MakeGreen::class) {
+        from.attribute(color, "blue")
+        to.attribute(color, "green")
+        parameters {
+            // Declare the output of MakeRed as an input
+            redFiles.from(resolved.map {
+                it.incoming.artifactView {
+                    attributes.attribute(color, "red")
+                }.files
+            })
+        }
+    }
+}
+----
+
+[[deprecated_update_daemon_jvm_task_configuration_problem_id]]
+==== Deprecation of `UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID`
+
+Gradle no longer reports problems with the ID `UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID`.
+The `updateDaemonJvm` task reports its configuration problems in `Provisioning > Tools and Toolchains`, as `No toolchain download repositories configured` and `Daemon JVM toolchain not resolvable for requested platforms`.
+For details, see <<runtime_problem_ids_moved_to_predefined_groups,Runtime problem IDs moved to the predefined problem groups>>.
+The constant is deprecated and will be removed in Gradle 10.
+
+[[problems_api_legacy_identity]]
+==== Deprecation of the legacy problem identity API
+
+The incubating Problems API provides a <<reporting_problems.adoc#sec:predefined_problem_groups,predefined hierarchy of problem groups>>, available from the `Problems` service as `problems.groups`.
+The API that builds or reads problem identity outside that hierarchy is deprecated.
+`ProblemGroup.create()` and `ProblemId.create()` will be removed in Gradle 11.
+`getDisplayName()` on `ProblemGroup` and `ProblemId` and `ProblemGroup.getParent()` will be removed in Gradle 10, and Gradle 10 will not support subclassing `ProblemGroup` or `ProblemId`.
+Plugins that use any of it get a compiler warning.
+Calling the deprecated getters on Gradle's groups and IDs, or subclassing `ProblemGroup` or `ProblemId`, also emits a deprecation warning when the build runs.
+Like every deprecation, the warning fails the build under `--warning-mode=fail`.
+
+Create the group from the predefined hierarchy and the ID from the group:
+
+[source,kotlin]
+----
+// before
+val group = ProblemGroup.create("sample-group", "Sample Group")
+val id = ProblemId.create("missing-recipient", "Recipient not set", group)
+
+// after
+val group = problems.groups.others.group("Sample Group")
+val id = group.problemId("Recipient not set")
+----
+
+Pick the predefined root group that matches what the problem is about, for example `problems.groups.compilation`, and create a sub-group of it or report into one of its predefined sub-groups; `others` is for problems that fit no other root.
+The name of a predefined ID is also its display name, and group names are limited to letters, digits, spaces and the characters `-_.+/&'#`.
+
+Use `getName()` instead of `getDisplayName()`, both in the Problems API and in the Tooling API (`org.gradle.tooling.events.problems`).
+Until Gradle 10, `getName()` returns the display name given to `ProblemGroup.create()` or `ProblemId.create()`, and the name for groups and IDs from the predefined hierarchy.
+Gradle 10 will still send a display name, equal to the name, to Tooling API clients of earlier versions, so those clients keep working.
+A plugin that subclasses `ProblemGroup` or `ProblemId` must still implement `getDisplayName()`; mark the implementation `@Deprecated` to avoid the compiler warning.
+
+`ProblemGroup.getParent()` in the Problems API has no replacement.
+The groups from `problems.groups` have a fixed place in the predefined hierarchy, so plugins have no need to walk it.
+A plugin that subclasses `ProblemGroup` must still implement `getParent()` until Gradle 10; mark the implementation `@Deprecated` as well.
+The Tooling API `ProblemGroup.getParent()` is not deprecated, as clients use it to show the group hierarchy.
+
+[[kotlin_dsl_scripts_model_explicit_scripts]]
+==== Deprecation of restricting the `KotlinDslScriptsModel` to explicit scripts
+
+The `KotlinDslScriptsModel` is the Tooling API model that IDEs use to provide editing assistance for Kotlin DSL scripts.
+
+Restricting the model to an explicit set of scripts by setting the `org.gradle.tooling.model.kotlin.dsl.scripts` Gradle property is now deprecated and will be removed in Gradle 10.
+The corresponding `KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME` constant in the Tooling API is deprecated on the same schedule.
+Setting the property still works and emits a deprecation warning, so the behavior of such requests is unchanged in Gradle 9.x.
+With <<isolated_projects.adoc#isolated_projects,Isolated Projects>> enabled, setting the property fails the model request, as it always has.
+
+In Gradle 10, the property will be ignored, and the model will always be built for all the Kotlin DSL scripts of the build.
+
+[[kotlin_dsl_zip_functions]]
+==== Deprecation of the Kotlin DSL `zipTo` and `unzipTo` functions
+
+The `zipTo` and `unzipTo` functions in the `org.gradle.kotlin.dsl.support` package have been deprecated and will be removed in Gradle 10.
+
+To create an archive, use the link:{javadocPath}/org/gradle/api/tasks/bundling/Zip.html[`Zip`] task type:
+
+[source,kotlin]
+.build.gradle.kts
+----
+tasks.register<Zip>("packageDistribution") {
+    archiveFileName = "my-distribution.zip"
+    destinationDirectory = layout.buildDirectory.dir("dist")
+
+    from(layout.buildDirectory.dir("toArchive"))
+}
+----
+
+To unpack an archive in a build script, call `zipTree` inside a link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[`Copy`] task:
+
+[source,kotlin]
+.build.gradle.kts
+----
+tasks.register<Copy>("unpackFiles") {
+    from(zipTree("src/resources/thirdPartyResources.zip"))
+    into(layout.buildDirectory.dir("resources"))
+}
+----
+
+If you need to unpack imperatively from within a task action, inject link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html[`ArchiveOperations`] and link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[`FileSystemOperations`]:
+
+[source,kotlin]
+.build.gradle.kts
+----
+abstract class UnpackTask @Inject constructor(
+    private val archives: ArchiveOperations,
+    private val fs: FileSystemOperations
+) : DefaultTask() {
+    @get:InputFile abstract val zipFile: RegularFileProperty
+    @get:OutputDirectory abstract val destinationDir: DirectoryProperty
+
+    @TaskAction
+    fun unpack() {
+        fs.copy {
+            from(archives.zipTree(zipFile))
+            into(destinationDir)
+        }
+    }
+}
+----
+
+See <<working_with_files.adoc#sec:unpacking_archives_example, Unpacking archives>> in the Gradle User Manual for more details.
+
+[[deprecated_configuration_cache_opt_out_properties]]
+==== Deprecation of temporary Configuration Cache opt-out properties
+
+The following Gradle properties were introduced as temporary opt-outs to ease the adoption of the Configuration Cache.
+They let a build revert to earlier, more lenient behavior while the underlying build logic or plugins are being fixed.
+
+These properties are now deprecated and will be removed in Gradle 11.
+Setting any of them, to any value, emits a deprecation warning.
+
+[cols="3,1,3"]
+|===
+| Property | Introduced in | Remediation
+
+| `org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks`
+| Gradle 8.3
+| Fix the build logic or plugins that perform file system checks, such as `File.exists()`, during configuration, so that they no longer cause unnecessary cache invalidation.
+
+| `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization`
+| Gradle 8.4
+| Fix the build logic or plugins that read the build environment while the task graph is being serialized, so that they no longer cause unnecessary cache invalidation.
+
+| `org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners`
+| Gradle 9.0
+| Convert the build event listeners passed to link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html#onTaskCompletion(org.gradle.api.provider.Provider)[`BuildEventsListenerRegistry.onTaskCompletion`] into <<build_services.adoc#build_services,build services>>.
+
+| `org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization`
+| Gradle 9.8
+| Fix the serialization issues of the task output listeners registered during configuration, or register them at execution time instead, for example in a task action.
+|===
+
+Use the <<configuration_cache_debugging.adoc#config_cache:troubleshooting, Configuration Cache report>> to identify the offending build logic.
+See <<configuration_cache_enabling.adoc#config_cache:usage:input_opt_outs, Temporary Opt-Outs for Configuration Cache Behavior>> in the Gradle User Manual for the details of each property.
+
+[[value_source_parameters_service_injection]]
+==== Deprecation of service injection into the parameters of a value source
+
+The link:{javadocPath}/org/gradle/api/provider/ValueSourceParameters.html[`ValueSourceParameters`] of a link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] are data holders: they carry the inputs of the value source as properties and other serializable values, and Gradle isolates them before the value is obtained.
+Declaring an `@Inject` getter or constructor that takes a Gradle service on a parameters type, or on a type nested in it, is now deprecated.
+It still works and emits a deprecation warning in Gradle 9.x, and it will fail with an error in Gradle 10.
+
+Such an injection was never supported, and it did not work reliably: the injected service was lost as soon as the parameters declared a property.
+
+[source,kotlin]
+.Deprecated: a service injected into the parameters
+----
+interface GreetingParameters : ValueSourceParameters {
+    @get:Inject
+    val providers: ProviderFactory
+}
+
+abstract class Greeting : ValueSource<String, GreetingParameters> {
+    override fun obtain(): String = parameters.providers.gradleProperty("greeting").get()
+}
+
+val greeting = providers.of(Greeting::class) {}
+----
+
+The supported way is to compute the value that needs the service where the provider is created, and to pass it in as a parameter:
+
+[source,kotlin]
+.Instead: pass the value as a parameter
+----
+interface GreetingParameters : ValueSourceParameters {
+    val greeting: Property<String>
+}
+
+abstract class Greeting : ValueSource<String, GreetingParameters> {
+    override fun obtain(): String = parameters.greeting.get()
+}
+
+val greeting = providers.of(Greeting::class) {
+    parameters.greeting = providers.gradleProperty("greeting")
+}
+----
+
+To run an external process from a value source, inject link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] into the `ValueSource` implementation itself, as described in <<configuration_cache_requirements.adoc#config_cache:requirements:value_source,Using External Information Sources>>.
+
+[[version_catalog_plugin_non_required_versions]]
+==== Deprecation of non-required versions for plugins in a version catalog
+
+When a plugin declared in a <<version_catalogs.adoc#sec:plugins-ver,version catalog>> is applied, only its required version is used to resolve the plugin.
+Any `prefer`, `strictly`, or `reject` constraint is silently ignored, which can lead to an unexpected plugin version being selected.
+
+Declaring a plugin version in a version catalog with constraints other than a required version is now deprecated and will become an error in Gradle 10.
+This includes plugins that reference such a version with `version.ref`, and plugins declared through the `versionCatalogs {}` block in a settings file.
+
+[source,toml]
+.gradle/libs.versions.toml
+----
+[versions]
+my-plugin = { require = "[1.0,)", prefer = "1.5" }
+
+[plugins]
+my-plugin = { id = "com.example.my-plugin", version.ref = "my-plugin" }
+----
+
+To fix this, declare the version with only a required version:
+
+[source,toml]
+.gradle/libs.versions.toml
+----
+[versions]
+my-plugin = "1.5"
+
+[plugins]
+my-plugin = { id = "com.example.my-plugin", version.ref = "my-plugin" }
+----
+
+[[ant_build_script_classpath]]
+==== Deprecation of implicit Ant classes on the build script classpath
+
+Starting with Gradle 10, Ant classes will no longer be implicitly available to build scripts.
+This is a consequence of <<deprecated_ant_builder,the deprecation of the Ant integration>> described below.
+
+The most common way build scripts rely on Ant classes is link:{javadocPath}/org/gradle/api/file/ContentFilterable.html#filter(java.util.Map,java.lang.Class)[`filter(Map, Class)`] on the `Copy` task or on a `CopySpec`, which takes an Ant `FilterReader` such as `ReplaceTokens`.
+
+To replace Ant's `ReplaceTokens` filter, use link:{javadocPath}/org/gradle/api/file/ContentFilterable.html#filter(org.gradle.api.Transformer)[`filter(Transformer)`] to replace the tokens of each line in a single pass:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.register<Copy>("processTemplates") {
+    from("src/templates")
+    into(layout.buildDirectory.dir("templates"))
+
+    val tokens = mapOf("version" to "1.0")
+    inputs.properties(tokens)
+    val pattern = Regex(tokens.keys.joinToString("|") { Regex.escape("@$it@") })
+    filter { line: String -> pattern.replace(line) { tokens.getValue(it.value.removeSurrounding("@")) } }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.register("processTemplates", Copy) {
+    from("src/templates")
+    into(layout.buildDirectory.dir("templates"))
+
+    def tokens = [version: "1.0"]
+    inputs.properties(tokens)
+    def pattern = tokens.keySet().collect { Pattern.quote("@${it}@") }.join("|")
+    filter { String line -> line.replaceAll(pattern) { String match -> tokens[match[1..-2]] } }
+}
+----
+=====
+====
+
+As long as no token key contains a line break, this replaces tokens the same way as `ReplaceTokens`.
+Otherwise, implement a `java.io.FilterReader` and pass it to `filter(Map, Class)`, <<run_ant_as_a_separate_process,run Ant in a separate process>>, or include Ant on the script classpath as described below.
+
+===== Manually adding Ant to the script classpath
+
+This is a migration path for Gradle 10.
+Builds running on Gradle 9.x need no change.
+When you upgrade to Gradle 10 and want to keep using Ant's filters, add Ant to the classpath of your build logic.
+If your build uses convention plugins, add Ant as a dependency of the build that contains them, for example with `implementation("org.apache.ant:ant:1.10.17")`.
+Otherwise, add Ant to the `classpath` configuration in the `buildscript` block of your build script:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+import org.apache.tools.ant.filters.ReplaceTokens
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.apache.ant:ant:1.10.17")
+    }
+}
+
+tasks.register<Copy>("processTemplates") {
+    from("src/templates")
+    into(layout.buildDirectory.dir("templates"))
+    filter<ReplaceTokens>("tokens" to mapOf("version" to "1.0"))
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+import org.apache.tools.ant.filters.ReplaceTokens
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.apache.ant:ant:1.10.17")
+    }
+}
+
+tasks.register("processTemplates", Copy) {
+    from("src/templates")
+    into(layout.buildDirectory.dir("templates"))
+    filter(ReplaceTokens, tokens: [version: "1.0"])
+}
+----
+=====
+====
+
+NOTE: Before Gradle 10, this puts a second copy of Ant on the build script classpath, and Gradle's own copy of the Ant classes takes precedence.
+
+[[deprecated_ant_builder]]
+==== Deprecation of the Ant integration
+
+Gradle's built-in integration with Ant is deprecated and will be removed in Gradle 10.
+Ant classes will also stop being implicitly available to build scripts; see <<ant_build_script_classpath,Deprecation of implicit Ant classes on the build script classpath>>.
+
+The following types and methods will be removed:
+
+* link:{javadocPath}/org/gradle/api/AntBuilder.html[`AntBuilder`]
+* link:{javadocPath}/org/gradle/api/tasks/ant/AntTarget.html[`AntTarget`]
+* link:{javadocPath}/org/gradle/api/tasks/AntBuilderAware.html[`AntBuilderAware`]
+* link:{javadocPath}/org/gradle/api/Project.html#getAnt()[`Project.getAnt()`]
+* link:{javadocPath}/org/gradle/api/Project.html#ant(groovy.lang.Closure)[`Project.ant(Closure)`]
+* link:{javadocPath}/org/gradle/api/Project.html#ant(org.gradle.api.Action)[`Project.ant(Action)`]
+* link:{javadocPath}/org/gradle/api/Project.html#createAntBuilder()[`Project.createAntBuilder()`]
+* link:{javadocPath}/org/gradle/api/Task.html#getAnt()[`Task.getAnt()`]
+* link:{javadocPath}/org/gradle/api/file/FileCollection.html#addToAntBuilder(java.lang.Object,java.lang.String)[`FileCollection.addToAntBuilder(Object, String)`]
+* link:{javadocPath}/org/gradle/api/file/FileCollection.html#addToAntBuilder(java.lang.Object,java.lang.String,org.gradle.api.file.FileCollection.AntType)[`FileCollection.addToAntBuilder(Object, String, AntType)`]
+* link:{javadocPath}/org/gradle/api/file/FileCollection.AntType.html[`FileCollection.AntType`]
+* link:{javadocPath}/org/gradle/api/tasks/util/PatternSet.html#addToAntBuilder(java.lang.Object,java.lang.String)[`PatternSet.addToAntBuilder(Object, String)`]
+
+===== Switch to Gradle equivalent
+
+Some Ant usage has a direct Gradle equivalent.
+Prefer the link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[`Copy`], link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[`Zip`] or link:{groovyDslPath}/org.gradle.api.tasks.Exec.html[`Exec`] task types, or the link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[`FileSystemOperations`] service, wherever one fits.
+
+===== Call the tool directly
+
+If you use Ant to run another tool, prefer running that tool directly instead.
+For example, use a link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[`JavaExec`] task to run its main class, or use the <<worker_api.adoc#tasks_parallel_worker,Worker API>> to call its Java API with the tool on the classpath of the work.
+You can also put the tool on the classpath of your build logic and call its Java API during configuration time or from a task action.
+
+[[run_ant_as_a_separate_process]]
+===== Run Ant as a separate process
+
+If the tool you want to run has no entry point other than an Ant task, you can execute Ant in a separate Java process in a task.
+First, declare configurations for Ant and the tool you want to execute.
+Then, register the task that executes Ant, using the resolvable configuration as its classpath.
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+val antTool = configurations.dependencyScope("antTool")
+val antClasspath = configurations.resolvable("antClasspath") {
+    extendsFrom(antTool)
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    antTool("org.apache.ant:ant:1.10.17")
+    antTool("org.glassfish.jaxb:jaxb-xjc:4.0.9")
+}
+
+tasks.register<GenerateJaxbClasses>("generateJaxbClasses") {
+    toolClasspath.from(antClasspath)
+    schema = layout.projectDirectory.file("src/main/schema/order.xsd")
+    packageName = "com.example.order"
+    outputDir = layout.buildDirectory.dir("generated/jaxb")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+def antToolScope = configurations.dependencyScope("antTool")
+def antClasspath = configurations.resolvable("antClasspath") {
+    extendsFrom(antToolScope)
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    antTool("org.apache.ant:ant:1.10.17")
+    antTool("org.glassfish.jaxb:jaxb-xjc:4.0.9")
+}
+
+tasks.register("generateJaxbClasses", GenerateJaxbClasses) {
+    toolClasspath.from(antClasspath)
+    schema = layout.projectDirectory.file("src/main/schema/order.xsd")
+    packageName = "com.example.order"
+    outputDir = layout.buildDirectory.dir("generated/jaxb")
+}
+----
+=====
+====
+
+The task generates an Ant build file, then executes Ant with link:{javadocPath}/org/gradle/process/ExecOperations.html#javaexec(org.gradle.api.Action)[`ExecOperations.javaexec()`].
+
+.buildSrc/src/main/java/GenerateJaxbClasses.java
+[source,java]
+----
+@CacheableTask
+public abstract class GenerateJaxbClasses extends DefaultTask {
+    @Classpath
+    public abstract ConfigurableFileCollection getToolClasspath();
+
+    @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract RegularFileProperty getSchema();
+
+    @Input
+    public abstract Property<String> getPackageName();
+
+    @OutputDirectory
+    public abstract DirectoryProperty getOutputDir();
+
+    @Inject
+    protected abstract ExecOperations getExecOperations();
+
+    @TaskAction
+    public void generate() throws IOException {
+        File buildFile = new File(getTemporaryDir(), "build.xml");
+        Files.writeString(buildFile.toPath(), """
+            <project name="jaxb">
+                <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask"/>
+                <target name="generate">
+                    <xjc schema="${schema}" destdir="${destdir}" package="${package}"/>
+                </target>
+            </project>
+            """);
+
+        getExecOperations().javaexec(spec -> {
+            spec.classpath(getToolClasspath());
+            spec.getMainClass().set("org.apache.tools.ant.Main");
+            spec.args(
+                "-buildfile", buildFile.getAbsolutePath(),
+                "-Dschema=" + getSchema().get().getAsFile().getAbsolutePath(),
+                "-Ddestdir=" + getOutputDir().get().getAsFile().getAbsolutePath(),
+                "-Dpackage=" + getPackageName().get(),
+                "generate"
+            );
+        });
+    }
+}
+----
+
+[[legacy_dependency_lock_format]]
+==== Deprecation of the legacy dependency lock file format
+
+Before Gradle 6.4, <<dependency_locking.adoc#locking-versions,dependency locking>> stored lock state in a separate file per locked configuration, located in the `gradle/dependency-locks` directory under that configuration's project directory.
+Since Gradle 6.4, lock state has been stored in a single `gradle.lockfile` per project, but Gradle has continued to read lock state stored in the legacy format.
+
+Loading lock state from legacy lock files is now deprecated.
+Starting in Gradle 10, Gradle will no longer read legacy lock files.
+
+To migrate, regenerate the lock state with `--write-locks` or `--update-locks`, as described in <<dependency_locking.adoc#sec:migrate-single-lockfile,Migrating your legacy lockfile>>.
+Only configurations resolved by that build are migrated, so make sure every locked configuration is resolved, including those of subprojects and build script classpaths (`buildEnvironment --write-locks`).
+
 [[changes_9.8.0]]
 == Upgrading from 9.7.0 and earlier
 
@@ -46,29 +1448,12 @@ The previous step will help you identify potential problems by issuing deprecati
 
 The embedded Kotlin has been upgraded from 2.4.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.10[Kotlin 2.4.10].
 
-[[service_method_added_to_project_settings_gradle_task]]
-==== New `service(Class)` method on `Project`, `Settings`, `Gradle`, and `Task`
-
-Gradle 9.8.0 adds an incubating `service(Class)` method to link:{javadocPath}/org/gradle/api/Project.html[`Project`], link:{javadocPath}/org/gradle/api/initialization/Settings.html[`Settings`], link:{javadocPath}/org/gradle/api/invocation/Gradle.html[`Gradle`], and link:{javadocPath}/org/gradle/api/Task.html[`Task`], along with reified `service<T>()` extensions in the Kotlin DSL.
-See <<service_injection.adoc#looking_up_services,Looking up services in scripts>> for details.
-
-If your build, plugin, or convention already exposes a member called `service` on one of these types (for example a user-defined extension, a Groovy dynamic property, or a Kotlin extension function), the new built-in member may shadow it or make calls ambiguous.
-Rename your member (for example to `myService`) to disambiguate:
-
-[source,kotlin]
-.build.gradle.kts
-----
-// Before: shadowed by the new built-in Project.service(Class)
-fun Project.service(name: String): MyService = extensions.getByName(name) as MyService
-
-// After: rename to avoid the conflict
-fun Project.myService(name: String): MyService = extensions.getByName(name) as MyService
-----
-
+[[upgrade_to_asm_9_10_1]]
 ==== Upgrade to ASM 9.10.1
 
 ASM was upgraded from 9.9 to https://asm.ow2.io/versions.html[9.10.1] to support Java 27.
 
+[[upgrade_to_jacoco_0_8_15]]
 ==== Upgrade to JaCoCo 0.8.15
 
 JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.15].
@@ -88,23 +1473,60 @@ Standard output and error listeners registered on a task's logging manager durin
 Previously, these listeners were silently discarded and never received output when the Configuration Cache was used.
 
 A listener that cannot be serialized is now reported as a Configuration Cache problem instead of being silently dropped, which may cause a build that previously worked to fail.
-If your build registers such a listener and the listener is nonessential, you can opt out and restore the previous behavior — listeners are not serialized, so they are dropped on a cache hit and no problem is reported — by setting:
+If your build registers such a listener and the listener is nonessential, you can opt out, restoring the previous behavior where listeners are dropped on a cache hit, and no problem is reported by setting:
 
 [source,properties]
 ----
 org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization=true
 ----
 
-This property is a temporary opt-out and will be removed in a future Gradle release.
+This property is a temporary opt-out, <<deprecated_configuration_cache_opt_out_properties, deprecated since Gradle 9.9>> and scheduled for removal in Gradle 11.
 
 [[kotlin_object_singletons_in_configuration_cache]]
 ==== Kotlin `object` singletons keep their identity in the Configuration Cache
+
+If your build stored mutable state on a Kotlin `object`, that state is no longer restored on a cache hit; move it elsewhere.
 
 A Kotlin `object` (including `companion object` declarations) stored in the Configuration Cache is now restored as the same singleton instance.
 As a consequence, only the singleton's identity is restored, not any mutable state it may hold.
 
 Previously, each `object` was serialized as a regular bean and rebuilt as a _new_ instance on a cache hit, so `deserialized === TheObject` was `false`.
 If you relied on mutable state surviving a cache hit, move it into a task property or another bean type that is serialized by value.
+
+[[toolchain_invalid_installation_paths]]
+==== Invalid toolchain installation paths now warn instead of failing the build
+
+Unresolvable or relative paths in `org.gradle.java.installations.paths` and `org.gradle.java.installations.fromEnv` are now reported as warnings through the Problems API instead of failing the build with `UnsupportedOperationException: Cannot convert relative path ... to an absolute file.`.
+
+These properties are optional configuration.
+A valid toolchain may exist through another discovery mechanism, so an unresolvable entry should not prevent the build from running.
+
+Common cases that previously failed and now warn:
+
+- Cross-platform builds where a Unix-style absolute path such as `/opt/jdk-24` is treated as relative on Windows.
+- Relative paths committed to `gradle.properties` in version control.
+
+Correct the offending entries to remove the warning.
+Builds that relied on the previous failure to surface misconfiguration should validate these properties by other means — for example, by running with `--warning-mode all` or inspecting the Problems report.
+
+See <<toolchains.adoc#sec:custom_loc, Custom Toolchain Locations>> in the Gradle User Manual for details.
+
+[[copy_sync_destination_directory_property]]
+==== `Copy` and `Sync` destination is now a lazy `destinationDirectory` property
+
+link:{javadocPath}/org/gradle/api/tasks/Copy.html[`Copy`] and link:{javadocPath}/org/gradle/api/tasks/Sync.html[`Sync`] now expose the destination as an incubating `DirectoryProperty destinationDirectory`.
+For standard `Copy` and `Sync` tasks, `into(...)`, `setDestinationDir(File)`, `getDestinationDir()`, and `destinationDirectory` all configure or expose the same destination.
+
+During Gradle 9.x, both `destinationDir` and `destinationDirectory` are registered as task outputs for binary compatibility.
+The new `destinationDirectory` output is optional, allowing task types compiled against an earlier Gradle version that override `getDestinationDir()` to continue supplying the destination through the legacy output.
+In Gradle 10, `destinationDirectory` will become the sole registered output.
+
+Task types overriding the legacy accessors require special care during this transition:
+
+* An overridden `getDestinationDir()` takes precedence when the task executes, even if `destinationDirectory` is configured separately.
+* An overridden `setDestinationDir(File)` is not invoked when the destination is configured through `destinationDirectory`.
+
+Either override can cause the legacy and lazy destinations to get out of sync, so task authors should migrate away from overriding these methods.
 
 === Deprecations
 
@@ -143,14 +1565,14 @@ This includes:
 - `java.lang.Runtime.exec(...)` (all overloads).
 - The Groovy process helpers `String.execute(...)`, `String[].execute(...)`, and `List.execute(...)`.
 
-This does *not* affect uses of the link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec(org.gradle.api.Action)[`ProviderFactory.exec`] / link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec(org.gradle.api.Action)[`ProviderFactory.javaexec`] providers (`providers.exec` / `providers.javaexec`) or a <<configuration_cache_requirements.adoc#config_cache:requirements:external_processes, `ValueSource`>> that runs a process inside — those remain the supported way to run a process at configuration time.
+This does *not* affect uses of the link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec(org.gradle.api.Action)[`ProviderFactory.exec`] / link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec(org.gradle.api.Action)[`ProviderFactory.javaexec`] providers (`providers.exec` / `providers.javaexec`) or a <<configuration_cache_requirements.adoc#config_cache:requirements:external_processes, `ValueSource`>> that runs a process inside, those remain the supported way to run a process at configuration time.
 
 Starting an external process at configuration time in any of the deprecated ways is already an error when the Configuration Cache is enabled.
-To simplify preparation for the Configuration Cache being enabled by default in Gradle 10, and to open the way to it becoming the only mode of execution, Gradle now unconditionally deprecates behaviors that are unsupported with the Configuration Cache.
+Because the Configuration Cache will be enabled by default in Gradle 10, Gradle now deprecates unsupported behaviors even when the Configuration Cache is not currently enabled.
 
 Migrate to one of the following, in order of preference:
 
-1. *Move the process execution into a task*, so it runs at execution time and benefits from build caching, up-to-date checks, and work avoidance.
+1. Move the process execution into a task, so it runs at execution time and benefits from build caching, up-to-date checks, and work avoidance.
 Use an link:{javadocPath}/org/gradle/api/tasks/Exec.html[`Exec`] or link:{javadocPath}/org/gradle/api/tasks/JavaExec.html[`JavaExec`] task, or a custom task that injects link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] and runs the process in its task action.
 2. For simple cases, use link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec(org.gradle.api.Action)[`providers.exec`] / link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec(org.gradle.api.Action)[`providers.javaexec`].
 Prefer wiring the returned provider lazily to task inputs, and call `get()` only as a last resort.
@@ -169,11 +1591,142 @@ Whether the Build Cache is enabled is determined by the Gradle invocation (`--bu
 Enable or disable the Build Cache with the `org.gradle.caching` Gradle property instead.
 See <<build_cache.adoc#sec:build_cache_enable,Enable the Build Cache>> for details.
 
+[[deprecate_implicit_dependencies_between_builds]]
+==== Deprecation of implicit task dependencies between builds
+
+Gradle now detects overlapping task outputs across the builds of a composite build.
+Tasks in different builds that write to the same location no longer run in parallel, matching the behavior of tasks within a single build.
+
+As part of this change, a task consuming the outputs of a task in another build without declaring an explicit or implicit dependency is now deprecated.
+This will become an error in Gradle 10, matching the existing behavior for tasks in the same build.
+
+See <<validation_problems.adoc#implicit_dependency,Implicit dependencies between tasks>> for details and possible solutions.
+
+[[deprecated_startparameter_construction]]
+==== Deprecation of creating and copying `StartParameter`
+
+Starting in Gradle 10, constructing new instances of link:{javadocPath}/org/gradle/StartParameter.html[`StartParameter`] will no longer be permitted.
+It was never intended to be instantiated or copied by build logic, but the public no-argument constructor and the `newInstance()` / `newBuild()` methods made that possible.
+
+The following have been deprecated for removal:
+
+- the public link:{javadocPath}/org/gradle/StartParameter.html[`StartParameter()`] constructor
+- link:{javadocPath}/org/gradle/StartParameter.html#newInstance()[`StartParameter.newInstance()`]
+- link:{javadocPath}/org/gradle/StartParameter.html#newBuild()[`StartParameter.newBuild()`]
+
+The existing `StartParameter` instance for a build may be obtained via link:{javadocPath}/org/gradle/api/invocation/Gradle.html#getStartParameter()[`Gradle.getStartParameter()`] instead of constructing or copying one.
+
+[[deprecate_signature_as_artifact]]
+==== Deprecation of `Signature` as a Configuration artifact
+
+Starting in Gradle 10, link:{javadocPath}/org/gradle/plugins/signing/Signature.html[`Signature`] will no longer implement link:{javadocPath}/org/gradle/api/artifacts/PublishArtifact.html[`PublishArtifact`].
+The following methods inherited from `PublishArtifact` have been deprecated and will be removed in Gradle 10:
+
+- `getName()` / `setName(String)`
+- `getExtension()` / `setExtension(String)`
+- `getType()` / `setType(String)`
+- `getClassifier()` / `setClassifier(String)`
+- `getDate()` / `setDate(Date)`
+- `getBuildDependencies()`
+- `builtBy(Object...)`
+
+Furthermore, `Signature` will no longer extend the internal `AbstractPublishArtifact` class or implement the internal `PublishArtifactInternal` interface.
+Code that dereferenced these internal types via `Signature` must be updated.
+The `shouldBePublished()` method inherited from `PublishArtifactInternal` has also been deprecated for removal.
+
+As a result, a `Signature` will no longer be permitted directly as an artifact of a `Configuration`.
+Starting in Gradle 10, the <<signing_plugin.adoc#signing_plugin,Signing Plugin>> will no longer create the `signatures` configuration or automatically add `Signature` instances to it.
+
+The `getConfiguration()` and `setConfiguration(Configuration)` methods on link:{javadocPath}/org/gradle/plugins/signing/SigningExtension.html[`SigningExtension`] have been deprecated and will be removed in Gradle 10.
+Creating a configuration named `signatures` before the signing plugin is applied is now also deprecated.
+
+[[deprecate_signature_constructors]]
+==== Deprecation of constructing `Signature` instances
+
+Starting in Gradle 10, manually constructing a link:{javadocPath}/org/gradle/plugins/signing/Signature.html[`Signature`] instance will no longer be permitted.
+All public constructors for this type have been deprecated for removal.
+
+To sign files, use the `sign` methods on the link:{javadocPath}/org/gradle/plugins/signing/Sign.html[`Sign`] task, or use the `sign` methods on link:{javadocPath}/org/gradle/plugins/signing/SignOperation.html[`SignOperation`].
+
+[[deprecate_sign_operation_signatures]]
+==== Deprecation of `getSignatures()` and `getSingleSignature()` on `SignOperation`
+
+The `getSignatures()` and `getSingleSignature()` methods on link:{javadocPath}/org/gradle/plugins/signing/SignOperation.html[`SignOperation`] have been deprecated and will be removed in Gradle 10.
+
+Use `getFilesToSign()` and `getSignatureFiles()` instead.
+
+[[deprecate_sign_classifier]]
+==== Deprecation of signing files with a classifier
+
+The following methods that accept a classifier alongside files to sign have been deprecated and will be removed in Gradle 10:
+
+- `Sign.sign(String, File...)`
+- `SignOperation.sign(String, File...)`
+- `SigningExtension.sign(String, File...)`
+
+The classifier argument is ignored during signing and does not influence the resulting signature file.
+Use the `sign(File...)` overloads instead.
+
+[[unsupported_attribute_value_type]]
+==== Deprecation of unsupported attribute value types
+
+Attribute value types are limited to: `String`, `Boolean`, any subtype of `Number`, and any type that implements `org.gradle.api.Named`.
+
+Passing any other type to link:{javadocPath}/org/gradle/api/attributes/Attribute.html#of(java.lang.String,java.lang.Class)[`Attribute.of(String, Class)`] — or declaring an unsupported type as the type parameter of an `AttributeCompatibilityRule` or `AttributeDisambiguationRule` — now emits a deprecation warning and will become an error in Gradle 10.
+
+The most common case is a plain Java `Enum` that does not implement `Named`.
+Such types often work at first but fail later during dependency resolution, publishing, or Configuration Cache serialization — where the machinery assumes an attribute value can be reconstructed by name.
+
+To fix a build affected by this deprecation, change the attribute value type to one of the supported types.
+For enums, the smallest change is to make the enum implement `Named` and return the constant's name from `getName()`.
+Prefer `String` where you can: see <<best_practices_dependencies.adoc#favor_string_attribute_values,Favor `String` Values for Custom Attributes>> for why a `Named` type — including a `Named` enum — usually costs more than it returns.
+
+See the <<variant_attributes.adoc#sec:creating-attributes, variant attributes documentation>> for the full set of supported attribute value types.
+
+[[kgp_native_bundle_attribute_enum]]
+==== Deprecation of using `KotlinNativeBundleArtifactsTypes` as an attribute value type
+
+Kotlin Gradle Plugin (KGP) 2.0.0 through 2.4.x register an attribute of type `org.jetbrains.kotlin.gradle.targets.native.toolchain.KotlinNativeBundleArtifactFormat.KotlinNativeBundleArtifactsTypes` — a plain Java `Enum` that does not implement `org.gradle.api.Named`.
+KGP 2.0.x triggers this deprecation in every build. KGP 2.1.0 through 2.4.x trigger it only in builds with Kotlin/Native targets.
+
+This deprecation is a specialized variant of the general <<#unsupported_attribute_value_type, unsupported attribute value type>> deprecation, called out separately so users can identify KGP as the source and remediate by upgrading the plugin.
+
+To fix builds affected by this deprecation, upgrade the Kotlin Gradle Plugin to 2.5.0 or later.
+KGP 2.5.0 and newer do not use a plain enum for this attribute and are unaffected (link:https://youtrack.jetbrains.com/issue/KT-89265[KT-89265]).
+
+At the time of writing, KGP 2.5.0 is not yet stable, so builds with Kotlin/Native targets on stable KGP cannot avoid this warning.
+
+Like the general case, this deprecation will become an error in Gradle 10.
+
+See the <<variant_attributes.adoc#sec:creating-attributes, variant attributes documentation>> for the full set of supported attribute value types.
+
+[[deprecated_macos_amd64]]
+==== Deprecation of macOS on `AMD64`
+
+macOS `AMD64` (Intel) is deprecated as a supported platform and will be removed from the <<compatibility.adoc#target_platforms, supported platforms>> in Gradle 10.
+
+macOS 27 runs on Apple Silicon only, and the OpenJDK macOS/x64 port is link:https://openjdk.org/jeps/541[deprecated for removal], so JDK 27 and newer are not available for the platform.
+Gradle is therefore no longer tested on macOS `AMD64` with Java 27 or newer.
+
+To prepare for Gradle 10, move your builds to macOS `AArch64` (Apple Silicon).
 
 [[changes_9.7.0]]
 == Upgrading from 9.6.0 and earlier
 
 === Potential breaking changes
+
+[[resilient_sync_reports_failed_operations]]
+==== Resilient sync reports failed operations
+
+Tooling API clients that query models through the incubating link:{javadocPath}/org/gradle/tooling/BuildController.html#fetch(java.lang.Class)[`BuildController.fetch(...)`] method perform a _resilient sync_: failures are attached to each link:{javadocPath}/org/gradle/tooling/FetchModelResult.html[`FetchModelResult`] instead of aborting the operation.
+
+Previously, such an operation could complete successfully even when some of these model builds failed.
+The failures were reported only through `FetchModelResult.getFailures()`, and the client still received a successful result.
+
+Starting in Gradle 9.7.0, the operation is reported as failed when any part of it fails: `ResultHandler.onFailure(...)` is called, and a blocking `run()` throws, even though the partial models have already been delivered.
+Because a single link:{javadocPath}/org/gradle/tooling/BuildAction.html[`BuildAction`] loses its result in that case, clients should use a <<tooling_api.adoc#sec:embedding_phased_action_example,phased build action>> and read the partial models from the intermediate result handlers.
+
+This aligns resilient sync with the reporting of `getModel(...)` and `findModel(...)`, and of task and configuration failures, so a sync in which something failed is no longer reported as successful.
 
 [[publish_no_checksums_for_signature_files]]
 ==== Checksum files are no longer published for signature files
@@ -293,7 +1846,7 @@ This affects the following groups of public API types:
 - The component-model base API in `org.gradle.platform.base` and `org.gradle.language.base`: `ComponentSpec`, `BinarySpec`, `LibrarySpec`, `ApplicationSpec`, `LanguageSourceSet`, and related container, builder, and annotation types.
 - The native component plugins: `c`, `cpp`, `objective-c`, `objective-cpp`, `assembler`, `windows-resources`, and `native-component`, along with their source-set, binary-spec, build-type, flavor, and prebuilt-library types in `org.gradle.nativeplatform` and `org.gradle.language.*`.
 - The native test plugins `cunit`, `cunit-test-suite`, `google-test`, and `google-test-test-suite`, along with the rule-based `test-suite-base` infrastructure in `org.gradle.testing.base`.
-- The `componentReport` and `dependentComponents` diagnostic tasks.
+- The `model`, `componentReport`, and `dependentComponents` diagnostic tasks.
 
 Replace software-model-based builds with the current component model:
 
@@ -301,7 +1854,7 @@ Replace software-model-based builds with the current component model:
 - For Swift, use the link:{userManualPath}/swift_application_plugin.html[`swift-application`] and link:{userManualPath}/swift_library_plugin.html[`swift-library`] plugins.
 - For native testing, use the link:{userManualPath}/cpp_unit_test_plugin.html[`cpp-unit-test`] and link:{userManualPath}/xctest_plugin.html[`xctest`] plugins.
 
-The new plugins configure components through ordinary Gradle extensions (`application { }`, `library { }`, `unitTest { }`) without the `model { }` block, integrate with the configuration cache, and support Gradle's standard dependency-management features.
+The new plugins configure components through ordinary Gradle extensions (`application { }`, `library { }`, `unitTest { }`) without the `model { }` block, integrate with the Configuration Cache, and support Gradle's standard dependency-management features.
 
 [[deprecated_unsafe_isolated_projects_properties]]
 ==== Deprecation of `org.gradle.unsafe.isolated-projects*` property names
@@ -328,12 +1881,12 @@ Update your `gradle.properties` and command-line invocations to the new names.
 When both the legacy and the new name of a property are set — for example, the new name in `gradle.properties` and the legacy name injected by a plugin or CI script on the command line — an explicit `false` from either one disables the feature.
 This guarantees that tooling which still opts out via a legacy property name keeps working after a build migrates to the new names.
 
-See the <<isolated_projects.adoc#sec:enable, Enabling Isolated Projects>> section in the Gradle User Manual for the recommended setup.
+See the <<isolated_projects.adoc#sec:enable_ip, Enabling Isolated Projects>> section in the Gradle User Manual for the recommended setup.
 
 [[deprecated_custom_collection_types_with_cc]]
-==== Deprecation of serializing custom collection and map types with the configuration cache
+==== Deprecation of serializing custom collection and map types with the Configuration Cache
 
-The configuration cache serializes a fixed set of standard collection, set, map, and queue types (such as `ArrayList`, `LinkedHashSet`, `LinkedHashMap`, and `ArrayDeque`) directly.
+The Configuration Cache serializes a fixed set of standard collection, set, map, and queue types (such as `ArrayList`, `LinkedHashSet`, `LinkedHashMap`, and `ArrayDeque`) directly.
 A _custom_ subtype of one of these types — for example, `class MyList extends ArrayList<String> {}` — cannot be restored as its own type and is instead restored as the nearest standard type, losing any state or behavior the custom type adds.
 
 Referencing such a custom subtype from a task field or task action is now deprecated and will become an error in Gradle 10.
@@ -341,100 +1894,6 @@ Referencing such a custom subtype from a task field or task action is now deprec
 To fix it, use a standard collection or map type instead of a custom subtype, and store any extra data in separate fields.
 
 See <<configuration_cache_requirements.adoc#config_cache:requirements:custom_collection_types, Custom Collection and Map Types>> for details.
-
-[[deprecated_startparameter_construction]]
-==== Deprecation of creating and copying `StartParameter`
-
-Starting in Gradle 10, constructing new instances of link:{javadocPath}/org/gradle/StartParameter.html[`StartParameter`] will no longer be permitted.
-It was never intended to be instantiated or copied by build logic, but the public no-argument constructor and the `newInstance()` / `newBuild()` methods made that possible.
-
-The following have been deprecated for removal:
-
-- the public link:{javadocPath}/org/gradle/StartParameter.html[`StartParameter()`] constructor
-- link:{javadocPath}/org/gradle/StartParameter.html#newInstance()[`StartParameter.newInstance()`]
-- link:{javadocPath}/org/gradle/StartParameter.html#newBuild()[`StartParameter.newBuild()`]
-
-The existing `StartParameter` instance for a build may be obtained via link:{javadocPath}/org/gradle/api/invocation/Gradle.html#getStartParameter()[`Gradle.getStartParameter()`] instead of constructing or copying one.
-
-[[deprecate_signature_as_artifact]]
-==== Deprecation of `Signature` as a Configuration artifact
-
-Starting in Gradle 10, link:{javadocPath}/org/gradle/plugins/signing/Signature.html[`Signature`] will no longer implement link:{javadocPath}/org/gradle/api/artifacts/PublishArtifact.html[`PublishArtifact`].
-The following methods inherited from `PublishArtifact` have been deprecated and will be removed in Gradle 10:
-
-- `getName()` / `setName(String)`
-- `getExtension()` / `setExtension(String)`
-- `getType()` / `setType(String)`
-- `getClassifier()` / `setClassifier(String)`
-- `getDate()` / `setDate(Date)`
-- `getBuildDependencies()`
-- `builtBy(Object...)`
-
-Furthermore, `Signature` will no longer extend the internal `AbstractPublishArtifact` class or implement the internal `PublishArtifactInternal` interface.
-Code that dereferenced these internal types via `Signature` must be updated.
-The `shouldBePublished()` method inherited from `PublishArtifactInternal` has also been deprecated for removal.
-
-As a result, a `Signature` will no longer be permitted directly as an artifact of a `Configuration`.
-Starting in Gradle 10, the <<signing_plugin.adoc#signing_plugin,Signing Plugin>> will no longer create the `signatures` configuration or automatically add `Signature` instances to it.
-
-The `getConfiguration()` and `setConfiguration(Configuration)` methods on link:{javadocPath}/org/gradle/plugins/signing/SigningExtension.html[`SigningExtension`] have been deprecated and will be removed in Gradle 10.
-Creating a configuration named `signatures` before the signing plugin is applied is now also deprecated.
-
-[[deprecate_signature_constructors]]
-==== Deprecation of constructing `Signature` instances
-
-Starting in Gradle 10, manually constructing a link:{javadocPath}/org/gradle/plugins/signing/Signature.html[`Signature`] instance will no longer be permitted.
-All public constructors for this type have been deprecated for removal.
-
-To sign files, use the `sign` methods on the link:{javadocPath}/org/gradle/plugins/signing/Sign.html[`Sign`] task, or use the `sign` methods on link:{javadocPath}/org/gradle/plugins/signing/SignOperation.html[`SignOperation`].
-
-[[deprecate_sign_operation_signatures]]
-==== Deprecation of `getSignatures()` and `getSingleSignature()` on `SignOperation`
-
-The `getSignatures()` and `getSingleSignature()` methods on link:{javadocPath}/org/gradle/plugins/signing/SignOperation.html[`SignOperation`] have been deprecated and will be removed in Gradle 10.
-
-Use `getFilesToSign()` and `getSignatureFiles()` instead.
-
-[[deprecate_sign_classifier]]
-==== Deprecation of signing files with a classifier
-
-The following methods that accept a classifier alongside files to sign have been deprecated and will be removed in Gradle 10:
-
-- `Sign.sign(String, File...)`
-- `SignOperation.sign(String, File...)`
-- `SigningExtension.sign(String, File...)`
-
-The classifier argument is ignored during signing and does not influence the resulting signature file.
-Use the `sign(File...)` overloads instead.
-
-[[unsupported_attribute_value_type]]
-==== Deprecation of unsupported attribute value types
-
-Attribute value types are limited to: `String`, `Boolean`, any subtype of `Number`, and any type that implements `org.gradle.api.Named`.
-
-Passing any other type to link:{javadocPath}/org/gradle/api/attributes/Attribute.html#of(java.lang.String,java.lang.Class)[`Attribute.of(String, Class)`] — or declaring an unsupported type as the type parameter of an `AttributeCompatibilityRule` or `AttributeDisambiguationRule` — now emits a deprecation warning and will become an error in Gradle 10.
-
-The most common case is a plain Java `Enum` that does not implement `Named`.
-Such types often work at first but fail later during dependency resolution, publishing, or configuration cache serialization — where the machinery assumes an attribute value can be reconstructed by name.
-
-To fix a build affected by this deprecation, change the attribute value type to one of the supported types.
-For enums, the simplest fix is to make the enum implement `Named` and return the constant's name from `getName()`.
-
-See the <<variant_attributes.adoc#sec:creating-attributes, variant attributes documentation>> for the full set of supported attribute value types.
-
-[[kgp_native_bundle_attribute_enum]]
-==== Deprecation of using `KotlinNativeBundleArtifactsTypes` as an attribute value type
-
-The Kotlin Gradle Plugin (KGP) 2.0.x line registers an attribute of type `org.jetbrains.kotlin.gradle.targets.native.toolchain.KotlinNativeBundleArtifactFormat.KotlinNativeBundleArtifactsTypes` — a plain Java `Enum` that does not implement `org.gradle.api.Named`.
-
-This deprecation is a specialized variant of the general <<#unsupported_attribute_value_type, unsupported attribute value type>> deprecation, called out separately so users can identify KGP as the source and remediate by upgrading the plugin.
-
-To fix builds affected by this deprecation, upgrade the Kotlin Gradle Plugin to 2.1.0 or later.
-KGP 2.1.0 and newer do not use a plain enum for this attribute and are unaffected.
-
-Like the general case, this deprecation will become an error in Gradle 10.
-
-See the <<variant_attributes.adoc#sec:creating-attributes, variant attributes documentation>> for the full set of supported attribute value types.
 
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier
@@ -577,7 +2036,7 @@ It will also affect the output of the `properties` task when invoked for subproj
 Earlier versions of the Develocity plugin rely on the implicit property lookup in parent projects, which is <<#deprecated_implicit_lookup_in_parent_projects,deprecated>> and will be removed in Gradle 10.
 
 Upgrade to the link:https://plugins.gradle.org/plugin/com.gradle.develocity[latest Develocity plugin] from the Gradle Plugin Portal.
-See the link:https://gradle.com/help/gradle-plugin-compatibility/[Develocity plugin compatibility matrix] for details.
+See the link:https://docs.develocity.ai/current/miscellaneous/compatibility/#develocity_gradle_plugin[Develocity plugin compatibility matrix] for details.
 
 [[deprecated_get_properties]]
 ==== Deprecation of `getProperties()`
@@ -845,11 +2304,11 @@ Delegated properties are being removed because they create silent correctness bu
 
 Calling the following methods from a task action at execution time is now deprecated and will become an error in Gradle 10:
 
-- link:{javadocPath}/org/gradle/api/Task.html#getTaskDependencies--[`Task.getTaskDependencies()`]
-- link:{javadocPath}/org/gradle/api/Task.html#getDependsOn--[`Task.getDependsOn()`]
-- link:{javadocPath}/org/gradle/api/Task.html#getMustRunAfter--[`Task.getMustRunAfter()`]
-- link:{javadocPath}/org/gradle/api/Task.html#getFinalizedBy--[`Task.getFinalizedBy()`]
-- link:{javadocPath}/org/gradle/api/Task.html#getShouldRunAfter--[`Task.getShouldRunAfter()`]
+- link:{javadocPath}/org/gradle/api/Task.html#getTaskDependencies()[`Task.getTaskDependencies()`]
+- link:{javadocPath}/org/gradle/api/Task.html#getDependsOn()[`Task.getDependsOn()`]
+- link:{javadocPath}/org/gradle/api/Task.html#getMustRunAfter()[`Task.getMustRunAfter()`]
+- link:{javadocPath}/org/gradle/api/Task.html#getFinalizedBy()[`Task.getFinalizedBy()`]
+- link:{javadocPath}/org/gradle/api/Task.html#getShouldRunAfter()[`Task.getShouldRunAfter()`]
 
 These methods can still be used during configuration time.
 
@@ -883,7 +2342,7 @@ Please refer to the <<configuration_cache_requirements.adoc#config_cache:require
 [[task_extensions]]
 ==== Deprecation of accessing extensions from a task action
 
-Calling link:{javadocPath}/org/gradle/api/Task.html#getExtensions--[`Task.getExtensions()`] from a task action at execution time is now deprecated and will become an error in Gradle 10.
+Calling link:{javadocPath}/org/gradle/api/plugins/ExtensionAware.html#getExtensions()[`Task.getExtensions()`] from a task action at execution time is now deprecated and will become an error in Gradle 10.
 
 This method can still be used during configuration time.
 
@@ -911,7 +2370,7 @@ tasks.register("greet") {
 }
 ----
 
-Please refer to the <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, Configuration Cache documentation>> for alternatives that are compatible with the configuration cache.
+Please refer to the <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, Configuration Cache documentation>> for alternatives that are compatible with the Configuration Cache.
 
 [[injected_service_types_at_execution]]
 ==== Deprecation of accessing injected `Project` or `Gradle` services from a task action
@@ -963,7 +2422,7 @@ Please refer to the <<configuration_cache_requirements.adoc#config_cache:require
 [[task_in_task_dependency_closure]]
 ==== Deprecation of accessing `Task` in `dependsOn` closures
 
-Using the `Task` argument provided to closures passed to the link:{javadocPath}/org/gradle/api/Task.html#dependsOn(java.lang.Object...)[`Task.dependsOn`] method has been deprecated.
+Using the `Task` argument provided to closures passed to the link:{javadocPath}/org/gradle/api/Task.html#dependsOn(java.lang.Object++...++)[`Task.dependsOn`] method has been deprecated.
 Starting in Gradle 10, closures passed to `Task.dependsOn` will no longer receive a `Task` argument.
 
 The following code will not be permitted starting in Gradle 10:
@@ -1355,9 +2814,9 @@ When running a lock update with Gradle 9.5.0 or above, if your lockfiles were pr
 [[v9_dependency_verification_armored_key_rings_non_ascii]]
 ==== Dependency verification armored key rings now render non-ASCII characters correctly
 
-In the context of <<dependency_verification#verifying-dependencies, Dependency Verification>>, when a key has metadata that contains non-ASCII characters, it is now properly rendered in the key header.
+In the context of <<securing_dependencies#verifying-dependencies, Dependency Verification>>, when a key has metadata that contains non-ASCII characters, it is now properly rendered in the key header.
 
-When running a <<dependency_verification#sec:local-keyring,dependency verification key export>> with Gradle 9.5.0 or above, if your keyring already contained keys with non-ASCII metadata, the exported armored keyring will be updated to render those characters correctly.
+When running a <<securing_dependencies#sec:local-keyring,dependency verification key export>> with Gradle 9.5.0 or above, if your keyring already contained keys with non-ASCII metadata, the exported armored keyring will be updated to render those characters correctly.
 This is expected to happen only once.
 
 [[v9_outgoing_variants_hide_attributeless_by_default]]
@@ -1864,7 +3323,7 @@ dependencies {
 ==== Deprecation of `ModuleVersionSelector` to `ModuleComponentSelector` conversion
 
 The conversion of `ModuleVersionSelector` to `ModuleComponentSelector` (used in
-link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#force(java.lang.Object...)[`ResolutionStrategy.force(...)`],
+link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#force(java.lang.Object++...++)[`ResolutionStrategy.force(...)`],
 link:{javadocPath}/org/gradle/api/artifacts/DependencyResolveDetails.html#useTarget(java.lang.Object)[`DependencyResolveDetails.useTarget(Object)`], and
 link:{javadocPath}/org/gradle/plugin/management/PluginResolveDetails.html#useModule(java.lang.Object)[`PluginResolveDetails.useModule(Object)`]
 ) has been deprecated and will be removed in Gradle 10.0.0.
@@ -1967,7 +3426,7 @@ If the specified Java version is **not** compatible with the Gradle daemon, you 
 [[project_container_methods]]
 ==== Deprecation of `Project.container(...)` methods
 
-The link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[`Project.container(...)`] methods are deprecated and will be removed in Gradle 10.
+The link:{javadocPath}/org/gradle/api/Project.html#container(java.lang.Class)[`Project.container(...)`] methods are deprecated and will be removed in Gradle 10.
 These methods manually create named domain object containers.
 
 Use a <<properties_providers.adoc#mutable_managed_properties,managed property>> to let Gradle instantiate containers automatically.
@@ -2154,7 +3613,7 @@ configurations.dependencyScope("implementation") {
 [[reporting_extension_file]]
 ==== Deprecation of `ReportingExtension.file(String)`
 
-The link:{javadocPath}/org/gradle/api/reporting/ReportingExtension.html#file(String)[`file()` method] on `ReportingExtension` has been deprecated and will be removed in Gradle 10.0.0.
+The link:{javadocPath}/org/gradle/api/reporting/ReportingExtension.html#file(java.lang.String)[`file()` method] on `ReportingExtension` has been deprecated and will be removed in Gradle 10.0.0.
 
 Instead, use `ReportingExtension.getBaseDirectory()` with `file(String)` or `dir(String)`.
 

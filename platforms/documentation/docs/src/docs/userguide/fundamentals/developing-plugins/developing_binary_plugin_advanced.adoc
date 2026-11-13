@@ -46,15 +46,6 @@ image::plugin-1.png[]
 |Implements logic that is executed when the task is run. The plugin will typically register a task and wire it up with values from the extension.
 |===
 
-++++
-<p>
-  <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/pB_ks2ShQEA?si=KOB1SkFD4zrSAiaX&rel=0" frameborder="0" allowfullscreen
-      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
-  </div>
-</p>
-++++
-
 Our simple plugin compares the size of two files.
 It is called `FileSizeDiff`.
 Here's the suggested directory structure:
@@ -117,15 +108,6 @@ include::{snippetsPath}/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin
 
 The two properties representing the input files are of the `RegularFileProperty` type which extends `Property` and are therefore <<lazy_eager_evaluation.adoc#lazy_evaluation,lazy>>.
 
-++++
-<p>
-  <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/zE98oR1ccH4&rel=0" frameborder="0" allowfullscreen
-      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
-  </div>
-</p>
-++++
-
 [[sec:task]]
 == 2. Task
 
@@ -151,15 +133,6 @@ The task logic is implemented in a method annotated with `@TaskAction`, which:
 * Compares the size of the two input files.
 * Generates a descriptive text result.
 * Writes that result to the output file and prints it to standard output.
-
-++++
-<p>
-  <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/obM3bBklU9c?si=iLzhwLVsR4BYJDCu&rel=0" frameborder="0" allowfullscreen
-      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
-  </div>
-</p>
-++++
 
 [[sec:plugin]]
 == 3. Plugin

@@ -28,12 +28,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
             "build",
             "sanityCheck",
             "test",
-            "embeddedIntegTest",
-            // AsciidoctorTask only became CC compatible in version 5 (https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/564),
-            // skip these tasks to avoid non-IP problems
-            "-x", ":docs:samplesMultiPage",
-            "-x", ":docs:userguideMultiPage",
-            "-x", ":docs:userguideSinglePageHtml"
+            "embeddedIntegTest"
         ]
 
         when:
@@ -59,8 +54,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
         // sets properties that are required by tasks being realized
         def requiredGradleProperties = [
             "-Pgradle_installPath=/dev/null",
-            "-PartifactoryUserName=foo",
-            "-PartifactoryUserPassword=bar",
+            "-PartifactoryToken=foo",
             "-PtoolingApiShadedJarInstallPath=/tmp",
             "-PpromotionCommitId=1234567"
         ]

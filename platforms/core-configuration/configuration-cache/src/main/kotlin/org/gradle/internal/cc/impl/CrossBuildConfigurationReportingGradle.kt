@@ -33,7 +33,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.invocation.GradleLifecycle
-import org.gradle.api.services.GradleService
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
@@ -46,7 +45,6 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
-import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
 import java.io.File
@@ -61,14 +59,14 @@ class CrossBuildConfigurationReportingGradle(
 
     private fun onBuildMutableStateAccess(what: String) {
         ipProblems.report {
-            problem {
+            problem("Build cannot access Gradle state of another build") {
                 text("Build ")
                 reference(referrer.identityPath.asString())
-                text(" cannot access Gradle.$what on build ")
+                text(" cannot access ")
+                reference("Gradle.$what")
+                text(" on build ")
                 reference(identityPath.asString())
-            }
-                .exception { message -> message.capitalized() }
-                .build()
+            }.build()
         }
     }
 
@@ -97,8 +95,6 @@ class CrossBuildConfigurationReportingGradle(
     override fun isRootBuild(): Boolean = delegate.isRootBuild
 
     override fun getIdentityPath(): Path = delegate.identityPath
-
-    override fun contextualize(description: String): String = delegate.contextualize(description)
 
     override fun getPublicBuildPath(): PublicBuildPath = delegate.publicBuildPath
 
@@ -334,11 +330,6 @@ class CrossBuildConfigurationReportingGradle(
     override fun getProviders(): ProviderFactory {
         onBuildMutableStateAccess("getProviders")
         return delegate.getProviders()
-    }
-
-    override fun <T : GradleService> service(serviceType: Class<T>): T {
-        onBuildMutableStateAccess("service")
-        return delegate.service(serviceType)
     }
 
     override fun getPlugins(): PluginContainer {

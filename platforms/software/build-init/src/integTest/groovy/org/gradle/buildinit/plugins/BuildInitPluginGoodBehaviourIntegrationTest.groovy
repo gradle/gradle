@@ -18,6 +18,11 @@ package org.gradle.buildinit.plugins
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class BuildInitPluginGoodBehaviourIntegrationTest extends WellBehavedPluginTest {
+
+    def setup() {
+        mirrorMavenCentralForInit()
+    }
+
     @Override
     def getMainTask() {
         return ["init", "--overwrite"]

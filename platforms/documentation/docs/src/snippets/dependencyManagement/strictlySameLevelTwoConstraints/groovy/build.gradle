@@ -1,0 +1,32 @@
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// A regular implementation dependency so the module appears in the graph and the constraints take effect.
+dependencies {
+    api('org.apache.httpcomponents:httpclient:4.4')
+}
+
+// tag::same-level-two-constraints[]
+dependencies {
+    constraints {
+        // Two overlapping strict ranges declared as constraints in the same project.
+        // If intersection applies, resolved version is in [4.3, 4.5[.
+        // If one constraint silently wins, resolved version is in [4.0, 5.0[ or [4.3, 4.5[ alone.
+        api('org.apache.httpcomponents:httpclient') {
+            version {
+                strictly '[4.0, 5.0['
+            }
+        }
+        api('org.apache.httpcomponents:httpclient') {
+            version {
+                strictly '[4.3, 4.5['
+            }
+        }
+    }
+}
+// end::same-level-two-constraints[]

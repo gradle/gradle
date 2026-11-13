@@ -28,6 +28,10 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
+import org.gradle.api.problems.ProblemGroups
+import org.gradle.api.problems.internal.ProblemInternal
+import org.gradle.api.problems.internal.ProblemLocator
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildClientMetaData
@@ -42,6 +46,7 @@ import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.internal.problems.failure.DefaultFailureFactory
 import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.lang.reflect.Field
@@ -504,6 +509,66 @@ $STACKTRACE
 $INFO_OR_DEBUG
 $TRY_SCAN
 $GET_HELP
+"""
+    }
+
+    def "renders compiler diagnostics as their details and lists their solutions as resolutions"() {
+        // A compilation failure carries the compiler's diagnostics, whose details are the compiler's own rendering.
+        // They are written as the details only, so their solutions must be listed as resolutions.
+        ProblemsInternal problems = TestUtil.problemsService()
+        ProblemGroups groups = problems.groups
+        def diagnostic = problems.internalReporter.create(groups.compilation.java.problemId("... in ... has been deprecated")) {
+            it.details("Foo.java:3: warning: [deprecation] bar() in Foo has been deprecated")
+            it.solution("Use baz() instead.")
+        } as ProblemInternal
+        def diagnosticWithoutDetails = problems.internalReporter.create(groups.compilation.java.problemId("... expected")) {
+            it.contextualLabel("';' expected")
+            it.solution("Add the semicolon.")
+        } as ProblemInternal
+        def failure = failureFactory.create(new TestCompilationFailureException(), { [diagnostic, diagnosticWithoutDetails] } as ProblemLocator)
+
+        when:
+        reporter.buildFinished(failure)
+
+        then:
+        output.value == """
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* What went wrong:
+Foo.java:3: warning: [deprecation] bar() in Foo has been deprecated
+';' expected
+
+* Try:
+{info}> {normal}Use baz() instead.
+{info}> {normal}Add the semicolon.
+$TRY_SCAN
+"""
+    }
+
+    def "renders problems of other failures in full, with their solutions inline"() {
+        ProblemsInternal problems = TestUtil.problemsService()
+        ProblemGroups groups = problems.groups
+        def pluginProblem = problems.internalReporter.create(groups.compilation.java.problemId("Unused import")) {
+            it.details("Import of java.util.List is not used")
+            it.solution("Remove the import.")
+        } as ProblemInternal
+        def failure = failureFactory.create(new GradleException(MESSAGE), { [pluginProblem] } as ProblemLocator)
+
+        when:
+        reporter.buildFinished(failure)
+
+        then:
+        output.value == """
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* What went wrong:
+$MESSAGE
+Unused import
+  Import of java.util.List is not used
+    Possible solution: Remove the import.
+
+* Try:
+$TRY_SCAN
 """
     }
 

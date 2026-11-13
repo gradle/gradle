@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Callables;
 import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
@@ -35,6 +36,7 @@ import org.gradle.api.plugins.quality.CodeQualityExtension;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 
 import javax.inject.Inject;
@@ -179,17 +181,18 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         sourceSets.all(new Action<SourceSet>() {
             @Override
             public void execute(final SourceSet sourceSet) {
-                project.getTasks().register(sourceSet.getTaskName(getTaskBaseName(), null), getCastedTaskType(), new Action<Task>() {
-                    @Override
-                    public void execute(Task task) {
-                        configureForSourceSet(sourceSet, (T) task);
-                    }
-                });
+                String taskName = sourceSet.getTaskName(getTaskBaseName(), null);
+                TaskProvider<?> taskProvider = project.getTasks().register(taskName, getCastedTaskType(), task -> configureForSourceSet(sourceSet, (T) task));
+                NamedDomainObjectProvider<T> castTaskProvider = Cast.uncheckedCast(taskProvider);
+                configureTaskProviderForSourceSet(sourceSet, castTaskProvider);
             }
         });
     }
 
     protected void configureForSourceSet(SourceSet sourceSet, T task) {
+    }
+
+    protected void configureTaskProviderForSourceSet(SourceSet sourceSet, NamedDomainObjectProvider<T> taskProvider) {
     }
 
     @SuppressWarnings("rawtypes")

@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A builder for a {@link ServiceRegistry}.
+ * A builder for a {@link ManagedServiceRegistry}.
  *
  * <h2>Service lookup order</h2>
  *
@@ -161,12 +161,10 @@ public class ServiceRegistryBuilder {
     /**
      * Creates a service registry with the provided configuration.
      * <p>
-     * The registry <b>should be {@link CloseableServiceRegistry#close() closed}</b> when it is no longer required
-     * to cleanly dispose of the resources potentially held by created services.
-     *
-     * @see CloseableServiceRegistry
+     * The caller is responsible for
+     * the {@link ManagedServiceRegistry lifecycle} of the returned registry.
      */
-    public CloseableServiceRegistry build() {
+    public ManagedServiceRegistry build() {
         ServiceRegistry[] parents = this.parents.toArray(new ServiceRegistry[0]);
 
         DefaultServiceRegistry registry = scope != null

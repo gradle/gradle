@@ -59,4 +59,36 @@ class DirectoryPropertyIntegrationTest extends AbstractIntegrationSpec {
         'flatMap { value }'    | 'flatMap { it.outDir.file("output") }'
         'flatMap { provider }' | 'flatMap { it.outDir.file(provider { "output" }) }'
     }
+
+    @Issue('https://github.com/gradle/gradle/issues/12307')
+    def 'DirectoryProperty.#method(Provider) fails eagerly with a descriptive message for a null provider'() {
+        given:
+        buildFile << """
+            def dir = objects.directoryProperty()
+            dir.convention(layout.buildDirectory)
+
+            org.gradle.api.provider.Provider<CharSequence> nullName = null
+            def archivePath = objects.$propertyFactory()
+            archivePath.convention(dir.${method}(nullName))
+
+            tasks.register('compose') {
+                doLast {
+                    println "archivePath = " + archivePath.get()
+                }
+            }
+        """
+
+        when:
+        fails 'compose'
+
+        then:
+        failure.assertHasFileName("Build file '$buildFile'")
+        failure.assertHasLineNumber(7)
+        failure.assertHasCause("Cannot resolve a path using a null provider.")
+
+        where:
+        method | propertyFactory
+        'file' | 'fileProperty'
+        'dir'  | 'directoryProperty'
+    }
 }

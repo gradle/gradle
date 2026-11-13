@@ -85,6 +85,9 @@ atlassian-ide-plugin.xml
 # ----
 .java-version
 
+# direnv
+.envrc
+
 # macOS
 # ----
 .DS_Store

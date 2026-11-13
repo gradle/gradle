@@ -20,17 +20,20 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 
 import java.io.OutputStream;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Reads from the process' stdout and stderr (if not merged into stdout) and forwards to {@link OutputStream}.
  */
-public class OutputStreamsForwarder implements StreamsHandler {
+public class OutputStreamsForwarder implements FinishNotifyingStreamsHandler {
     private final OutputStream standardOutput;
     private final OutputStream errorOutput;
     private final boolean readErrorStream;
-    private final CountDownLatch completed;
+    private final AtomicInteger pendingStreams;
+    private final CompletableFuture<Void> streamsFinished = new CompletableFuture<>();
     private Executor executor;
     private volatile ExecOutputHandleRunner standardOutputReader;
     private volatile ExecOutputHandleRunner standardErrorReader;
@@ -39,15 +42,15 @@ public class OutputStreamsForwarder implements StreamsHandler {
         this.standardOutput = standardOutput;
         this.errorOutput = errorOutput;
         this.readErrorStream = readErrorStream;
-        this.completed = new CountDownLatch(readErrorStream ? 2 : 1);
+        this.pendingStreams = new AtomicInteger(readErrorStream ? 2 : 1);
     }
 
     @Override
     public void connectStreams(Process process, String processName, Executor executor) {
         this.executor = executor;
-        standardOutputReader = new ExecOutputHandleRunner("read standard output of " + processName, process.getInputStream(), standardOutput, completed);
+        standardOutputReader = new ExecOutputHandleRunner("read standard output of " + processName, process.getInputStream(), standardOutput, this::streamFinished);
         if (readErrorStream) {
-            standardErrorReader = new ExecOutputHandleRunner("read error output of " + processName, process.getErrorStream(), errorOutput, completed);
+            standardErrorReader = new ExecOutputHandleRunner("read error output of " + processName, process.getErrorStream(), errorOutput, this::streamFinished);
         }
     }
 
@@ -69,11 +72,22 @@ public class OutputStreamsForwarder implements StreamsHandler {
         }
     }
 
+    private void streamFinished() {
+        if (pendingStreams.decrementAndGet() == 0) {
+            streamsFinished.complete(null);
+        }
+    }
+
+    @Override
+    public void whenStreamsFinished(Runnable callback) {
+        CompletableFuture<Void> ignored = streamsFinished.thenRun(callback);
+    }
+
     @Override
     public void stop() {
         try {
-            completed.await();
-        } catch (InterruptedException e) {
+            streamsFinished.get();
+        } catch (InterruptedException | ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }

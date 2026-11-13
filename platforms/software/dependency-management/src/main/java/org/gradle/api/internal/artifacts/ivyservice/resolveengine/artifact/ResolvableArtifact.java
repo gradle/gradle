@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.model.CalculatedValue;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
@@ -39,13 +40,18 @@ public interface ResolvableArtifact extends TaskDependencyContainer {
 
     /**
      * Resolves the file, if not already, blocking until complete.
+     *
+     * @throws IllegalStateException when this artifact is optional and does not exist. Such artifacts are omitted when
+     * their artifact set is visited, so consumers visiting an artifact set do not encounter them.
      */
     File getFile();
 
     /**
      * Returns the artifact file as a lazy type. Does not resolve the file, but the returned value can be used to do so.
+     * <p>
+     * The calculated value is null when this artifact is optional and does not exist.
      */
-    CalculatedValue<File> getFileSource();
+    CalculatedValue<@Nullable File> getFileSource();
 
     ResolvableArtifact transformedTo(File file);
 

@@ -302,19 +302,19 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         succeeds 'checkDeps'
 
         then:
+        Map<String, String> attributes = withDefaultStatus(expectedAttributes)
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:test:1.0') {
-                    configuration = expectedVariant
-                    variant(expectedVariant, expectedAttributes)
+                    variant(expectedVariant, attributes)
                 }
             }
         }
 
         where:
         attributeValue | expectedVariant | expectedAttributes
-        'c1'           | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c1']
-        'c2'           | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2']
+        'c1'           | 'api'           | ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c1']
+        'c2'           | 'runtime'       | ['org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2']
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -580,11 +580,11 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         succeeds 'checkDeps'
 
         then:
+        Map<String, String> attributes = withDefaultStatus(expectedAttributes)
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:test:1.0') {
-                    configuration = expectedVariant
-                    variant(expectedVariant, expectedAttributes)
+                    variant(expectedVariant, attributes)
                 }
             }
         }
@@ -594,8 +594,8 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
         where:
         attributeValue | expectedVariant | expectedAttributes
-        'c1'           | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', lifecycle: 'c1']
-        'c2'           | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', lifecycle: 'c2']
+        'c1'           | 'api'           | ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', lifecycle: 'c1']
+        'c2'           | 'runtime'       | ['org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', lifecycle: 'c2']
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -683,11 +683,11 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         succeeds 'checkDeps'
 
         then:
+        String status = defaultStatus()
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:test:1.0') {
-                    configuration = 'api'
-                    variant('api', ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c1'])
+                    variant('api', ['org.gradle.status': status, 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c1'])
                 }
             }
         }
@@ -771,19 +771,19 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         succeeds 'checkDeps'
 
         then:
+        Map<String, String> attributes = withDefaultStatus(expectedAttributes)
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:test:1.0') {
-                    configuration = expectedVariant
-                    variant(expectedVariant, expectedAttributes)
+                    variant(expectedVariant, attributes)
                 }
             }
         }
 
         where:
         configurationValue | dependencyValue | expectedVariant | expectedAttributes
-        'c2'               | 'c1'            | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c1']
-        'c1'               | 'c2'            | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2']
+        'c2'               | 'c1'            | 'api'           | ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c1']
+        'c1'               | 'c2'            | 'runtime'       | ['org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2']
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -825,24 +825,21 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         succeeds 'checkDeps'
 
         then:
+        Map<String, String> attributes = withDefaultStatus(expectedAttributes)
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('org:test', 'org:test:1.0') {
                     byConstraint()
-                    configuration = expectedVariant
-                    variant(expectedVariant, expectedAttributes)
+                    variant(expectedVariant, attributes)
                 }
-                constraint('org:test:1.0', 'org:test:1.0') {
-                    configuration = expectedVariant
-                    variant(expectedVariant, expectedAttributes)
-                }
+                constraint('org:test:1.0', 'org:test:1.0')
             }
         }
 
         where:
         configurationValue | dependencyValue | expectedVariant | expectedAttributes
-        'c2'               | 'c1'            | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c1']
-        'c1'               | 'c2'            | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2']
+        'c2'               | 'c1'            | 'api'           | ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c1']
+        'c1'               | 'c2'            | 'runtime'       | ['org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2']
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20182")
@@ -885,24 +882,21 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         succeeds 'checkDeps'
 
         then:
+        Map<String, String> attributes = withDefaultStatus(expectedAttributes)
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:test:1.0') {
-                    configuration = expectedVariant
                     byConstraint()
-                    variant(expectedVariant, expectedAttributes)
+                    variant(expectedVariant, attributes)
                 }
-                constraint('org:test', 'org:test:1.0') {
-                    configuration = expectedVariant
-                    variant(expectedVariant, expectedAttributes)
-                }
+                constraint('org:test', 'org:test:1.0')
             }
         }
 
         where:
         configurationValue | dependencyValue | expectedVariant | expectedAttributes
-        'c2'               | 'c1'            | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c1']
-        'c1'               | 'c2'            | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2']
+        'c2'               | 'c1'            | 'api'           | ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c1']
+        'c1'               | 'c2'            | 'runtime'       | ['org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2']
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -1056,18 +1050,17 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         succeeds 'checkDeps'
 
         then:
+        Map<String, String> attributes = withDefaultStatus(expectedAttributes)
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:directA:1.0') {
                     module('org:testA:1.0') {
-                        configuration = expectedVariant
-                        variant(expectedVariant, expectedAttributes)
+                        variant(expectedVariant, attributes)
                     }
                 }
                 module('org:directB:1.0') {
                     module('org:testB:1.0') {
-                        configuration = expectedVariant
-                        variant(expectedVariant, expectedAttributes)
+                        variant(expectedVariant, attributes)
                     }
                 }
             }
@@ -1075,8 +1068,8 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
         where:
         attributeValue | expectedVariant | expectedAttributes
-        'c1'           | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c1']
-        'c2'           | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2']
+        'c1'           | 'api'           | ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c1']
+        'c2'           | 'runtime'       | ['org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2']
     }
 
 
@@ -1200,21 +1193,20 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         succeeds 'checkDeps'
 
         then:
+        Map<String, String> attributes = withDefaultStatus(expectedAttributes)
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:directA:1.0') {
                     module('org:transitiveA:1.0') {
                         module('org:testA:1.0') {
-                            configuration = expectedVariant
-                            variant(expectedVariant, expectedAttributes)
+                            variant(expectedVariant, attributes)
                         }
                     }
                 }
                 module('org:directB:1.0') {
                     module('org:transitiveB:1.0') {
                         module('org:testB:1.0') {
-                            configuration = expectedVariant
-                            variant(expectedVariant, expectedAttributes)
+                            variant(expectedVariant, attributes)
                         }
                     }
                 }
@@ -1223,8 +1215,8 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
         where:
         attributeValue | expectedVariant | expectedAttributes
-        'c1'           | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c1']
-        'c2'           | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2']
+        'c1'           | 'api'           | ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c1']
+        'c2'           | 'runtime'       | ['org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2']
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -1307,29 +1299,24 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         succeeds 'checkDeps'
 
         then:
+        String status = defaultStatus()
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:directA:1.0') {
-                    configuration = expectedDirectVariant
-                    variant(expectedDirectVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedDirectVariant}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: configurationAttributeValue])
+                    variant(expectedDirectVariant, ['org.gradle.status': status, 'org.gradle.usage': "java-${expectedDirectVariant}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: configurationAttributeValue])
                     module('org:transitiveA:1.0') {
-                        configuration = expectedTransitiveVariantA
-                        variant(expectedTransitiveVariantA, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedTransitiveVariantA}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: transitiveAttributeValueA])
+                        variant(expectedTransitiveVariantA, ['org.gradle.status': status, 'org.gradle.usage': "java-${expectedTransitiveVariantA}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: transitiveAttributeValueA])
                         module('org:leafA:1.0') {
-                            configuration = expectedLeafVariant
-                            variant(expectedLeafVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedLeafVariant}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: configurationAttributeValue])
+                            variant(expectedLeafVariant, ['org.gradle.status': status, 'org.gradle.usage': "java-${expectedLeafVariant}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: configurationAttributeValue])
                         }
                     }
                 }
                 module('org:directB:1.0') {
-                    configuration = expectedDirectVariant
-                    variant(expectedDirectVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedDirectVariant}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: configurationAttributeValue])
+                    variant(expectedDirectVariant, ['org.gradle.status': status, 'org.gradle.usage': "java-${expectedDirectVariant}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: configurationAttributeValue])
                     module('org:transitiveB:1.0') {
-                        configuration = expectedTransitiveVariantB
-                        variant(expectedTransitiveVariantB, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedTransitiveVariantB}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: transitiveAttributeValueB])
+                        variant(expectedTransitiveVariantB, ['org.gradle.status': status, 'org.gradle.usage': "java-${expectedTransitiveVariantB}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: transitiveAttributeValueB])
                         module('org:leafB:1.0') {
-                            configuration = expectedLeafVariant
-                            variant(expectedLeafVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedLeafVariant}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: configurationAttributeValue])
+                            variant(expectedLeafVariant, ['org.gradle.status': status, 'org.gradle.usage': "java-${expectedLeafVariant}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: configurationAttributeValue])
                         }
                     }
                 }
@@ -1402,29 +1389,24 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         succeeds 'checkDeps'
 
         then:
+        String status = defaultStatus()
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:directA:1.0') {
-                    configuration = expectedDirectVariant
-                    variant(expectedDirectVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedDirectVariant}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: configurationAttributeValue])
+                    variant(expectedDirectVariant, ['org.gradle.status': status, 'org.gradle.usage': "java-${expectedDirectVariant}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: configurationAttributeValue])
                     module('org:transitiveA:1.0') {
-                        configuration = expectedTransitiveVariantA
-                        variant(expectedTransitiveVariantA, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedTransitiveVariantA}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: transitiveAttributeValueA])
+                        variant(expectedTransitiveVariantA, ['org.gradle.status': status, 'org.gradle.usage': "java-${expectedTransitiveVariantA}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: transitiveAttributeValueA])
                         module('org:leafA:1.0') {
-                            configuration = expectedLeafVariant
-                            variant(expectedLeafVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedLeafVariant}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: configurationAttributeValue])
+                            variant(expectedLeafVariant, ['org.gradle.status': status, 'org.gradle.usage': "java-${expectedLeafVariant}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: configurationAttributeValue])
                         }
                     }
                 }
                 module('org:directB:1.0') {
-                    configuration = expectedDirectVariant
-                    variant(expectedDirectVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedDirectVariant}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: configurationAttributeValue])
+                    variant(expectedDirectVariant, ['org.gradle.status': status, 'org.gradle.usage': "java-${expectedDirectVariant}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: configurationAttributeValue])
                     module('org:transitiveB:1.0') {
-                        configuration = expectedTransitiveVariantB
-                        variant(expectedTransitiveVariantB, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedTransitiveVariantB}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: transitiveAttributeValueB])
+                        variant(expectedTransitiveVariantB, ['org.gradle.status': status, 'org.gradle.usage': "java-${expectedTransitiveVariantB}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: transitiveAttributeValueB])
                         module('org:leafB:1.0') {
-                            configuration = expectedLeafVariant
-                            variant(expectedLeafVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedLeafVariant}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: configurationAttributeValue])
+                            variant(expectedLeafVariant, ['org.gradle.status': status, 'org.gradle.usage': "java-${expectedLeafVariant}", 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: configurationAttributeValue])
                         }
                     }
                 }
@@ -1444,7 +1426,11 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         'c2'                        | 'c1'                      | 'c2'                      | 'runtime'             | 'api'                      | 'runtime'                  | 'runtime'
     }
 
-    static Closure<String> defaultStatus() {
-        { -> GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release' }
+    static String defaultStatus() {
+        GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release'
+    }
+
+    static Map<String, String> withDefaultStatus(Map<String, String> attributes) {
+        return ['org.gradle.status': defaultStatus()] + attributes
     }
 }

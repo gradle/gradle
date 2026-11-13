@@ -25,6 +25,7 @@ import org.gradle.test.preconditions.TestEnvironmentPreconditions
 @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
 class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
 apply plugin: "cpp"
@@ -43,6 +44,7 @@ model {
     }
 
     def "can use api linkage via #notationName notation"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CppHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -83,6 +85,7 @@ model {
     }
 
     def "executable compiles using functions defined in header-only utility library"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         file("src/util/headers/util.h") << """
             const char *message = "Hello from the utility library";
@@ -116,6 +119,7 @@ model {
     }
 
     def "executable compiles using functions defined in utility library with build type variants"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         file("src/util/debug/util.h") << """
             const char *message = "Hello from the debug library";
@@ -165,6 +169,7 @@ model {
     }
 
     def "can choose alternative library implementation of api"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CppHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -200,6 +205,7 @@ model {
     }
 
     def "can use api linkage for component graph with library dependency cycle"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -238,6 +244,7 @@ model {
     }
 
     def "can compile but not link when executable depends on api of library required for linking"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CppHelloWorldApp()
         app.executable.writeSources(file("src/main"))

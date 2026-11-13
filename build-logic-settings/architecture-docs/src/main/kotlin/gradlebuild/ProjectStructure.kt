@@ -16,9 +16,6 @@
 
 package gradlebuild
 
-import java.io.File
-
 abstract class ProjectStructure {
     val architectureElements = mutableListOf<ArchitectureElementBuilder>()
-    val projectBaseDirs = mutableListOf<File>()
 }

@@ -139,7 +139,7 @@ trait WithPluginValidation {
         private final String pluginId
         private final File reportFile
 
-        private Map<String, String> messages = [:]
+        private List<Tuple2<String, String>> messages = []
 
         boolean skipped
         boolean tested
@@ -174,10 +174,14 @@ trait WithPluginValidation {
         }
 
         void passes() {
-            messages = [:]
+            messages = []
         }
 
         void failsWith(Map<String, String> messages) {
+            this.messages = messages.collect { message, severity -> Tuple2.tuple(message, severity) }
+        }
+
+        void failsWith(List<Tuple2<String, String>> messages) {
             this.messages = messages
         }
     }

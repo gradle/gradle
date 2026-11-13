@@ -113,7 +113,7 @@ public class GcsClient {
             if (e.getStatusCode() == 404) {
                 return null;
             }
-            throw ResourceExceptions.getFailed(uri, e);
+            throw ResourceExceptions.getFailed(uri, e.getStatusCode(), e);
         } catch (IOException e) {
             throw ResourceExceptions.getFailed(uri, e);
         }
@@ -124,7 +124,11 @@ public class GcsClient {
         String path = cleanResourcePath(uri);
         Storage.Objects.Get getObject = storage.objects().get(uri.getHost(), path);
         getObject.getMediaHttpDownloader().setDirectDownloadEnabled(false);
-        return getObject.executeMediaAsInputStream();
+        try {
+            return getObject.executeMediaAsInputStream();
+        } catch (GoogleJsonResponseException e) {
+            throw ResourceExceptions.getFailed(uri, e.getStatusCode(), e);
+        }
     }
 
     @Nullable
@@ -148,6 +152,8 @@ public class GcsClient {
                 // Get the next page, in the next iteration of this loop.
                 listRequest.setPageToken(objects.getNextPageToken());
             } while (null != objects.getNextPageToken());
+        } catch (GoogleJsonResponseException e) {
+            throw ResourceExceptions.getFailed(uri, e.getStatusCode(), e);
         } catch (IOException e) {
             throw ResourceExceptions.getFailed(uri, e);
         }

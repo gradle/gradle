@@ -110,12 +110,12 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib1", "test:lib1:") {
-                    configuration = 'conf'
+                    variant('conf')
                     noArtifacts()
                     module('org:module-lib1:1.0')
                 }
                 project(":lib2", "test:lib2:") {
-                    configuration = 'conf'
+                    variant('conf')
                     noArtifacts()
                     module('org:module-lib2:1.0')
                 }
@@ -333,7 +333,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("com.acme:included:1.0", ":included", "com.acme:included:0.x") {
-                    configuration = 'default'
+                    variant('default')
                     compositeSubstitute()
                     noArtifacts()
                     module('org:module:1.0')
@@ -400,11 +400,11 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("com.acme:included:1.0", ":included", "com.acme:included:0.x") {
-                    configuration = 'default'
+                    variant('default')
                     compositeSubstitute()
                     noArtifacts()
                     edge("com.acme:nested:1.0", ":nested", "com.acme:nested:0.x") {
-                        configuration = 'default'
+                        variant('default')
                         compositeSubstitute()
                         noArtifacts()
                         module('org:module:1.0')
@@ -480,11 +480,11 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("com.acme:included:1.0", ":included", "com.acme:included:0.x") {
-                    configuration = 'default'
+                    variant('default')
                     compositeSubstitute()
                     noArtifacts()
                     edge("com.acme:nested:1.0", ":nested", "com.acme:nested:0.x") {
-                        configuration = 'default'
+                        variant('default')
                         compositeSubstitute()
                         noArtifacts()
                         module('org:module:1.0')
@@ -817,7 +817,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         failure.assertHasCause("""Could not resolve all dependencies for configuration ':conf'.""")
             .assertHasResolutions("""The project declares repositories, effectively ignoring the repositories you have declared in the settings.
    To determine how project repositories are declared, configure your build to fail on project repositories.
-   ${documentationRegistry.getDocumentationRecommendationFor("information", "declaring_repositories", "sub:fail_build_on_project_repositories")}""",
+   ${documentationRegistry.getDocumentationRecommendationFor("information", "centralizing_repositories", "sec:fail-build-on-project-repositories")}""",
                 repositoryHint("Maven POM"),
                 STACKTRACE_MESSAGE,
                 INFO_DEBUG,

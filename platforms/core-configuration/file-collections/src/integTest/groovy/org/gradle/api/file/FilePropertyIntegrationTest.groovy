@@ -20,6 +20,7 @@ import org.gradle.api.problems.Severity
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import spock.lang.Issue
 
 class FilePropertyIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs, ValidationMessageChecker {
     def setup() {
@@ -726,6 +727,58 @@ task useDirProviderApi {
         'inputs.file' | 'inputs.dir'
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/26437")
+    def "content of task output #propertyType asFile is not queried before the producer task runs"() {
+        buildFile """
+            abstract class Producer extends DefaultTask {
+                @${outputAnnotation}
+                abstract ${propertyType} getOutput()
+
+                @TaskAction
+                void go() {
+                    ${createOutput}
+                }
+            }
+
+            abstract class Consumer extends DefaultTask {
+                @InputFiles
+                @Optional
+                abstract ListProperty<File> getInputFiles()
+
+                @TaskAction
+                void go() {
+                    println "inputs: " + inputFiles.getOrElse([]).collect { it.name }
+                }
+            }
+
+            def producer = tasks.register("producer", Producer) {
+                output = layout.buildDirectory.${locationMethod}("output")
+            }
+
+            tasks.register("consumer", Consumer) {
+                inputFiles.add(producer.flatMap { it.output.asFile }.filter { it.exists() })
+            }
+        """
+
+        when:
+        run("consumer")
+
+        then:
+        outputContains("inputs: [output]")
+
+        when:
+        file("build/output").deleteDir()
+        run("consumer")
+
+        then:
+        outputContains("inputs: [output]")
+
+        where:
+        propertyType          | outputAnnotation  | locationMethod | createOutput
+        "RegularFileProperty" | "OutputFile"      | "file"         | 'output.get().asFile.text = "content"'
+        "DirectoryProperty"   | "OutputDirectory" | "dir"          | 'output.get().asFile.mkdirs()'
+    }
+
     def "can use @Optional on properties with type Property"() {
         given:
         buildFile """
@@ -810,7 +863,7 @@ class SomeTask extends DefaultTask {
         failure.assertTasksScheduled(':producer', ':consumer')
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:value-not-set'
+            fqid == 'Gradle:Build Definition:Value not set'
             definition.id.displayName == 'Value not set'
             details == 'This property isn\'t marked as optional and no value has been configured'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"

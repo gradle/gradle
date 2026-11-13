@@ -19,7 +19,7 @@ import com.google.common.collect.Interner;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.internal.deprecation.Documentation;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Locale;
@@ -27,15 +27,42 @@ import java.util.Locale;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.VERSION_CATALOG_PROBLEMS;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.INVALID_VERSION_NOTATION;
 import static org.gradle.internal.deprecation.Documentation.userManual;
-import static org.gradle.util.internal.TextUtil.screamingSnakeToKebabCase;
 
 public class StrictVersionParser {
     private final Interner<String> stringInterner;
     private final Problems problems;
+    private final ProblemId invalidVersionNotation;
+    private final Documentation documentation;
 
-    public StrictVersionParser(Interner<String> stringInterner, Problems problems) {
+    private StrictVersionParser(Interner<String> stringInterner, Problems problems, ProblemId invalidVersionNotation, Documentation documentation) {
         this.stringInterner = stringInterner;
         this.problems = problems;
+        this.invalidVersionNotation = invalidVersionNotation;
+        this.documentation = documentation;
+    }
+
+    /**
+     * Parses versions declared in a version catalog.
+     */
+    public static StrictVersionParser forVersionCatalog(Interner<String> stringInterner, Problems problems) {
+        return new StrictVersionParser(
+            stringInterner,
+            problems,
+            INVALID_VERSION_NOTATION.problemId(problems.getGroups()),
+            userManual(VERSION_CATALOG_PROBLEMS, INVALID_VERSION_NOTATION.name().toLowerCase(Locale.ROOT))
+        );
+    }
+
+    /**
+     * Parses versions in dependency string notation, such as {@code "org:foo:1.0!!"}.
+     */
+    public static StrictVersionParser forDependencyNotation(Interner<String> stringInterner, Problems problems) {
+        return new StrictVersionParser(
+            stringInterner,
+            problems,
+            problems.getGroups().getDependencies().getDeclaration().problemId("Invalid version notation"),
+            userManual("dependency_versions", "sec:strict-version")
+        );
     }
 
     public RichVersion parse(@Nullable String version) {
@@ -44,15 +71,11 @@ public class StrictVersionParser {
         }
         int idx = version.indexOf("!!");
         if (idx == 0) {
-            ProblemId problemId = ProblemId.create(
-                screamingSnakeToKebabCase(INVALID_VERSION_NOTATION.name()),
-                INVALID_VERSION_NOTATION.getDisplayName(),
-                GradleCoreProblemGroup.versionCatalog());
-            throw problems.getReporter().throwing(new InvalidUserDataException(), problemId, spec -> spec
+            throw problems.getReporter().throwing(new InvalidUserDataException(), invalidVersionNotation, spec -> spec
                 .contextualLabel("The strict version modifier (!!) must be appended to a valid version number")
                 .details("The strict version modifier syntax expects a base version before '!!'")
                 .solution("Place a valid version number before '!!', e.g. '1.0!!'")
-                .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, INVALID_VERSION_NOTATION.name().toLowerCase(Locale.ROOT)).getUrl()));
+                .documentedAt(documentation.getUrl()));
         }
         if (idx > 0) {
             String strictly = stringInterner.intern(version.substring(0, idx));

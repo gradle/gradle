@@ -28,4 +28,4 @@ Gradle's User Manual and DSL Reference Manual are licensed under link:http://cre
 [[licenses:build_scan_plugin]]
 == Develocity Plugin (formerly Gradle Build Scan Plugin)
 
-Use of the link:https://scans.gradle.com/plugin/[Develocity plugin] is subject to link:https://gradle.com/legal/terms-of-service/[Gradle's Terms of Service].
+Use of the link:https://scans.gradle.com/plugin/[Develocity plugin] is subject to link:https://develocity.ai/legal/gradle-technologies-terms-of-use/[Terms of Use].

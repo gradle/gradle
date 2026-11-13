@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -117,7 +116,6 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
-    @Incubating
     void add(ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule);
 
     /**
@@ -128,7 +126,6 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
-    @Incubating
     void add(ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule, Action<? super ExternalModuleDependency> configuration);
 
     /**
@@ -210,7 +207,6 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
-    @Incubating
     <D extends Dependency> void bundle(Iterable<? extends D> bundle);
 
     /**
@@ -221,7 +217,6 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
-    @Incubating
     <D extends Dependency> void bundle(Iterable<? extends D> bundle, Action<? super D> configuration);
 
     /**
@@ -231,7 +226,6 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
-    @Incubating
     <D extends Dependency> void bundle(Provider<? extends Iterable<? extends D>> bundle);
 
     /**
@@ -242,7 +236,6 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
-    @Incubating
     <D extends Dependency> void bundle(Provider<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
 
     /**
@@ -252,7 +245,6 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
-    @Incubating
     <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle);
 
     /**
@@ -263,7 +255,6 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
-    @Incubating
     <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
 
     /**

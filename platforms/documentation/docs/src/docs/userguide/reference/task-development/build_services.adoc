@@ -70,14 +70,14 @@ Here is an example of a service that takes parameters and is closeable:
 include::{snippetsPath}/reference/task-development/buildService/common/buildSrc/src/main/java/WebServer.java[]
 ----
 
-Note that you should *not* implement the link:{javadocPath}/org/gradle/api/services/BuildService.html#getParameters--[BuildService.getParameters()] method, as Gradle will provide an implementation of this.
+Note that you should *not* implement the link:{javadocPath}/org/gradle/api/services/BuildService.html#getParameters()[BuildService.getParameters()] method, as Gradle will provide an implementation of this.
 
 A build service implementation must be thread-safe, as it will potentially be used by multiple tasks concurrently.
 
 [[using_a_build_service_from_a_task]]
 == Registering a build service and connecting it to a task
 
-To create a build service, you register the service instance using the link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent-java.lang.String-java.lang.Class-org.gradle.api.Action-[BuildServiceRegistry.registerIfAbsent()] method.
+To create a build service, you register the service instance using the link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent(java.lang.String,java.lang.Class,org.gradle.api.Action)[BuildServiceRegistry.registerIfAbsent()] method.
 
 Registering the service does not create the service instance.
 This happens on demand when a task first uses the service.
@@ -152,6 +152,10 @@ This is possible; call `get()` on the provider.
 In addition to using a build service from a task, you can use a build service from a <<worker_api.adoc#converting_to_worker_api,Worker API action>>, an <<artifact_transforms.adoc#sec:implementing-artifact-transforms,artifact transform>> or another build service.
 To do this, pass the build service `Provider` as a parameter of the consuming action or service, in the same way you pass other parameters to the action or service.
 
+NOTE: Don't use a build service to give an artifact transform action files that require another artifact transform.
+Declare those files on a parameter of the transform annotated with `@InputFiles` instead.
+See <<upgrading_version_9.adoc#querying_transform_output_from_transform_action,the deprecation of undeclared transform queries>>.
+
 For example, to pass a `MyServiceType` service to Worker API action, you might add a property of type `Property<MyServiceType>` to the action's parameters object and then connect the `Provider<MyServiceType>` that you receive when registering the service to this property:
 
 [source,java]
@@ -165,7 +169,7 @@ Currently, it is impossible to use a build service with a worker API action that
 [[sec:accessing_the_build_service_concurrently]]
 == Accessing the build service concurrently
 
-You can constrain concurrent execution when you register the service, by using the `Property` object returned from link:{javadocPath}/org/gradle/api/services/BuildServiceSpec.html#getMaxParallelUsages--[BuildServiceSpec.getMaxParallelUsages()].
+You can constrain concurrent execution when you register the service, by using the `Property` object returned from link:{javadocPath}/org/gradle/api/services/BuildServiceSpec.html#getMaxParallelUsages()[BuildServiceSpec.getMaxParallelUsages()].
 When this property has no value, which is the default, Gradle does not constrain access to the service.
 When this property has a value > 0, Gradle will allow no more than the specified number of tasks to use the service concurrently.
 

@@ -26,6 +26,8 @@ import org.jspecify.annotations.Nullable;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * <p>The internal view of a {@link Provider}.</p>
  *
@@ -154,6 +156,8 @@ public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDep
 
     @Override
     default <U, R> Provider<R> zip(Provider<U> right, BiFunction<? super T, ? super U, ? extends R> combiner) {
+        requireNonNull(right, "Cannot zip a provider with a null provider.");
+        requireNonNull(combiner, "Cannot zip providers using a null combiner.");
         return new BiProvider<>(null, this, right, combiner);
     }
 

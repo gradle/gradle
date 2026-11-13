@@ -61,7 +61,7 @@ class EnforcedPlatformIntegrationTest extends AbstractHttpDependencyResolutionTe
         resolve.expectGraph {
             root(':', ':test:') {
                 edge('com.fasterxml.jackson:jackson-bom:{strictly 2.12.3}', 'com.fasterxml.jackson:jackson-bom:2.12.3') {
-                    configuration('enforced-platform-runtime')
+                    variant('enforced-platform-runtime')
                     noArtifacts()
                     constraint('com.fasterxml.jackson.core:jackson-core:2.12.3', ':jackson-core', 'com.fasterxml.jackson.core:jackson-core:2.12.3-local-patch')
                 }

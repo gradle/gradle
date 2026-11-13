@@ -24,9 +24,13 @@ import java.util.List;
  * The event capturing all problems summaries.
  *
  * A summary will be sent for every problem id that exceeds the threshold amount.
- * This also means only events up to the threshold will be sent.
- * The objects contain the problem id that exceeded the threshold and the amount by how much it exceeded it.
- * Before the build finishes this event will be received event if the list is empty.
+ * This also means each task will only send events up to the threshold for each problem id.
+ * Problems reported outside a task share one threshold.
+ * The objects contain the problem id that exceeded the threshold and the amount by how much it was exceeded, added up over all tasks and problems reported outside a task.
+ * <p>
+ * In versions before Gradle 9.10.0, the threshold applies to the whole build.
+ * <p>
+ * Before the build finishes this event will be received even if the list is empty.
  *
  *
  *
@@ -39,7 +43,7 @@ public interface ProblemSummariesEvent extends ProblemEvent {
     /**
      * Get problems summaries.
      *
-     * There can be more than one summary for each problem id.
+     * There is one summary for each problem id that exceeded the threshold.
      *
      * @since 8.12
      */

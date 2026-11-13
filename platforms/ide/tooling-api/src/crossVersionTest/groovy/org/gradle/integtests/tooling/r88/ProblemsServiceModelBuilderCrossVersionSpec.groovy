@@ -20,7 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
-import org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionSpec
+import org.gradle.integtests.tooling.r87.ProblemsServiceModelBuilderCrossVersionSpec.ProblemProgressListener
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.junit.Assume
 
@@ -32,10 +32,10 @@ import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCross
 @ToolingApiVersion("=8.8")
 class ProblemsServiceModelBuilderCrossVersionSpec extends ToolingApiSpecification {
 
-    ProblemProgressEventCrossVersionSpec.ProblemProgressListener listener
+    ProblemProgressListener listener
 
     def setup() {
-        listener = new ProblemProgressEventCrossVersionSpec.ProblemProgressListener()
+        listener = new ProblemProgressListener()
     }
 
     def "Can use problems service in model builder and get failure objects"() {

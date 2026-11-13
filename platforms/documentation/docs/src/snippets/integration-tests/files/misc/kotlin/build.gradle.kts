@@ -11,19 +11,6 @@ tasks.register("ensureDirectory") {
 }
 // end::mkdir-example[]
 
-// tag::move-example[]
-tasks.register("moveReports") {
-    // Store the build directory into a variable to avoid project reference in the configuration cache
-    val dir = buildDir
-
-    doLast {
-        ant.withGroovyBuilder {
-            "move"("file" to "${dir}/reports", "todir" to "${dir}/toArchive")
-        }
-    }
-}
-// end::move-example[]
-
 // tag::delete-example[]
 tasks.register<Delete>("myClean") {
     delete(buildDir)

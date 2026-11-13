@@ -23,6 +23,8 @@ class JavaApplicationInitSoakTest extends AbstractIntegrationSpec {
     def "toolchain auto-provisioning works"() {
         given:
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        executer.withRepositoryMirrors()
+        mirrorMavenCentralForInit()
         executer.beforeExecute {
             requireOwnGradleUserHomeDir()
         }

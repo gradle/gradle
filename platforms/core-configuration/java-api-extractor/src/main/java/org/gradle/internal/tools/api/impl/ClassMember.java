@@ -30,6 +30,7 @@ public class ClassMember extends AnnotatableMember {
     private final String[] interfaces;
 
     private final List<String> permittedSubclasses = new ArrayList<>();
+    private final List<RecordComponentMember> recordComponents = new ArrayList<>();
 
     public ClassMember(int version, int access, String name, @Nullable String signature, @Nullable String superName, String @Nullable [] interfaces) {
         super(access, name, signature);
@@ -57,5 +58,12 @@ public class ClassMember extends AnnotatableMember {
 
     public List<String> getPermittedSubclasses() {
         return permittedSubclasses;
+    }
+
+    /**
+     * The components of this record, in declaration order.
+     */
+    public List<RecordComponentMember> getRecordComponents() {
+        return recordComponents;
     }
 }

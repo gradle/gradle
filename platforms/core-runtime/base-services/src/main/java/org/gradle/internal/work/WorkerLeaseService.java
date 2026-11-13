@@ -45,11 +45,14 @@ public interface WorkerLeaseService extends WorkerLeaseRegistry, ProjectLeaseReg
     void withLocks(Collection<? extends ResourceLock> locks, Runnable runnable);
 
     /**
-     * Runs the given {@link Factory} while the specified locks are released and the given new lock is acquired. On completion,
-     * the new lock is released and the old locks reacquired.
+     * Runs the given {@link Factory} while the specified locks are released and the given new locks are acquired. On completion,
+     * the new locks are released and the old locks reacquired.
      * If a lock cannot be immediately (re)acquired, the current worker lease will be released and the method will block until the locks are (re)acquired.
+     * <p>
+     * The new locks are acquired atomically, so a thread never accumulates them one at a time and cannot deadlock
+     * against another thread acquiring the same locks in a different order.
      */
-    <T extends @Nullable Object> T withReplacedLocks(Collection<? extends ResourceLock> currentLocks, ResourceLock newLock, Factory<T> factory);
+    <T extends @Nullable Object> T withReplacedLocks(Collection<? extends ResourceLock> currentLocks, Collection<? extends ResourceLock> newLocks, Factory<T> factory);
 
     /**
      * Runs a given {@link Factory} while the specified locks are released and then reacquire the locks

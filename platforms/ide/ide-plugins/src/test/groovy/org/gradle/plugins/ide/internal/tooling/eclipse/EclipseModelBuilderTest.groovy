@@ -30,6 +30,7 @@ import org.gradle.plugins.ear.EarPlugin
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.EclipseWtpPlugin
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultProjectModulePathResolver
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.eclipse.model.Link
 import org.gradle.plugins.ide.internal.configurer.EclipseModelAwareUniqueProjectNameProvider
@@ -308,7 +309,7 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class)
 
         when:
-        def elements = EclipseModelBuilder.gatherClasspathElements([:], eclipseModel.getClasspath(), true)
+        def elements = EclipseModelBuilder.gatherClasspathElements([:], eclipseModel.getClasspath(), true, new DefaultProjectModulePathResolver())
 
         then:
         elements.getProjectDependencies().get(0).path == 'child1'

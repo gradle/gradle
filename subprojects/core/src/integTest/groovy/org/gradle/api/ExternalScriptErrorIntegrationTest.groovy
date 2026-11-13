@@ -61,8 +61,8 @@ doStuff()
                 .assertHasLineNumber(1)
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'compilation:groovy-dsl:compilation-failed'
-            definition.id.displayName == 'Groovy DSL script compilation problem'
+            fqid == 'Gradle:DSL Evaluation:Script compilation failed'
+            definition.id.displayName == 'Script compilation failed'
             contextualLabel == "Could not compile script '$externalScript'."
             details == null
             definition.documentationLink == null

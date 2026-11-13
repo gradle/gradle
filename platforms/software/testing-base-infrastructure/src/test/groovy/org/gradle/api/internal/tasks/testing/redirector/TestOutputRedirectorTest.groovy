@@ -23,6 +23,9 @@ import org.gradle.internal.time.FixedClock
 import spock.lang.Specification
 import spock.lang.Subject
 
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+
 class TestOutputRedirectorTest extends Specification {
 
     TestResultProcessor processor = Mock(TestResultProcessor)
@@ -32,7 +35,7 @@ class TestOutputRedirectorTest extends Specification {
 
     def "starts redirecting output and error"() {
         when:
-        redirector.setOutputOwner("1")
+        redirector.testStarted("1")
         redirector.startRedirecting()
 
         then:
@@ -49,34 +52,74 @@ class TestOutputRedirectorTest extends Specification {
         then: thrown(AssertionError)
     }
 
-    def "allows setting output owner"() {
-        when:
-        redirector.setOutputOwner("1")
-        redirector.startRedirecting()
-
-        then:
-        redirector.outForwarder.outputOwner == "1"
-        redirector.errForwarder.outputOwner == "1"
-
-        when:
-        redirector.setOutputOwner("2")
-
-        then:
-        redirector.outForwarder.outputOwner == "2"
-        redirector.errForwarder.outputOwner == "2"
-    }
-
     def "passes output events"() {
-        def f = new TestOutputRedirector.Forwarder(new FixedClock(123), processor, TestOutputEvent.Destination.StdErr)
-        f.outputOwner = "5"
+        redirector.testStarted("5")
 
-        when: f.onOutput("ala")
+        when: redirector.errForwarder.onOutput("ala")
 
         then:
         1 * processor.output("5", { DefaultTestOutputEvent e ->
-            e.destination == TestOutputEvent.Destination.StdErr
-            e.message == "ala"
+            e.destination == TestOutputEvent.Destination.StdErr &&
+                e.message == "ala"
         })
         0 * _
+    }
+
+    def "attributes output to the test started on the writing thread"() {
+        redirector.testStarted("root")
+        onThread("a") { redirector.testStarted("a") }
+        onThread("b") { redirector.testStarted("b") }
+
+        when:
+        onThread("a") { redirector.outForwarder.onOutput("from a") }
+        onThread("b") { redirector.outForwarder.onOutput("from b") }
+        redirector.outForwarder.onOutput("from root")
+
+        then:
+        1 * processor.output("a", { it.message == "from a" })
+        1 * processor.output("b", { it.message == "from b" })
+        1 * processor.output("root", { it.message == "from root" })
+        0 * _
+    }
+
+    def "attributes output to the parent after a test completes on the writing thread"() {
+        redirector.testStarted("root")
+        redirector.testStarted("class")
+        onThread("a") {
+            redirector.testStarted("method")
+            redirector.testCompleted("method", "class")
+        }
+
+        when:
+        onThread("a") { redirector.outForwarder.onOutput("after method") }
+
+        then:
+        1 * processor.output("class", { it.message == "after method" })
+        0 * _
+    }
+
+    def "attributes output from a thread without an active test to the last active owner"() {
+        redirector.testStarted("root")
+        onThread("a") { redirector.testStarted("a") }
+        redirector.testStarted("b")
+        redirector.testCompleted("a", "root")
+
+        when:
+        onThread("a") { redirector.outForwarder.onOutput("stale a") }
+        onThread("other") { redirector.outForwarder.onOutput("no test") }
+
+        then:
+        2 * processor.output("root", _)
+        0 * _
+    }
+
+    private final Map<String, ExecutorService> threads = [:]
+
+    private void onThread(String name, Runnable action) {
+        threads.computeIfAbsent(name) { Executors.newSingleThreadExecutor() }.submit(action).get()
+    }
+
+    def cleanup() {
+        threads.values()*.shutdownNow()
     }
 }

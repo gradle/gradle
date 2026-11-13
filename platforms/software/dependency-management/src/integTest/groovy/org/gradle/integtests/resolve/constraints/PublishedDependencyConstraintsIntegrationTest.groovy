@@ -540,7 +540,7 @@ dependencies {
             root(':', ':test:') {
                 module('org:platform:1.0') {
                     noArtifacts()
-                    configuration(platformConfiguration)
+                    variant(platformConfiguration)
                 }
                 edge('org:first:1.0', 'org:first:2.0') {
                     byConflictResolution("between versions 2.0 and 1.0")

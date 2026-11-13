@@ -181,6 +181,10 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                     return false;
                 }
             }
+            if (handleOptionalInputArtifact() != null) {
+                // Optional input artifact does not exist, nothing to transform
+                return false;
+            }
 
             Deferrable<Try<TransformStepSubject>> invocation = createInvocation();
             synchronized (this) {
@@ -210,6 +214,11 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                     return transformedSubject;
                 }
             }
+            Try<TransformStepSubject> noInputResult = handleOptionalInputArtifact();
+            if (noInputResult != null) {
+                // Optional input artifact does not exist, nothing to transform
+                return noInputResult;
+            }
 
             Deferrable<Try<TransformStepSubject>> invocation;
             synchronized (this) {
@@ -224,6 +233,23 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                 transformedSubject = result;
                 return result;
             }
+        }
+
+        /**
+         * Handles an optional input artifact that does not exist. Transforming such an artifact
+         * results in no output files.
+         *
+         * @return the transformed subject if the input artifact is optional and does not exist, or null otherwise.
+         */
+        private @Nullable Try<TransformStepSubject> handleOptionalInputArtifact() {
+            if (artifact.getFileSource().get() != null) {
+                return null;
+            }
+            Try<TransformStepSubject> result = Try.successful(TransformStepSubject.initial(artifact).createSubjectFromResult(ImmutableList.of()));
+            synchronized (this) {
+                transformedSubject = result;
+            }
+            return result;
         }
 
         private Deferrable<Try<TransformStepSubject>> createInvocation() {
@@ -244,6 +270,8 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
 
         @Override
         public void visit(ArtifactVisitor visitor) {
+            // The last step produces the output being queried, the earlier steps only its intermediate results
+            transformSteps.get(transformSteps.size() - 1).getTransformStep().deprecateIfQueriedFromTransformAction();
             Try<TransformStepSubject> transformedSubject = finalizeValue();
             transformedSubject.ifSuccessfulOrElse(
                 subject -> {

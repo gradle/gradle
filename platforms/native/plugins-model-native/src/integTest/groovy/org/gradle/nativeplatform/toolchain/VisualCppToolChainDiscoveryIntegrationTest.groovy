@@ -26,6 +26,7 @@ class VisualCppToolChainDiscoveryIntegrationTest extends AbstractInstalledToolCh
     def helloWorldApp = new CHelloWorldApp()
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
 apply plugin: 'c'
 

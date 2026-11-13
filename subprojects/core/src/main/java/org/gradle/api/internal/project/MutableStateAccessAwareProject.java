@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import org.gradle.api.Action;
-import org.gradle.api.AntBuilder;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
@@ -64,7 +63,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
-import org.gradle.api.services.ProjectService;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -651,15 +649,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public <T extends ProjectService> T service(Class<T> serviceType) {
-        if (ProjectLayout.class.equals(serviceType)) {
-            // parity with getLayout()
-            onMutableStateAccess("layout");
-        }
-        return delegate.service(serviceType);
-    }
-
-    @Override
     public String relativePath(Object path) {
         return delegate.relativePath(path);
     }
@@ -685,25 +674,29 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public AntBuilder getAnt() {
+    @Deprecated
+    public org.gradle.api.AntBuilder getAnt() {
         onMutableStateAccess("ant");
         return delegate.getAnt();
     }
 
     @Override
-    public AntBuilder createAntBuilder() {
+    @Deprecated
+    public org.gradle.api.AntBuilder createAntBuilder() {
         onMutableStateAccess("antBuilder");
         return delegate.createAntBuilder();
     }
 
     @Override
-    public AntBuilder ant(Closure configureClosure) {
+    @Deprecated
+    public org.gradle.api.AntBuilder ant(Closure configureClosure) {
         onMutableStateAccess("ant");
         return delegate.ant(configureClosure);
     }
 
     @Override
-    public AntBuilder ant(Action<? super AntBuilder> configureAction) {
+    @Deprecated
+    public org.gradle.api.AntBuilder ant(Action<? super org.gradle.api.AntBuilder> configureAction) {
         onMutableStateAccess("ant");
         return delegate.ant(configureAction);
     }

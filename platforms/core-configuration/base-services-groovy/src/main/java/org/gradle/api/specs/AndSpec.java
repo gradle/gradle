@@ -17,29 +17,31 @@ package org.gradle.api.specs;
 
 import com.google.common.collect.ObjectArrays;
 import groovy.lang.Closure;
-import org.gradle.api.Incubating;
 import org.gradle.api.specs.internal.ClosureSpec;
 import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link org.gradle.api.specs.CompositeSpec} which requires all its specs to be true in order to evaluate to true.
- * Uses lazy evaluation.
+ * <p>
+ * Uses lazy evaluation: member specs are evaluated in order, stopping at the first unsatisfied one.
  *
  * @param <T> The target type for this Spec
  * @since 0.7
  */
 public class AndSpec<T> extends CompositeSpec<T> {
     /**
-     * The empty.
+     * The shared {@code AndSpec} with no member specs, satisfied by every object.
      *
+     * @see #empty()
      * @since 3.1
      */
     public static final AndSpec<?> EMPTY = new AndSpec<>();
 
     /**
-     * Creates a new {@code AndSpec}.
+     * Creates a spec with no member specs, which is satisfied by every object.
      *
+     * @see #empty()
      * @since 3.0
      */
     public AndSpec() {
@@ -47,7 +49,7 @@ public class AndSpec<T> extends CompositeSpec<T> {
     }
 
     /**
-     * Creates a new {@code AndSpec}.
+     * Creates a spec with the given member specs, in order.
      *
      * @since 0.7
      */
@@ -58,7 +60,7 @@ public class AndSpec<T> extends CompositeSpec<T> {
     }
 
     /**
-     * Creates a new {@code AndSpec}.
+     * Creates a spec with the member specs of the given iterable, in iteration order.
      *
      * @since 0.9
      */
@@ -75,12 +77,11 @@ public class AndSpec<T> extends CompositeSpec<T> {
      * Finds the first {@link Spec} that is not satisfied by the object.
      *
      * @param object to check specs against
-     * @return an unsatisfied spec or null
+     * @return the first unsatisfied member spec, or {@code null} if all of them are satisfied
      *
      * @since 7.6
      */
     @Nullable
-    @Incubating
     public Spec<? super T> findUnsatisfiedSpec(T object) {
         Spec<? super T>[] specs = getSpecsArray();
         for (Spec<? super T> spec : specs) {
@@ -92,7 +93,7 @@ public class AndSpec<T> extends CompositeSpec<T> {
     }
 
     /**
-     * And.
+     * Returns an {@code AndSpec} whose member specs are this spec's, followed by the given ones.
      *
      * @since 0.9
      */
@@ -114,7 +115,7 @@ public class AndSpec<T> extends CompositeSpec<T> {
     }
 
     /**
-     * Typed and() method for a single {@link Spec}.
+     * Returns an {@code AndSpec} whose member specs are this spec's, followed by the given one.
      *
      * @since 4.3
      */
@@ -123,8 +124,10 @@ public class AndSpec<T> extends CompositeSpec<T> {
     }
 
     /**
-     * And.
+     * Returns an {@code AndSpec} whose member specs are this spec's,
+     * followed by the closure as a spec.
      *
+     * @see Specs#convertClosureToSpec(Closure)
      * @since 0.9
      */
     @SuppressWarnings("rawtypes")
@@ -133,7 +136,12 @@ public class AndSpec<T> extends CompositeSpec<T> {
     }
 
     /**
-     * Empty.
+     * Returns the shared {@code AndSpec} with no member specs,
+     * which is vacuously satisfied by every object.
+     * <p>
+     * Like every {@code AndSpec}, it is immutable,
+     * so it is a starting point for building a conjunction.
+     * As a member, it does not change which objects satisfy a conjunction.
      *
      * @since 3.1
      */

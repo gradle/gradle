@@ -25,7 +25,6 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.provider.BuildableBackedProvider;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -39,6 +38,7 @@ import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.GUtil;
@@ -54,6 +54,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class AbstractFileCollection implements FileCollectionInternal {
+
     protected final TaskDependencyFactory taskDependencyFactory;
     protected final PatternSetFactory patternSetFactory;
 
@@ -95,9 +96,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public final TaskDependency getBuildDependencies() {
         assertCanCarryBuildDependencies();
-        DefaultTaskDependency result = taskDependencyFactory.visitingDependencies(context -> context.add(AbstractFileCollection.this));
-        result.setToStringProvider(() -> "Dependencies of " + getDisplayName());
-        return result;
+        return taskDependencyFactory.visitingDependencies(context -> context.add(AbstractFileCollection.this));
     }
 
     protected void assertCanCarryBuildDependencies() {
@@ -237,7 +236,18 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     @Override
+    @Deprecated
     public void addToAntBuilder(Object builder, String nodeName, AntType type) {
+        DeprecationLogger.deprecateMethod(FileCollection.class, "addToAntBuilder(Object, String, AntType)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_ant_builder")
+            .nagUser();
+
+        DeprecationLogger.whileDisabled(() -> doAddToAntBuilder(builder, nodeName, type));
+    }
+
+    @Deprecated
+    private void doAddToAntBuilder(Object builder, String nodeName, AntType type) {
         if (type == AntType.ResourceCollection) {
             addAsResourceCollection(builder, nodeName);
         } else if (type == AntType.FileSet) {
@@ -247,14 +257,17 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         }
     }
 
+    @Deprecated
     protected void addAsMatchingTask(Object builder, String nodeName) {
         new AntFileCollectionMatchingTaskBuilder(getAsDirectoryTrees()).addToAntBuilder(builder, nodeName);
     }
 
+    @Deprecated
     protected void addAsFileSet(Object builder, String nodeName) {
         new AntFileSetBuilder(getAsDirectoryTrees()).addToAntBuilder(builder, nodeName);
     }
 
+    @Deprecated
     protected void addAsResourceCollection(Object builder, String nodeName) {
         new AntFileCollectionBuilder(this).addToAntBuilder(builder, nodeName);
     }
@@ -324,8 +337,14 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     @Override
+    @Deprecated
     public Object addToAntBuilder(Object node, String childNodeName) {
-        addToAntBuilder(node, childNodeName, AntType.ResourceCollection);
+        DeprecationLogger.deprecateMethod(FileCollection.class, "addToAntBuilder(Object, String)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_ant_builder")
+            .nagUser();
+
+        DeprecationLogger.whileDisabled(() -> doAddToAntBuilder(node, childNodeName, AntType.ResourceCollection));
         return this;
     }
 
@@ -362,4 +381,5 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     protected void visitContents(FileCollectionStructureVisitor visitor) {
         visitor.visitCollection(OTHER, this);
     }
+
 }

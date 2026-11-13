@@ -12,7 +12,7 @@ dependencies {
     api(projects.resourcesHttp)
 
     api(libs.awsS3Core)
-    api(libs.awsS3S3)
+    api(libs.awsS3)
     api(libs.awsS3Kms) {
         because("Loaded by the AWS libraries with reflection when present")
     }

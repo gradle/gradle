@@ -14,7 +14,18 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.googleApisJs
+
+val kotlinVersion = versionCatalogs.find("libs").flatMap { it.findVersion("kotlin") }.map { it.requiredVersion }.orElse("")
+
+// A Kotlin dev build has a build number at the end, for example 2.5.20-dev-2076 or 2.4.20-RC-197
+val kotlinDevVersionRegExp = Regex(".+-\\d+")
+
 repositories {
+    // Serves the jquery and flot JavaScript artifacts bundled into generated reports.
+    // The helper applies its own content filter, so this repository is only ever
+    // consulted for those two groups.
+    googleApisJs()
     maven {
         name = "Gradle public repository"
         url = uri("https://repo.gradle.org/gradle/public")
@@ -23,8 +34,9 @@ repositories {
             includeGroup("org.gradle.fileevents")
             includeModule("flot", "flot")
             includeModule("org.gradle", "gradle-tooling-api")
-            // The root multiplatform module plus the -jvm module its GMM redirects to.
-            includeModuleByRegex("org\\.gradle\\.buildtool\\.internal", "configuration-cache-report(-jvm)?")
+            // The root multiplatform module plus the -jvm module its GMM redirects to, and the
+            // fixtures library the integration test fixtures read reports with.
+            includeModuleByRegex("org\\.gradle\\.buildtool\\.internal", "configuration-cache-report(-jvm|-fixtures)?")
             includeModule("org.gradle.buildtool.internal", "gradle-ide-starter")
             includeModule("org.gradle.buildtool.internal", "gradle-ide-starter-scenarios")
         }
@@ -42,5 +54,21 @@ repositories {
             includeGroup("io.usethesource")
         }
     }
-    mavenCentral()
+    mavenCentral {
+        content {
+            // The japicmp baseline is served by the Gradle distributions ivy repository declared in
+            // gradlebuild.binary-compatibility. Asking Maven Central for it can only ever 404, and
+            // when the mirror answers 503 under load instead, Gradle disables the whole repository.
+            excludeModule("gradle", "gradle")
+        }
+    }
+    if (kotlinVersion.matches(kotlinDevVersionRegExp)) {
+        maven {
+            name = "Kotlin dev repository"
+            url = uri("https://packages.jetbrains.team/maven/p/kt/dev")
+            content {
+                includeVersionByRegex("org\\.jetbrains\\.kotlin(\\..+)?", ".*", kotlinDevVersionRegExp.pattern)
+            }
+        }
+    }
 }

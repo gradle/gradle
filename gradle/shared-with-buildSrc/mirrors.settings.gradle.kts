@@ -26,6 +26,7 @@ class Helper(private val providers: ProviderFactory) {
         "gradle-enterprise-rc" to "https://repo.gradle.org/gradle/enterprise-libs-release-candidates",
         "android-studio-installers" to "https://redirector.gvt1.com/edgedl/android/studio",
         "jetbrains-ide-installers" to "https://download.jetbrains.com",
+        "kotlindev" to "https://packages.jetbrains.team/maven/p/kt/dev",
     )
 
     val mirrorUrls: Map<String, String> =
@@ -43,7 +44,7 @@ class Helper(private val providers: ProviderFactory) {
     fun isCI() = providers.environmentVariable("CI").isPresent()
 
     fun withMirrors(handler: RepositoryHandler) {
-        if (!isCI()) {
+        if (!isCI() || ignoreMirrors()) {
             return
         }
         handler.all {
@@ -71,12 +72,15 @@ with(Helper(providers)) {
         buildscript.configurations["classpath"].incoming.beforeResolve {
             withMirrors(buildscript.repositories)
         }
-        afterEvaluate {
-            withMirrors(repositories)
-        }
+        // Repositories are configured before they are added, so the live callback in
+        // withMirrors sees their final URLs without waiting for the project to evaluate.
+        withMirrors(repositories)
     }
 
     gradle.settingsEvaluated {
         withMirrors(settings.pluginManagement.repositories)
+        // Repositories declared here are never project repositories, so the beforeProject hook
+        // above does not see them. build-logic-settings declares mavenCentral() this way.
+        withMirrors(settings.dependencyResolutionManagement.repositories)
     }
 }

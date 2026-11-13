@@ -16,26 +16,25 @@
 
 package org.gradle.internal.serialize.codecs.dm.transform
 
-import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
-import org.gradle.internal.component.model.VariantIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.IvyArtifactNameSerializer
 import org.gradle.api.internal.artifacts.transform.BoundTransformStep
 import org.gradle.api.internal.artifacts.transform.TransformingAsyncArtifactListener
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.tasks.TaskDependencyContainer
+import org.gradle.internal.DisplayName
+import org.gradle.internal.component.external.model.ImmutableCapabilities
+import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.writeCollection
-import org.gradle.internal.DisplayName
-import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
-import org.gradle.internal.component.model.DefaultIvyArtifactName
-import org.gradle.internal.model.CalculatedValueContainerFactory
 import java.io.File
 
 
@@ -47,8 +46,11 @@ class TransformedArtifactCodec(
         write(value.sourceVariantId)
         write(value.target)
         writeCollection(value.capabilities.asSet())
-        write(value.artifact.id.componentIdentifier) // TODO: Write the whole component artifact ID
-        write(value.artifact.file)
+        write(value.artifact.id)
+        IvyArtifactNameSerializer.INSTANCE.write(this, value.artifact.artifactName)
+        // The file is null when the input is an optional artifact that does not exist
+        value.artifact.fileSource.finalizeIfNotAlready()
+        write(value.artifact.fileSource.get())
         write(unpackTransformSteps(value.transformSteps))
     }
 
@@ -57,10 +59,10 @@ class TransformedArtifactCodec(
         val sourceVariantId = readNonNull<VariantIdentifier>()
         val target = readNonNull<ImmutableAttributes>()
         val capabilities: List<Capability> = readList().uncheckedCast()
-        val ownerId = readNonNull<ComponentIdentifier>()
-        val file = readNonNull<File>()
-        val artifactId = ComponentFileArtifactIdentifier(ownerId, file.name)
-        val artifact = PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), artifactId, file, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
+        val artifactId = readNonNull<ComponentArtifactIdentifier>()
+        val artifactName = IvyArtifactNameSerializer.INSTANCE.read(this)
+        val file = read() as File?
+        val artifact = PreResolvedResolvableArtifact(null, artifactName, artifactId, file, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
         val steps = readNonNull<List<TransformStepSpec>>().map { BoundTransformStep(it.transformStep, it.recreateDependencies()) }
         return TransformingAsyncArtifactListener.TransformedArtifact(artifactSetName, sourceVariantId, target, ImmutableCapabilities.of(capabilities), artifact, steps)
     }

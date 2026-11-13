@@ -72,6 +72,57 @@ task retrieve(type: Sync) {
                 .assertHasCause('Could not resolve org.gradle:test:1.85')
                 .assertHasCause("Could not get resource '${module.pom.uri}'.")
                 .assertHasCause("The AWS Access Key Id you provided does not exist in our records.")
+
+    }
+
+    def "a server error disables the repository for the rest of the build"() {
+        setup:
+        mavenS3Repo.module("org.gradle", "other", artifactVersion).publish()
+        buildFile << mavenAwsRepoDsl()
+        buildFile << secondConfiguration()
+
+        when:
+        executer.withArgument("-Dorg.gradle.s3.maxErrorRetry=0") // the SDK would otherwise retry the 500 itself
+        module.pom.expectDownloadBroken()
+
+        then:
+        succeeds 'resolveBoth'
+        outputContains("FAILING: []")
+        outputContains("HEALTHY: []")
+    }
+
+    def "an authentication error does not disable the repository"() {
+        setup:
+        def other = mavenS3Repo.module("org.gradle", "other", artifactVersion).publish()
+        buildFile << mavenAwsRepoDsl()
+        buildFile << secondConfiguration()
+
+        when:
+        module.pom.expectDownloadAuthenticationError()
+        other.pom.expectDownload()
+        other.artifact.expectDownload()
+
+        then:
+        succeeds 'resolveBoth'
+        outputContains("FAILING: []")
+        outputContains("HEALTHY: [other-${artifactVersion}.jar]")
+    }
+
+    def "a missing module does not disable the repository"() {
+        setup:
+        def other = mavenS3Repo.module("org.gradle", "other", artifactVersion).publish()
+        buildFile << mavenAwsRepoDsl()
+        buildFile << secondConfiguration()
+
+        when:
+        module.pom.expectDownloadMissing()
+        other.pom.expectDownload()
+        other.artifact.expectDownload()
+
+        then:
+        succeeds 'resolveBoth'
+        outputContains("FAILING: []")
+        outputContains("HEALTHY: [other-${artifactVersion}.jar]")
     }
 
     def "fails when providing PasswordCredentials with decent error"() {
@@ -172,5 +223,21 @@ Required by:
         }
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 's3'")
+    }
+
+    private String secondConfiguration() {
+        """
+configurations { second }
+dependencies { second 'org.gradle:other:$artifactVersion' }
+
+task resolveBoth {
+    def failing = configurations.compile.incoming.artifactView { lenient = true }.files
+    def healthy = configurations.second.incoming.artifactView { lenient = true }.files
+    doLast {
+        println "FAILING: " + failing*.name
+        println "HEALTHY: " + healthy*.name
+    }
+}
+"""
     }
 }

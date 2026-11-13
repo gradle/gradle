@@ -20,6 +20,10 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
+import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.problems.ProblemEvent
+import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.junit.Assume
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
@@ -30,10 +34,10 @@ import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCross
 @ToolingApiVersion("=8.7")
 class ProblemsServiceModelBuilderCrossVersionSpec extends ToolingApiSpecification {
 
-    ProblemProgressEventCrossVersionSpec.ProblemProgressListener listener
+    ProblemProgressListener listener
 
     def setup() {
-        listener = new ProblemProgressEventCrossVersionSpec.ProblemProgressListener()
+        listener = new ProblemProgressListener()
     }
 
     def "Can use problems service in model builder and get failure objects"() {
@@ -79,5 +83,19 @@ class ProblemsServiceModelBuilderCrossVersionSpec extends ToolingApiSpecificatio
         then:
         def problems = getProblems()
         problems.size() == 0
+    }
+
+    class ProblemProgressListener implements ProgressListener {
+
+        List<?> problems = []
+
+        @Override
+        void statusChanged(ProgressEvent event) {
+            if (event instanceof ProblemEvent) {
+                if (!(event instanceof SingleProblemEvent) || event.problem.definition.id.name != "executing-gradle-on-jvm-versions-and-lower") {
+                    this.problems.add(event)
+                }
+            }
+        }
     }
 }

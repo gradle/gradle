@@ -43,7 +43,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.ManagedServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.Path;
 
@@ -53,7 +53,6 @@ import java.util.function.Function;
 @SuppressWarnings("this-escape")
 public class RootOfNestedBuildTree extends AbstractBuildState implements NestedRootBuild {
 
-    private final Path identityPath;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
 
     public RootOfNestedBuildTree(
@@ -62,10 +61,9 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
         BuildState owner,
         BuildTreeServices buildTreeServices
     ) {
-        super(buildTreeServices, buildDefinition, owner);
-        this.identityPath = identityPath;
+        super(buildTreeServices, buildDefinition, identityPath, owner);
 
-        CloseableServiceRegistry buildServices = getBuildServices();
+        ManagedServiceRegistry buildServices = getBuildServices();
         try {
             BuildLifecycleController buildLifecycleController = getBuildController();
             BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildServices.get(BuildTreeLifecycleControllerFactory.class);
@@ -87,11 +85,6 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     @Override
     public StartParameterInternal getStartParameter() {
         return getBuildController().getGradle().getStartParameter();
-    }
-
-    @Override
-    public Path getIdentityPath() {
-        return identityPath;
     }
 
     @Override

@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.local.model.TransformedComponentFileArtifactIdentifier;
+import org.gradle.internal.component.local.model.TransformedArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.model.CalculatedValue;
@@ -36,13 +36,13 @@ public class PreResolvedResolvableArtifact implements ResolvableArtifact {
     private final ModuleVersionIdentifier owner;
     private final IvyArtifactName artifact;
     private final ComponentArtifactIdentifier artifactId;
-    private final File file;
-    private final CalculatedValue<File> fileSource;
+    private final @Nullable File file;
+    private final CalculatedValue<@Nullable File> fileSource;
     private final TaskDependencyContainer builtBy;
     private final CalculatedValueFactory calculatedValueFactory;
     private final DefaultResolvedArtifact publicView;
 
-    public PreResolvedResolvableArtifact(@Nullable ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, File file, TaskDependencyContainer builtBy, CalculatedValueFactory calculatedValueFactory) {
+    public PreResolvedResolvableArtifact(@Nullable ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, @Nullable File file, TaskDependencyContainer builtBy, CalculatedValueFactory calculatedValueFactory) {
         this.owner = owner;
         this.artifact = artifact;
         this.artifactId = artifactId;
@@ -76,12 +76,15 @@ public class PreResolvedResolvableArtifact implements ResolvableArtifact {
     }
 
     @Override
-    public CalculatedValue<File> getFileSource() {
+    public CalculatedValue<@Nullable File> getFileSource() {
         return fileSource;
     }
 
     @Override
     public File getFile() {
+        if (file == null) {
+            throw new IllegalStateException("Optional artifact " + artifactId.getDisplayName() + " does not exist and has no file.");
+        }
         return file;
     }
 
@@ -103,15 +106,7 @@ public class PreResolvedResolvableArtifact implements ResolvableArtifact {
     @Override
     public ResolvableArtifact transformedTo(File file) {
         IvyArtifactName artifactName = DefaultIvyArtifactName.forFile(file, artifact.getClassifier());
-
-        String originalFileName;
-        if (artifactId instanceof TransformedComponentFileArtifactIdentifier) {
-            originalFileName = ((TransformedComponentFileArtifactIdentifier) artifactId).getOriginalFileName();
-        } else {
-            originalFileName = this.file.getName();
-        }
-
-        ComponentArtifactIdentifier newId = new TransformedComponentFileArtifactIdentifier(artifactId.getComponentIdentifier(), file.getName(), originalFileName);
+        ComponentArtifactIdentifier newId = new TransformedArtifactIdentifier(artifactId, file.getName());
         return new PreResolvedResolvableArtifact(owner, artifactName, newId, file, builtBy, calculatedValueFactory);
     }
 

@@ -1,0 +1,17 @@
+rootProject.name = 'dependency-resolution-management-metadata-sources'
+
+dependencyResolutionManagement {
+    repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
+    repositories {
+        // tag::metadata-sources[]
+        maven {
+            url = uri('https://repo.internal.acme.com/maven')
+            metadataSources {
+                mavenPom()
+                gradleMetadata()
+                // artifact()  // NOT enabled by default; enables filename-based resolution
+            }
+        }
+        // end::metadata-sources[]
+    }
+}

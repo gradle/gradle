@@ -11,7 +11,7 @@ dependencies {
     implementation(projects.jvm)
     implementation(projects.kotlinDslSharedRuntime)
 
-    implementation(buildLibs.kgp)
+    implementation(buildLibs.kotlinGradlePlugin)
     implementation(buildLibs.kotlinSamWithReceiver)
     implementation(libs.asm)
     implementation(buildLibs.qdox)

@@ -35,7 +35,7 @@ class CaptureTestOutputTestResultProcessorTest extends Specification {
         processor.started(suite, event)
 
         then: 1 * target.started(suite, event)
-        then: 1 * redirector.setOutputOwner("1")
+        then: 1 * redirector.testStarted("1")
         then: 1 * redirector.startRedirecting()
         0 * _
     }
@@ -50,7 +50,7 @@ class CaptureTestOutputTestResultProcessorTest extends Specification {
 
         then:
         1 * target.started(test, testEvent)
-        1 * redirector.setOutputOwner("2")
+        1 * redirector.testStarted("2")
         0 * _
     }
 
@@ -65,7 +65,7 @@ class CaptureTestOutputTestResultProcessorTest extends Specification {
         when: processor.completed("2", complete)
 
         then:
-        1 * redirector.setOutputOwner("99")
+        1 * redirector.testCompleted("2", "99")
         1 * target.completed("2", complete)
         0 * _
     }
@@ -81,7 +81,7 @@ class CaptureTestOutputTestResultProcessorTest extends Specification {
         when: processor.completed("2", complete)
 
         then:
-        1 * redirector.setOutputOwner("1")
+        1 * redirector.testCompleted("2", "1")
         1 * target.completed("2", complete)
         0 * _
     }

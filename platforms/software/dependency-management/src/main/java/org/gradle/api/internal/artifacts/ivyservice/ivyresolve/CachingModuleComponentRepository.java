@@ -17,12 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches;
@@ -36,7 +34,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.action.InstantiatingAction;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
@@ -47,8 +44,6 @@ import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.MutableModuleSources;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.resolve.ArtifactNotFoundException;
-import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
@@ -62,7 +57,6 @@ import java.io.File;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * A ModuleComponentRepository that loads and saves resolution results in the dependency resolution cache.
@@ -156,6 +150,15 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         return delegate.isRepositoryDisabled();
     }
 
+    private void onDynamicVersionSelection(ModuleComponentSelector selector, CacheExpirationControl.Expiry expiry, Set<String> versions) {
+        // Only consider repositories serving at least one version of the requested module.
+        // This is meant to avoid repetitively expiring cache entries due to a 404 response for the requested module metadata
+        // from one of the configured repositories.
+        if (!versions.isEmpty()) {
+            listener.onDynamicVersionSelection(selector, expiry);
+        }
+    }
+
     private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
         @Override
         public String toString() {
@@ -178,11 +181,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             ModuleVersionsCache.CachedModuleVersionList cachedModuleVersionList = moduleVersionsCache.getCachedModuleResolution(delegate, moduleId);
             if (cachedModuleVersionList != null) {
                 Set<String> versionList = cachedModuleVersionList.getModuleVersions();
-                Set<ModuleVersionIdentifier> versions = versionList
-                    .stream()
-                    .map(original -> DefaultModuleVersionIdentifier.newId(moduleId, original))
-                    .collect(Collectors.toSet());
-                CacheExpirationControl.Expiry expiry = cacheExpirationControl.versionListExpiry(moduleId, versions, cachedModuleVersionList.getAge());
+                CacheExpirationControl.Expiry expiry = cacheExpirationControl.versionListExpiry(!versionList.isEmpty(), cachedModuleVersionList.getAge());
                 if (expiry.isMustCheck()) {
                     LOGGER.debug("Version listing in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", selector, delegate.getName());
                 } else {
@@ -190,7 +189,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     boolean authoritative = cachedModuleVersionList.getAge().toMillis() == 0;
                     result.listed(versionList);
                     result.setAuthoritative(authoritative);
-                    listener.onDynamicVersionSelection(selector, expiry, versions);
+                    onDynamicVersionSelection(selector, expiry, versionList);
                 }
             }
         }
@@ -215,7 +214,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 return;
             }
             if (cachedMetadata.isMissing()) {
-                if (cacheExpirationControl.missingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getAge()).isMustCheck()) {
+                if (cacheExpirationControl.moduleExpiry(cachedMetadata.getAge(), false).isMustCheck()) {
                     LOGGER.debug("Cached meta-data for missing module is expired: will perform fresh resolve of '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
                     return;
                 }
@@ -227,7 +226,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             }
             ExternalModuleComponentGraphResolveState state = getProcessedMetadata(metadataProcessor.getRulesHash(), cachedMetadata);
             if (requestMetaData.isChanging() || state.getMetadata().isChanging()) {
-                CacheExpirationControl.Expiry expiry = cacheExpirationControl.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAge());
+                CacheExpirationControl.Expiry expiry = cacheExpirationControl.moduleExpiry(cachedMetadata.getAge(), true);
                 if (expiry.isMustCheck()) {
                     LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
                     return;
@@ -235,7 +234,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 LOGGER.debug("Found cached version of changing module '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
                 listener.onChangingModuleResolve(moduleComponentIdentifier, expiry);
             } else {
-                if (cacheExpirationControl.moduleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAge()).isMustCheck()) {
+                if (cacheExpirationControl.moduleExpiry(cachedMetadata.getAge(), false).isMustCheck()) {
                     LOGGER.debug("Cached meta-data for module must be refreshed: will perform fresh resolve of '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
                     return;
                 }
@@ -277,13 +276,13 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             HashCode moduleDescriptorHash = cachingModuleSource.getDescriptorHash();
 
             if (cachedModuleArtifacts != null) {
-                if (!cacheExpirationControl.moduleArtifactsExpiry(component.getModuleVersionId(), null, Duration.ofMillis(cachedModuleArtifacts.getAgeMillis()),
+                if (!cacheExpirationControl.moduleArtifactsExpiry(Duration.ofMillis(cachedModuleArtifacts.getAgeMillis()),
                     cachingModuleSource.isChangingModule(), moduleDescriptorHash.equals(cachedModuleArtifacts.getDescriptorHash())).isMustCheck()) {
                     result.resolved(cachedModuleArtifacts.getArtifacts());
                     return;
                 }
 
-                LOGGER.debug("Artifact listing has expired: will perform fresh resolve of '{}' for '{}' in '{}'", contextId, component.getModuleVersionId(), delegate.getName());
+                LOGGER.debug("Artifact listing has expired: will perform fresh resolve of '{}' for '{}' in '{}'", contextId, component.getId(), delegate.getName());
             }
         }
 
@@ -305,20 +304,14 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 return estimateCostViaRemoteAccess(moduleComponentIdentifier);
             }
             if (cachedMetadata.isMissing()) {
-                if (cacheExpirationControl.missingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getAge()).isMustCheck()) {
+                if (cacheExpirationControl.moduleExpiry(cachedMetadata.getAge(), false).isMustCheck()) {
                     return estimateCostViaRemoteAccess(moduleComponentIdentifier);
                 }
                 return MetadataFetchingCost.CHEAP;
             }
             ExternalModuleComponentGraphResolveState state = getProcessedMetadata(metadataProcessor.getRulesHash(), cachedMetadata);
-            if (state.getMetadata().isChanging()) {
-                if (cacheExpirationControl.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAge()).isMustCheck()) {
-                    return estimateCostViaRemoteAccess(moduleComponentIdentifier);
-                }
-            } else {
-                if (cacheExpirationControl.moduleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAge()).isMustCheck()) {
-                    return estimateCostViaRemoteAccess(moduleComponentIdentifier);
-                }
+            if (cacheExpirationControl.moduleExpiry(cachedMetadata.getAge(), state.getMetadata().isChanging()).isMustCheck()) {
+                return estimateCostViaRemoteAccess(moduleComponentIdentifier);
             }
             return MetadataFetchingCost.FAST;
         }
@@ -334,9 +327,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 final HashCode descriptorHash = moduleSource.getDescriptorHash();
                 Duration age = Duration.ofMillis(timeProvider.getCurrentTime() - cached.getCachedAt());
                 final boolean isChangingModule = moduleSource.isChangingModule();
-                ModuleComponentArtifactMetadata moduleComponentArtifactMetadata = (ModuleComponentArtifactMetadata) artifact;
                 if (cached.isMissing()) {
-                    CacheExpirationControl.Expiry expiry = cacheExpirationControl.artifactExpiry(moduleComponentArtifactMetadata, null, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()));
+                    CacheExpirationControl.Expiry expiry = cacheExpirationControl.artifactExpiry(true, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()));
                     if (!expiry.isMustCheck()) {
                         LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact);
                         for (String location : cached.attemptedLocations()) {
@@ -346,7 +338,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     }
                 } else {
                     File cachedArtifactFile = cached.getCachedFile();
-                    CacheExpirationControl.Expiry expiry = cacheExpirationControl.artifactExpiry(moduleComponentArtifactMetadata, cachedArtifactFile, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()));
+                    CacheExpirationControl.Expiry expiry = cacheExpirationControl.artifactExpiry(false, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()));
                     if (!expiry.isMustCheck()) {
                         LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact, cachedArtifactFile);
                         result.resolved(cachedArtifactFile);
@@ -374,16 +366,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 case Listed:
                     ModuleIdentifier moduleId = selector.getModuleIdentifier();
                     Set<String> versionList = result.getVersions();
-                    Set<ModuleVersionIdentifier> versions = versionList
-                        .stream()
-                        .map(original -> DefaultModuleVersionIdentifier.newId(moduleId, original))
-                        .collect(Collectors.toSet());
                     moduleVersionsCache.cacheModuleVersionList(delegate, moduleId, versionList);
-                    listener.onDynamicVersionSelection(
-                        selector,
-                        cacheExpirationControl.versionListExpiry(moduleId, versions, Duration.ZERO),
-                        versions
-                    );
+                    onDynamicVersionSelection(selector, cacheExpirationControl.versionListExpiry(!versionList.isEmpty(), Duration.ZERO), versionList);
                     break;
                 case Failed:
                     break;
@@ -419,7 +403,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     processedMetadata = attachRepositorySource(processedMetadata);
                     if (processedMetadata.isChanging() || requestMetaData.isChanging()) {
                         processedMetadata = makeChanging(processedMetadata);
-                        CacheExpirationControl.Expiry expiry = cacheExpirationControl.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), Duration.ZERO);
+                        CacheExpirationControl.Expiry expiry = cacheExpirationControl.moduleExpiry(Duration.ZERO, true);
                         listener.onChangingModuleResolve(moduleComponentIdentifier, expiry);
                     }
                     ExternalModuleComponentGraphResolveState state = resolveStateFactory.stateFor(processedMetadata);
@@ -470,11 +454,10 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             delegate.getRemoteAccess().resolveArtifact(artifact, moduleSources, result);
             LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact, delegate.getName());
 
-            ArtifactResolveException failure = result.getFailure();
             ModuleDescriptorHashModuleSource cachingModuleSource = findCachingModuleSource(moduleSources);
-            if (failure == null) {
+            if (result.isSuccessful()) {
                 moduleArtifactCache.store(artifactCacheKey(artifact.getId()), result.getResult(), cachingModuleSource.getDescriptorHash());
-            } else if (failure instanceof ArtifactNotFoundException) {
+            } else if (result.isNotFound()) {
                 moduleArtifactCache.storeMissing(artifactCacheKey(artifact.getId()), result.getAttempted(), cachingModuleSource.getDescriptorHash());
             }
         }

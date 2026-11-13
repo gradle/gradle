@@ -24,6 +24,7 @@ class PlatformNativeComponentReportIntegrationTest extends AbstractNativeCompone
 
     @RequiresInstalledToolChain
     def "shows details of native C++ library"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 plugins {
@@ -80,6 +81,7 @@ Binaries
 
     @RequiresInstalledToolChain
     def "shows details of native C++ library that is not buildable"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 plugins {
@@ -165,6 +167,7 @@ Binaries
 
     @RequiresInstalledToolChain
     def "shows details of polyglot native library with multiple variants"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 plugins {

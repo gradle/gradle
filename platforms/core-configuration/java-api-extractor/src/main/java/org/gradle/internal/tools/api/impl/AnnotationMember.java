@@ -49,9 +49,21 @@ public class AnnotationMember extends Member implements Comparable<AnnotationMem
         return visible;
     }
 
+    /**
+     * Orders the kinds of annotation member against each other.
+     *
+     * Subclasses compare fields that the other kinds do not have. Without a rank, such a
+     * comparison gives a different answer in each direction, which breaks the contract of
+     * {@link Comparable} and silently drops members of a {@link java.util.TreeSet}.
+     */
+    protected int kindRank() {
+        return 0;
+    }
+
     protected ComparisonChain compare(AnnotationMember o) {
         return super.compare(o)
-            .compareFalseFirst(visible, o.visible);
+            .compareFalseFirst(visible, o.visible)
+            .compare(kindRank(), o.kindRank());
     }
 
     @Override

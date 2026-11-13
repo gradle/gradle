@@ -17,9 +17,7 @@ package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
-import kotlin.Unit;
 import org.gradle.api.Action;
-import org.gradle.api.AntBuilder;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
@@ -65,7 +63,6 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
-import org.gradle.api.internal.services.PublicServiceLookups;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
@@ -79,7 +76,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
-import org.gradle.api.services.ProjectService;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -202,10 +198,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private final ProjectStateInternal state;
 
     @Nullable
+    @Deprecated
     private AntBuilderFactory antBuilderFactory;
 
-    @Nullable
-    private AntBuilder ant;
+    @Deprecated
+    private org.gradle.api.@Nullable AntBuilder ant;
 
     private final TaskContainerInternal taskContainer;
 
@@ -556,10 +553,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public abstract TaskDependencyFactory getTaskDependencyFactory();
 
-    public void setAnt(AntBuilder ant) {
-        this.ant = ant;
-    }
-
     @Inject
     @Override
     public abstract ArtifactHandler getArtifacts();
@@ -739,16 +732,37 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public AntBuilder getAnt() {
+    @Deprecated
+    public org.gradle.api.AntBuilder getAnt() {
+        emitAntBuilderDeprecation("getAnt()");
+        return doGetAnt();
+    }
+
+    @Deprecated
+    private org.gradle.api.AntBuilder doGetAnt() {
         if (ant == null) {
-            ant = createAntBuilder();
+            ant = doCreateAntBuilder();
         }
         return ant;
     }
 
     @Override
-    public AntBuilder createAntBuilder() {
+    @Deprecated
+    public org.gradle.api.AntBuilder createAntBuilder() {
+        emitAntBuilderDeprecation("createAntBuilder()");
+        return doCreateAntBuilder();
+    }
+
+    @Deprecated
+    private org.gradle.api.AntBuilder doCreateAntBuilder() {
         return getAntBuilderFactory().createAntBuilder();
+    }
+
+    private static void emitAntBuilderDeprecation(String method) {
+        DeprecationLogger.deprecateMethod(Project.class, method)
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_ant_builder")
+            .nagUser();
     }
 
     /**
@@ -930,11 +944,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public abstract ProjectLayout getLayout();
 
     @Override
-    public <T extends ProjectService> T service(Class<T> serviceType) {
-        return PublicServiceLookups.lookup(serviceType, PublicServiceLookups.EntryPoint.PROJECT, getServices());
-    }
-
-    @Override
     public File file(Object path) {
         return getFileOperations().file(path);
     }
@@ -1028,6 +1037,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return getFileOperations().delete(action);
     }
 
+    @Deprecated
     public AntBuilderFactory getAntBuilderFactory() {
         if (antBuilderFactory == null) {
             antBuilderFactory = services.get(AntBuilderFactory.class);
@@ -1177,17 +1187,16 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             .nagUser();
 
         IsolatedProjectsProblemsReporter reporter = getIsolatedProjectsProblemsReporter();
-        reportGetPropertiesProblem(reporter);
+        reportGetPropertiesProblem(reporter, "Project.getProperties()");
         return reporter.runIgnoringProblemsOnCurrentThread(extensibleDynamicObject::getProperties);
     }
 
-    public static void reportGetPropertiesProblem(IsolatedProjectsProblemsReporter reporter) {
+    public static void reportGetPropertiesProblem(IsolatedProjectsProblemsReporter reporter, String method) {
         reporter.report(factory ->
-            factory.problem(null, builder -> {
-                builder.text("use of ").reference("Project.getProperties()")
-                    .text(" is not allowed with Isolated Projects");
-                return Unit.INSTANCE;
-            }).exception().build()
+            factory.problem("Unsupported API usage", message -> message
+                .text("use of ").reference(method)
+                .text(" is not allowed with Isolated Projects")
+            ).build()
         );
     }
 
@@ -1237,13 +1246,17 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public AntBuilder ant(Closure configureClosure) {
-        return ConfigureUtil.configure(configureClosure, getAnt());
+    @Deprecated
+    public org.gradle.api.AntBuilder ant(Closure configureClosure) {
+        emitAntBuilderDeprecation("ant(Closure)");
+        return ConfigureUtil.configure(configureClosure, doGetAnt());
     }
 
     @Override
-    public AntBuilder ant(Action<? super AntBuilder> configureAction) {
-        AntBuilder ant = getAnt();
+    @Deprecated
+    public org.gradle.api.AntBuilder ant(Action<? super org.gradle.api.AntBuilder> configureAction) {
+        emitAntBuilderDeprecation("ant(Action)");
+        org.gradle.api.AntBuilder ant = doGetAnt();
         configureAction.execute(ant);
         return ant;
     }
@@ -1439,6 +1452,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     // Not part of the public API
     public void model(Closure<?> modelRules) {
+        DeprecationLogger.deprecate("The model DSL")
+            .withContext("Rule-based/software model plugins are no longer supported.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_software_model")
+            .nagUser();
         prepareForRuleBasedPlugins();
         ModelRegistry modelRegistry = getModelRegistry();
         if (TransformedModelDslBacking.isTransformedBlock(modelRules)) {
@@ -1552,7 +1570,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         DependencyResolutionServices resolver = dms.newDetachedResolver(
             services.get(FileResolver.class),
             services.get(FileCollectionFactory.class),
-            new DependencyManagementParameters(Describables.of("detached context for", owner.getDisplayName()), null, true, true, true)
+            DependencyManagementParameters.forDetachedJvmEnvironment(Describables.of("detached context for", owner.getDisplayName()))
         );
 
         return new LocalDetachedResolver(resolver);

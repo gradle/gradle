@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl
 import com.google.common.collect.ImmutableMap
 import org.gradle.api.Task
 import org.gradle.api.internal.ConfigurationCacheDegradationController
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.HoldsProjectState
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
@@ -79,8 +80,11 @@ internal class DefaultConfigurationCacheDegradationController(
             builder.build()
         } else ImmutableMap.of()
 
-    private fun workGraphContains(task: Task): Boolean =
-        task.project.gradle.taskGraph.hasTask(task)
+    private fun workGraphContains(task: Task): Boolean {
+        // Same source the configuration cache stores from, see ConfigurationCacheState.writeBuildsInTree
+        val plan = (task.project.gradle as GradleInternal).taskGraph.executionPlan
+        return plan != null && plan.contents.tasks.contains(task)
+    }
 
     internal data class DegradationDecision(
         private val taskDegradationReasons: Map<TaskIdentity<*>, List<String>>

@@ -17,6 +17,8 @@
 package org.gradle.features.internal
 
 import groovy.transform.SelfType
+import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.features.internal.builders.TestScenarioBuilder
 import org.gradle.features.internal.builders.dsl.ClosureConfigure
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -91,7 +93,7 @@ trait TestScenarioFixture {
             import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
             }
 
             kotlin {

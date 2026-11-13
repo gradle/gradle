@@ -23,7 +23,6 @@ import common.Os
 import common.applyPerformanceTestSettings
 import common.buildScanTagParam
 import common.buildToolGradleParameters
-import common.checkCleanM2AndAndroidUserHome
 import common.getBuildScanCustomValueParam
 import common.gradleWrapper
 import common.killProcessStep
@@ -115,7 +114,6 @@ class PerformanceTest(
                         }
                     }
                     killProcessStep(buildTypeThis, KILL_PROCESSES_STARTED_BY_GRADLE, os, executionMode = BuildStep.ExecutionMode.ALWAYS)
-                    checkCleanM2AndAndroidUserHome(os)
                     cleanupPerformanceTestSplits(os)()
                 }
             }

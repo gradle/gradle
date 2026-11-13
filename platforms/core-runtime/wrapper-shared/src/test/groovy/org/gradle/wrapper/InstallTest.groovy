@@ -159,6 +159,35 @@ class InstallTest extends Specification {
         0 * download._
     }
 
+    def "reports distribution url without credentials when checksum verification fails"() {
+        given:
+        configuration.distribution = new URI(distributionUrl)
+        configuration.distributionSha256Sum = "bad"
+        _ * pathAssembler.getDistribution(configuration) >> localDistribution
+        _ * localDistribution.distributionDir >> distributionDir
+        _ * localDistribution.zipFile >> zipDestination
+
+        when:
+        install.createDist(configuration)
+
+        then:
+        def failure = thrown(RuntimeException)
+        failure.message.contains("Distribution Url: $reportedUrl")
+        !failure.message.contains("secret")
+
+        and:
+        1 * download.download(configuration.distribution, _) >> { templateZipFile.copyTo(it[1]) }
+        0 * download._
+
+        where:
+        distributionUrl                                     | reportedUrl
+        "http://user:secret@server:8080/gradle-0.9.zip"     | "http://***@server:8080/gradle-0.9.zip"
+        "http://user:secret@my_server:8080/gradle-0.9.zip"  | "http://***@my_server:8080/gradle-0.9.zip"
+        "http://my_server:8080/gradle-0.9.zip"              | "http://my_server:8080/gradle-0.9.zip"
+        "http://me%40corp.com:secret@server/gradle-0.9.zip" | "http://***@server/gradle-0.9.zip"
+        "http://user:s%40cret@server/gradle-0.9.zip"        | "http://***@server/gradle-0.9.zip"
+    }
+
     def "refuses to install distribution with unsafe zip entry name"() {
         given:
         _ * pathAssembler.getDistribution(configuration) >> localDistribution

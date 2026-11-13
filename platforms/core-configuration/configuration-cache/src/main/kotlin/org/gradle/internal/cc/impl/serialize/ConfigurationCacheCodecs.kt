@@ -41,7 +41,6 @@ import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.tasks.util.internal.PatternSetFactory
-import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.execution.InputFingerprinter
@@ -49,11 +48,12 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.model.CalculatedValueContainerFactory
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.BaseSerializerFactory.HASHCODE_SERIALIZER
 import org.gradle.internal.serialize.codecs.core.BooleanValueSnapshotCodec
-import org.gradle.internal.serialize.codecs.core.BuildLayoutCodec
 import org.gradle.internal.serialize.codecs.core.BuildServiceParameterCodec
 import org.gradle.internal.serialize.codecs.core.BuildServiceProviderCodec
 import org.gradle.internal.serialize.codecs.core.CalculatedValueContainerCodec
@@ -112,11 +112,11 @@ import org.gradle.internal.serialize.codecs.core.defaultCodecForProviderWithChan
 import org.gradle.internal.serialize.codecs.core.groovyCodecs
 import org.gradle.internal.serialize.codecs.core.jos.ExternalizableCodec
 import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec
-import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.dm.ArtifactCollectionCodec
 import org.gradle.internal.serialize.codecs.dm.AttributeContainerCodec
+import org.gradle.internal.serialize.codecs.dm.ComponentArtifactIdentifierCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultComponentArtifactsResultCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultGraphStructureCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultResolvableArtifactCodec
@@ -158,6 +158,7 @@ import org.gradle.internal.serialize.graph.reentrant
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.state.ManagedFactoryRegistry
+import org.gradle.internal.util.PathSerializer
 
 
 @ServiceScope(Scope.Build::class)
@@ -190,6 +191,7 @@ class DefaultConfigurationCacheCodecs(
     fileSystemOperations: FileSystemOperations,
     inputFingerprinter: InputFingerprinter,
     buildOperationRunner: BuildOperationRunner,
+    buildOperationExecutor: BuildOperationExecutor,
     classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     isolatableFactory: IsolatableFactory,
     managedFactoryRegistry: ManagedFactoryRegistry,
@@ -202,7 +204,6 @@ class DefaultConfigurationCacheCodecs(
     patternSetFactory: PatternSetFactory,
     fileOperations: FileOperations,
     fileFactory: FileFactory,
-    includedTaskGraph: BuildTreeWorkGraphController,
     buildStateRegistry: BuildStateRegistry,
     documentationRegistry: DocumentationRegistry,
     taskDependencyFactory: TaskDependencyFactory,
@@ -215,7 +216,7 @@ class DefaultConfigurationCacheCodecs(
 ) : ConfigurationCacheCodecs {
 
     private
-    val serializeTaskLoggingListeners = !startParameter.isConfigurationCacheSkipTaskLoggingListenersSerialization
+    val serializeTaskLoggingListeners = !startParameter.configurationCacheSkipTaskLoggingListenersSerialization.get()
 
 
     private
@@ -269,9 +270,10 @@ class DefaultConfigurationCacheCodecs(
             bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
             bind(TransformStepSpecCodec)
             bind(PublishArtifactLocalArtifactMetadataCodec)
+            bind(ComponentArtifactIdentifierCodec)
             bind(TransformedProjectArtifactSetCodec())
             bind(TransformedExternalArtifactSetCodec())
-            bind(CalculateArtifactsCodec(calculatedValueContainerFactory))
+            bind(CalculateArtifactsCodec(calculatedValueContainerFactory, buildOperationExecutor))
             bind(TransformedArtifactCodec(calculatedValueContainerFactory))
             bind(LocalFileDependencyBackedArtifactSetCodec(attributesFactory, calculatedValueContainerFactory))
             bind(CalculatedValueContainerCodec(calculatedValueContainerFactory))
@@ -296,7 +298,7 @@ class DefaultConfigurationCacheCodecs(
             bind(resolvedComponentResultCodec)
 
             bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, propertyFactory, instantiator, fileSystemOperations))
-            bind(DestinationRootCopySpecCodec(fileResolver, filePropertyFactory))
+            bind(DestinationRootCopySpecCodec(fileResolver, filePropertyFactory, fileFactory))
 
             bind(TaskReferenceCodec)
             bind(UserCodeSourceCodec)
@@ -317,9 +319,6 @@ class DefaultConfigurationCacheCodecs(
             bind(NullValueSnapshotCodec)
 
             bind(GradlePropertiesCodec)
-            // Must precede ServicesCodec: BuildLayout is a @ServiceScope type that ServicesCodec
-            // would otherwise try (and fail) to re-resolve from the task's own scope on load.
-            bind(BuildLayoutCodec)
             bind(ServicesCodec)
 
             bind(ProxyCodec)
@@ -377,9 +376,7 @@ class DefaultConfigurationCacheCodecs(
         providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(buildStateRegistry))
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)
 
-        bind(TaskInAnotherBuildCodec(includedTaskGraph))
-
-        bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
+        bind(TaskInAnotherBuildCodec(PathSerializer()))
     }
 
     override fun internalTypesCodec(): Codec<Any?> = internalTypesBindings.append {

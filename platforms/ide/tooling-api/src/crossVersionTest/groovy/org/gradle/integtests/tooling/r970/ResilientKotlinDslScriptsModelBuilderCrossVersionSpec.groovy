@@ -34,7 +34,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
     private static final List<String> NO_EXTRA_PROPERTIES = []
     private static final List<String> IP_FLAGS = [
-        "-Dorg.gradle.unsafe.isolated-projects=true",
+        "-Dorg.gradle.isolated-projects=true",
     ]
 
     def setup() {

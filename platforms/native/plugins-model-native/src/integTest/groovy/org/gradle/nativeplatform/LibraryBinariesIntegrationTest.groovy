@@ -26,10 +26,12 @@ import spock.lang.Issue
 @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
 class LibraryBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << "rootProject.name = 'test'"
     }
 
     def "executable can use a mix of static and shared libraries"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 apply plugin: "cpp"
@@ -107,6 +109,7 @@ model {
 
     @UnsupportedWithIsolatedProjects(because = "software model")
     def "executable can use a combination of libraries from the same and other projects"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         settingsFile << """
 include 'exe', 'lib'
@@ -204,6 +207,7 @@ project('exe') {
     }
 
     def "source set library dependencies are not shared with other source sets"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 apply plugin: "cpp"
@@ -280,6 +284,7 @@ model {
 
     @Issue("GRADLE-2925")
     def "headers for source set added to library binary are available to consuming binary"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         def app = new CppHelloWorldApp()
         given:
         buildFile << """

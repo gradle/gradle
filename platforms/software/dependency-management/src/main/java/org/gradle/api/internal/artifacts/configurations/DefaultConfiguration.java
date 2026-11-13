@@ -51,13 +51,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet;
-import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
+import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.ResolverResults;
@@ -77,9 +76,9 @@ import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.initialization.ResettableConfiguration;
+import org.gradle.api.internal.project.ProjectDomainObjectContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -95,15 +94,14 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.DefaultCalculatedModelValue;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.gradle.util.Path;
@@ -301,7 +299,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private static Path getIdentityPath(DomainObjectContext domainObjectContext, String name) {
         if (domainObjectContext instanceof ProjectDomainObjectContext pdoc) {
-            return pdoc.getModel().getIdentity().getBuildTreePath().child(name);
+            return pdoc.getIdentity().getBuildTreePath().child(name);
         }
         return Path.path(name);
     }
@@ -649,7 +647,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         ResolverResults newState;
         if (!domainObjectContext.getModel().hasMutableState()) {
-            throw new IllegalResolutionException("Resolution of the " + displayName.getDisplayName() + " was attempted without an exclusive lock. This is unsafe and not allowed.");
+            Documentation userGuideLink = Documentation.userManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors");
+            GradleException failure = new GradleException(
+                "Resolution of the " + displayName.getDisplayName() + " was attempted without an exclusive lock. This is unsafe and not allowed.");
+            failure.addResolution("For more information, please refer to " + userGuideLink.getUrl() + " in the Gradle documentation.");
+            throw failure;
         } else {
             newState = resolveExclusivelyIfRequired();
         }
@@ -716,7 +718,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             public BuildOperationDescriptor.Builder description() {
                 String displayName = "Resolve dependencies of " + identityPath;
                 String projectPathString = domainObjectContext instanceof ProjectDomainObjectContext pdoc
-                    ? pdoc.getModel().getIdentity().getProjectPath().asString()
+                    ? pdoc.getIdentity().getProjectPath().asString()
                     : null;
                 return BuildOperationDescriptor.displayName(displayName)
                     .progressDisplayName(displayName)
@@ -1270,7 +1272,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     public ConfigurationIdentity getConfigurationIdentity() {
         String name = getName();
         String projectPath = domainObjectContext instanceof ProjectDomainObjectContext pdoc
-            ? pdoc.getModel().getIdentity().getProjectPath().asString()
+            ? pdoc.getIdentity().getProjectPath().asString()
             : null;
         String buildPath = domainObjectContext.getBuildPath().asString();
         return new DefaultConfigurationIdentity(buildPath, projectPath, name);
@@ -1324,7 +1326,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 )
             );
 
-            ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
+            ProblemId id = configurationServices.getProblems().getGroups().getGradle().getBuildLogic().problemId("Configuration method call not allowed");
             throw configurationServices.getProblems().getInternalReporter().throwing(ex, id, spec -> {
                 spec.contextualLabel(
                     String.format(
@@ -1346,6 +1348,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         } else if (isExclusivelyDeprecatedUsage(properUsages)) {
             DeprecationLogger.deprecateAction(String.format("Calling %s on %s", methodName, this))
                 .withContext("This configuration does not allow this method to be called.")
+                .withProblemName("Method not allowed for the configuration's usage")
                 .willBecomeAnErrorInGradle10()
                 .withUpgradeGuideSection(8, "configurations_allowed_usage")
                 .nagUser();
@@ -1510,6 +1513,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private void warnAboutChangingUsage(String methodName, boolean newValue) {
         DeprecationLogger.deprecateAction(String.format("Calling %s(%b) on %s", methodName, newValue, this))
             .withContext("This configuration's role was set upon creation and its usage should not be changed.")
+            .withProblemName("Usage changed on a configuration with a fixed role")
             .willBecomeAnErrorInGradle10()
             .withUpgradeGuideSection(8, "configurations_allowed_usage")
             .nagUser();
@@ -1517,7 +1521,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private void failDueToChangingUsage(String methodName, boolean newValue) {
         GradleException ex = new GradleException(String.format("Calling %s(%b) on %s is not allowed.  This configuration's role was set upon creation and its usage should not be changed.", methodName, newValue, this));
-        ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
+        ProblemId id = configurationServices.getProblems().getGroups().getGradle().getBuildLogic().problemId("Configuration method call not allowed");
         throw configurationServices.getProblems().getInternalReporter().throwing(ex, id, spec -> {
             spec.contextualLabel(ex.getMessage());
         });
@@ -1676,7 +1680,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             .map(ConfigurationInternal::getDisplayName)
             .collect(Collectors.joining(", "));
         GradleException ex = new GradleException(getDisplayName() + " cannot extend " + summarizedExtensionTargets);
-        ProblemId id = ProblemId.create("extend-detached-not-allowed", "Extending a detachedConfiguration is not allowed", GradleCoreProblemGroup.configurationUsage());
+        ProblemId id = configurationServices.getProblems().getGroups().getGradle().getBuildLogic().problemId("Detached configuration cannot extend other configurations");
         throw configurationServices.getProblems().getInternalReporter().throwing(ex, id, spec -> {
             spec.contextualLabel(ex.getMessage());
         });
@@ -1724,7 +1728,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public void beforeResolve(Action<? super ResolvableDependencies> action) {
-            configuration.dependencyResolutionListeners.add("beforeResolve", configuration.userCodeApplicationContext.reapplyCurrentLater(action));
+            configuration.dependencyResolutionListeners.add("beforeResolve", decorateResolutionListener(action));
         }
 
         @Override
@@ -1734,7 +1738,19 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public void afterResolve(Action<? super ResolvableDependencies> action) {
-            configuration.dependencyResolutionListeners.add("afterResolve", configuration.userCodeApplicationContext.reapplyCurrentLater(action));
+            configuration.dependencyResolutionListeners.add("afterResolve", decorateResolutionListener(action));
+        }
+
+        /**
+         * Wraps the listener so that it runs within the user code application
+         * that registered it, if any.
+         */
+        private Action<? super ResolvableDependencies> decorateResolutionListener(Action<? super ResolvableDependencies> action) {
+            UserCodeApplicationContext.Application application = configuration.userCodeApplicationContext.current();
+            if (application == null) {
+                return action;
+            }
+            return dependencies -> application.reapplyAction(action, dependencies, UserCodeApplicationContext.CodeType.LISTENER);
         }
 
         @Override
@@ -1883,21 +1899,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return Arrays.stream(properUsages)
                 .map(ProperMethodUsage::buildProperName)
                 .collect(Collectors.joining(", "));
-        }
-    }
-
-    private static final class IllegalResolutionException extends GradleException implements ResolutionProvider {
-        private final String resolution;
-
-        public IllegalResolutionException(String message) {
-            super(message);
-            Documentation userGuideLink = Documentation.userManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors");
-            resolution = "For more information, please refer to " + userGuideLink.getUrl() + " in the Gradle documentation.";
-        }
-
-        @Override
-        public List<String> getResolutions() {
-            return Collections.singletonList(resolution);
         }
     }
 

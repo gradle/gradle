@@ -22,9 +22,15 @@ import java.util.List;
 
 public class ProjectDirectoryProjectSpec extends AbstractProjectSpec {
     private final File dir;
+    private final boolean fallBackToRootProject;
 
-    public ProjectDirectoryProjectSpec(File dir) {
+    /**
+     * @param fallBackToRootProject selects the root project when no project has {@code dir} as its project directory.
+     * Used when {@code dir} is the build's root directory, which belongs to the build regardless of whether a project lives there.
+     */
+    public ProjectDirectoryProjectSpec(File dir, boolean fallBackToRootProject) {
         this.dir = dir;
+        this.fallBackToRootProject = fallBackToRootProject;
     }
 
     @Override
@@ -42,6 +48,12 @@ public class ProjectDirectoryProjectSpec extends AbstractProjectSpec {
         for (ProjectDescriptorInternal candidate : candidates.getAllProjects()) {
             if (candidate.getProjectDir().equals(dir)) {
                 matches.add(candidate);
+            }
+        }
+        if (fallBackToRootProject && matches.isEmpty()) {
+            ProjectDescriptorInternal rootProject = candidates.getRootProject();
+            if (rootProject != null) {
+                matches.add(rootProject);
             }
         }
     }

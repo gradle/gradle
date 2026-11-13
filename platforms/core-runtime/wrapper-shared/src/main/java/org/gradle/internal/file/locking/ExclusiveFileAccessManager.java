@@ -19,9 +19,11 @@ package org.gradle.internal.file.locking;
 import org.jspecify.annotations.Nullable;
 import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.file.Files;
 import java.util.concurrent.Callable;
 
 public class ExclusiveFileAccessManager {
@@ -39,9 +41,10 @@ public class ExclusiveFileAccessManager {
     public <T> T access(File exclusiveFile, Callable<T> task) throws Exception {
         final File lockFile = new File(exclusiveFile.getParentFile(), exclusiveFile.getName() + LOCK_FILE_SUFFIX);
         File lockFileDirectory = lockFile.getParentFile();
-        if (!lockFileDirectory.mkdirs()
-            && (!lockFileDirectory.exists() || !lockFileDirectory.isDirectory())) {
-            throw new RuntimeException("Could not create parent directory for lock file " + lockFile.getAbsolutePath());
+        try {
+            Files.createDirectories(lockFileDirectory.toPath());
+        } catch (IOException e) {
+            throw new RuntimeException("Could not create parent directory for lock file " + lockFile.getAbsolutePath() + ": " + e, e);
         }
         RandomAccessFile randomAccessFile = null;
         FileChannel channel = null;

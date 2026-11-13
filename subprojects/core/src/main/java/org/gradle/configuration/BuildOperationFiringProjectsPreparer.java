@@ -55,7 +55,7 @@ public class BuildOperationFiringProjectsPreparer implements ProjectsPreparer {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            BuildOperationDescriptor.Builder builder = BuildOperationDescriptor.displayName(gradle.contextualize("Configure build"));
+            BuildOperationDescriptor.Builder builder = BuildOperationDescriptor.displayName("Configure build").owner(gradle.getOwner());
             if (gradle.isRootBuild()) {
                 builder.metadata(BuildOperationCategory.CONFIGURE_ROOT_BUILD);
             } else {

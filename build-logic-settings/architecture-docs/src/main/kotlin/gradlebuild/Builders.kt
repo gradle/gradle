@@ -23,13 +23,9 @@ class ProjectScope(
     private val basePath: String,
     private val settings: Settings,
 ) {
-    private val structure = settings.extensions.getByType(ProjectStructure::class.java)
-
     fun subproject(projectName: String) {
         settings.include(projectName)
-        val projectDir = settings.rootDir.resolve("$basePath/$projectName")
-        structure.projectBaseDirs.add(projectDir)
-        settings.project(":$projectName").projectDir = projectDir
+        settings.project(":$projectName").projectDir = settings.rootDir.resolve("$basePath/$projectName")
     }
 }
 

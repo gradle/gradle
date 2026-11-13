@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.plugins.ide.eclipse.model.internal;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.WarPlugin;
-import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
@@ -36,7 +34,6 @@ import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
-import org.gradle.plugins.ide.internal.resolver.NullGradleApiSourcesResolver;
 
 import java.io.File;
 import java.util.Collections;
@@ -64,8 +61,8 @@ public class WtpClasspathAttributeSupport {
 
     private static Set<File> collectFilesFromConfigs(EclipseClasspath classpath, Set<Configuration> configs, Set<Configuration> minusConfigs) {
         WtpClasspathAttributeDependencyVisitor visitor = new WtpClasspathAttributeDependencyVisitor(classpath);
-        new IdeDependencySet(classpath.getProject().getDependencies(), ((ProjectInternal) classpath.getProject()).getServices().get(JavaModuleDetector.class),
-            configs, minusConfigs, false, NullGradleApiSourcesResolver.INSTANCE, classpath.getTestConfigurations().getOrElse(Collections.emptySet())).visit(visitor);
+        IdeDependencySet ideDependencySet = ((ProjectInternal) classpath.getProject()).getServices().get(IdeDependencySet.class);
+        ideDependencySet.visit(configs, minusConfigs, classpath.getTestConfigurations().getOrElse(Collections.emptySet()), false, visitor);
         return visitor.getFiles();
     }
 
@@ -125,7 +122,7 @@ public class WtpClasspathAttributeSupport {
         }
 
         @Override
-        public void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency) {
+        public void visitUnresolvedDependency(ComponentSelector requested, Throwable failure) {
             //already handled elsewhere
         }
 

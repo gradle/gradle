@@ -27,7 +27,7 @@ class MultiProjectProjectDependencyConflictResolutionIntegrationTest extends Abs
 
     @Override
     String getBuildId() {
-        "((${ProjectInternal.name}) project).getOwner().getOwner().getBuildIdentifier()"
+        "((${ProjectInternal.name}) project).getOwner().getOwner().getIdentityPath()"
     }
 
     @Override

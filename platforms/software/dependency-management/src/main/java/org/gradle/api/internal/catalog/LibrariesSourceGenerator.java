@@ -28,7 +28,6 @@ import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemSpecInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
@@ -61,7 +60,6 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.A
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOO_MANY_ENTRIES;
 import static org.gradle.internal.RenderingUtils.oxfordJoin;
 import static org.gradle.internal.deprecation.Documentation.userManual;
-import static org.gradle.util.internal.TextUtil.screamingSnakeToKebabCase;
 
 public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
@@ -161,7 +159,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         String description = requireNonNull(TextUtil.normaliseLineSeparators(config.getDescription()));
         writeLn("/**");
         for (String descLine : Splitter.on('\n').split(description)) {
-            writeLn(" * " + descLine);
+            writeLn(" * " + sanitize(descLine));
         }
         List<String> libraries = config.getLibraryAliases();
         List<String> bundles = config.getBundleAliases();
@@ -479,13 +477,13 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private void writeSingleVersionAccessor(String versionAlias, @Nullable String context, String version, boolean asProvider) throws IOException {
         writeLn("/**");
-        writeLn(" * Version alias <b>" + versionAlias + "</b> with value <b>" + version + "</b>");
+        writeLn(" * Version alias <b>" + versionAlias + "</b> with value <b>" + sanitize(version) + "</b>");
         writeLn(" * <p>");
         writeLn(" * If the version is a rich version and cannot be represented as a");
         writeLn(" * single version string, an empty string is returned.");
         if (context != null) {
             writeLn(" * <p>");
-            writeLn(" * This version was declared in " + sanitizeUnicodeEscapes(context));
+            writeLn(" * This version was declared in " + sanitize(context));
         }
         writeLn(" */");
         String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(versionAlias));
@@ -512,9 +510,9 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         throw problemsService.getReporter().throwing(new InvalidUserDataException(), problem);
     }
 
-    private static ProblemSpecInternal configureVersionCatalogError(ProblemSpecInternal spec, String message, VersionCatalogProblemId catalogProblemId) {
+    private ProblemSpecInternal configureVersionCatalogError(ProblemSpecInternal spec, String message, VersionCatalogProblemId catalogProblemId) {
         return spec
-            .id(screamingSnakeToKebabCase(catalogProblemId.name()), catalogProblemId.getDisplayName(), GradleCoreProblemGroup.versionCatalog())
+            .id(catalogProblemId.problemId(problemsService.getGroups()))
             .contextualLabel(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)));
     }
@@ -549,12 +547,12 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     private void writeDependencyAccessor(String alias, DependencyModel dependency, boolean asProvider, boolean inPluginsBlock) throws IOException {
         String name = leafNodeForAlias(alias);
         writeLn("/**");
-        writeLn(" * Dependency provider for <b>" + name + "</b> with <b>" + coordinatesDescriptorFor(dependency) + "</b> coordinates and");
+        writeLn(" * Dependency provider for <b>" + name + "</b> with <b>" + sanitize(coordinatesDescriptorFor(dependency)) + "</b> coordinates and");
         writeVersionInformation(dependency.getVersionRef(), dependency.getVersion());
         String context = dependency.getContext();
         if (context != null) {
             writeLn(" * <p>");
-            writeLn(" * This dependency was declared in " + sanitizeUnicodeEscapes(context));
+            writeLn(" * This dependency was declared in " + sanitize(context));
         }
         writeLn(" */");
         String methodName = asProvider ? "asProvider" : "get" + toJavaName(name);
@@ -566,13 +564,13 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private void writeVersionInformation(@Nullable String versionRef, ImmutableVersionConstraint version) throws IOException {
         if (versionRef != null) {
-            writeLn(" * with version reference <b>" + versionRef + "</b>");
+            writeLn(" * with version reference <b>" + sanitize(versionRef) + "</b>");
         } else {
             String versionDisplay = version.getDisplayName();
             if (versionDisplay.isEmpty()) {
                 writeLn(" * with <b>no version specified</b>");
             } else {
-                writeLn(" * with version <b>" + versionDisplay + "</b>");
+                writeLn(" * with version <b>" + sanitize(versionDisplay) + "</b>");
             }
         }
     }
@@ -606,13 +604,13 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             writeLn(" * Dependency bundle provider for <b>" + alias + "</b> which contains the following dependencies:");
             writeLn(" * <ul>");
             for (String coordinate : coordinates) {
-                writeLn(" *    <li>" + coordinate + "</li>");
+                writeLn(" *    <li>" + sanitize(coordinate) + "</li>");
             }
             writeLn(" * </ul>");
         }
         if (context != null) {
             writeLn(" * <p>");
-            writeLn(" * This bundle was declared in " + sanitizeUnicodeEscapes(context));
+            writeLn(" * This bundle was declared in " + sanitize(context));
         }
         writeLn(" */");
         String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(alias));
@@ -624,12 +622,12 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private void writePlugin(String alias, PluginModel plugin, boolean asProvider) throws IOException {
         writeLn("/**");
-        writeLn(" * Plugin provider for <b>" + alias + "</b> with plugin id <b>" + plugin.getId() + "</b> and");
+        writeLn(" * Plugin provider for <b>" + alias + "</b> with plugin id <b>" + sanitize(plugin.getId()) + "</b> and");
         writeVersionInformation(plugin.getVersionRef(), plugin.getVersion());
         String context = plugin.getContext();
         if (context != null) {
             writeLn(" * <p>");
-            writeLn(" * This plugin was declared in " + sanitizeUnicodeEscapes(context));
+            writeLn(" * This plugin was declared in " + sanitize(context));
         }
         writeLn(" */");
         String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(alias));
@@ -648,10 +646,11 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
      * Java compiler would fail to compile sources that have illegal unicode escape characters, including in the comments.
      * Such characters could be accidentally introduced by a backslash followed by {@code 'u'},
      * e.g. in Windows path {@code '..\\user\dir'}.
+     * A '*' followed by '/' would end the comment, so the '/' is escaped as well.
      */
-    private static String sanitizeUnicodeEscapes(String s) {
+    private static String sanitize(String s) {
         // If a backslash precedes 'u', then we replace the backslash with its unicode notation '\\u005c'
-        return s.replace("\\u", "\\u005cu");
+        return s.replace("\\u", "\\u005cu").replace("*/", "*&#47;");
     }
 
     private static ClassNode rootNode(AccessorKind kind) {

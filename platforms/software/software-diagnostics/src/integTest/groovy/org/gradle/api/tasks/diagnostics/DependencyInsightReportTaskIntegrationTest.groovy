@@ -58,6 +58,27 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         failure.assertHasCause("Dependency insight report cannot be generated because the input configuration was not specified.")
     }
 
+    def "requires use of dependency flag if only the configuration is specified"() {
+        given:
+        buildFile << """
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+        """
+
+        when:
+        def failure = runAndFail("dependencyInsight", "--configuration", "conf")
+
+        then:
+        failure.assertHasCause("Dependency insight report cannot be generated because the dependency to show was not specified.")
+    }
+
     def "indicates that requested dependency cannot be found for default configuration"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -1473,7 +1494,7 @@ project ':A' FAILED
       - Could not resolve project ':A'.
           - Unable to find a matching variant of project ':A':
               - No variants exist.
-          - Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.
+          - Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_configurations.html#sec:resolvable-consumable-configs.
 
 project ':A' FAILED
 \\--- conf
@@ -1489,7 +1510,7 @@ project ':C' FAILED
       - Could not resolve project ':C'.
           - Unable to find a matching variant of project ':C':
               - No variants exist.
-          - Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.
+          - Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_configurations.html#sec:resolvable-consumable-configs.
 
 project ':C' FAILED
 \\--- project ':B'
