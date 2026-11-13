@@ -135,7 +135,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         assertTwoCompilerDaemonsAreRunning()
 
         where:
-        jvmArg << ["-Xss2m", "-Duser.language=tlh"]
+        jvmArg << ["-Xss2m", "-Duser.language=tlh", "-Djava.library.path=native-libs"]
     }
 
     def "starts a new daemon when the daemon has JVM arguments that were not requested"() {

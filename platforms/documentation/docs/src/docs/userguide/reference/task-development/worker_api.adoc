@@ -354,12 +354,12 @@ Each kind of system property affects daemon reuse differently:
 Properties requested by other work are cleared.
 
 |Properties Gradle knows are only read when the JVM starts
-|`file.encoding`, `user.language`, `user.country`, `user.variant`, `java.io.tmpdir`, `java.security.properties`, `jdk.io.File.enableADS`, `com.sun.management.jmxremote`, `javax.net.ssl.keyStore`, `javax.net.ssl.trustStore` and their password and type properties
+|`file.encoding`, `user.language`, `user.timezone`, `java.io.tmpdir`, `java.library.path` and the others in <<gradle_daemon.adoc#immutable_system_properties,the list of immutable system properties>>
 |A daemon is considered compatible only if the values match.
 |The requested value.
 
-|Other properties only read when the JVM starts
-|`java.library.path`
+|Other properties only read once
+|Properties a library reads once, for example in a static initializer
 |None.
 |The requested value, but it only takes effect if the daemon was started with it.
 |===

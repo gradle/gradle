@@ -109,6 +109,38 @@ task verify {
         daemons.daemons.size() == 2
     }
 
+    def "forks new daemon when #property is set to different value via commandline"() {
+        setup:
+        buildFile """
+            task verify {
+                doFirst {
+                    println "verified = " + ${expression}
+                }
+            }
+        """
+
+        when:
+        executer.withArgument("-D${property}=${value1}")
+        run("verify")
+
+        then:
+        daemons.daemons.size() == 1
+        outputContains("verified = ${value1}")
+
+        when:
+        executer.withArgument("-D${property}=${value2}")
+        run("verify")
+
+        then:
+        daemons.daemons.size() == 2
+        outputContains("verified = ${value2}")
+
+        where:
+        property        | value1            | value2           | expression
+        "user.timezone" | "Pacific/Chatham" | "Asia/Kathmandu" | "TimeZone.getDefault().getID()"
+        "user.home"     | "/home/first"     | "/home/second"   | "System.getProperty('user.home')"
+    }
+
     @Requires(TestExecutionPreconditions.NotEmbeddedExecutor) // need to start Gradle process from command line to use GRADLE_OPTS
     def "forks new daemon when tmpdir is set to different value via GRADLE_OPTS"() {
         setup:

@@ -27,8 +27,12 @@ import java.nio.charset.Charset
 
 import static org.gradle.process.internal.JvmOptions.FILE_ENCODING_KEY
 import static org.gradle.process.internal.JvmOptions.JAVA_IO_TMPDIR_KEY
+import static org.gradle.process.internal.JvmOptions.JAVA_LIBRARY_PATH_KEY
 import static org.gradle.process.internal.JvmOptions.JAVA_SECURITY_PROPERTIES_KEY
 import static org.gradle.process.internal.JvmOptions.JMX_REMOTE_KEY
+import static org.gradle.process.internal.JvmOptions.LINE_SEPARATOR_KEY
+import static org.gradle.process.internal.JvmOptions.PREFER_IPV4_STACK_KEY
+import static org.gradle.process.internal.JvmOptions.PREFER_IPV6_ADDRESSES_KEY
 import static org.gradle.process.internal.JvmOptions.SSL_KEYSTOREPASSWORD_KEY
 import static org.gradle.process.internal.JvmOptions.SSL_KEYSTORETYPE_KEY
 import static org.gradle.process.internal.JvmOptions.SSL_KEYSTORE_KEY
@@ -36,7 +40,9 @@ import static org.gradle.process.internal.JvmOptions.SSL_TRUSTPASSWORD_KEY
 import static org.gradle.process.internal.JvmOptions.SSL_TRUSTSTORETYPE_KEY
 import static org.gradle.process.internal.JvmOptions.SSL_TRUSTSTORE_KEY
 import static org.gradle.process.internal.JvmOptions.USER_COUNTRY_KEY
+import static org.gradle.process.internal.JvmOptions.USER_HOME_KEY
 import static org.gradle.process.internal.JvmOptions.USER_LANGUAGE_KEY
+import static org.gradle.process.internal.JvmOptions.USER_TIMEZONE_KEY
 import static org.gradle.process.internal.JvmOptions.USER_VARIANT_KEY
 import static org.gradle.process.internal.JvmOptions.fromString
 
@@ -193,6 +199,15 @@ class JvmOptionsTest extends Specification {
         "ssl truststore path"     | SSL_TRUSTSTORE_KEY              | "-D${SSL_TRUSTSTORE_KEY}=truststore/path"
         "ssl truststore password" | SSL_TRUSTPASSWORD_KEY           | "-D${SSL_TRUSTPASSWORD_KEY}=secret"
         "ssl truststore type"     | SSL_TRUSTSTORETYPE_KEY          | "-D${SSL_TRUSTSTORETYPE_KEY}=jks"
+        "library path"            | JAVA_LIBRARY_PATH_KEY           | "-D${JAVA_LIBRARY_PATH_KEY}=/native/libs"
+        "line separator"          | LINE_SEPARATOR_KEY              | "-D${LINE_SEPARATOR_KEY}=\n"
+        "user home"               | USER_HOME_KEY                   | "-D${USER_HOME_KEY}=/home/someone"
+        "user time zone"          | USER_TIMEZONE_KEY               | "-D${USER_TIMEZONE_KEY}=UTC"
+        "prefer IPv4 stack"       | PREFER_IPV4_STACK_KEY           | "-D${PREFER_IPV4_STACK_KEY}=true"
+        "prefer IPv6 addresses"   | PREFER_IPV6_ADDRESSES_KEY       | "-D${PREFER_IPV6_ADDRESSES_KEY}=true"
+        "user region"             | "user.region"                   | "-Duser.region=CH"
+        "stdout encoding"         | "stdout.encoding"               | "-Dstdout.encoding=UTF-8"
+        "logging configuration"   | "java.util.logging.config.file" | "-Djava.util.logging.config.file=/logging.properties"
     }
 
     def "#propDescr can be set as systemproperty"() {

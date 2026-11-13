@@ -62,11 +62,34 @@ public class JvmOptions {
     public static final String SSL_TRUSTPASSWORD_KEY = "javax.net.ssl.trustStorePassword";
     public static final String SSL_TRUSTSTORETYPE_KEY = "javax.net.ssl.trustStoreType";
 
+    public static final String JAVA_LIBRARY_PATH_KEY = "java.library.path";
+    public static final String LINE_SEPARATOR_KEY = "line.separator";
+    public static final String USER_HOME_KEY = "user.home";
+    public static final String USER_TIMEZONE_KEY = "user.timezone";
+    public static final String PREFER_IPV4_STACK_KEY = "java.net.preferIPv4Stack";
+    public static final String PREFER_IPV6_ADDRESSES_KEY = "java.net.preferIPv6Addresses";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(JvmOptions.class);
 
+    /**
+     * System properties that the JVM, or the JDK class reading them, only reads once.
+     * Changing them after the JVM has started has no effect, so a process can only be reused if they match.
+     */
     public static final Collection<String> IMMUTABLE_SYSTEM_PROPERTIES = Arrays.asList(
         FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR_KEY, JAVA_SECURITY_PROPERTIES_KEY, JDK_ENABLE_ADS_KEY,
         SSL_KEYSTORE_KEY, SSL_KEYSTOREPASSWORD_KEY, SSL_KEYSTORETYPE_KEY, SSL_TRUSTPASSWORD_KEY, SSL_TRUSTSTORE_KEY, SSL_TRUSTSTORETYPE_KEY,
+        JAVA_LIBRARY_PATH_KEY, LINE_SEPARATOR_KEY, USER_HOME_KEY, USER_TIMEZONE_KEY, PREFER_IPV4_STACK_KEY, PREFER_IPV6_ADDRESSES_KEY,
+        // Locale, read on startup like user.language
+        "user.region", "user.script", "user.extensions",
+        "user.language.display", "user.language.format", "user.country.display", "user.country.format",
+        "user.variant.display", "user.variant.format", "user.script.display", "user.script.format",
+        "user.extensions.display", "user.extensions.format",
+        "java.locale.providers", "java.locale.useOldISOCodes",
+        // Encodings of file names and of the standard streams
+        "sun.jnu.encoding", "stdout.encoding", "stderr.encoding",
+        // Read once by the security manager, serialization filter, logging and AWT setup
+        "java.security.manager", "jdk.serialFilter", "jdk.serialFilterFactory",
+        "java.util.logging.config.file", "java.util.logging.config.class", "java.awt.headless",
         // Gradle specific
         HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY
     );
