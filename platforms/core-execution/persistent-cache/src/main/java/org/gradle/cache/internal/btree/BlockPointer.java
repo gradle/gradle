@@ -15,8 +15,6 @@
  */
 package org.gradle.cache.internal.btree;
 
-import com.google.common.primitives.Longs;
-
 public class BlockPointer implements Comparable<BlockPointer> {
 
     private static final BlockPointer NULL = new BlockPointer(-1);
@@ -65,7 +63,7 @@ public class BlockPointer implements Comparable<BlockPointer> {
 
     @Override
     public int hashCode() {
-        return Longs.hashCode(pos);
+        return Long.hashCode(pos);
     }
 
     @Override

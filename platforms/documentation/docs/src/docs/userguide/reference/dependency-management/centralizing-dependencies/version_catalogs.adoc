@@ -680,7 +680,7 @@ This works identically when importing from a published artifact:
 ----
 create("libs") {
     from("com.mycompany:catalog:1.0")
-    version("guava", "33.5.0-jre")  // override the published version
+    version("guava", "33.7.2-jre")  // override the published version
 }
 ----
 =====
@@ -690,7 +690,7 @@ create("libs") {
 ----
 libs {
     from("com.mycompany:catalog:1.0")
-    version("guava", "33.5.0-jre")  // override the published version
+    version("guava", "33.7.2-jre")  // override the published version
 }
 ----
 =====

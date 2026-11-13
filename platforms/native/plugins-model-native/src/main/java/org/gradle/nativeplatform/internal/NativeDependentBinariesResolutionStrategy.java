@@ -37,6 +37,7 @@ import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedRes
 import org.jspecify.annotations.Nullable;
 
 import java.io.StringWriter;
+import java.time.Duration;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,7 +50,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -93,11 +93,11 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
     private final ProjectModelResolver projectModelResolver;
     private final Cache<String, State> stateCache = CacheBuilder.newBuilder()
         .maximumSize(1)
-        .expireAfterAccess(10, TimeUnit.SECONDS)
+        .expireAfterAccess(Duration.ofSeconds(10))
         .build();
     private final Cache<NativeBinarySpecInternal, List<DependentBinariesResolvedResult>> resultsCache = CacheBuilder.newBuilder()
         .maximumSize(3000)
-        .expireAfterAccess(10, TimeUnit.SECONDS)
+        .expireAfterAccess(Duration.ofSeconds(10))
         .build();
 
     private TestSupport testSupport;

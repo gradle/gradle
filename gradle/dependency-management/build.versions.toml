@@ -35,7 +35,7 @@ foojayConventions = { module = "org.gradle.toolchains.foojay-resolver-convention
 freemarker = { module = "org.freemarker:freemarker", version = "2.3.35" } # CVE-2026-84939 on lower versions
 groovy = { module = "org.apache.groovy:groovy", version.ref = "groovy" }
 gson = { module = "com.google.code.gson:gson", version = "2.14.0" }
-guava = { module = "com.google.guava:guava", version = "33.6.0-jre" }
+guava = { module = "com.google.guava:guava", version = "33.7.2-jre" }
 hamcrest = { group = "org.hamcrest", name = "hamcrest", version.ref = "hamcrest" }
 httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.6.3" } # CVE-2026-64607 on lower versions
 httpcore5 = { module = "org.apache.httpcomponents.core5:httpcore5", version = "5.4.3" } # CVE-2026-54399 on lower versions
