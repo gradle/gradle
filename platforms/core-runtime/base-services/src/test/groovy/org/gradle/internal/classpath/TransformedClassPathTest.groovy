@@ -337,4 +337,32 @@ class TransformedClassPathTest extends Specification {
     private static String legacyMarker() { LEGACY_INSTRUMENTATION_MARKER.fileName }
     private static String noOriginalMarker() { ORIGINAL_FILE_DOES_NOT_EXIST_MARKER.fileName  }
     private static String classpathMarker() { INSTRUMENTATION_CLASSPATH_MARKER.fileName }
+
+    def "every entry says where it came from, whether it has a transformed double or not"() {
+        given:
+        TransformedClassPath cp = TransformedClassPath.builderWithExactSize(3)
+            .add(file("external.jar"), new TransformedClassPath.TransformedEntry(file("instrumented/instrumented-external.jar"), null, EXTERNAL_DEPENDENCY))
+            .addUntransformed(file("project.jar"), PROJECT_DEPENDENCY)
+            .addUntransformed(file("plain.jar"))
+            .build()
+
+        expect:
+        cp.kindOf(file("external.jar")) == EXTERNAL_DEPENDENCY
+        cp.kindOf(file("instrumented/instrumented-external.jar")) == EXTERNAL_DEPENDENCY
+        cp.kindOf(file("project.jar")) == PROJECT_DEPENDENCY
+        cp.kindOf(file("plain.jar")) == UNKNOWN
+        cp.kindOf(file("other.jar")) == UNKNOWN
+    }
+
+    def "the kinds of untransformed entries survive filtering and tell classpaths apart"() {
+        given:
+        TransformedClassPath cp = TransformedClassPath.builderWithExactSize(2)
+            .addUntransformed(file("project.jar"), PROJECT_DEPENDENCY)
+            .addUntransformed(file("plain.jar"))
+            .build()
+
+        expect:
+        cp.removeIf { it.name == "plain.jar" }.kindOf(file("project.jar")) == PROJECT_DEPENDENCY
+        cp != TransformedClassPath.builderWithExactSize(2).addUntransformed(file("project.jar")).addUntransformed(file("plain.jar")).build()
+    }
 }

@@ -18,7 +18,18 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
+import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
+import org.gradle.api.problems.internal.location.PropertyFrame;
+import org.gradle.api.problems.internal.location.TaskFrame;
+import org.gradle.api.problems.internal.location.Trace;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -27,10 +38,14 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
+import com.google.common.collect.ImmutableList;
+
+import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
 import java.util.Set;
@@ -206,8 +221,12 @@ public class MissingTaskDependencyDetector {
                 .nagUser();
             return;
         }
+        // Two causes that only fail together: what the consumer reads and what the producer writes
+        Trace consumed = originOf(consumer, "input property", inputPropertyOf(consumer, consumerProducerPath));
+        Trace produced = originOf(producer, "output property", outputPropertyOf(producer, consumerProducerPath));
         validationContext.visitPropertyError(problem ->
-            problem.id(problem.getGradleGroup().getBuildLogic().problemId(DefaultTypeAwareProblemBuilder.IMPLICIT_DEPENDENCY)) // TODO (donat) missing test coverage
+            problem.originTrace(consumed).originTrace(produced)
+                .id(problem.getGradleGroup().getBuildLogic().problemId(DefaultTypeAwareProblemBuilder.IMPLICIT_DEPENDENCY)) // TODO (donat) missing test coverage
                 .contextualLabel("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
                 .documentedAt(userManual("validation_problems", IMPLICIT_DEPENDENCY.toLowerCase(Locale.ROOT)))
                 .details(String.format("Task '%s' uses this output of task '%s' without declaring an explicit or implicit dependency. "
@@ -219,6 +238,77 @@ public class MissingTaskDependencyDetector {
                 .solution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#dependsOn")
                 .solution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#mustRunAfter")
         );
+    }
+
+    /**
+     * The origin trace of one side of the missing dependency: the property that holds the location and the task it is set on.
+     * The property is one task's, so no type stands between it and the task. Without a declared property, the task is the leaf.
+     * The task carries its registration record, from which the problems runtime adds the lineage.
+     */
+    private static Trace originOf(LocalTaskNode node, String propertyKind, @Nullable String propertyName) {
+        TaskIdentity<?> identity = node.getTask().getTaskIdentity();
+        TaskFrame task = new TaskFrame(identity.getBuildTreePath().asString(), identity.getUserCodeSource());
+        if (propertyName == null) {
+            return new Trace(ImmutableList.of(task));
+        }
+        // Where the value was set isn't recorded, so the property takes the locality of the task it belongs to
+        return new Trace(ImmutableList.of(new PropertyFrame(propertyKind, propertyName, task.getLocality()), task));
+    }
+
+    private static @Nullable String inputPropertyOf(LocalTaskNode consumer, String location) {
+        for (InputFilePropertySpec property : consumer.getTaskProperties().getInputFileProperties()) {
+            if (isDeclared(property.getPropertyName()) && overlaps(rootsOf(property.getPropertyFiles()), location)) {
+                return property.getPropertyName();
+            }
+        }
+        return null;
+    }
+
+    private static @Nullable String outputPropertyOf(LocalTaskNode producer, String location) {
+        for (OutputFilePropertySpec property : producer.getTaskProperties().getOutputFileProperties()) {
+            if (isDeclared(property.getPropertyName()) && overlaps(ImmutableList.of(property.getOutputFile()), location)) {
+                return property.getPropertyName();
+            }
+        }
+        return null;
+    }
+
+    // A file registered through the runtime API without a name gets a generated one, such as "$1"
+    private static boolean isDeclared(String propertyName) {
+        return !propertyName.startsWith("$");
+    }
+
+    private static List<File> rootsOf(FileCollectionInternal files) {
+        ImmutableList.Builder<File> roots = ImmutableList.builder();
+        files.visitStructure(new FileCollectionStructureVisitor() {
+            @Override
+            public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+                roots.addAll(contents);
+            }
+
+            @Override
+            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                roots.add(root);
+            }
+
+            @Override
+            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                roots.add(file);
+            }
+        });
+        return roots.build();
+    }
+
+    // The detector reports a location when one side reads or writes it, a parent of it or something inside it
+    private static boolean overlaps(List<File> roots, String location) {
+        java.nio.file.Path path = new File(location).toPath();
+        for (File root : roots) {
+            java.nio.file.Path rootPath = root.toPath();
+            if (path.startsWith(rootPath) || rootPath.startsWith(path)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean areInDifferentBuilds(LocalTaskNode producer, LocalTaskNode consumer) {

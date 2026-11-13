@@ -101,11 +101,26 @@ public interface ProblemSpec {
 
     /**
      * Declares that this problem is at the same place where it's reported. The stack trace will be used to determine the location.
+     * <p>
+     * Prefer {@link #callerLocation(Class)}, which names the API whose caller is at fault and so finds the caller in compiled code as well as in scripts.
      *
      * @return this
      * @since 8.6
      */
     ProblemSpec stackLocation();
+
+    /**
+     * Declares that the code calling the given API caused this problem.
+     * <p>
+     * The first stack frame outside Gradle and outside the package of {@code api} and its subpackages is taken as the cause,
+     * whether it is a line in a build script or in compiled code.
+     *
+     * @param api the class whose API was called
+     * @return this
+     * @since 9.10.0
+     */
+    @Incubating
+    ProblemSpec callerLocation(Class<?> api);
 
     /**
       Declares a long description detailing the problem.

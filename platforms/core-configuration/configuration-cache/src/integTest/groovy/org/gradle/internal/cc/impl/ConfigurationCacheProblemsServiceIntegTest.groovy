@@ -18,10 +18,12 @@ package org.gradle.internal.cc.impl
 
 
 import org.gradle.api.problems.Severity
+import org.gradle.internal.code.Locality
 import org.gradle.initialization.StartParameterBuildOptions
 
 class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCacheIntegrationTest {
 
+    public static final String UNSUPPORTED_TYPE = "Gradle:Configuration Cache:Type unsupported for serialization"
     public static final String REGISTRATION_UNSUPPORTED = "Gradle:Configuration Cache:Unsupported build listener registration"
 
     @Override
@@ -116,5 +118,141 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
             contextualLabel == "Invocation of 'Task.project' at execution time is unsupported with the configuration cache."
             definition.severity == Severity.WARNING
         }
+    }
+
+    def "a problem in a build script has the script line as its origin trace"() {
+        given:
+        buildFile """
+            gradle.buildFinished { }
+            task run
+        """
+
+        when:
+        configurationCacheRunLenient 'run'
+
+        then:
+        def problem = findReceivedProblem { it.fqid == REGISTRATION_UNSUPPORTED }
+        problem.originTraces*.frames*.displayName == [[buildFile.absolutePath + ":2"]]
+        problem.originTraces[0].frames[0].locality == Locality.LOCAL
+
+        and: "the flat location still carries the display name, as before"
+        problem.originLocations[0].path == "build file 'build.gradle'"
+    }
+
+    def "a serialization problem has the path through the object graph as its origin trace (UC5)"() {
+        given:
+        buildFile """
+            class AcmeService {
+                Thread client = Thread.currentThread()
+            }
+
+            abstract class AcmeTask extends DefaultTask {
+                private final AcmeService service = new AcmeService()
+
+                @TaskAction
+                void run() {}
+            }
+
+            tasks.register("acme", AcmeTask)
+        """
+
+        when:
+        configurationCacheRunLenient 'acme'
+
+        then: "the problem is found once when storing and once when loading, each with the same path"
+        def stored = findReceivedProblem { it.contextualLabel.startsWith("Cannot serialize") }
+        def loaded = findReceivedProblem { it.contextualLabel.startsWith("Cannot deserialize") }
+        [stored, loaded].each { problem ->
+            assert problem.fqid == "Gradle:Configuration Cache:Type unsupported for serialization"
+            assert problem.originTraces*.frames*.displayName == [
+                [
+                    "field client",
+                    "bean AcmeService",
+                    "field service",
+                    "class AcmeTask",
+                    "task :acme"
+                ]
+            ]
+            // Today's text form keeps only the user code that contains the state, not the path to it
+            assert problem.additionalData.asMap.trace == "task `:acme` of type `AcmeTask`"
+            // Spec Q7: Configuration Cache notices the problem outside any task, so detection is the build alone
+            assert problem.detectionTrace.frames*.displayName == ["build :"]
+        }
+    }
+
+    def "each field that can't be serialized is a problem of its own"() {
+        given:
+        def fields = (1..5).collect { "private final Thread thread$it = Thread.currentThread()" }.join("\n")
+        buildFile """
+            abstract class AcmeTask extends DefaultTask {
+                $fields
+
+                @TaskAction
+                void run() {}
+            }
+
+            tasks.register("acme", AcmeTask)
+        """
+
+        when:
+        configurationCacheRunLenient 'acme'
+
+        then: "one per field, when storing and when loading"
+        outputContains("10 problems were found storing the configuration cache, 2 of which seem unique.")
+        def received = collectedProblems.findAll { it.fqid == UNSUPPORTED_TYPE }
+        received.size() == 10
+        received.collect { it.originTraces[0].frames[0].displayName }.toSet() == (1..5).collect { "field thread$it".toString() }.toSet()
+        ignoreCleanupAssertions()
+    }
+
+    def "the same field in many tasks of one type is one problem"() {
+        given:
+        buildFile """
+            abstract class AcmeTask extends DefaultTask {
+                private final Thread thread = Thread.currentThread()
+
+                @TaskAction
+                void run() {}
+            }
+
+            (1..5).each { tasks.register("acme\$it", AcmeTask) }
+            tasks.register("all") { dependsOn tasks.withType(AcmeTask) }
+        """
+
+        when:
+        configurationCacheRunLenient 'all'
+
+        then: "Configuration Cache counts every task; the field is one thing to fix, reported once when storing and once when loading"
+        outputContains("10 problems were found storing the configuration cache")
+        def received = collectedProblems.findAll { it.fqid == UNSUPPORTED_TYPE }
+        received.size() == 2
+        received.every { it.originTraces[0].frames*.displayName.take(2) == [
+            "field thread",
+            "class AcmeTask"
+        ] }
+        ignoreCleanupAssertions()
+    }
+
+    def "more distinct problems of one kind than the Problems API limit are cut off"() {
+        given:
+        def fields = (1..20).collect { "private final Thread thread$it = Thread.currentThread()" }.join("\n")
+        buildFile """
+            abstract class AcmeTask extends DefaultTask {
+                $fields
+
+                @TaskAction
+                void run() {}
+            }
+
+            tasks.register("acme", AcmeTask)
+        """
+
+        when:
+        configurationCacheRunLenient 'acme'
+
+        then: "Configuration Cache reports all 40; the Problems API stops at its limit per problem id"
+        outputContains("40 problems were found storing the configuration cache, 2 of which seem unique.")
+        collectedProblems.count { it.fqid == UNSUPPORTED_TYPE } == 15
+        ignoreCleanupAssertions()
     }
 }

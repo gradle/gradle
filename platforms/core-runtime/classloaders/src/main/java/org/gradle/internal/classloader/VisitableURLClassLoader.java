@@ -152,7 +152,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         return new VisitableURLClassLoader(name, parent, classPath);
     }
 
-    private static class InstrumentingVisitableURLClassLoader extends VisitableURLClassLoader implements InstrumentingClassLoader {
+    private static class InstrumentingVisitableURLClassLoader extends VisitableURLClassLoader implements InstrumentingClassLoader, TransformedClassPathHolder {
         static {
             try {
                 // Not supported on Java 6, hence the try-catch
@@ -163,6 +163,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
             }
         }
 
+        private final TransformedClassPath classPath;
         private final TransformReplacer replacer;
         private final TransformErrorHandler errorHandler;
         @Nullable
@@ -170,6 +171,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
 
         public InstrumentingVisitableURLClassLoader(String name, ClassLoader parent, TransformedClassPath classPath) {
             super(name, parent, classPath);
+            this.classPath = classPath;
             replacer = new TransformReplacer(classPath);
             errorHandler = new TransformErrorHandler(name);
             classLoadTimeTransform = classPath.getClassLoadTimeTransform();
@@ -184,6 +186,11 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
             }
             // No third-party agent to compose with; substitute the bytes Gradle rewrote during artifact transform.
             return replacer.getInstrumentedClass(className, protectionDomain);
+        }
+
+        @Override
+        public TransformedClassPath getTransformedClassPath() {
+            return classPath;
         }
 
         @Override

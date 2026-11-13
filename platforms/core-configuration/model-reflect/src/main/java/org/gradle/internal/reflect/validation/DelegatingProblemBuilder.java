@@ -101,6 +101,16 @@ class DelegatingProblemBuilder implements ProblemBuilderInternal {
     }
 
     @Override
+    public ProblemBuilderInternal originTrace(org.gradle.api.problems.internal.location.Trace originTrace) {
+        return validateDelegate(delegate.originTrace(originTrace));
+    }
+
+    @Override
+    public ProblemBuilderInternal callerLocation(Class<?> api) {
+        return validateDelegate(delegate.callerLocation(api));
+    }
+
+    @Override
     public ProblemBuilderInternal details(String details) {
         return validateDelegate(delegate.details(details));
     }

@@ -27,6 +27,8 @@ import org.gradle.api.problems.ProblemGroups;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.location.Trace;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.problems.Location;
@@ -58,8 +60,13 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
     private Throwable exception;
     private AdditionalData additionalData;
     private boolean collectStackLocation = false;
+    // The API whose caller is at fault. The runtime picks the origin leaf from the captured stack.
+    private Class<?> callerApi;
+    private final List<Trace> explicitOriginTraces = new ArrayList<Trace>();
     private boolean writtenToConsole = false;
     private ProblemDiagnostics diagnostics;
+    // Copied from an existing problem only: reporters can't set the detection trace
+    private Trace detectionTrace;
 
     public DefaultProblemBuilder(
         ProblemsInfrastructure infrastructure
@@ -85,6 +92,8 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         this.exception = problem.getException();
         this.additionalData = problem.getAdditionalData();
         this.writtenToConsole = problem.isWrittenToConsole();
+        this.detectionTrace = problem.getDetectionTrace();
+        this.explicitOriginTraces.addAll(problem.getOriginTraces());
     }
 
     @Override
@@ -117,7 +126,9 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             details,
             exception,
             additionalData,
-            writtenToConsole
+            writtenToConsole,
+            detectionTrace,
+            ImmutableList.copyOf(explicitOriginTraces)
         );
     }
 
@@ -152,7 +163,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             locations.remove(fileLocation);
         }
         if (collectStackLocation || fileLocation != null) {
-            locations.add(new DefaultStackTraceLocation(fileLocation, diagnostics.getStack()));
+            locations.add(new DefaultStackTraceLocation(fileLocation, diagnostics.getStack(), callerApi == null ? null : callerApi.getName()));
         }
 
         PluginIdLocation pluginIdLocation = getDefaultPluginIdLocation(diagnostics);
@@ -188,7 +199,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         if (groups == null) {
             throw new IllegalStateException("Cannot report invalid problem '" + name + "' without the predefined problem groups");
         }
-        id(groups.getGradle().getBuildLogic().problemId(name)).stackLocation();
+        id(groups.getGradle().getBuildLogic().problemId(name)).callerLocation(Problems.class);
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(this.getId(), Severity.WARNING, null);
         List<ProblemLocation> problemLocations = new ArrayList<ProblemLocation>();
         ProblemDiagnostics diagnostics = determineDiagnostics();
@@ -287,6 +298,19 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
     @Override
     public ProblemBuilderInternal stackLocation() {
         this.collectStackLocation = true;
+        return this;
+    }
+
+    @Override
+    public ProblemBuilderInternal originTrace(Trace originTrace) {
+        this.explicitOriginTraces.add(originTrace);
+        return this;
+    }
+
+    @Override
+    public ProblemBuilderInternal callerLocation(Class<?> api) {
+        this.collectStackLocation = true;
+        this.callerApi = api;
         return this;
     }
 

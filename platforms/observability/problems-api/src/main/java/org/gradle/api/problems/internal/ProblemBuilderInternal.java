@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.internal.location.Trace;
 import org.gradle.api.Action;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.DocLink;
@@ -65,6 +66,12 @@ public interface ProblemBuilderInternal extends ProblemSpecInternal {
 
     @Override
     ProblemBuilderInternal stackLocation();
+
+    @Override
+    ProblemBuilderInternal callerLocation(Class<?> api);
+
+    @Override
+    ProblemBuilderInternal originTrace(Trace originTrace);
 
     @Override
     ProblemBuilderInternal details(String details);

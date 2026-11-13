@@ -29,6 +29,11 @@ public class NoOpProblemSummarizer implements ProblemSummarizer {
     }
 
     @Override
+    public ProblemInternal locate(ProblemInternal problem, @Nullable OperationIdentifier id) {
+        return problem;
+    }
+
+    @Override
     public String getId() {
         return "";
     }

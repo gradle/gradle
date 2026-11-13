@@ -16,10 +16,12 @@
 
 package org.gradle.configuration;
 
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationId;
+import org.gradle.internal.code.Locality;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -43,11 +45,13 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
     private final ScriptPlugin decorated;
     private final BuildOperationRunner buildOperationRunner;
     private final UserCodeApplicationContext userCodeApplicationContext;
+    private final boolean topLevelScript;
 
-    public BuildOperationScriptPlugin(ScriptPlugin decorated, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
+    public BuildOperationScriptPlugin(ScriptPlugin decorated, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, boolean topLevelScript) {
         this.decorated = decorated;
         this.buildOperationRunner = buildOperationRunner;
         this.userCodeApplicationContext = userCodeApplicationContext;
+        this.topLevelScript = topLevelScript;
     }
 
     @Override
@@ -63,7 +67,8 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
             decorated.apply(target);
         } else {
             URI uri = resource.getFile() != null ? resource.getFile().toURI() : resource.getLocation().getURI();
-            UserCodeSource source = new UserCodeSource.Script(getSource().getShortDisplayName(), uri);
+            UserCodeApplicationContext.Application applying = userCodeApplicationContext.current();
+            UserCodeSource source = new UserCodeSource.Script(getSource().getShortDisplayName(), uri, localityOf(target, resource.getFile()), applying == null ? null : applying.getSource(), topLevelScript);
             UserCodeApplicationContext.Target appTarget = getApplicationTargetFor(target);
             userCodeApplicationContext.apply(source, appTarget, userCodeApplicationId -> buildOperationRunner.run(new RunnableBuildOperation() {
                 @Override
@@ -86,6 +91,26 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
                 }
             }));
         }
+    }
+
+    /**
+     * Project and settings scripts belong to the build. Init scripts come from the user's machine, CI or an IDE:
+     * those found in the Gradle user home or the installation are part of the environment,
+     * those passed on the command line can't be told apart from ones an IDE or CI plugin injected.
+     */
+    private static Locality localityOf(Object target, @Nullable File scriptFile) {
+        if (!(target instanceof GradleInternal)) {
+            return Locality.LOCAL;
+        }
+        if (scriptFile == null) {
+            return Locality.UNKNOWN;
+        }
+        for (File commandLineInitScript : ((GradleInternal) target).getStartParameter().getInitScripts()) {
+            if (commandLineInitScript.getAbsoluteFile().equals(scriptFile.getAbsoluteFile())) {
+                return Locality.UNKNOWN;
+            }
+        }
+        return Locality.ENVIRONMENT;
     }
 
     private static UserCodeApplicationContext.Target getApplicationTargetFor(Object target) {

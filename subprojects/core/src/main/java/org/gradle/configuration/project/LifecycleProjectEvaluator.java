@@ -21,6 +21,8 @@ import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
+import org.gradle.api.problems.internal.ProblemProjectIdentityTracker;
+import org.gradle.api.problems.internal.ProjectIdentity;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -97,6 +99,17 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
         @Override
         public void run(final BuildOperationContext context) {
+            // Tells the Problems API which project is being configured
+            ProjectIdentity previous = ProblemProjectIdentityTracker.getProjectIdentity();
+            ProblemProjectIdentityTracker.setProjectIdentity(new ProjectIdentity(project.getIdentityPath().asString(), project.getGradle().getIdentityPath().asString()));
+            try {
+                configure(context);
+            } finally {
+                ProblemProjectIdentityTracker.setProjectIdentity(previous);
+            }
+        }
+
+        private void configure(final BuildOperationContext context) {
             project.getOwner().applyToMutableState(p -> {
                 // Note: beforeEvaluate and afterEvaluate ops do not throw, instead mark state as failed
                 try {
