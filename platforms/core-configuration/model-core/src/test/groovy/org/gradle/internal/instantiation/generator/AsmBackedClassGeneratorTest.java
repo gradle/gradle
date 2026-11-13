@@ -2174,6 +2174,16 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
+    public static abstract class AbstractUpgradedPropertyBeanWithFluentObjectSetter {
+        @ReplacesEagerProperty
+        public abstract Property<String> getProp();
+
+        public AbstractUpgradedPropertyBeanWithFluentObjectSetter setProp(Object value) {
+            getProp().set("via setter: " + value);
+            return this;
+        }
+    }
+
     // The forwarder keeps its body, but nothing implements the other abstract setter
     public static abstract class AbstractUpgradedPropertyBeanWithAbstractSetterOfOtherType {
         @ReplacesEagerProperty
