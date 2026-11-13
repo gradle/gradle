@@ -559,13 +559,23 @@ then the Daemon is not compatible.
 Daemon is not compatible.
 
 Certain properties of a Java runtime are _immutable_: they cannot be changed once the JVM has started.
+[[immutable_system_properties]]
 The following JVM system properties are immutable:
 
-* `file.encoding`
-* `user.language`
-* `user.country`
-* `user.variant`
+* `file.encoding`, `sun.jnu.encoding`, `stdout.encoding` and `stderr.encoding`
+* `user.language`, `user.country`, `user.variant`, `user.region`, `user.script` and `user.extensions`, together with their `.display` and `.format` variants such as `user.language.format`
+* `java.locale.providers` and `java.locale.useOldISOCodes`
+* `user.timezone`
+* `user.home`
+* `line.separator`
 * `java.io.tmpdir`
+* `java.library.path`
+* `java.net.preferIPv4Stack` and `java.net.preferIPv6Addresses`
+* `java.security.properties` and `java.security.manager`
+* `jdk.io.File.enableADS`
+* `jdk.serialFilter` and `jdk.serialFilterFactory`
+* `java.util.logging.config.file` and `java.util.logging.config.class`
+* `java.awt.headless`
 * `javax.net.ssl.keyStore`
 * `javax.net.ssl.keyStorePassword`
 * `javax.net.ssl.keyStoreType`
