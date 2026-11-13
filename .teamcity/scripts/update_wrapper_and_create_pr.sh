@@ -12,10 +12,13 @@ set -e
 # Environment variables:
 #   DEFAULT_BRANCH  - The default branch to create the pull request on (e.g. "master"/"release")
 #   GITHUB_TOKEN    - GitHub bot token
-#   TRIGGERED_BY    - Optional. If it's "Release - Final", version will be from version-info-final-release/version-info.properties
-#                     If it's "Release - Release Candidate", version will be from version-info-release-candidate/version-info.properties
+#   TRIGGERED_BY    - Optional. If it names one of the promotion build configurations below, the version is read from
+#                     the `promotedVersion` of that promotion's version-info.properties artifact instead of $1:
+#                       "Release - Final"             -> version-info-final-release
+#                       "Release - Release Candidate" -> version-info-release-candidate
+#                       "Release - Milestone"         -> version-info-milestone
 #
-# Both version-info.properties artifact dependencies are optional ("?:" rules), because the
+# All version-info.properties artifact dependencies are optional ("?:" rules), because the
 # artifacts of an older lastSuccessful() promotion build may already have been cleaned up.
 # Only the one belonging to the triggering build is actually needed, and it is always fresh.
 
@@ -92,6 +95,8 @@ main() {
         source_promoted_version version-info-final-release checksums-final-release
     elif [[ "$TRIGGERED_BY" == *"Release - Release Candidate"* ]]; then
         source_promoted_version version-info-release-candidate checksums-release-candidate
+    elif [[ "$TRIGGERED_BY" == *"Release - Milestone"* ]]; then
+        source_promoted_version version-info-milestone checksums-milestone
     else
         resolve_manual_version
     fi

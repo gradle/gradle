@@ -12,6 +12,7 @@ import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.buildSteps.exec
 import jetbrains.buildServer.configs.kotlin.triggers.finishBuildTrigger
 import promotion.FINAL_RELEASE_BUILD_CONFIGURATION_ID
+import promotion.MILESTONE_BUILD_CONFIGURATION_ID
 import promotion.RELEASE_CANDIDATE_BUILD_CONFIGURATION_ID
 import vcsroots.useAbsoluteVcs
 
@@ -43,14 +44,25 @@ object UpdateWrapper : BuildType({
         param("env.TRIGGERED_BY", "%teamcity.build.triggeredBy%")
     }
 
-    if (!vcsBranch.isMaster) {
-        listOf(FINAL_RELEASE_BUILD_CONFIGURATION_ID, RELEASE_CANDIDATE_BUILD_CONFIGURATION_ID).forEach {
-            triggers {
-                finishBuildTrigger {
-                    buildType =
-                        "Gradle_${vcsBranch.branchName.toCapitalized()}_$it"
-                    successfulOnly = true
-                }
+    fun promotionBuildTypeId(buildConfigurationId: String) = "Gradle_${vcsBranch.branchName.toCapitalized()}_$buildConfigurationId"
+
+    // Only promotions that `PromotionProject` creates for this branch: milestones everywhere, RCs and final releases only on release branches
+    val promotions =
+        if (vcsBranch.isMaster) {
+            mapOf(MILESTONE_BUILD_CONFIGURATION_ID to "milestone")
+        } else {
+            mapOf(
+                FINAL_RELEASE_BUILD_CONFIGURATION_ID to "final-release",
+                RELEASE_CANDIDATE_BUILD_CONFIGURATION_ID to "release-candidate",
+                MILESTONE_BUILD_CONFIGURATION_ID to "milestone",
+            )
+        }
+
+    triggers {
+        promotions.keys.forEach {
+            finishBuildTrigger {
+                buildType = promotionBuildTypeId(it)
+                successfulOnly = true
             }
         }
     }
@@ -64,24 +76,16 @@ object UpdateWrapper : BuildType({
     }
 
     dependencies {
-        dependency(AbsoluteId("Gradle_${vcsBranch.branchName.toCapitalized()}_$FINAL_RELEASE_BUILD_CONFIGURATION_ID")) {
-            artifacts {
-                buildRule = lastSuccessful()
-                artifactRules =
-                    """
-                    ?:version-info.properties => ./version-info-final-release
-                    ?:promote-build-checksums/** => ./checksums-final-release
-                    """.trimIndent()
-            }
-        }
-        dependency(AbsoluteId("Gradle_${vcsBranch.branchName.toCapitalized()}_$RELEASE_CANDIDATE_BUILD_CONFIGURATION_ID")) {
-            artifacts {
-                buildRule = lastSuccessful()
-                artifactRules =
-                    """
-                    ?:version-info.properties => ./version-info-release-candidate
-                    ?:promote-build-checksums/** => ./checksums-release-candidate
-                    """.trimIndent()
+        promotions.forEach { (buildConfigurationId, suffix) ->
+            dependency(AbsoluteId(promotionBuildTypeId(buildConfigurationId))) {
+                artifacts {
+                    buildRule = lastSuccessful()
+                    artifactRules =
+                        """
+                        ?:version-info.properties => ./version-info-$suffix
+                        ?:promote-build-checksums/** => ./checksums-$suffix
+                        """.trimIndent()
+                }
             }
         }
     }
