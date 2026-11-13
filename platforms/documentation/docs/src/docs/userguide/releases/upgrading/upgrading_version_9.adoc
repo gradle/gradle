@@ -121,6 +121,37 @@ If your build asserts on an attribute value read from a `ResolutionResult` or fr
 Build operations and published Gradle Module Metadata already reported the name, so assertions against those are unaffected.
 Do not reintroduce the old string by overriding `getName()` to return `toString()`; see <<variant_attributes.adoc#sec:creating-attributes, Creating attributes>> for why the two must agree.
 
+[[worker_daemons_system_properties_per_work]]
+==== Work in a worker daemon sees only its own system properties
+
+Gradle reuses an idle <<worker_api.adoc#worker-daemons,worker daemon>> for new work when the daemon is compatible with the work's fork options.
+This applies to forked compilation in tasks such as `JavaCompile`, `GroovyCompile` and `ScalaCompile`, and to work submitted with the Worker API.
+Previously, a daemon was compatible if it had all the system properties the work requested, even if it had additional ones.
+Work could then observe system properties that belonged to a different task, for example a value set by another project's `options.forkOptions.jvmArgumentProviders`.
+Which task started the daemon depended on scheduling, so compiler plugins and AST transformations that read system properties could produce different output from build to build.
+
+Gradle now sets the requested system properties in the daemon while a unit of work runs, and clears the other system properties the daemon was started with.
+This includes system properties passed as `-D` JVM arguments.
+<<worker_api.adoc#worker-daemon-system-properties,This table>> shows how each kind of system property affects daemon reuse.
+Compared to before:
+
+* Most system properties no longer affect daemon reuse, and the work no longer sees properties requested by other work.
+* Of the properties Gradle knows are only read when the JVM starts, only `file.encoding` affected reuse, so the work could see a different value than it requested, for example for `user.language` or `java.io.tmpdir`.
+These must now match, so builds where tasks request different values for them may start more worker daemons than before.
+* Work requesting another property only read when the JVM starts, such as `java.library.path`, ran in a daemon started with it.
+Such a property now only takes effect if the daemon was started with it.
+If your work depends on such a property, configure all tasks sharing the daemon to use the same value, or pass the value to the work in a different way.
+
+[[worker_daemons_require_same_jvm_args]]
+==== Worker daemons are only reused for work with the same JVM arguments
+
+Previously, a <<worker_api.adoc#worker-daemons,worker daemon>> was reused for new work if it had all the JVM arguments and bootstrap classpath entries the work requested, even if it had additional ones.
+Work could then run with JVM arguments that belonged to a different task, for example a `-javaagent` added to another project's `options.forkOptions.jvmArgs`.
+
+A daemon is now only reused if its JVM arguments and bootstrap classpath are exactly the ones the work requests.
+Builds where tasks fork with different JVM arguments may start more worker daemons than before.
+To share a daemon, configure the tasks to use the same JVM arguments.
+
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier
 

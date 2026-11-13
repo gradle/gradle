@@ -64,7 +64,7 @@ public class WorkerDaemonFactory implements WorkerFactory {
                     // so we must not leak this build's ProblemsInternal into a future build's job.
                     client.bindProblemsService(problems);
                     try {
-                        return executeWrappedInBuildOperation(spec, parentBuildOperation, client::execute);
+                        return executeWrappedInBuildOperation(spec, parentBuildOperation, s -> client.execute(s, ((ForkedWorkerRequirement) workerRequirement).getForkOptions()));
                     } finally {
                         client.clearProblemsService();
                     }
