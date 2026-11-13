@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.provider;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.internal.provider.ValueSupplier.ExecutionTimeValue;
 import org.gradle.api.internal.provider.ValueSupplier.Value;
@@ -27,15 +29,17 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.api.provider.ValueSourceSpec;
+import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -44,10 +48,13 @@ import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.process.ExecOperations;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -55,6 +62,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 public class DefaultValueSourceProviderFactory implements ValueSourceProviderFactory {
+
+    private static final Documentation VALUE_SOURCE_DOCUMENTATION = Documentation.userManual("configuration_cache_requirements", "config_cache:requirements:value_source");
 
     private final InstantiatorFactory instantiatorFactory;
     private final IsolatableFactory isolatableFactory;
@@ -81,8 +90,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         this.isolatableFactory = isolatableFactory;
         this.calculatedValueFactory = calculatedValueFactory;
         this.execOperations = execOperations;
-        // TODO(https://github.com/gradle/gradle/issues/39090): refuse injected services once the deprecation cycle ends.
-        this.paramsInstantiationScheme = instantiatorFactory.decorateScheme().withServices(services);
+        this.paramsInstantiationScheme = instantiatorFactory.decorateScheme().withServices(new ParametersServiceLookup(services));
         this.specInstantiator = instantiatorFactory.decorateLenient(services);
     }
 
@@ -90,7 +98,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     public <T, P extends ValueSourceParameters> Provider<T> createProviderOf(Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configureAction) {
         try {
             Class<P> parametersType = extractParametersTypeOf(valueSourceType);
-            P parameters = isolationScheme.instantiateParameters(parametersType, this::newParameters);
+            P parameters = isolationScheme.instantiateParameters(parametersType, type -> newParameters(valueSourceType, type));
 
             // TODO - consider deferring configuration
             configureParameters(parameters, configureAction);
@@ -153,13 +161,17 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         return isolationScheme.parameterTypeFor(valueSourceType, 1);
     }
 
-    private <P extends ValueSourceParameters> P newParameters(Class<P> parametersType) {
+    private <P extends ValueSourceParameters> P newParameters(Class<?> valueSourceType, Class<P> parametersType) {
         InstanceFactory<P> factory = paramsInstantiationScheme.forType(parametersType);
-        nagIfParametersInjectServices(parametersType, factory.injectedServicesByDeclaringType());
+        rejectParametersInjectingServices(valueSourceType, parametersType, factory.injectedServicesByDeclaringType());
         return factory.newInstance();
     }
 
-    private static void nagIfParametersInjectServices(Class<?> parametersType, Map<Class<?>, Set<Class<?>>> injectedServicesByDeclaringType) {
+    private void rejectParametersInjectingServices(
+        Class<?> valueSourceType,
+        Class<?> parametersType,
+        Map<Class<?>, Set<Class<?>>> injectedServicesByDeclaringType
+    ) {
         if (injectedServicesByDeclaringType.isEmpty()) {
             return;
         }
@@ -170,12 +182,13 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
                 injectedServices.add(String.format("'%s'%s", serviceType.getName(), through));
             }
         });
-        DeprecationLogger.deprecateAction("Injecting services into the parameters of a value source")
-            .withContext(String.format("Parameters type '%s' injects %s.", parametersType.getName(), String.join(", ", injectedServices)))
-            .withAdvice("Parameters must only hold data. Pass the values that need the service in as parameters, or inject a supported service into the value source implementation instead.")
-            .willBecomeAnErrorInGradle10()
-            .withUpgradeGuideSection(9, "value_source_parameters_service_injection")
-            .nagUser();
+        InvalidUserCodeException failure = new InvalidUserCodeException(String.format(
+            "%s Parameters type '%s' cannot inject %s. Parameters must only hold data.",
+            couldNotCreateProviderOf(valueSourceType), parametersType.getName(), String.join(", ", injectedServices)
+        ));
+        failure.addResolution("Pass the values that need the service in as parameters, or inject a supported service into the value source implementation instead.");
+        failure.addResolution(VALUE_SOURCE_DOCUMENTATION.getConsultDocumentationMessage());
+        throw failure;
     }
 
     private <P extends ValueSourceParameters> void configureParameters(P parameters, Action<? super ValueSourceSpec<P>> configureAction) {
@@ -197,6 +210,55 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         formatter.appendType(valueSourceType);
         formatter.append(".");
         return formatter.toString();
+    }
+
+    /// A service lookup limited to what the generated class of a parameters type needs.
+    static class ParametersServiceLookup implements ServiceLookup {
+        private static final ImmutableSet<Class<?>> INFRASTRUCTURE_SERVICES = ImmutableSet.of(
+            // Needed to create managed property values, such as Property and ConfigurableFileCollection
+            ManagedObjectRegistry.class,
+            // Needed for the dynamic object of a decorated type, used by Groovy property access
+            InstantiatorFactory.class,
+            // Needed to resolve the build service of a @ServiceReference property
+            BuildServiceRegistry.class
+        );
+
+        private final ServiceLookup buildServices;
+
+        ParametersServiceLookup(ServiceLookup buildServices) {
+            this.buildServices = buildServices;
+        }
+
+        @Nullable
+        @Override
+        public Object find(Type serviceType) {
+            if (INFRASTRUCTURE_SERVICES.contains(serviceType)) {
+                return buildServices.find(serviceType);
+            }
+            return null;
+        }
+
+        @Override
+        public Object get(Type serviceType) {
+            Object service = find(serviceType);
+            if (service == null) {
+                throw notAvailable(serviceType);
+            }
+            return service;
+        }
+
+        @Override
+        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) {
+            throw notAvailable(serviceType);
+        }
+
+        private static UnknownServiceException notAvailable(Type serviceType) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("Services of type ");
+            formatter.appendType(serviceType);
+            formatter.append(" are not available for injection into the parameters of a value source.");
+            return new UnknownServiceException(serviceType, formatter.toString());
+        }
     }
 
     @NonExtensible

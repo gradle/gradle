@@ -1,0 +1,81 @@
+// Copyright (C) 2026 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[upgrading_major_version_10]]
+
+= Upgrading to Gradle 10.0.0
+
+This chapter provides the information you need to migrate your Gradle 9.x builds to Gradle 10.0.0.
+For migrating within Gradle 9.x, see the <<upgrading_version_9.adoc#upgrading_version_9, older migration guide>> first.
+
+We recommend the following steps for all users:
+
+. Try running `gradle help --scan` and view the https://docs.develocity.ai/gradle/current/getting-started/#identifying-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
++
+image::deprecations.png[Deprecations View in a Build Scan]
++
+This lets you see any deprecation warnings that apply to your build.
++
+Alternatively, you can run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
+. Update your plugins.
++
+Some plugins may break with a new major version of Gradle, as these releases can remove public APIs.
+Using the latest version of a plugin increases the likelihood that it is already compatible with the new major Gradle version.
++
+. Run `gradle :wrapper --gradle-version 10.0.0` to update the project to 10.0.0.
+. Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
+
+[[removed_apis_and_features]]
+== Removed APIs and features
+
+[[removed_value_source_parameters_service_injection]]
+=== Removal of service injection into the parameters of a value source
+
+Injecting a Gradle service into the link:{javadocPath}/org/gradle/api/provider/ValueSourceParameters.html[`ValueSourceParameters`] of a link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] was <<upgrading_version_9.adoc#value_source_parameters_service_injection,deprecated in Gradle 9.9.0>> and is no longer supported.
+When a provider is created with `providers.of()`, Gradle now rejects a parameters type with an `@Inject` getter or constructor, on the type itself or on a type nested in it, and the build fails.
+
+[source,kotlin]
+.Removed: a service injected into the parameters
+----
+interface GreetingParameters : ValueSourceParameters {
+    @get:Inject
+    val providers: ProviderFactory
+}
+
+abstract class Greeting : ValueSource<String, GreetingParameters> {
+    override fun obtain(): String = parameters.providers.gradleProperty("greeting").get()
+}
+
+val greeting = providers.of(Greeting::class) {}
+----
+
+Instead, compute the value that needs the service where the provider is created, and pass it in as a parameter:
+
+[source,kotlin]
+.Instead: pass the value as a parameter
+----
+interface GreetingParameters : ValueSourceParameters {
+    val greeting: Property<String>
+}
+
+abstract class Greeting : ValueSource<String, GreetingParameters> {
+    override fun obtain(): String = parameters.greeting.get()
+}
+
+val greeting = providers.of(Greeting::class) {
+    parameters.greeting = providers.gradleProperty("greeting")
+}
+----
+
+To run an external process from a value source, inject link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] into the `ValueSource` implementation itself, as described in <<configuration_cache_requirements.adoc#config_cache:requirements:value_source,Using External Information Sources>>.

@@ -17,15 +17,10 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.TestExecutionPreconditions
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class ValueSourceParametersIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeImplemented("Services injected into value source parameters are not rejected yet")
     @Issue("https://github.com/gradle/gradle/issues/39090")
     def "parameters cannot inject a service"() {
         given:
@@ -47,14 +42,12 @@ class ValueSourceParametersIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        expectServiceInjectionDeprecation("Params", "org.gradle.api.model.ObjectFactory")
-        run("help")
+        fails("help")
 
         then:
-        outputContains("probe = made by the injected factory")
+        assertServiceInjectionFailed("Probe", "Params", "'org.gradle.api.model.ObjectFactory'")
     }
 
-    @ToBeImplemented("Services injected into value source parameters are not rejected yet")
     @Issue("https://github.com/gradle/gradle/issues/39090")
     def "parameters cannot inject a service through a nested managed type"() {
         given:
@@ -80,24 +73,20 @@ class ValueSourceParametersIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        expectServiceInjectionDeprecation("Params", "Inner", "org.gradle.api.model.ObjectFactory")
-        run("help")
+        fails("help")
 
         then:
-        outputContains("probe = made by the nested factory")
+        assertServiceInjectionFailed("Probe", "Params", "'org.gradle.api.model.ObjectFactory' through 'Inner'")
     }
 
-    @ToBeImplemented("Services injected into value source parameters are not rejected yet")
     @Issue("https://github.com/gradle/gradle/issues/39090")
-    def "parameters cannot inject a service in each build of a composite"() {
+    def "parameters cannot inject a service in an included build"() {
         given:
         settingsFile """
             rootProject.name = "root"
             includeBuild("included")
         """
-        file("gradle.properties") << "probe.name = root\n"
         buildFile """
-            ${probeWithInjectedProviders("root")}
             tasks.register("ok") {
                 dependsOn(gradle.includedBuild("included").task(":ok"))
             }
@@ -105,61 +94,7 @@ class ValueSourceParametersIntegrationTest extends AbstractIntegrationSpec {
         file("included/settings.gradle") << """
             rootProject.name = "included"
         """
-        file("included/gradle.properties") << "probe.name = included\n"
         file("included/build.gradle") << """
-            ${probeWithInjectedProviders("included")}
-            tasks.register("ok")
-        """
-
-        when:
-        expectServiceInjectionDeprecation("Params", "org.gradle.api.provider.ProviderFactory")
-        expectServiceInjectionDeprecation("Params", "org.gradle.api.provider.ProviderFactory")
-        run("ok")
-
-        then:
-        outputContains("root name = root")
-        outputContains("included name = included")
-    }
-
-    @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "controls the configuration cache explicitly")
-    @Issue("https://github.com/gradle/gradle/issues/39090")
-    def "configuration cache hit does not warn"() {
-        given:
-        def configurationCache = new ConfigurationCacheFixture(this)
-        buildFile """
-            import org.gradle.api.provider.*
-            import javax.inject.Inject
-
-            interface Params extends ValueSourceParameters {
-                @Inject ObjectFactory getObjects()
-            }
-
-            abstract class Probe implements ValueSource<String, Params> {
-                @Override String obtain() {
-                    return parameters.objects.property(String).value("made by the injected factory").get()
-                }
-            }
-
-            println("probe = " + providers.of(Probe) {}.get())
-        """
-
-        when:
-        expectServiceInjectionDeprecation("Params", "org.gradle.api.model.ObjectFactory")
-        run("help", "--configuration-cache")
-
-        then:
-        configurationCache.assertStateStored()
-        outputContains("probe = made by the injected factory")
-
-        when:
-        run("help", "--configuration-cache")
-
-        then:
-        configurationCache.assertStateLoaded()
-    }
-
-    private String probeWithInjectedProviders(String label) {
-        buildScriptSnippet """
             import org.gradle.api.provider.*
             import javax.inject.Inject
 
@@ -173,28 +108,67 @@ class ValueSourceParametersIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            println("$label name = " + providers.of(Probe) {}.get())
+            println("included name = " + providers.of(Probe) {}.get())
+            tasks.register("ok")
         """
+
+        when:
+        fails("ok")
+
+        then:
+        failure.assertHasFileName("Build file '${file("included/build.gradle")}'")
+        assertServiceInjectionFailed("Probe", "Params", "'org.gradle.api.provider.ProviderFactory'")
     }
 
-    private void expectServiceInjectionDeprecation(String parametersType, String serviceType) {
-        expectServiceInjectionDeprecationOf(parametersType, "'$serviceType'")
+    @Issue("https://github.com/gradle/gradle/issues/39090")
+    def "parameters can reference a build service"() {
+        given:
+        buildFile """
+            import org.gradle.api.provider.*
+            import org.gradle.api.services.*
+
+            abstract class Counter implements BuildService<BuildServiceParameters.None> {
+                int count = 0
+                int next() { return ++count }
+            }
+
+            interface Params extends ValueSourceParameters {
+                @ServiceReference("counter") Property<Counter> getCounter()
+            }
+
+            abstract class Probe implements ValueSource<String, Params> {
+                @Override String obtain() {
+                    return "count = " + parameters.counter.get().next()
+                }
+            }
+
+            def counter = gradle.sharedServices.registerIfAbsent("counter", Counter) {}
+            tasks.register("ok") {
+                usesService(counter)
+                def probe = providers.of(Probe) {}
+                doLast { println("probe " + probe.get()) }
+            }
+        """
+
+        when:
+        run("ok")
+
+        then:
+        outputContains("probe count = 1")
     }
 
-    private void expectServiceInjectionDeprecation(String parametersType, String nestedType, String serviceType) {
-        expectServiceInjectionDeprecationOf(parametersType, "'$serviceType' through '$nestedType'")
-    }
-
-    private void expectServiceInjectionDeprecationOf(String parametersType, String injection) {
-        executer.expectDocumentedDeprecationWarning(
-            "Injecting services into the parameters of a value source has been deprecated. " +
-                "This will fail with an error in Gradle 10. " +
-                "Parameters type '$parametersType' injects $injection. " +
-                "Parameters must only hold data. " +
-                "Pass the values that need the service in as parameters, " +
-                "or inject a supported service into the value source implementation instead. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#value_source_parameters_service_injection"
+    private void assertServiceInjectionFailed(String valueSourceType, String parametersType, String injection) {
+        failure.assertHasCause(
+            "Could not create provider for value source $valueSourceType. " +
+                "Parameters type '$parametersType' cannot inject $injection. " +
+                "Parameters must only hold data."
+        )
+        failure.assertHasResolution(
+            "Pass the values that need the service in as parameters, " +
+                "or inject a supported service into the value source implementation instead."
+        )
+        failure.assertHasResolution(
+            documentationRegistry.getDocumentationRecommendationFor("information", "configuration_cache_requirements", "config_cache:requirements:value_source")
         )
     }
 }
