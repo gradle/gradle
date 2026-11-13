@@ -17,6 +17,7 @@
 package org.gradle.swiftpm.internal;
 
 import org.gradle.nativeplatform.Linkage;
+import org.gradle.api.tasks.Input;
 
 public class DefaultLibraryProduct extends AbstractProduct {
     private final Linkage linkage;
@@ -26,11 +27,13 @@ public class DefaultLibraryProduct extends AbstractProduct {
         this.linkage = linkage;
     }
 
+    @Input
     public Linkage getLinkage() {
         return linkage;
     }
 
     @Override
+    @Input
     public boolean isExecutable() {
         return false;
     }
