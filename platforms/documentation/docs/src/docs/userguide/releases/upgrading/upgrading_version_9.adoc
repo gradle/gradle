@@ -61,8 +61,9 @@ This affects builds that add `E2K` to the `toolchainPlatforms` of the `updateDae
 Gradle now uses version 2 of the AWS SDK for Java to access <<supported_repository_protocols.adoc#sec:s3-repositories,S3-backed repositories>>.
 Version 1 is no longer part of the Gradle distribution.
 
-Repositories that use `AwsImAuthentication` rely on the default credential lookup of the SDK.
-Version 2 of the SDK no longer reads the following names, so replace them if your build provides credentials through them:
+Repositories that use `AwsImAuthentication` get their credentials from the default credential lookup of the AWS SDK.
+Until now, that lookup also read the following names, through version 1 of the SDK.
+Version 2 doesn't read them, so builds that provide credentials through them must switch to the names that version 2 reads:
 
 * The `aws.secretKey` system property: use `aws.secretAccessKey`.
 * The `AWS_ACCESS_KEY` environment variable: use `AWS_ACCESS_KEY_ID`.
