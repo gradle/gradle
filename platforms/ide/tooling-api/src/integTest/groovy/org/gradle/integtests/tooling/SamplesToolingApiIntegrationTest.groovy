@@ -16,6 +16,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -103,7 +104,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         assert index >= 0
         buildScript = buildScript.substring(0, index) + """
 repositories {
-    maven { url = "${buildContext.localRepository.toURI()}" }
+    ${RepoScriptBlockUtil.localRepositoriesDefinition()}
 }
 run {
     args = ["${TextUtil.escapeString(buildContext.gradleHomeDir.absolutePath)}", "${TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath)}"]
@@ -125,7 +126,7 @@ run {
         assert index >= 0
         buildScript = buildScript.substring(0, index) + """
 repositories {
-    maven { url = "${buildContext.localRepository.toURI()}" }
+    ${RepoScriptBlockUtil.localRepositoriesDefinition()}
 }
 """ + buildScript.substring(index)
 

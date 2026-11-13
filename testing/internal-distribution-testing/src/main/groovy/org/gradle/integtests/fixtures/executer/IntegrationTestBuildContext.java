@@ -22,6 +22,11 @@ import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Provides values that are set during the build, or defaulted when not running in a build context (e.g. IDE).
@@ -113,9 +118,18 @@ public class IntegrationTestBuildContext {
         return optionalFile("integTest.srcDistribution");
     }
 
-    @Nullable
-    public TestFile getLocalRepository() {
-        return optionalFile("integTest.localRepository");
+    /**
+     * The local repositories of the test task. Each project that the test task declares as a local repository publishes to its own directory.
+     * To declare them in a build under test, use {@code RepoScriptBlockUtil.localRepositoriesDefinition()}.
+     */
+    public List<TestFile> getLocalRepositories() {
+        String paths = System.getProperty("integTest.localRepository");
+        if (paths == null) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(paths.split(Pattern.quote(File.pathSeparator)))
+            .map(IntegrationTestBuildContext::fileFromProperty)
+            .collect(Collectors.toList());
     }
 
     public TestFile getDaemonBaseDir() {
@@ -173,9 +187,13 @@ public class IntegrationTestBuildContext {
     @Nullable
     private static TestFile optionalFile(String propertyName) {
         String path = System.getProperty(propertyName);
+        return path != null ? fileFromProperty(path) : null;
+    }
+
+    private static TestFile fileFromProperty(String path) {
         // MODULE_WORKING_DIR doesn't seem to work correctly and MODULE_DIR seems to be in `.idea/modules/<path-to-subproject>`
         // See https://youtrack.jetbrains.com/issue/IDEA-194910
-        return path != null ? new TestFile(new File(path.replace(".idea/modules/", ""))) : null;
+        return new TestFile(new File(path.replace(".idea/modules/", "")));
     }
 
     private static TestFile testFile(String path) {

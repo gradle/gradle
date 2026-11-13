@@ -35,24 +35,6 @@ class KotlinDslPluginForOldestKotlinVersionTest : AbstractKotlinIntegrationTest(
         TestExecutionPreconditions.NotEmbeddedExecutor::class,
         reason = "Kotlin version leaks on the classpath when running embedded"
     )
-    fun `can build plugin for oldest supported Kotlin language version using last published plugin`() {
-
-        `can build plugin for oldest supported Kotlin language version`()
-    }
-
-    @Test
-    @Requires(
-        TestExecutionPreconditions.NotEmbeddedExecutor::class,
-        reason = "Kotlin version leaks on the classpath when running embedded"
-    )
-    fun `can build plugin for oldest supported Kotlin language version using locally built plugin`() {
-
-        doForceLocallyBuiltKotlinDslPlugins()
-
-        `can build plugin for oldest supported Kotlin language version`()
-    }
-
-    private
     fun `can build plugin for oldest supported Kotlin language version`() {
 
         withDefaultSettingsIn("producer")
