@@ -27,6 +27,11 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
     private static String sysProp = 'BUILD_MOJO' // using something unlikely to be used by libraries, to avoid conflicts
 
+    /**
+     * Applies build logic that reads a build input described by the given {@link BuildInputRead}.
+     * Subclasses place the logic in the appropriate location (build script, settings script, buildSrc plugin, etc.)
+     * using the DSL-specific expression from the {@link BuildInputRead}.
+     */
     abstract void buildLogicApplication(BuildInputRead read)
 
     abstract String getLocation()
