@@ -142,6 +142,16 @@ These must now match, so builds where tasks request different values for them ma
 Such a property now only takes effect if the daemon was started with it.
 If your work depends on such a property, configure all tasks sharing the daemon to use the same value, or pass the value to the work in a different way.
 
+[[worker_daemons_require_same_jvm_args]]
+==== Worker daemons are only reused for work with the same JVM arguments
+
+Previously, a <<worker_api.adoc#worker-daemons,worker daemon>> was reused for new work if it had all the JVM arguments and bootstrap classpath entries the work requested, even if it had additional ones.
+Work could then run with JVM arguments that belonged to a different task, for example a `-javaagent` added to another project's `options.forkOptions.jvmArgs`.
+
+A daemon is now only reused if its JVM arguments and bootstrap classpath are exactly the ones the work requests.
+Builds where tasks fork with different JVM arguments may start more worker daemons than before.
+To share a daemon, configure the tasks to use the same JVM arguments.
+
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier
 

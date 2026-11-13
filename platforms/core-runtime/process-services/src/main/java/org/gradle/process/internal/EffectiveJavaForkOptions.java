@@ -72,6 +72,7 @@ public class EffectiveJavaForkOptions {
      * <p>
      * Mutable system properties are ignored, as they can be set for each unit of work in the process.
      * Immutable system properties are only read on startup, so they must match.
+     * JVM arguments and the bootstrap classpath can change the behavior of the work, for example by adding a Java agent, so they must match.
      */
     public boolean isCompatibleWith(EffectiveJavaForkOptions forkOptions) {
         return jvmOptions.getDebug() == forkOptions.getJvmOptions().getDebug()
@@ -81,10 +82,10 @@ public class EffectiveJavaForkOptions {
             && normalized(jvmOptions.getDefaultCharacterEncoding()).equals(normalized(forkOptions.getJvmOptions().getDefaultCharacterEncoding()))
             && getHeapSizeMb(jvmOptions.getMinHeapSize()) >= getHeapSizeMb(forkOptions.getJvmOptions().getMinHeapSize())
             && getHeapSizeMb(jvmOptions.getMaxHeapSize()) >= getHeapSizeMb(forkOptions.getJvmOptions().getMaxHeapSize())
-            && normalized(jvmOptions.getJvmArgs()).containsAll(normalized(forkOptions.getJvmOptions().getJvmArgs()))
+            && normalized(jvmOptions.getJvmArgs()).equals(normalized(forkOptions.getJvmOptions().getJvmArgs()))
             && jvmOptions.getImmutableSystemProperties().equals(forkOptions.getJvmOptions().getImmutableSystemProperties())
             && containsAll(environment, forkOptions.getEnvironment())
-            && jvmOptions.getBootstrapClasspath().getFiles().containsAll(forkOptions.getJvmOptions().getBootstrapClasspath().getFiles());
+            && jvmOptions.getBootstrapClasspath().getFiles().equals(forkOptions.getJvmOptions().getBootstrapClasspath().getFiles());
     }
 
     public void copyTo(JavaExecHandleBuilder target) {

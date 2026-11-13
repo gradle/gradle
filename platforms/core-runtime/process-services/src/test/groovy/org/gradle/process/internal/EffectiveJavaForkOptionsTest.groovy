@@ -109,7 +109,7 @@ class EffectiveJavaForkOptionsTest extends Specification {
         options.isCompatibleWith(other)
     }
 
-    def "is compatible with a subset of jvm args"() {
+    def "is not compatible with a subset of jvm args"() {
         def options = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory).tap {
             jvmArgs = ["-server", "-esa"]
         })
@@ -118,7 +118,7 @@ class EffectiveJavaForkOptionsTest extends Specification {
         })
 
         expect:
-        options.isCompatibleWith(other)
+        !options.isCompatibleWith(other)
     }
 
     def "is not compatible with a superset of jvm args"() {
@@ -324,6 +324,34 @@ class EffectiveJavaForkOptionsTest extends Specification {
     def "is not compatible with different bootstrapClasspath"() {
         def files1 = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
         def files2 = ['file2.jar', 'file3.jar'].collect { new File(it).canonicalFile }
+        def options = new EffectiveJavaForkOptions("",  new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory).tap {
+            bootstrapClasspath(files1)
+        })
+        def other = new EffectiveJavaForkOptions("",  new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory).tap {
+            bootstrapClasspath(files2)
+        })
+
+        expect:
+        !options.isCompatibleWith(other)
+    }
+
+    def "is not compatible with subset of bootstrapClasspath"() {
+        def files1 = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
+        def files2 = ['file1.jar'].collect { new File(it).canonicalFile }
+        def options = new EffectiveJavaForkOptions("",  new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory).tap {
+            bootstrapClasspath(files1)
+        })
+        def other = new EffectiveJavaForkOptions("",  new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory).tap {
+            bootstrapClasspath(files2)
+        })
+
+        expect:
+        !options.isCompatibleWith(other)
+    }
+
+    def "is not compatible with super set of bootstrapClasspath"() {
+        def files1 = ['file1.jar'].collect { new File(it).canonicalFile }
+        def files2 = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
         def options = new EffectiveJavaForkOptions("",  new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory).tap {
             bootstrapClasspath(files1)
         })

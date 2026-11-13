@@ -138,6 +138,29 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         jvmArg << ["-Xss2m", "-Duser.language=tlh"]
     }
 
+    def "starts a new daemon when the daemon has JVM arguments that were not requested"() {
+        withMultiProjectSources()
+        buildFile << """
+            tasks.withType(${compileTaskType}) {
+                options.forkOptions.jvmArgs = ["-Xss2m"]
+            }
+        """
+        file("child/build.gradle") << """
+            tasks.withType(${compileTaskType}) {
+                ${runAfterRootProject()}
+            }
+        """
+
+        when:
+        succeeds("compileAll")
+
+        then:
+        executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
+
+        and:
+        assertTwoCompilerDaemonsAreRunning()
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/38395")
     def "reuses compiler daemon when only system properties differ"() {
         withMultiProjectSources()
