@@ -1160,6 +1160,10 @@ The following types/formats are supported:
                     ConfigurableFileCollection getFileCollection()
                     @Nested
                     FileHolder getNested()
+                    List<Provider<RegularFile>> getProviders()
+                    void setProviders(List<Provider<RegularFile>> providers)
+                    java.nio.file.Path getPath()
+                    void setPath(java.nio.file.Path path)
                 }
                 String obtain() {
                     return null
@@ -1188,12 +1192,14 @@ The following types/formats are supported:
         outputDoesNotContain(":unrelated SKIPPED")
 
         where:
-        description       | parameter
-        "property"        | "parameters.file = task.output"
-        "mapped property" | "parameters.file = task.output.map { it }"
-        "list property"   | "parameters.files.add(task.output)"
-        "file collection" | "parameters.fileCollection.from(task.output)"
-        "nested property" | "parameters.nested.file = task.output"
+        description                     | parameter
+        "property"                      | "parameters.file = task.output"
+        "mapped property"               | "parameters.file = task.output.map { it }"
+        "list property"                 | "parameters.files.add(task.output)"
+        "file collection"               | "parameters.fileCollection.from(task.output)"
+        "nested property"               | "parameters.nested.file = task.output"
+        "list of providers"             | "parameters.providers = [task.output]"
+        "property alongside a path"     | "parameters.path = file('x').toPath(); parameters.file = task.output"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22799")
