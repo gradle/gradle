@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.tasks.Input;
@@ -58,7 +57,6 @@ public abstract class MachineArchitecture implements Named {
      *
      * @since 7.6
      */
-    @Incubating
     public static final String ARM64 = "aarch64";
 
     /**
