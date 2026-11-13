@@ -143,6 +143,47 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
         personTasty.exists()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/27161")
+    def "writes Scala 3 SemanticDB files relative to the project directory"() {
+        Assume.assumeTrue(versionNumber.major >= 3)
+
+        file("src/main/scala/compile/test/Person.scala") << """
+            package compile.test
+
+            class Person
+        """
+        buildFile << """
+            compileScala.scalaCompileOptions.additionalParameters = ["-Xsemanticdb"]
+        """
+
+        when:
+        run("compileScala")
+
+        then:
+        scalaClassFile("META-INF/semanticdb/src/main/scala/compile/test/Person.scala.semanticdb").assertIsFile()
+        file("src").allDescendants().every { !it.endsWith(".semanticdb") }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/27161")
+    def "does not override user-provided Scala 3 -sourceroot"() {
+        Assume.assumeTrue(versionNumber.major >= 3)
+
+        file("src/main/scala/compile/test/Person.scala") << """
+            package compile.test
+
+            class Person
+        """
+        buildFile << """
+            compileScala.scalaCompileOptions.additionalParameters = ["-Xsemanticdb", "-sourceroot", file("src/main").absolutePath]
+        """
+
+        when:
+        run("compileScala")
+
+        then:
+        scalaClassFile("META-INF/semanticdb/scala/compile/test/Person.scala.semanticdb").assertIsFile()
+    }
+
     def "compiles Java code incrementally"() {
         file("src/main/scala/Person.java") << """
             public class Person {
