@@ -133,7 +133,9 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
 
         TaggedTypeSerializer(Map<Class<?>, SerializerFactory<?>> serializerMap, Set<Class<?>> javaSerialization) {
             serializersByTag = new TypeInfo[2 + serializerMap.size()];
-            serializersByTag[JAVA_TYPE] = JAVA_SERIALIZATION;
+            if (!javaSerialization.isEmpty()) {
+                serializersByTag[JAVA_TYPE] = JAVA_SERIALIZATION;
+            }
             int nextTag = 2;
             for (Map.Entry<Class<?>, SerializerFactory<?>> entry : serializerMap.entrySet()) {
                 add(nextTag, entry.getKey(), entry.getValue().serializerInstance());
