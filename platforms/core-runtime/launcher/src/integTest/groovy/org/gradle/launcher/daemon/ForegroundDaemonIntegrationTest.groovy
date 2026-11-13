@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.launcher.daemon.configuration.DaemonParameters
 
 class ForegroundDaemonIntegrationTest extends DaemonIntegrationSpec {
 
@@ -24,7 +25,7 @@ class ForegroundDaemonIntegrationTest extends DaemonIntegrationSpec {
         // JVM args for the foreground daemon. We explicitly run the foreground daemon
         // without the necessary --add-opens flags, so that the foreground daemon will
         // not be able to mutate its environment to match the client.
-        List<String> jvmArgs = ["-ea", "-Xms256m", "-Xmx512m"]
+        List<String> jvmArgs = ["-ea"] + DaemonParameters.DEFAULT_JVM_ARGS
 
         given:
         executer.useOnlyRequestedJvmOpts()

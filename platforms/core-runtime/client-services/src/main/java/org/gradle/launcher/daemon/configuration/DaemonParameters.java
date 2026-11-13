@@ -32,6 +32,7 @@ import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -43,7 +44,19 @@ public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     public static final int DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS = 10 * 1000;
 
-    public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=384m", "-XX:+HeapDumpOnOutOfMemoryError");
+    private static final String DEFAULT_MAX_HEAP_ARG = "-Xmx512m";
+    private static final String DEFAULT_MIN_HEAP_ARG = "-Xms256m";
+    private static final String MAX_METASPACE_SIZE_PREFIX = "-XX:MaxMetaspaceSize=";
+    private static final String DEFAULT_MAX_METASPACE_SIZE_ARG = MAX_METASPACE_SIZE_PREFIX + "768m";
+    private static final String ENABLE_HEAP_DUMP_ARG = "-XX:+HeapDumpOnOutOfMemoryError";
+    private static final String DISABLE_HEAP_DUMP_ARG = "-XX:-HeapDumpOnOutOfMemoryError";
+
+    public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of(
+        DEFAULT_MAX_HEAP_ARG,
+        DEFAULT_MIN_HEAP_ARG,
+        DEFAULT_MAX_METASPACE_SIZE_ARG,
+        ENABLE_HEAP_DUMP_ARG
+    );
 
     private final ToolchainConfiguration toolchainConfiguration;
     private final File gradleUserHomeDir;
@@ -73,7 +86,6 @@ public class DaemonParameters {
         if (!extraSystemProperties.isEmpty()) {
             jvmOptions.systemProperties(extraSystemProperties);
         }
-        jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.baseDir = new File(gradleUserHomeDir, DAEMON_LOG_DIR);
         this.envVariables = environmentVariables;
@@ -117,7 +129,28 @@ public class DaemonParameters {
     }
 
     public List<String> getEffectiveJvmArgs() {
-        return jvmOptions.getAllImmutableJvmArgs();
+        List<String> immutableArgs = jvmOptions.getAllImmutableJvmArgs();
+        // Give it a best guess at the expected size of the list.
+        List<String> effectiveArgs = new ArrayList<>(DEFAULT_JVM_ARGS.size() + immutableArgs.size());
+        // Defaults are only added for settings the user didn't configure, but we only recognize some spellings of them.
+        // Putting the defaults first means that an unrecognized alias supplied by the user, like -XX:MaxHeapSize for -Xmx,
+        // comes later on the command line and overrides the default, since the JVM uses the last occurrence of a flag.
+        // This only overrides the exact flag it aliases, though: -XX:MaxHeapSize=128m still gets the default -Xms256m,
+        // and the JVM refuses to start because the initial heap is larger than the max heap.
+        // Users should use -Xms/-Xmx for this reason.
+        if (jvmOptions.getMinHeapSize() == null && jvmOptions.getMaxHeapSize() == null) {
+            effectiveArgs.add(DEFAULT_MAX_HEAP_ARG);
+            effectiveArgs.add(DEFAULT_MIN_HEAP_ARG);
+        }
+        List<String> userArgs = jvmOptions.getJvmArgs();
+        if (userArgs.stream().noneMatch(arg -> arg.startsWith(MAX_METASPACE_SIZE_PREFIX))) {
+            effectiveArgs.add(DEFAULT_MAX_METASPACE_SIZE_ARG);
+        }
+        if (!userArgs.contains(ENABLE_HEAP_DUMP_ARG) && !userArgs.contains(DISABLE_HEAP_DUMP_ARG)) {
+            effectiveArgs.add(ENABLE_HEAP_DUMP_ARG);
+        }
+        effectiveArgs.addAll(immutableArgs);
+        return effectiveArgs;
     }
 
     public DaemonJvmCriteria getRequestedJvmCriteria() {

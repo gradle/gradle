@@ -239,6 +239,35 @@ assert System.getProperty('some-prop') == 'some-value'
         daemons.daemon.stops()
     }
 
+    def "does not fork build when requested JVM args merged with defaults match current process"() {
+        when:
+        file('gradle.properties').writeProperties('org.gradle.jvmargs': "-Xmx512m -Xms256m -Djava.io.tmpdir=${tmpdir} -ea".toString())
+
+        and:
+        file('build.gradle') << "println 'hello world'"
+
+        then:
+        succeeds()
+
+        and:
+        wasNotForked()
+    }
+
+    def "forks build when requested JVM args disable a default that the current process uses"() {
+        when:
+        file('gradle.properties').writeProperties('org.gradle.jvmargs': "-Xmx512m -Xms256m -XX:MaxMetaspaceSize=768m -XX:-HeapDumpOnOutOfMemoryError -Djava.io.tmpdir=${tmpdir} -ea".toString())
+
+        and:
+        file('build.gradle') << "println 'hello world'"
+
+        then:
+        succeeds()
+
+        and:
+        wasForked()
+        daemons.daemon.stops()
+    }
+
     private def buildRequestsJvmArgs(String jvmArg) {
         file('gradle.properties').mergeProperties("org.gradle.jvmargs": jvmArg)
     }
