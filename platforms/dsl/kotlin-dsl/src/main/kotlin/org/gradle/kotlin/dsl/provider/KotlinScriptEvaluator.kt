@@ -403,7 +403,7 @@ class StandardKotlinScriptEvaluator(
 
     internal
     class KotlinScriptCompilationAndInstrumentation(
-        source: ScriptSource,
+        private val source: ScriptSource,
         private val programId: ProgramId,
         private val compilationClassPath: ClassPath,
         private val accessorsClassPath: ClassPath,
@@ -415,7 +415,7 @@ class StandardKotlinScriptEvaluator(
         internalOptions: InternalOptions,
         transformFactory: ClasspathElementTransformFactoryForLegacy,
         gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
-        propertyUpgradeReportConfig: PropertyUpgradeReportConfig,
+        private val propertyUpgradeReportConfig: PropertyUpgradeReportConfig,
     ) : BuildScriptCompilationAndInstrumentation(source, workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory, gradleCoreTypeRegistry, propertyUpgradeReportConfig) {
 
         companion object {
@@ -424,6 +424,7 @@ class StandardKotlinScriptEvaluator(
             const val SKIP_METADATA_VERSION_CHECK = "skipMetadataVersionCheck"
             const val TEMPLATE_ID = "templateId"
             const val SCRIPT_FILE_NAME = "scriptFileName"
+            const val SCRIPT_PATH = "scriptPath"
             const val SOURCE_HASH = "sourceHash"
             const val COMPILATION_CLASS_PATH = "compilationClassPath"
             const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
@@ -453,6 +454,10 @@ class StandardKotlinScriptEvaluator(
             visitor.visitInputProperty(SKIP_METADATA_VERSION_CHECK) { programId.compilerOptions.skipMetadataVersionCheck }
             visitor.visitInputProperty(TEMPLATE_ID) { programId.templateId }
             visitor.visitInputProperty(SCRIPT_FILE_NAME) { programId.scriptFileName }
+            if (propertyUpgradeReportConfig.isEnabled) {
+                // The property upgrade report stored in the workspace names the compiled script's path
+                visitor.visitInputProperty(SCRIPT_PATH) { source.fileName }
+            }
             visitor.visitInputProperty(SOURCE_HASH) { programId.sourceHash }
             visitor.visitInputProperty(COMPILATION_CLASS_PATH) { classpathHasher.hash(compilationClassPath) }
             visitor.visitInputProperty(ACCESSORS_CLASS_PATH) { classpathHasher.hash(accessorsClassPath) }
