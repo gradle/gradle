@@ -59,6 +59,13 @@ class BuildOperationsAssertions(buildOperationsFixture: BuildOperationsFixture, 
         throw AssertionError("Expected build script body to be recompiled, but there was more than one body compile operation: $bodyCompileOperations")
     }
 
+    fun assertBuildScriptBodyCompiledOnce(): BuildOperationsAssertions {
+        if (bodyCompileOperations.size == 1) {
+            return this
+        }
+        throw AssertionError("Expected exactly one build script body compile operation, but there were ${bodyCompileOperations.size}: $bodyCompileOperations")
+    }
+
     fun assertBuildScriptCompilationAvoided(): BuildOperationsAssertions {
         if (classpathCompileOperations.isEmpty() && bodyCompileOperations.isEmpty()) {
             return this
