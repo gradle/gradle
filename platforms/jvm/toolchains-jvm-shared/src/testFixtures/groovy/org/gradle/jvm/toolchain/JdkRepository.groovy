@@ -65,6 +65,13 @@ class JdkRepository {
         server.expect(server.head(archiveName))
     }
 
+    void expectHeadWithContentDispositionAttachment() {
+        server.expect(server.head(archiveName, { e ->
+            e.getResponseHeaders().add("Content-Disposition", "attachment")
+            e.sendResponseHeaders(200, -1)
+        }))
+    }
+
     void expectGet() {
         server.expect(server.get(archiveName, { e ->
             e.sendResponseHeaders(200, 0)

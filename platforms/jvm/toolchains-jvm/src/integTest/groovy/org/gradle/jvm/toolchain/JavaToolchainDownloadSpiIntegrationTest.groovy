@@ -160,6 +160,49 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         result.assertNotOutput(testPath)
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/37104")
+    def "toolchain download succeeds when server sends Content-Disposition attachment without filename"() {
+        given:
+        def otherJavaVersion = JavaVersion.current() == JavaVersion.VERSION_17 ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
+        def jdkRepository = new JdkRepository(otherJavaVersion)
+        def uri = jdkRepository.start()
+        jdkRepository.expectHeadWithContentDispositionAttachment()
+        jdkRepository.expectGet()
+
+        settingsFile << """
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(uri))}
+        """
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${otherJavaVersion.majorVersion})
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        executer
+            .withTasks("compileJava")
+            .requireOwnGradleUserHomeDir("needs to not have cached toolchains")
+            .withToolchainDownloadEnabled()
+            .run()
+
+        and:
+        jdkRepository.stop()
+
+        then:
+        // The archive is named from the URI hash, not from the URL's "jdk.zip"
+        def archives = executer.gradleUserHomeDir.file("jdks").listFiles().findAll { it.isFile() && !it.name.endsWith(".lock") }
+        archives.size() == 1
+        archives[0].name.startsWith("jdk-")
+        !archives[0].name.endsWith(".zip")
+    }
+
     def "custom toolchain registries are consulted in order"() {
         settingsFile << """
             ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode(), DEFAULT_PLUGIN, NO_TOOLCHAIN_MANAGEMENT)}
