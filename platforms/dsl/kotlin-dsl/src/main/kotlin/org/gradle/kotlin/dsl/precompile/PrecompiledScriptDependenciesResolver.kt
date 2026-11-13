@@ -115,7 +115,10 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
             KotlinBuildScriptDependencies(
                 classpath = emptyList(),
                 sources = emptyList(),
-                imports = implicitImportsForScript(script.text!!, environment),
+                imports = script.file?.let { file ->
+                    // Precompiled script imports are keyed by package and file name, see KotlinScriptHashing.
+                    implicitImportsFrom(environment) + environment.stringList(KotlinScriptHashing.precompiledScriptKeyOfText(script.text!!, file.name))
+                } ?: implicitImportsForScript(script.text!!, environment),
                 javaHome = null,
                 classPathBlocksHash = null
             )

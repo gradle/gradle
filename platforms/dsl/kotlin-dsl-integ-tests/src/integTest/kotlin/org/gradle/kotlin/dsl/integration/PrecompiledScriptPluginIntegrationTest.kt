@@ -342,6 +342,73 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
         }
     }
 
+    @Test
+    fun `packaged precompiled script with CRLF line separators and a license header can use type-safe accessors`() {
+        withKotlinBuildSrc()
+        withFile(
+            "buildSrc/src/main/kotlin/my/conv/my-plugin.gradle.kts",
+            "/*\n * License header\n */\n\n@file:Suppress(\"UnstableApiUsage\")\n\npackage my.conv\n\nplugins { java }\n\njava { withSourcesJar() }\n\ntasks.register(\"hello\") { doLast { println(\"main source set: \" + sourceSets.main.get().name) } }\n"
+                .replace("\n", "\r\n")
+        )
+        withBuildScript(
+            """
+                plugins {
+                    id("my.conv.my-plugin")
+                }
+            """
+        )
+
+        build("hello").apply {
+            assertOutputContains("main source set: main")
+        }
+    }
+
+    @Test
+    fun `body-only edit of a precompiled script plugin recompiles only that script`() {
+        withKotlinBuildSrc()
+        withFile(
+            "buildSrc/src/main/kotlin/plugin-a.gradle.kts",
+            """
+                plugins { java }
+                tasks.register("helloA") { doLast { println("helloA v1 " + sourceSets.main.get().name) } }
+            """
+        )
+        withFile(
+            "buildSrc/src/main/kotlin/my/conv/plugin-b.gradle.kts",
+            """
+                package my.conv
+                plugins { java }
+                tasks.register("helloB") { doLast { println("helloB v1 " + sourceSets.main.get().name) } }
+            """
+        )
+        withBuildScript(
+            """
+                plugins {
+                    id("plugin-a")
+                    id("my.conv.plugin-b")
+                }
+            """
+        )
+        build("helloA", "helloB")
+        val classesDir = existing("buildSrc/build/classes/kotlin/main")
+        fun classFileTimestamps() =
+            classesDir.walkTopDown().filter { it.isFile && it.name.endsWith(".class") }.associate { it.relativeTo(classesDir).path to it.lastModified() }
+        val before = classFileTimestamps()
+        Thread.sleep(1000) // ensure a rewritten class file gets a different timestamp
+
+        val pluginA = existing("buildSrc/src/main/kotlin/plugin-a.gradle.kts")
+        pluginA.writeText(pluginA.readText().replace("helloA v1", "helloA v2"))
+
+        build("helloA", "helloB", "--info").apply {
+            assertOutputContains("helloA v2 main")
+            assertNotOutput("The input changes require a full rebuild for incremental task ':buildSrc:compileKotlin'.")
+        }
+        val after = classFileTimestamps()
+        assertThat(after.keys, equalTo(before.keys))
+        val rewritten = after.filter { (path, timestamp) -> before[path] != timestamp }.keys
+        assertThat("rewritten class files: $rewritten", rewritten.isNotEmpty() && rewritten.all { it.startsWith("Plugin_a_gradle") }, equalTo(true))
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/22428")
     @Test
     fun `can apply kotlin-dsl plugin in precompiled script plugin applied in another precompiled script plugin`() {
