@@ -20,6 +20,7 @@ import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.credentials.HttpHeaderCredentials
 import org.gradle.api.credentials.PasswordCredentials
+import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.credentials.DefaultAwsCredentials
@@ -75,6 +76,28 @@ class CredentialsProviderFactoryTest extends Specification {
         then:
         noExceptionThrown()
         !isPresent
+    }
+
+    def "treats missing credentials as absent on lenient query and reports them when task graph is populated"() {
+        given:
+        providerFactory.gradleProperty('myServiceUsername') >> Providers.notDefined()
+        providerFactory.gradleProperty('myServicePassword') >> Providers.notDefined()
+        def provider = factory.provide(PasswordCredentials, 'myService')
+
+        when:
+        def value = provider.getOrNull()
+
+        then:
+        noExceptionThrown()
+        value == null
+
+        when:
+        factory.graphPopulated(Stub(TaskExecutionGraph))
+
+        then:
+        def e = thrown(ProjectConfigurationException)
+        e.message == "Credentials required for this build could not be resolved."
+        e.causes*.message == ["The following Gradle properties are missing for 'myService' credentials:\n  - myServiceUsername\n  - myServicePassword"]
     }
 
     def "describes single missing property"() {

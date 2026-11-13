@@ -51,6 +51,8 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.UnavailableCompilerVersion;
+import org.gradle.nativeplatform.toolchain.internal.UnavailableToolException;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
@@ -210,7 +212,11 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      */
     @Nested
     protected CompilerVersion getCompilerVersion() {
-        return ((VersionAwareCompiler) createCompiler()).getVersion();
+        try {
+            return ((VersionAwareCompiler) createCompiler()).getVersion();
+        } catch (UnavailableToolException e) {
+            return new UnavailableCompilerVersion(e);
+        }
     }
 
     @Inject

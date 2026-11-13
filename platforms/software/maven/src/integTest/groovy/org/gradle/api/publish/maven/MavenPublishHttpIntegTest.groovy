@@ -335,8 +335,8 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        // graceful degradation causes early evaluation of credential providers (and build failure at configuration time)
-        failure.assertHasDescription("Identity may contain only letters and digits, received: incompatible_repo_name")
+        failure.assertHasDescription("Could not determine the dependencies of task ':publishMavenPublicationToIncompatible_repo_nameRepository'.")
+        failure.assertHasCause("Identity may contain only letters and digits, received: incompatible_repo_name")
     }
 
     def "can publish to authenticated repository using inlined credentials"() {
