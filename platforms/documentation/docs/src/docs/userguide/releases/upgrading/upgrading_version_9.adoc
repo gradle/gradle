@@ -70,8 +70,11 @@ Version 2 doesn't read them, so builds that provide credentials through them mus
 * The `AWS_SECRET_KEY` environment variable: use `AWS_SECRET_ACCESS_KEY`.
 * The `AWS_CREDENTIAL_PROFILES_FILE` environment variable: use `AWS_SHARED_CREDENTIALS_FILE`.
 
-When Gradle requests the metadata of a resource that doesn't exist, it now makes a second request to tell a missing resource from a missing bucket.
-That request needs the same `s3:GetObject` permission as downloads.
+When Gradle requests the metadata of a resource that doesn't exist, it now makes two requests instead of one.
+Version 2 of the SDK reads metadata with a `HEAD` request, and S3's `404` response to it doesn't say whether the resource or the whole bucket is missing, so Gradle follows up with a `GET` request to find out.
+Build results don't change: a missing resource is still reported as missing, and a misspelled or deleted bucket still fails the build with S3's "The specified bucket does not exist" error, as with version 1 of the SDK.
+The follow-up request needs the same `s3:GetObject` permission as downloads, so builds that resolve from S3 need no new permissions.
+The only difference is the extra request for each missing resource, which S3 counts like any other `GET` request.
 
 Gradle keeps ignoring the endpoint settings of the AWS SDK, such as the `AWS_ENDPOINT_URL` environment variable and the `endpoint_url` profile property.
 Use the <<supported_repository_protocols.adoc#sec:s3-configuration-properties,`org.gradle.s3.endpoint` system property>> to change the endpoint.
