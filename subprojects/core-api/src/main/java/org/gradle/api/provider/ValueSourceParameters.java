@@ -27,9 +27,9 @@ import org.gradle.api.internal.parameters.NoneParameters;
  * They are configured in the {@link ValueSourceSpec} and isolated before the value is obtained.
  * </p>
  * <p>
- * Parameters must not inject services. An {@code @Inject} getter or constructor on a parameters
- * type is deprecated and will fail with an error in Gradle 10. Compute values that need a service
- * where the provider is created and pass them in as parameters.
+ * Parameters must not inject services. Gradle rejects a parameters type with an {@code @Inject}
+ * getter or constructor when the provider is created. Compute values that need a service where
+ * the provider is created and pass them in as parameters.
  * </p>
  * <pre class='autoTested'>
  * public interface MyParameters extends ValueSourceParameters {
