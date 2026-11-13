@@ -56,9 +56,12 @@ abstract class AbstractJUnitAssumptionsIntegrationTest extends AbstractTestingMu
         def results = resultsFor(testDirectory)
         results.testPath('org.gradle.TestWithAssumptions').onlyRoot()
             .assertChildCount(2, 0)
-        results.testPath('org.gradle.TestWithAssumptions', 'assumptionSucceeded').onlyRoot()
+            .assertTabs("children")
+        results.testPath('org.gradle.TestWithAssumptions', maybeParentheses('assumptionSucceeded')).onlyRoot()
             .assertHasResult(TestResult.ResultType.SUCCESS)
-        results.testPath('org.gradle.TestWithAssumptions', 'assumptionFailed').onlyRoot()
+            .assertTabs()
+        results.testPath('org.gradle.TestWithAssumptions', maybeParentheses('assumptionFailed')).onlyRoot()
             .assertHasResult(TestResult.ResultType.SKIPPED)
+            .assertTabs("skip reason")
     }
 }

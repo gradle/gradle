@@ -82,6 +82,83 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
             .assertFailureMessages(containsText("failure message"))
     }
 
+    def "HTML report only shows tabs that have content"() {
+        given:
+        buildFile << passingTask("passing", true)
+        buildFile << failingTask("failing")
+
+        when:
+        fails("passing", "failing", "--continue")
+
+        then:
+        def results = aggregateResults()
+        results.testPath(":passing suite").onlyRoot()
+            .assertSummaryCounts(1, 0, 0)
+            .assertTabs("children")
+        results.testPath(":passing suite:passing test").onlyRoot()
+            .assertSummaryCounts(1, 0, 0)
+            .assertTabs("standard output", "error output")
+        results.testPath(":failing suite:failing test").onlyRoot()
+            .assertSummaryCounts(1, 1, 0)
+            .assertTabs("failure")
+            .assertFailureMessages(containsText("failure message"))
+    }
+
+    def "HTML report does not emit a page for skipped tests without details"() {
+        given:
+        buildFile """
+            import java.time.Instant
+
+            abstract class SkippingCustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @Inject
+                abstract ProjectLayout getLayout()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "skipping",
+                        getLayout().getBuildDirectory().dir("test-results/skipping").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/skipping").get()
+                    )) {
+                       reporter.started(Instant.now())
+                       try (def mySuite = reporter.reportTestGroup("skipping suite")) {
+                            mySuite.started(Instant.now())
+                            try (def myTest = mySuite.reportTest("skipped test", "skipped test")) {
+                                 myTest.started(Instant.now())
+                                 myTest.skipped(Instant.now())
+                            }
+                            try (def myTest = mySuite.reportTest("skipped test with output", "skipped test with output")) {
+                                 myTest.started(Instant.now())
+                                 myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "standard out text")
+                                 myTest.skipped(Instant.now())
+                            }
+                            mySuite.succeeded(Instant.now())
+                       }
+                       reporter.succeeded(Instant.now())
+                   }
+                }
+            }
+
+            tasks.register("skipping", SkippingCustomTestTask)
+        """
+
+        when:
+        succeeds("skipping")
+
+        then:
+        def results = resultsFor("tests/skipping")
+        results.testPath(":skipping suite").onlyRoot()
+            .assertSummaryCounts(2, 0, 2)
+            .assertChildrenInTab("Skipped", "skipped test", "skipped test with output")
+        !results.testPathExists(":skipping suite:skipped test")
+        results.testPathExists(":skipping suite:skipped test with output")
+        results.testPath(":skipping suite:skipped test with output").onlyRoot()
+            .assertTabs("standard output")
+    }
+
     def "HTML report contains metadata from both suites"() {
         given:
         buildFile """

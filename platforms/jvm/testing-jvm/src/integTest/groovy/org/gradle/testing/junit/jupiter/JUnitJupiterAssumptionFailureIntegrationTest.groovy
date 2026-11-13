@@ -21,7 +21,6 @@ import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.hamcrest.CoreMatchers.containsString
-import static org.hamcrest.CoreMatchers.equalTo
 
 class JUnitJupiterAssumptionFailureIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     def "captures assumption failures"() {
@@ -188,7 +187,7 @@ class JUnitJupiterAssumptionFailureIntegrationTest extends AbstractIntegrationSp
         outputContains("No assumption failure")
 
         def testResult = resultsFor()
-        testResult.testPath("com.example.MyTest", "theTest()").onlyRoot().assertHasResult(TestResult.ResultType.SKIPPED)
-            .assertFailureMessages(equalTo(""))
+        testResult.testPath("com.example.MyTest").onlyRoot().assertChildrenSkipped("theTest()")
+        !testResult.testPathExists(":com.example.MyTest:theTest()")
     }
 }

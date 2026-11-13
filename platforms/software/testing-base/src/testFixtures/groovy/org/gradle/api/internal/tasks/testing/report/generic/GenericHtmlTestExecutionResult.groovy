@@ -288,6 +288,12 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
                     }
 
                     @Override
+                    TestPathRootExecutionResult assertTabs(String... tabNames) {
+                        assert tabNames.length == 0
+                        return this
+                    }
+
+                    @Override
                     int getExecutedChildCount() {
                         return 0
                     }
@@ -491,13 +497,12 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
             rootElements.forEach { name, content ->
                 rootNames.add(name)
                 rootDisplayNames.add(content.selectFirst('h1').text())
-                Map<String, Element> subTabs = getTabs(content)
-                if (subTabs.containsKey("summary")) {
-                    // Only a single run, these tabs are the run details tabs
-                    rootAndRunElements.put(name, content)
+                if (content.select('> .summary').isEmpty()) {
+                    // Multiple runs, each in its own tab
+                    rootAndRunElements.putAll(name, getTabs(content).values())
                 } else {
-                    // Multiple runs
-                    rootAndRunElements.putAll(name, subTabs.values())
+                    // Only a single run, the summary is directly below the root
+                    rootAndRunElements.put(name, content)
                 }
             }
         }
@@ -581,10 +586,14 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         }
 
         private void extractCases() {
-            def summarySection = getTabs(html).get("summary")
-            assertThat("no summary section found", summarySection, notNullValue())
-            def allSection = getTabs(summarySection).get("All")
-            def allTestsContainer = allSection == null ? summarySection : allSection
+            assertThat("no summary section found", html.selectFirst('> .summary'), notNullValue())
+            def childrenSection = getTabs(html).get("children")
+            if (childrenSection == null) {
+                // Leaf, no children
+                return
+            }
+            def allSection = getTabs(childrenSection).get("All")
+            def allTestsContainer = allSection == null ? childrenSection : allSection
             extractTestCaseTo(allTestsContainer, "tr > td.success:eq(0)", testsSucceeded)
             extractTestCaseTo(allTestsContainer, "tr > td.failures:eq(0)", testsFailures)
             extractTestCaseTo(allTestsContainer, "tr > td.skipped:eq(0)", testsSkipped)
@@ -623,6 +632,12 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         TestPathRootExecutionResult assertChildCount(int tests, int failures) {
             assertThat("in " + displayName, testsExecuted.size(), equalTo(tests))
             assertThat("in " + displayName, testsFailures.size(), equalTo(failures))
+            return this
+        }
+
+        @Override
+        TestPathRootExecutionResult assertTabs(String... tabNames) {
+            assertThat("in " + displayName, getTabs(html).keySet().toList(), equalTo(tabNames.toList()))
             return this
         }
 
@@ -671,7 +686,8 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
 
         @Override
         TestPathRootExecutionResult assertChildrenInTab(String tabName, String... testNames) {
-            def tab = getTabs(getTabs(html).get("summary")).get(tabName)
+            def childrenSection = getTabs(html).get("children")
+            def tab = childrenSection == null ? null : getTabs(childrenSection).get(tabName)
             def children = tab == null ? [] : tab.select('tbody > tr > td:eq(0)').collect { it.text().trim() }
             assertThat("in " + displayName, children, equalTo(testNames.toList()))
             return this
