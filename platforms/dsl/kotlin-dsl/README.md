@@ -21,7 +21,7 @@ C4Context
 
     System_Boundary(gradleBound, "Gradle Build Tool") {
         System(gradleKotlinDsl, "Kotlin DSL")
-        System_Ext(buildCache, "Gradle Build Cache", "Local, Develocity Build Cache Node, etc...")
+        System_Ext(buildCache, "Gradle Build Cache", "Local, Develocity, etc...")
     }
 
     System_Boundary(jetbrains, "JetBrains") {
@@ -66,7 +66,7 @@ C4Container
             Rel(resolver, tapiBuilder, "Uses", "TAPI")
         }
 
-        System_Ext(buildCache, "Gradle Build Cache", "Local, Develocity Build Cache Node, etc...")
+        System_Ext(buildCache, "Gradle Build Cache", "Local, Develocity, etc...")
         Rel(gradle, provider, "Uses", "Script compilation")
         Rel(gradle, plugin, "Uses", "e.g. in buildSrc")
     }
@@ -113,7 +113,7 @@ C4Component
         Boundary(gradle, "Gradle Build Tool") {
             System_Ext(gradleScriptEvaluation, "Script Evaluation")
             System_Ext(gradlePluginApplication, "Plugin Application")
-            System_Ext(buildCache, "Gradle Build Cache", "Local, Develocity Build Cache Node, etc...")
+            System_Ext(buildCache, "Gradle Build Cache", "Local, Develocity, etc...")
         }
 
         Container_Boundary(gradleKotlinDsl, "Gradle Kotlin DSL") {
