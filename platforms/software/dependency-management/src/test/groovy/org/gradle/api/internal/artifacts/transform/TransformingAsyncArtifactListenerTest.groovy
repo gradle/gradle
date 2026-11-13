@@ -23,9 +23,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.internal.Deferrable
 import org.gradle.internal.Try
 import org.gradle.internal.component.external.model.ImmutableCapabilities
+import org.gradle.internal.lazy.Lazy
 import org.gradle.internal.model.CalculatedValue
 import org.gradle.internal.operations.BuildOperation
 import org.gradle.internal.operations.BuildOperationQueue
@@ -35,7 +35,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
     def transformStep = Mock(TransformStep)
     def targetAttributes = Mock(ImmutableAttributes)
     def result = ImmutableList.<ResolvedArtifactSet.Artifacts>builder()
-    def invocation = Mock(Deferrable<TransformStepSubject>)
+    def invocation = Mock(Lazy<Try<TransformStepSubject>>)
     def operationQueue = Mock(BuildOperationQueue)
     def listener = new TransformingAsyncArtifactListener([new BoundTransformStep(transformStep, Stub(TransformUpstreamDependencies))], targetAttributes, ImmutableCapabilities.EMPTY, result)
     def file = new File("foo")
@@ -68,7 +68,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
 
         then:
         1 * transformStep.createInvocation(_, _, _) >> invocation
-        1 * invocation.getCompleted() >> Optional.empty()
+        1 * invocation.isInitialized() >> false
         1 * operationQueue.add(_ as BuildOperation)
     }
 
@@ -87,7 +87,8 @@ class TransformingAsyncArtifactListenerTest extends Specification {
 
         then:
         1 * transformStep.createInvocation({ it.files == [this.artifactFile] }, _ as TransformUpstreamDependencies, _) >> invocation
-        2 * invocation.getCompleted() >> Optional.of(Try.successful(TransformStepSubject.initial(artifact)))
+        1 * invocation.isInitialized() >> true
+        1 * invocation.get() >> Try.successful(TransformStepSubject.initial(artifact))
         0 * operationQueue._
     }
 }
