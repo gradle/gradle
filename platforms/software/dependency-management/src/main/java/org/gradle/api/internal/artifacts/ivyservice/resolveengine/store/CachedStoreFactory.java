@@ -26,7 +26,7 @@ import org.gradle.internal.time.TimeFormatting;
 import org.gradle.internal.time.Timer;
 
 import java.io.Closeable;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
@@ -42,7 +42,7 @@ public class CachedStoreFactory<T> implements Closeable {
 
     public CachedStoreFactory(String displayName) {
         this.displayName = displayName;
-        cache = CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).expireAfterAccess(CACHE_EXPIRY, TimeUnit.MILLISECONDS).build();
+        cache = CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).expireAfterAccess(Duration.ofMillis(CACHE_EXPIRY)).build();
         stats = new Stats();
     }
 
