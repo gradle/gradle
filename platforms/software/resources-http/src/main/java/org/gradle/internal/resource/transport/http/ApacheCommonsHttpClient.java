@@ -51,7 +51,6 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -312,7 +311,7 @@ public class ApacheCommonsHttpClient implements HttpClient {
     Optional<String> extractErrorDetail(HttpClient.Response response) {
         String contentType = response.getHeader("Content-Type");
         boolean mayHaveBody = !HttpHead.METHOD_NAME.equals(response.getMethod());
-        if (mayHaveBody && contentType != null && contentType.toLowerCase(Locale.ROOT).contains("application/problem+json")) {
+        if (mayHaveBody && contentType != null && hasProblemJsonMediaType(contentType)) {
             LOGGER.debug("RFC9457 content type detected: {}", contentType);
             Optional<String> rfc9457Detail = parseRFC9457Response(response);
             if (rfc9457Detail.isPresent()) {
@@ -323,6 +322,12 @@ public class ApacheCommonsHttpClient implements HttpClient {
 
         // Fallback to reason phrase (empty in HTTP/2)
         return Optional.ofNullable(response.getStatusReason()).filter(s -> !s.isEmpty());
+    }
+
+    private static boolean hasProblemJsonMediaType(String contentType) {
+        int parameterSeparator = contentType.indexOf(';');
+        String mediaType = parameterSeparator < 0 ? contentType : contentType.substring(0, parameterSeparator);
+        return "application/problem+json".equalsIgnoreCase(mediaType.trim());
     }
 
     /**
