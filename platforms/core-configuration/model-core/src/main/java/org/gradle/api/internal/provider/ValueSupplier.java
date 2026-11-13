@@ -151,6 +151,14 @@ public interface ValueSupplier {
             return new TaskProducer(task, false);
         }
 
+        /**
+         * Return a producer that requires the work of the given producer, but whose
+         * value may be mapped or filtered before that work has completed.
+         */
+        static ValueProducer unguarded(ValueProducer producer) {
+            return new UnguardedProducer(producer);
+        }
+
     }
 
     class TaskProducer implements ValueProducer {
@@ -178,6 +186,30 @@ public interface ValueSupplier {
             if (guarded) {
                 context.add(task);
             }
+        }
+
+    }
+
+    class UnguardedProducer implements ValueProducer {
+
+        private final ValueProducer delegate;
+
+        public UnguardedProducer(ValueProducer delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean isKnown() {
+            return delegate.isKnown();
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            delegate.visitDependencies(context);
+        }
+
+        @Override
+        public void visitGuardedDependencies(TaskDependencyResolveContext context) {
         }
 
     }

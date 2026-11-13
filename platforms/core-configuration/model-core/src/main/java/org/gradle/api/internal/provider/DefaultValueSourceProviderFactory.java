@@ -22,7 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.internal.provider.ValueSupplier.ExecutionTimeValue;
 import org.gradle.api.internal.provider.ValueSupplier.Value;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
@@ -32,6 +32,7 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiationScheme;
@@ -44,10 +45,16 @@ import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.state.Managed;
 import org.gradle.process.ExecOperations;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -244,13 +251,60 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             return value.parameters;
         }
 
+        /**
+         * The value is external to the build, but its parameters may carry the producers
+         * of the providers they were wired to, such as task outputs.
+         * <p>
+         * These producers are unguarded: mapping or filtering the value before they have
+         * completed is permitted, just like querying it directly. Otherwise,
+         * {@code fileContents(task.output).asText.map { ... }} would fail where
+         * {@code fileContents(task.output).asText.get()} does not.
+         */
         @Override
         public ValueProducer getProducer() {
-            return ValueProducer.externalValue();
+            try (EvaluationScopeContext ignored = openScope()) {
+                List<ValueProducer> parameterProducers = new ArrayList<>();
+                collectProducers(value.parameters, parameterProducers, Collections.newSetFromMap(new IdentityHashMap<>()));
+                if (parameterProducers.isEmpty()) {
+                    return ValueProducer.externalValue();
+                }
+                return ValueProducer.unguarded(ValueProducer.composite(parameterProducers));
+            }
         }
 
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
+        private static void collectProducers(@Nullable Object value, List<ValueProducer> producers, Set<Object> visited) {
+            if (value == null || !visited.add(value)) {
+                return;
+            }
+            if (value instanceof ProviderInternal) {
+                // Properties and other providers track the producers of their own values
+                ValueProducer producer = ((ProviderInternal<?>) value).getProducer();
+                if (producer.isKnown()) {
+                    producers.add(producer);
+                }
+            } else if (value instanceof TaskDependencyContainer) {
+                // File collections, whose state cannot be unpacked without resolving their files
+                producers.add(ValueProducer.from((TaskDependencyContainer) value));
+            } else if (value instanceof Managed) {
+                // Parameters objects and nested managed objects
+                collectProducers(((Managed) value).unpackState(), producers, visited);
+            } else if (value instanceof List || value instanceof Set) {
+                // Walk the same collections as parameter isolation, see AbstractValueProcessor.
+                // Other iterables are not walked: they may be lazy, or yield new copies of
+                // themselves like Path, which the visited set cannot detect.
+                for (Object element : (Collection<?>) value) {
+                    collectProducers(element, producers, visited);
+                }
+            } else if (value instanceof Map) {
+                for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+                    collectProducers(entry.getKey(), producers, visited);
+                    collectProducers(entry.getValue(), producers, visited);
+                }
+            } else if (value instanceof Object[]) {
+                for (Object element : (Object[]) value) {
+                    collectProducers(element, producers, visited);
+                }
+            }
         }
 
         @Override
