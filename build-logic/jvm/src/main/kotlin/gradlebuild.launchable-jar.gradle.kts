@@ -32,7 +32,7 @@ val app = extensions.create<LaunchableJar>("app")
 val manifestClasspath = configurations.dependencyScope("manifestClasspath")
 val resolveManifestClasspath = configurations.resolvable("resolveManifestClasspath") {
     isTransitive = false
-    extendsFrom(manifestClasspath.get())
+    extendsFrom(manifestClasspath)
     configureAsRuntimeJarClasspath(objects)
 }
 

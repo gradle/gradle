@@ -76,7 +76,7 @@ publishing {
 
             versionMapping {
                 allVariants {
-                    fromResolutionOf(configurations.externalRuntimeClasspath.get())
+                    fromResolutionOf(configurations.externalRuntimeClasspath.name)
                 }
             }
 

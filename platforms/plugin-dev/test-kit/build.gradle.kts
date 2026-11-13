@@ -54,6 +54,9 @@ dependencies {
 }
 
 gradleModule {
+    // Test kit should not be part of the public API
+    publicApiStubs = false
+
     requiredRuntimes {
         client = true
     }
@@ -63,15 +66,11 @@ gradleModule {
     }
 }
 
-// Test kit should not be part of the public API
-// TODO Find a way to not register this and the task instead
-configurations.remove(configurations.apiStubElements.get())
-
 val runtimeApiInfoDir = layout.buildDirectory.dir("generated-resources/runtime-api-info")
 val generateTestKitPackageList = tasks.register<PackageListGenerator>("generateTestKitPackageList") {
     group = "build"
     description = "Generates the relocated package list used to shade TestKit classes at runtime."
-    classpath.from(configurations.runtimeClasspath.get())
+    classpath.from(configurations.runtimeClasspath)
     outputFile = runtimeApiInfoDir.map { it.file("org/gradle/api/internal/runtimeshaded/test-kit-relocated.txt") }
 }
 sourceSets.main {

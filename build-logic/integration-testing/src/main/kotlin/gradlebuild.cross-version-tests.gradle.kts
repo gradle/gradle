@@ -56,8 +56,10 @@ configureDependenciesForCrossVersionTests(crossVersionTestSourceSet, crossVersio
 
 fun configureCrossVersionTestModelsVariant(modelsSourceSet: SourceSet) {
     // The Kotlin plugin already creates this for Kotlin source sets; Java projects need their own.
-    val crossVersionTestModelsApi = configurations.findByName(modelsSourceSet.apiConfigurationName)
-        ?: configurations.dependencyScope(modelsSourceSet.apiConfigurationName).get()
+    if (modelsSourceSet.apiConfigurationName !in configurations.names) {
+        configurations.dependencyScope(modelsSourceSet.apiConfigurationName)
+    }
+    val crossVersionTestModelsApi = configurations.named(modelsSourceSet.apiConfigurationName)
 
     val crossVersionTestModelsJar = tasks.register(modelsSourceSet.jarTaskName, Jar::class.java) {
         description = "Assembles a JAR archive containing the classes of the '${modelsSourceSet.name}' outputs."

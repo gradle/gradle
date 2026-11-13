@@ -23,10 +23,14 @@ import org.jetbrains.kotlin.gradle.tasks.BaseKotlinCompile
 
 // Common configuration for everything that belongs to the Gradle distribution
 plugins {
+    id("gradlebuild.module-identity")
     id("gradlebuild.minify")
     id("gradlebuild.task-properties-validation")
     id("gradlebuild.dependency-modules")
 }
+
+// Distribution modules opt out of the public API jars with `gradleModule { publicApiStubs = false }`
+// rather than by removing apiStubElements, which would realize it first.
 
 // Disallow Groovy production code in distribution modules
 pluginManager.withPlugin("groovy") {
@@ -38,8 +42,8 @@ pluginManager.withPlugin("groovy") {
 }
 
 configurations.consumable("apiStubElements") {
-    extendsFrom(configurations.named("implementation").get())
-    extendsFrom(configurations.named("compileOnly").get())
+    extendsFrom(configurations.named("implementation"))
+    extendsFrom(configurations.named("compileOnly"))
     attributes {
         // Only use the category attribute, to make sure this cannot be confused with anything else
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named("api-stubs"))
@@ -47,7 +51,7 @@ configurations.consumable("apiStubElements") {
 }
 
 pluginManager.withPlugin("gradlebuild.java-library") {
-    val javaApiExtractor = configurations.dependencyScope("javaApiExtractor").get()
+    val javaApiExtractor = configurations.dependencyScope("javaApiExtractor")
     val extractorClasspathConfig = configurations.resolvable("extractorClasspathConfig") {
         extendsFrom(javaApiExtractor)
         configureAsRuntimeJarClasspath(objects)
@@ -59,14 +63,14 @@ pluginManager.withPlugin("gradlebuild.java-library") {
     }
 
     val extractJavaAbi = tasks.register<ExtractJavaAbi>("extractJavaAbi") {
-        classesDirectories = sourceSets.main.get().output.classesDirs
+        classesDirectories.from(sourceSets.main.map { it.output.classesDirs })
         outputDirectory = layout.buildDirectory.dir("generated/java-abi")
         extractorClasspath.from(extractorClasspathConfig)
     }
 
     configurations {
         named("apiStubElements") {
-            outgoing.artifact(extractJavaAbi)
+            outgoing.artifacts(gradleModule.publicApiStubs.map { if (it) listOf(extractJavaAbi) else emptyList() })
         }
     }
 }
@@ -74,7 +78,7 @@ pluginManager.withPlugin("gradlebuild.java-library") {
 pluginManager.withPlugin("gradlebuild.kotlin-library") {
     val apiGenDependencies = configurations.dependencyScope("apiGen")
     val apiGenClasspath = configurations.resolvable("apiGenClasspath") {
-        extendsFrom(apiGenDependencies.get())
+        extendsFrom(apiGenDependencies)
         configureAsRuntimeJarClasspath(objects)
     }
 
@@ -109,7 +113,7 @@ pluginManager.withPlugin("gradlebuild.kotlin-library") {
 
         configurations {
             named("apiStubElements") {
-                outgoing.artifact(abiClassesDirectory) {
+                outgoing.artifacts(gradleModule.publicApiStubs.map { if (it) listOf(abiClassesDirectory) else emptyList() }) {
                     builtBy(target.compilations.named("main").flatMap { it.compileTaskProvider })
                 }
             }

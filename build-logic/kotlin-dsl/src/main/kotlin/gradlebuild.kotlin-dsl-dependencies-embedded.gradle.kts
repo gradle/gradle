@@ -68,7 +68,7 @@ tasks {
 
 // -- Embedded Kotlin dependencies -------------------------------------
 
-val embeddedKotlinBaseDependencies = configurations.dependencyScope("embeddedKotlinBaseDependencies").get()
+val embeddedKotlinBaseDependencies = configurations.dependencyScope("embeddedKotlinBaseDependencies")
 val embeddedKotlinBaseClasspath = configurations.resolvable("embeddedKotlinBaseClasspath") {
     extendsFrom(embeddedKotlinBaseDependencies)
     configureAsRuntimeJarClasspath(objects)

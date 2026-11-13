@@ -79,7 +79,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
         var groovyPackageListBucket = project.getConfigurations().dependencyScope("groovyPackageListBucket");
         var groovyPackageListConf = project.getConfigurations().resolvable("groovyPackageList", conf -> {
             conf.setTransitive(false);
-            conf.extendsFrom(groovyPackageListBucket.get());
+            conf.extendsFrom(groovyPackageListBucket);
         });
         project.getDependencies().add(groovyPackageListBucket.getName(), javadocs.getGroovyPackageListSrc());
 
