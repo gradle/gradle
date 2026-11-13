@@ -20,9 +20,17 @@ import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.serialize.BaseSerializerFactory.BOOLEAN_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.INTEGER_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.codecs.BindingTags
 import org.gradle.internal.serialize.graph.codecs.Bindings
+import org.gradle.internal.serialize.graph.codecs.Decoding
+import org.gradle.internal.serialize.graph.codecs.Encoding
+import org.gradle.internal.serialize.graph.codecs.EncodingProducer
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.containsString
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 
@@ -48,5 +56,64 @@ class BindingsBackedCodecTest : AbstractUserTypeCodecTest() {
             // Expected
             assertThat(e.message, containsString("Cannot deserialize the value because the type tag 2 is not in the valid range [-1..1)"))
         }
+    }
+
+    @Test
+    fun `codecs sharing binding tags select the binding for a type only once`() {
+        val countingProducer = NonMatchingCountingProducer()
+        val base = Bindings.of {
+            bind(countingProducer)
+            bind(STRING_SERIALIZER)
+        }
+        val tags = BindingTags()
+        // Defining the bindings checks that no type is bound twice
+        countingProducer.lookups.clear()
+
+        repeat(3) {
+            val codec = base.append { bind(INTEGER_SERIALIZER) }.build(tags)
+            val bytes = writeToByteArray("value", codec)
+            assertEquals("value", readFromByteArray(bytes, codec))
+        }
+
+        assertEquals("String lookups: ${countingProducer.lookups}", 1, countingProducer.lookups[String::class.java])
+        assertTrue("Each type is looked up once: ${countingProducer.lookups}", countingProducer.lookups.values.all { it == 1 })
+    }
+
+    @Test
+    fun `cannot share binding tags between bindings of different structure`() {
+        val tags = BindingTags()
+        Bindings.of { bind(STRING_SERIALIZER) }.build(tags)
+
+        val e = assertThrows(IllegalArgumentException::class.java) {
+            Bindings.of {
+                bind(STRING_SERIALIZER)
+                bind(INTEGER_SERIALIZER)
+            }.build(tags)
+        }
+        assertThat(e.message, containsString("Cannot share binding tags between bindings of different structure"))
+    }
+
+    @Test
+    fun `cannot append a binding for a type that is already bound`() {
+        val base = Bindings.of { bind(STRING_SERIALIZER) }
+
+        repeat(2) {
+            val e = assertThrows(IllegalArgumentException::class.java) {
+                base.append { bind(STRING_SERIALIZER) }
+            }
+            assertThat(e.message, containsString("There's already an encoding for type"))
+        }
+    }
+
+    private
+    class NonMatchingCountingProducer : EncodingProducer, Decoding {
+        val lookups = mutableMapOf<Class<*>, Int>()
+
+        override fun encodingForType(type: Class<*>): Encoding? {
+            lookups.merge(type, 1, Int::plus)
+            return null
+        }
+
+        override suspend fun ReadContext.decode(): Any? = error("Not expected to decode anything")
     }
 }
