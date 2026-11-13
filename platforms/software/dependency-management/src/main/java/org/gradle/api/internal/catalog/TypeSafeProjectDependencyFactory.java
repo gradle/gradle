@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal.catalog;
 
+import org.gradle.api.NonExtensible;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 
+@NonExtensible // Otherwise `ExtensionAware.getExtensions()` clashes with projects named 'extensions'
 public abstract class TypeSafeProjectDependencyFactory {
     private final DefaultProjectDependencyFactory factory;
     private final ProjectFinder finder;
@@ -36,4 +38,3 @@ public abstract class TypeSafeProjectDependencyFactory {
         return this;
     }
 }
-
