@@ -19,6 +19,9 @@ package org.gradle.api.internal.initialization;
 import org.gradle.internal.code.Locality;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
+
+import java.io.File;
 
 /**
  * Tells who owns the code of a class: Gradle itself, the build, or a third party.
@@ -31,4 +34,10 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface CodeLocalityResolver {
 
     Locality localityOf(Class<?> clazz);
+
+    /**
+     * The jar or class directory the class was loaded from, or null when it has none, such as a class defined in a script held in memory.
+     */
+    @Nullable
+    File codeLocationOf(Class<?> clazz);
 }

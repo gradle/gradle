@@ -63,4 +63,21 @@ class DefaultCodeLocalityResolverTest extends Specification {
         expect:
         resolver.localityOf(getClass()) == Locality.UNKNOWN
     }
+
+    def "the jar or class directory of a class is found, and is the same object when asked again"() {
+        given:
+        def resolver = new DefaultCodeLocalityResolver(new ClassLoader(null) {})
+
+        when:
+        def location = resolver.codeLocationOf(Locality)
+
+        then:
+        location == ClasspathUtil.getClasspathForClass(Locality)
+        resolver.codeLocationOf(Locality).is(location)
+    }
+
+    def "a class with no code source has no code location"() {
+        expect:
+        new DefaultCodeLocalityResolver(new ClassLoader(null) {}).codeLocationOf(String) == null
+    }
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.initialization;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.MapMaker;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.ProtectionDomains;
 import org.gradle.internal.classloader.TransformedClassPathHolder;
@@ -26,11 +27,17 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.security.CodeSource;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 
 public class DefaultCodeLocalityResolver implements CodeLocalityResolver {
 
     private final Set<ClassLoader> coreClassLoaders;
+    // A plugin class is asked about once for every project that applies it. The keys are weak, so a class can be unloaded while the build tree lives.
+    private final ConcurrentMap<Class<?>, CodeOrigin> origins = new MapMaker().weakKeys().makeMap();
 
     @Inject
     public DefaultCodeLocalityResolver(ClassLoaderRegistry classLoaderRegistry) {
@@ -49,6 +56,23 @@ public class DefaultCodeLocalityResolver implements CodeLocalityResolver {
 
     @Override
     public Locality localityOf(Class<?> clazz) {
+        return originOf(clazz).locality;
+    }
+
+    @Override
+    public @Nullable File codeLocationOf(Class<?> clazz) {
+        return originOf(clazz).codeLocation;
+    }
+
+    private CodeOrigin originOf(Class<?> clazz) {
+        return origins.computeIfAbsent(clazz, this::findOriginOf);
+    }
+
+    private CodeOrigin findOriginOf(Class<?> clazz) {
+        return new CodeOrigin(findLocalityOf(clazz), findCodeLocationOf(clazz));
+    }
+
+    private Locality findLocalityOf(Class<?> clazz) {
         ClassLoader loader = clazz.getClassLoader();
         if (coreClassLoaders.contains(loader)) {
             return Locality.CORE;
@@ -61,6 +85,16 @@ public class DefaultCodeLocalityResolver implements CodeLocalityResolver {
             return Locality.UNKNOWN;
         }
         return localityOf(((TransformedClassPathHolder) loader).getTransformedClassPath().kindOf(codeSource));
+    }
+
+    private static @Nullable File findCodeLocationOf(Class<?> clazz) {
+        try {
+            CodeSource codeSource = clazz.getProtectionDomain().getCodeSource();
+            URL location = codeSource == null ? null : codeSource.getLocation();
+            return location != null && "file".equals(location.getProtocol()) ? new File(location.toURI()) : null;
+        } catch (SecurityException | URISyntaxException | IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private static Locality localityOf(TransformedClassPath.InstrumentationKind kind) {
@@ -80,6 +114,16 @@ public class DefaultCodeLocalityResolver implements CodeLocalityResolver {
             return ProtectionDomains.codeSourceFileOf(clazz.getProtectionDomain());
         } catch (IllegalArgumentException e) {
             return null;
+        }
+    }
+
+    private static final class CodeOrigin {
+        final Locality locality;
+        final @Nullable File codeLocation;
+
+        CodeOrigin(Locality locality, @Nullable File codeLocation) {
+            this.locality = locality;
+            this.codeLocation = codeLocation;
         }
     }
 }
