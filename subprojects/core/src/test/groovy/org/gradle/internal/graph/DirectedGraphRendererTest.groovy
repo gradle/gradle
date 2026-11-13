@@ -116,6 +116,84 @@ class DirectedGraphRendererTest extends Specification {
 """
     }
 
+    def "depth limit truncates children beyond max depth"() {
+        given:
+        def limited = new DirectedGraphRenderer<String>(nodeRenderer, graph, 1)
+        1 * graph.getNodeValues("1", _, _) >> { args -> args[2] << "2"; args[2] << "3" }
+        1 * graph.getNodeValues("2", _, _) >> { args -> args[2] << "4" }
+        1 * graph.getNodeValues("3", _, _) >> { args -> args[2] << "5" }
+
+        when:
+        limited.renderTo("1", output)
+
+        then:
+        output.value == """[1]
+{info}+--- {normal}[2] (+)
+{info}\\--- {normal}[3] (+)
+
+{info}(+) - dependencies omitted (exceeded depth limit){normal}
+"""
+    }
+
+    def "depth limit does not add marker to leaf nodes at max depth"() {
+        given:
+        def limited = new DirectedGraphRenderer<String>(nodeRenderer, graph, 1)
+        1 * graph.getNodeValues("1", _, _) >> { args -> args[2] << "2" }
+        1 * graph.getNodeValues("2", _, _) >> { args -> }
+
+        when:
+        limited.renderTo("1", output)
+
+        then:
+        output.value == """[1]
+{info}\\--- {normal}[2]
+"""
+    }
+
+    def "depth limit of 2 shows two levels"() {
+        given:
+        def limited = new DirectedGraphRenderer<String>(nodeRenderer, graph, 2)
+        1 * graph.getNodeValues("1", _, _) >> { args -> args[2] << "2" }
+        1 * graph.getNodeValues("2", _, _) >> { args -> args[2] << "3" }
+        1 * graph.getNodeValues("3", _, _) >> { args -> args[2] << "4" }
+
+        when:
+        limited.renderTo("1", output)
+
+        then:
+        output.value == """[1]
+{info}\\--- {normal}[2]
+{info}     \\--- {normal}[3] (+)
+
+{info}(+) - dependencies omitted (exceeded depth limit){normal}
+"""
+    }
+
+    def "both truncation and already-seen legends print when both occur"() {
+        given:
+        // depth=2: "4" at depth=2 has children → (+); "2" visited again via "3" at depth=2 → (*)
+        def limited = new DirectedGraphRenderer<String>(nodeRenderer, graph, 2)
+        1 * graph.getNodeValues("1", _, _) >> { args -> args[2] << "2"; args[2] << "3" }
+        1 * graph.getNodeValues("2", _, _) >> { args -> args[2] << "4" }
+        1 * graph.getNodeValues("3", _, _) >> { args -> args[2] << "2" }
+        1 * graph.getNodeValues("4", _, _) >> { args -> args[2] << "5" }
+
+        when:
+        limited.renderTo("1", output)
+
+        then:
+        output.value == """[1]
+{info}+--- {normal}[2]
+{info}|    \\--- {normal}[4] (+)
+{info}\\--- {normal}[3]
+{info}     \\--- {normal}[2](seen) (*)
+
+{info}(*) - details omitted (listed previously){normal}
+
+{info}(+) - dependencies omitted (exceeded depth limit){normal}
+"""
+    }
+
     def "renders to an appendable"() {
         given:
         1 * graph.getNodeValues("1", _, _) >> { args -> args[2] << "2"; args[2] << "3" }
