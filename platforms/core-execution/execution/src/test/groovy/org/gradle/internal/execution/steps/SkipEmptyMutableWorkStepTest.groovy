@@ -76,7 +76,6 @@ class SkipEmptyMutableWorkStepTest extends StepSpec<PreviousExecutionContext> im
         then:
         1 * inputFingerprinter.fingerprintInputProperties(
             ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
             knownInputProperties,
             knownInputFileProperties,
             _,
@@ -110,7 +109,6 @@ class SkipEmptyMutableWorkStepTest extends StepSpec<PreviousExecutionContext> im
         then:
         1 * inputFingerprinter.fingerprintInputProperties(
             ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
             knownInputProperties,
             knownInputFileProperties,
             _,
@@ -143,7 +141,6 @@ class SkipEmptyMutableWorkStepTest extends StepSpec<PreviousExecutionContext> im
 
         then:
         1 * inputFingerprinter.fingerprintInputProperties(
-            ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             knownInputProperties,
             knownInputFileProperties,
@@ -236,11 +233,9 @@ class SkipEmptyMutableWorkStepTest extends StepSpec<PreviousExecutionContext> im
         def outputFileSnapshots = ImmutableSortedMap.of("output", outputFileSnapshot)
 
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
-        _ * previousExecutionState.inputProperties >> ImmutableSortedMap.of()
         _ * previousExecutionState.inputFileProperties >> ImmutableSortedMap.of()
         _ * previousExecutionState.outputFilesProducedByWork >> outputFileSnapshots
         1 * inputFingerprinter.fingerprintInputProperties(
-            ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),

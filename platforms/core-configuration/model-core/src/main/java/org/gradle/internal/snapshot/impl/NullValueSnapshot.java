@@ -38,6 +38,7 @@ public class NullValueSnapshot implements ValueSnapshot, Isolatable<Object> {
 
     @Override
     public void appendToHasher(Hasher hasher) {
+        ValueSnapshotType.NULL.appendTo(hasher);
         hasher.putNull();
     }
 
