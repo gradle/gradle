@@ -21,13 +21,17 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.RenamingCopyAction;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
@@ -90,6 +94,9 @@ public abstract class War extends Jar {
         renameSpec.into("");
         renameSpec.from((Callable<File>) () -> getWebXmlFile().getAsFile().getOrNull());
         renameSpec.appendCachingSafeCopyAction(new RenamingCopyAction(Transformers.constant("web.xml")));
+
+        // A configured web.xml takes precedence over other WEB-INF/web.xml files, such as the one in the web app directory
+        getMainSpec().appendCachingSafeCopyAction(new WebXmlPrecedenceAction(getWebXmlFile()));
     }
 
     @Inject
@@ -104,7 +111,9 @@ public abstract class War extends Jar {
     @Internal
     @ToBeReplacedByLazyProperty(comment = "This should probably stay eager")
     public CopySpec getWebInf() {
-        return webInf.addChild();
+        CopySpecInternal child = webInf.addChild();
+        child.appendCachingSafeCopyAction(new WebXmlPrecedenceAction(getWebXmlFile()));
+        return child;
     }
 
     /**
@@ -183,7 +192,11 @@ public abstract class War extends Jar {
     }
 
     /**
-     * Returns the {@code web.xml} file to include in the WAR archive. When {@code null}, no {@code web.xml} file is included in the WAR.
+     * Returns the {@code web.xml} file to include in the WAR archive as {@code WEB-INF/web.xml}.
+     * <p>
+     * When set, it takes precedence over a {@code WEB-INF/web.xml} file in the {@link #getWebAppDirectory() web app directory}
+     * or in other content of the archive.
+     * When not set, the archive only contains a {@code web.xml} if one is part of its other content.
      *
      * @return The {@code web.xml} file property.
      * @since 9.7.0
@@ -195,7 +208,7 @@ public abstract class War extends Jar {
     public abstract RegularFileProperty getWebXmlFile();
 
     /**
-     * Returns the {@code web.xml} file to include in the WAR archive. When {@code null}, no {@code web.xml} file is included in the WAR.
+     * Returns the {@code web.xml} file to include in the WAR archive as {@code WEB-INF/web.xml}. See {@link #getWebXmlFile()} for details.
      *
      * @return The {@code web.xml} file.
      * @since 0.7
@@ -208,7 +221,7 @@ public abstract class War extends Jar {
     }
 
     /**
-     * Sets the {@code web.xml} file to include in the WAR archive. When {@code null}, no {@code web.xml} file is included in the WAR.
+     * Sets the {@code web.xml} file to include in the WAR archive as {@code WEB-INF/web.xml}. See {@link #getWebXmlFile()} for details.
      *
      * @param webXml The {@code web.xml} file. Maybe null.
      * @since 0.7
@@ -230,4 +243,26 @@ public abstract class War extends Jar {
      */
     @Internal
     public abstract DirectoryProperty getWebAppDirectory();
+
+    /**
+     * Lets the configured {@code web.xml} win over another {@code WEB-INF/web.xml}, which is copied after it.
+     * <p>
+     * The other file is marked as a duplicate to exclude instead of being excluded right away, so later actions can still move it.
+     * The outcome only depends on whether a {@code web.xml} is configured, which is a task input, so the action is safe for caching.
+     * Files that later actions rename to {@code WEB-INF/web.xml} are not affected.
+     */
+    private static class WebXmlPrecedenceAction implements Action<FileCopyDetails> {
+        private final Provider<RegularFile> webXmlFile;
+
+        WebXmlPrecedenceAction(Provider<RegularFile> webXmlFile) {
+            this.webXmlFile = webXmlFile;
+        }
+
+        @Override
+        public void execute(FileCopyDetails details) {
+            if (details.getPath().equals("WEB-INF/web.xml") && webXmlFile.isPresent()) {
+                details.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
+            }
+        }
+    }
 }
