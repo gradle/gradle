@@ -58,4 +58,18 @@ class DefaultTestResultTest extends Specification {
         then:
         !result.assumptionFailure
     }
+
+    def "construct itself with skip reason"() {
+        expect:
+        def state = new TestState(new DefaultTestDescriptor("12", "FooTest", "shouldWork"), new TestStartEvent(100L), new HashMap());
+        state.completed(new TestCompleteEvent(200L, ResultType.SKIPPED, "disabled for now"))
+
+        when:
+        def result = new DefaultTestResult(state)
+
+        then:
+        result.resultType == ResultType.SKIPPED
+        result.skipReason == "disabled for now"
+        !result.assumptionFailure
+    }
 }

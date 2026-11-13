@@ -25,6 +25,7 @@ class SimpleTestResult implements TestResult {
     Throwable exception = exceptions[0]
     TestFailure assumptionFailure = null
     List<TestFailure> failures = []
+    String skipReason = null
     long startTime = 0
     long endTime = startTime + 100
     long testCount = 1
