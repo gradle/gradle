@@ -21,27 +21,24 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.opentest4j.TestAbortedException
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         def app = new CppHelloWorldApp()
 
-        buildFile << """
-            project(':library') {
-                apply plugin: 'cpp-library'
-                library {
-                    publicHeaders.from('src/main/headers')
-                }
+        buildFile("library/build.gradle", """
+            apply plugin: 'cpp-library'
+            library {
+                publicHeaders.from('src/main/headers')
             }
-            project(':app') {
-                apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':library')
-                }
+        """)
+        buildFile("app/build.gradle", """
+            apply plugin: 'cpp-application'
+            dependencies {
+                implementation project(':library')
             }
-        """
+        """)
         createDirs("library", "app")
         settingsFile << """
             rootProject.name = 'test'
@@ -55,9 +52,18 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "recompiles binary when toolchain changes from #toolChainBefore to #toolChainAfter"() {
-        buildFile.text = buildScriptForToolChains(toolChainBefore, toolChainAfter)
+        settingsFile(settingsScriptForToolChains(toolChainBefore, toolChainAfter))
+        buildFile("library/build.gradle", """
+            library {
+                targetMachines = [machines.host().x86]
+            }
+        """)
+        buildFile("app/build.gradle", """
+            application {
+                targetMachines = [machines.host().x86]
+            }
+        """)
         def useAlternateToolChain = false
         executer.beforeExecute({
             if (useAlternateToolChain) {
@@ -87,9 +93,9 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
         toolChainAfter = toolChains[1]
     }
 
-    private static GString buildScriptForToolChains(InstalledToolChain before, InstalledToolChain after) {
+    private static GString settingsScriptForToolChains(InstalledToolChain before, InstalledToolChain after) {
         """
-            allprojects {
+            gradle.lifecycle.beforeProject {
                 apply plugin: ${before.pluginClass}
                 apply plugin: ${after.pluginClass}
 
@@ -99,22 +105,6 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
                     } else {
                         ${before.buildScriptConfig}
                     }
-                }
-            }
-            project(':library') {
-                apply plugin: 'cpp-library'
-                library {
-                    publicHeaders.from('src/main/headers')
-                    targetMachines = [machines.host().x86]
-                }
-            }
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
-                    targetMachines = [machines.host().x86]
-                }
-                dependencies {
-                    implementation project(':library')
                 }
             }
         """

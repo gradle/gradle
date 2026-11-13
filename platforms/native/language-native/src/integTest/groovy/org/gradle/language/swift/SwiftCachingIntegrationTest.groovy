@@ -17,7 +17,6 @@
 package org.gradle.language.swift
 
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -27,7 +26,6 @@ import org.gradle.test.fixtures.file.TestFile
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
-@ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
 class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements DirectoryBuildCacheFixture {
 
     def app = new SwiftAppWithLibraries()
@@ -44,16 +42,15 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
             dependencies {
                 implementation project(':hello')
             }
-
-            project(':hello') {
-                apply plugin: 'swift-library'
-                dependencies {
-                    api project(':log')
-                }
+        '''
+        project.file('hello/build.gradle').text = '''
+            apply plugin: 'swift-library'
+            dependencies {
+                api project(':log')
             }
-            project(':log') {
-                apply plugin: 'swift-library'
-            }
+        '''
+        project.file('log/build.gradle').text = '''
+            apply plugin: 'swift-library'
         '''
         app.logLibrary.writeToProject(project.file('log'))
         app.library.writeToProject(project.file('hello'))

@@ -27,9 +27,9 @@ import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @ServiceScope(Scope.Build.class)
 public class CompilerMetaDataProviderFactory {
@@ -57,7 +57,10 @@ public class CompilerMetaDataProviderFactory {
 
     private static class CachingCompilerMetaDataProvider<T extends CompilerMetadata> implements CompilerMetaDataProvider<T> {
         private final CompilerMetaDataProvider<T> delegate;
-        private final Map<Key, SearchResult<T>> resultMap = new HashMap<Key, SearchResult<T>>();
+        /**
+         * Shared by all projects of the build, which can be configured in parallel.
+         */
+        private final Map<Key, SearchResult<T>> resultMap = new ConcurrentHashMap<>();
 
         private CachingCompilerMetaDataProvider(CompilerMetaDataProvider<T> delegate) {
             this.delegate = delegate;
@@ -69,12 +72,7 @@ public class CompilerMetaDataProviderFactory {
             configureAction.execute(execSpec);
 
             Key key = new Key(execSpec.executable, execSpec.args, path, execSpec.environments);
-            SearchResult<T> result = resultMap.get(key);
-            if (result == null) {
-                result = delegate.getCompilerMetaData(path, configureAction);
-                resultMap.put(key, result);
-            }
-            return result;
+            return resultMap.computeIfAbsent(key, k -> delegate.getCompilerMetaData(path, configureAction));
         }
 
         @Override

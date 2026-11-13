@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift
 
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLogger
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLoggerApi
@@ -31,7 +30,6 @@ import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
-    @ToBeFixedForIsolatedProjects(because = "Swift/C++ interop uses allprojects/subprojects (software model)")
     def "can compile and link against a #linkage.toLowerCase() c++ library"() {
         createDirs("app", "cppGreeter")
         settingsFile << "include 'app', 'cppGreeter'"
@@ -39,25 +37,23 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         def app = new SwiftMainWithCppDep(cppGreeter)
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'swift-application'
-                dependencies {
-                    implementation project(':cppGreeter')
-                }
-                application.binaries.configureEach {
-                    if (targetMachine.operatingSystemFamily.macOs) {
-                        linkTask.get().linkerArgs.add("-lc++")
-                    } else if (targetMachine.operatingSystemFamily.linux) {
-                        linkTask.get().linkerArgs.add("-lstdc++")
-                    }
+        buildFile("app/build.gradle", """
+            apply plugin: 'swift-application'
+            dependencies {
+                implementation project(':cppGreeter')
+            }
+            application.binaries.configureEach {
+                if (targetMachine.operatingSystemFamily.macOs) {
+                    linkTask.get().linkerArgs.add("-lc++")
+                } else if (targetMachine.operatingSystemFamily.linux) {
+                    linkTask.get().linkerArgs.add("-lstdc++")
                 }
             }
-            project(':cppGreeter') {
-                apply plugin: 'cpp-library'
-                library.linkage = [Linkage.${linkage}]
-            }
-        """
+        """)
+        buildFile("cppGreeter/build.gradle", """
+            apply plugin: 'cpp-library'
+            library.linkage = [Linkage.${linkage}]
+        """)
         app.writeToProject(file("app"))
         cppGreeter.asLib().writeToProject(file("cppGreeter"))
 
@@ -73,7 +69,6 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         linkage << [SHARED, STATIC]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "can compile and link against a c++ library with both static and shared linkages"() {
         createDirs("app", "cppGreeter")
         settingsFile << "include 'app', 'cppGreeter'"
@@ -81,18 +76,16 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         def app = new SwiftMainWithCppDep(cppGreeter)
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'swift-application'
-                dependencies {
-                    implementation project(':cppGreeter')
-                }
+        buildFile("app/build.gradle", """
+            apply plugin: 'swift-application'
+            dependencies {
+                implementation project(':cppGreeter')
             }
-            project(':cppGreeter') {
-                apply plugin: 'cpp-library'
-                library.linkage = [Linkage.STATIC, Linkage.SHARED]
-            }
-        """
+        """)
+        buildFile("cppGreeter/build.gradle", """
+            apply plugin: 'cpp-library'
+            library.linkage = [Linkage.STATIC, Linkage.SHARED]
+        """)
         app.writeToProject(file("app"))
         cppGreeter.asLib().writeToProject(file("cppGreeter"))
 
@@ -105,7 +98,6 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Swift/C++ interop uses allprojects/subprojects (software model)")
     def "can compile and link against a library with a dependency on a #linkage.toLowerCase() c++ library"() {
         createDirs("app", "greeter", "cppGreeter")
         settingsFile << "include 'app', 'greeter', 'cppGreeter'"
@@ -115,36 +107,34 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         def app = new SwiftAppWithDep(swiftGreeter, sumLibrary)
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'swift-application'
-                dependencies {
-                    implementation project(':greeter')
+        buildFile("app/build.gradle", """
+            apply plugin: 'swift-application'
+            dependencies {
+                implementation project(':greeter')
+            }
+        """)
+        buildFile("greeter/build.gradle", """
+            apply plugin: 'swift-library'
+            dependencies {
+                api project(':cppGreeter')
+            }
+            library.binaries.configureEach {
+                if (targetMachine.operatingSystemFamily.macOs) {
+                    linkTask.get().linkerArgs.add("-lc++")
+                } else if (targetMachine.operatingSystemFamily.linux) {
+                    linkTask.get().linkerArgs.add("-lstdc++")
                 }
             }
-            project(':greeter') {
-                apply plugin: 'swift-library'
-                dependencies {
-                    api project(':cppGreeter')
-                }
-                library.binaries.configureEach {
-                    if (targetMachine.operatingSystemFamily.macOs) {
-                        linkTask.get().linkerArgs.add("-lc++")
-                    } else if (targetMachine.operatingSystemFamily.linux) {
-                        linkTask.get().linkerArgs.add("-lstdc++")
-                    }
+        """)
+        buildFile("cppGreeter/build.gradle", """
+            apply plugin: 'cpp-library'
+            library {
+                linkage = [Linkage.${linkage}]
+                binaries.configureEach {
+                    compileTask.get().positionIndependentCode = true
                 }
             }
-            project(':cppGreeter') {
-                apply plugin: 'cpp-library'
-                library {
-                    linkage = [Linkage.${linkage}]
-                    binaries.configureEach {
-                        compileTask.get().positionIndependentCode = true
-                    }
-                }
-            }
-        """
+        """)
         swiftGreeter.writeToProject(file("greeter"))
         app.writeToProject(file("app"))
         sumLibrary.writeToProject(file("app"))
@@ -163,7 +153,6 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         linkage << [SHARED, STATIC]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Swift/C++ interop uses allprojects/subprojects (software model)")
     def "can compile and link against a #linkage.toLowerCase() c++ library with a dependency on another c++ library"() {
         createDirs("app", "greeter", "cppGreeter", "logger")
         settingsFile << "include 'app', 'greeter', 'cppGreeter', ':logger'"
@@ -172,32 +161,30 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         def app = new SwiftMainWithCppDep(cppGreeter)
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'swift-application'
-                dependencies {
-                    implementation project(':cppGreeter')
-                }
-                application.binaries.configureEach {
-                    if (targetMachine.operatingSystemFamily.macOs) {
-                        linkTask.get().linkerArgs.add("-lc++")
-                    } else if (targetMachine.operatingSystemFamily.linux) {
-                        linkTask.get().linkerArgs.add("-lstdc++")
-                    }
+        buildFile("app/build.gradle", """
+            apply plugin: 'swift-application'
+            dependencies {
+                implementation project(':cppGreeter')
+            }
+            application.binaries.configureEach {
+                if (targetMachine.operatingSystemFamily.macOs) {
+                    linkTask.get().linkerArgs.add("-lc++")
+                } else if (targetMachine.operatingSystemFamily.linux) {
+                    linkTask.get().linkerArgs.add("-lstdc++")
                 }
             }
-            project(':cppGreeter') {
-                apply plugin: 'cpp-library'
-                dependencies {
-                    implementation project(':logger')
-                }
-                library.linkage = [Linkage.${linkage}]
+        """)
+        buildFile("cppGreeter/build.gradle", """
+            apply plugin: 'cpp-library'
+            dependencies {
+                implementation project(':logger')
             }
-            project(':logger') {
-                apply plugin: 'cpp-library'
-                library.linkage = [Linkage.${linkage}]
-            }
-        """
+            library.linkage = [Linkage.${linkage}]
+        """)
+        buildFile("logger/build.gradle", """
+            apply plugin: 'cpp-library'
+            library.linkage = [Linkage.${linkage}]
+        """)
         app.writeToProject(file("app"))
         cppGreeter.asLib().writeToProject(file("cppGreeter"))
         logger.asLib().writeToProject(file("logger"))
@@ -215,7 +202,6 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         linkage << [SHARED, STATIC]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Swift uses allprojects/subprojects (software model)")
     def "can compile and link against a c++ library with an api dependency on another c++ library"() {
         createDirs("app", "greeter", "cppGreeter", "logger")
         settingsFile << "include 'app', 'greeter', 'cppGreeter', ':logger'"
@@ -225,23 +211,21 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         def app = new SwiftMainWithCppDep(cppGreeter, imports)
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'swift-application'
-                dependencies {
-                    implementation project(':cppGreeter')
-                }
+        buildFile("app/build.gradle", """
+            apply plugin: 'swift-application'
+            dependencies {
+                implementation project(':cppGreeter')
             }
-            project(':cppGreeter') {
-                apply plugin: 'cpp-library'
-                dependencies {
-                    api project(':logger')
-                }
+        """)
+        buildFile("cppGreeter/build.gradle", """
+            apply plugin: 'cpp-library'
+            dependencies {
+                api project(':logger')
             }
-            project(':logger') {
-                apply plugin: 'cpp-library'
-            }
-        """
+        """)
+        buildFile("logger/build.gradle", """
+            apply plugin: 'cpp-library'
+        """)
         app.writeToProject(file("app"))
         cppGreeter.asLib().writeToProject(file("cppGreeter"))
         logger.asLib().writeToProject(file("logger"))
@@ -256,7 +240,6 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Swift uses allprojects/subprojects (software model)")
     def "declaring a dependency on a c++ library without public headers does not fail"() {
         createDirs("app", "cppGreeter")
         settingsFile << "include 'app', 'cppGreeter'"
@@ -264,17 +247,15 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         def app = new SwiftApp()
 
         given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'swift-application'
-                dependencies {
-                    implementation project(':cppGreeter')
-                }
+        buildFile("app/build.gradle", """
+            apply plugin: 'swift-application'
+            dependencies {
+                implementation project(':cppGreeter')
             }
-            project(':cppGreeter') {
-                apply plugin: 'cpp-library'
-            }
-        """
+        """)
+        buildFile("cppGreeter/build.gradle", """
+            apply plugin: 'cpp-library'
+        """)
         app.writeToProject(file("app"))
         // writes headers to the private header dir
         cppGreeter.writeToProject(file("cppGreeter"))

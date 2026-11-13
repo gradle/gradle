@@ -20,7 +20,6 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class CppGeneratedPublicHeadersIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def app = new CppAppWithLibraries()
@@ -34,7 +33,6 @@ class CppGeneratedPublicHeadersIntegrationTest extends AbstractInstalledToolChai
     }
 
     @Issue("https://github.com/gradle/gradle-native/issues/994")
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can depends on library with generated headers"() {
         given:
         writeHelloLibrary { TestFile libraryPath ->
@@ -44,7 +42,7 @@ class CppGeneratedPublicHeadersIntegrationTest extends AbstractInstalledToolChai
             libraryPath.file('build.gradle') << '''
                 library {
                     def generatorTask = tasks.register('generatePublicHeaders', Sync) {
-                        from(rootProject.file('staging-includes'))
+                        from(isolated.rootProject.projectDirectory.dir('staging-includes'))
                         into({ temporaryDir })
                     }
 
@@ -61,7 +59,6 @@ class CppGeneratedPublicHeadersIntegrationTest extends AbstractInstalledToolChai
     }
 
     @Issue("https://github.com/gradle/gradle-native/issues/994")
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can transitively depends on library with generated headers"() {
         given:
         writeHelloLibrary()
@@ -72,7 +69,7 @@ class CppGeneratedPublicHeadersIntegrationTest extends AbstractInstalledToolChai
             logPath.file('build.gradle') << '''
                 library {
                     def generatorTask = tasks.register('generatePublicHeaders', Sync) {
-                        from(rootProject.file('staging-includes'))
+                        from(isolated.rootProject.projectDirectory.dir('staging-includes'))
                         into({ temporaryDir })
                     }
 

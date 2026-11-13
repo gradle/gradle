@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -30,7 +29,6 @@ import static org.gradle.nativeplatform.OperatingSystemFamily.MACOS
 import static org.gradle.nativeplatform.OperatingSystemFamily.WINDOWS
 
 class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrationTest {
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can publish a library and its dependencies to a Maven repository when multiple target operating systems are specified"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
         def targetMachines = [machine(WINDOWS, currentArchitecture), machine(LINUX, currentArchitecture), machine(MACOS, currentArchitecture)]
@@ -38,29 +36,23 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
         given:
         createDirs("deck", "card", "shuffle")
         settingsFile << "include 'deck', 'card', 'shuffle'"
-        buildFile << """
-            subprojects {
-                apply plugin: 'cpp-library'
-                apply plugin: 'maven-publish'
-
-                group = 'some.group'
-                version = '1.2'
-                publishing {
-                    repositories { maven { url = '${mavenRepo.uri}' } }
-                }
-
-                components.withType(CppComponent) {
-                    linkage = [Linkage.STATIC]
-                    targetMachines = [machines.windows.architecture('${currentArchitecture}'), machines.linux.architecture('${currentArchitecture}'), machines.macOS.architecture('${currentArchitecture}')]
-                }
-            }
-            project(':deck') {
-                dependencies {
-                    api project(':card')
-                    implementation project(':shuffle')
-                }
+        def libraryConfig = """
+            apply plugin: 'cpp-library'
+            ${mavenPublishing()}
+            library {
+                linkage = [Linkage.STATIC]
+                targetMachines = [machines.windows.architecture('${currentArchitecture}'), machines.linux.architecture('${currentArchitecture}'), machines.macOS.architecture('${currentArchitecture}')]
             }
         """
+        buildFile("card/build.gradle", libraryConfig)
+        buildFile("shuffle/build.gradle", libraryConfig)
+        buildFile("deck/build.gradle", """
+            ${libraryConfig}
+            dependencies {
+                api project(':card')
+                implementation project(':shuffle')
+            }
+        """)
         app.deck.writeToProject(file('deck'))
         app.card.writeToProject(file('card'))
         app.shuffle.writeToProject(file('shuffle'))
@@ -99,7 +91,6 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
-    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "can publish a library and its dependencies to a Maven repository when multiple target architectures are specified"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
         def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64)]
@@ -107,29 +98,23 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
         given:
         createDirs("deck", "card", "shuffle")
         settingsFile << "include 'deck', 'card', 'shuffle'"
-        buildFile << """
-            subprojects {
-                apply plugin: 'cpp-library'
-                apply plugin: 'maven-publish'
-
-                group = 'some.group'
-                version = '1.2'
-                publishing {
-                    repositories { maven { url = '${mavenRepo.uri}' } }
-                }
-
-                components.withType(CppComponent) {
-                    linkage = [Linkage.STATIC]
-                    targetMachines = [machines.host().x86, machines.host().x86_64]
-                }
-            }
-            project(':deck') {
-                dependencies {
-                    api project(':card')
-                    implementation project(':shuffle')
-                }
+        def libraryConfig = """
+            apply plugin: 'cpp-library'
+            ${mavenPublishing()}
+            library {
+                linkage = [Linkage.STATIC]
+                targetMachines = [machines.host().x86, machines.host().x86_64]
             }
         """
+        buildFile("card/build.gradle", libraryConfig)
+        buildFile("shuffle/build.gradle", libraryConfig)
+        buildFile("deck/build.gradle", """
+            ${libraryConfig}
+            dependencies {
+                api project(':card')
+                implementation project(':shuffle')
+            }
+        """)
         app.deck.writeToProject(file('deck'))
         app.card.writeToProject(file('card'))
         app.shuffle.writeToProject(file('shuffle'))
