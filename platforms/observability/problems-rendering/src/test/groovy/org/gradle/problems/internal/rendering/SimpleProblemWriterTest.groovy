@@ -33,6 +33,7 @@ import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.problems.buildtree.ProblemStream
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
+import spock.lang.Issue
 import spock.lang.Specification
 
 class SimpleProblemWriterTest extends Specification {
@@ -297,6 +298,45 @@ Problem found: Project is a prototype (id: prototype-project, in sample-problems
     Possible solutions:
       1. Look up the samples index for real-life examples.
       2. Or read the documentation on the Gradle website.
+        ''')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39461")
+    def "render solution without changing its case"() {
+        given:
+        def problem = createProblem { ProblemBuilderInternal spec ->
+            spec.id(createId())
+                .solution("gradlew help --task test")
+        }
+
+        when:
+        problemWriter.write(problem, writer)
+
+        then:
+        renderedProblem == denormalizeAndStrip('''
+Problem found: Project is a prototype (id: prototype-project, in sample-problems)
+    Possible solution: gradlew help --task test.
+        ''')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39461")
+    def "render multiple solutions without changing their case"() {
+        given:
+        def problem = createProblem { ProblemBuilderInternal spec ->
+            spec.id(createId())
+                .solution("gradlew help --task test")
+                .solution("kotlin.jvmToolchain(17) in the build script")
+        }
+
+        when:
+        problemWriter.write(problem, writer)
+
+        then:
+        renderedProblem == denormalizeAndStrip('''
+Problem found: Project is a prototype (id: prototype-project, in sample-problems)
+    Possible solutions:
+      1. gradlew help --task test.
+      2. kotlin.jvmToolchain(17) in the build script.
         ''')
     }
 
