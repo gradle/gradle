@@ -316,8 +316,7 @@ A daemon is considered compatible if it has at least the same heap size settings
 In other words, a daemon that has higher heap settings than requested would be considered compatible.
 
 jvm arguments::
-A daemon is compatible if it has set all the JVM arguments requested. +
-Note that a daemon is compatible if it has additional JVM arguments beyond those requested (except for those treated especially, such as heap settings, assertions, debug, etc.).
+A daemon is considered compatible only if it has set exactly the JVM arguments requested (except for those treated especially, such as heap settings, assertions, debug, system properties, etc.).
 
 system properties::
 While a unit of work runs, Gradle sets the requested system properties in the daemon and clears the other system properties the daemon was started with. +
@@ -328,8 +327,7 @@ A daemon is considered compatible if it has set all the environment variables re
 Note that a daemon is compatible if it has more environment variables than requested.
 
 bootstrap classpath::
-A daemon is considered compatible if it contains all the bootstrap classpath entries requested. +
-Note that a daemon is compatible if it has more bootstrap classpath entries than requested.
+A daemon is considered compatible only if it has exactly the bootstrap classpath entries requested.
 
 debug::
 A daemon is considered compatible only if debug is set to the same value as requested (`true` or `false`).
