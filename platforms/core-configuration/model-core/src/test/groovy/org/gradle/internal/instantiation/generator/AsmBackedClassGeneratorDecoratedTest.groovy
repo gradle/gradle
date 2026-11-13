@@ -61,13 +61,37 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     def "does not generate a set(Object) overload for an upgraded property that already declares one"() {
-        def bean = create(AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanWithObjectSetter)
+        def bean = create(type)
 
         when:
         bean.getClass().getDeclaredMethod("setProp", Object)
 
         then:
         thrown(NoSuchMethodException)
+
+        where:
+        type << [
+            AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanWithObjectSetter,
+            AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanWithFluentObjectSetter
+        ]
+    }
+
+    // Groovy would otherwise resolve every call and assignment to the generated overload, bypassing the fluent body
+    def "Groovy calls the fluent set(Object) of an upgraded property"() {
+        def bean = create(AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanWithFluentObjectSetter)
+
+        when:
+        bean.prop = "assigned"
+
+        then:
+        bean.prop.get() == "via setter: assigned"
+
+        when:
+        def result = bean.setProp("called")
+
+        then:
+        result.is(bean)
+        bean.prop.get() == "via setter: called"
     }
 
     // Pre-existing behaviour, unchanged here: convention mapping and the lazy Groovy support each generate a
