@@ -11,6 +11,7 @@ updates:
       interval: "daily"
     labels:
       - "@dev-productivity"
+      - "dependencies"
       - "a:chore"
       - "in:building-gradle"
   - package-ecosystem: "gradle"
@@ -20,6 +21,7 @@ updates:
       interval: "daily"
     labels:
       - "@dev-productivity"
+      - "dependencies"
       - "a:chore"
       - "in:building-gradle"
   - package-ecosystem: "maven"
@@ -30,5 +32,6 @@ updates:
       interval: "daily"
     labels:
       - "@dev-productivity"
+      - "dependencies"
       - "a:chore"
       - "in:building-gradle"
