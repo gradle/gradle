@@ -36,6 +36,14 @@ public class DefaultProcessWorkerSpec extends DefaultClassLoaderWorkerSpec imple
      */
     private static final Pattern INHERITED_UNIX_ENVIRONMENT = Pattern.compile("(LANG|LANGUAGE|LC_.*)");
 
+    /**
+     * Environment variables inherited automatically on Windows systems.
+     *
+     * These variables are essential for proper temporary file handling and user-specific paths.
+     * See <a href="https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-gettemppatha#remarks">GetTempPath function</a>
+     */
+    private static final Pattern INHERITED_WINDOWS_ENVIRONMENT = Pattern.compile("(TMP|TEMP|USERPROFILE)");
+
     protected final JavaForkOptions forkOptions;
 
     @Inject
@@ -50,13 +58,16 @@ public class DefaultProcessWorkerSpec extends DefaultClassLoaderWorkerSpec imple
      *
      * On Unix systems we need to pass a few environment variables to make sure
      * the file system is accessed with the right encoding.
+     *
+     * On Windows systems we need to pass temp directory related variables to prevent
+     * worker processes from using the Windows system directory (C:\windows) as temp location.
      */
     private static Map<String, Object> sanitizeEnvironment(JavaForkOptions forkOptions) {
-        if (!OperatingSystem.current().isUnix()) {
-            return ImmutableMap.of();
-        }
+        OperatingSystem os = OperatingSystem.current();
+        Pattern pattern = os.isWindows() ? INHERITED_WINDOWS_ENVIRONMENT : INHERITED_UNIX_ENVIRONMENT;
+        
         return forkOptions.getEnvironment().entrySet().stream()
-            .filter(entry -> INHERITED_UNIX_ENVIRONMENT.matcher(entry.getKey()).matches())
+            .filter(entry -> pattern.matcher(entry.getKey()).matches())
             .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
