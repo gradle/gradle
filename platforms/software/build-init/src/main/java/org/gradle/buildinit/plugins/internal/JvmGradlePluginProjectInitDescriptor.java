@@ -19,6 +19,7 @@ package org.gradle.buildinit.plugins.internal;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.util.internal.TextUtil;
 
 import java.util.Optional;
@@ -108,6 +109,35 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
     @Override
     public Optional<String> getFurtherReading(InitSettings settings) {
         return Optional.of(documentationRegistry.getDocumentationRecommendationFor("information", "custom_plugins"));
+    }
+
+    // Spock tests are written in Groovy, so plugins in other languages need the Groovy plugin applied to compile them
+    protected void addSpock(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        buildScriptBuilder.plugin("Apply the groovy plugin to also add support for Groovy (needed for Spock)", "groovy");
+        if (!settings.isUseTestSuites()) {
+            buildScriptBuilder.testImplementationDependency("Use the awesome Spock testing and specification framework",
+                BuildInitDependency.of("org.spockframework:spock-core", libraryVersionProvider.getVersion("spock")));
+            buildScriptBuilder.testRuntimeOnlyDependency(null,
+                BuildInitDependency.of("org.junit.platform:junit-platform-launcher"));
+        }
+    }
+
+    protected TemplateOperation spockTestTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
+        return spockTemplate("plugin/groovy/spock/PluginTest.groovy.template", "test", settings, templateFactory, pluginId, testClassName);
+    }
+
+    protected TemplateOperation spockFunctionalTestTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
+        return spockTemplate("plugin/groovy/spock/PluginFunctionalTest.groovy.template", "functionalTest", settings, templateFactory, pluginId, testClassName);
+    }
+
+    private static TemplateOperation spockTemplate(String template, String sourceSet, InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
+        return templateFactory.fromSourceTemplate(template, t -> {
+            t.subproject(settings.getSubprojects().get(0));
+            t.sourceSet(sourceSet);
+            t.language(Language.GROOVY);
+            t.className(testClassName);
+            t.binding("pluginId", pluginId);
+        });
     }
 
     protected abstract TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String pluginClassName);
