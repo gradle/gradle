@@ -103,6 +103,10 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
 
     /**
      * Returns the base name of this file at the copy destination.
+     * <p>
+     * Copy actions, such as {@link CopyProcessingSpec#eachFile(Action)} and {@link CopyProcessingSpec#rename(String, String)},
+     * run one after the other: the actions of a parent spec first, then those of the spec itself in the order they were added.
+     * Within an action, the name reflects the actions that ran before it.
      *
      * @return The destination name. Never returns null.
      */
@@ -114,6 +118,8 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
      * <p>
      * Always uses '/' as the hierarchy separator, regardless of platform file separator.
      * Same as calling <code>getRelativePath().getPathString()</code>.
+     * <p>
+     * Like {@link #getName()}, the path reflects the copy actions that ran before the current one.
      *
      * @return The path, relative to the root of the copy destination. Never returns null.
      */
@@ -122,6 +128,8 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
 
     /**
      * Returns the path of this file, relative to the root of the copy destination.
+     * <p>
+     * Like {@link #getName()}, the path reflects the copy actions that ran before the current one.
      *
      * @return The path, relative to the root of the copy destination. Never returns null.
      */
