@@ -32,7 +32,7 @@ public class DefaultMultipleCandidateResult<T> implements MultipleCandidatesResu
     private Set<T> multipleMatches;
 
     public DefaultMultipleCandidateResult(@Nullable T consumerValue, Set<T> candidateValues) {
-        if (candidateValues.isEmpty() || (consumerValue != null && candidateValues.size() == 1)) {
+        if (candidateValues.isEmpty()) {
             throw new IllegalArgumentException("Insufficient number of candidate values: " + candidateValues.size());
         }
         for (T candidateValue : candidateValues) {
@@ -72,6 +72,11 @@ public class DefaultMultipleCandidateResult<T> implements MultipleCandidatesResu
 
     @Override
     public void closestMatch(T candidate) {
+        if (!candidateValues.contains(candidate)) {
+            // Only candidate values can be chosen. Ignore anything else, as if the rule had not chosen it.
+            // TODO: Deprecate and eventually forbid this behavior.
+            return;
+        }
         if (singleMatch == null) {
             if (multipleMatches == null) {
                 singleMatch = candidate;

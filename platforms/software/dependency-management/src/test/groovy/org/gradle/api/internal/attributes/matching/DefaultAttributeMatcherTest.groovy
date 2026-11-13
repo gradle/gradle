@@ -249,7 +249,7 @@ class DefaultAttributeMatcherTest extends Specification {
         expect:
         matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested) == [candidate5]
         matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4, candidate6], requested) == [candidate1, candidate3, candidate4, candidate6]
-        matcher.matchMultipleCandidates([candidate1, candidate2, candidate4, candidate6], requested) == [candidate1, candidate4, candidate6]
+        matcher.matchMultipleCandidates([candidate1, candidate2, candidate4, candidate6], requested) == [candidate1, candidate6]
         matcher.matchMultipleCandidates([candidate2, candidate3, candidate4], requested) == [candidate3]
     }
 
@@ -509,6 +509,179 @@ class DefaultAttributeMatcherTest extends Specification {
         expect:
         def matches = matcher.matchMultipleCandidates([candidate1, candidate2], requested)
         matches == [candidate1]
+    }
+
+    static class AllButDebug implements AttributeDisambiguationRule<String> {
+        @Override
+        void execute(MultipleCandidatesDetails<String> details) {
+            details.candidateValues.each {
+                if (it != "debug") {
+                    details.closestMatch(it)
+                }
+            }
+        }
+    }
+
+    def "removes candidates lacking a requested attribute when a rule chooses every candidate value (#description)"() {
+        given:
+        def flavor = Attribute.of("flavor", String)
+        def other = Attribute.of("other", String)
+        def matcher = newMatcher {
+            attribute(flavor).disambiguationRules.add(AllButDebug)
+            attribute(other)
+            accept(flavor, 'release', 'staging')
+            accept(flavor, 'release', 'debug')
+            accept(other, 'foo', 'bar')
+        }
+
+        def release = candidate(flavor: 'release')
+        def staging = candidate(flavor: 'staging')
+        def lacksFlavor = candidate(other: 'bar')
+        def debug = candidate(flavor: 'debug')
+        def requested = attributes(flavor: 'release', other: 'foo')
+
+        expect:
+        def candidates = [release, staging, lacksFlavor] + (withDebug ? [debug] : [])
+        matcher.matchMultipleCandidates(candidates, requested) == [release, staging]
+
+        where:
+        description                       | withDebug
+        "rule chooses every value"        | false
+        "rule rejects one of the values"  | true
+    }
+
+    def "prefers a match with least number of unmatched attributes"() {
+        given:
+        def matcher = newMatcher {
+            def usage = Attribute.of("usage", String)
+            attribute(usage)
+            attribute(Attribute.of("other1", String))
+            attribute(Attribute.of("other2", String))
+            accept(usage, 'java-api', 'java-runtime')
+        }
+
+        def candidate1 = candidate(usage: 'java-api', other2: 'foo')
+        def candidate2 = candidate(usage: 'java-runtime', other2: 'foo')
+        def candidate3 = candidate(usage: 'java-api', other1: 'foo', other2: 'foo')
+        def candidate4 = candidate(usage: 'java-runtime', other1: 'foo', other2: 'foo')
+        def requested = attributes(usage: 'java-api', other1: 'foo')
+
+        expect:
+        def matches = matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4], requested)
+        matches == [candidate3] // variants lacking a requested attribute are filtered out when disambiguating
+    }
+
+    def "removes candidates lacking a requested attribute whether other candidates have one value or several (#description)"() {
+        given:
+        def usage = Attribute.of("usage", String)
+        def other = Attribute.of("other", String)
+        def matcher = newMatcher {
+            attribute(usage)
+            attribute(other)
+            accept(usage, 'java-api', 'java-runtime')
+            accept(other, 'foo', 'bar')
+        }
+
+        def lacksOther = candidate(usage: 'java-api')
+        def peer = candidate(usage: 'java-runtime', other: 'foo')
+        def best = candidate(usage: 'java-api', other: 'foo')
+        def compatibleOther = candidate(usage: 'java-api', other: 'bar')
+        def requested = attributes(usage: 'java-api', other: 'foo')
+
+        expect:
+        def candidates = [lacksOther, peer, best] + (withCompatibleOther ? [compatibleOther] : [])
+        matcher.matchMultipleCandidates(candidates, requested) == [best]
+
+        where:
+        description                       | withCompatibleOther
+        "single value for attribute"      | false
+        "multiple values for attribute"   | true
+    }
+
+    static class ChooseConsumerValue implements AttributeDisambiguationRule<String> {
+        @Override
+        void execute(MultipleCandidatesDetails<String> details) {
+            details.closestMatch(details.consumerValue)
+        }
+    }
+
+    def "ignores values chosen by a disambiguation rule which are not candidate values"() {
+        given:
+        def usage = Attribute.of("usage", String)
+        def matcher = newMatcher {
+            attribute(usage).disambiguationRules.add(ChooseConsumerValue)
+            accept(usage, 'java-api', 'java-runtime')
+            accept(usage, 'java-api', 'legacy')
+            prefer(usage, 'java-runtime')
+        }
+
+        def runtime = candidate(usage: 'java-runtime')
+        def legacy = candidate(usage: 'legacy')
+        def requested = attributes(usage: 'java-api')
+
+        expect:
+        matcher.matchMultipleCandidates([runtime, legacy], requested) == [runtime]
+    }
+
+    def "disambiguation rule can choose a single compatible value over candidates lacking the attribute (#description)"() {
+        given:
+        def usage = Attribute.of("usage", String)
+        def other = Attribute.of("other", String)
+        def matcher = newMatcher {
+            attribute(usage)
+            attribute(other)
+            accept(usage, 'java-api', 'java-runtime')
+            accept(usage, 'java-api', 'legacy')
+            accept(other, 'foo', 'bar')
+            prefer(usage, 'java-runtime')
+        }
+
+        def runtime = candidate(usage: 'java-runtime')
+        def lacksUsage = candidate(other: 'bar')
+        def legacy = candidate(usage: 'legacy')
+        def requested = attributes(usage: 'java-api', other: 'foo')
+
+        expect:
+        def candidates = [runtime, lacksUsage] + (withLegacy ? [legacy] : [])
+        matcher.matchMultipleCandidates(candidates, requested) == [runtime]
+
+        where:
+        description                       | withLegacy
+        "single value for attribute"      | false
+        "multiple values for attribute"   | true
+    }
+
+    def "disambiguation rules are only presented with values of remaining candidates (#description)"() {
+        given:
+        def x = Attribute.of("x", String)
+        def y = Attribute.of("y", String)
+        def matcher = newMatcher {
+            attribute(x)
+            attribute(y)
+            attributeDisambiguationPrecedence(*precedence.collect { Attribute.of(it, String) })
+            accept(x, 'requested', 'a')
+            accept(x, 'requested', 'b')
+            accept(y, 'requested', 'p')
+            accept(y, 'requested', 'q')
+            accept(y, 'requested', 'r')
+            prefer(x, 'a')
+            prefer(y, 'r')
+            prefer(y, 'p')
+        }
+
+        def ap = candidate(x: 'a', y: 'p')
+        def aq = candidate(x: 'a', y: 'q')
+        def br = candidate(x: 'b', y: 'r')
+        def requested = attributes(x: 'requested', y: 'requested')
+
+        expect:
+        // 'br' is removed by disambiguating 'x', so 'r' must not be chosen when disambiguating 'y'
+        matcher.matchMultipleCandidates([ap, aq, br], requested) == [ap]
+
+        where:
+        description                       | precedence
+        "with known precedence"           | ["x", "y"]
+        "with unknown precedence"         | ["x"]
     }
 
     def "prefers a shorter match with compatible requested values and more than one extra attribute (type: #type)"() {
