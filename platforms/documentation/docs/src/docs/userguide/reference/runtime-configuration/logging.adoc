@@ -211,6 +211,45 @@ include::sample[dir="snippets/reference/runtime-configuration/logging/groovy",fi
 Gradle also integrates with the https://docs.oracle.com/javase/8/docs/api/java/util/logging/package-summary.html[Java Util Logging], Jakarta Commons Logging and https://logging.apache.org/log4j/2.x/[Log4j] logging toolkits.
 Any log messages your build classes write using these logging toolkits will be redirected to Gradle's logging system.
 
+[[sec:slf4j_markers]]
+=== Showing messages from SLF4J libraries in the build output
+
+A library that logs with the SLF4J API writes its messages at SLF4J levels such as `INFO`.
+Gradle does not show `INFO` messages by default, so the progress messages of such a library do not appear in the build output.
+In order to get its messages logged properly in Gradle, such a library would need to do its logging using optional tags, called markers.
+These markers, like link:{javadocPath}/org/gradle/api/logging/Logging.html#LIFECYCLE[`LIFECYCLE`] and link:{javadocPath}/org/gradle/api/logging/Logging.html#QUIET[`QUIET`], are defined as part of the Gradle API and having a dependency on that, just for logging, is not ideal.
+This becomes a real issue for tools that run both on their own and inside Gradle plugins, such as a code generator with a command-line interface.
+
+To keep the library free of a Gradle dependency, let it take an `org.slf4j.Marker` as a parameter:
+
+[source,kotlin]
+----
+// Depends only on slf4j-api
+class Tool(private val statusMarker: Marker? = null) {
+    private val logger = LoggerFactory.getLogger(Tool::class.java)
+
+    fun run() {
+        logger.info(statusMarker, "Processing 42 files")
+    }
+}
+----
+
+When the tool runs on its own, the caller gives no marker, and the message is a plain `INFO` message.
+The Gradle plugin gives the tool a Gradle marker, and the message appears at the `LIFECYCLE` level:
+
+[source,kotlin]
+----
+abstract class ToolTask : DefaultTask() {
+    @TaskAction
+    fun execute() {
+        Tool(statusMarker = Logging.LIFECYCLE).run()
+    }
+}
+----
+
+NOTE: Gradle recognizes only the `Logging.LIFECYCLE` and `Logging.QUIET` objects.
+A marker with the same name from `MarkerFactory.getMarker("LIFECYCLE")` is a different object, and Gradle logs its messages at the `INFO` level.
+
 [[sec:changing_what_gradle_logs]]
 == Changing what Gradle logs
 

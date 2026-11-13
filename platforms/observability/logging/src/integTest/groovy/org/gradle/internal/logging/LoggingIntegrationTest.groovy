@@ -271,6 +271,65 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
         level << ['quiet', 'lifecycle', 'info', 'debug']
     }
 
+    def "slf4j-only code logs at Gradle log levels with the Gradle markers it is given"() {
+        given:
+        buildFile """
+            class Tool {
+                private final org.slf4j.Marker statusMarker
+
+                Tool(org.slf4j.Marker statusMarker) {
+                    this.statusMarker = statusMarker
+                }
+
+                void run(String message) {
+                    org.slf4j.LoggerFactory.getLogger(Tool).info(statusMarker, message)
+                }
+            }
+
+            tasks.register("log") {
+                doLast {
+                    new Tool(Logging.LIFECYCLE).run("tool:gradle-lifecycle")
+                    new Tool(Logging.QUIET).run("tool:gradle-quiet")
+                    new Tool(org.slf4j.MarkerFactory.getMarker("LIFECYCLE")).run("tool:named-lifecycle")
+                    new Tool(org.slf4j.MarkerFactory.getMarker("QUIET")).run("tool:named-quiet")
+                    new Tool(null).run("tool:no-marker")
+                }
+            }
+        """
+
+        when:
+        run "log"
+
+        then:
+        outputContains("tool:gradle-lifecycle")
+        outputContains("tool:gradle-quiet")
+        outputDoesNotContain("tool:named-lifecycle")
+        outputDoesNotContain("tool:named-quiet")
+        outputDoesNotContain("tool:no-marker")
+
+        when:
+        executer.withArgument("--quiet")
+        run "log"
+
+        then:
+        outputDoesNotContain("tool:gradle-lifecycle")
+        outputContains("tool:gradle-quiet")
+        outputDoesNotContain("tool:named-lifecycle")
+        outputDoesNotContain("tool:named-quiet")
+        outputDoesNotContain("tool:no-marker")
+
+        when:
+        executer.withArgument("--info")
+        run "log"
+
+        then:
+        outputContains("tool:gradle-lifecycle")
+        outputContains("tool:gradle-quiet")
+        outputContains("tool:named-lifecycle")
+        outputContains("tool:named-quiet")
+        outputContains("tool:no-marker")
+    }
+
     // The build logs from Ant, which is deprecated. Remove the Ant logging from the build in Gradle 10.
     private void expectAntDeprecations(String level) {
         if (level == 'quiet') {

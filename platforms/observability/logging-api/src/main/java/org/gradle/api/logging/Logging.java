@@ -27,13 +27,27 @@ import org.slf4j.MarkerFactory;
  */
 public class Logging {
     /**
-     * Returns the detached marker.
+     * The marker for the {@link LogLevel#LIFECYCLE} log level.
+     *
+     * <p>Gradle logs an {@code info()} message that carries this marker at {@link LogLevel#LIFECYCLE}.
+     * Gradle recognizes only this object, not its name.
+     * A marker from {@code MarkerFactory.getMarker("LIFECYCLE")} has no effect.</p>
+     *
+     * <p>Code that depends only on SLF4J can take this marker as a parameter of type {@link Marker}.
+     * See <a href="https://docs.gradle.org/current/userguide/logging.html#sec:slf4j_markers">Showing messages from SLF4J libraries in the build output</a>.</p>
      *
      * @since 0.7
      */
     public static final Marker LIFECYCLE = MarkerFactory.getDetachedMarker("LIFECYCLE");
     /**
-     * Returns the detached marker.
+     * The marker for the {@link LogLevel#QUIET} log level.
+     *
+     * <p>Gradle logs an {@code info()} message that carries this marker at {@link LogLevel#QUIET}.
+     * Gradle recognizes only this object, not its name.
+     * A marker from {@code MarkerFactory.getMarker("QUIET")} has no effect.</p>
+     *
+     * <p>Code that depends only on SLF4J can take this marker as a parameter of type {@link Marker}.
+     * See <a href="https://docs.gradle.org/current/userguide/logging.html#sec:slf4j_markers">Showing messages from SLF4J libraries in the build output</a>.</p>
      *
      * @since 0.7
      */
