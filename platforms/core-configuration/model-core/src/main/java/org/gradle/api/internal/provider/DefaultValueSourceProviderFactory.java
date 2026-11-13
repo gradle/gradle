@@ -51,6 +51,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -287,8 +288,11 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             } else if (value instanceof Managed) {
                 // Parameters objects and nested managed objects
                 collectProducers(((Managed) value).unpackState(), producers, visited);
-            } else if (value instanceof Iterable) {
-                for (Object element : (Iterable<?>) value) {
+            } else if (value instanceof List || value instanceof Set) {
+                // Walk the same collections as parameter isolation, see AbstractValueProcessor.
+                // Other iterables are not walked: they may be lazy, or yield new copies of
+                // themselves like Path, which the visited set cannot detect.
+                for (Object element : (Collection<?>) value) {
                     collectProducers(element, producers, visited);
                 }
             } else if (value instanceof Map) {
