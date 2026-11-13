@@ -817,7 +817,7 @@ fun <T> KotlinDslIncrementalCompilationCache.withStableScriptFileFor(
 }
 
 
-private
+internal
 fun scriptFileNameFor(scriptPath: String) = scriptPath.run {
     val index = lastIndexOf('/')
     if (index != -1) substring(index + 1, length)

@@ -423,8 +423,7 @@ class StandardKotlinScriptEvaluator(
             const val ALL_WARNINGS_AS_ERRORS = "allWarningsAsErrors"
             const val SKIP_METADATA_VERSION_CHECK = "skipMetadataVersionCheck"
             const val TEMPLATE_ID = "templateId"
-            const val BUILD_TREE_SCRIPT_PATH = "buildTreeScriptPath"
-            const val CLASS_NAME = "className"
+            const val SCRIPT_FILE_NAME = "scriptFileName"
             const val SOURCE_HASH = "sourceHash"
             const val COMPILATION_CLASS_PATH = "compilationClassPath"
             const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
@@ -453,7 +452,7 @@ class StandardKotlinScriptEvaluator(
             visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { programId.compilerOptions.allWarningsAsErrors }
             visitor.visitInputProperty(SKIP_METADATA_VERSION_CHECK) { programId.compilerOptions.skipMetadataVersionCheck }
             visitor.visitInputProperty(TEMPLATE_ID) { programId.templateId }
-            visitor.visitInputProperty(BUILD_TREE_SCRIPT_PATH) { programId.buildTreeScriptPath }
+            visitor.visitInputProperty(SCRIPT_FILE_NAME) { programId.scriptFileName }
             visitor.visitInputProperty(SOURCE_HASH) { programId.sourceHash }
             visitor.visitInputProperty(COMPILATION_CLASS_PATH) { classpathHasher.hash(compilationClassPath) }
             visitor.visitInputProperty(ACCESSORS_CLASS_PATH) { classpathHasher.hash(accessorsClassPath) }
