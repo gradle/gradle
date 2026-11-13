@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 import org.apache.commons.lang3.StringUtils;
@@ -27,16 +26,18 @@ import org.gradle.internal.resource.transport.http.JavaSystemPropertiesSecureHtt
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.lang.System.getProperty;
 
 public class S3ConnectionProperties {
-    public static final String S3_ENDPOINT_PROPERTY = "org.gradle.s3.endpoint";
+    public static final String S3_HOSTNAME = "s3.amazonaws.com";
     //The maximum number of times to retry a request when S3 responds with a http 5xx error
     public static final String S3_MAX_ERROR_RETRY = "org.gradle.s3.maxErrorRetry";
     private static final Set<String> SUPPORTED_SCHEMES = Sets.newHashSet("HTTP", "HTTPS");
     private static final long DEFAULT_PART_SIZE = 50 * 1024 * 1024;
+    private static final String S3_ENDPOINT_PROPERTY = "org.gradle.s3.endpoint";
 
     private final Optional<URI> endpoint;
     private final HttpProxySettings proxySettings;
@@ -53,10 +54,10 @@ public class S3ConnectionProperties {
     }
 
     public S3ConnectionProperties(HttpProxySettings proxySettings, HttpProxySettings secureProxySettings, URI endpoint, Integer maxErrorRetryCount) {
-        this.endpoint = Optional.fromNullable(endpoint);
+        this.endpoint = Optional.ofNullable(endpoint);
         this.proxySettings = proxySettings;
         this.secureProxySettings = secureProxySettings;
-        this.maxErrorRetryCount = Optional.fromNullable(maxErrorRetryCount);
+        this.maxErrorRetryCount = Optional.ofNullable(maxErrorRetryCount);
         this.partSize = DEFAULT_PART_SIZE;
     }
 
@@ -72,7 +73,7 @@ public class S3ConnectionProperties {
                 throw new IllegalArgumentException("System property [" + S3_ENDPOINT_PROPERTY + "=" + property + "]  must be a valid URI");
             }
         }
-        return Optional.fromNullable(uri);
+        return Optional.ofNullable(uri);
     }
 
     public Optional<URI> getEndpoint() {
@@ -82,12 +83,12 @@ public class S3ConnectionProperties {
     public Optional<HttpProxySettings.HttpProxy> getProxy() {
         if (endpoint.isPresent()) {
             if (endpoint.get().getScheme().equalsIgnoreCase("HTTP")) {
-                return Optional.fromNullable(proxySettings.getProxy());
+                return Optional.ofNullable(proxySettings.getProxy());
             } else {
-                return Optional.fromNullable(secureProxySettings.getProxy());
+                return Optional.ofNullable(secureProxySettings.getProxy());
             }
         }
-        return Optional.fromNullable(secureProxySettings.getProxy());
+        return Optional.ofNullable(secureProxySettings.getProxy());
     }
 
     private Optional<Integer> configureErrorRetryCount(String property) {
@@ -99,7 +100,7 @@ public class S3ConnectionProperties {
 
             }
         }
-        return Optional.fromNullable(count);
+        return Optional.ofNullable(count);
     }
 
     public Optional<Integer> getMaxErrorRetryCount() {

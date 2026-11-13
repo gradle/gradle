@@ -40,6 +40,30 @@ class ProgressLoggingInputStreamTest extends Specification {
         processedBytes == inputBytes.length
     }
 
+    def "skipped bytes are not read and not reported"() {
+        given:
+        def inputBytes = "Test data".getBytes()
+        def processedBytes = 0
+        def loggingInputStream = new ProgressLoggingInputStream(new ByteArrayInputStream(inputBytes), new ProgressLoggingInputStreamListener() {
+            @Override
+            void onProcessedBytes(int numberOfBytes) {
+                processedBytes += numberOfBytes
+            }
+        })
+
+        when:
+        def skipped = loggingInputStream.skip(5)
+        def available = loggingInputStream.available()
+        def rest = new byte[10]
+        def read = loggingInputStream.read(rest, 0, rest.length)
+
+        then:
+        skipped == 5
+        available == 4
+        read == 4
+        processedBytes == 4
+    }
+
     def "Given empty input When read data Then listener didn't processed any byte"() {
         given:
         def processedBytes = 0

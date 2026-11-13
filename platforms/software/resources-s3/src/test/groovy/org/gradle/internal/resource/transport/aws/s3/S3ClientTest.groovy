@@ -16,121 +16,162 @@
 
 package org.gradle.internal.resource.transport.aws.s3
 
-import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.services.s3.model.AmazonS3Exception
-import com.amazonaws.services.s3.model.CannedAccessControlList
-import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest
-import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest
-import com.amazonaws.services.s3.model.InitiateMultipartUploadResult
-import com.amazonaws.services.s3.model.ObjectListing
-import com.amazonaws.services.s3.model.PartETag
-import com.amazonaws.services.s3.model.PutObjectRequest
-import com.amazonaws.services.s3.model.UploadPartRequest
-import com.amazonaws.services.s3.model.UploadPartResult
-import com.google.common.base.Optional
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails
+import software.amazon.awssdk.core.client.config.SdkClientOption
+import software.amazon.awssdk.core.sync.RequestBody
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.s3.DelegatingS3Client
+import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionSyncClient
+import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse
+import software.amazon.awssdk.services.s3.model.ObjectCannedACL
+import software.amazon.awssdk.services.s3.model.S3Exception
+import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response
+import software.amazon.awssdk.services.s3.model.S3Object
+import software.amazon.awssdk.http.AbortableInputStream
+import software.amazon.awssdk.http.ExecutableHttpRequest
+import software.amazon.awssdk.http.HttpExecuteRequest
+import software.amazon.awssdk.http.HttpExecuteResponse
+import software.amazon.awssdk.http.SdkHttpClient
+import software.amazon.awssdk.http.SdkHttpConfigurationOption
+import software.amazon.awssdk.http.SdkHttpResponse
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
+import software.amazon.awssdk.services.s3.S3Configuration
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest
+import software.amazon.awssdk.services.s3.model.PutObjectRequest
+import software.amazon.awssdk.services.s3.model.UploadPartRequest
+import software.amazon.awssdk.services.s3.model.UploadPartResponse
 import org.gradle.api.resources.ResourceException
 import org.gradle.internal.resource.HttpErrorStatusCodeException
+import org.gradle.internal.logging.progress.ProgressLoggingInputStream
+import org.gradle.internal.logging.progress.ProgressLoggingInputStreamListener
+import org.gradle.internal.resource.ReadableContent
+import org.gradle.internal.resource.local.ByteArrayReadableContent
 import org.gradle.internal.resource.transport.http.HttpProxySettings
 import org.gradle.util.TestCredentialUtil
-import spock.lang.Ignore
+import spock.lang.Issue
 import spock.lang.Specification
+import spock.util.environment.RestoreSystemProperties
+
+import java.time.Duration
+
 
 class S3ClientTest extends Specification {
+    static final int MIB = 1024 * 1024
     final S3ConnectionProperties s3ConnectionProperties = Mock()
 
     def setup(){
-        _ * s3ConnectionProperties.getEndpoint() >> Optional.absent()
+        _ * s3ConnectionProperties.getEndpoint() >> Optional.empty()
         _ * s3ConnectionProperties.getPartSize() >> 512
         _ * s3ConnectionProperties.getMultipartThreshold() >> 1024
     }
 
     def "Should upload to s3"() {
         given:
-        AmazonS3Client amazonS3Client = Mock()
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
         S3Client client = new S3Client(amazonS3Client, s3ConnectionProperties)
         URI uri = new URI("s3://localhost/maven/snapshot/myFile.txt")
 
         when:
-        client.put(Mock(InputStream), 12L, uri)
+        client.put(new ByteArrayReadableContent(new byte[12]), uri)
         then:
         1 * amazonS3Client.putObject(*_) >> { args ->
             PutObjectRequest putObjectRequest = args[0]
-            assert putObjectRequest.bucketName == 'localhost'
+            assert putObjectRequest.bucket == 'localhost'
             assert putObjectRequest.key == 'maven/snapshot/myFile.txt'
-            assert putObjectRequest.cannedAcl == CannedAccessControlList.BucketOwnerFullControl
-            assert putObjectRequest.metadata.contentLength == 12
+            assert putObjectRequest.acl == ObjectCannedACL.BUCKET_OWNER_FULL_CONTROL.toString()
+            assert putObjectRequest.contentLength == 12
         }
     }
 
     def "Should upload large files to s3 using the multi-part API"() {
         given:
-        AmazonS3Client amazonS3Client = Mock()
-        S3ConnectionProperties s3Properties = Stub()
-        _ * s3Properties.getEndpoint() >> Optional.absent()
+        def bucketName = 'localhost'
+        def objectKey = 'maven/snapshot/myFile.txt'
+        CreateMultipartUploadRequest initRequest = CreateMultipartUploadRequest.builder()
+            .bucket(bucketName)
+            .key(objectKey)
+            .acl(ObjectCannedACL.BUCKET_OWNER_FULL_CONTROL)
+            .build()
+        CreateMultipartUploadResponse initResponse = CreateMultipartUploadResponse
+            .builder()
+            .uploadId('1')
+            .build()
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
+        S3ConnectionProperties s3Properties = Mock()
+        _ * s3Properties.getEndpoint() >> Optional.empty()
         _ * s3Properties.getPartSize() >> 7
         _ * s3Properties.getMultipartThreshold() >> 10
         S3Client client = new S3Client(amazonS3Client, s3Properties)
-        def bucketName = 'localhost'
-        def objectKey = 'maven/snapshot/myFile.txt'
+
         URI uri = new URI("s3://${bucketName}/${objectKey}")
-        InitiateMultipartUploadResult initResponse = Mock() {
-            getUploadId() >> 1
-        }
-        UploadPartResult uploadPartResult = Mock() {
-            getPartETag() >> Mock(PartETag)
-        }
+
+        UploadPartResponse uploadPartResult = UploadPartResponse
+            .builder()
+            .eTag('eTag')
+            .build()
 
         when:
-        client.put(Mock(InputStream), 12L, uri)
+        client.put(new ByteArrayReadableContent(new byte[12]), uri)
         then:
-        1 * amazonS3Client.initiateMultipartUpload(*_) >> { args ->
-            InitiateMultipartUploadRequest initiateMultipartUploadRequest = args[0]
-            assert initiateMultipartUploadRequest.bucketName == bucketName
-            assert initiateMultipartUploadRequest.key == objectKey
-            assert initiateMultipartUploadRequest.cannedACL == CannedAccessControlList.BucketOwnerFullControl
+        1 * amazonS3Client.createMultipartUpload(*_) >> { args ->
+            CreateMultipartUploadRequest createMultipartUpload = args[0]
+            assert createMultipartUpload.bucket == bucketName
+            assert createMultipartUpload.key == objectKey
+            assert createMultipartUpload.acl == ObjectCannedACL.BUCKET_OWNER_FULL_CONTROL.toString()
             initResponse
         }
         2 * amazonS3Client.uploadPart(*_) >> { args ->
             UploadPartRequest uploadPartRequest = args[0]
-            assert uploadPartRequest.bucketName == bucketName
+            assert uploadPartRequest.bucket == bucketName
             assert uploadPartRequest.key == objectKey
             assert uploadPartRequest.partNumber == 1
-            assert uploadPartRequest.fileOffset == 0
-            assert uploadPartRequest.partSize == 7
             uploadPartResult
         } >> { args ->
             UploadPartRequest uploadPartRequest = args[0]
-            assert uploadPartRequest.bucketName == bucketName
+            assert uploadPartRequest.bucket == bucketName
             assert uploadPartRequest.key == objectKey
             assert uploadPartRequest.partNumber == 2
-            assert uploadPartRequest.fileOffset == 0
-            assert uploadPartRequest.partSize == 5
             uploadPartResult
         }
         1 * amazonS3Client.completeMultipartUpload(*_) >> { args ->
             CompleteMultipartUploadRequest uploadRequest = args[0]
-            assert uploadRequest.bucketName == bucketName
+            assert uploadRequest.bucket == bucketName
             assert uploadRequest.key == objectKey
-            assert uploadRequest.partETags.size() == 2
         }
     }
 
-    def "should make batch call when more than one object listing exists"() {
-        def amazonS3Client = Mock(AmazonS3Client)
+    def "lists the children from every page of a truncated listing"() {
+        given:
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
         S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
-        def uri = new URI("s3://mybucket.com.au/maven/release/")
-        ObjectListing firstListing = Mock()
-        firstListing.isTruncated() >> true
-
-        ObjectListing secondListing = Mock()
-        secondListing.isTruncated() >> false
+        amazonS3Client.listObjectsV2Paginator(_) >> { args -> new ListObjectsV2Iterable(amazonS3Client, args[0] as ListObjectsV2Request) }
 
         when:
-        s3Client.listDirectChildren(uri)
+        def children = s3Client.listDirectChildren(new URI("s3://mybucket/maven/release/"))
 
         then:
-        1 * amazonS3Client.listObjects(_) >> firstListing
-        1 * amazonS3Client.listNextBatchOfObjects(_) >> secondListing
+        2 * amazonS3Client.listObjectsV2(_) >>> [
+            ListObjectsV2Response.builder()
+                .contents(S3Object.builder().key("maven/release/a.jar").build())
+                .isTruncated(true)
+                .nextContinuationToken("next")
+                .build(),
+            ListObjectsV2Response.builder()
+                .contents(S3Object.builder().key("maven/release/b.jar").build())
+                .isTruncated(false)
+                .build()
+        ]
+
+        and:
+        children == ["a.jar", "b.jar"]
     }
 
     def "should apply endpoint override with path style access"() {
@@ -141,10 +182,12 @@ class S3ClientTest extends Specification {
 
         when:
         S3Client s3Client = new S3Client(credentials(), s3Properties)
+        def amazonS3Client = unwrapped(s3Client.clientFor(someResource()))
+        def serviceConfiguration = amazonS3Client.clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION)
 
         then:
-        s3Client.amazonS3Client.clientOptions.pathStyleAccess == true
-        s3Client.amazonS3Client.endpoint == someEndpoint.get()
+        S3EndpointUtils.isPathStyleAccessEnabled(serviceConfiguration) == true
+        amazonS3Client.serviceClientConfiguration().endpointOverride().get() == someEndpoint.get()
     }
 
     def "should apply endpoint override with path style access without credentials"() {
@@ -155,58 +198,66 @@ class S3ClientTest extends Specification {
 
         when:
         S3Client s3Client = new S3Client(s3Properties)
+        def amazonS3Client = unwrapped(s3Client.clientFor(someResource()))
+        def serviceConfiguration = amazonS3Client.clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION)
 
         then:
-        s3Client.amazonS3Client.clientOptions.pathStyleAccess == true
-        s3Client.amazonS3Client.endpoint == someEndpoint.get()
+        S3EndpointUtils.isPathStyleAccessEnabled(serviceConfiguration) == true
+        amazonS3Client.serviceClientConfiguration().endpointOverride().get() == someEndpoint.get()
     }
 
     def "should configure HTTPS proxy"() {
         setup:
-        S3ConnectionProperties s3Properties = Mock()
+        S3ConnectionProperties s3Properties = Stub()
         s3Properties.getProxy() >> Optional.of(new HttpProxySettings.HttpProxy("localhost", 8080, 'username', 'password'))
-        s3Properties.getEndpoint() >> Optional.absent()
-        s3Properties.getMaxErrorRetryCount() >> Optional.absent()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getMaxErrorRetryCount() >> Optional.empty()
         when:
         S3Client s3Client = new S3Client(credentials(), s3Properties)
+        def amazonS3Client = unwrapped(s3Client.clientFor(someResource()))
+        def clientConfiguration = amazonS3Client.clientConfiguration.option(SdkClientOption.SYNC_HTTP_CLIENT)
 
         then:
-        s3Client.amazonS3Client.clientConfiguration.proxyHost == 'localhost'
-        s3Client.amazonS3Client.clientConfiguration.proxyPort == 8080
-        s3Client.amazonS3Client.clientConfiguration.proxyPassword == 'password'
-        s3Client.amazonS3Client.clientConfiguration.proxyUsername == 'username'
+        clientConfiguration.requestConfig.proxyConfiguration.host == 'localhost'
+        clientConfiguration.requestConfig.proxyConfiguration.port == 8080
+        clientConfiguration.requestConfig.proxyConfiguration.password == 'password'
+        clientConfiguration.requestConfig.proxyConfiguration.username == 'username'
     }
 
-    @Ignore
     def "should not configure HTTPS proxy when non-proxied host"() {
         setup:
-        HttpProxySettings proxySettings = Mock()
+        HttpProxySettings proxySettings = Stub()
         proxySettings.getProxy(nonProxied) >> null
 
-        S3ConnectionProperties s3Properties = Mock()
-        s3Properties.getProxy() >> Optional.absent()
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getProxy() >> Optional.empty()
         s3Properties.getEndpoint() >> endpointOverride
-        when:
 
+        when:
         S3Client s3Client = new S3Client(credentials(), s3Properties)
+        def amazonS3Client = unwrapped(s3Client.clientFor(someResource()))
+        def clientConfiguration = amazonS3Client.clientConfiguration.option(SdkClientOption.SYNC_HTTP_CLIENT)
+
         then:
-        s3Client.amazonS3Client.clientConfiguration.proxyHost == null
-        s3Client.amazonS3Client.clientConfiguration.proxyPort == -1
-        s3Client.amazonS3Client.clientConfiguration.proxyPassword == null
-        s3Client.amazonS3Client.clientConfiguration.proxyUsername == null
+        clientConfiguration.requestConfig.proxyConfiguration.host == null
+        clientConfiguration.requestConfig.proxyConfiguration.port == 0
+        clientConfiguration.requestConfig.proxyConfiguration.password == null
+        clientConfiguration.requestConfig.proxyConfiguration.username == null
 
         where:
         nonProxied                                               | endpointOverride
-        com.amazonaws.services.s3.internal.Constants.S3_HOSTNAME | Optional.absent()
-        "mydomain.com"                                           | Optional.absent()
+        org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties.S3_HOSTNAME | Optional.empty()
+        "mydomain.com"                                           | Optional.empty()
     }
 
-    def "should include uri when meta-data not found"() {
-        AmazonS3Client amazonS3Client = Mock()
+    def "getMetaData wraps generic S3Exception with the resource uri"() {
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Stub()
         URI uri = new URI("https://somehost/file.txt")
         S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
-        AmazonS3Exception amazonS3Exception = new AmazonS3Exception("test exception")
-        amazonS3Client.getObject(_) >> { throw amazonS3Exception }
+        S3Exception amazonS3Exception = S3Exception.builder()
+            .awsErrorDetails(AwsErrorDetails.builder().errorMessage("test exception").build())
+            .build()
+        amazonS3Client.headObject(_) >> { throw amazonS3Exception }
 
         when:
         s3Client.getMetaData(uri)
@@ -216,10 +267,12 @@ class S3ClientTest extends Specification {
     }
 
     def "should include uri when file not found"() {
-        AmazonS3Client amazonS3Client = Mock()
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Stub()
         URI uri = new URI("https://somehost/file.txt")
         S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
-        AmazonS3Exception amazonS3Exception = new AmazonS3Exception("test exception")
+        S3Exception amazonS3Exception = S3Exception.builder()
+            .awsErrorDetails(AwsErrorDetails.builder().errorMessage("test exception").build())
+            .build()
         amazonS3Client.getObject(_) >> { throw amazonS3Exception }
 
         when:
@@ -230,12 +283,13 @@ class S3ClientTest extends Specification {
     }
 
     def "reports the status code S3 answered with"() {
-        AmazonS3Client amazonS3Client = Mock()
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
         URI uri = new URI("https://somehost/file.txt")
         S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
-        AmazonS3Exception amazonS3Exception = new AmazonS3Exception("Access Denied")
-        amazonS3Exception.setErrorCode("AccessDenied")
-        amazonS3Exception.setStatusCode(403)
+        S3Exception amazonS3Exception = S3Exception.builder()
+            .statusCode(403)
+            .awsErrorDetails(AwsErrorDetails.builder().errorCode("AccessDenied").errorMessage("Access Denied").build())
+            .build()
         amazonS3Client.getObject(_) >> { throw amazonS3Exception }
 
         when:
@@ -248,31 +302,588 @@ class S3ClientTest extends Specification {
         ex.message == "Could not get resource 'https://somehost/file.txt'."
     }
 
+    def "reports the status code when listing fails"() {
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
+        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        amazonS3Client.listObjectsV2Paginator(_) >> { throw S3Exception.builder().statusCode(500).build() }
+
+        when:
+        s3Client.listDirectChildren(new URI("s3://mybucket/maven/release/"))
+
+        then:
+        def ex = thrown(HttpErrorStatusCodeException)
+        ex.statusCode == 500
+    }
+
     def "a missing object is not reported as a failure"() {
-        AmazonS3Client amazonS3Client = Mock()
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
         URI uri = new URI("https://somehost/file.txt")
         S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
-        AmazonS3Exception amazonS3Exception = new AmazonS3Exception("no such key")
-        amazonS3Exception.setErrorCode("NoSuchKey")
-        amazonS3Exception.setStatusCode(404)
-        amazonS3Client.getObject(_) >> { throw amazonS3Exception }
+        amazonS3Client.getObject(_) >> {
+            throw S3Exception.builder()
+                .statusCode(404)
+                .awsErrorDetails(AwsErrorDetails.builder().errorCode("NoSuchKey").build())
+                .build()
+        }
 
         expect:
         s3Client.getResource(uri) == null
     }
 
     def "should include uri when upload fails"() {
-        AmazonS3Client amazonS3Client = Mock()
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Stub()
         URI uri = new URI("https://somehost/file.txt")
         S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
-        AmazonS3Exception amazonS3Exception = new AmazonS3Exception("test exception")
+
+        S3Exception amazonS3Exception = S3Exception.builder()
+            .awsErrorDetails(AwsErrorDetails.builder().errorMessage("test exception").build())
+            .build()
         amazonS3Client.putObject(*_) >> { throw amazonS3Exception }
 
         when:
-        s3Client.put(Mock(InputStream), 0, uri)
+        s3Client.put(new ByteArrayReadableContent(new byte[0]), uri)
         then:
         def ex = thrown(ResourceException)
         ex.message.startsWith("Could not write to resource 'https://somehost/file.txt'")
+    }
+
+    def "should map numRetries N to maxAttempts N+1 on the built client"() {
+        given:
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getProxy() >> Optional.empty()
+        s3Properties.getMaxErrorRetryCount() >> Optional.of(3)
+        S3Client s3Client = new S3Client(credentials(), s3Properties)
+
+        when:
+        def amazonS3Client = unwrapped(s3Client.clientFor(someResource()))
+        def retryStrategy = amazonS3Client.clientConfiguration.option(SdkClientOption.RETRY_STRATEGY)
+
+        then:
+        // numRetries counts retries after the initial attempt; maxAttempts counts total.
+        // A "fix" from +1 to +0 would silently reduce retries by one.
+        retryStrategy.maxAttempts() == 4
+    }
+
+    def "should default region to US_EAST_1 when no bucket-derived region is available"() {
+        given:
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getProxy() >> Optional.empty()
+        s3Properties.getMaxErrorRetryCount() >> Optional.empty()
+        S3Client s3Client = new S3Client(credentials(), s3Properties)
+
+        when:
+        def amazonS3Client = unwrapped(s3Client.clientFor(someResource()))
+
+        then:
+        amazonS3Client.serviceClientConfiguration().region() == Region.US_EAST_1
+    }
+
+    def "should default to AnonymousCredentialsProvider when no credentials given"() {
+        given:
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getProxy() >> Optional.empty()
+        s3Properties.getMaxErrorRetryCount() >> Optional.empty()
+        S3Client s3Client = new S3Client((org.gradle.api.credentials.AwsCredentials) null, s3Properties)
+
+        when:
+        def amazonS3Client = unwrapped(s3Client.clientFor(someResource()))
+
+        then:
+        // Guards against a regression to null/DefaultCredentialsProvider, which would leak IMDS
+        // lookups and break anonymous S3 access to public buckets.
+        amazonS3Client.serviceClientConfiguration().credentialsProvider() instanceof AnonymousCredentialsProvider
+    }
+
+    @RestoreSystemProperties
+    def "uses the default provider chain when constructed without credentials"() {
+        given:
+        System.setProperty("aws.accessKeyId", "fromChainKey")
+        System.setProperty("aws.secretAccessKey", "fromChainSecret")
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getProxy() >> Optional.empty()
+        s3Properties.getMaxErrorRetryCount() >> Optional.empty()
+        S3Client s3Client = new S3Client(s3Properties)
+
+        when:
+        def provider = s3Client.clientFor(someResource()).serviceClientConfiguration().credentialsProvider()
+
+        then:
+        provider.resolveCredentials().accessKeyId() == "fromChainKey"
+    }
+
+    def "falls back to anonymous access after the default provider chain"() {
+        given:
+        S3Client s3Client = new S3Client(s3ConnectionProperties)
+
+        expect:
+        s3Client.credentialsProvider instanceof AwsCredentialsProviderChain
+        s3Client.credentialsProvider.credentialsProviders*.class == [DefaultCredentialsProvider, AnonymousCredentialsProvider]
+    }
+
+    def "single-part body reopens the content each time the SDK re-reads it"() {
+        given:
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
+        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        URI uri = new URI("s3://localhost/foo.txt")
+        byte[] expected = 'hello world'.bytes
+        byte[] firstRead = null
+        byte[] secondRead = null
+
+        when:
+        s3Client.put(new ByteArrayReadableContent(expected), uri)
+
+        then:
+        1 * amazonS3Client.putObject(*_) >> { args ->
+            def provider = (args[1] as RequestBody).contentStreamProvider()
+            firstRead = provider.newStream().bytes
+            secondRead = provider.newStream().bytes
+            null
+        }
+
+        and:
+        firstRead == expected
+        secondRead == expected
+    }
+
+    def "multi-part bodies cover consecutive ranges and stay re-readable"() {
+        given:
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getPartSize() >> 7
+        s3Properties.getMultipartThreshold() >> 10
+        S3Client s3Client = new S3Client(amazonS3Client, s3Properties)
+        amazonS3Client.createMultipartUpload(_) >> CreateMultipartUploadResponse.builder().uploadId('1').build()
+        List<String> parts = []
+
+        when:
+        s3Client.put(new ByteArrayReadableContent('hello world!'.bytes), new URI("s3://localhost/foo.txt"))
+
+        then:
+        2 * amazonS3Client.uploadPart(*_) >> { args ->
+            def provider = (args[1] as RequestBody).contentStreamProvider()
+            provider.newStream().bytes
+            parts << new String(provider.newStream().bytes)
+            UploadPartResponse.builder().eTag('eTag').build()
+        }
+
+        and:
+        parts == ['hello w', 'orld!']
+    }
+
+    def "follows S3 redirects across regions on AWS"() {
+        given:
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getProxy() >> Optional.empty()
+        s3Properties.getMaxErrorRetryCount() >> Optional.empty()
+
+        expect:
+        new S3Client(credentials(), s3Properties).clientFor(someResource()) instanceof S3CrossRegionSyncClient
+    }
+
+    def "does not follow redirects across regions on a custom endpoint"() {
+        given:
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.of(new URI("http://someEndpoint"))
+        s3Properties.getProxy() >> Optional.empty()
+        s3Properties.getMaxErrorRetryCount() >> Optional.empty()
+
+        expect:
+        !(new S3Client(credentials(), s3Properties).clientFor(someResource()) instanceof S3CrossRegionSyncClient)
+    }
+
+    def "signs requests to a custom endpoint for the region in its host, like SDK v1"() {
+        expect:
+        S3Client.signingRegion(new URI("https://${host}")) == Region.of(region)
+
+        where:
+        host                                     | region
+        "s3.eu-west-1.amazonaws.com"             | "eu-west-1"
+        "s3-eu-west-1.amazonaws.com"             | "eu-west-1"
+        "s3.amazonaws.com"                       | "us-east-1"
+        "s3-external-1.amazonaws.com"            | "us-east-1"
+        "s3.cn-north-1.amazonaws.com.cn"         | "cn-north-1"
+        "s3.dualstack.eu-west-1.amazonaws.com"   | "eu-west-1"
+        "s3-fips.us-east-2.amazonaws.com"        | "us-east-2"
+        "bucket.s3.eu-west-2.amazonaws.com"      | "eu-west-2"
+        "s3.eu-central-1.wasabisys.com"          | "eu-central-1"
+        "s3.us-west-002.backblazeb2.com"         | "us-west-002"
+        "s3.fr-par.scw.cloud"                    | "fr-par"
+        "s3.example.com"                         | "example"
+        "localhost"                              | "us-east-1"
+        "127.0.0.1"                              | "us-east-1"
+        "minio.example.com"                      | "us-east-1"
+        "storage.googleapis.com"                 | "us-east-1"
+        "nyc3.digitaloceanspaces.com"            | "us-east-1"
+        "abc123.r2.cloudflarestorage.com"        | "us-east-1"
+    }
+
+    def "builds the client for a custom endpoint with the endpoint's region"() {
+        given:
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.of(new URI("https://s3.eu-central-1.wasabisys.com"))
+        s3Properties.getProxy() >> Optional.empty()
+        s3Properties.getMaxErrorRetryCount() >> Optional.empty()
+
+        expect:
+        new S3Client(credentials(), s3Properties).clientFor(someResource()).serviceClientConfiguration().region() == Region.EU_CENTRAL_1
+    }
+
+    @RestoreSystemProperties
+    def "ignores the SDK's configured endpoint URLs"() {
+        given:
+        def configFile = File.createTempFile("aws-config", ".ini")
+        configFile.deleteOnExit()
+        configFile.text = "[default]\nendpoint_url = http://from-profile.invalid\n"
+        System.setProperty("aws.configFile", configFile.absolutePath)
+        System.setProperty("aws.endpointUrlS3", "http://from-system-property.invalid")
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getProxy() >> Optional.empty()
+        s3Properties.getMaxErrorRetryCount() >> Optional.empty()
+
+        when:
+        def plainSdkClient = software.amazon.awssdk.services.s3.S3Client.builder()
+            .region(Region.US_EAST_1)
+            .credentialsProvider(AnonymousCredentialsProvider.create())
+            .build()
+        def gradleClient = new S3Client(credentials(), s3Properties).clientFor(someResource())
+
+        then:
+        // Shows that the settings take effect on a client that does not opt out
+        plainSdkClient.serviceClientConfiguration().endpointOverride().isPresent()
+        !gradleClient.serviceClientConfiguration().endpointOverride().isPresent()
+
+        cleanup:
+        plainSdkClient?.close()
+    }
+
+    def "uses SDK v1's HTTP timeouts"() {
+        given:
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getProxy() >> Optional.empty()
+        s3Properties.getMaxErrorRetryCount() >> Optional.empty()
+
+        when:
+        def httpClient = unwrapped(new S3Client(credentials(), s3Properties).clientFor(someResource())).clientConfiguration.option(SdkClientOption.SYNC_HTTP_CLIENT)
+        def options = httpClient.resolvedOptions
+
+        then:
+        options.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT) == Duration.ofSeconds(10)
+        options.get(SdkHttpConfigurationOption.READ_TIMEOUT) == Duration.ofSeconds(50)
+    }
+
+    def "aborts a multipart upload when reading the content fails"() {
+        given:
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getPartSize() >> 7
+        s3Properties.getMultipartThreshold() >> 10
+        S3Client s3Client = new S3Client(amazonS3Client, s3Properties)
+        amazonS3Client.createMultipartUpload(_) >> CreateMultipartUploadResponse.builder().uploadId('1').build()
+        def failure = new ResourceException("the content went away")
+
+        when:
+        s3Client.put(new ByteArrayReadableContent(new byte[12]), new URI("s3://localhost/foo.txt"))
+
+        then:
+        1 * amazonS3Client.uploadPart(*_) >> { throw failure }
+        1 * amazonS3Client.abortMultipartUpload(_)
+
+        and:
+        def ex = thrown(ResourceException)
+        ex.is(failure)
+    }
+
+    def "multi-part upload reads each part once through progress logging"() {
+        given:
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getPartSize() >> 7
+        s3Properties.getMultipartThreshold() >> 10
+        S3Client s3Client = new S3Client(amazonS3Client, s3Properties)
+        amazonS3Client.createMultipartUpload(_) >> CreateMultipartUploadResponse.builder().uploadId('1').build()
+        long processed = 0
+        def content = new ReadableContent() {
+            @Override
+            InputStream open() {
+                new ProgressLoggingInputStream(new ByteArrayInputStream(new byte[20]), { processed += it } as ProgressLoggingInputStreamListener)
+            }
+
+            @Override
+            long getContentLength() { 20 }
+        }
+
+        when:
+        s3Client.put(content, new URI("s3://localhost/foo.txt"))
+
+        then:
+        3 * amazonS3Client.uploadPart(*_) >> { args ->
+            (args[1] as RequestBody).contentStreamProvider().newStream().bytes
+            UploadPartResponse.builder().eTag('eTag').build()
+        }
+
+        and:
+        // Reaching a later part must skip the earlier ones, not read them
+        processed == 20
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30965")
+    def "retries a single-part upload larger than 128 KB with the same bytes"() {
+        given:
+        def http = new FlakyHttpClient(["put"])
+        byte[] data = randomBytes(MIB)
+        S3Client s3Client = new S3Client(sdkClientWith(http), uploadProperties(10L * MIB, 5L * MIB))
+
+        when:
+        s3Client.put(nonRewindableContent(data), new URI("s3://mybucket/file.bin"))
+
+        then:
+        http.bodies["put"].size() == 2
+        http.bodies["put"].every { Arrays.equals(it, data) }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30965")
+    def "retries a failed part of a multipart upload with the same bytes"() {
+        given:
+        def http = new FlakyHttpClient(["part-2"])
+        int partSize = 512 * 1024
+        byte[] data = randomBytes(3 * partSize)
+        S3Client s3Client = new S3Client(sdkClientWith(http), uploadProperties(MIB, partSize))
+
+        when:
+        s3Client.put(nonRewindableContent(data), new URI("s3://mybucket/file.bin"))
+
+        then:
+        http.bodies["part-1"].size() == 1
+        http.bodies["part-2"].size() == 2
+        http.bodies["part-2"].every { Arrays.equals(it, Arrays.copyOfRange(data, partSize, 2 * partSize)) }
+        http.bodies["part-3"].size() == 1
+        http.bodies["complete"].size() == 1
+    }
+
+    def "reuses one client per region"() {
+        given:
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getProxy() >> Optional.empty()
+        s3Properties.getMaxErrorRetryCount() >> Optional.empty()
+        S3Client s3Client = new S3Client(credentials(), s3Properties)
+        def euWest = new URI("s3://mybucket.s3.eu-west-1.amazonaws.com/file.txt")
+        def usWest = new URI("s3://mybucket.s3.us-west-2.amazonaws.com/file.txt")
+
+        when:
+        def first = s3Client.clientFor(new S3RegionalResource(euWest))
+        def second = s3Client.clientFor(new S3RegionalResource(euWest))
+        def other = s3Client.clientFor(new S3RegionalResource(usWest))
+
+        then:
+        first.is(second)
+        !first.is(other)
+        first.serviceClientConfiguration().region() == Region.EU_WEST_1
+        other.serviceClientConfiguration().region() == Region.US_WEST_2
+    }
+
+    def "tolerates exceptions without error details"() {
+        given:
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Stub()
+        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        URI uri = new URI("s3://somehost/file.txt")
+        amazonS3Client.headObject(_) >> { throw S3Exception.builder().statusCode(status).build() }
+        amazonS3Client.getObject(_) >> { throw noSuchKey() }
+
+        when:
+        def result = null
+        Exception failure = null
+        try {
+            result = s3Client.getMetaData(uri)
+        } catch (HttpErrorStatusCodeException e) {
+            failure = e
+        }
+
+        then:
+        result == null
+        (failure != null) == fails
+
+        where:
+        status | fails
+        404    | false
+        500    | true
+        301    | true
+    }
+
+    def "getMetaData confirms a HEAD 404 with a GET, since the SDK reports every HEAD 404 as NoSuchKey"() {
+        given:
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
+        URI uri = new URI("s3://somehost/file.txt")
+        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+
+        when:
+        def result = null
+        Exception failure = null
+        try {
+            result = s3Client.getMetaData(uri)
+        } catch (HttpErrorStatusCodeException e) {
+            failure = e
+        }
+
+        then:
+        1 * amazonS3Client.headObject(_) >> { throw noSuchKey() }
+        1 * amazonS3Client.getObject(_) >> { throw S3Exception.builder().statusCode(404).awsErrorDetails(AwsErrorDetails.builder().errorCode(getErrorCode).build()).build() }
+
+        and:
+        result == null
+        (failure != null) == fails
+
+        where:
+        getErrorCode   | fails
+        "NoSuchKey"    | false
+        "NoSuchBucket" | true
+        null           | false
+    }
+
+    def "getMetaData does not repeat a HEAD failure other than 404"() {
+        given:
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
+        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+
+        when:
+        s3Client.getMetaData(new URI("s3://somehost/file.txt"))
+
+        then:
+        1 * amazonS3Client.headObject(_) >> { throw S3Exception.builder().statusCode(403).build() }
+        0 * amazonS3Client.getObject(_)
+
+        and:
+        def ex = thrown(HttpErrorStatusCodeException)
+        ex.statusCode == 403
+    }
+
+    private S3ConnectionProperties uploadProperties(long multipartThreshold, long partSize) {
+        S3ConnectionProperties properties = Stub()
+        properties.getEndpoint() >> Optional.empty()
+        properties.getMultipartThreshold() >> multipartThreshold
+        properties.getPartSize() >> partSize
+        properties
+    }
+
+    private static byte[] randomBytes(int size) {
+        def bytes = new byte[size]
+        new Random().nextBytes(bytes)
+        bytes
+    }
+
+    // Like SDK v1's input, the stream cannot be reset, so a retry has to reopen the content
+    private static ReadableContent nonRewindableContent(byte[] data) {
+        new ReadableContent() {
+            @Override
+            InputStream open() {
+                new FilterInputStream(new ByteArrayInputStream(data)) {
+                    @Override
+                    boolean markSupported() {
+                        false
+                    }
+                }
+            }
+
+            @Override
+            long getContentLength() {
+                data.length
+            }
+        }
+    }
+
+    // A real SDK client, with the custom endpoint settings that send bodies unencoded
+    private static software.amazon.awssdk.services.s3.S3Client sdkClientWith(SdkHttpClient httpClient) {
+        software.amazon.awssdk.services.s3.S3Client.builder()
+            .httpClient(httpClient)
+            .region(Region.US_EAST_1)
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
+            .endpointOverride(new URI("http://localhost"))
+            .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).chunkedEncodingEnabled(false).build())
+            .build()
+    }
+
+    /**
+     * Records the body of every attempt, and fails the first attempt of the given operations with a retryable 500.
+     */
+    private static class FlakyHttpClient implements SdkHttpClient {
+        final Map<String, List<byte[]>> bodies = [:].withDefault { [] }
+        private final Set<String> failOnce
+
+        FlakyHttpClient(Collection<String> failOnce) {
+            this.failOnce = new HashSet<>(failOnce)
+        }
+
+        @Override
+        ExecutableHttpRequest prepareRequest(HttpExecuteRequest request) {
+            new ExecutableHttpRequest() {
+                @Override
+                HttpExecuteResponse call() {
+                    handle(request)
+                }
+
+                @Override
+                void abort() {
+                }
+            }
+        }
+
+        private HttpExecuteResponse handle(HttpExecuteRequest request) {
+            def query = request.httpRequest().rawQueryParameters()
+            String operation = query.containsKey("uploads") ? "create"
+                : query.containsKey("partNumber") ? "part-${query["partNumber"][0]}".toString()
+                : query.containsKey("uploadId") ? "complete"
+                : "put"
+            bodies[operation] << request.contentStreamProvider().map { it.newStream().bytes }.orElse(new byte[0])
+            if (failOnce.remove(operation)) {
+                return response(500, "<Error><Code>InternalError</Code><Message>Simulated failure</Message></Error>")
+            }
+            switch (operation) {
+                case "create":
+                    return response(200, "<InitiateMultipartUploadResult><Bucket>mybucket</Bucket><Key>file.bin</Key><UploadId>1</UploadId></InitiateMultipartUploadResult>")
+                case "complete":
+                    return response(200, "<CompleteMultipartUploadResult><Bucket>mybucket</Bucket><Key>file.bin</Key><ETag>\"etag\"</ETag></CompleteMultipartUploadResult>")
+                default:
+                    return response(200, "")
+            }
+        }
+
+        private static HttpExecuteResponse response(int status, String body) {
+            HttpExecuteResponse.builder()
+                .response(SdkHttpResponse.builder().statusCode(status).putHeader("ETag", "\"etag\"").build())
+                .responseBody(AbortableInputStream.create(new ByteArrayInputStream(body.bytes)))
+                .build()
+        }
+
+        @Override
+        void close() {
+        }
+
+        @Override
+        String clientName() {
+            "flaky"
+        }
+    }
+
+    private static S3RegionalResource someResource() {
+        new S3RegionalResource(new URI("s3://mybucket/file.txt"))
+    }
+
+    private static S3Exception noSuchKey() {
+        S3Exception.builder().statusCode(404).awsErrorDetails(AwsErrorDetails.builder().errorCode("NoSuchKey").build()).build()
+    }
+
+    private static def unwrapped(client) {
+        client instanceof DelegatingS3Client ? unwrapped(client.delegate()) : client
     }
 
     def credentials() {

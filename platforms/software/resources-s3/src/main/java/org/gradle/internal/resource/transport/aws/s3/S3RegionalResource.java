@@ -16,12 +16,10 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.RegionUtils;
-import com.amazonaws.regions.Regions;
-import com.google.common.base.Optional;
+import software.amazon.awssdk.regions.Region;
 
 import java.net.URI;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,9 +61,9 @@ public class S3RegionalResource {
             String key = matcher.group(4);
             Region derivedRegion;
             if (region.equals("external-1")) {
-                derivedRegion = Region.getRegion(Regions.US_EAST_1);
+                derivedRegion = Region.US_EAST_1;
             } else {
-                derivedRegion = RegionUtils.getRegion(region);
+                derivedRegion = Region.of(region);
             }
 
             this.region = Optional.of(derivedRegion);
@@ -77,7 +75,7 @@ public class S3RegionalResource {
 
         matcher = FALLBACK_ENDPOINT_PATTERN.matcher(uri.toString());
         if (matcher.find()) {
-            this.region = Optional.absent();
+            this.region = Optional.empty();
             this.bucketName = getBucketName(matcher.group(1));
             this.key = matcher.group(2);
 

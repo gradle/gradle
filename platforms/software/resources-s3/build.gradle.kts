@@ -11,17 +11,23 @@ dependencies {
     api(projects.resources)
     api(projects.resourcesHttp)
 
-    api(libs.awsS3Core)
-    api(libs.awsS3)
-    api(libs.awsS3Kms) {
-        because("Loaded by the AWS libraries with reflection when present")
-    }
-    api(libs.guava)
+    api(libs.awsS3S3)
+    api(libs.awsSdkCore)
+    api(libs.awsSdkRegions)
+    api(libs.jspecify)
 
     implementation(projects.baseServices)
     implementation(projects.hashing)
 
+    implementation(libs.awsApacheHttpClient)
+    implementation(libs.awsSdkAuth)
+    implementation(libs.awsSdkAwsCore)
+    implementation(libs.awsSdkHttpClientSpi)
+    implementation(libs.awsSdkProfiles)
+    implementation(libs.awsSdkRetries)
+    implementation(libs.awsSdkRetriesSpi)
     implementation(libs.commonsLang)
+    implementation(libs.guava)
     implementation(libs.slf4jApi)
 
     runtimeOnly(projects.core)
@@ -58,7 +64,6 @@ dependencyAnalysis {
     issues {
         onUnusedDependencies() {
             // This need to exist to be loaded reflectively
-            exclude(libs.awsS3Kms)
             exclude(libs.awsS3Sts)
         }
     }

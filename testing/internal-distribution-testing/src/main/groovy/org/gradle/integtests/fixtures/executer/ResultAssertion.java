@@ -172,6 +172,14 @@ public class ResultAssertion implements Action<ExecutionResult> {
                  */
                 i += 2;
                 i = skipStackTrace(lines, i);
+            } else if (line.contains("software.amazon.awssdk.http.apache.internal.conn.IdleConnectionReaper")) {
+                /*
+                The same stack trace from the Apache client of AWS SDK for Java v2:
+                2026-11-13T08:15:51.329+0100 [DEBUG] [software.amazon.awssdk.http.apache.internal.conn.IdleConnectionReaper] Reaper thread:
+                java.lang.InterruptedException: sleep interrupted
+                 */
+                i += 2;
+                i = skipStackTrace(lines, i);
             } else if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
                 // A javac warning, ignore
                 i++;
