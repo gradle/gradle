@@ -103,7 +103,11 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         @Override
         public void applyTo(String value, DaemonParameters settings, Origin origin) {
             try {
-                settings.setPeriodicCheckInterval(Integer.parseInt(value));
+                int periodicCheckInterval = Integer.parseInt(value);
+                if (periodicCheckInterval <= 0) {
+                    origin.handleInvalidValue(value, "the value should be a positive int");
+                }
+                settings.setPeriodicCheckInterval(periodicCheckInterval);
             } catch (NumberFormatException e) {
                 origin.handleInvalidValue(value, "the value should be an int");
             }
