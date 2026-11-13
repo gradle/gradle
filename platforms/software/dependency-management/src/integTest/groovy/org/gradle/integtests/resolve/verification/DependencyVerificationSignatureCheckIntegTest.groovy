@@ -2145,4 +2145,78 @@ This can indicate that a dependency has been compromised. Please carefully verif
         failure.assertHasErrorOutput("foo-1.0.jar (org:foo:1.0) in repository 'maven': signature file is corrupt (ArmoredInputException")
     }
 
+    def "verifies signatures of parent POM and imported BOM resolved from another repository"() {
+        def secondRepo = mavenHttpRepo("second")
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+            addTrustedKey("org:parent:1.0", validPublicKeyHexString, "pom", "pom")
+            addTrustedKey("org:bom:1.0", validPublicKeyHexString, "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        mavenHttpRepo.module("org", "parent", "1.0").missing()
+        mavenHttpRepo.module("org", "bom", "1.0").missing()
+
+        def bom = secondRepo.module("org", "bom", "1.0")
+        bom.hasPackaging("pom")
+        bom.hasType("pom")
+        bom.withSignature {
+            signAsciiArmored(it)
+        }
+        bom.allowAll()
+        bom.publish()
+
+        def parent = secondRepo.module("org", "parent", "1.0")
+        parent.hasPackaging("pom")
+        parent.hasType("pom")
+        parent.dependencyConstraint(bom, type: "pom", scope: "import")
+        parent.withSignature {
+            signAsciiArmored(it)
+        }
+        parent.allowAll()
+        parent.publish()
+
+        uncheckedModule("org", "foo", "1.0") {
+            parent("org", "parent", "1.0")
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            repositories {
+                maven {
+                    name = "second"
+                    url = "${secondRepo.uri}"
+                }
+            }
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+
+        then:
+        succeeds ":compileJava"
+
+        when:
+        executer.stop()
+        buildFile << """
+            tasks.register("resolve") {
+                def files = configurations.compileClasspath
+                doLast {
+                    println files.files
+                }
+            }
+        """
+
+        then:
+        succeeds ":resolve"
+    }
+
 }
