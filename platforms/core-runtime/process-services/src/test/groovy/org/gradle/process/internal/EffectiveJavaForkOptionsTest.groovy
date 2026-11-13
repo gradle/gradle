@@ -19,6 +19,7 @@ package org.gradle.process.internal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
@@ -220,7 +221,8 @@ class EffectiveJavaForkOptionsTest extends Specification {
         options.isCompatibleWith(other)
     }
 
-    def "is not compatible with different system properties"() {
+    @Issue("https://github.com/gradle/gradle/issues/38395")
+    def "is compatible with different system properties"() {
         def options = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory).tap {
             systemProperties = ["foo": "bar", "bar": "foo"]
         })
@@ -229,9 +231,10 @@ class EffectiveJavaForkOptionsTest extends Specification {
         })
 
         expect:
-        !options.isCompatibleWith(other)
+        options.isCompatibleWith(other)
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/38395")
     def "is compatible with subset of system properties"() {
         def options = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory).tap {
             systemProperties = ["foo": "bar", "bar": "foo"]
@@ -244,7 +247,8 @@ class EffectiveJavaForkOptionsTest extends Specification {
         options.isCompatibleWith(other)
     }
 
-    def "is not compatible with super set of system properties"() {
+    @Issue("https://github.com/gradle/gradle/issues/38395")
+    def "is compatible with super set of system properties"() {
         def options = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory).tap {
             systemProperties = ["foo": "bar"]
         })
@@ -253,7 +257,7 @@ class EffectiveJavaForkOptionsTest extends Specification {
         })
 
         expect:
-        !options.isCompatibleWith(other)
+        options.isCompatibleWith(other)
     }
 
     def "is compatible with same debug setting"() {
@@ -394,5 +398,21 @@ class EffectiveJavaForkOptionsTest extends Specification {
         expect:
         options.isCompatibleWith(other1)
         !options.isCompatibleWith(other2)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38395")
+    def "is not compatible with different value of immutable system property #name"() {
+        def options = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory).tap {
+            systemProperty(name, "a")
+        })
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory).tap {
+            systemProperty(name, "b")
+        })
+
+        expect:
+        !options.isCompatibleWith(other)
+
+        where:
+        name << JvmOptions.IMMUTABLE_SYSTEM_PROPERTIES
     }
 }

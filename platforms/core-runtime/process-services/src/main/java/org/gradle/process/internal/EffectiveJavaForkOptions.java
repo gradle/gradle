@@ -69,6 +69,9 @@ public class EffectiveJavaForkOptions {
 
     /**
      * Returns true if the given options are compatible with this set of options.
+     * <p>
+     * Mutable system properties are ignored, as they can be set for each unit of work in the process.
+     * Immutable system properties are only read on startup, so they must match.
      */
     public boolean isCompatibleWith(EffectiveJavaForkOptions forkOptions) {
         return jvmOptions.getDebug() == forkOptions.getJvmOptions().getDebug()
@@ -79,7 +82,7 @@ public class EffectiveJavaForkOptions {
             && getHeapSizeMb(jvmOptions.getMinHeapSize()) >= getHeapSizeMb(forkOptions.getJvmOptions().getMinHeapSize())
             && getHeapSizeMb(jvmOptions.getMaxHeapSize()) >= getHeapSizeMb(forkOptions.getJvmOptions().getMaxHeapSize())
             && normalized(jvmOptions.getJvmArgs()).containsAll(normalized(forkOptions.getJvmOptions().getJvmArgs()))
-            && containsAll(jvmOptions.getMutableSystemProperties(), forkOptions.getJvmOptions().getMutableSystemProperties())
+            && jvmOptions.getImmutableSystemProperties().equals(forkOptions.getJvmOptions().getImmutableSystemProperties())
             && containsAll(environment, forkOptions.getEnvironment())
             && jvmOptions.getBootstrapClasspath().getFiles().containsAll(forkOptions.getJvmOptions().getBootstrapClasspath().getFiles());
     }
@@ -142,6 +145,10 @@ public class EffectiveJavaForkOptions {
 
         public Map<String, Object> getMutableSystemProperties() {
             return ImmutableMap.copyOf(delegate.getMutableSystemProperties());
+        }
+
+        public Map<String, Object> getImmutableSystemProperties() {
+            return ImmutableMap.copyOf(delegate.getImmutableSystemProperties());
         }
 
         public void copyTo(JavaForkOptions target) {

@@ -320,8 +320,8 @@ A daemon is compatible if it has set all the JVM arguments requested. +
 Note that a daemon is compatible if it has additional JVM arguments beyond those requested (except for those treated especially, such as heap settings, assertions, debug, etc.).
 
 system properties::
-A daemon is considered compatible if it has set all the system properties requested with the same values. +
-Note that a daemon is compatible if it has additional system properties beyond those requested.
+While a unit of work runs, Gradle sets the requested system properties in the daemon and clears the other system properties the daemon was started with. +
+Only some system properties affect compatibility, as described in <<#worker-daemon-system-properties,the table below>>.
 
 environment variables::
 A daemon is considered compatible if it has set all the environment variables requested with the same values. +
@@ -339,6 +339,32 @@ A daemon is considered compatible only if enable assertions are set to the same 
 
 default character encoding::
 A daemon is considered compatible only if the default character encoding is set to the same value as requested.
+
+System properties include those passed as `-D` JVM arguments.
+Each kind of system property affects daemon reuse differently:
+
+[[worker-daemon-system-properties]]
+.System properties and worker daemon reuse
+[cols="2,3,3,3"]
+|===
+|Kind of system property |Examples |Effect on daemon reuse |Value seen by the work
+
+|Most system properties
+|`-Dfoo=bar`, values from `options.forkOptions.jvmArgumentProviders`
+|None.
+|The requested value.
+Properties requested by other work are cleared.
+
+|Properties Gradle knows are only read when the JVM starts
+|`file.encoding`, `user.language`, `user.country`, `user.variant`, `java.io.tmpdir`, `java.security.properties`, `jdk.io.File.enableADS`, `com.sun.management.jmxremote`, `javax.net.ssl.keyStore`, `javax.net.ssl.trustStore` and their password and type properties
+|A daemon is considered compatible only if the values match.
+|The requested value.
+
+|Other properties only read when the JVM starts
+|`java.library.path`
+|None.
+|The requested value, but it only takes effect if the daemon was started with it.
+|===
 
 Gradle stops worker daemons when the build completes.
 If system memory becomes scarce during the build, Gradle stops idle worker daemons to reduce memory use.
