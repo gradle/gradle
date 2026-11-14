@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Action;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventProgressListener;
@@ -28,6 +29,7 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
+import org.gradle.api.tasks.testing.TestEventReporterSpec;
 import org.gradle.api.tasks.testing.TestReportEntryContributor;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -83,10 +85,12 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         String rootName,
         Directory binaryResultsDirectory,
         Directory htmlReportDirectory,
-        boolean closeThrowsOnTestFailures,
-        List<? extends TestReportEntryContributor> htmlReportEntryContributors
+        Action<? super TestEventReporterSpec> configureAction
     ) {
-        List<TestReportEntryContributorSafe> entryContributors = htmlReportEntryContributors.stream()
+        DefaultTestEventReporterSpec spec = new DefaultTestEventReporterSpec();
+        configureAction.execute(spec);
+        boolean closeThrowsOnTestFailures = spec.closeThrowsOnTestFailures;
+        List<TestReportEntryContributorSafe> entryContributors = spec.htmlReportEntryContributors.stream()
             .map(TestReportEntryContributorSafe::new)
             .collect(ImmutableList.toImmutableList());
         validateEntryNames(entryContributors);
@@ -108,6 +112,21 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
             0,
             closeThrowsOnTestFailures
         );
+    }
+
+    private static final class DefaultTestEventReporterSpec implements TestEventReporterSpec {
+        private boolean closeThrowsOnTestFailures = true;
+        private List<TestReportEntryContributor> htmlReportEntryContributors = ImmutableList.of();
+
+        @Override
+        public void setCloseThrowsOnTestFailures(boolean closeThrowsOnTestFailures) {
+            this.closeThrowsOnTestFailures = closeThrowsOnTestFailures;
+        }
+
+        @Override
+        public void setHtmlReportEntryContributors(List<? extends TestReportEntryContributor> htmlReportEntryContributors) {
+            this.htmlReportEntryContributors = ImmutableList.copyOf(htmlReportEntryContributors);
+        }
     }
 
     private static void validateEntryNames(List<TestReportEntryContributorSafe> entryContributors) {
