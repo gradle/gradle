@@ -250,6 +250,31 @@ class InstallTest extends Specification {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39813")
+    def "reports that the downloaded distribution cannot be moved into place"() {
+        given:
+        _ * pathAssembler.getDistribution(configuration) >> localDistribution
+        _ * localDistribution.distributionDir >> distributionDir
+        _ * localDistribution.zipFile >> zipDestination
+
+        and:
+        configuration.retries = 2
+        configuration.retryBackOffMs = 0
+        zipDestination.createDir("in-the-way")
+
+        when:
+        install.createDist(configuration)
+
+        then:
+        def failure = thrown(RuntimeException)
+        failure.message.startsWith("Could not move ${zipDestination.absolutePath}.part to ${zipDestination.absolutePath}")
+        failure.cause instanceof IOException
+
+        and:
+        1 * download.download(configuration.distribution, _) >> { templateZipFile.copyTo(it[1]) }
+        0 * download._
+    }
+
     def "reports distribution url without credentials when checksum verification fails"() {
         given:
         configuration.distribution = new URI(distributionUrl)

@@ -29,6 +29,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -189,10 +190,7 @@ public class Install {
 
                 logger.log("Downloading " + safeUriDisplay(distributionUrl));
                 download.download(distributionUrl, tempDownloadFile);
-                if (localTargetFile.exists()) {
-                    localTargetFile.delete();
-                }
-                tempDownloadFile.renameTo(localTargetFile);
+                moveIntoPlace(tempDownloadFile, localTargetFile);
 
                 return;
             } catch (IOException ioException) {
@@ -211,6 +209,14 @@ public class Install {
         }
 
         throw lastException;
+    }
+
+    private void moveIntoPlace(File tempDownloadFile, File localTargetFile) {
+        try {
+            Files.move(tempDownloadFile.toPath(), localTargetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not move " + tempDownloadFile.getAbsolutePath() + " to " + localTargetFile.getAbsolutePath() + ": " + e, e);
+        }
     }
 
     static String calculateSha256Sum(File file) throws Exception {
