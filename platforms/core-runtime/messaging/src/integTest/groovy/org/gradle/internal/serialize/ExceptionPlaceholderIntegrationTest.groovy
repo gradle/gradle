@@ -190,6 +190,132 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec implem
         ]
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/34280")
+    def "preserves build failure when an exception method signature cannot be resolved"() {
+        given:
+        jarWithClasses(file('buildSrc/libs/optional.jar'), 'repro/MissingSignatureType': '''
+            package repro;
+
+            public final class MissingSignatureType {
+            }
+        ''')
+        file('buildSrc/build.gradle') << '''
+            plugins { id 'java' }
+            dependencies { compileOnly files('libs/optional.jar') }
+        '''
+        file('buildSrc/src/main/java/repro/BrokenException.java') << '''
+            package repro;
+
+            public final class BrokenException extends RuntimeException {
+                public BrokenException(String message) {
+                    super(message);
+                }
+
+                public MissingSignatureType methodWithMissingReturnType() {
+                    return null;
+                }
+            }
+        '''
+        file('buildSrc/src/main/java/repro/FailingTask.java') << '''
+            package repro;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.TaskAction;
+
+            public abstract class FailingTask extends DefaultTask {
+                @TaskAction
+                public void fail() {
+                    throw new BrokenException("Intentional task failure");
+                }
+            }
+        '''
+        buildFile << '''
+            tasks.register('reproduce', repro.FailingTask)
+        '''
+
+        when:
+        fails 'reproduce'
+
+        then:
+        failureCauseContains('Intentional task failure')
+        failure.assertHasFailures(1)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34280")
+    def "preserves build failure from a #isolationMode worker with an exception method signature dependency"() {
+        given:
+        jarWithClasses(file('libs/worker-exception.jar'),
+            'repro/MissingSignatureType': '''
+                package repro;
+
+                public final class MissingSignatureType {
+                }
+            ''',
+            'repro/BrokenException': '''
+                package repro;
+
+                public final class BrokenException extends RuntimeException {
+                    public BrokenException(String message) {
+                        super(message);
+                    }
+
+                    public MissingSignatureType methodWithMissingReturnType() {
+                        return null;
+                    }
+                }
+            '''
+        )
+        file('buildSrc/build.gradle') << '''
+            plugins { id 'java' }
+            dependencies { compileOnly files('../libs/worker-exception.jar') }
+        '''
+        file('buildSrc/src/main/java/repro/FailingWork.java') << '''
+            package repro;
+
+            import org.gradle.workers.WorkAction;
+            import org.gradle.workers.WorkParameters;
+
+            public abstract class FailingWork implements WorkAction<WorkParameters.None> {
+                @Override
+                public void execute() {
+                    throw new BrokenException("Intentional worker failure");
+                }
+            }
+        '''
+        buildFile << """
+            import org.gradle.workers.WorkerExecutor
+
+            abstract class FailingWorkerTask extends DefaultTask {
+                @Classpath
+                abstract ConfigurableFileCollection getWorkerClasspath()
+
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor()
+
+                @TaskAction
+                void fail() {
+                    workerExecutor.${isolationMode} { spec ->
+                        spec.classpath.from(workerClasspath)
+                    }.submit(repro.FailingWork) {}
+                }
+            }
+
+            tasks.register('reproduce', FailingWorkerTask) {
+                workerClasspath.from(files('libs/worker-exception.jar'))
+            }
+        """
+
+        when:
+        fails 'reproduce'
+
+        then:
+        failureCauseContains('Intentional worker failure')
+        failure.assertHasFailures(1)
+
+        where:
+        isolationMode << ['classLoaderIsolation', 'processIsolation']
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/9487")
     def 'break cycles with suppressed and cause exceptions'() {
         given:
