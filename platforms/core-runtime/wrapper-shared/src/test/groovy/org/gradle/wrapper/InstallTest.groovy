@@ -191,6 +191,65 @@ class InstallTest extends Specification {
         linkPath << ["old/link", "link"]
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39813")
+    @Requires(FileSystemTestPreconditions.FilePermissions)
+    def "names the file that cannot be deleted when deleting an old distribution"() {
+        given:
+        _ * pathAssembler.getDistribution(configuration) >> localDistribution
+        _ * localDistribution.distributionDir >> distributionDir
+        _ * localDistribution.zipFile >> zipDestination
+
+        and:
+        def readOnlyDir = distributionDir.createDir("old/read-only")
+        def undeletableFile = readOnlyDir.createFile("file")
+        readOnlyDir.setPermissions("r-xr-xr-x")
+
+        when:
+        install.createDist(configuration)
+
+        then:
+        def failure = thrown(RuntimeException)
+        failure.message.startsWith("Could not delete directory ${distributionDir.file('old').absolutePath}")
+        failure.message.contains(undeletableFile.absolutePath)
+        failure.cause instanceof IOException
+
+        and:
+        1 * download.download(configuration.distribution, _) >> { templateZipFile.copyTo(it[1]) }
+        0 * download._
+
+        cleanup:
+        readOnlyDir.setPermissions("rwxr-xr-x")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39813")
+    @Requires(FileSystemTestPreconditions.FilePermissions)
+    def "deletes an empty directory that cannot be read when deleting an old distribution"() {
+        given:
+        _ * pathAssembler.getDistribution(configuration) >> localDistribution
+        _ * localDistribution.distributionDir >> distributionDir
+        _ * localDistribution.zipFile >> zipDestination
+
+        and:
+        def unreadableDir = distributionDir.createDir("old/unreadable")
+        unreadableDir.setPermissions("---------")
+
+        when:
+        def homeDir = install.createDist(configuration)
+
+        then:
+        homeDir == gradleHomeDir
+        distributionDir.list() as List == [gradleHomeDir.name]
+
+        and:
+        1 * download.download(configuration.distribution, _) >> { templateZipFile.copyTo(it[1]) }
+        0 * download._
+
+        cleanup:
+        if (unreadableDir.exists()) {
+            unreadableDir.setPermissions("rwxr-xr-x")
+        }
+    }
+
     def "reports distribution url without credentials when checksum verification fails"() {
         given:
         configuration.distribution = new URI(distributionUrl)

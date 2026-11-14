@@ -161,7 +161,11 @@ public class Install {
         List<File> topLevelDirs = listDirs(distDir);
         for (File dir : topLevelDirs) {
             logger.log("Deleting directory " + dir.getAbsolutePath());
-            deleteDir(dir);
+            try {
+                deleteDir(dir);
+            } catch (IOException e) {
+                throw new RuntimeException("Could not delete directory " + dir.getAbsolutePath() + ": " + e, e);
+            }
         }
     }
 
@@ -329,21 +333,20 @@ public class Install {
         return osName.contains("windows");
     }
 
-    private boolean deleteDir(File dir) {
+    private void deleteDir(File dir) throws IOException {
         if (!Files.isSymbolicLink(dir.toPath()) && dir.isDirectory()) {
             String[] children = dir.list();
             if (children != null) {
                 for (String child : children) {
-                    boolean success = deleteDir(new File(dir, child));
-                    if (!success) {
-                        return false;
-                    }
+                    deleteDir(new File(dir, child));
                 }
             }
         }
 
         // The directory is now empty so delete it
-        return dir.delete();
+        if (!dir.delete()) {
+            Files.delete(dir.toPath());
+        }
     }
 
     private void unzip(File zip, File dest) throws IOException {
