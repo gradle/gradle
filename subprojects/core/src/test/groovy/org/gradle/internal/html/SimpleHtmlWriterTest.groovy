@@ -56,4 +56,24 @@ class SimpleHtmlWriterTest extends Specification {
         def e = thrown(IllegalArgumentException)
         e.message == "Invalid HTML tag: 'invalid'"
     }
+
+    def "can write raw markup into an element"() {
+        given:
+        StringWriter sw = new StringWriter()
+
+        when:
+        SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(sw)
+        htmlWriter.startElement("div").attribute("class", "raw")
+        htmlWriter.writeRawMarkup { markupOut ->
+            markupOut
+                .append("<custom-tag>a &amp; b</custom-tag>")
+                .append("x<i>y</i>z", 1, 9)
+                .append('!' as char)
+        }
+        htmlWriter.endElement()
+        sw.close()
+
+        then:
+        sw.toString() == '<!DOCTYPE html><div class="raw"><custom-tag>a &amp; b</custom-tag><i>y</i>!</div>'
+    }
 }

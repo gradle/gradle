@@ -16,15 +16,19 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventProgressListener;
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.report.generic.TestReportEntryContributorSafe;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
+import org.gradle.api.tasks.testing.TestReportEntryContributor;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -37,10 +41,24 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.LongFunction;
 
 @NullMarked
 public final class DefaultTestEventReporterFactory implements TestEventReporterFactoryInternal {
+
+    /**
+     * Names of the entries the generic HTML report renders itself, which custom entries must not use.
+     */
+    private static final ImmutableSet<String> RESERVED_ENTRY_NAMES = ImmutableSet.of(
+        "summary",
+        "standard output",
+        "error output",
+        "data",
+        "attachments"
+    );
 
     private final ListenerManager listenerManager;
     private final StyledTextOutputFactory textOutputFactory;
@@ -61,7 +79,18 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
     }
 
     @Override
-    public GroupTestEventReporter createTestEventReporter(String rootName, Directory binaryResultsDirectory, Directory htmlReportDirectory, boolean closeThrowsOnTestFailures) {
+    public GroupTestEventReporter createTestEventReporter(
+        String rootName,
+        Directory binaryResultsDirectory,
+        Directory htmlReportDirectory,
+        boolean closeThrowsOnTestFailures,
+        List<? extends TestReportEntryContributor> htmlReportEntryContributors
+    ) {
+        List<TestReportEntryContributorSafe> entryContributors = htmlReportEntryContributors.stream()
+            .map(TestReportEntryContributorSafe::new)
+            .collect(ImmutableList.toImmutableList());
+        validateEntryNames(entryContributors);
+
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster = listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
 
         // Renders console output for the task
@@ -70,7 +99,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         // Emits progress logger events
         testListenerInternalBroadcaster.add(new TestEventProgressListener(progressLoggerFactory));
 
-        GenericHtmlTestReportGenerator reportGenerator = objectFactory.newInstance(GenericHtmlTestReportGenerator.class, htmlReportDirectory.getAsFile().toPath());
+        GenericHtmlTestReportGenerator reportGenerator = objectFactory.newInstance(GenericHtmlTestReportGenerator.class, htmlReportDirectory.getAsFile().toPath(), entryContributors);
         return createInternalTestEventReporter(
             id -> new DefaultTestSuiteDescriptor(id, rootName),
             binaryResultsDirectory,
@@ -79,6 +108,44 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
             0,
             closeThrowsOnTestFailures
         );
+    }
+
+    private static void validateEntryNames(List<TestReportEntryContributorSafe> entryContributors) {
+        Map<String, TestReportEntryContributorSafe> contributorsByEntryName = new HashMap<>();
+        for (TestReportEntryContributorSafe contributor : entryContributors) {
+            validateEntryName(contributor, contributorsByEntryName);
+        }
+    }
+
+    private static void validateEntryName(
+        TestReportEntryContributorSafe contributor,
+        Map<String, TestReportEntryContributorSafe> contributorsByEntryName
+    ) {
+        String entryName = contributor.getEntryName();
+        if (entryName.isBlank()) {
+            throw new IllegalArgumentException(
+                "Entry name of test report entry contributor " + contributor.getContributorClassName() + " must not be blank."
+            );
+        }
+        if (Character.isWhitespace(entryName.charAt(0)) || Character.isWhitespace(entryName.charAt(entryName.length() - 1))) {
+            throw new IllegalArgumentException(
+                "Entry name '" + entryName + "' of test report entry contributor " + contributor.getContributorClassName()
+                    + " must not have leading or trailing whitespace."
+            );
+        }
+        if (RESERVED_ENTRY_NAMES.contains(entryName)) {
+            throw new IllegalArgumentException(
+                "Entry name '" + entryName + "' of test report entry contributor " + contributor.getContributorClassName()
+                    + " is reserved for a built-in entry of the test report."
+            );
+        }
+        TestReportEntryContributorSafe existing = contributorsByEntryName.putIfAbsent(entryName, contributor);
+        if (existing != null) {
+            throw new IllegalArgumentException(
+                "Entry name '" + entryName + "' of test report entry contributor " + contributor.getContributorClassName()
+                    + " is already used by test report entry contributor " + existing.getContributorClassName() + "."
+            );
+        }
     }
 
     @Override

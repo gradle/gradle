@@ -95,11 +95,26 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
     }
 
     GenericTestExecutionResult assertHtml(String cssQuery, Action<Collection<?>> action) {
-        def parsedHtml = Jsoup.parse(htmlReportDirectory.toPath().resolve("index.html").toFile(), null)
+        return assertHtml("index.html", cssQuery, action)
+    }
+
+    /**
+     * Queries a page of the report, given by its path relative to the report directory.
+     */
+    GenericTestExecutionResult assertHtml(String pagePath, String cssQuery, Action<Collection<?>> action) {
+        def parsedHtml = Jsoup.parse(htmlReportDirectory.toPath().resolve(pagePath).toFile(), null)
         def matched = parsedHtml.select(cssQuery)
-        assert matched : "Queried HTML report for $cssQuery"
+        assert matched : "Queried HTML report page $pagePath for $cssQuery"
         action.execute(matched)
         return this
+    }
+
+    /**
+     * Returns the names of all tabs on a page of the report, at any nesting level, given by its path relative to the report directory.
+     */
+    List<String> getAllTabNames(String pagePath) {
+        def parsedHtml = Jsoup.parse(htmlReportDirectory.toPath().resolve(pagePath).toFile(), null)
+        return parsedHtml.select('.tabLinks > li').collect { it.text() }
     }
 
     private static TestPathSelector parseLiteralPath(String path) {

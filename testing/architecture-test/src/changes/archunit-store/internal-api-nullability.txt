@@ -1347,7 +1347,6 @@ Class <org.gradle.internal.graph.DirectedGraphRenderer> is not annotated (direct
 Class <org.gradle.internal.graph.DirectedGraphWithEdgeValues> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DirectedGraphWithEdgeValues.java:0)
 Class <org.gradle.internal.graph.GraphNodeRenderer> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (GraphNodeRenderer.java:0)
 Class <org.gradle.internal.graph.GraphRenderer> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (GraphRenderer.java:0)
-Class <org.gradle.internal.html.SimpleHtmlWriter> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (SimpleHtmlWriter.java:0)
 Class <org.gradle.internal.installation.CurrentGradleInstallation> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (CurrentGradleInstallation.java:0)
 Class <org.gradle.internal.installation.CurrentGradleInstallationLocator> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (CurrentGradleInstallationLocator.java:0)
 Class <org.gradle.internal.installation.GradleInstallation> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (GradleInstallation.java:0)
