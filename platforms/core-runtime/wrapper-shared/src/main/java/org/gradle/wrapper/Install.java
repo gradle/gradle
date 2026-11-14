@@ -330,7 +330,7 @@ public class Install {
     }
 
     private boolean deleteDir(File dir) {
-        if (dir.isDirectory()) {
+        if (!Files.isSymbolicLink(dir.toPath()) && dir.isDirectory()) {
             String[] children = dir.list();
             if (children != null) {
                 for (String child : children) {
