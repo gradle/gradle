@@ -22,6 +22,9 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * A service that provides access to the test event reporting API.
  *
@@ -62,10 +65,35 @@ public interface TestEventReporterFactory {
      *
      * @since 9.3.0
      */
-    GroupTestEventReporter createTestEventReporter(
+    default GroupTestEventReporter createTestEventReporter(
         String rootName,
         Directory binaryResultsDirectory,
         Directory htmlReportDirectory,
         boolean closeThrowsOnTestFailures
+    ) {
+        return createTestEventReporter(rootName, binaryResultsDirectory, htmlReportDirectory, closeThrowsOnTestFailures, Collections.emptyList());
+    }
+
+    /**
+     * Returns an object that can be used to report test events, with custom entries in the HTML test report.
+     *
+     * @param rootName the name for the root node of the test tree
+     * @param binaryResultsDirectory the directory to write binary test results to
+     * @param htmlReportDirectory the directory to write HTML test reports to
+     * @param closeThrowsOnTestFailures determines if this reporter should throw upon close if the root node has been
+     * failed, or do nothing
+     * @param htmlReportEntryContributors contributors of custom entries in the HTML test report, each shown in its
+     * own tab
+     *
+     * @return the test event reporter
+     *
+     * @since 9.10.0
+     */
+    GroupTestEventReporter createTestEventReporter(
+        String rootName,
+        Directory binaryResultsDirectory,
+        Directory htmlReportDirectory,
+        boolean closeThrowsOnTestFailures,
+        List<? extends TestReportEntryContributor> htmlReportEntryContributors
     );
 }
