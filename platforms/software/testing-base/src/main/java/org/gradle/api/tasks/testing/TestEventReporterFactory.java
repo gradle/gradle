@@ -16,14 +16,12 @@
 
 package org.gradle.api.tasks.testing;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * A service that provides access to the test event reporting API.
@@ -50,7 +48,7 @@ public interface TestEventReporterFactory {
         Directory binaryResultsDirectory,
         Directory htmlReportDirectory
     ) {
-        return createTestEventReporter(rootName, binaryResultsDirectory, htmlReportDirectory, true);
+        return createTestEventReporter(rootName, binaryResultsDirectory, htmlReportDirectory, spec -> {});
     }
 
     /**
@@ -64,26 +62,31 @@ public interface TestEventReporterFactory {
      * @return the test event reporter
      *
      * @since 9.3.0
+     * @deprecated Use {@link #createTestEventReporter(String, Directory, Directory, Action)} with
+     * {@link TestEventReporterSpec#setCloseThrowsOnTestFailures(boolean)} instead.
      */
+    @Deprecated
     default GroupTestEventReporter createTestEventReporter(
         String rootName,
         Directory binaryResultsDirectory,
         Directory htmlReportDirectory,
         boolean closeThrowsOnTestFailures
     ) {
-        return createTestEventReporter(rootName, binaryResultsDirectory, htmlReportDirectory, closeThrowsOnTestFailures, Collections.emptyList());
+        return createTestEventReporter(
+            rootName,
+            binaryResultsDirectory,
+            htmlReportDirectory,
+            spec -> spec.setCloseThrowsOnTestFailures(closeThrowsOnTestFailures)
+        );
     }
 
     /**
-     * Returns an object that can be used to report test events, with custom entries in the HTML test report.
+     * Returns an object that can be used to report test events, configured by the given action.
      *
      * @param rootName the name for the root node of the test tree
      * @param binaryResultsDirectory the directory to write binary test results to
      * @param htmlReportDirectory the directory to write HTML test reports to
-     * @param closeThrowsOnTestFailures determines if this reporter should throw upon close if the root node has been
-     * failed, or do nothing
-     * @param htmlReportEntryContributors contributors of custom entries in the HTML test report, each shown in its
-     * own tab
+     * @param configureAction configures the options of the reporter
      *
      * @return the test event reporter
      *
@@ -93,7 +96,6 @@ public interface TestEventReporterFactory {
         String rootName,
         Directory binaryResultsDirectory,
         Directory htmlReportDirectory,
-        boolean closeThrowsOnTestFailures,
-        List<? extends TestReportEntryContributor> htmlReportEntryContributors
+        Action<? super TestEventReporterSpec> configureAction
     );
 }

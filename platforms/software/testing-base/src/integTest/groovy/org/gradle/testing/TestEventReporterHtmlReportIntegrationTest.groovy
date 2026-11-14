@@ -918,10 +918,10 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
                     try (def reporter = testEventReporterFactory.createTestEventReporter(
                         "custom",
                         getLayout().getBuildDirectory().dir("test-results/custom").get(),
-                        getLayout().getBuildDirectory().dir("reports/tests/custom").get(),
-                        true,
-                        [${contributorInstances}]
-                    )) {
+                        getLayout().getBuildDirectory().dir("reports/tests/custom").get()
+                    ) { spec ->
+                        spec.htmlReportEntryContributors = [${contributorInstances}]
+                    }) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("suite")) {
                             mySuite.started(Instant.now())
