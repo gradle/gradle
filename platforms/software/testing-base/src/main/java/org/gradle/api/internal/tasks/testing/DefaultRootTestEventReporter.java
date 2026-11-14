@@ -20,6 +20,7 @@ import org.gradle.api.internal.exceptions.MarkedVerificationException;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
+import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -31,10 +32,13 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.List;
 import java.util.function.LongFunction;
 
 @NullMarked
 class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
+
+    private static final String DEFAULT_FAILURE_MESSAGE = "Test(s) failed.";
 
     private final Path binaryResultsDir;
     private final SerializableTestResultStore.Writer testResultWriter;
@@ -42,11 +46,11 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
     private final TestReportGenerator testReportGenerator;
     private final TestExecutionResultsListener executionResultsListener;
     private final boolean closeThrowsOnTestFailures;
-    private final boolean addToAggregateReports;
 
     // Mutable state
     @Nullable
     private String failureMessage;
+    private long endTime;
 
     DefaultRootTestEventReporter(
         LongFunction<TestDescriptorInternal> rootDescriptorFactory,
@@ -56,8 +60,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         SerializableTestResultStore.Writer testResultWriter,
         @Nullable TestReportGenerator testReportGenerator,
         TestExecutionResultsListener executionResultsListener,
-        boolean closeThrowsOnTestFailures,
-        boolean addToAggregateReports
+        boolean closeThrowsOnTestFailures
     ) {
         super(
             listener,
@@ -71,7 +74,6 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         this.testReportGenerator = testReportGenerator;
         this.executionResultsListener = executionResultsListener;
         this.closeThrowsOnTestFailures = closeThrowsOnTestFailures;
-        this.addToAggregateReports = addToAggregateReports;
     }
 
     @Override
@@ -94,35 +96,72 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
-        // Generate HTML report
-        Path reportIndexFile = testReportGenerator == null
+        GeneratedTestReport report = testReportGenerator == null
             ? null
             : testReportGenerator.generate(Collections.singletonList(binaryResultsDir));
 
         // Notify aggregate listener of final results
-        boolean hasTestFailures = failureMessage != null;
-        if (addToAggregateReports) {
-            executionResultsListener.executionResultsAvailable(testDescriptor, binaryResultsDir, hasTestFailures);
-        }
+        executionResultsListener.executionResultsAvailable(createExecution(report));
 
         // Throw an exception with rendered test results, if necessary
+        boolean hasTestFailures = failureMessage != null;
         if (hasTestFailures && closeThrowsOnTestFailures) {
-            if (reportIndexFile == null) {
+            if (report == null) {
                 // No report was requested, just fail with the message we have
                 throw new MarkedVerificationException(failureMessage);
             }
-            String testResultsUrl = new ConsoleRenderer().asClickableFileUrl(reportIndexFile.toFile());
+            String testResultsUrl = new ConsoleRenderer().asClickableFileUrl(report.location().toFile());
             throw new MarkedVerificationException(failureMessage + " See the report at: " + testResultsUrl);
         }
     }
 
     @Override
+    public void succeeded(Instant endTime) {
+        this.endTime = endTime.toEpochMilli();
+        super.succeeded(endTime);
+    }
+
+    @Override
+    public void skipped(Instant endTime, @Nullable TestFailure assumptionFailure) {
+        this.endTime = endTime.toEpochMilli();
+        super.skipped(endTime, assumptionFailure);
+    }
+
+    @Override
+    public void failed(Instant endTime, List<TestFailure> failures) {
+        this.endTime = endTime.toEpochMilli();
+        if (failureMessage == null) {
+            // Failures reported directly, such as by Test tasks, have no message of their own
+            failureMessage = DEFAULT_FAILURE_MESSAGE;
+        }
+        super.failed(endTime, failures);
+    }
+
+    @Override
     public void failed(Instant endTime, String message, String additionalContent) {
         if (TextUtil.isBlank(message)) {
-            this.failureMessage = "Test(s) failed.";
+            this.failureMessage = DEFAULT_FAILURE_MESSAGE;
         } else {
             this.failureMessage = message;
         }
         super.failed(endTime, message, additionalContent);
     }
+
+    private TestExecutionResultsListener.Execution createExecution(@Nullable GeneratedTestReport report) {
+        long testCount = testResultState.getTotalCount();
+        long failedCount = testResultState.getFailureCount();
+        long skippedCount = testCount - testResultState.getSuccessfulCount() - failedCount;
+        boolean failed = failureMessage != null || failedCount > 0;
+        return new TestExecutionResultsListener.Execution(
+            testDescriptor.getDisplayName(),
+            getStartTime(),
+            endTime,
+            testCount,
+            failedCount,
+            skippedCount,
+            failed,
+            report
+        );
+    }
+
 }

@@ -281,6 +281,31 @@ Lastly, we add a `testReport` task that aggregates the test results from the `te
 
 You should note that the `TestReport` type combines the results from multiple test tasks and needs to aggregate the results of individual test classes. This means that if a given test class is executed by multiple test tasks, then the test report will include executions of that class, but it can be hard to distinguish individual executions of that class and their output.
 
+[[sec:aggregate_test_summary]]
+=== Build-wide test summary
+
+At the end of every build that runs tests, Gradle writes a summary page for all test executions of the build to `reports/aggregate-test-results/index.html` in the build directory of the root project.
+A test execution is a run of a `Test` task, or of a custom task that uses the <<test_reporting_api.adoc#test_reporting_api,Test Event Reporting API>>.
+
+The page shows:
+
+ * The total number of tests, failures, and skipped tests, the duration, and the success rate across all test executions
+ * One row per test execution with its own counts, duration, and success rate
+
+If any test execution failed, a *Failed* tab lists only the failed executions, and an *All* tab lists every execution.
+
+Each row links to the HTML test report of that execution.
+An execution that generates no HTML report, for example because its HTML report is disabled, appears without a link.
+
+When more than one test execution fails, Gradle prints a link to the page at the end of the build:
+
+----
+Aggregate test results: file:///path/to/project/build/reports/aggregate-test-results/index.html
+----
+
+The summary page doesn't merge test results.
+To combine the results of several `Test` tasks into a single HTML test report, use the <<test_report_aggregation_plugin.adoc#test_report_aggregation_plugin,Test Report Aggregation Plugin>> or a `TestReport` task.
+
 [[communicating_test_results_to_CI_servers_and_other_tools_via_xml_files]]
 === Communicating test results to CI servers and other tools via XML files
 

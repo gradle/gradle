@@ -42,8 +42,8 @@ public final class MultiTestReportGenerator implements TestReportGenerator {
     }
 
     @Override
-    public Path generate(List<Path> resultsDirectories) {
-        Path primaryReport = primary.generate(resultsDirectories);
+    public GeneratedTestReport generate(List<Path> resultsDirectories) {
+        GeneratedTestReport primaryReport = primary.generate(resultsDirectories);
         for (TestReportGenerator other : others) {
             other.generate(resultsDirectories);
         }
