@@ -570,6 +570,61 @@ Custom test root > My Suite > another failing test FAILED
         firstTestMetadataDetails[1]["values"]["mykey"] == "updated"
     }
 
+    def "closing a failed reporter #outcome when created with #description"() {
+        given:
+        buildFile("""
+            import java.time.Instant
+
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @Inject
+                abstract ProjectLayout getLayout()
+
+                @TaskAction
+                void runTests() {
+                    def binaryResultsDirectory = getLayout().getBuildDirectory().dir("test-results/Custom test root").get()
+                    def htmlReportDirectory = getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
+                    try (def reporter = ${reporterCreation}) {
+                       reporter.started(Instant.now())
+                       try (def myTest = reporter.reportTest("myTestInternal", "My failing test")) {
+                            myTest.started(Instant.now())
+                            myTest.failed(Instant.now(), "my failure")
+                       }
+                       reporter.failed(Instant.now())
+                   }
+                }
+            }
+
+            tasks.register("customTest", CustomTestTask)
+        """)
+
+        when:
+        if (closeThrows) {
+            fails "customTest"
+        } else {
+            succeeds "customTest"
+        }
+
+        then:
+        if (closeThrows) {
+            failure.assertHasCause("Test(s) failed.")
+        }
+        def customTestOutput = (closeThrows ? failure : result).groupedOutput.task(":customTest")
+        customTestOutput.assertOutputContains("Custom test root > My failing test FAILED")
+
+        where:
+        description                       | closeThrows | reporterCreation
+        "no options"                      | true        | 'testEventReporterFactory.createTestEventReporter("Custom test root", binaryResultsDirectory, htmlReportDirectory)'
+        "an empty spec"                   | true        | 'testEventReporterFactory.createTestEventReporter("Custom test root", binaryResultsDirectory, htmlReportDirectory) { }'
+        "a spec that throws on close"     | true        | 'testEventReporterFactory.createTestEventReporter("Custom test root", binaryResultsDirectory, htmlReportDirectory) { it.closeThrowsOnTestFailures = true }'
+        "a spec that doesn't throw"       | false       | 'testEventReporterFactory.createTestEventReporter("Custom test root", binaryResultsDirectory, htmlReportDirectory) { it.closeThrowsOnTestFailures = false }'
+        "the deprecated boolean overload" | false       | 'testEventReporterFactory.createTestEventReporter("Custom test root", binaryResultsDirectory, htmlReportDirectory, false)'
+
+        outcome = closeThrows ? "throws" : "doesn't throw"
+    }
+
     private TestFile singleCustomTestRecordingMetadata(String key, @GroovyBuildScriptLanguage String valueExpression) {
         buildFile("""
             import java.time.Instant

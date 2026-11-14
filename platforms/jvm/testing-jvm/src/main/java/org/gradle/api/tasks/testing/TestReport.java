@@ -42,6 +42,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
@@ -120,7 +121,7 @@ public abstract class TestReport extends DefaultTask {
             }
 
             Path reportsDir = getDestinationDirectory().get().getAsFile().toPath();
-            getObjectFactory().newInstance(GenericHtmlTestReportGenerator.class, reportsDir).generate(resultDirsAsPaths);
+            getObjectFactory().newInstance(GenericHtmlTestReportGenerator.class, reportsDir, Collections.emptyList()).generate(resultDirsAsPaths);
         } catch (Exception e) {
             throw new RuntimeException("Could not write test report for results in " + getTestResults().getFiles(), e);
         }

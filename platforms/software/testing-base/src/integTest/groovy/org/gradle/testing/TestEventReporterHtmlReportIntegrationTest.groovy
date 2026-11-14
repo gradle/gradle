@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.report.AggregateTestReportFixture
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.util.internal.GUtil
 
@@ -549,6 +550,401 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
                 Long.parseLong(cell.attr("data-sort-value"))
             }
         }
+    }
+
+    def "HTML report contains custom entries from contributors"() {
+        given:
+        buildFile << contributorTask("""
+            class CustomContributor implements TestReportEntryContributor {
+                String getEntryName() { "Custom" }
+
+                TestReportEntryContent contentFor(TestReportEntryContext context) {
+                    TestReportEntryContent.html { htmlOut ->
+                        htmlOut.append("<p class='name'>").append(context.testDescriptor.displayName).append("</p>")
+                        htmlOut.append("<p class='composite'>").append(String.valueOf(context.testDescriptor.composite)).append("</p>")
+                        htmlOut.append("<p class='result'>").append(context.resultType.name()).append("</p>")
+                        htmlOut.append("<p class='unclosed'>unclosed")
+                    }
+                }
+            }
+        """, "new CustomContributor()")
+
+        when:
+        fails("custom")
+
+        then:
+        def results = resultsFor("tests/custom")
+
+        results.getAllTabNames("suite/withOutput.html").contains("Custom")
+        results.assertHtml("suite/withOutput.html", ".custom-entry > template[shadowrootmode=open] > p.name") {
+            assert it*.text() == ["withOutput"]
+        }
+        results.assertHtml("suite/withOutput.html", ".custom-entry > template > p.composite") {
+            assert it*.text() == ["false"]
+        }
+        results.assertHtml("suite/withOutput.html", ".custom-entry > template > p.result") {
+            assert it*.text() == ["SUCCESS"]
+        }
+        // The unclosed element is closed by the end of the shadow root template, so it shouldn't affect the rest of the page
+        results.assertHtml("suite/withOutput.html", ".custom-entry > template > p.unclosed") {
+            assert it*.text() == ["unclosed"]
+        }
+        results.assertHtml("suite/withOutput.html", "pre") {
+            assert it.every { pre -> pre.parents().every { !it.hasClass("unclosed") } }
+        }
+
+        results.assertHtml("suite/failing.html", ".custom-entry > template > p.result") {
+            assert it*.text() == ["FAILURE"]
+        }
+
+        // Containers get entries too
+        results.assertHtml("suite/index.html", ".custom-entry > template > p.name") {
+            assert it*.text() == ["suite"]
+        }
+        results.assertHtml("suite/index.html", ".custom-entry > template > p.composite") {
+            assert it*.text() == ["true"]
+        }
+    }
+
+    def "HTML report contains entry when contributor writes blank HTML"() {
+        given:
+        buildFile << contributorTask("""
+            class EmptyContributor implements TestReportEntryContributor {
+                String getEntryName() { "Empty" }
+
+                TestReportEntryContent contentFor(TestReportEntryContext context) {
+                    TestReportEntryContent.html { htmlOut -> }
+                }
+            }
+        """, "new EmptyContributor()")
+
+        when:
+        fails("custom")
+
+        then:
+        def results = resultsFor("tests/custom")
+        results.getAllTabNames("suite/withOutput.html").contains("Empty")
+        results.assertHtml("suite/withOutput.html", ".custom-entry > template") {
+            assert it.every { it.childNodes().isEmpty() }
+        }
+    }
+
+    def "HTML report does not contain entry when contributor returns empty content"() {
+        given:
+        buildFile << contributorTask("""
+            class LeafOnlyContributor implements TestReportEntryContributor {
+                String getEntryName() { "Leaf only" }
+
+                TestReportEntryContent contentFor(TestReportEntryContext context) {
+                    if (context.testDescriptor.composite) {
+                        return TestReportEntryContent.empty()
+                    }
+                    TestReportEntryContent.html { htmlOut -> htmlOut.append("<p class='leaf'>leaf</p>") }
+                }
+            }
+        """, "new LeafOnlyContributor()")
+
+        when:
+        fails("custom")
+
+        then:
+        def results = resultsFor("tests/custom")
+        !results.getAllTabNames("suite/index.html").contains("Leaf only")
+        results.getAllTabNames("suite/withOutput.html").contains("Leaf only")
+        results.assertHtml("suite/withOutput.html", ".custom-entry > template > p.leaf") {
+            assert it*.text() == ["leaf"]
+        }
+    }
+
+    def "HTML report contains large custom entries with text and comments between elements"() {
+        given:
+        buildFile << contributorTask("""
+            class LargeContributor implements TestReportEntryContributor {
+                String getEntryName() { "Large" }
+
+                TestReportEntryContent contentFor(TestReportEntryContext context) {
+                    TestReportEntryContent.html { htmlOut ->
+                        htmlOut.append("before")
+                        for (int i = 0; i < 10000; i++) {
+                            htmlOut.append("<!-- comment --><p class='line'>line ").append(String.valueOf(i)).append("</p>")
+                            htmlOut.append('|')
+                        }
+                        htmlOut.append("after")
+                    }
+                }
+            }
+        """, "new LargeContributor()")
+
+        when:
+        fails("custom")
+
+        then:
+        def results = resultsFor("tests/custom")
+        results.assertHtml("suite/withOutput.html", ".custom-entry > template > p.line") {
+            assert it.size() == 10000
+            assert it.first().text() == "line 0"
+            assert it.last().text() == "line 9999"
+        }
+        results.assertHtml("suite/withOutput.html", ".custom-entry > template") {
+            def entry = it.first()
+            assert entry.ownText() == "before" + ("|" * 10000) + "after"
+            assert entry.html().contains("<!-- comment -->")
+        }
+    }
+
+    def "build fails when contributor fails #scenario"() {
+        given:
+        buildFile << contributorTask("""
+            class BoomContributor implements TestReportEntryContributor {
+                String getEntryName() { "Boom" }
+
+                TestReportEntryContent contentFor(TestReportEntryContext context) {
+                    ${contentFor}
+                }
+            }
+        """, "new BoomContributor()")
+
+        when:
+        fails("custom")
+
+        then:
+        failure.assertHasCause("Could not render custom test report entry 'Boom' with BoomContributor.")
+        failure.assertHasCause("boom!")
+
+        where:
+        scenario                  | contentFor
+        "creating content"        | 'throw new RuntimeException("boom!")'
+        "writing HTML of content" | 'TestReportEntryContent.html { htmlOut -> htmlOut.append("<p>partial"); throw new RuntimeException("boom!") }'
+    }
+
+    def "build fails when contributor writes #tag"() {
+        given:
+        buildFile << contributorTask("""
+            class TemplateContributor implements TestReportEntryContributor {
+                String getEntryName() { "Template" }
+
+                TestReportEntryContent contentFor(TestReportEntryContext context) {
+                    TestReportEntryContent.html { htmlOut ->
+                        ${appends.collect { "htmlOut.append('${it}')" }.join("\n")}
+                    }
+                }
+            }
+        """, "new TemplateContributor()")
+
+        when:
+        fails("custom")
+
+        then:
+        failure.assertHasCause("Could not render custom test report entry 'Template' with TemplateContributor.")
+        failure.assertHasCause("The HTML of a custom test report entry must not contain <template> tags, as they could break out of the entry.")
+
+        where:
+        tag                                       | appends
+        "a template start tag"                    | ["<template>"]
+        "a template end tag"                      | ["<p></p></template>"]
+        "an upper case template end tag"          | ["</TEMPLATE >"]
+        "a template end tag split across appends" | ["<p></tem", "plate", ">"]
+        "a template start tag with an attribute"  | ["<template shadowrootmode=open>"]
+    }
+
+    def "build fails when contributor leaves #comment"() {
+        given:
+        buildFile << contributorTask("""
+            class CommentContributor implements TestReportEntryContributor {
+                String getEntryName() { "Comment" }
+
+                TestReportEntryContent contentFor(TestReportEntryContext context) {
+                    TestReportEntryContent.html { htmlOut ->
+                        ${appends.collect { "htmlOut.append('${it}')" }.join("\n")}
+                    }
+                }
+            }
+        """, "new CommentContributor()")
+
+        when:
+        fails("custom")
+
+        then:
+        failure.assertHasCause("Could not render custom test report entry 'Comment' with CommentContributor.")
+        failure.assertHasCause("The HTML of a custom test report entry must not end inside a comment, as it would hide the end of the entry.")
+
+        where:
+        comment                                                   | appends
+        "an unclosed comment"                                     | ["<p>a</p><!-- unclosed"]
+        "an unclosed comment after a closed one"                  | ["<!-- closed --><p>a</p><!-- unclosed"]
+        "an unclosed comment with its start split across appends" | ["<!", "-", "- unclosed"]
+        "an unclosed comment containing ->"                       | ["<!-- a -> b"]
+    }
+
+    def "contributor can write closed comments"() {
+        given:
+        buildFile << contributorTask("""
+            class CommentContributor implements TestReportEntryContributor {
+                String getEntryName() { "Comment" }
+
+                TestReportEntryContent contentFor(TestReportEntryContext context) {
+                    TestReportEntryContent.html { htmlOut ->
+                        htmlOut.append("<!-- normal --><!--><!---><!-- bang --!><!-- split -")
+                        htmlOut.append("->")
+                        htmlOut.append("<p class='after'>after</p>")
+                    }
+                }
+            }
+        """, "new CommentContributor()")
+
+        when:
+        fails("custom")
+
+        then:
+        def results = resultsFor("tests/custom")
+        results.assertHtml("suite/withOutput.html", ".custom-entry > template > p.after") {
+            assert it*.text() == ["after"]
+        }
+    }
+
+    def "contributor can write custom elements starting with template"() {
+        given:
+        buildFile << contributorTask("""
+            class TemplateLikeContributor implements TestReportEntryContributor {
+                String getEntryName() { "Template like" }
+
+                TestReportEntryContent contentFor(TestReportEntryContext context) {
+                    TestReportEntryContent.html { htmlOut -> htmlOut.append("<template-like>ok</template-like>") }
+                }
+            }
+        """, "new TemplateLikeContributor()")
+
+        when:
+        fails("custom")
+
+        then:
+        def results = resultsFor("tests/custom")
+        results.assertHtml("suite/withOutput.html", ".custom-entry > template > template-like") {
+            assert it*.text() == ["ok"]
+        }
+    }
+
+    def "build fails when getting contributor entry name fails"() {
+        given:
+        buildFile << contributorTask("""
+            class BoomEntryNameContributor implements TestReportEntryContributor {
+                String getEntryName() { throw new RuntimeException("boom!") }
+
+                TestReportEntryContent contentFor(TestReportEntryContext context) {
+                    TestReportEntryContent.empty()
+                }
+            }
+        """, "new BoomEntryNameContributor()")
+
+        when:
+        fails("custom")
+
+        then:
+        failure.assertHasCause("Could not get the entry name of test report entry contributor BoomEntryNameContributor.")
+        failure.assertHasCause("boom!")
+    }
+
+    def "contributor cannot use #description"() {
+        given:
+        buildFile << contributorTask("""
+            class NamedContributor implements TestReportEntryContributor {
+                String getEntryName() { "${entryName}" }
+
+                TestReportEntryContent contentFor(TestReportEntryContext context) {
+                    TestReportEntryContent.empty()
+                }
+            }
+        """, "new NamedContributor()")
+
+        when:
+        fails("custom")
+
+        then:
+        failure.assertHasCause(expectedMessage)
+
+        where:
+        description                              | entryName         | expectedMessage
+        "an empty entry name"                    | ""                | "Entry name of test report entry contributor NamedContributor must not be blank."
+        "a blank entry name"                     | "   "             | "Entry name of test report entry contributor NamedContributor must not be blank."
+        "an entry name with leading whitespace"  | " Custom"         | "Entry name ' Custom' of test report entry contributor NamedContributor must not have leading or trailing whitespace."
+        "an entry name with trailing whitespace" | "Custom "         | "Entry name 'Custom ' of test report entry contributor NamedContributor must not have leading or trailing whitespace."
+        "a reserved single-word entry name"      | "summary"         | "Entry name 'summary' of test report entry contributor NamedContributor is reserved for a built-in entry of the test report."
+        "a reserved multi-word entry name"       | "standard output" | "Entry name 'standard output' of test report entry contributor NamedContributor is reserved for a built-in entry of the test report."
+    }
+
+    def "contributors cannot use the same entry name"() {
+        given:
+        buildFile << contributorTask("""
+            class FirstContributor implements TestReportEntryContributor {
+                String getEntryName() { "Custom" }
+
+                TestReportEntryContent contentFor(TestReportEntryContext context) {
+                    TestReportEntryContent.empty()
+                }
+            }
+
+            class SecondContributor implements TestReportEntryContributor {
+                String getEntryName() { "Custom" }
+
+                TestReportEntryContent contentFor(TestReportEntryContext context) {
+                    TestReportEntryContent.empty()
+                }
+            }
+        """, "new FirstContributor(), new SecondContributor()")
+
+        when:
+        fails("custom")
+
+        then:
+        failure.assertHasCause("Entry name 'Custom' of test report entry contributor SecondContributor is already used by test report entry contributor FirstContributor.")
+    }
+
+    /**
+     * A task named "custom" that reports a suite with a passing test with output and a failing test, using the given contributors.
+     */
+    def contributorTask(@GroovyBuildScriptLanguage String contributorClasses, @GroovyBuildScriptLanguage String contributorInstances) {
+        """
+            ${contributorClasses}
+
+            abstract class ContributorCustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @Inject
+                abstract ProjectLayout getLayout()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "custom",
+                        getLayout().getBuildDirectory().dir("test-results/custom").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/custom").get()
+                    ) { spec ->
+                        spec.htmlReportEntryContributors = [${contributorInstances}]
+                    }) {
+                       reporter.started(Instant.now())
+                       try (def mySuite = reporter.reportTestGroup("suite")) {
+                            mySuite.started(Instant.now())
+                            try (def myTest = mySuite.reportTest("withOutput", "withOutput")) {
+                                 myTest.started(Instant.now())
+                                 myTest.output(Instant.now(), org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut, "out 1")
+                                 myTest.output(Instant.now(), org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr, "err 1")
+                                 myTest.output(Instant.now(), org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut, "out 2")
+                                 myTest.succeeded(Instant.now())
+                            }
+                            try (def myTest = mySuite.reportTest("failing", "failing")) {
+                                 myTest.started(Instant.now())
+                                 myTest.failed(Instant.now(), "failure message")
+                            }
+                            mySuite.failed(Instant.now())
+                       }
+                       reporter.failed(Instant.now())
+                   }
+                }
+            }
+
+            tasks.register("custom", ContributorCustomTestTask)
+        """
     }
 
     def passingTask(String name, boolean print = false) {
