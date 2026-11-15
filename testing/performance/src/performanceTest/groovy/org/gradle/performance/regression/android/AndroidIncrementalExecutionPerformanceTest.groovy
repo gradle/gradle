@@ -39,7 +39,7 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
     def setup() {
         testProject = AndroidTestProject.findProjectFor(runner.testProject) as IncrementalAndroidTestProject
         AndroidTestProject.useAgpLatestStableOrRcVersion(runner)
-        AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
+        AndroidTestProject.useKotlinLatestStableVersion(runner)
         runner.args.add('-Dorg.gradle.parallel=true')
         runner.args.addAll(["--no-build-cache", "--no-scan"])
         // Pass the current property name too: it takes precedence over the deprecated one, so it cannot be

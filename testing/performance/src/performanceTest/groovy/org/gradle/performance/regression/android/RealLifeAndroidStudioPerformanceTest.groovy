@@ -38,7 +38,7 @@ class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerforman
         def testProject = AndroidTestProject.projectFor(runner.testProject)
         testProject.configure(runner)
         def agpVersion = AndroidTestProject.useAgpLatestStableVersion(runner)
-        AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
+        AndroidTestProject.useKotlinLatestStableVersion(runner)
         AndroidTestProject.configureBuildToolsForAgpVersion(runner, agpVersion)
 
         runner.warmUpRuns = 20

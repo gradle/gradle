@@ -66,8 +66,8 @@ class AndroidTestProject implements TestProject {
     void configure(GradleBuildExperimentSpec.GradleBuilder builder) {
     }
 
-    static String useKotlinLatestStableOrRcVersion(CrossVersionPerformanceTestRunner runner) {
-        def version = KGP_VERSIONS.latestStableOrRC
+    static String useKotlinLatestStableVersion(CrossVersionPerformanceTestRunner runner) {
+        def version = KGP_VERSIONS.latestStable
         configureForKotlinVersion(runner, version)
         version
     }
