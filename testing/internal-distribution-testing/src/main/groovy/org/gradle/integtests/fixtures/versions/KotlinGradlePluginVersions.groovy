@@ -36,7 +36,7 @@ class KotlinGradlePluginVersions {
         "2.3",
     ]
 
-    private static final LATEST_STABLE_OR_RC_MINIMUM_LANGUAGE_VERSION = VersionNumber.parse("2.0")
+    private static final LATEST_STABLE_OR_RC_MINIMUM_LANGUAGE_VERSION = VersionNumber.parse("2.2")
 
     private final Factory<Properties> propertiesFactory
     private Properties properties
