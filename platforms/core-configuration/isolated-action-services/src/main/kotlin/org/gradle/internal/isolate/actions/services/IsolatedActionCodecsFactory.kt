@@ -39,7 +39,6 @@ import org.gradle.internal.serialize.codecs.core.baseTypes
 import org.gradle.internal.serialize.codecs.core.groovyCodecs
 import org.gradle.internal.serialize.codecs.core.jos.ExternalizableCodec
 import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec
-import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
 import org.gradle.internal.serialize.graph.Codec
@@ -56,7 +55,7 @@ internal
 class IsolatedActionCodecsFactory(
 
     private
-    val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
+    val javaObjectSerializationCodec: JavaObjectSerializationCodec,
 
     private
     val propertyFactory: PropertyFactory,
@@ -87,7 +86,7 @@ class IsolatedActionCodecsFactory(
 
         bind(ServicesCodec)
 
-        bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup, objectOpener))
+        bind(javaObjectSerializationCodec)
         bind(BeanCodec)
     }.build()
 

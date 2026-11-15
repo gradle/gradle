@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.internal.buildtree.BuildModelParametersFactory
 import org.gradle.internal.buildtree.control.DefaultBuildModelParametersFactory
+import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 
@@ -27,6 +28,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
     override fun registerGlobalServices(registration: ServiceRegistration) = with(registration) {
         // ALL MODES
         add(BuildModelParametersFactory::class.java, DefaultBuildModelParametersFactory::class.java)
+        add(JavaObjectSerializationCodec::class.java)
     }
 
     override fun registerBuildSessionServices(registration: ServiceRegistration) = with(registration) {
