@@ -85,6 +85,12 @@ class JavaObjectSerializationCodec(
     }
 
     private
+    val inheritedReadResolveMethods = object : ClassValue<MethodHandle?>() {
+        override fun computeValue(type: Class<*>): MethodHandle? =
+            SerializationMethods.of(type).inheritedReadResolve?.let { accessibleHandle(it).asReadResolve() }
+    }
+
+    private
     val readObjectMethodHierarchies = object : ClassValue<List<MethodHandle>>() {
         override fun computeValue(type: Class<*>): List<MethodHandle> =
             SerializationMethods.of(type).readObjectMethodHierarchy.map { accessibleHandle(it).asReadObject() }
@@ -100,14 +106,14 @@ class JavaObjectSerializationCodec(
             when (readEnum<Format>()) {
                 Format.WriteObject -> {
                     withImmediateMode {
-                        decodingBeanWithId(id) { bean, beanType, beanStateReader ->
+                        readResolveWithId(id, decodingBeanWithId(id) { bean, beanType, beanStateReader ->
                             val objectInputStream = objectInputStreamAdapterFor(bean, beanStateReader)
                             val readObject = readObjectMethodHierarchies.get(beanType)
                             when {
                                 readObject.isNotEmpty() -> invokeAllExact(readObject, bean, objectInputStream)
                                 else -> objectInputStream.defaultReadObject()
                             }
-                        }
+                        })
                     }
                 }
 
@@ -130,6 +136,11 @@ class JavaObjectSerializationCodec(
 
                 Format.ReadResolveAny -> {
                     readResolve(readNonNull())
+                        .also { putIdentity(id, it) }
+                }
+
+                Format.ResolvedAny -> {
+                    readNonNull<Any>()
                         .also { putIdentity(id, it) }
                 }
             }
@@ -171,7 +182,7 @@ class JavaObjectSerializationCodec(
     }
 
     private
-    class WriteReplaceEncoding(private val writeReplaceHandle: MethodHandle) : EncodingProvider<Any> {
+    inner class WriteReplaceEncoding(private val writeReplaceHandle: MethodHandle) : EncodingProvider<Any> {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 val replacement = writeReplaceHandle.invokeExact(value)
@@ -184,7 +195,7 @@ class JavaObjectSerializationCodec(
                     }
 
                     else -> {
-                        writeEnum(Format.ReadResolveAny)
+                        writeEnum(if (isResolvedWhenDecoded(replacement.javaClass)) Format.ResolvedAny else Format.ReadResolveAny)
                         write(replacement)
                     }
                 }
@@ -206,6 +217,7 @@ class JavaObjectSerializationCodec(
     enum class Format {
         ReadResolveBean,
         ReadResolveAny,
+        ResolvedAny,
         WriteObject,
         ReadObject
     }
@@ -216,6 +228,35 @@ class JavaObjectSerializationCodec(
             null -> bean
             else -> readResolve.invokeExact(bean)
         }
+
+    /**
+     * Resolves a bean already registered with the given `id`, as references to it might have been read while reading its state.
+     * Like with Java serialization, such references are not replaced, only the later ones see the resolved object.
+     *
+     * Unlike with Java serialization, the bean is kept when `readResolve` returns `null`.
+     */
+    private
+    fun ReadContext.readResolveWithId(id: Int, bean: Any): Any =
+        when (val readResolve = inheritedReadResolveMethods.get(bean.javaClass)) {
+            null -> bean
+            else -> {
+                val resolved: Any? = readResolve.invokeExact(bean)
+                when {
+                    resolved == null || resolved === bean -> bean
+                    else -> resolved.also { putIdentity(id, it) }
+                }
+            }
+        }
+
+    /**
+     * Is `readResolve` already taken care of when decoding an object of the given type?
+     *
+     * That's the case for the types following the `writeObject` protocol.
+     * A replacement of any other type is resolved after being decoded, as it might have been decoded by another codec.
+     */
+    private
+    fun isResolvedWhenDecoded(type: Class<*>): Boolean =
+        encodingForType(type) is WriteObjectEncoding && inheritedReadResolveMethods.get(type) != null
 
     private
     fun calculateEncoding(type: Class<*>): Encoding? {

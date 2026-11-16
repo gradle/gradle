@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cc.impl
 
+import spock.lang.Issue
+
 class ConfigurationCacheJavaSerializationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "restores task fields whose value is Serializable and has writeReplace method"() {
@@ -102,6 +104,48 @@ class ConfigurationCacheJavaSerializationIntegrationTest extends AbstractConfigu
 
         then:
         outputContains("bean.value = 42")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39855")
+    def "restores task fields whose value is Serializable and has writeObject, readObject and readResolve methods"() {
+        buildFile << """
+            class SomeBean implements Serializable {
+                transient String value
+                private transient SomeBean deserializationReplacement
+
+                private void writeObject(java.io.ObjectOutputStream oos) {
+                    oos.defaultWriteObject()
+                    oos.writeUTF(value)
+                }
+
+                private void readObject(java.io.ObjectInputStream ois) {
+                    ois.defaultReadObject()
+                    deserializationReplacement = new SomeBean(value: "[" + ois.readUTF() + "]")
+                }
+
+                private Object readResolve() {
+                    return deserializationReplacement
+                }
+            }
+
+            class SomeTask extends DefaultTask {
+                private final SomeBean bean = new SomeBean(value: "42")
+
+                @TaskAction
+                void run() {
+                    println "bean.value = " + bean.value
+                }
+            }
+
+            task ok(type: SomeTask)
+        """
+
+        when:
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
+
+        then:
+        outputContains("bean.value = [42]")
     }
 
     def "restores task fields whose value is Externalizable"() {

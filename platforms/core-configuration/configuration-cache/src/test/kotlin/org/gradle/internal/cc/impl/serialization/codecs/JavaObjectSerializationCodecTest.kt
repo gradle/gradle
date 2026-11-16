@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cc.impl.serialization.codecs
 
+import com.google.common.collect.ImmutableListMultimap
+import com.google.common.collect.ImmutableSetMultimap
 import com.google.common.reflect.TypeToken
 import org.gradle.api.Project
 import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplementedJavaSerialization
@@ -29,6 +31,7 @@ import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertThrows
 import org.junit.Test
+import spock.lang.Issue
 import org.mockito.kotlin.mock
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -39,6 +42,7 @@ import java.io.ObjectOutput
 import java.io.ObjectOutputStream
 import java.io.Serializable
 import java.lang.reflect.InvocationTargetException
+import java.time.LocalDate
 
 
 class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
@@ -319,6 +323,108 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
         }
     }
 
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/39855")
+    fun `can handle writeObject readObject with readResolve`() {
+        verifyRoundtripOf({ pairOf(SerializableWriteObjectReadResolveBean("42")) }) { (first, second) ->
+            assertThat(
+                "it preserves identity",
+                first,
+                sameInstance(second)
+            )
+            assertThat(
+                "it returns readResolve result",
+                first.value,
+                equalTo("42")
+            )
+        }
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/39855")
+    fun `can handle Guava immutable multimaps`() {
+        verifyRoundtripOf({
+            Pair(
+                ImmutableSetMultimap.of("a", 1, "a", 2, "b", 3),
+                ImmutableListMultimap.of("a", 1, "a", 1, "b", 3)
+            )
+        }) { (setMultimap, listMultimap) ->
+            assertThat(
+                setMultimap,
+                equalTo(ImmutableSetMultimap.of("a", 1, "a", 2, "b", 3))
+            )
+            assertThat(
+                listMultimap,
+                equalTo(ImmutableListMultimap.of("a", 1, "a", 1, "b", 3))
+            )
+        }
+    }
+
+    @Test
+    fun `can handle writeReplace to Externalizable with readResolve`() {
+        verifyRoundtripOf({ LocalDate.of(2026, 11, 16) }) {
+            assertThat(
+                it,
+                equalTo(LocalDate.of(2026, 11, 16))
+            )
+        }
+    }
+
+    @Test
+    fun `can handle writeReplace to record with readResolve`() {
+        verifyRoundtripOf({ SerializableWriteReplaceToRecordBean("42") }) {
+            assertThat(
+                it.value,
+                equalTo("42")
+            )
+        }
+    }
+
+    @Test
+    fun `can handle writeReplace to serialized lambda`() {
+        verifyRoundtripOf({ SerializableSupplier { "42" } }) {
+            assertThat(
+                it.get(),
+                equalTo("42")
+            )
+        }
+    }
+
+    @Test
+    fun `can handle writeReplace to writeObject with readResolve`() {
+        verifyRoundtripOf<Any>({ SerializableWriteReplaceToMultimapBean(ImmutableSetMultimap.of("a", 1)) }) {
+            assertThat(
+                it,
+                equalTo<Any>(ImmutableSetMultimap.of("a", 1))
+            )
+        }
+    }
+
+    @Test
+    fun `references read before readResolve see the unresolved object`() {
+        verifyRoundtripOf({ CircularReadResolveBean("42").apply { child = CircularReadResolveBean.Child(this) } }) { resolved ->
+            assertThat(
+                resolved.value,
+                equalTo("resolved(42)")
+            )
+            assertThat(
+                "the cycle keeps pointing to the object readResolve was invoked on",
+                resolved.child!!.parent.value,
+                equalTo("42")
+            )
+        }
+    }
+
+    @Test
+    fun `ignores private readResolve of superclass`() {
+        verifyRoundtripOf({ PrivateReadResolveSubBean("42") }) {
+            assertThat(
+                it.value,
+                equalTo<Any>("42")
+            )
+        }
+    }
+
     private
     fun <T> pairOf(bean: T) = bean.let { it to it }
 
@@ -455,6 +561,89 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
         class Memento : Serializable {
             @Suppress("unused")
             fun readResolve(): Any = SerializableWriteReplaceBean("42")
+        }
+    }
+
+    /**
+     * Follows the pattern used by Guava immutable multimaps since 33.6.0.
+     */
+    class SerializableWriteObjectReadResolveBean(@Transient val value: String? = null) : Serializable {
+
+        @Transient
+        private
+        var deserializationReplacement: SerializableWriteObjectReadResolveBean? = null
+
+        private
+        fun writeObject(objectOutputStream: ObjectOutputStream) {
+            objectOutputStream.defaultWriteObject()
+            objectOutputStream.writeUTF(value!!)
+        }
+
+        private
+        fun readObject(objectInputStream: ObjectInputStream) {
+            objectInputStream.defaultReadObject()
+            deserializationReplacement = SerializableWriteObjectReadResolveBean(objectInputStream.readUTF())
+        }
+
+        @Suppress("unused")
+        private
+        fun readResolve(): Any = deserializationReplacement!!
+    }
+
+    class CircularReadResolveBean(var value: String? = null) : Serializable {
+
+        var child: Child? = null
+
+        class Child(val parent: CircularReadResolveBean) : Serializable
+
+        private
+        fun writeObject(objectOutputStream: ObjectOutputStream) {
+            objectOutputStream.defaultWriteObject()
+        }
+
+        @Suppress("unused")
+        private
+        fun readResolve(): Any = CircularReadResolveBean("resolved($value)").also { it.child = child }
+    }
+
+    fun interface SerializableSupplier : Serializable {
+        fun get(): String
+    }
+
+    class SerializableWriteReplaceToRecordBean(val value: String) : Serializable {
+
+        @Suppress("unused")
+        private
+        fun writeReplace(): Any = Memento(value)
+
+        @JvmRecord
+        private
+        data class Memento(val value: String) : Serializable {
+            @Suppress("unused")
+            private
+            fun readResolve(): Any = SerializableWriteReplaceToRecordBean(value)
+        }
+    }
+
+    class SerializableWriteReplaceToMultimapBean(val value: Any) : Serializable {
+
+        @Suppress("unused")
+        private
+        fun writeReplace(): Any = value
+    }
+
+    open class PrivateReadResolveBaseBean(val value: Any? = null) : Serializable {
+
+        @Suppress("unused")
+        private
+        fun readResolve(): Any = PrivateReadResolveBaseBean("base")
+    }
+
+    class PrivateReadResolveSubBean(value: Any? = null) : PrivateReadResolveBaseBean(value) {
+
+        private
+        fun writeObject(objectOutputStream: ObjectOutputStream) {
+            objectOutputStream.defaultWriteObject()
         }
     }
 

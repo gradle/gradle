@@ -46,8 +46,7 @@ internal inline fun ReadContext.decodingBeanWithId(id: Int, decode: (Any, Class<
 /**
  * Queries for Java Serialization methods declared in the class.
  */
-@JvmInline
-internal value class SerializationMethods private constructor(private val methods: List<Method>) {
+internal class SerializationMethods private constructor(private val type: Class<*>, private val methods: List<Method>) {
     /**
      * A `writeReplace` method conforming to Java Serialization Spec or `null` if there is none.
      */
@@ -59,6 +58,15 @@ internal value class SerializationMethods private constructor(private val method
      */
     val readResolve: Method?
         get() = methods.find { it.isReadResolve() }
+
+    /**
+     * The `readResolve` method, when the class declares or inherits it according to the Java Serialization Spec, or `null` otherwise.
+     *
+     * As with Java serialization, the closest `readResolve` method is the only candidate.
+     * When it is not inherited, the class has no `readResolve` method, even if a more distant ancestor declares an inheritable one.
+     */
+    val inheritedReadResolve: Method?
+        get() = readResolve?.takeIf { it.isInheritedBy(type) }
 
     /**
      * A list of `writeObject(ObjectOutputStream)` methods declared in this class and its superclasses, starting with the most distant ancestor.
@@ -73,9 +81,22 @@ internal value class SerializationMethods private constructor(private val method
         get() = methods.serializationMethodHierarchy("readObject", ObjectInputStream::class.java)
 
     companion object {
-        fun of(cls: Class<*>) = SerializationMethods(ClassInspector.inspectMethods(cls))
+        fun of(cls: Class<*>) = SerializationMethods(cls, ClassInspector.inspectMethods(cls))
     }
 }
+
+/**
+ * Is this method available to the given type, according to the Java Serialization Spec rules for `readResolve()`?
+ *
+ * A private method only applies to its declaring class and a package-private one only to the classes of the same package.
+ */
+private fun Method.isInheritedBy(type: Class<*>) =
+    declaringClass == type || when {
+        Modifier.isPublic(modifiers) || Modifier.isProtected(modifiers) -> true
+        Modifier.isPrivate(modifiers) -> false
+        else -> declaringClass.classLoader === type.classLoader && declaringClass.packageName == type.packageName
+    }
+
 
 /**
  * Is this method a `writeReplace()` method conforming to the Java Serialization Spec?
