@@ -15,8 +15,8 @@ plugins {
 }
 
 val smokeTestSourceSet = sourceSets.create("smokeTest") {
-    compileClasspath += sourceSets.main.get().output
-    runtimeClasspath += sourceSets.main.get().output
+    compileClasspath += files(sourceSets.main.map { it.output })
+    runtimeClasspath += files(sourceSets.main.map { it.output })
 }
 
 configureTestSourceSetInIde(smokeTestSourceSet)

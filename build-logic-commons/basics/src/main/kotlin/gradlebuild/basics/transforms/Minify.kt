@@ -16,6 +16,7 @@
 
 package gradlebuild.basics.transforms
 
+import gradlebuild.basics.classanalysis.zipEntryBaseTimestamp
 import org.gradle.api.artifacts.transform.CacheableTransform
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
@@ -36,7 +37,9 @@ import java.io.File
 import java.net.URI
 import java.nio.file.FileSystems
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 
@@ -116,6 +119,23 @@ abstract class Minify : TransformAction<Minify.Parameters> {
         } finally {
             rules.delete()
         }
+        normalizeTimestamps(output)
+    }
+
+    // ProGuard stamps entries with the time it ran; rewrite them for a reproducible jar.
+    private
+    fun normalizeTimestamps(jar: File) {
+        val normalized = File(jar.parentFile, "${jar.name}.tmp")
+        ZipFile(jar).use { input ->
+            ZipOutputStream(normalized.outputStream().buffered()).use { out ->
+                input.entries().asSequence().forEach { entry ->
+                    out.putNextEntry(ZipEntry(entry.name).apply { time = zipEntryBaseTimestamp })
+                    input.getInputStream(entry).use { it.copyTo(out) }
+                    out.closeEntry()
+                }
+            }
+        }
+        Files.move(normalized.toPath(), jar.toPath(), StandardCopyOption.REPLACE_EXISTING)
     }
 
     private

@@ -103,8 +103,8 @@ fun configureSourcesVariant() {
     configurations.create("transitiveSourcesElements") {
         isCanBeResolved = false
         isCanBeConsumed = true
-        extendsFrom(configurations.implementation.get())
-        extendsFrom(configurations.runtimeOnly.get())
+        extendsFrom(configurations.implementation)
+        extendsFrom(configurations.runtimeOnly)
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
@@ -160,15 +160,17 @@ fun addDependencies() {
         testRuntimeOnly(testLibs.findLibrary("junitPlatform").get())
 
         // use a separate configuration for the platform dependency that does not get published as part of 'apiElements' or 'runtimeElements'
-        val platformImplementation = configurations.dependencyScope("platformImplementation").get()
+        val platformImplementation = configurations.dependencyScope("platformImplementation")
         configurations["compileClasspath"].extendsFrom(platformImplementation)
         configurations["runtimeClasspath"].extendsFrom(platformImplementation)
         configurations["testCompileClasspath"].extendsFrom(platformImplementation)
         configurations["testRuntimeClasspath"].extendsFrom(platformImplementation)
         // use lazy API to not attempt to find platform project during script compilation
-        platformImplementation.dependencies.addLater(provider {
-            project.dependencies.platform(project.dependencies.create(project(":distributions-dependencies")))
-        })
+        platformImplementation.configure {
+            dependencies.addLater(provider {
+                project.dependencies.platform(project.dependencies.create(project(":distributions-dependencies")))
+            })
+        }
     }
 }
 

@@ -30,7 +30,7 @@ fun Project.getBuildEnvironmentExtension(): BuildEnvironmentExtension = extensio
 
 fun Project.getBuildEnvironmentExtensionOrNull(): BuildEnvironmentExtension? = extensions.findByType(BuildEnvironmentExtension::class.java)
 
-fun Project.repoRoot(): Directory = getBuildEnvironmentExtensionOrNull()?.repoRoot?.get() ?: layout.projectDirectory.parentOrRoot()
+fun Project.repoRoot(): Directory = layout.settingsDirectory.parentOrRoot()
 
 fun Directory.parentOrRoot(): Directory = if (this.file("version.txt").asFile.exists()) {
     this

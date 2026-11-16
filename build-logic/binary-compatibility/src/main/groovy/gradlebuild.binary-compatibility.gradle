@@ -66,7 +66,7 @@ def DOCUMENTATION_ATTRIBUTE = objects.named(Category, Category.DOCUMENTATION)
 def SOURCES_ATTRIBUTE = objects.named(DocsType, "gradle-source-folders")
 
 configurations {
-    def baseline = dependencyScope('baseline').get()
+    def baseline = dependencyScope('baseline')
     resolvable('baselineClasspath') {
         extendsFrom baseline
         attributes.attribute(ARTIFACT_TYPE, 'gradle-classpath')

@@ -16,8 +16,8 @@ plugins {
 description = "Tests are checking Gradle behavior during IDE synchronization process"
 
 val smokeIdeTestSourceSet = sourceSets.create("smokeIdeTest") {
-    compileClasspath += sourceSets.main.get().output
-    runtimeClasspath += sourceSets.main.get().output
+    compileClasspath += files(sourceSets.main.map { it.output })
+    runtimeClasspath += files(sourceSets.main.map { it.output })
 }
 
 configureTestSourceSetInIde(smokeIdeTestSourceSet)
