@@ -751,6 +751,46 @@ class S3ClientTest extends Specification {
         other.serviceClientConfiguration().region() == Region.US_WEST_2
     }
 
+    def "shares one client among URLs that don't name a region other than the default"() {
+        given:
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getProxy() >> Optional.empty()
+        s3Properties.getMaxErrorRetryCount() >> Optional.empty()
+        def s3Client = new S3Client(credentials(), s3Properties)
+
+        when:
+        def clients = [
+            "s3://bucket-a/file.txt",
+            "s3://bucket-b/file.txt",
+            "s3://bucket-c.s3.amazonaws.com/file.txt",
+            "s3://bucket-d.s3-external-1.amazonaws.com/file.txt",
+        ].collect { clientFor(s3Client, it) }
+
+        then:
+        clients.every { it.is(clients[0]) }
+        clients[0].serviceClientConfiguration().region() == Region.US_EAST_1
+    }
+
+    def "shares one client among all URLs on a custom endpoint"() {
+        given:
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.of(new URI("https://s3.example.com"))
+        s3Properties.getProxy() >> Optional.empty()
+        s3Properties.getMaxErrorRetryCount() >> Optional.empty()
+        def s3Client = new S3Client(credentials(), s3Properties)
+
+        when:
+        def clients = [
+            "s3://bucket-a/file.txt",
+            "s3://bucket-b.s3.eu-central-1.amazonaws.com/file.txt",
+            "s3://bucket-c.s3.ap-southeast-2.amazonaws.com/file.txt",
+        ].collect { clientFor(s3Client, it) }
+
+        then:
+        clients.every { it.is(clients[0]) }
+    }
+
     def "tolerates exceptions without error details"() {
         given:
         software.amazon.awssdk.services.s3.S3Client amazonS3Client = Stub()
@@ -935,6 +975,10 @@ class S3ClientTest extends Specification {
 
     private static S3RegionalResource someResource() {
         new S3RegionalResource(new URI("s3://mybucket/file.txt"))
+    }
+
+    private static software.amazon.awssdk.services.s3.S3Client clientFor(S3Client s3Client, String url) {
+        s3Client.clientFor(new S3RegionalResource(new URI(url)))
     }
 
     private static S3Exception noSuchKey() {
