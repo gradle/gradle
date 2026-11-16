@@ -21,6 +21,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
+import org.gradle.api.problems.internal.ProblemProjectIdentityTracker;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginContainer;
@@ -179,9 +180,15 @@ public class DefaultPluginManager implements PluginManagerInternal {
                     UserCodeApplicationContext.Target appTarget = getApplicationTargetFor(target);
                     UserCodeSource appliedBy = currentSource();
                     UserCodeSource source = new UserCodeSource.Binary(plugin.getDisplayName(), pluginClass.getName(), pluginIdStr, localityOf(pluginClass, appliedBy), appliedBy, codeLocalityResolver.codeLocationOf(pluginClass));
-                    userCodeApplicationContext.apply(source, appTarget, userCodeApplicationId ->
-                        buildOperationRunner.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass, userCodeApplicationId))
-                    );
+                    String previousBuildPath = ProblemProjectIdentityTracker.getBuildPath();
+                    ProblemProjectIdentityTracker.setBuildPath(buildPathOutsideProjects(target, previousBuildPath));
+                    try {
+                        userCodeApplicationContext.apply(source, appTarget, userCodeApplicationId ->
+                            buildOperationRunner.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass, userCodeApplicationId))
+                        );
+                    } finally {
+                        ProblemProjectIdentityTracker.setBuildPath(previousBuildPath);
+                    }
                 }
             }
         } catch (PluginApplicationException e) {
@@ -199,6 +206,12 @@ public class DefaultPluginManager implements PluginManagerInternal {
             return appliedBy.getLocality();
         }
         return codeLocalityResolver.localityOf(pluginClass);
+    }
+
+    // A plugin applied to settings or to a Gradle object runs outside any project; a problem it reports belongs to that build
+    private static @Nullable String buildPathOutsideProjects(PluginTarget target, @Nullable String current) {
+        ConfigurationTargetIdentifier id = target.getConfigurationTargetIdentifier();
+        return id.getTargetType() == ConfigurationTargetIdentifier.Type.PROJECT ? current : id.getBuildPath();
     }
 
     // The code that is applying this plugin, if any: a convention plugin, or a script

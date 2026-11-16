@@ -18,6 +18,7 @@ package org.gradle.configuration;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.problems.internal.ProblemProjectIdentityTracker;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationId;
@@ -70,27 +71,43 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
             UserCodeApplicationContext.Application applying = userCodeApplicationContext.current();
             UserCodeSource source = new UserCodeSource.Script(getSource().getShortDisplayName(), uri, localityOf(target, resource.getFile()), applying == null ? null : applying.getSource(), topLevelScript);
             UserCodeApplicationContext.Target appTarget = getApplicationTargetFor(target);
-            userCodeApplicationContext.apply(source, appTarget, userCodeApplicationId -> buildOperationRunner.run(new RunnableBuildOperation() {
-                @Override
-                public void run(BuildOperationContext context) {
-                    decorated.apply(target);
-                    context.setResult(OPERATION_RESULT);
-                }
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    final ScriptSource source = getSource();
-                    final ResourceLocation resourceLocation = source.getResource().getLocation();
-                    final File file = resourceLocation.getFile();
-                    String name = "Apply " + source.getShortDisplayName();
-                    final String displayName = name + " to " + target;
-
-                    return BuildOperationDescriptor.displayName(displayName)
-                        .name(name)
-                        .details(new OperationDetails(file, resourceLocation, ConfigurationTargetIdentifier.of(target), userCodeApplicationId));
-                }
-            }));
+            String previousBuildPath = ProblemProjectIdentityTracker.getBuildPath();
+            ProblemProjectIdentityTracker.setBuildPath(buildPathOutsideProjects(target, previousBuildPath));
+            try {
+                applyTracked(target, source, appTarget);
+            } finally {
+                ProblemProjectIdentityTracker.setBuildPath(previousBuildPath);
+            }
         }
+    }
+
+    // A settings or init script runs outside any project; a problem it reports belongs to the build it configures
+    private static @Nullable String buildPathOutsideProjects(Object target, @Nullable String current) {
+        ConfigurationTargetIdentifier id = ConfigurationTargetIdentifier.of(target);
+        return id == null || id.getTargetType() == ConfigurationTargetIdentifier.Type.PROJECT ? current : id.getBuildPath();
+    }
+
+    private void applyTracked(final Object target, UserCodeSource userCodeSource, UserCodeApplicationContext.Target appTarget) {
+        userCodeApplicationContext.apply(userCodeSource, appTarget, userCodeApplicationId -> buildOperationRunner.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                decorated.apply(target);
+                context.setResult(OPERATION_RESULT);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                final ScriptSource source = getSource();
+                final ResourceLocation resourceLocation = source.getResource().getLocation();
+                final File file = resourceLocation.getFile();
+                String name = "Apply " + source.getShortDisplayName();
+                final String displayName = name + " to " + target;
+
+                return BuildOperationDescriptor.displayName(displayName)
+                    .name(name)
+                    .details(new OperationDetails(file, resourceLocation, ConfigurationTargetIdentifier.of(target), userCodeApplicationId));
+            }
+        }));
     }
 
     /**

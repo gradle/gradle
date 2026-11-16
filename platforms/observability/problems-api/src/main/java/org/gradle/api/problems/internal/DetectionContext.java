@@ -25,16 +25,22 @@ import org.jspecify.annotations.Nullable;
  */
 public class DetectionContext {
 
-    public static final DetectionContext NONE = new DetectionContext(null, null, null);
+    public static final DetectionContext NONE = new DetectionContext(null, null, null, null);
 
     private final TaskIdentity task;
     private final ProjectIdentity project;
     private final UserCodeSource appliedCode;
+    private final String buildPath;
 
     public DetectionContext(@Nullable TaskIdentity task, @Nullable ProjectIdentity project, @Nullable UserCodeSource appliedCode) {
+        this(task, project, appliedCode, null);
+    }
+
+    public DetectionContext(@Nullable TaskIdentity task, @Nullable ProjectIdentity project, @Nullable UserCodeSource appliedCode, @Nullable String buildPath) {
         this.task = task;
         this.project = project;
         this.appliedCode = appliedCode;
+        this.buildPath = buildPath;
     }
 
     @Nullable
@@ -53,5 +59,13 @@ public class DetectionContext {
     @Nullable
     public UserCodeSource getAppliedCode() {
         return appliedCode;
+    }
+
+    /**
+     * The path of the build whose settings or {@code Gradle} object was being configured, when no project was.
+     */
+    @Nullable
+    public String getBuildPath() {
+        return buildPath;
     }
 }

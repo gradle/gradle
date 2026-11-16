@@ -182,6 +182,35 @@ class DetectionTracesTest extends Specification {
         ]
     }
 
+    def "a plugin being applied to the settings of an included build sits on that build"() {
+        when:
+        def frames = DetectionTraces.detectedIn(new DetectionContext(null, null, plugin("com.acme.settings", Locality.EXTERNAL), ":lib")).frames
+
+        then:
+        frames*.displayName == [
+            "plugin application com.acme.settings",
+            "build :lib",
+            "build :"
+        ]
+    }
+
+    def "outside any project and any plugin the trace holds the build being configured"() {
+        expect:
+        DetectionTraces.detectedIn(new DetectionContext(null, null, null, ":lib")).frames*.displayName == [
+            "build :lib",
+            "build :"
+        ]
+        DetectionTraces.detectedIn(new DetectionContext(null, null, null, ":")).frames*.displayName == ["build :"]
+    }
+
+    def "a project being configured wins over the build whose settings were being configured"() {
+        expect:
+        DetectionTraces.detectedIn(new DetectionContext(null, new ProjectIdentity(":app", ":"), null, ":lib")).frames*.displayName == [
+            "project :app",
+            "build :"
+        ]
+    }
+
     def "while a task runs the plugin being applied is not part of the trace"() {
         when:
         def frames = DetectionTraces.detectedIn(new DetectionContext(new TaskIdentity(":app:test", ":app", ":", "com.acme.AcmeTask", null), new ProjectIdentity(":app", ":"), plugin("com.acme.foo", Locality.LOCAL))).frames

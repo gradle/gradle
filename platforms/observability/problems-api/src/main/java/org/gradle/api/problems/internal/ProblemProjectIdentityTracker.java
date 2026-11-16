@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 public class ProblemProjectIdentityTracker {
 
     private static final ThreadLocal<ProjectIdentity> PROJECT_IDENTITY = new ThreadLocal<ProjectIdentity>();
+    private static final ThreadLocal<String> BUILD_PATH = new ThreadLocal<String>();
 
     public static void setProjectIdentity(@Nullable ProjectIdentity projectIdentity) {
         if (projectIdentity == null) {
@@ -40,5 +41,24 @@ public class ProblemProjectIdentityTracker {
     @Nullable
     public static ProjectIdentity getProjectIdentity() {
         return PROJECT_IDENTITY.get();
+    }
+
+    /**
+     * Says which build the current thread is configuring outside any project: its settings, or its {@code Gradle} object.
+     */
+    public static void setBuildPath(@Nullable String buildPath) {
+        if (buildPath == null) {
+            BUILD_PATH.remove();
+        } else {
+            BUILD_PATH.set(buildPath);
+        }
+    }
+
+    /**
+     * Returns the path of the build whose settings or {@code Gradle} object the current thread is configuring, or null if it isn't configuring one.
+     */
+    @Nullable
+    public static String getBuildPath() {
+        return BUILD_PATH.get();
     }
 }

@@ -288,6 +288,28 @@ class DetectionTraceUseCasesIntegrationTest extends AbstractIntegrationSpec {
         problem.originTraces[0].frames[0].locality == Locality.LOCAL
     }
 
+    def "a deprecation in the settings script of an included build is detected in that build"() {
+        given:
+        settingsFile """
+            includeBuild "lib"
+        """
+        file("lib/settings.gradle") << """
+            rootProject.name = "lib"
+            $NAG
+        """
+        expectFeatureDeprecation()
+
+        when:
+        run("help")
+
+        then: "no project exists yet, but Gradle knows whose settings it is evaluating"
+        detectionOf("Gradle:Deprecation:Feature") == [
+            "build :lib",
+            "build :"
+        ]
+        originsOf(problem) == [[file("lib/settings.gradle").absolutePath + ":" + (file("lib/settings.gradle").readLines().findIndexOf { it.contains(".deprecate(") } + 1)]]
+    }
+
     def "a deprecation in a script applied to a project with apply from is detected in the script application"() {
         given:
         settingsFile """

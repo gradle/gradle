@@ -53,7 +53,7 @@ final class DetectionTraces {
      * <ul>
      * <li>While a task runs: the task, its project, the build that owns it, and the root build.</li>
      * <li>While a project is configured: the plugin or script being applied, if any, the project, its build, and the root build.</li>
-     * <li>Otherwise: the plugin or script being applied, if any, and the root build.</li>
+     * <li>Otherwise: the plugin or script being applied, if any, the build whose settings are being configured, and the root build.</li>
      * </ul>
      */
     static Trace detectedIn(DetectionContext detection) {
@@ -75,7 +75,9 @@ final class DetectionTraces {
             return withBuilds(project.getBuildPath(), leafBuilder.build());
         }
         ImmutableList<Frame> leaves = leafBuilder.build();
-        return leaves.isEmpty() ? ROOT_BUILD : withBuilds(ROOT_BUILD_PATH, leaves);
+        // Outside any project: the build whose settings or Gradle object is being configured, if that is known
+        String buildPath = detection.getBuildPath() == null ? ROOT_BUILD_PATH : detection.getBuildPath();
+        return leaves.isEmpty() && ROOT_BUILD_PATH.equals(buildPath) ? ROOT_BUILD : withBuilds(buildPath, leaves);
     }
 
     private static @Nullable Frame applicationFrameOf(@Nullable UserCodeSource applied) {

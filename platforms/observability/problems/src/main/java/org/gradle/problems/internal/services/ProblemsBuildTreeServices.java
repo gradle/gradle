@@ -115,7 +115,7 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
             emitters.build(),
             internalOptions,
             problemReportCreator,
-            id -> new DetectionContext(currentTask(id, workExecutionTracker), ProblemProjectIdentityTracker.getProjectIdentity(), currentApplication(userCodeApplicationContext)),
+            id -> new DetectionContext(currentTask(id, workExecutionTracker), ProblemProjectIdentityTracker.getProjectIdentity(), currentApplication(userCodeApplicationContext), ProblemProjectIdentityTracker.getBuildPath()),
             buildTreeLocations.getBuildTreeRootDirectory()
         );
     }

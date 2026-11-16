@@ -344,7 +344,7 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
         ]
     }
 
-    def "a settings plugin applied to an included build is detected in the root build"() {
+    def "a settings plugin applied to an included build is detected in that build"() {
         given:
         def pluginBuilder = new PluginBuilder(file("acme-settings-plugin"))
         pluginBuilder.packageName = "com.acme"
@@ -391,6 +391,49 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
         then:
         atApplication().detectionTrace.frames*.displayName == [
             "plugin application com.acme.settings",
+            "build :lib",
+            "build :"
+        ]
+    }
+
+    def "a plugin applied by an init script is detected in each build the script runs for"() {
+        given:
+        settingsFile """
+            includeBuild "lib"
+        """
+        file("lib/settings.gradle") << """
+            rootProject.name = "lib"
+        """
+        def initScript = file("acme-init.gradle")
+        initScript << """
+            import org.gradle.api.problems.Problems
+            import javax.inject.Inject
+
+            abstract class InitScriptPlugin implements Plugin<Gradle> {
+                @Inject
+                abstract Problems getProblems()
+
+                void apply(Gradle gradle) {
+                    // The build's path makes the two reports distinct problems, so neither is dropped as a repeat
+                    problems.reporter.report(problems.groups.others.group("Generic").problemId("$PROBLEM_ID")) { it.details("in build " + gradle.identityPath) }
+                }
+            }
+
+            apply plugin: InitScriptPlugin
+        """
+
+        when: "the init script runs once for the root build and once for the included build"
+        executer.usingInitScript(initScript)
+        run("help")
+
+        then:
+        findReceivedProblem { it.details == "in build :" }.detectionTrace.frames*.displayName == [
+            "plugin application class InitScriptPlugin",
+            "build :"
+        ]
+        findReceivedProblem { it.details == "in build :lib" }.detectionTrace.frames*.displayName == [
+            "plugin application class InitScriptPlugin",
+            "build :lib",
             "build :"
         ]
     }
