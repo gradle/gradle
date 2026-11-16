@@ -37,6 +37,8 @@ abstract class AbstractResourcePattern implements ResourcePattern {
     private final boolean classifierIsOptional;
     private final boolean extensionIsOptional;
     private final boolean typeIsOptional;
+    @Nullable
+    private ExternalResourceName rootPath;
 
     public AbstractResourcePattern(String pattern) {
         this(new ExternalResourceName(pattern));
@@ -65,6 +67,30 @@ abstract class AbstractResourcePattern implements ResourcePattern {
 
     protected ExternalResourceName getBase() {
         return pattern;
+    }
+
+    @Override
+    public ExternalResourceName toRootPath() {
+        // Not computed in the constructor, as it fails for a pattern that designates a location above its root
+        ExternalResourceName result = rootPath;
+        if (result == null) {
+            result = computeRootPath();
+            rootPath = result;
+        }
+        return result;
+    }
+
+    private ExternalResourceName computeRootPath() {
+        String path = pattern.getPath();
+        int firstToken = path.indexOf('[');
+        int firstVariable = firstToken < 0 ? path.length() : firstToken;
+        // Parentheses only delimit an optional part when they enclose a token, otherwise they are literal characters, for example in the URL of the repository
+        int optionalPart = path.lastIndexOf('(', firstVariable);
+        if (optionalPart >= 0 && path.indexOf(')', optionalPart) > firstVariable) {
+            firstVariable = optionalPart;
+        }
+        String directory = path.substring(0, path.lastIndexOf('/', firstVariable) + 1);
+        return pattern.getRoot().resolve(directory);
     }
 
     protected String substituteTokens(String pattern, Map<String, String> attributes) {

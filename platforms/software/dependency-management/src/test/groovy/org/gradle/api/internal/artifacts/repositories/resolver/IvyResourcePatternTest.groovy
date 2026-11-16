@@ -82,6 +82,24 @@ class IvyResourcePatternTest extends Specification {
         "org.group" | "projectA" | 'prefix/org.group-projectA/[revision]/ivys/[revision]/ivy.xml'
     }
 
+    def "computes root path"() {
+        expect:
+        new IvyResourcePattern(pattern).toRootPath().path == expectedPath
+
+        where:
+        pattern                                                                 | expectedPath
+        'prefix/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]' | 'prefix/'
+        'prefix/dir/lib-[module]/[artifact]-[revision].[ext]'                   | 'prefix/dir/'
+        '/prefix/(lib-[module]/)[artifact]-[revision].[ext]'                    | '/prefix/'
+        '[organisation]/[module]/[artifact]-[revision].[ext]'                   | ''
+        'prefix/dir/file.txt'                                                   | 'prefix/dir/'
+        '/work (old)/repo/[module]/[artifact]-[revision].[ext]'                 | '/work (old)/repo/'
+        '/a(b)/(lib-[module]/)[artifact]-[revision].[ext]'                      | '/a(b)/'
+        '/a(b)/repo/file.txt'                                                   | '/a(b)/repo/'
+        '/prefix/(opt/[module]/)[artifact]-[revision].[ext]'                    | '/prefix/'
+        '/a(b)/(opt/dir/[module]/)[artifact]-[revision].[ext]'                  | '/a(b)/'
+    }
+
     def "computes module version path"() {
         def ivyPattern = new IvyResourcePattern(pattern)
         def moduleId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, module), version)

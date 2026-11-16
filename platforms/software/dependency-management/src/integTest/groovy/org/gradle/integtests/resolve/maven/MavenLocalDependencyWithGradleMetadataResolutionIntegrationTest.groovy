@@ -362,6 +362,55 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
         }
     }
 
+    def "fails when module metadata declares a file located outside the repository using #label"() {
+        def secret = file("secret.txt") << "secret"
+        def url = urlFor(secret)
+        def a = mavenRepo.module("test", "a", "1.2").withModuleMetadata().publish()
+        a.moduleMetadata.file.text = """
+{
+    "formatVersion": "${FORMAT_VERSION}",
+    "variants": [
+        {
+            "name": "escaping",
+            "files": [
+                { "name": "a-1.2.jar", "url": "${url}" }
+            ]
+        }
+    ]
+}
+"""
+
+        given:
+        buildFile << """
+            repositories {
+                maven {
+                    url = '${mavenRepo.uri}'
+                }
+            }
+
+            configurations {
+                debug
+            }
+
+            ${resolve.configureProject("debug")}
+
+            dependencies {
+                debug 'test:a:1.2'
+            }
+        """
+
+        when:
+        fails("checkDeps")
+
+        then:
+        failure.assertHasCause(expectedCause(url))
+
+        where:
+        label              | urlFor                                    | expectedCause
+        "an absolute path" | { File f -> f.toURI().path }              | { "invalid 'url' at /variants[0]/files[0]: '${it}' must be a relative path that uses '/' as separator" }
+        "a parent path"    | { File f -> "../../../../secret.txt" }    | { "Cannot locate file 'a-1.2.jar' of test:a:1.2 as its URL '${it}' designates a location outside the repository." }
+    }
+
     def "module with module metadata can depend on another module with module metadata"() {
         def c = mavenRepo.module("test", "c", "preview")
             .withModuleMetadata()

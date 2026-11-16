@@ -116,20 +116,47 @@ public class ExternalResourceName implements Describable {
 
     /**
      * Resolves the given path relative to this name. The path can be a relative path or an absolute path. The '/' character is used to separate the elements of the path.
+     *
+     * <p>An absolute path replaces the path of this name and a relative path is appended to it.
+     * In both cases, empty and {@code .} elements are ignored and a {@code ..} element removes the element that precedes it.</p>
+     *
+     * @throws IllegalArgumentException when a {@code ..} element designates a location above the root of this name.
      */
     public ExternalResourceName resolve(String path) {
         List<String> parts = new ArrayList<>();
         boolean leadingSlash;
         boolean trailingSlash = path.endsWith("/");
+        boolean withinRoot = true;
         if (path.startsWith("/")) {
             leadingSlash = true;
         } else {
             leadingSlash = this.path.startsWith("/");
-            append(this.path, parts);
+            withinRoot = resolveElements(this.path, parts);
         }
-        append(path, parts);
+        withinRoot = withinRoot && resolveElements(path, parts);
+        if (!withinRoot) {
+            throw new IllegalArgumentException(format("Cannot resolve path '%s' relative to '%s' as it designates a location above the root.", path, getDisplayName()));
+        }
         String newPath = join(leadingSlash, trailingSlash, parts);
         return new ExternalResourceName(encodedRoot, newPath);
+    }
+
+    /**
+     * Returns true when this name is the given name or is located below it.
+     * Empty, {@code .} and {@code ..} elements of both paths are handled as by {@link #resolve(String)}.
+     *
+     * @throws IllegalArgumentException when a {@code ..} element designates a location above the root of either name.
+     */
+    public boolean isSameOrDescendantOf(ExternalResourceName ancestor) {
+        if (!Objects.equal(encodedRoot, ancestor.encodedRoot) || path.startsWith("/") != ancestor.path.startsWith("/")) {
+            return false;
+        }
+        List<String> parts = new ArrayList<>();
+        List<String> ancestorParts = new ArrayList<>();
+        if (!resolveElements(path, parts) || !resolveElements(ancestor.path, ancestorParts)) {
+            throw new IllegalArgumentException(format("Cannot compare '%s' with '%s' as one of them designates a location above the root.", getDisplayName(), ancestor.getDisplayName()));
+        }
+        return parts.size() >= ancestorParts.size() && parts.subList(0, ancestorParts.size()).equals(ancestorParts);
     }
 
     /**
@@ -295,7 +322,13 @@ public class ExternalResourceName implements Describable {
         return builder.toString();
     }
 
-    private void append(String path, List<String> parts) {
+    /**
+     * Resolves the elements of the given path against the given list of elements:
+     * empty and {@code .} elements are ignored, a {@code ..} element removes the last element of the list and any other element is added to it.
+     *
+     * @return false when the path contains a {@code ..} element that has no element left to remove.
+     */
+    private static boolean resolveElements(String path, List<String> parts) {
         int pos = 0;
         while (pos < path.length()) {
             int end = path.indexOf('/', pos);
@@ -311,10 +344,14 @@ public class ExternalResourceName implements Describable {
                 continue;
             }
             if (part.equals("..")) {
+                if (parts.isEmpty()) {
+                    return false;
+                }
                 parts.remove(parts.size() - 1);
                 continue;
             }
             parts.add(part);
         }
+        return true;
     }
 }

@@ -63,6 +63,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import static com.google.gson.stream.JsonToken.BOOLEAN;
 import static com.google.gson.stream.JsonToken.END_ARRAY;
@@ -76,6 +77,7 @@ public class GradleModuleMetadataParser {
     private final static Logger LOGGER = Logging.getLogger(GradleModuleMetadataParser.class);
 
     public static final String FORMAT_VERSION = "1.1";
+    private static final Pattern URL_SCHEME = Pattern.compile("[A-Za-z][A-Za-z0-9+.-]*:");
     private final AttributesFactory attributesFactory;
     private final NamedObjectInstantiator instantiator;
     private final ExcludeRuleConverter excludeRuleConverter;
@@ -601,6 +603,7 @@ public class GradleModuleMetadataParser {
             }
             assertDefined(reader, "name", fileName);
             assertDefined(reader, "url", fileUrl);
+            assertRelativeFileUrl(reader, fileUrl);
             reader.endObject();
 
             files.add(new ModuleFile(fileName, fileUrl));
@@ -652,12 +655,38 @@ public class GradleModuleMetadataParser {
         reader.skipValue();
     }
 
+    private static void assertRelativeFileUrl(JsonReader reader, String url) {
+        if (!isRelativeFileUrl(url)) {
+            throw new RuntimeException("invalid 'url' at " + locationOfParent(reader) + ": '" + url + "' must be a relative path that uses '/' as separator");
+        }
+    }
+
+    /**
+     * Tells whether the given URL of a variant file is a relative path.
+     *
+     * <p>The URL is resolved against the directory of the module version in the repository the metadata was found in.
+     * An absolute path or a URL with a scheme would instead select something else served by the host of the repository.
+     * A backslash is a path separator for a file repository on Windows only, so its meaning would depend on the consumer.</p>
+     *
+     * <p>Anything that starts like a URL scheme is refused, which includes a Windows drive such as {@code C:/dir}, {@code host:port} and {@code user:password@host}.</p>
+     */
+    public static boolean isRelativeFileUrl(String url) {
+        return !url.startsWith("/") && url.indexOf('\\') < 0 && !URL_SCHEME.matcher(url).lookingAt();
+    }
+
     private void assertDefined(JsonReader reader, String attribute, String value) {
         if (StringUtils.isEmpty(value)) {
-            String path = reader.getPath();
-            // remove leading '$', remove last child segment, use '/' as separator
-            throw new RuntimeException("missing '" + attribute + "' at " + path.substring(1, path.lastIndexOf('.')).replace('.', '/'));
+            throw new RuntimeException("missing '" + attribute + "' at " + locationOfParent(reader));
         }
+    }
+
+    /**
+     * Describes the JSON object that contains the value the reader is at, for example {@code /variants[0]/files[0]} when the reader is at {@code $.variants[0].files[0].url}.
+     */
+    private static String locationOfParent(JsonReader reader) {
+        String jsonPath = reader.getPath();
+        // remove leading '$', remove last child segment, use '/' as separator
+        return jsonPath.substring(1, jsonPath.lastIndexOf('.')).replace('.', '/');
     }
 
     private static class ModuleFile {

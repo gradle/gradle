@@ -429,7 +429,6 @@ task checkDebug {
         a.getArtifact("file2.jar").file << "file 2"
         a.getArtifact("../sibling/file3.jar").file << "file 3"
         a.getArtifact("child/file4.jar").file << "file 4"
-        a.getArtifact("../../../a-1.2-5.jar").file << "file 5"
         a.publish()
         a.moduleMetadata.file.text = """
 {
@@ -441,8 +440,7 @@ task checkDebug {
                 { "name": "file1.jar", "url": "file1.jar" },
                 { "name": "a-1.2.jar", "url": "file2.jar" },
                 { "name": "a-3.jar", "url": "../sibling/file3.jar" },
-                { "name": "file4.jar", "url": "child/file4.jar" },
-                { "name": "a_5.jar", "url": "/repo/a-1.2-5.jar" }
+                { "name": "file4.jar", "url": "child/file4.jar" }
             ]
         }
     ]
@@ -474,11 +472,10 @@ task checkDebug {
         a.getArtifact("file2.jar").expectGet()
         a.getArtifact("../sibling/file3.jar").expectGet()
         a.getArtifact("child/file4.jar").expectGet()
-        a.getArtifact("../../../a-1.2-5.jar").expectGet()
 
         expect:
         succeeds("checkDebug")
-        outputContains("[file1.jar, a-1.2.jar, a-3.jar, file4.jar, a_5.jar]")
+        outputContains("[file1.jar, a-1.2.jar, a-3.jar, file4.jar]")
 
         and:
         server.resetExpectations()
@@ -486,7 +483,7 @@ task checkDebug {
         and:
         // Cached result
         succeeds("checkDebug")
-        outputContains("[file1.jar, a-1.2.jar, a-3.jar, file4.jar, a_5.jar]")
+        outputContains("[file1.jar, a-1.2.jar, a-3.jar, file4.jar]")
 
         and:
         server.resetExpectations()
@@ -496,7 +493,6 @@ task checkDebug {
         a.getArtifact("file2.jar").expectHead()
         a.getArtifact("../sibling/file3.jar").expectHead()
         a.getArtifact("child/file4.jar").expectHead()
-        a.getArtifact("../../../a-1.2-5.jar").expectHead()
 
         executer.withArgument("--refresh-dependencies")
         succeeds("checkDebug")
@@ -849,6 +845,121 @@ Required by:
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Could not resolve test:a:1.2.")
         failure.assertHasCause("Could not parse module metadata ${m.moduleMetadata.uri}")
+    }
+
+    def "fails when module metadata declares a file using absolute url '#url'"() {
+        def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
+        m.moduleMetadata.file.text = """
+{
+    "formatVersion": "${FORMAT_VERSION}",
+    "variants": [
+        {
+            "name": "absolute",
+            "files": [
+                { "name": "a-1.2.jar", "url": "${url.replace('\\', '\\\\')}" }
+            ]
+        }
+    ]
+}
+"""
+
+        given:
+        buildFile << """
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
+
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile 'test:a:1.2'
+            }
+        """
+
+        // No other request is expected, in particular none for the location the URL designates
+        m.pom.expectGet()
+        m.moduleMetadata.expectGet()
+
+        when:
+        fails("checkDeps")
+
+        then:
+        failure.assertHasCause("Could not resolve test:a:1.2.")
+        failure.assertHasCause("Could not parse module metadata ${m.moduleMetadata.uri}")
+        failure.assertHasCause("invalid 'url' at /variants[0]/files[0]: '${url}' must be a relative path that uses '/' as separator")
+
+        where:
+        url << [
+            "/repo/test/b/1.0/b-1.0.jar",
+            "/api/whoami",
+            "//localhost/a-1.2.jar",
+            "http://localhost/a-1.2.jar",
+            "C:\\my\\stuff",
+            "C:\\\\my\\\\stuff",
+            "..\\relative\\folder",
+            "\\/escaped\\/slashes",
+            "C:/my/stuff"
+        ]
+    }
+
+    def "fails when module metadata declares a file located outside the repository using url '#url'"() {
+        def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
+        m.moduleMetadata.file.text = """
+{
+    "formatVersion": "${FORMAT_VERSION}",
+    "variants": [
+        {
+            "name": "escaping",
+            "files": [
+                { "name": "a-1.2.jar", "url": "${url}" }
+            ]
+        }
+    ]
+}
+"""
+
+        given:
+        buildFile << """
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
+
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile 'test:a:1.2'
+            }
+        """
+
+        // No other request is expected, in particular none for the location the URL designates
+        m.pom.expectGet()
+        m.moduleMetadata.expectGet()
+
+        when:
+        fails("checkDeps")
+
+        then:
+        failure.assertHasCause("Could not download a-1.2.jar (test:a:1.2)")
+        failure.assertHasCause("Cannot locate file 'a-1.2.jar' of test:a:1.2 as its URL '${url}' designates a location outside the repository.")
+
+        where:
+        url << [
+            "../../../../outside/a-1.2.jar",
+            "child/../../../../../../a-1.2.jar",
+            "..;/..;/..;/..;/outside/a-1.2.jar"
+        ]
     }
 
     def "reports failure to locate files"() {

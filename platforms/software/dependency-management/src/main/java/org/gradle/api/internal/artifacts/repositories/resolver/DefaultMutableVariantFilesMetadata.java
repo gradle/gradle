@@ -41,6 +41,9 @@ public class DefaultMutableVariantFilesMetadata implements MutableVariantFilesMe
 
     @Override
     public void addFile(String name, String url) {
+        if (url.indexOf('\\') >= 0) {
+            throw new InvalidUserDataException("Cannot add file " + name + " (url: " + url + ") because its url must use '/' as separator");
+        }
         for (VariantFileMetadata file : files) {
             if (file.getName().equals(name)) {
                 throw new InvalidUserDataException("Cannot add file " + name + " (url: " + url + ") because it is already defined (url: " + file.getUrl() + ")");

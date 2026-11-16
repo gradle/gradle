@@ -100,6 +100,15 @@ class M2ResourcePatternTest extends Specification {
         pattern.toModulePath(module2).path == 'prefix/org/group/projectA'
     }
 
+    def "can build root path"() {
+        expect:
+        new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN).toRootPath().path == 'prefix/'
+        new M2ResourcePattern(new URI("http://host/repo"), MavenPattern.M2_PATTERN).toRootPath().uri == new URI("http://host/repo/")
+        new M2ResourcePattern(new URI("http://host"), MavenPattern.M2_PATTERN).toRootPath().uri == new URI("http://host/")
+        new M2ResourcePattern(new URI("http://host/a(b)/repo"), MavenPattern.M2_PATTERN).toRootPath().uri == new URI("http://host/a(b)/repo/")
+        new M2ResourcePattern(new URI("file:/C:/Program%20Files%20(x86)/repo/"), MavenPattern.M2_PATTERN).toRootPath().path == "/C:/Program Files (x86)/repo/"
+    }
+
     def "can build module version path"() {
         def pattern = new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN)
         def component1 = newId(DefaultModuleIdentifier.newId("group", "projectA"), "1.2")

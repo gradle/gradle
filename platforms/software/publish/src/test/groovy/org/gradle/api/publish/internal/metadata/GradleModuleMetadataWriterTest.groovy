@@ -251,6 +251,42 @@ class GradleModuleMetadataWriterTest extends Specification {
 """
     }
 
+    def "fails to write file for component with a file whose url '#url' is not a relative path"() {
+        def writer = new StringWriter()
+        def component = Stub(TestComponent)
+        def publication = publication(component, id)
+
+        def a1 = Stub(PublishArtifact)
+        a1.file >> tmpDir.file("artifact-1")
+        publication.getPublishedFile(a1) >> new SimplePublishedFile("a1.name", url)
+
+        def v1 = Stub(UsageContext)
+        v1.name >> "v1"
+        v1.attributes >> attributes(usage: "compile")
+        v1.artifacts >> [a1]
+
+        component.usages >> [v1]
+
+        when:
+        writeTo(writer, publication, [publication])
+
+        then:
+        InvalidUserCodeException ex = thrown()
+        ex.message.contains("File 'a1.name' cannot be published with URL '$url'. The URL must be a relative path that uses '/' as separator.")
+
+        where:
+        url << [
+            "/a1.url",
+            "/repo/group/other/1.0/a1.url",
+            "//host/a1.url",
+            "dir\\a1.url",
+            "..\\a1.url",
+            "http://host/a1.url",
+            "C:\\some\\a1.url",
+            "C:/some/a1.url"
+        ]
+    }
+
     def "writes file for component with variants with dependencies"() {
         def writer = new StringWriter()
         def component = Stub(TestComponent)
