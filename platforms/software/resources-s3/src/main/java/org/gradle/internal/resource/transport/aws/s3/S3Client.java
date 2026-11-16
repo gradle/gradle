@@ -85,9 +85,11 @@ public class S3Client {
     // SDK v1's defaults; SDK v2 defaults to 2 seconds and 30 seconds.
     private static final Duration CONNECTION_TIMEOUT = Duration.ofSeconds(10);
     private static final Duration SOCKET_TIMEOUT = Duration.ofSeconds(50);
-    // The region in a custom endpoint's host, as SDK v1 derived it, such as s3.eu-west-1.amazonaws.com or s3.eu-central-1.wasabisys.com
+    // The region in an AWS endpoint's host, such as s3.eu-west-1.amazonaws.com or s3-fips.us-east-2.amazonaws.com
     private static final Pattern AWS_ENDPOINT_HOST = Pattern.compile("^(?:.+\\.)?s3(?:-fips)?(?:[.-]dualstack)?[.-]([a-z0-9-]+)\\.amazonaws\\.com(?:\\.cn)?$");
-    private static final Pattern OTHER_ENDPOINT_HOST = Pattern.compile("^(?:.+\\.)?s3\\.([a-z0-9-]+)\\.");
+    // The region in any other endpoint's host, such as s3.eu-central-1.wasabisys.com or s3-eu-central-1.wasabisys.com,
+    // with the pattern of SDK v1's AwsHostNameUtils.parseRegionFromAfterServiceName
+    private static final Pattern OTHER_ENDPOINT_HOST = Pattern.compile("^(?:.+\\.)?s3[.-]([a-z0-9-]+)\\.");
 
     private final software.amazon.awssdk.services.s3.@Nullable S3Client amazonS3ClientMock;
     private AwsCredentialsProvider credentialsProvider = AnonymousCredentialsProvider.create();

@@ -514,6 +514,7 @@ class S3ClientTest extends Specification {
         "s3-fips.us-east-2.amazonaws.com"        | "us-east-2"
         "bucket.s3.eu-west-2.amazonaws.com"      | "eu-west-2"
         "s3.eu-central-1.wasabisys.com"          | "eu-central-1"
+        "s3-eu-central-1.wasabisys.com"          | "eu-central-1"
         "s3.us-west-002.backblazeb2.com"         | "us-west-002"
         "s3.fr-par.scw.cloud"                    | "fr-par"
         "s3.example.com"                         | "example"
