@@ -78,7 +78,7 @@ class S3ClientTest extends Specification {
     def "Should upload to s3"() {
         given:
         software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
-        S3Client client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        S3Client client = new S3Client({ amazonS3Client }, s3ConnectionProperties)
         URI uri = new URI("s3://localhost/maven/snapshot/myFile.txt")
 
         when:
@@ -111,7 +111,7 @@ class S3ClientTest extends Specification {
         _ * s3Properties.getEndpoint() >> Optional.empty()
         _ * s3Properties.getPartSize() >> 7
         _ * s3Properties.getMultipartThreshold() >> 10
-        S3Client client = new S3Client(amazonS3Client, s3Properties)
+        S3Client client = new S3Client({ amazonS3Client }, s3Properties)
 
         URI uri = new URI("s3://${bucketName}/${objectKey}")
 
@@ -153,7 +153,7 @@ class S3ClientTest extends Specification {
     def "lists the children from every page of a truncated listing"() {
         given:
         software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
-        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        S3Client s3Client = new S3Client({ amazonS3Client }, s3ConnectionProperties)
         amazonS3Client.listObjectsV2Paginator(_) >> { args -> new ListObjectsV2Iterable(amazonS3Client, args[0] as ListObjectsV2Request) }
 
         when:
@@ -255,7 +255,7 @@ class S3ClientTest extends Specification {
     def "getMetaData wraps generic S3Exception with the resource uri"() {
         software.amazon.awssdk.services.s3.S3Client amazonS3Client = Stub()
         URI uri = new URI("https://somehost/file.txt")
-        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        S3Client s3Client = new S3Client({ amazonS3Client }, s3ConnectionProperties)
         S3Exception amazonS3Exception = S3Exception.builder()
             .awsErrorDetails(AwsErrorDetails.builder().errorMessage("test exception").build())
             .build()
@@ -271,7 +271,7 @@ class S3ClientTest extends Specification {
     def "should include uri when file not found"() {
         software.amazon.awssdk.services.s3.S3Client amazonS3Client = Stub()
         URI uri = new URI("https://somehost/file.txt")
-        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        S3Client s3Client = new S3Client({ amazonS3Client }, s3ConnectionProperties)
         S3Exception amazonS3Exception = S3Exception.builder()
             .awsErrorDetails(AwsErrorDetails.builder().errorMessage("test exception").build())
             .build()
@@ -287,7 +287,7 @@ class S3ClientTest extends Specification {
     def "reports the status code S3 answered with"() {
         software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
         URI uri = new URI("https://somehost/file.txt")
-        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        S3Client s3Client = new S3Client({ amazonS3Client }, s3ConnectionProperties)
         S3Exception amazonS3Exception = S3Exception.builder()
             .statusCode(403)
             .awsErrorDetails(AwsErrorDetails.builder().errorCode("AccessDenied").errorMessage("Access Denied").build())
@@ -306,7 +306,7 @@ class S3ClientTest extends Specification {
 
     def "reports the status code when listing fails"() {
         software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
-        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        S3Client s3Client = new S3Client({ amazonS3Client }, s3ConnectionProperties)
         amazonS3Client.listObjectsV2Paginator(_) >> { throw S3Exception.builder().statusCode(500).build() }
 
         when:
@@ -320,7 +320,7 @@ class S3ClientTest extends Specification {
     def "a missing object is not reported as a failure"() {
         software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
         URI uri = new URI("https://somehost/file.txt")
-        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        S3Client s3Client = new S3Client({ amazonS3Client }, s3ConnectionProperties)
         amazonS3Client.getObject(_) >> {
             throw S3Exception.builder()
                 .statusCode(404)
@@ -335,7 +335,7 @@ class S3ClientTest extends Specification {
     def "should include uri when upload fails"() {
         software.amazon.awssdk.services.s3.S3Client amazonS3Client = Stub()
         URI uri = new URI("https://somehost/file.txt")
-        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        S3Client s3Client = new S3Client({ amazonS3Client }, s3ConnectionProperties)
 
         S3Exception amazonS3Exception = S3Exception.builder()
             .awsErrorDetails(AwsErrorDetails.builder().errorMessage("test exception").build())
@@ -419,17 +419,24 @@ class S3ClientTest extends Specification {
 
     def "falls back to anonymous access after the default provider chain"() {
         given:
-        S3Client s3Client = new S3Client(s3ConnectionProperties)
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getProxy() >> Optional.empty()
+        s3Properties.getMaxErrorRetryCount() >> Optional.empty()
+        S3Client s3Client = new S3Client(s3Properties)
 
-        expect:
-        s3Client.credentialsProvider instanceof AwsCredentialsProviderChain
-        s3Client.credentialsProvider.credentialsProviders*.class == [DefaultCredentialsProvider, AnonymousCredentialsProvider]
+        when:
+        def provider = s3Client.clientFor(someResource()).serviceClientConfiguration().credentialsProvider()
+
+        then:
+        provider instanceof AwsCredentialsProviderChain
+        provider.credentialsProviders*.class == [DefaultCredentialsProvider, AnonymousCredentialsProvider]
     }
 
     def "single-part body reopens the content each time the SDK re-reads it"() {
         given:
         software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
-        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        S3Client s3Client = new S3Client({ amazonS3Client }, s3ConnectionProperties)
         URI uri = new URI("s3://localhost/foo.txt")
         byte[] expected = 'hello world'.bytes
         byte[] firstRead = null
@@ -458,7 +465,7 @@ class S3ClientTest extends Specification {
         s3Properties.getEndpoint() >> Optional.empty()
         s3Properties.getPartSize() >> 7
         s3Properties.getMultipartThreshold() >> 10
-        S3Client s3Client = new S3Client(amazonS3Client, s3Properties)
+        S3Client s3Client = new S3Client({ amazonS3Client }, s3Properties)
         amazonS3Client.createMultipartUpload(_) >> CreateMultipartUploadResponse.builder().uploadId('1').build()
         List<String> parts = []
 
@@ -620,7 +627,7 @@ class S3ClientTest extends Specification {
         s3Properties.getEndpoint() >> Optional.empty()
         s3Properties.getPartSize() >> 7
         s3Properties.getMultipartThreshold() >> 10
-        S3Client s3Client = new S3Client(amazonS3Client, s3Properties)
+        S3Client s3Client = new S3Client({ amazonS3Client }, s3Properties)
         amazonS3Client.createMultipartUpload(_) >> CreateMultipartUploadResponse.builder().uploadId('1').build()
         def failure = new ResourceException("the content went away")
 
@@ -643,7 +650,7 @@ class S3ClientTest extends Specification {
         s3Properties.getEndpoint() >> Optional.empty()
         s3Properties.getPartSize() >> 7
         s3Properties.getMultipartThreshold() >> 10
-        S3Client s3Client = new S3Client(amazonS3Client, s3Properties)
+        S3Client s3Client = new S3Client({ amazonS3Client }, s3Properties)
         amazonS3Client.createMultipartUpload(_) >> CreateMultipartUploadResponse.builder().uploadId('1').build()
         def failure = new ResourceException("the content went away")
         def abortFailure = S3Exception.builder().message("could not abort").build()
@@ -668,7 +675,7 @@ class S3ClientTest extends Specification {
         s3Properties.getEndpoint() >> Optional.empty()
         s3Properties.getPartSize() >> 7
         s3Properties.getMultipartThreshold() >> 10
-        S3Client s3Client = new S3Client(amazonS3Client, s3Properties)
+        S3Client s3Client = new S3Client({ amazonS3Client }, s3Properties)
         amazonS3Client.createMultipartUpload(_) >> CreateMultipartUploadResponse.builder().uploadId('1').build()
         long processed = 0
         def content = new ReadableContent() {
@@ -700,7 +707,7 @@ class S3ClientTest extends Specification {
         given:
         def http = new FlakyHttpClient(["put"])
         byte[] data = randomBytes(MIB)
-        S3Client s3Client = new S3Client(sdkClientWith(http), uploadProperties(10L * MIB, 5L * MIB))
+        S3Client s3Client = new S3Client({ sdkClientWith(http) }, uploadProperties(10L * MIB, 5L * MIB))
 
         when:
         s3Client.put(nonRewindableContent(data), new URI("s3://mybucket/file.bin"))
@@ -716,7 +723,7 @@ class S3ClientTest extends Specification {
         def http = new FlakyHttpClient(["part-2"])
         int partSize = 512 * 1024
         byte[] data = randomBytes(3 * partSize)
-        S3Client s3Client = new S3Client(sdkClientWith(http), uploadProperties(MIB, partSize))
+        S3Client s3Client = new S3Client({ sdkClientWith(http) }, uploadProperties(MIB, partSize))
 
         when:
         s3Client.put(nonRewindableContent(data), new URI("s3://mybucket/file.bin"))
@@ -749,6 +756,27 @@ class S3ClientTest extends Specification {
         !first.is(other)
         first.serviceClientConfiguration().region() == Region.EU_WEST_1
         other.serviceClientConfiguration().region() == Region.US_WEST_2
+    }
+
+    def "sends a request through the client for the region that #description"() {
+        given:
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.ofNullable(endpoint == null ? null : new URI(endpoint))
+        def regions = []
+        S3Client s3Client = new S3Client({ Region region -> regions << region; amazonS3Client }, s3Properties)
+
+        when:
+        s3Client.getMetaData(new URI(url))
+
+        then:
+        regions == [Region.of(expectedRegion)]
+
+        where:
+        description                                   | endpoint                                | url                                                    | expectedRegion
+        "the bucket URL names"                        | null                                    | "s3://bucket.s3.eu-central-1.amazonaws.com/file.txt"   | "eu-central-1"
+        "is the default for a bucket URL without one" | null                                    | "s3://bucket/file.txt"                                 | "us-east-1"
+        "the custom endpoint names"                   | "https://s3-eu-central-1.wasabisys.com" | "s3://bucket.s3.ap-southeast-2.amazonaws.com/file.txt" | "eu-central-1"
     }
 
     def "shares one client among URLs that don't name a region other than the default"() {
@@ -794,7 +822,7 @@ class S3ClientTest extends Specification {
     def "tolerates exceptions without error details"() {
         given:
         software.amazon.awssdk.services.s3.S3Client amazonS3Client = Stub()
-        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        S3Client s3Client = new S3Client({ amazonS3Client }, s3ConnectionProperties)
         URI uri = new URI("s3://somehost/file.txt")
         amazonS3Client.headObject(_) >> { throw S3Exception.builder().statusCode(status).build() }
         amazonS3Client.getObject(_) >> { throw noSuchKey() }
@@ -823,7 +851,7 @@ class S3ClientTest extends Specification {
         given:
         software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
         URI uri = new URI("s3://somehost/file.txt")
-        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        S3Client s3Client = new S3Client({ amazonS3Client }, s3ConnectionProperties)
 
         when:
         def result = null
@@ -852,7 +880,7 @@ class S3ClientTest extends Specification {
     def "getMetaData does not repeat a HEAD failure other than 404"() {
         given:
         software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
-        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        S3Client s3Client = new S3Client({ amazonS3Client }, s3ConnectionProperties)
 
         when:
         s3Client.getMetaData(new URI("s3://somehost/file.txt"))

@@ -74,6 +74,7 @@ import java.util.Map;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -91,15 +92,16 @@ public class S3Client {
     // with the pattern of SDK v1's AwsHostNameUtils.parseRegionFromAfterServiceName
     private static final Pattern OTHER_ENDPOINT_HOST = Pattern.compile("^(?:.+\\.)?s3[.-]([a-z0-9-]+)\\.");
 
-    private final software.amazon.awssdk.services.s3.@Nullable S3Client amazonS3ClientMock;
-    private AwsCredentialsProvider credentialsProvider = AnonymousCredentialsProvider.create();
+    private final Function<Region, software.amazon.awssdk.services.s3.S3Client> clientFactory;
     private final Map<Region, software.amazon.awssdk.services.s3.S3Client> clientsByRegion = new ConcurrentHashMap<>();
     private final S3ResourceResolver resourceResolver = new S3ResourceResolver();
     private final S3ConnectionProperties s3ConnectionProperties;
 
-    public S3Client(software.amazon.awssdk.services.s3.@Nullable S3Client amazonS3ClientMock,
-                    S3ConnectionProperties s3ConnectionProperties) {
-        this.amazonS3ClientMock = amazonS3ClientMock;
+    /**
+     * Creates a client that gets the SDK client for each region from the given factory, such as a stub in tests.
+     */
+    S3Client(Function<Region, software.amazon.awssdk.services.s3.S3Client> clientFactory, S3ConnectionProperties s3ConnectionProperties) {
+        this.clientFactory = clientFactory;
         this.s3ConnectionProperties = s3ConnectionProperties;
     }
 
@@ -108,60 +110,63 @@ public class S3Client {
      * @since 3.1
      */
     public S3Client(S3ConnectionProperties s3ConnectionProperties) {
-        this((software.amazon.awssdk.services.s3.S3Client) null, s3ConnectionProperties);
         // SDK v1's S3 chain fell back to anonymous access when it found no credentials, but SDK v2's chain throws.
         // So the anonymous provider goes last in the chain.
         // The chain doesn't reuse the provider that last succeeded, so a request after a transient lookup failure
         // tries the default provider again instead of staying anonymous.
-        this.credentialsProvider = AwsCredentialsProviderChain.builder()
+        this(s3ConnectionProperties, AwsCredentialsProviderChain.builder()
             .reuseLastProviderEnabled(false)
             .credentialsProviders(DefaultCredentialsProvider.builder().build(), AnonymousCredentialsProvider.create())
-            .build();
+            .build());
     }
 
     public S3Client(@Nullable AwsCredentials awsCredentials, S3ConnectionProperties s3ConnectionProperties) {
-        this.amazonS3ClientMock = null;
-        this.s3ConnectionProperties = s3ConnectionProperties;
-        if (awsCredentials != null) {
-            if (awsCredentials.getSessionToken() == null) {
-                this.credentialsProvider = StaticCredentialsProvider.create(
-                    AwsBasicCredentials.create(awsCredentials.getAccessKey(), awsCredentials.getSecretKey())
-                );
-            } else {
-                this.credentialsProvider = StaticCredentialsProvider.create(
-                    AwsSessionCredentials.create(
-                        awsCredentials.getAccessKey(), awsCredentials.getSecretKey(), awsCredentials.getSessionToken()
-                    )
-                );
-            }
+        this(s3ConnectionProperties, credentialsProvider(awsCredentials));
+    }
+
+    private S3Client(S3ConnectionProperties s3ConnectionProperties, AwsCredentialsProvider credentialsProvider) {
+        this(region -> build(region, s3ConnectionProperties, credentialsProvider), s3ConnectionProperties);
+    }
+
+    private static AwsCredentialsProvider credentialsProvider(@Nullable AwsCredentials awsCredentials) {
+        if (awsCredentials == null) {
+            return AnonymousCredentialsProvider.create();
         }
+        if (awsCredentials.getSessionToken() == null) {
+            return StaticCredentialsProvider.create(
+                AwsBasicCredentials.create(awsCredentials.getAccessKey(), awsCredentials.getSecretKey())
+            );
+        }
+        return StaticCredentialsProvider.create(
+            AwsSessionCredentials.create(
+                awsCredentials.getAccessKey(), awsCredentials.getSecretKey(), awsCredentials.getSessionToken()
+            )
+        );
     }
 
     private software.amazon.awssdk.services.s3.S3Client clientFor(S3RegionalResource s3RegionalResource) {
-        if (amazonS3ClientMock != null) {
-            return amazonS3ClientMock;
-        }
         Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
         // Like SDK v1, fall back to us-east-1 when neither the endpoint nor the bucket URL names a region
         Region region = endpoint.isPresent()
             ? signingRegion(endpoint.get())
             : s3RegionalResource.getRegion().orElse(DEFAULT_REGION);
-        return clientsByRegion.computeIfAbsent(region, this::build);
+        return clientsByRegion.computeIfAbsent(region, clientFactory);
     }
 
-    private software.amazon.awssdk.services.s3.S3Client build(Region region) {
+    private static software.amazon.awssdk.services.s3.S3Client build(
+        Region region, S3ConnectionProperties s3ConnectionProperties, AwsCredentialsProvider credentialsProvider) {
         // We can't change the region of a built software.amazon.awssdk.services.s3.S3Client,
         // and we don't know the region until we know the bucket we will be accessing.
         S3ClientBuilder clientBuilder = software.amazon.awssdk.services.s3.S3Client.builder()
-            .httpClientBuilder(createProxyConfiguration())
-            .overrideConfiguration(createConnectionProperties())
+            .httpClientBuilder(createProxyConfiguration(s3ConnectionProperties))
+            .overrideConfiguration(createConnectionProperties(s3ConnectionProperties))
             .credentialsProvider(credentialsProvider)
             .region(region);
         applyS3ConnectionProperties(clientBuilder, s3ConnectionProperties);
         return clientBuilder.build();
     }
 
-    private void applyS3ConnectionProperties(
+    private static void applyS3ConnectionProperties(
         S3ClientBuilder clientBuilder, S3ConnectionProperties s3ConnectionProperties) {
 
         Optional<URI> endpointProperty = s3ConnectionProperties.getEndpoint();
@@ -195,9 +200,9 @@ public class S3Client {
         return other.find() ? Region.of(other.group(1)) : DEFAULT_REGION;
     }
 
-    private ClientOverrideConfiguration createConnectionProperties() {
+    private static ClientOverrideConfiguration createConnectionProperties(S3ConnectionProperties s3ConnectionProperties) {
         ClientOverrideConfiguration.Builder clientOverrideConfigurationBuilder = ClientOverrideConfiguration.builder();
-        addProfileDefaults(clientOverrideConfigurationBuilder);
+        addProfileDefaults(clientOverrideConfigurationBuilder, s3ConnectionProperties);
         Optional<Integer> maxErrorRetryCount = s3ConnectionProperties.getMaxErrorRetryCount();
         if (maxErrorRetryCount.isPresent()) {
             // maxAttempts includes the initial attempt; numRetries counted only retries. Preserve behavior with +1.
@@ -219,7 +224,7 @@ public class S3Client {
      * SDK v2 sends CRC32 checksums with uploads, which SDK v1 didn't and some S3-compatible stores reject.
      * With a custom endpoint, only send checksums for the operations that require them, like SDK v1.
      */
-    private void addProfileDefaults(ClientOverrideConfiguration.Builder builder) {
+    private static void addProfileDefaults(ClientOverrideConfiguration.Builder builder, S3ConnectionProperties s3ConnectionProperties) {
         String profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValue().orElse("default");
         String section = profileName.equals("default") ? "[default]" : "[profile " + profileName + "]";
         StringBuilder defaults = new StringBuilder(section).append("\nignore_configured_endpoint_urls = true\n");
@@ -250,7 +255,7 @@ public class S3Client {
      * @see <a href="https://github.com/gradle/gradle/issues/39854">gradle/gradle#39854</a>
      */
     @SuppressWarnings("deprecation")
-    private SdkHttpClient.Builder<ApacheHttpClient.Builder> createProxyConfiguration() {
+    private static SdkHttpClient.Builder<ApacheHttpClient.Builder> createProxyConfiguration(S3ConnectionProperties s3ConnectionProperties) {
         ProxyConfiguration.Builder proxyConfigurationBuilder = ProxyConfiguration.builder();
         Optional<HttpProxySettings.HttpProxy> proxyOptional = s3ConnectionProperties.getProxy();
         if (proxyOptional.isPresent()) {
