@@ -175,7 +175,7 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
             ]
             // Today's text form keeps only the user code that contains the state, not the path to it
             assert problem.additionalData.asMap.trace == "task `:acme` of type `AcmeTask`"
-            // Spec Q7: Configuration Cache notices the problem outside any task, so detection is the build alone
+            // The cache stores its state outside any task, so detection is the build alone; the task is in the origin
             assert problem.detectionTrace.frames*.displayName == ["build :"]
         }
     }
