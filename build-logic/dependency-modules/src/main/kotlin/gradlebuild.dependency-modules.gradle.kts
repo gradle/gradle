@@ -282,14 +282,8 @@ fun <reified T : ComponentMetadataRule> ComponentMetadataHandler.applyRule(modul
 
 
 /**
- * Lowers the JVM version Groovy publishes so that Java 8 consumers can resolve it.
- *
- * Groovy 5 is built for Java 11, but Gradle's client and worker code targets Java 8, so
- * nothing in Groovy 5 matches their compile classpath. This is only safe because it applies
- * to the `-DbundleGroovyMajor=5` coverage build, which runs on Java 17+, and because no
- * distribution module has `src/main/groovy` - so no Java 8 module ever forks `groovyc` onto
- * a JDK 8 launcher. The Java 8 jars it produces link against classes that cannot load on
- * Java 8.
+ * Removes the AWS SDK's `annotations` jar from the runtime classpath.
+ * It holds marker annotations only, and its module name collides with org.jetbrains:annotations in the distribution.
  */
 abstract class RemoveAwsSdkAnnotationsRule : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
@@ -303,6 +297,16 @@ abstract class RemoveAwsSdkAnnotationsRule : ComponentMetadataRule {
     }
 }
 
+/**
+ * Lowers the JVM version Groovy publishes so that Java 8 consumers can resolve it.
+ *
+ * Groovy 5 is built for Java 11, but Gradle's client and worker code targets Java 8, so
+ * nothing in Groovy 5 matches their compile classpath. This is only safe because it applies
+ * to the `-DbundleGroovyMajor=5` coverage build, which runs on Java 17+, and because no
+ * distribution module has `src/main/groovy` - so no Java 8 module ever forks `groovyc` onto
+ * a JDK 8 launcher. The Java 8 jars it produces link against classes that cannot load on
+ * Java 8.
+ */
 abstract class GroovyTargetJvmVersionRule : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         if (context.details.id.group != "org.apache.groovy") {
