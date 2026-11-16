@@ -94,7 +94,7 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         bean.prop.get() == "via setter: called"
     }
 
-    // Pre-existing behaviour, unchanged here: convention mapping and the lazy Groovy support each generate a
+    // Pre-existing behavior, unchanged here: convention mapping and the lazy Groovy support each generate a
     // set(Object), and the JVM rejects the duplicate. Only upgraded properties skip the generated overload.
     def "fails to generate a lazy property that is not upgraded and declares its own set(Object)"() {
         when:

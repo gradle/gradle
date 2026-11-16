@@ -958,7 +958,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         /**
          * Does the type already implement a {@code set<Name>(Object)}? It may be an eager-style migration setter
-         * forwarding into the lazy container, or one synthesised by {@code @ReplacesEagerProperty} when the original
+         * forwarding into the lazy container, or one synthesized by {@code @ReplacesEagerProperty} when the original
          * type erases to Object. Either way our {@code setFromAnyValue}-backed overload would be a second method with
          * the same signature, which the JVM rejects when the class is defined.
          *
