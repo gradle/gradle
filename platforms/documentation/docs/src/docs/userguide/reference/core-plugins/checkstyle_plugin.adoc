@@ -91,12 +91,12 @@ The Checkstyle plugin adds the following dependency configurations:
 |===
 
 By default, the `checkstyle` configuration uses link:https://mvnrepository.com/artifact/com.puppycrawl.tools/checkstyle[`com.puppycrawl.tools:checkstyle`].
-The version of `com.puppycrawl.tools:checkstyle` used is derived from the extension's tool version, which defaults to `10.24.0`. You can override it:
+The version of `com.puppycrawl.tools:checkstyle` used is derived from the extension's tool version, which defaults to `10.26.1`. You can override it:
 
 [source,kotlin]
 ----
 checkstyle {
-    toolVersion = "10.24.0"
+    toolVersion = "10.26.1"
 }
 ----
 
@@ -126,7 +126,7 @@ The Checkstyle plugin is configured through the link:{groovyDslPath}/org.gradle.
 
 | `toolVersion`
 | The version of Checkstyle to use.
-| `10.24.0`
+| `10.26.1`
 
 | `configDirectory`
 | Directory containing the Checkstyle configuration files (exposed as `config_loc`).
@@ -166,7 +166,7 @@ See the link:{groovyDslPath}/org.gradle.api.plugins.quality.CheckstyleExtension.
 [[sec:checkstyle_configuration_toolchains]]
 === Configuring Checkstyle with Java Toolchains
 
-Checkstyle's minimum required JDK depends on its version: the default version (`10.24.0`) requires JDK 11, while Checkstyle 13.0.0 and later require JDK 21. For projects targeting earlier JDK versions, such as JDK 8, this presents a compatibility challenge. Historically, users have resorted to backport dependencies (e.g., `com.puppycrawl.tools:checkstyle-backport-jre8`) to bridge this gap. However, as both Checkstyle and Gradle align with modern Java versions, a more robust and future-proof solution is available through Gradle's Java toolchains.
+Checkstyle's minimum required JDK depends on its version: the default version (`10.26.1`) requires JDK 11, while Checkstyle 13.0.0 and later require JDK 21. For projects targeting earlier JDK versions, such as JDK 8, this presents a compatibility challenge. Historically, users have resorted to backport dependencies (e.g., `com.puppycrawl.tools:checkstyle-backport-jre8`) to bridge this gap. However, as both Checkstyle and Gradle align with modern Java versions, a more robust and future-proof solution is available through Gradle's Java toolchains.
 
 By leveraging the `javaLauncher` property, you can explicitly configure Checkstyle tasks to execute with a designated JDK version, independent of the JDK used for your project’s compilation or Gradle’s runtime. The following configuration ensures that Checkstyle operates with JDK 17:
 

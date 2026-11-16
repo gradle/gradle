@@ -680,7 +680,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped ':fooJar', ':compileJava'
         outputContains "Could not analyze foo.class for incremental compilation"
-        outputContains "Unsupported class file major version"
+        outputContains "Unsupported class file version"
     }
 
     @Issue("gradle/gradle#1358")
