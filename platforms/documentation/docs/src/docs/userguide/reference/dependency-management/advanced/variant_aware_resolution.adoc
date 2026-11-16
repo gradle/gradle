@@ -402,12 +402,6 @@ Secondary variants are typically used to expose *precomputed transforms* of the 
 
 WARNING: Secondary variants are sometimes referred to in tooling or logs, but this term is being deprecated in favor of more precise concepts like *artifact sets* or *precomputed transforms*.
 
-A configuration can declare secondary variants while its primary variant has no artifacts.
-Such a primary variant is not eligible for artifact selection unless the `CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS` feature preview is enabled, even when it is the best match for the request.
-With the feature preview enabled, it is selected when it is the best match, and the request resolves to no artifacts.
-Since it lacks the attributes of artifacts, such as `artifactType`, only the requested attributes decide whether it is a better match than a variant with artifacts, and a transformation of a variant with artifacts is preferred over it unless it declares every requested attribute.
-Starting with Gradle 10, this is always the case; see <<upgrading_version_9.adoc#variants_with_no_artifacts,the upgrade guide>>.
-
 The simplest scenario is a typical Java library
 
 ====
@@ -469,6 +463,13 @@ $ ./gradlew outgoingVariants -q
 ----
 include::{snippetsPath}/reference/dependency-management/advanced/customizingResolution-secondaryVariants/tests/secondaryVariantsNew.out[]
 ----
+
+A configuration can declare secondary variants while its primary variant has no artifacts.
+Such a primary variant is not eligible for artifact selection, even when it is the best match for the request, unless you enable the `CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS` <<feature_lifecycle.adoc#feature_preview,feature preview>>.
+With the feature preview enabled, Gradle selects it when it is the best match, and the request resolves to no artifacts.
+It lacks the attributes of artifacts, such as `artifactType`, so Gradle compares it with other variants on the requested attributes only.
+Gradle prefers a transformation of a variant with artifacts over it, unless it declares every requested attribute.
+Starting with Gradle 10, such a primary variant is always eligible, and the feature preview is removed; see <<upgrading_version_9.adoc#variants_with_no_artifacts,the upgrade guide>>.
 
 [[sec:variant-visual]]
 == Visualizing Variant Information
