@@ -63,6 +63,46 @@ action :foo
 after :foo executed=true failure=null"""
     }
 
+    def "listeners are notified before execution in registration order and after execution in reverse order"() {
+        buildFile """
+            abstract class FirstListener implements TaskLifecycleListener<Task> {
+                void beforeExecution(Task task) {
+                    println "first before"
+                }
+
+                void afterExecution(Task task, TaskState state) {
+                    println "first after"
+                }
+            }
+
+            abstract class SecondListener implements TaskLifecycleListener<Task> {
+                void beforeExecution(Task task) {
+                    println "second before"
+                }
+
+                void afterExecution(Task task, TaskState state) {
+                    println "second after"
+                }
+            }
+
+            tasks.register("foo") {
+                addLifecycleListener(FirstListener)
+                addLifecycleListener(SecondListener)
+                doLast { println "action" }
+            }
+        """
+
+        when:
+        run "foo"
+
+        then:
+        result.groupedOutput.task(":foo").output == """first before
+second before
+action
+second after
+first after"""
+    }
+
     def "listener registered on task collection receives typed task"() {
         buildFile """
             abstract class GreetingTask extends DefaultTask {
@@ -354,6 +394,63 @@ after :foo executed=true failure=null"""
         outputContains("after :foo failure=before failure")
     }
 
+    def "failure in beforeExecution stops notifying listeners registered later"() {
+        buildFile """
+            abstract class FirstListener implements TaskLifecycleListener<Task> {
+                void beforeExecution(Task task) {
+                    println "first before"
+                }
+
+                void afterExecution(Task task, TaskState state) {
+                    println "first after"
+                }
+            }
+
+            abstract class SecondListener implements TaskLifecycleListener<Task> {
+                void beforeExecution(Task task) {
+                    println "second before"
+                }
+
+                void afterExecution(Task task, TaskState state) {
+                    println "second after"
+                }
+            }
+
+            abstract class FailingListener implements TaskLifecycleListener<Task> {
+                void beforeExecution(Task task) {
+                    throw new RuntimeException("before failure")
+                }
+            }
+
+            abstract class LastListener implements TaskLifecycleListener<Task> {
+                void beforeExecution(Task task) {
+                    println "last before"
+                }
+
+                void afterExecution(Task task, TaskState state) {
+                    println "last after"
+                }
+            }
+
+            tasks.register("foo") {
+                addLifecycleListener(FirstListener)
+                addLifecycleListener(SecondListener)
+                addLifecycleListener(FailingListener)
+                addLifecycleListener(LastListener)
+            }
+        """
+
+        when:
+        fails "foo"
+
+        then:
+        failure.assertHasCause("before failure")
+        result.groupedOutput.task(":foo").output == """first before
+second before
+second after
+first after"""
+    }
+
     def "failure to create listener fails the task and skips its actions"() {
         buildFile """
             abstract class BrokenListener implements TaskLifecycleListener<Task> {
@@ -399,7 +496,7 @@ after :foo executed=true failure=null"""
         failure.assertHasCause("after failure")
     }
 
-    def "failure in afterExecution fails the task"() {
+    def "failure in afterExecution fails the task and does not stop notifying other listeners"() {
         buildFile """
             abstract class FailingListener implements TaskLifecycleListener<Task> {
                 void afterExecution(Task task, TaskState state) {
@@ -414,8 +511,9 @@ after :foo executed=true failure=null"""
             }
 
             tasks.register("foo") {
-                addLifecycleListener(FailingListener)
+                // registered first, so notified after the failing listener
                 addLifecycleListener(PrintingListener)
+                addLifecycleListener(FailingListener)
                 doLast { println "task action ran" }
             }
         """

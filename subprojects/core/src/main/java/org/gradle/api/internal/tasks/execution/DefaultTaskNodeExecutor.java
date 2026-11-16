@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
@@ -193,7 +194,11 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
      * Notifies the {@link TaskLifecycleListener}s registered with the task around its execution.
      * A new instance of each listener is created for each task execution.
      *
-     * If a listener fails before execution, the task fails and is not executed.
+     * Listeners are notified before execution in registration order and after execution in reverse order,
+     * so the listener registered first is notified first before execution and last after it.
+     *
+     * If a listener fails before execution, the task fails and is not executed, and the listeners registered
+     * after the failed one are not notified at all.
      * Listeners that were notified before execution are still notified after execution.
      */
     private ExecutionEngine.@Nullable Result executeWithLifecycleListeners(LocalTaskNode node) {
@@ -227,7 +232,7 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
 
         state.setNotifyingLifecycleListeners(true);
         try {
-            for (TaskLifecycleListener<Task> listener : notifiedListeners) {
+            for (TaskLifecycleListener<Task> listener : Lists.reverse(notifiedListeners)) {
                 try {
                     listener.afterExecution(task, state);
                 } catch (Throwable t) {

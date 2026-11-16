@@ -28,6 +28,11 @@ import org.gradle.api.Task;
  * on the same instance, so instance fields can be used to carry state from {@link #beforeExecution(Task)}
  * to {@link #afterExecution(Task, TaskState)}.</p>
  *
+ * <p>When several listeners are registered with a task, {@link #beforeExecution(Task)} is called in the order
+ * the listeners were registered, and {@link #afterExecution(Task, TaskState)} is called in the reverse order.
+ * The listener registered first is notified first before the execution and last after it.
+ * {@code afterExecution} is called on every listener whose {@code beforeExecution} completed, and only on those.</p>
+ *
  * <p>Implementations can be abstract classes or interfaces. They can receive shared build services via
  * {@link org.gradle.api.services.ServiceReference @ServiceReference}. A build service referenced this way is used
  * by the task the listener is registered with, as if the task referenced it itself.
@@ -71,7 +76,9 @@ public interface TaskLifecycleListener<T extends Task> {
      * Inputs changed here do not create task dependencies, as the task graph is already built.
      * If a changed input uses files produced by another task, declare that dependency when configuring the task.</p>
      *
-     * <p>Throwing an exception fails the task. The task actions are not executed in this case.</p>
+     * <p>Throwing an exception fails the task. The task actions are not executed in this case.
+     * The listeners registered after this one are not notified at all, and {@link #afterExecution(Task, TaskState)}
+     * is not called on this listener. It is still called on the listeners registered before this one.</p>
      *
      * @param task the task about to be executed
      * @since 9.10.0
@@ -80,9 +87,11 @@ public interface TaskLifecycleListener<T extends Task> {
 
     /**
      * Called after the task has been executed, regardless of its outcome.
+     * This includes a task that was not executed because another listener failed in {@link #beforeExecution(Task)}.
      *
      * <p>The outputs of the task have already been recorded at this point.
-     * Throwing an exception fails the task in this build, but does not affect up-to-date checks or the build cache in later builds.</p>
+     * Throwing an exception fails the task in this build, but does not affect up-to-date checks or the build cache in later builds.
+     * The other listeners are still notified.</p>
      *
      * @param task the executed task
      * @param state the state of the task, including the failure, if any
