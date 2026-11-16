@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite.plugins
 
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle/issues/29652")
@@ -210,5 +211,44 @@ class PluginBuildsMultiPluginApplicationIntegrationTest extends AbstractPluginBu
         expect:
         fails("help")
         failureHasCause("The request for this plugin could not be satisfied because the plugin is already on the classpath with a different version (1.0).")
+    }
+
+    @ToBeImplemented("A plugin id that has no tracked version is not recognised as local, even when a sibling plugin from the same included build put it on the classpath")
+    def "settings plugin and project plugin from the same included plugin build can both be requested with a version"() {
+        given:
+        def pluginBuild = pluginBuild("build-logic")
+        pluginBuild.buildFile << """
+            version = "1.1"
+        """
+        settingsFile << """
+            pluginManagement {
+                includeBuild("${pluginBuild.buildName}")
+            }
+            plugins {
+                id("${pluginBuild.settingsPluginId}") version "1.0"
+            }
+            include("child")
+        """
+        buildFile << """
+            plugins {
+                id("${pluginBuild.projectPluginId}") version "1.0"
+            }
+        """
+        file("child/build.gradle") << """
+            plugins {
+                id("${pluginBuild.projectPluginId}") version "1.0"
+            }
+        """
+
+        expect:
+        // Should be:
+        //   succeeds("help")
+        //   pluginBuild.assertSettingsPluginApplied()
+        //   pluginBuild.assertProjectPluginApplied()
+        // The settings plugin puts the whole included build on the classpath of the root project's parent scope,
+        // but only its own plugin id is recorded in the PluginVersionTracker. The project plugin id is therefore
+        // seen as "on the classpath with an unknown version".
+        fails("help")
+        failureHasCause("The request for this plugin could not be satisfied because the plugin is already on the classpath with an unknown version, so compatibility cannot be checked.")
     }
 }
