@@ -294,47 +294,34 @@ class GuavaTypesCodecTest : AbstractUserTypeCodecTest() {
     }
 
     @Test
-    fun `preserves identity of multisets`() {
-        verifyRoundtripOf({
-            val tree = TreeMultiset.create(listOf("a", "a"))
-            val concurrent = ConcurrentHashMultiset.create(listOf("a", "a"))
-            listOf(tree, concurrent, arrayListOf<Any>(tree, concurrent), Bean("bean", tree), Bean("bean", concurrent))
-        }) { (tree, concurrent, list, treeBean, concurrentBean) ->
-            assertThat(tree, instanceOf(TreeMultiset::class.java))
-            assertThat(concurrent, instanceOf(ConcurrentHashMultiset::class.java))
-            assertThat((list as List<*>)[0], sameInstance(tree))
-            assertThat(list[1], sameInstance(concurrent))
-            assertThat((treeBean as Bean).reference, sameInstance(tree))
-            assertThat((concurrentBean as Bean).reference, sameInstance(concurrent))
-        }
-    }
-
-    @Test
     fun `can handle circular references through TreeMultiset`() {
-        val multiset = TreeMultiset.create(BeanNameOrder())
-        multiset.add(Bean("b", multiset), 2)
-        multiset.add(Bean("a", Bean("nested", multiset)))
-        configurationCacheRoundtripOf(multiset).run {
-            assertThat(entrySet().map { it.element.name to it.count }, equalTo(listOf("a" to 1, "b" to 2)))
-            assertThat(lastEntry()!!.element.reference, sameInstance<Any>(this))
-            assertThat((firstEntry()!!.element.reference as Bean).reference, sameInstance<Any>(this))
+        val owner = Bean("b")
+        owner.reference = TreeMultiset.create(BeanNameOrder()).apply {
+            add(owner, 2)
+            add(Bean("a", Bean("nested", owner)))
+        }
+        configurationCacheRoundtripOf(owner).run {
+            val restored = reference!!.uncheckedCast<TreeMultiset<Bean>>()
+            assertThat(restored.entrySet().map { it.element.name to it.count }, equalTo(listOf("a" to 1, "b" to 2)))
+            assertThat(restored.lastEntry()!!.element, sameInstance(this))
+            assertThat((restored.firstEntry()!!.element.reference as Bean).reference, sameInstance<Any>(this))
         }
     }
 
     @Test
     fun `can handle circular references through ConcurrentHashMultiset`() {
         val owner = IdentityBean("owner")
-        val multiset = ConcurrentHashMultiset.create<Any>()
-        owner.reference = multiset
-        multiset.add(owner, 2)
-        multiset.add(IdentityBean("other", multiset))
+        owner.reference = ConcurrentHashMultiset.create<Any>().apply {
+            add(owner, 2)
+            add(IdentityBean("other", owner))
+        }
         configurationCacheRoundtripOf(owner).run {
             val restored = assertInstanceOf<ConcurrentHashMultiset<Any>>(reference!!)
             assertThat(restored.size, equalTo(3))
             assertThat(restored.count(this), equalTo(2))
             val other = restored.elementSet().filterIsInstance<IdentityBean>().single { it !== this }
             assertThat(other.name, equalTo("other"))
-            assertThat(other.reference, sameInstance<Any>(restored))
+            assertThat(other.reference, sameInstance<Any>(this))
         }
     }
 

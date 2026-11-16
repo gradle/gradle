@@ -23,53 +23,36 @@ import com.google.common.collect.TreeMultiset
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.decodePreservingIdentity
-import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.writeCollection
 
 
-/**
- * Preserves the identity of the multiset, given it is mutable.
- */
 object TreeMultisetCodec : Codec<TreeMultiset<Any?>> {
 
     override suspend fun WriteContext.encode(value: TreeMultiset<Any?>) {
-        encodePreservingIdentityOf(value) {
-            // Natural ordering is what a null comparator stands for when creating a TreeMultiset
-            write(value.comparator().takeUnless { it === Ordering.natural<Comparable<Any>>() })
-            writeMultiset(value)
-        }
+        // Natural ordering is what a null comparator stands for when creating a TreeMultiset
+        write(value.comparator().takeUnless { it === Ordering.natural<Comparable<Any>>() })
+        writeMultiset(value)
     }
 
-    override suspend fun ReadContext.decode(): TreeMultiset<Any?>? =
-        decodePreservingIdentity { id ->
-            @Suppress("unchecked_cast")
-            val comparator = read() as Comparator<Any?>?
-            TreeMultiset.create<Any?>(comparator).also {
-                isolate.identities.putInstance(id, it)
-                readMultisetInto(it) { read() }
-            }
+    override suspend fun ReadContext.decode(): TreeMultiset<Any?>? {
+        @Suppress("unchecked_cast")
+        val comparator = read() as Comparator<Any?>?
+        return TreeMultiset.create<Any?>(comparator).also {
+            readMultisetInto(it) { read() }
         }
+    }
 }
 
 
-/**
- * Preserves the identity of the multiset, given it is mutable.
- */
 object ConcurrentHashMultisetCodec : Codec<ConcurrentHashMultiset<Any>> {
 
     override suspend fun WriteContext.encode(value: ConcurrentHashMultiset<Any>) {
-        encodePreservingIdentityOf(value) {
-            writeMultiset(value)
-        }
+        writeMultiset(value)
     }
 
     override suspend fun ReadContext.decode(): ConcurrentHashMultiset<Any>? =
-        decodePreservingIdentity { id ->
-            ConcurrentHashMultiset.create<Any>().also {
-                isolate.identities.putInstance(id, it)
-                readMultisetInto(it) { read()!! }
-            }
+        ConcurrentHashMultiset.create<Any>().also {
+            readMultisetInto(it) { read()!! }
         }
 }
 
