@@ -69,11 +69,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     @Override
-    public ModuleVersionIdentifier getModuleVersionId() {
-        return getMetadata().getModuleVersionId();
-    }
-
-    @Override
     public boolean isAdHoc() {
         return adHoc;
     }

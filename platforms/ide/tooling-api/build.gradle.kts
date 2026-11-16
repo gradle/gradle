@@ -121,6 +121,8 @@ tasks.named<Jar>("sourcesJar") {
 }
 
 shadedJar {
+    // Configuration-level on purpose: slf4j-api is published as a dependency, never bundled, and
+    // the shaded configuration's only declaration is this project, so no narrower placement exists.
     shadedConfiguration.exclude(mapOf("group" to "org.slf4j", "module" to "slf4j-api"))
     keepPackages = listOf("org.gradle.tooling")
     unshadedPackages = listOf("org.gradle", "org.slf4j", "sun.misc")

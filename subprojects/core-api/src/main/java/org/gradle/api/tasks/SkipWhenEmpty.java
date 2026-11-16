@@ -32,6 +32,8 @@ import java.lang.annotation.Target;
  * <p>This annotation implies {@link org.gradle.work.Incremental}, and thus inputs annotated with this annotation can also be queried for changes.</p>
  *
  * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
+ * In Kotlin, use the {@code get:} use-site target to attach it to the property getter, for example {@code @get:SkipWhenEmpty}.
+ * This also works on abstract properties, where the annotation without a use-site target does not compile.
  * Annotations on setters or just the field in Java are ignored.</p>
  *
  * <p>This annotation can be used with the following annotations:</p>

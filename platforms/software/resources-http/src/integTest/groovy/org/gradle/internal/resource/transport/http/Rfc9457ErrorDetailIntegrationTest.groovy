@@ -19,11 +19,15 @@ package org.gradle.internal.resource.transport.http
 import com.google.common.collect.ImmutableMap
 import org.apache.http.impl.client.HttpClientBuilder
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.logging.LogLevel
+import org.gradle.internal.logging.CollectingTestOutputEventListener
+import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.resource.HttpErrorStatusCodeException
 import org.gradle.test.fixtures.server.http.HttpRequest
 import org.gradle.test.fixtures.server.http.HttpResponse
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 /**
@@ -34,6 +38,9 @@ import spock.lang.Specification
 class Rfc9457ErrorDetailIntegrationTest extends Specification {
     @Rule
     private HttpServer httpServer = new HttpServer()
+    private CollectingTestOutputEventListener listener = new CollectingTestOutputEventListener()
+    @Rule
+    private ConfigureLogging logging = new ConfigureLogging(listener, LogLevel.WARN)
     private sslContextFactory = new DefaultSslContextFactory()
     private settings = DefaultHttpSettings.builder()
         .withAuthenticationSettings([])
@@ -171,6 +178,43 @@ class Rfc9457ErrorDetailIntegrationTest extends Specification {
 
         and: "should fall back to reason phrase or empty string on the outer wrapper"
         outer.message.contains("Could not GET")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39412")
+    def "does not try to parse a body for a failed HEAD request with RFC 9457 content-type"() {
+        given:
+        httpServer.expect("/artifact.jar", ['HEAD'], new HeadRfc9457ErrorAction(403))
+
+        when:
+        client.performHead(URI.create("${httpServer.address}/artifact.jar"), ImmutableMap.of())
+
+        then:
+        HttpRequestException outer = thrown()
+        HttpErrorStatusCodeException e = outer.cause as HttpErrorStatusCodeException
+        e.statusCode == 403
+        outer.message.contains("Could not HEAD")
+
+        and: "no warning about an unparseable RFC 9457 body is logged"
+        listener.events.findAll { it.message.contains("Failed to parse RFC9457 response") }.empty
+    }
+
+    /**
+     * Action that answers a HEAD request with an RFC 9457 content-type, but no body, as HEAD responses never have one.
+     */
+    @SuppressWarnings('GroovyAccessibility')
+    private static class HeadRfc9457ErrorAction extends HttpServer.ActionSupport {
+        private final int statusCode
+
+        HeadRfc9457ErrorAction(int statusCode) {
+            super("Return RFC 9457 content-type without a body for HEAD with status ${statusCode}")
+            this.statusCode = statusCode
+        }
+
+        @Override
+        void handle(HttpRequest request, HttpResponse response) {
+            response.setStatus(statusCode)
+            response.setContentType("application/problem+json")
+        }
     }
 
     /**

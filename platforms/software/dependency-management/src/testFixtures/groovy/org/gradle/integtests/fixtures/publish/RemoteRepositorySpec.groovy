@@ -43,6 +43,14 @@ class RemoteRepositorySpec {
     }
 
     /**
+     * Allows any request for every module version declared so far, for tests about the resolved graph rather than the
+     * requests made. Use in a {@code repositoryInteractions} block.
+     */
+    void allowAll() {
+        groups.values()*.allowAll()
+    }
+
+    /**
      * Defines modules using a simple path notation. Assuming group is "org", and default version is 1.0
      * For example: foo -> bar
      * would create 'org:foo:1.0' depending on 'org:bar:1.0'

@@ -80,13 +80,31 @@ abstract class AbstractJavaGroovyIncrementalCompilationSupport extends AbstractI
         """
     }
 
-    def configureGroovyIncrementalCompilation(String allprojectsOrSubprojects = 'allprojects') {
+    def configureGroovyIncrementalCompilation() {
         if (language == CompiledLanguage.GROOVY) {
-            buildFile << language.projectGroovyDependencies(allprojectsOrSubprojects)
-            buildFile << """
-                ${allprojectsOrSubprojects} {
-                    tasks.withType(GroovyCompile) {
-                        options.incremental = true
+            buildFile(language.projectGroovyDependencies())
+            buildFile """
+                tasks.withType(GroovyCompile) {
+                    options.incremental = true
+                }
+            """
+            FeaturePreviewsFixture.enableGroovyCompilationAvoidance(settingsFile)
+        }
+    }
+
+    def configureGroovyIncrementalCompilationForSubprojects() {
+        if (language == CompiledLanguage.GROOVY) {
+            settingsFile """
+                gradle.lifecycle.beforeProject {
+                    if (path != ':') {
+                        plugins.withId('java') {
+                            dependencies {
+                                implementation localGroovy()
+                            }
+                        }
+                        tasks.withType(GroovyCompile) {
+                            options.incremental = true
+                        }
                     }
                 }
             """

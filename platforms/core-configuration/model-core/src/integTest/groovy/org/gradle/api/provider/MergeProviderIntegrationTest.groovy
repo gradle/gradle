@@ -67,4 +67,18 @@ class MergeProviderIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(':myTask1', ':myTask2', ':combined')
         outputContains('[Hello, World]')
     }
+
+    def "can query mapped value of merged task provider before the task has run"() {
+        buildFile << """
+            def thing = tasks.register("thing")
+            def merged = new org.gradle.api.internal.provider.MergeProvider([thing])
+            println("value = " + merged.map { it*.name }.get())
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("value = [thing]")
+    }
 }

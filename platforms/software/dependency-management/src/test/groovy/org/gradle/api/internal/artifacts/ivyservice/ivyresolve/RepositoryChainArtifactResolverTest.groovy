@@ -23,6 +23,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.resolve.ArtifactNotFoundException
+import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
@@ -124,6 +125,47 @@ class RepositoryChainArtifactResolverTest extends Specification {
 
         then:
         thrown(IllegalStateException)
+    }
+
+    def "resolves optional artifact that fails to resolve to no file"() {
+        def optionalArtifact = new ModuleComponentOptionalArtifactMetadata(DefaultModuleComponentIdentifier.newId(moduleVersionId), new DefaultIvyArtifactName("name", "jar", "jar", "sources"))
+
+        when:
+        resolver.resolveArtifact(component, optionalArtifact, result)
+        def fileSource = result.result.fileSource
+        fileSource.finalizeIfNotAlready()
+
+        then:
+        1 * localAccess2.resolveArtifact(optionalArtifact, moduleSources, _)
+        1 * remoteAccess2.resolveArtifact(optionalArtifact, moduleSources, _) >> {
+            it[2].failed(new ArtifactResolveException("broken"))
+        }
+        0 * _._
+
+        and:
+        // Testing actual behavior, not desired behavior. See https://github.com/gradle/gradle/issues/39756
+        fileSource.value.successful
+        fileSource.get() == null
+    }
+
+    def "fails when required artifact fails to resolve"() {
+        def failure = new ArtifactResolveException("broken")
+
+        when:
+        resolver.resolveArtifact(component, artifact, result)
+        def fileSource = result.result.fileSource
+        fileSource.finalizeIfNotAlready()
+
+        then:
+        1 * localAccess2.resolveArtifact(artifact, moduleSources, _)
+        1 * remoteAccess2.resolveArtifact(artifact, moduleSources, _) >> {
+            it[2].failed(failure)
+        }
+        0 * _._
+
+        and:
+        !fileSource.value.successful
+        fileSource.value.failure.get() == failure
     }
 
     def "fails when required artifact is not found"() {

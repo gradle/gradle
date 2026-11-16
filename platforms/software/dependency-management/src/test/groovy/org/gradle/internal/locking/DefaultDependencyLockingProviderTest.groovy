@@ -236,7 +236,7 @@ empty=
         1 * owner.getCapitalizedDisplayName() >> "Owner"
         ex.message == 'Locking strict mode: Owner is locked but does not have lock state.'
         ex.resolutions == ["To create the lock state, run a task that performs dependency resolution and add '--write-locks' to the command line.",
-                            "For more information on generating lock state, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/dependency_locking.html#generating_and_updating_dependency_locks in the Gradle documentation."]
+                            "For more information on generating lock state, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/dependency_locking.html#sec:generate-locks in the Gradle documentation."]
     }
 
     def 'fails with invalid ignored dependencies notation #notation'() {

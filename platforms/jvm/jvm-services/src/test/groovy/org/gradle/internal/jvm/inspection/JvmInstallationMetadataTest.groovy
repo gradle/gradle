@@ -63,6 +63,19 @@ class JvmInstallationMetadataTest extends Specification {
         metadataFor(javaHome).capabilities.contains(JavaInstallationCapability.NATIVE_IMAGE)
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/31239")
+    def "capabilities set is immutable"() {
+        given:
+        def javaHome = jdkHome()
+        def metadata = metadataFor(javaHome)
+
+        when:
+        metadata.capabilities.add(JavaInstallationCapability.JAVA_COMPILER)
+
+        then:
+        thrown(UnsupportedOperationException)
+    }
+
     @Requires(OsTestPreconditions.NotWindows)
     def "native-image.cmd script alone does not grant native-image capability on non-Windows OS"() {
         given:

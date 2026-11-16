@@ -99,6 +99,7 @@ internal class BTACompiler(val moduleRegistry: ModuleRegistry) {
     companion object {
         private const val MODULE_NAME = "buildscript"
         private val logger = LoggerFactory.getLogger(BTACompiler::class.java)
+        private val kotlinDslLanguageVersion = KotlinVersion.entries.single { it.stringValue == KOTLIN_DSL_LANGUAGE_VERSION }
     }
 
     private val session = kotlinToolchains.createBuildSession()
@@ -200,8 +201,8 @@ internal class BTACompiler(val moduleRegistry: ModuleRegistry) {
     }
 
     private fun JvmCompilerArguments.Builder.configureLanguageVersion(compilerOptions: KotlinCompilerOptions) {
-        this[LANGUAGE_VERSION] = KotlinVersion.V2_2
-        this[API_VERSION] = KotlinVersion.V2_2
+        this[LANGUAGE_VERSION] = kotlinDslLanguageVersion
+        this[API_VERSION] = kotlinDslLanguageVersion
         this[JVM_TARGET] = compilerOptions.jvmTarget.toKotlinJvmTarget().toBuildToolsApiJvmTarget()
 
         this[X_SKIP_METADATA_VERSION_CHECK] = compilerOptions.skipMetadataVersionCheck

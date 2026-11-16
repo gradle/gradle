@@ -39,8 +39,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.model.ComponentGraphResolveState
-import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -49,8 +47,6 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import org.gradle.util.Path
 import spock.lang.Specification
-
-import javax.annotation.Nullable
 
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.FIXED_10
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.FIXED_9
@@ -80,8 +76,8 @@ class SelectorStateResolverTest extends Specification {
     private final componentFactory = new TestComponentFactory()
     private final ModuleIdentifier moduleId = DefaultModuleIdentifier.newId("org", "module")
     private final ResolveOptimizations resolveOptimizations = new ResolveOptimizations()
-    private final SelectorStateResolver conflictHandlingResolver = new SelectorStateResolver(conflictResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
-    private final SelectorStateResolver failingResolver = new SelectorStateResolver(new FailingConflictResolver(), componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
+    private final SelectorStateResolver conflictHandlingResolver = new SelectorStateResolver(conflictResolver, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
+    private final SelectorStateResolver failingResolver = new SelectorStateResolver(new FailingConflictResolver(), root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
 
     def "resolve selector #permutation"() {
         given:
@@ -209,10 +205,10 @@ class SelectorStateResolverTest extends Specification {
         def nine = new TestProjectSelectorState(id)
         def otherNine = new TestProjectSelectorState(id)
         ModuleConflictResolver mockResolver = Mock()
-        SelectorStateResolver resolverWithMock = new SelectorStateResolver(mockResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
+        SelectorStateResolver resolverWithMock = new SelectorStateResolver(mockResolver, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
 
         when:
-        def selected = resolverWithMock.selectBest(moduleId, moduleSelectors([nine, otherNine]))
+        def selected = resolverWithMock.selectBest(moduleId, moduleSelectors([nine, otherNine]), componentFactory)
 
         then:
         selected.componentId == projectId
@@ -228,7 +224,7 @@ class SelectorStateResolverTest extends Specification {
         def missingHigh = new TestModuleSelectorState(componentIdResolver, RANGE_14_16.versionConstraint)
 
         when:
-        def selected = conflictHandlingResolver.selectBest(moduleId, moduleSelectors([missingLow, nine, ten, range, missingHigh]))
+        def selected = conflictHandlingResolver.selectBest(moduleId, moduleSelectors([missingLow, nine, ten, range, missingHigh]), componentFactory)
 
         then:
         selected.version == "10"
@@ -242,19 +238,19 @@ class SelectorStateResolverTest extends Specification {
         def valid = new TestModuleSelectorState(componentIdResolver, FIXED_10.versionConstraint)
 
         when:
-        conflictHandlingResolver.selectBest(moduleId, moduleSelectors([missingLow]))
+        conflictHandlingResolver.selectBest(moduleId, moduleSelectors([missingLow]), componentFactory)
 
         then:
         thrown(ModuleVersionResolveException)
 
         when:
-        conflictHandlingResolver.selectBest(moduleId, moduleSelectors([missingLow, missingHigh]))
+        conflictHandlingResolver.selectBest(moduleId, moduleSelectors([missingLow, missingHigh]), componentFactory)
 
         then:
         thrown(ModuleVersionResolveException)
 
         when:
-        conflictHandlingResolver.selectBest(moduleId, moduleSelectors([missingLow, missingHigh, valid]))
+        conflictHandlingResolver.selectBest(moduleId, moduleSelectors([missingLow, missingHigh, valid]), componentFactory)
 
         then:
         noExceptionThrown()
@@ -285,7 +281,7 @@ class SelectorStateResolverTest extends Specification {
             List<TestModuleSelectorState> selectors = versions.collect { version ->
                 new TestModuleSelectorState(componentIdResolver, version.versionConstraint)
             }
-            def currentSelection = ssr.selectBest(moduleId, moduleSelectors(selectors))
+            def currentSelection = ssr.selectBest(moduleId, moduleSelectors(selectors), componentFactory)
             if (selectors.any { it.requireResult?.failure != null || it.preferResult?.failure != null }) {
                 return VersionRangeResolveTestScenarios.FAILED
             }
@@ -298,8 +294,8 @@ class SelectorStateResolverTest extends Specification {
 
     static class TestComponentFactory implements ComponentStateFactory<ComponentResolutionState> {
         @Override
-        ComponentResolutionState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, @Nullable ComponentGraphResolveState state, @Nullable ComponentGraphSpecificResolveState graphState) {
-            return new TestComponentResolutionState(componentIdentifier, id)
+        ComponentResolutionState getComponentState(ComponentIdentifier componentIdentifier, String version) {
+            return new TestComponentResolutionState(componentIdentifier, version)
         }
     }
 

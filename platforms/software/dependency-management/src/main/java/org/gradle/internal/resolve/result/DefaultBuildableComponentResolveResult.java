@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resolve.result;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -61,12 +60,6 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
     public ComponentIdentifier getId() {
         assertResolved();
         return state.getId();
-    }
-
-    @Override
-    public ModuleVersionIdentifier getModuleVersionId() throws ModuleVersionResolveException {
-        assertResolved();
-        return state.getMetadata().getModuleVersionId();
     }
 
     @Override

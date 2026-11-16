@@ -41,6 +41,7 @@ import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.configureTestSourceSetInIde
 import gradlebuild.integrationtests.ide.IdeProvisioningPlugin
 import gradlebuild.integrationtests.ide.androidStudioSystemProperties
+import gradlebuild.configureAsRuntimeJarClasspath
 import gradlebuild.jvm.JvmCompileExtension
 import gradlebuild.performance.Config.performanceTestAndroidStudioJvmArgs
 import gradlebuild.performance.generator.tasks.AbstractProjectGeneratorTask
@@ -54,9 +55,11 @@ import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.performance.tasks.PerformanceTestReport
 import gradlebuild.performance.tasks.VerifyPerformanceBuckets
 import org.gradle.api.Action
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
@@ -95,10 +98,12 @@ object Config {
 @Suppress("unused")
 class PerformanceTestPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
+        pluginManager.apply("java")
+        pluginManager.apply("gradlebuild.jvm-compile")
         val performanceTestSourceSet = createPerformanceTestSourceSet()
         configureTestSourceSetInIde(performanceTestSourceSet)
-        addPerformanceTestConfigurationAndDependencies()
-        configureGeneratorTasks()
+        val junitClasspath = addPerformanceTestConfigurationAndDependencies()
+        configureGeneratorTasks(junitClasspath)
         configureAndroidStudioProvisioning()
         val cleanTestProjectsTask = createCleanTestProjectsTask()
         val performanceTestExtension = createExtension(performanceTestSourceSet, cleanTestProjectsTask)
@@ -143,21 +148,26 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.addPerformanceTestConfigurationAndDependencies() {
+    fun Project.addPerformanceTestConfigurationAndDependencies(): NamedDomainObjectProvider<ResolvableConfiguration> {
         addDependenciesAndConfigurations("performance")
 
         val testLibs = project.the<VersionCatalogsExtension>().named("testLibs")
-        val junit = configurations.create("junit")
+        val junit = configurations.dependencyScope("junit").get()
+        val junitClasspath = configurations.resolvable("junitClasspath") {
+            extendsFrom(junit)
+            configureAsRuntimeJarClasspath(objects)
+        }
         dependencies {
             if (project.name != "enterprise-plugin-performance") {
                 "performanceTestImplementation"(project(":internal-performance-testing"))
             }
             junit(testLibs.findLibrary("junit").get())
         }
+        return junitClasspath
     }
 
     private
-    fun Project.configureGeneratorTasks() {
+    fun Project.configureGeneratorTasks(junitClasspath: NamedDomainObjectProvider<ResolvableConfiguration>) {
 
         tasks.withType<ProjectGeneratorTask>().configureEach {
             group = "Project setup"
@@ -170,7 +180,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         tasks.withType<JvmProjectGeneratorTask>().configureEach {
-            testDependencies = configurations["junit"]
+            testDependencies = junitClasspath.get()
         }
 
         tasks.withType<TemplateProjectGeneratorTask>().configureEach {

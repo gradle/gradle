@@ -101,6 +101,29 @@ class DetermineBaselinesTest {
     }
 
     @Test
+    fun `uses configured version on release branch`() {
+        verifyBaselineDetermination("release", false, null, defaultPerformanceBaselines)
+    }
+
+    @Test
+    fun `uses configured version on maintenance release branch`() {
+        verifyBaselineDetermination("release8x", false, null, defaultPerformanceBaselines)
+    }
+
+    @Test
+    fun `determines fork point commit on feature branch named like a release branch`() {
+        // given
+        mockGitOperation(listOf("git", "fetch", "origin", "master", "release"), "")
+        mockGitOperation(listOf("git", "merge-base", "origin/master", "HEAD"), "master-fork-point")
+        mockGitOperation(listOf("git", "merge-base", "origin/release", "HEAD"), "release-fork-point")
+        mockGitOperation(listOf("git", "show", "master-fork-point:version.txt"), "5.1")
+        mockGitOperation(listOf("git", "rev-parse", "--short", "master-fork-point"), "master-fork-point")
+
+        // then
+        verifyBaselineDetermination("release8x-fix", false, null, "5.1-commit-master-fork-point")
+    }
+
+    @Test
     fun `uses configured version when it is overwritten on feature branch`() {
         verifyBaselineDetermination("my-branch", false, "any", "any")
     }

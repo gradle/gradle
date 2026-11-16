@@ -30,6 +30,6 @@ class NavigationDocinfoProcessor extends DocinfoProcessor {
 
     @Override
     public String process(Document document) {
-        return html;
+        return HeaderInjectingPostprocessor.substituteGradleVersion(html, document);
     }
 }

@@ -124,16 +124,14 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
             1 * record.getInput() >> '124'
             1 * record.getOutput() >> HashCode.fromInt(10000)
             1 * cachedResult.isChanging() >> changing
-            1 * cachedResult.getId() >> id
-            1 * cacheExpirationControl.moduleExpiry({ it.id == id }, Duration.ZERO, changing) >> Stub(CacheExpirationControl.Expiry) {
+            1 * cacheExpirationControl.moduleExpiry(Duration.ZERO, changing) >> Stub(CacheExpirationControl.Expiry) {
                 isMustCheck() >> false
             }
             // we make it return false, this should invalidate the cache
             1 * someService.isUpToDate('124', HashCode.fromInt(10000)) >> false
         } else {
             1 * cachedResult.isChanging() >> changing
-            1 * cachedResult.getId() >> id
-            1 * cacheExpirationControl.moduleExpiry({ it.id == id }, Duration.ZERO, changing) >> Stub(CacheExpirationControl.Expiry) {
+            1 * cacheExpirationControl.moduleExpiry(Duration.ZERO, changing) >> Stub(CacheExpirationControl.Expiry) {
                 isMustCheck() >> mustRefresh
             }
         }

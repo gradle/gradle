@@ -20,6 +20,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -37,7 +38,7 @@ public interface WorkExecutionTracker {
     /**
      * Finds the task executing the target operation, if any.
      */
-    Optional<TaskInternal> getCurrentTask(OperationIdentifier id);
+    Optional<TaskInternal> getCurrentTask(@Nullable OperationIdentifier id);
 
     /**
      * Checks if the current thread is executing a Task or a {@link org.gradle.api.artifacts.transform.TransformAction}.

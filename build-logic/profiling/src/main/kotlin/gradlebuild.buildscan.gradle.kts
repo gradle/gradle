@@ -42,7 +42,6 @@ import java.net.URLEncoder
 
 plugins {
     id("gradlebuild.collect-failed-tasks")
-    id("gradlebuild.cache-miss-monitor")
     id("gradlebuild.module-identity")
 }
 

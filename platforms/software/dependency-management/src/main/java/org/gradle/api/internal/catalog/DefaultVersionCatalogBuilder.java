@@ -75,6 +75,8 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.A
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.INVALID_ALIAS_NOTATION;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION;
+import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.INVALID_PLUGIN_NOTATION;
+import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.INVALID_VERSION_NOTATION;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.NO_IMPORT_FILES;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.RESERVED_ALIAS_NAME;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOO_MANY_IMPORT_FILES;
@@ -104,6 +106,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
 
     private final static Logger LOGGER = Logging.getLogger(DefaultVersionCatalogBuilder.class);
     public final static List<String> FORBIDDEN_LIBRARY_ALIAS_PREFIX = ImmutableList.of("bundles", "versions", "plugins");
+    private static final List<String> FORBIDDEN_SEQUENCES = ImmutableList.of("*/", "\\u");
     public final static Set<String> RESERVED_ALIAS_NAMES = ImmutableSet.of("extensions", "convention");
     /**
      * names that are forbidden in generated accessors because we can't override getClass()
@@ -336,6 +339,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
         versionSpec.execute(versionBuilder);
         ImmutableVersionConstraint version = versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
+        validateVersion(alias, version);
         versionConstraints.put(alias, new VersionModel(version, currentContext));
         return alias;
     }
@@ -352,6 +356,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     @Override
     public LibraryAliasBuilder library(String alias, String group, String artifact) {
         String normalizedAlias = normalizeAndValidateAlias(AliasType.LIBRARY, alias);
+        validateModule(normalizedAlias, group, artifact);
         return objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, group, artifact);
     }
 
@@ -361,6 +366,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
 
         String[] coordinates = groupArtifactVersion.split(":");
         if (coordinates.length == 3) {
+            validateModule(normalizedAlias, coordinates[0], coordinates[1]);
             objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, coordinates[0], coordinates[1]).version(coordinates[2]);
         } else {
             throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
@@ -374,6 +380,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     @Override
     public PluginAliasBuilder plugin(String alias, String id) {
         String normalizedAlias = normalizeAndValidateAlias(AliasType.PLUGIN, alias);
+        validateEntry(normalizedAlias, "plugin id", id, INVALID_PLUGIN_NOTATION);
         return objects.newInstance(DefaultPluginAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, id);
     }
 
@@ -423,6 +430,35 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
             return namesOrName;
         }
         return "any of " + namesOrName;
+    }
+
+    private void validateVersion(String alias, ImmutableVersionConstraint version) {
+        validateEntry(alias, "strict version", version.getStrictVersion(), INVALID_VERSION_NOTATION);
+        validateEntry(alias, "version", version.getRequiredVersion(), INVALID_VERSION_NOTATION);
+        validateEntry(alias, "preferred version", version.getPreferredVersion(), INVALID_VERSION_NOTATION);
+        for (String rejected : version.getRejectedVersions()) {
+            validateEntry(alias, "rejected version", rejected, INVALID_VERSION_NOTATION);
+        }
+        validateEntry(alias, "branch", version.getBranch(), INVALID_VERSION_NOTATION);
+    }
+
+    private void validateModule(String alias, @Nullable String group, @Nullable String name) {
+        validateEntry(alias, "group", group, INVALID_DEPENDENCY_NOTATION);
+        validateEntry(alias, "name", name, INVALID_DEPENDENCY_NOTATION);
+    }
+
+    private void validateEntry(String alias, String kind, @Nullable String value, VersionCatalogProblemId problemId) {
+        if (value == null) {
+            return;
+        }
+        for (String forbidden : FORBIDDEN_SEQUENCES) {
+            if (value.contains(forbidden)) {
+                throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
+                    configureVersionCatalogError(builder, "on alias '" + alias + "' " + kind + " '" + value + "' contains '" + forbidden + "', which is not allowed", problemId)
+                        .details("A " + kind + " must not contain any of " + quotedOxfordListOf(FORBIDDEN_SEQUENCES, "or"))
+                        .solution("Remove '" + forbidden + "' from the " + kind)));
+            }
+        }
     }
 
     private void validateAlias(AliasType type, String value) {
@@ -543,8 +579,9 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         public void version(Action<? super MutableVersionConstraint> versionSpec) {
             MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
             versionSpec.execute(versionBuilder);
-            owner.aliasesInProgress.remove(alias);
             ImmutableVersionConstraint version = owner.versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
+            owner.validateVersion(alias, version);
+            owner.aliasesInProgress.remove(alias);
             DependencyModel model = new DependencyModel(owner.intern(group), owner.intern(name), null, version, owner.currentContext);
             Supplier<DependencyModel> previous = owner.libraries.put(owner.intern(alias), () -> model);
             if (previous != null) {
@@ -601,8 +638,9 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         public void version(Action<? super MutableVersionConstraint> versionSpec) {
             MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
             versionSpec.execute(versionBuilder);
-            owner.aliasesInProgress.remove(alias);
             ImmutableVersionConstraint version = owner.versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
+            owner.validateVersion(alias, version);
+            owner.aliasesInProgress.remove(alias);
             PluginModel model = new PluginModel(owner.intern(id), null, version, owner.currentContext);
             Supplier<PluginModel> previous = owner.plugins.put(owner.intern(alias), () -> model);
             if (previous != null) {

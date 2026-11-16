@@ -102,6 +102,42 @@ task retrieve(type: Copy, dependsOn: tasks.deleteDir) {
         file('libs').assertDoesNotExist()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39756")
+    def "ignores unauthorized jar artifact for pom with packaging of type 'pom'"() {
+        when:
+        buildWithDependencies("compile 'group:projectA:1.0'")
+        projectARepo1.hasPackaging("pom").publishPom()
+
+        and:
+        projectARepo1.pom.expectGet()
+        // Some repositories answer requests for missing files with 401 instead of 404
+        projectARepo1.artifact.expectGetUnauthorized()
+
+        and:
+        succeeds("retrieve")
+
+        then:
+        file("libs").assertDoesNotExist()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39756")
+    def "ignores broken jar artifact for pom with packaging of type 'pom'"() {
+        when:
+        buildWithDependencies("compile 'group:projectA:1.0'")
+        projectARepo1.hasPackaging("pom").publishPom()
+
+        and:
+        projectARepo1.pom.expectGet()
+        projectARepo1.artifact.expectGetBroken()
+
+        and:
+        succeeds("retrieve")
+
+        then:
+        // Testing actual behavior, not desired behavior. A server error for an optional artifact should fail to resolve.
+        file("libs").assertDoesNotExist()
+    }
+
     def "for a snapshot module with packaging of type 'pom', will check for jar artifact that was previously missing on cache expiry"() {
         when:
         def snapshotA = repo1.module('group', 'projectA', '1.1-SNAPSHOT')

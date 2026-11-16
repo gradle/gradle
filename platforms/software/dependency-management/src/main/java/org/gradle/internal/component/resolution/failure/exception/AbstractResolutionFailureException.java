@@ -75,7 +75,7 @@ public abstract class AbstractResolutionFailureException extends StyledException
             ResolutionFailureProblemId problemId = getFailure().getProblemId();
             builder.id(problemId.problemId(problemsService.getGroups()))
                 .contextualLabel(getMessage())
-                .documentedAt(userManual("variant_model", "sec:variant-select-errors"))
+                .documentedAt(userManual("variant_aware_resolution", "sec:abm-algorithm"))
                 .additionalDataInternal(ResolutionFailureDataSpec.class, data -> data.from(getFailure()));
         });
         problemsService.getInternalReporter().reportError(problem);

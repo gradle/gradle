@@ -114,7 +114,7 @@ Stacktraces are useful for diagnosing issues during a build failure. You can con
 
 | (none)
 | (none)
-| No stacktraces are printed to the console in case of a build error (e.g., a compile error). Only in case of internal exceptions will stacktraces be printed. If the `DEBUG` log level is chosen, truncated stacktraces are always printed.
+| No stacktraces are printed to the console in case of a build error (e.g., a compile error). Only in case of internal exceptions will stacktraces be printed. The `DEBUG` log level does not print stacktraces for build errors; use `--stacktrace` with `--debug` if you need both.
 |===
 
 For example, to always display a full stacktrace on build errors, set in `gradle.properties`:

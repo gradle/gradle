@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
 import org.gradle.integtests.fixtures.build.ProjectSourceRoots
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiAdditionalClasspath
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -48,6 +49,7 @@ import static org.hamcrest.CoreMatchers.hasItems
 import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.MatcherAssert.assertThat
 
+@TargetGradleVersion("!6.5.1")
 @ToolingApiAdditionalClasspath(KotlinDslToolingModelsClasspathProvider)
 @CompileStatic
 abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpecification implements KotlinDslTestProjectInitiation {
@@ -67,12 +69,6 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         // Only Kotlin settings scripts
         settingsFile.delete()
         file("settings.gradle.kts").touch()
-        // Gradle 6.5.1 instrumented jar cache has concurrency issues causing flakiness
-        // This is exacerbated by those cross-version tests running concurrently
-        // This isolates the Gradle user home for this version only
-        if (GradleVersion.version(releasedGradleVersion) == GradleVersion.version("6.5.1")) {
-            toolingApi.requireIsolatedUserHome()
-        }
     }
 
     private String targetKotlinVersion

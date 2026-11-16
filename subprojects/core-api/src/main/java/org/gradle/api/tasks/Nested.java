@@ -25,6 +25,8 @@ import java.lang.annotation.Target;
  * <p>Marks a property as specifying a nested bean, whose properties should be checked for annotations.</p>
  *
  * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
+ * In Kotlin, use the {@code get:} use-site target to attach it to the property getter, for example {@code @get:Nested}.
+ * This also works on abstract properties, where the annotation without a use-site target does not compile.
  * Annotations on setters or just the field in Java are ignored.</p>
  *
  * <p>Gradle will attempt to instantiate a nested bean on abstract getter methods annotated with this annotation.

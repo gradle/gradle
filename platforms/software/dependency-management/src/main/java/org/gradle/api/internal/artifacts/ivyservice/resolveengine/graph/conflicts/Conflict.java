@@ -16,28 +16,21 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-
-import java.util.List;
 
 /**
  * Describes a version conflict between two or more versions of a module in a dependency graph.
  */
 public class Conflict {
 
-    private final List<Participant> participants;
     private final ModuleIdentifier moduleId;
     private final ComponentSelectionReason selectionReason;
 
     public Conflict(
-        ImmutableList<Participant> participants,
         ModuleIdentifier moduleId,
         ComponentSelectionReason selectionReason
     ) {
-        this.participants = participants;
         this.moduleId = moduleId;
         this.selectionReason = selectionReason;
     }
@@ -48,33 +41,6 @@ public class Conflict {
 
     public ModuleIdentifier getModuleId() {
         return moduleId;
-    }
-
-    public List<Participant> getParticipants() {
-        return participants;
-    }
-
-    /**
-     * A component that was involved in the conflict.
-     */
-    public static class Participant {
-
-        private final String version;
-        private final ComponentIdentifier id;
-
-        public Participant(String version, ComponentIdentifier id) {
-            this.version = version;
-            this.id = id;
-        }
-
-        public String getVersion() {
-            return version;
-        }
-
-        public ComponentIdentifier getId() {
-            return id;
-        }
-
     }
 
 }

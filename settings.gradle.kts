@@ -132,6 +132,7 @@ val core = platform("core") {
         subproject("model-core")
         subproject("model-reflect")
         subproject("model-groovy")
+        subproject("plugin-use")
         subproject("project-features")
         subproject("project-features-api")
         subproject("project-features-demos")
@@ -200,9 +201,16 @@ module("observability") {
     subproject("report-rendering")
 }
 
+// Reporting Plugins Platform
+val reportingPlugins = platform("reporting-plugins") {
+    uses(core)
+    subproject("reporting")
+}
+
 // Software Platform
 val software = platform("software") {
     uses(core)
+    uses(reportingPlugins)
     subproject("ant-api")
     subproject("ant")
     subproject("ant-impl")
@@ -229,7 +237,6 @@ val software = platform("software") {
     subproject("resources-gcs")
     subproject("resources-s3")
     subproject("resources-sftp")
-    subproject("reporting")
     subproject("security")
     subproject("signing")
     subproject("software-diagnostics")
@@ -242,6 +249,7 @@ val software = platform("software") {
 // JVM Platform
 val jvm = platform("jvm") {
     uses(core)
+    uses(reportingPlugins)
     uses(software)
     subproject("antlr")
     subproject("code-quality")
@@ -280,11 +288,10 @@ val jvm = platform("jvm") {
     subproject("war")
 }
 
-// Extensibility Platform
-val extensibility = platform("extensibility") {
+// Plugin Development Platform
+val pluginDev = platform("plugin-dev") {
     uses(core)
     uses(jvm)
-    subproject("plugin-use")
     subproject("plugin-development")
     subproject("unit-test-fixtures")
     subproject("test-kit")
@@ -295,7 +302,7 @@ platform("dsl") {
     uses(core)
     uses(software)
     uses(jvm)
-    uses(extensibility)
+    uses(pluginDev)
     subproject("groovy-dsl")
     subproject("kotlin-dsl")
     subproject("kotlin-dsl-integ-tests")

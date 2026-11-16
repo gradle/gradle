@@ -512,13 +512,15 @@ They also introduce unintended side effects.
 If you use `allprojects { ... }` or `subprojects { ... }`, plugins and configuration blocks will apply to every project, including the empty ones.
 This can degrade build performance.
 Additionally, invoking tasks on deeply nested projects requires using the full project path, such as `gradle :subs:features:search:build`, instead of the shorter `gradle :search:build`.
+Since Gradle 9.0.0, each intermediate project also needs an existing directory, so the build fails if the project path doesn't match your directory layout.
+See <<multi_project_builds.adoc#sec:intermediate_project_directories,Intermediate projects in nested paths>>.
 
 To avoid these downsides when using a hierarchical project structure, you can provide a flat name when including the project and explicitly set the link:{kotlinDslPath}/gradle/org.gradle.api/-project/get-project-dir.html[Project.projectDir] property for any projects located in nested directories:
 
 [source,kotlin]
 ----
-include(':my-web-module')
-project(':my-web-module').projectDir = file("subs/web/my-web-module")
+include(":my-web-module")
+project(":my-web-module").projectDir = file("subs/web/my-web-module")
 ----
 
 This will prevent Gradle from creating empty projects for each element of the project's path.
