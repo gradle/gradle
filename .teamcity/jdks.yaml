@@ -142,8 +142,8 @@ jdks:
     os: "macos"
     arch: "amd64"
     vendor: "temurin"
-    version: "jdk8u504-b01"
-    sha256: "4b4518a2060c98c0ed195947fa29c8f5aa7f1c608817e8ad1850719517f11ac0"
+    version: "jdk8u512-b09"
+    sha256: "314e8acc9dd87a63e13c05345fa4a78bda567b452f7e956c80abd4c629851eff"
   - params:
       - "macos.java11.openjdk.64bit"
     os: "macos"
