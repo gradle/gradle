@@ -200,6 +200,55 @@ class ToolingApiEclipseModelProjectDependenciesCrossVersionSpec extends ToolingA
         !a.classpath[0].classpathAttributes.any { it.name == "test" && it.value == "true" }
     }
 
+    def "test jar of a closed project stays a test dependency next to the main jar"() {
+        given:
+        testJarOnB()
+        file("a/build.gradle") << """
+            dependencies {
+                implementation project(':b')
+                testImplementation project(path: ':b', configuration: 'testArtifacts')
+            }
+        """
+
+        when:
+        def a = projectAWithClosedB()
+
+        then:
+        a.projectDependencies.isEmpty()
+        testAttributeByPath(a) == ["build/libs/b.jar": false, "build/libs/b-tests.jar": true]
+    }
+
+    def "closed project keeps class directories of a compile-only feature variant next to the main jar"() {
+        given:
+        file("b/build.gradle") << """
+            sourceSets {
+                extra
+            }
+            java {
+                registerFeature('extra') {
+                    usingSourceSet(sourceSets.extra)
+                }
+            }
+        """
+        file("a/build.gradle") << """
+            dependencies {
+                implementation project(':b')
+                compileOnly(project(':b')) {
+                    capabilities {
+                        requireFeature('extra')
+                    }
+                }
+            }
+        """
+
+        when:
+        def a = projectAWithClosedB()
+
+        then:
+        a.projectDependencies.isEmpty()
+        testAttributeByPath(a) == ["build/libs/b.jar": false, "build/classes/java/extra": false]
+    }
+
     private EclipseProject projectA() {
         loadToolingModel(EclipseProject).children.find { it.name == "a" }
     }
@@ -219,6 +268,26 @@ class ToolingApiEclipseModelProjectDependenciesCrossVersionSpec extends ToolingA
                 .run()
         }
         buildFinishedHandler.result.children.find { it.name == "a" }
+    }
+
+    private void testJarOnB() {
+        file("b/build.gradle") << """
+            configurations {
+                testArtifacts
+            }
+            def testJar = tasks.register('testJar', Jar) {
+                archiveClassifier = 'tests'
+            }
+            artifacts {
+                testArtifacts testJar
+            }
+        """
+    }
+
+    private Map<String, Boolean> testAttributeByPath(EclipseProject project) {
+        project.classpath.collectEntries { entry ->
+            [pathInB(entry.file), entry.classpathAttributes.any { it.name == "test" && it.value == "true" }]
+        }
     }
 
     private String pathInB(File classpathFile) {
