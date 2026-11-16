@@ -30,16 +30,23 @@ import java.time.Instant;
 public class S3Resource implements ExternalResourceReadResponse {
 
     private final ResponseInputStream<GetObjectResponse> response;
+    private final AbortUnlessFullyReadInputStream content;
     private final URI uri;
 
     public S3Resource(ResponseInputStream<GetObjectResponse> response, URI uri) {
         this.response = response;
+        this.content = new AbortUnlessFullyReadInputStream(response, contentLength(response));
         this.uri = uri;
+    }
+
+    private static long contentLength(ResponseInputStream<GetObjectResponse> response) {
+        Long contentLength = response.response().contentLength();
+        return contentLength == null ? -1 : contentLength;
     }
 
     @Override
     public InputStream openStream() throws IOException {
-        return response;
+        return content;
     }
 
     public URI getURI() {
@@ -47,8 +54,7 @@ public class S3Resource implements ExternalResourceReadResponse {
     }
 
     public long getContentLength() {
-        Long contentLength = response.response().contentLength();
-        return contentLength == null ? -1 : contentLength;
+        return contentLength(response);
     }
 
     public boolean isLocal() {
@@ -69,6 +75,6 @@ public class S3Resource implements ExternalResourceReadResponse {
 
     @Override
     public void close() throws IOException {
-        response.close();
+        content.close();
     }
 }
