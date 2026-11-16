@@ -35,8 +35,6 @@ dependencies {
     api(libs.jspecify)
     api(libs.jsr305)
 
-    runtimeOnly(libs.groovy)
-
     implementation(projects.languageJava)
     implementation(projects.languageGroovy)
     implementation(projects.modelCore)

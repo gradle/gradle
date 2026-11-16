@@ -35,8 +35,6 @@ dependencies {
 
     implementation(libs.commonsLang)
 
-    runtimeOnly(libs.groovy)
-
     testImplementation(testFixtures(projects.core))
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {

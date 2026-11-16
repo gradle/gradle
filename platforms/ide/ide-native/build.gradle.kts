@@ -41,9 +41,6 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.jsr305)
 
-    runtimeOnly(projects.dependencyManagement)
-    runtimeOnly(projects.testingBase)
-
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.platformNative))
     testImplementation(testFixtures(projects.languageNative))

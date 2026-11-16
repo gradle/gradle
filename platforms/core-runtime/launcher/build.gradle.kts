@@ -71,9 +71,6 @@ dependencies {
     runtimeOnly(projects.declarativeDslProvider)
     runtimeOnly(projects.problems)
 
-    runtimeOnly(libs.commonsIo)
-    runtimeOnly(libs.commonsLang)
-
     runtimeOnly(projects.groovyDsl) {
         because("GroovyScriptPluginFactory is loaded dynamically at runtime by ScriptPluginFactorySelector")
     }

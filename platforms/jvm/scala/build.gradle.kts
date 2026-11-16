@@ -48,8 +48,6 @@ dependencies {
 
     implementation(libs.guava)
 
-    runtimeOnly(libs.groovy)
-
     testImplementation(projects.baseServicesGroovy)
     testImplementation(projects.files)
     testImplementation(projects.resources)

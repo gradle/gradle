@@ -46,10 +46,6 @@ dependencies {
 
     integTestImplementation(libs.slf4jApi)
 
-    integTestRuntimeOnly(projects.resourcesS3)
-    integTestRuntimeOnly(projects.resourcesSftp)
-    integTestRuntimeOnly(projects.apiMetadata)
-
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("SamplesIvyPublishIntegrationTest test applies the java-library plugin.")
     }

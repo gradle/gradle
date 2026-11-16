@@ -30,10 +30,6 @@ dependencies {
     implementation(projects.testingJvm)
 
     runtimeOnly(projects.dependencyManagement)
-    runtimeOnly(projects.testingBase)
-    runtimeOnly(projects.toolchainsJvm)
-
-    runtimeOnly(libs.groovy)
 
     testImplementation(testFixtures(projects.core))
 

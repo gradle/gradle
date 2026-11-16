@@ -94,7 +94,6 @@ dependencies {
     testImplementation(testFixtures(projects.testingBase))
 
     testRuntimeOnly(providedLibs.maven3Compat)
-    testRuntimeOnly(providedLibs.maven3PluginApi)
 
     testRuntimeOnly(projects.distributionsFull) {
         because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")

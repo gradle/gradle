@@ -48,8 +48,6 @@ dependencies {
 
     implementation(libs.guava)
 
-    runtimeOnly(projects.languageJvm)
-
     testImplementation(projects.fileCollections)
     testImplementation(projects.pluginsJava)
     testImplementation(testFixtures(projects.core))

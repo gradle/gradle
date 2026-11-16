@@ -60,9 +60,6 @@ dependencies {
 
     implementation(libs.commonsLang)
 
-    runtimeOnly(projects.languageJvm)
-    runtimeOnly(projects.testingBase)
-
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.dependencyManagement))
     testImplementation(testFixtures(projects.ide))

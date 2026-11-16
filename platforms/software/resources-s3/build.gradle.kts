@@ -30,9 +30,6 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
-    runtimeOnly(projects.core)
-    runtimeOnly(projects.coreApi)
-
     runtimeOnly(libs.awsS3Sso) {
         because("Loaded by the AWS libraries with reflection when present, for AWS SSO profiles: https://github.com/gradle/gradle/issues/34049")
     }

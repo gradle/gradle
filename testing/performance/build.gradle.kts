@@ -21,8 +21,6 @@ dependencies {
     performanceTestImplementation(testLibs.gradleProfiler)
     performanceTestImplementation(testLibs.junit)
 
-    performanceTestRuntimeOnly(projects.coreApi)
-
     performanceTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("All Gradle features have to be available.")
     }

@@ -58,8 +58,6 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.workerShared)
 
-    runtimeOnly(libs.groovy)
-
     testImplementation(libs.ant)
     testImplementation(projects.kotlinDsl)
     testImplementation(testFixtures(projects.logging))

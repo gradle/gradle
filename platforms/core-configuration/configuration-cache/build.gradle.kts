@@ -94,11 +94,8 @@ dependencies {
 
     runtimeOnly(projects.beanSerializationServices)
     runtimeOnly(projects.compositeBuilds)
-    runtimeOnly(projects.resourcesHttp)
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     runtimeOnly(projects.workers)
-
-    runtimeOnly(libs.kotlinReflect)
 
     testImplementation(projects.beanSerializationServices)
     testImplementation(testFixtures(projects.beanSerializationServices))

@@ -33,9 +33,6 @@ dependencies {
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJvmTestSuite)
 
-    runtimeOnly(projects.core)
-    runtimeOnly(projects.platformBase)
-
     testImplementation(projects.pluginsJavaBase)
 
     testImplementation(testFixtures(projects.core))

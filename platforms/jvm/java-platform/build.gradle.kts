@@ -35,8 +35,6 @@ dependencies {
     implementation(projects.platformJvm)
     implementation(projects.publish)
 
-    runtimeOnly(libs.groovy)
-
     integTestImplementation(testFixtures(projects.dependencyManagement))
     integTestImplementation(testFixtures(projects.resourcesHttp))
 

@@ -36,8 +36,6 @@ dependencies {
 
     implementation(libs.guava)
 
-    runtimeOnly(libs.groovy)
-
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.languageGroovy))
 

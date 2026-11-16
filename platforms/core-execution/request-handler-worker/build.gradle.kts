@@ -26,8 +26,6 @@ dependencies {
     implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.guava)
-
-    runtimeOnly(projects.coreApi)
 }
 
 gradleModule {

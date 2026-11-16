@@ -28,9 +28,6 @@ dependencies {
     implementation(libs.slf4jApi)
 
     runtimeOnly(projects.core)
-    runtimeOnly(projects.coreApi)
-
-    runtimeOnly(libs.jacksonCore)
 
     testImplementation(projects.internalIntegTesting)
     testImplementation(testFixtures(projects.core))

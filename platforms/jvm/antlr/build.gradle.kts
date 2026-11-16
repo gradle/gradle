@@ -34,9 +34,6 @@ dependencies {
         because("this dependency is downloaded by the antlr plugin")
     }
 
-    runtimeOnly(projects.languageJvm)
-    runtimeOnly(projects.workers)
-
     testImplementation(projects.baseServicesGroovy)
     testImplementation(testFixtures(projects.core))
     testImplementation(projects.fileCollections)

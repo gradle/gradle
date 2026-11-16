@@ -151,8 +151,6 @@ dependencies {
     runtimeOnly(testLibs.nettyCodecHaproxy) {
         because("LittleProxy loads HAProxy classes at runtime but does not declare the dependency")
     }
-    runtimeOnly(testLibs.nettyCommon)
-    runtimeOnly(testLibs.nettyHandler)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
