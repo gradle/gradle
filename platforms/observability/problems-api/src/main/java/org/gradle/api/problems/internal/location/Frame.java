@@ -32,6 +32,7 @@ public class Frame implements Serializable {
 
     private final String displayName;
     private final Locality locality;
+    @Nullable
     private final Position position;
 
     public Frame(String displayName, Locality locality) {
@@ -69,7 +70,7 @@ public class Frame implements Serializable {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }
