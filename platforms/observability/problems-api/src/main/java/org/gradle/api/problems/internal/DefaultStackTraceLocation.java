@@ -20,10 +20,11 @@ import org.gradle.api.problems.FileLocation;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 
 public class DefaultStackTraceLocation implements StackTraceLocation {
 
-    private final FileLocation location;
+    private final @Nullable FileLocation location;
     private final List<StackTraceElement> stackTrace;
     private final @Nullable String callerApi;
 
@@ -55,22 +56,19 @@ public class DefaultStackTraceLocation implements StackTraceLocation {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
 
         DefaultStackTraceLocation that = (DefaultStackTraceLocation) o;
-        return (location == null ? that.location == null : location.equals(that.location))
+        return Objects.equals(location, that.location)
             && stackTrace.equals(that.stackTrace)
-            && (callerApi == null ? that.callerApi == null : callerApi.equals(that.callerApi));
+            && Objects.equals(callerApi, that.callerApi);
     }
 
     @Override
     public int hashCode() {
-        int result = location != null ? location.hashCode() : 0;
-        result = 31 * result + stackTrace.hashCode();
-        result = 31 * result + (callerApi != null ? callerApi.hashCode() : 0);
-        return result;
+        return Objects.hash(location, stackTrace, callerApi);
     }
 }
