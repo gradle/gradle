@@ -64,6 +64,8 @@ import spock.util.environment.RestoreSystemProperties
 
 import java.time.Duration
 
+import static org.junit.Assume.assumeTrue
+
 
 class S3ClientTest extends Specification {
     static final int MIB = 1024 * 1024
@@ -551,6 +553,8 @@ class S3ClientTest extends Specification {
         configFile.deleteOnExit()
         configFile.text = "[default]\nendpoint_url = http://from-profile.invalid\n"
         System.setProperty("aws.configFile", configFile.absolutePath)
+        // Takes precedence over AWS_PROFILE
+        System.setProperty("aws.profile", "default")
         System.setProperty("aws.endpointUrlS3", "http://from-system-property.invalid")
         S3ConnectionProperties s3Properties = Stub()
         s3Properties.getEndpoint() >> Optional.empty()
@@ -578,8 +582,12 @@ class S3ClientTest extends Specification {
         given:
         def configFile = File.createTempFile("aws-config", ".ini")
         configFile.deleteOnExit()
+        // These take precedence over the profile, and a test can't unset them
+        assumeTrue(System.getenv("AWS_REQUEST_CHECKSUM_CALCULATION") == null && System.getenv("AWS_RESPONSE_CHECKSUM_VALIDATION") == null)
         configFile.text = "[default]\n" + profileSettings
         System.setProperty("aws.configFile", configFile.absolutePath)
+        // Takes precedence over AWS_PROFILE
+        System.setProperty("aws.profile", "default")
         if (systemPropertyValue != null) {
             System.setProperty("aws.requestChecksumCalculation", systemPropertyValue)
             System.setProperty("aws.responseChecksumValidation", systemPropertyValue)
