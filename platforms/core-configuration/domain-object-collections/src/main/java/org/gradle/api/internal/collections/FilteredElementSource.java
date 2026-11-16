@@ -192,7 +192,8 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
 
     @Override
     public boolean removePending(ProviderInternal<? extends S> provider) {
-        return collection.removePending(provider);
+        // Removal events can't be fired through a filtered view, so a provider realized on add is removed without them
+        return collection.removePending(provider) || collection.removeRealized(provider) != null;
     }
 
     @Override

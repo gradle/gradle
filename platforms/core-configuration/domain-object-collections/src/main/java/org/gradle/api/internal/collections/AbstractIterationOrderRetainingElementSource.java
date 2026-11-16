@@ -205,6 +205,21 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     @Override
+    @Nullable
+    public List<T> removeRealized(ProviderInternal<? extends T> provider) {
+        Iterator<Element<T>> iterator = inserted.iterator();
+        while (iterator.hasNext()) {
+            Element<T> next = iterator.next();
+            if (next.isRealized() && next.isRealizedOnAdd() && next.isProvidedBy(provider)) {
+                modCount++;
+                iterator.remove();
+                return next.getValues();
+            }
+        }
+        return null;
+    }
+
+    @Override
     public boolean removePendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
         return removeByProvider(provider);
     }
@@ -223,12 +238,12 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         boolean added = inserted.add(element);
         if (subscriptionVerifier.isSubscribed(element.getType())) {
             element.realize();
-
-            // Ugly backwards-compatibility hack. Previous implementations would notify listeners without
-            // actually telling the ElementSource that the element was realized.
-            // We can avoid this in the future if we make ChangingValue more widespread -- particularly
-            // if we make CollectionProviders implement ChangingValue
-            element.clearCache();
+            if (subscriptionVerifier.isSubscribedByListener(element.getType())) {
+                element.markRealizedOnAdd();
+            } else {
+                // Only realized to be forwarded to a composite collection, so the provider is queried again when this collection is read
+                element.clearCache();
+            }
         }
         return added;
     }
@@ -340,6 +355,8 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         private List<T> removedValues = null;
         private IntSet duplicates = IntSets.emptySet();
         private boolean realized;
+        // Realized when added for an eager listener, so it can be removed by its provider without querying the provider again
+        private boolean realizedOnAdd;
 
         private final Action<T> realizeAction;
 
@@ -356,6 +373,14 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
         public boolean isRealized() {
             return realized;
+        }
+
+        boolean isRealizedOnAdd() {
+            return realizedOnAdd;
+        }
+
+        void markRealizedOnAdd() {
+            realizedOnAdd = true;
         }
 
         boolean isProvidedByCollection() {
@@ -458,6 +483,12 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
                 duplicates = new IntOpenHashSet(1);
             }
             duplicates.add(index);
+        }
+
+        void clearDuplicate(int index) {
+            if (!duplicates.isEmpty()) {
+                duplicates.remove(index);
+            }
         }
 
         void clearCache() {

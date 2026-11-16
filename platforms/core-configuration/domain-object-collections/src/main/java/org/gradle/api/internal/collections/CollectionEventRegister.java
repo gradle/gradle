@@ -36,6 +36,13 @@ public interface CollectionEventRegister<T> extends EventSubscriptionVerifier<T>
 
     Action<? super T> registerEagerAddAction(Class<? extends T> type, Action<? super T> addAction);
 
+    /**
+     * Like {@link #registerEagerAddAction(Class, Action)}, for forwarding the elements to a composite collection.
+     *
+     * @see #isSubscribedByListener(Class)
+     */
+    Action<? super T> registerForwardingAddAction(Class<? extends T> type, Action<? super T> addAction);
+
     Action<? super T> registerLazyAddAction(Action<? super T> addAction);
 
     void registerRemoveAction(Class<? extends T> type, Action<? super T> removeAction);
