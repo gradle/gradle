@@ -16,67 +16,199 @@
 
 package org.gradle.integtests.composite.plugins
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
-@LeaksFileHandles("Kotlin Compiler Daemon working directory")
 @Issue("https://github.com/gradle/gradle/issues/29652")
-class PluginBuildsMultiPluginApplicationIntegrationTest extends AbstractIntegrationSpec {
-    def "can apply plugin from included build with version"() {
-        settingsKotlinFile << """
-include("child-project")
-includeBuild(rootDir.resolve("other-build"))
+class PluginBuildsMultiPluginApplicationIntegrationTest extends AbstractPluginBuildIntegrationTest {
 
-dependencyResolutionManagement {
-    versionCatalogs {
-        register("libs") {
-            plugin("otherBuildPlugin", "internal.integTest.other-build-plugin")
-                .version("1.0")
-        }
-    }
-}
-"""
-
-        buildKotlinFile << """
-plugins {
-    alias(libs.plugins.otherBuildPlugin)
-}
-"""
-
-        file("child-project", "build.gradle.kts") << """
-plugins {
-    alias(libs.plugins.otherBuildPlugin)
-}
-"""
-
-        file("other-build", "settings.gradle.kts") << """
-rootProject.name = "other-build"
-dependencyResolutionManagement.repositories.gradlePluginPortal()
-"""
-
-        file("other-build", "build.gradle.kts") << """
-plugins {
-    `kotlin-dsl`
-}
-
-group = "internal.integTest.\${rootProject.name}"
-version = "1.1"
-"""
-
-        file("other-build", "src", "main", "kotlin", "internal.integTest.other-build-plugin.gradle.kts") << """
-tasks.register("otherBuildPluginTask") {
-    doLast {
-        println("Hello from \$path")
-    }
-}
-"""
+    def "plugin from included plugin build can be applied to several projects requesting version #requestedVersion while the build produces #producedVersion"() {
+        given:
+        def pluginBuild = pluginBuild("build-logic")
+        pluginBuild.buildFile << """
+            version = "$producedVersion"
+        """
+        settingsFile << """
+            pluginManagement {
+                includeBuild("${pluginBuild.buildName}")
+            }
+            include("child")
+        """
+        def request = requestedVersion == null
+            ? """id("${pluginBuild.projectPluginId}")"""
+            : """id("${pluginBuild.projectPluginId}") version "$requestedVersion" """
+        buildFile << """
+            plugins {
+                $request
+            }
+        """
+        file("child/build.gradle") << """
+            plugins {
+                $request
+            }
+        """
 
         when:
-        succeeds "otherBuildPluginTask"
+        succeeds("help")
 
         then:
-        outputContains "Hello from :otherBuildPluginTask"
-        outputContains "Hello from :child-project:otherBuildPluginTask"
+        pluginBuild.assertProjectPluginApplied()
+
+        where:
+        requestedVersion | producedVersion
+        null             | "1.1"
+        "1.0"            | "1.1"
+        "1.0"            | "1.0"
+        "1.0"            | "unspecified"
+    }
+
+    def "plugin from a regular included build can be applied to several projects with a version that differs from the produced one"() {
+        given:
+        def pluginBuild = pluginBuild("build-logic")
+        pluginBuild.buildFile << """
+            version = "1.1"
+        """
+        settingsFile << """
+            includeBuild("${pluginBuild.buildName}")
+            include("child")
+        """
+        buildFile << """
+            plugins {
+                id("${pluginBuild.projectPluginId}") version "1.0"
+            }
+        """
+        file("child/build.gradle") << """
+            plugins {
+                id("${pluginBuild.projectPluginId}") version "1.0"
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        pluginBuild.assertProjectPluginApplied()
+    }
+
+    def "plugin from included plugin build can be applied at several levels of project nesting"() {
+        given:
+        def pluginBuild = pluginBuild("build-logic")
+        pluginBuild.buildFile << """
+            version = "1.1"
+        """
+        settingsFile << """
+            pluginManagement {
+                includeBuild("${pluginBuild.buildName}")
+            }
+            include("a")
+            include("a:b")
+        """
+        [buildFile, file("a/build.gradle"), file("a/b/build.gradle")].each {
+            it << """
+                plugins {
+                    id("${pluginBuild.projectPluginId}") version "1.0"
+                }
+            """
+        }
+
+        when:
+        succeeds("help")
+
+        then:
+        pluginBuild.assertProjectPluginApplied()
+    }
+
+    def "projects can request different versions of the same plugin from an included plugin build"() {
+        given:
+        def pluginBuild = pluginBuild("build-logic")
+        pluginBuild.buildFile << """
+            version = "1.1"
+        """
+        settingsFile << """
+            pluginManagement {
+                includeBuild("${pluginBuild.buildName}")
+            }
+            include("child")
+        """
+        buildFile << """
+            plugins {
+                id("${pluginBuild.projectPluginId}") version "1.0"
+            }
+        """
+        file("child/build.gradle") << """
+            plugins {
+                id("${pluginBuild.projectPluginId}") version "2.0"
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        pluginBuild.assertProjectPluginApplied()
+    }
+
+    def "plugin from included plugin build can be requested with a version in one project and without in another"() {
+        given:
+        def pluginBuild = pluginBuild("build-logic")
+        pluginBuild.buildFile << """
+            version = "1.1"
+        """
+        settingsFile << """
+            pluginManagement {
+                includeBuild("${pluginBuild.buildName}")
+            }
+            include("child")
+        """
+        buildFile << """
+            plugins {
+                id("${pluginBuild.projectPluginId}")${rootVersion ? " version \"$rootVersion\"" : ""}
+            }
+        """
+        file("child/build.gradle") << """
+            plugins {
+                id("${pluginBuild.projectPluginId}")${childVersion ? " version \"$childVersion\"" : ""}
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        pluginBuild.assertProjectPluginApplied()
+
+        where:
+        rootVersion | childVersion
+        "1.0"       | null
+        null        | "1.0"
+    }
+
+    def "plugin resolved from a repository is still rejected when projects request different versions"() {
+        given:
+        def repoDeclaration = """
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+        """
+        publishProjectPlugin("com.example.published", repoDeclaration)
+        settingsFile << """
+            pluginManagement {
+                $repoDeclaration
+            }
+            include("child")
+        """
+        buildFile << """
+            plugins {
+                id("com.example.published") version "1.0"
+            }
+        """
+        file("child/build.gradle") << """
+            plugins {
+                id("com.example.published") version "2.0"
+            }
+        """
+
+        expect:
+        fails("help")
+        failureHasCause("The request for this plugin could not be satisfied because the plugin is already on the classpath with a different version (1.0).")
     }
 }

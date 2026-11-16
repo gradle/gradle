@@ -64,9 +64,14 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
             return delegate.resolve(pluginRequest);
         }
 
-        String version = getVersion(pluginRequest);
-        if (version == null) {
-            return resolveAlreadyOnClasspath(pluginId, null);
+        PluginVersionTracker.VersionDef existing = pluginVersionTracker.findPluginVersionAt(parentLoaderScope, pluginId.getId());
+        // A plugin coming from a build of this build tree resolves to the same source (regardless of version)
+        boolean local = existing != null && existing.isLocal();
+
+        String requestedVersion = getRequestedVersion(pluginRequest);
+        if (requestedVersion == null || local) {
+            // Nothing to check: either no version was requested, or the requested version is irrelevant
+            return resolveAlreadyOnClasspath(pluginId, null, local);
         }
 
         if (pluginRequest.getId().equals(AutoAppliedDevelocityPlugin.BUILD_SCAN_PLUGIN_ID) &&
@@ -83,22 +88,15 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
             );
         }
 
-        PluginVersionTracker.VersionDef existingVersionDef = pluginVersionTracker.findPluginVersionAt(parentLoaderScope, pluginId.getId());
-        if (existingVersionDef != null && existingVersionDef.isLocal()) {
-            PluginResolutionResult resolved = delegate.resolve(pluginRequest);
-            if (resolved.isFound() && resolved.getFound(pluginRequest).isLocal()) {
-                return resolved;
-            }
-        }
-
-        String existingVersion = existingVersionDef != null ? existingVersionDef.getVersion() : null;
+        String existingVersion = existing != null ? existing.getVersion() : null;
         if (existingVersion == null) {
             throw new InvalidPluginRequestException(
                 pluginRequest,
                 "The request for this plugin could not be satisfied because " +
                     "the plugin is already on the classpath with an unknown version, so compatibility cannot be checked."
             );
-        } else if (!existingVersion.equals(version)) {
+        }
+        if (!existingVersion.equals(requestedVersion)) {
             throw new InvalidPluginRequestException(
                 pluginRequest,
                 "The request for this plugin could not be satisfied because " +
@@ -106,22 +104,22 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
             );
         }
 
-        return resolveAlreadyOnClasspath(pluginId, existingVersion);
+        return resolveAlreadyOnClasspath(pluginId, existingVersion, false);
     }
 
     @Nullable
-    private static String getVersion(PluginRequestInternal pluginRequest) {
+    private static String getRequestedVersion(PluginRequestInternal pluginRequest) {
         if (pluginRequest.getOriginalRequest() != null) {
             return pluginRequest.getOriginalRequest().getVersion();
         }
         return pluginRequest.getVersion();
     }
 
-    private PluginResolutionResult resolveAlreadyOnClasspath(PluginId pluginId, @Nullable String pluginVersion) {
+    private PluginResolutionResult resolveAlreadyOnClasspath(PluginId pluginId, @Nullable String pluginVersion, boolean local) {
         DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, parentLoaderScope);
         PluginImplementation<?> plugin = pluginRegistry.lookup(pluginId);
         if (plugin != null) {
-            PluginResolution pluginResolution = new ClassPathPluginResolution(pluginId, pluginVersion, plugin);
+            PluginResolution pluginResolution = new ClassPathPluginResolution(pluginId, pluginVersion, local, plugin);
             return PluginResolutionResult.found(pluginResolution);
         } else {
             return PluginResolutionResult.notFound("Classpath", "Plugin with id '" + pluginId + "' not found.");

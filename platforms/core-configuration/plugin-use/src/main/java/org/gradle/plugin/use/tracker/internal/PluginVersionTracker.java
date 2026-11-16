@@ -41,10 +41,11 @@ public class PluginVersionTracker {
         }
 
         Map<String, VersionDef> pluginVersions = pluginVersionsPerScope.computeIfAbsent(scope, ignored -> new ConcurrentHashMap<>());
-        if (pluginVersions.containsKey(pluginId)) {
-            throw new IllegalStateException("Plugin version already set for " + pluginId);
+        VersionDef previous = pluginVersions.putIfAbsent(pluginId, new VersionDef(pluginVersion, local));
+        if (previous != null) {
+            String existing = previous.isLocal() ? "as local plugin" : "to version " + previous.getVersion();
+            throw new IllegalStateException("Plugin version already set for " + pluginId + " " + existing);
         }
-        pluginVersions.put(pluginId, new PluginVersionTracker.VersionDef(pluginVersion, local));
     }
 
     @Nullable
@@ -71,6 +72,7 @@ public class PluginVersionTracker {
         private final boolean local;
 
         public VersionDef(@Nullable String version, boolean local) {
+            assert local != (version != null) : "An entry is either local or carries a version, never both or neither";
             this.version = version;
             this.local = local;
         }
@@ -82,11 +84,6 @@ public class PluginVersionTracker {
 
         public boolean isLocal() {
             return local;
-        }
-
-        @Override
-        public String toString() {
-            return "VersionDef{" + version + (local ? ", local" : "") + '}';
         }
     }
 }
