@@ -18,7 +18,14 @@ package org.gradle.api.internal.initialization;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.MapMaker;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.initialization.ClassLoaderScopeId;
+import org.gradle.initialization.ClassLoaderScopeOrigin;
+import org.gradle.initialization.ClassLoaderScopeRegistryListener;
+import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.classloader.ProtectionDomains;
 import org.gradle.internal.classloader.TransformedClassPathHolder;
 import org.gradle.internal.classpath.TransformedClassPath;
@@ -26,22 +33,32 @@ import org.gradle.internal.code.Locality;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
+import java.io.Closeable;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.CodeSource;
+import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class DefaultCodeLocalityResolver implements CodeLocalityResolver {
+public final class DefaultCodeLocalityResolver implements CodeLocalityResolver, ClassLoaderScopeRegistryListener, Closeable {
 
     private final Set<ClassLoader> coreClassLoaders;
     // A plugin class is asked about once for every project that applies it. The keys are weak, so a class can be unloaded while the build tree lives.
     private final ConcurrentMap<Class<?>, CodeOrigin> origins = new MapMaker().weakKeys().makeMap();
 
+    // The class loader scopes that scripts get for their own classes, and the loaders created for them
+    private final Set<ClassLoaderScopeId> scriptScopes = ConcurrentHashMap.newKeySet();
+    private final Set<ClassLoader> scriptClassLoaders = Collections.newSetFromMap(new MapMaker().weakKeys().<ClassLoader, Boolean>makeMap());
+    private @Nullable ClassLoaderScopeRegistryListenerManager listenerManager;
+
     @Inject
-    public DefaultCodeLocalityResolver(ClassLoaderRegistry classLoaderRegistry) {
+    public DefaultCodeLocalityResolver(ClassLoaderRegistry classLoaderRegistry, ClassLoaderScopeRegistryListenerManager listenerManager) {
         this(classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getPluginsClassLoader());
+        this.listenerManager = listenerManager;
+        listenerManager.add(this);
     }
 
     DefaultCodeLocalityResolver(ClassLoader... coreClassLoaders) {
@@ -62,6 +79,34 @@ public class DefaultCodeLocalityResolver implements CodeLocalityResolver {
     @Override
     public @Nullable File codeLocationOf(Class<?> clazz) {
         return originOf(clazz).codeLocation;
+    }
+
+    @Override
+    public boolean isDefinedInScript(Class<?> clazz) {
+        ClassLoader loader = clazz.getClassLoader();
+        return loader != null && scriptClassLoaders.contains(loader);
+    }
+
+    @Override
+    public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @Nullable ClassLoaderScopeOrigin origin) {
+        if (origin instanceof ClassLoaderScopeOrigin.Script) {
+            scriptScopes.add(childId);
+        }
+    }
+
+    @Override
+    public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @Nullable HashCode implementationHash) {
+        if (scriptScopes.contains(scopeId)) {
+            scriptClassLoaders.add(classLoader);
+        }
+    }
+
+    @Override
+    public void close() {
+        if (listenerManager != null) {
+            listenerManager.remove(this);
+        }
+        scriptScopes.clear();
     }
 
     private CodeOrigin originOf(Class<?> clazz) {

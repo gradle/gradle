@@ -106,6 +106,7 @@ class KnownProblemIds {
         'Transformation:KMP:Compilation failed': ['Compilation failed'],
         'Others:Undefined:Something odd': ['Something odd'],
         'Gradle:Build Logic:Reported problem has no id': ['Reported problem has no id'],
+        'Gradle:Build Logic:Reported problem has a relative path as its location': ['Reported problem has a relative path as its location'],
         'Gradle:Build Logic:Reported problem id has no group': ['Reported problem id has no group'],
         'Gradle:Build Logic:Unsupported additional data type in reported problem': ['Unsupported additional data type in reported problem'],
         'Gradle:Build Definition:Configuration name not allowed': ['Configuration name not allowed'],

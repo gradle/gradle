@@ -253,7 +253,7 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
         ]
     }
 
-    def "a plugin class defined in a build script is unknown, and its task takes the locality of its class"() {
+    def "a plugin class defined in a build script is local like the script, and so is the task it registers"() {
         given:
         buildFile """
             $reportingTask
@@ -276,15 +276,41 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         localitiesOf(atApplication()) == [
-            "plugin application class ScriptPlugin": Locality.UNKNOWN,
+            "plugin application class ScriptPlugin": Locality.LOCAL,
             "project :": Locality.LOCAL,
             "build :": Locality.LOCAL
         ]
         localitiesOf(inTask()) == [
-            "task :acme": Locality.UNKNOWN,
+            "task :acme": Locality.LOCAL,
             "project :": Locality.LOCAL,
             "build :": Locality.LOCAL
         ]
+    }
+
+    def "a plugin class defined in an init script takes the locality of that script"() {
+        given:
+        executer.requireOwnGradleUserHomeDir("init scripts are read from it")
+        executer.gradleUserHomeDir.file("init.d/acme.gradle") << """
+            import org.gradle.api.problems.Problems
+            import javax.inject.Inject
+
+            abstract class InitScriptPlugin implements Plugin<Gradle> {
+                @Inject
+                abstract Problems getProblems()
+
+                void apply(Gradle gradle) {
+                    problems.reporter.report(problems.groups.others.group("Generic").problemId("$PROBLEM_ID")) { it.details("at application") }
+                }
+            }
+
+            apply plugin: InitScriptPlugin
+        """
+
+        when:
+        run("help")
+
+        then: "an init script from the Gradle user home belongs to the environment, and so does the class it defines"
+        localitiesOf(atApplication())["plugin application class InitScriptPlugin"] == Locality.ENVIRONMENT
     }
 
     def "a plugin from a jar added with files() and the task it registers are external"() {
@@ -367,6 +393,135 @@ class DetectionTraceLocalityIntegrationTest extends AbstractIntegrationSpec {
             "plugin application com.acme.settings",
             "build :"
         ]
+    }
+
+    def "a settings plugin from a repository is external"() {
+        given:
+        def pluginBuilder = new PluginBuilder(file("acme-settings-plugin"))
+        pluginBuilder.packageName = "com.acme"
+        pluginBuilder.addPluginSource("com.acme.settings", "AcmeSettingsPlugin", settingsPluginSource("com.acme", "AcmeSettingsPlugin"))
+        pluginBuilder.publishAs("com.acme", "acme-settings-plugin", "1.0", mavenRepo, createExecuter())
+        settingsFile """
+            pluginManagement {
+                repositories {
+                    maven { url = "${mavenRepo.uri}" }
+                }
+            }
+            plugins {
+                id "com.acme.settings" version "1.0"
+            }
+        """
+
+        when:
+        run("help")
+
+        then:
+        localitiesOf(atApplication()) == [
+            "plugin application com.acme.settings": Locality.EXTERNAL,
+            "build :": Locality.LOCAL
+        ]
+    }
+
+    def "a settings plugin from an included build is local"() {
+        given:
+        file("build-logic/settings.gradle") << """
+            rootProject.name = "build-logic"
+        """
+        file("build-logic/build.gradle") << """
+            plugins {
+                id "groovy-gradle-plugin"
+            }
+            gradlePlugin {
+                plugins {
+                    acme {
+                        id = "com.acme.settings"
+                        implementationClass = "com.acme.AcmeSettingsPlugin"
+                    }
+                }
+            }
+        """
+        file("build-logic/src/main/groovy/com/acme/AcmeSettingsPlugin.groovy") << settingsPluginSource("com.acme", "AcmeSettingsPlugin")
+        settingsFile """
+            pluginManagement {
+                includeBuild "build-logic"
+            }
+            plugins {
+                id "com.acme.settings"
+            }
+        """
+
+        when:
+        run("help")
+
+        then:
+        localitiesOf(atApplication()) == [
+            "plugin application com.acme.settings": Locality.LOCAL,
+            "build :": Locality.LOCAL
+        ]
+    }
+
+    def "a plugin from a repository on the classpath of an init script is external"() {
+        given:
+        def pluginBuilder = new PluginBuilder(file("acme-init-plugin"))
+        pluginBuilder.packageName = "com.acme"
+        pluginBuilder.addPluginSource("com.acme.init", "AcmeInitPlugin", """
+            package com.acme
+
+            import org.gradle.api.Plugin
+            import org.gradle.api.invocation.Gradle
+            import org.gradle.api.problems.Problems
+            import javax.inject.Inject
+
+            abstract class AcmeInitPlugin implements Plugin<Gradle> {
+                @Inject
+                abstract Problems getProblems()
+
+                void apply(Gradle gradle) {
+                    problems.reporter.report(problems.groups.others.group("Generic").problemId("$PROBLEM_ID")) { it.details("at application") }
+                }
+            }
+        """)
+        pluginBuilder.publishAs("com.acme", "acme-init-plugin", "1.0", mavenRepo, createExecuter())
+        def initScript = file("acme-init.gradle")
+        initScript << """
+            initscript {
+                repositories {
+                    maven { url = "${mavenRepo.uri}" }
+                }
+                dependencies {
+                    classpath "com.acme:acme-init-plugin:1.0"
+                }
+            }
+
+            apply plugin: com.acme.AcmeInitPlugin
+        """
+
+        when:
+        executer.usingInitScript(initScript)
+        run("help")
+
+        then: "the plugin is external whoever the init script belongs to: its jar came from a repository"
+        localitiesOf(atApplication())["plugin application class com.acme.AcmeInitPlugin"] == Locality.EXTERNAL
+    }
+
+    private static String settingsPluginSource(String packageName, String className) {
+        """
+            package $packageName
+
+            import org.gradle.api.Plugin
+            import org.gradle.api.initialization.Settings
+            import org.gradle.api.problems.Problems
+            import javax.inject.Inject
+
+            abstract class $className implements Plugin<Settings> {
+                @Inject
+                abstract Problems getProblems()
+
+                void apply(Settings settings) {
+                    problems.reporter.report(problems.groups.others.group("Generic").problemId("$PROBLEM_ID")) { it.details("at application") }
+                }
+            }
+        """
     }
 
     /**

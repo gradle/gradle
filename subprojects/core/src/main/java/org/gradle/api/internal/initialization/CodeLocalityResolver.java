@@ -36,6 +36,12 @@ public interface CodeLocalityResolver {
     Locality localityOf(Class<?> clazz);
 
     /**
+     * Whether the class is defined in a build, settings or init script, as opposed to coming from a jar or class directory.
+     * Such a class belongs to whoever the script belongs to.
+     */
+    boolean isDefinedInScript(Class<?> clazz);
+
+    /**
      * The jar or class directory the class was loaded from, or null when it has none, such as a class defined in a script held in memory.
      */
     @Nullable

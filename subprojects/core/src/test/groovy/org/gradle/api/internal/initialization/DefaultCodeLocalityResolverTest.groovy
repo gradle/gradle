@@ -80,4 +80,28 @@ class DefaultCodeLocalityResolverTest extends Specification {
         expect:
         new DefaultCodeLocalityResolver(new ClassLoader(null) {}).codeLocationOf(String) == null
     }
+
+    def "a class is defined in a script when its loader was created for a script's own scope"() {
+        given:
+        def resolver = new DefaultCodeLocalityResolver(new ClassLoader(null) {})
+        def classPath = TransformedClassPath.builderWithExactSize(1)
+            .addUntransformed(ClasspathUtil.getClasspathForClass(Locality), UNKNOWN)
+            .build()
+        def scriptLoader = VisitableURLClassLoader.fromClassPath("script", null, classPath)
+        def otherLoader = VisitableURLClassLoader.fromClassPath("other", null, classPath)
+        def scriptScope = Stub(org.gradle.initialization.ClassLoaderScopeId)
+        def otherScope = Stub(org.gradle.initialization.ClassLoaderScopeId)
+        def origin = new org.gradle.initialization.ClassLoaderScopeOrigin.Script("build.gradle", org.gradle.internal.Describables.of("build file 'build.gradle'"), org.gradle.internal.Describables.of("build file"))
+
+        when:
+        resolver.childScopeCreated(otherScope, scriptScope, origin)
+        resolver.childScopeCreated(scriptScope, otherScope, null)
+        resolver.classloaderCreated(scriptScope, null, scriptLoader, classPath, null)
+        resolver.classloaderCreated(otherScope, null, otherLoader, classPath, null)
+
+        then:
+        resolver.isDefinedInScript(scriptLoader.loadClass(Locality.name))
+        !resolver.isDefinedInScript(otherLoader.loadClass(Locality.name))
+        !resolver.isDefinedInScript(String)
+    }
 }

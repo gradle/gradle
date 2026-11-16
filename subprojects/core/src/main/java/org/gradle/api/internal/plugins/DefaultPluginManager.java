@@ -32,6 +32,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationId;
 import org.gradle.api.internal.initialization.CodeLocalityResolver;
+import org.gradle.internal.code.Locality;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -176,7 +177,8 @@ public class DefaultPluginManager implements PluginManagerInternal {
                 final Runnable adder = addPluginInternal(plugin);
                 if (adder != null) {
                     UserCodeApplicationContext.Target appTarget = getApplicationTargetFor(target);
-                    UserCodeSource source = new UserCodeSource.Binary(plugin.getDisplayName(), pluginClass.getName(), pluginIdStr, codeLocalityResolver.localityOf(pluginClass), currentSource(), codeLocalityResolver.codeLocationOf(pluginClass));
+                    UserCodeSource appliedBy = currentSource();
+                    UserCodeSource source = new UserCodeSource.Binary(plugin.getDisplayName(), pluginClass.getName(), pluginIdStr, localityOf(pluginClass, appliedBy), appliedBy, codeLocalityResolver.codeLocationOf(pluginClass));
                     userCodeApplicationContext.apply(source, appTarget, userCodeApplicationId ->
                         buildOperationRunner.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass, userCodeApplicationId))
                     );
@@ -189,6 +191,14 @@ public class DefaultPluginManager implements PluginManagerInternal {
         } finally {
             Thread.currentThread().setContextClassLoader(contextClassLoader);
         }
+    }
+
+    // A plugin class that a script defines belongs to whoever the script belongs to; only that script can apply it
+    private Locality localityOf(Class<?> pluginClass, @Nullable UserCodeSource appliedBy) {
+        if (appliedBy instanceof UserCodeSource.Script && codeLocalityResolver.isDefinedInScript(pluginClass)) {
+            return appliedBy.getLocality();
+        }
+        return codeLocalityResolver.localityOf(pluginClass);
     }
 
     // The code that is applying this plugin, if any: a convention plugin, or a script
