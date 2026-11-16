@@ -193,7 +193,7 @@ public class S3Client {
 
     private ClientOverrideConfiguration createConnectionProperties() {
         ClientOverrideConfiguration.Builder clientOverrideConfigurationBuilder = ClientOverrideConfiguration.builder();
-        ignoreConfiguredEndpointUrls(clientOverrideConfigurationBuilder);
+        addProfileDefaults(clientOverrideConfigurationBuilder);
         Optional<Integer> maxErrorRetryCount = s3ConnectionProperties.getMaxErrorRetryCount();
         if (maxErrorRetryCount.isPresent()) {
             // maxAttempts includes the initial attempt; numRetries counted only retries. Preserve behavior with +1.
@@ -207,20 +207,31 @@ public class S3Client {
     }
 
     /**
+     * Adds defaults to the active profile. The user's profile file, system properties and environment variables still take precedence.
+     * <p>
      * SDK v2 also takes endpoints from AWS_ENDPOINT_URL, aws.endpointUrl and the profile's endpoint_url, which SDK v1 ignored.
-     * Gradle only uses org.gradle.s3.endpoint, so turn that off for the active profile and keep its other settings.
+     * Gradle only uses org.gradle.s3.endpoint, so turn that off.
+     * <p>
+     * SDK v2 sends CRC32 checksums with uploads, which SDK v1 didn't and some S3-compatible stores reject.
+     * With a custom endpoint, only send checksums for the operations that require them, like SDK v1.
      */
-    private static void ignoreConfiguredEndpointUrls(ClientOverrideConfiguration.Builder builder) {
+    private void addProfileDefaults(ClientOverrideConfiguration.Builder builder) {
         String profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValue().orElse("default");
         String section = profileName.equals("default") ? "[default]" : "[profile " + profileName + "]";
-        ProfileFile ignoreEndpointUrls = ProfileFile.builder()
-            .content(section + "\nignore_configured_endpoint_urls = true\n")
+        StringBuilder defaults = new StringBuilder(section).append("\nignore_configured_endpoint_urls = true\n");
+        if (s3ConnectionProperties.getEndpoint().isPresent()) {
+            defaults.append("request_checksum_calculation = when_required\n");
+            defaults.append("response_checksum_validation = when_required\n");
+        }
+        ProfileFile profileDefaults = ProfileFile.builder()
+            .content(defaults.toString())
             .type(ProfileFile.Type.CONFIGURATION)
             .build();
         builder.defaultProfileName(profileName);
+        // The file added first wins for properties that both files set
         builder.defaultProfileFileSupplier(() -> ProfileFile.aggregator()
             .addFile(ProfileFile.defaultProfileFile())
-            .addFile(ignoreEndpointUrls)
+            .addFile(profileDefaults)
             .build());
     }
 

@@ -20,6 +20,8 @@ import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation
 import software.amazon.awssdk.core.client.config.SdkClientOption
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.regions.Region
@@ -561,6 +563,37 @@ class S3ClientTest extends Specification {
 
         cleanup:
         plainSdkClient?.close()
+    }
+
+    @RestoreSystemProperties
+    def "sends checksums to a custom endpoint only when required, unless configured otherwise"() {
+        given:
+        def configFile = File.createTempFile("aws-config", ".ini")
+        configFile.deleteOnExit()
+        configFile.text = "[default]\n" + profileSettings
+        System.setProperty("aws.configFile", configFile.absolutePath)
+        if (systemPropertyValue != null) {
+            System.setProperty("aws.requestChecksumCalculation", systemPropertyValue)
+            System.setProperty("aws.responseChecksumValidation", systemPropertyValue)
+        }
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.ofNullable(endpoint == null ? null : new URI(endpoint))
+        s3Properties.getProxy() >> Optional.empty()
+        s3Properties.getMaxErrorRetryCount() >> Optional.empty()
+
+        when:
+        def clientConfiguration = unwrapped(new S3Client(credentials(), s3Properties).clientFor(someResource())).clientConfiguration
+
+        then:
+        clientConfiguration.option(SdkClientOption.REQUEST_CHECKSUM_CALCULATION) == RequestChecksumCalculation.valueOf(expected)
+        clientConfiguration.option(SdkClientOption.RESPONSE_CHECKSUM_VALIDATION) == ResponseChecksumValidation.valueOf(expected)
+
+        where:
+        endpoint                 | profileSettings                                                                     | systemPropertyValue | expected
+        null                     | ""                                                                                  | null                | "WHEN_SUPPORTED"
+        "https://s3.example.com" | ""                                                                                  | null                | "WHEN_REQUIRED"
+        "https://s3.example.com" | "request_checksum_calculation = when_supported\nresponse_checksum_validation = when_supported\n" | null | "WHEN_SUPPORTED"
+        "https://s3.example.com" | ""                                                                                  | "when_supported"    | "WHEN_SUPPORTED"
     }
 
     def "uses SDK v1's HTTP timeouts"() {
