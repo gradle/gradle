@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cc.impl.serialization.codecs
 
+import com.google.common.collect.ImmutableListMultimap
+import com.google.common.collect.ImmutableSetMultimap
 import com.google.common.reflect.TypeToken
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Project
@@ -289,6 +291,41 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
     }
 
     @Test
+    fun `can handle writeObject combined with readResolve`() {
+        verifyRoundtripOf({ pairOf(SerializableWriteObjectReadResolveBean("42")) }) { (first, second) ->
+            assertThat(
+                "it preserves identity",
+                first,
+                sameInstance(second)
+            )
+            assertThat(
+                "it returns readResolve result",
+                first.value,
+                equalTo("42")
+            )
+        }
+    }
+
+    @Test
+    fun `can handle Guava immutable multimaps`() {
+        verifyRoundtripOf({
+            Pair(
+                ImmutableSetMultimap.of("a", 1, "a", 2, "b", 3),
+                ImmutableListMultimap.of("a", 1, "a", 1, "b", 3)
+            )
+        }) { (setMultimap, listMultimap) ->
+            assertThat(
+                setMultimap,
+                equalTo(ImmutableSetMultimap.of("a", 1, "a", 2, "b", 3))
+            )
+            assertThat(
+                listMultimap,
+                equalTo(ImmutableListMultimap.of("a", 1, "a", 1, "b", 3))
+            )
+        }
+    }
+
+    @Test
     fun `can handle recursive writeReplace`() {
         verifyRoundtripOf({ pairOf(SerializableRecursiveWriteReplaceBean()) }) { (first, second) ->
             assertThat(
@@ -434,6 +471,32 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
             value = "42"
             return this
         }
+    }
+
+    /**
+     * Keeps all its state transient and rebuilds it into a replacement instance, like Guava immutable multimaps do.
+     */
+    class SerializableWriteObjectReadResolveBean(@Transient val value: Any? = null) : Serializable {
+
+        @Transient
+        private
+        var replacement: SerializableWriteObjectReadResolveBean? = null
+
+        private
+        fun writeObject(objectOutputStream: ObjectOutputStream) {
+            objectOutputStream.defaultWriteObject()
+            objectOutputStream.writeObject(value)
+        }
+
+        private
+        fun readObject(objectInputStream: ObjectInputStream) {
+            objectInputStream.defaultReadObject()
+            replacement = SerializableWriteObjectReadResolveBean(objectInputStream.readObject())
+        }
+
+        @Suppress("unused")
+        private
+        fun readResolve(): Any = replacement!!
     }
 
     class SerializableReadResolveBean(val value: Any? = null) : Serializable {

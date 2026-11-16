@@ -83,7 +83,7 @@ class JavaObjectSerializationCodec(
         decodePreservingIdentity { id ->
             when (readEnum<Format>()) {
                 Format.WriteObject -> {
-                    withImmediateMode {
+                    val bean = withImmediateMode {
                         decodingBeanWithId(id) { bean, beanType, beanStateReader ->
                             val objectInputStream = objectInputStreamAdapterFor(bean, beanStateReader)
                             val readObject = readObjectMethodHierarchyForDecoding(beanType)
@@ -93,6 +93,9 @@ class JavaObjectSerializationCodec(
                             }
                         }
                     }
+                    // As in Java serialization, `readResolve` nominates the final object once `readObject` has run
+                    readResolve(bean)
+                        .also { putIdentity(id, it) }
                 }
 
                 Format.ReadObject -> {
