@@ -52,7 +52,8 @@ class PluginBuildsMultiPluginApplicationIntegrationTest extends AbstractPluginBu
         succeeds("help")
 
         then:
-        pluginBuild.assertProjectPluginApplied()
+        pluginBuild.assertProjectPluginApplied(":")
+        pluginBuild.assertProjectPluginApplied(":child")
 
         where:
         requestedVersion | producedVersion
@@ -87,7 +88,44 @@ class PluginBuildsMultiPluginApplicationIntegrationTest extends AbstractPluginBu
         succeeds("help")
 
         then:
-        pluginBuild.assertProjectPluginApplied()
+        pluginBuild.assertProjectPluginApplied(":")
+        pluginBuild.assertProjectPluginApplied(":child")
+    }
+
+    def "plugin from a regular included build can be applied to several projects through a version catalog alias"() {
+        given:
+        def pluginBuild = pluginBuild("build-logic")
+        pluginBuild.buildFile << """
+            version = "1.1"
+        """
+        settingsFile << """
+            includeBuild("${pluginBuild.buildName}")
+            include("child")
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        plugin("buildLogic", "${pluginBuild.projectPluginId}").version("1.0")
+                    }
+                }
+            }
+        """
+        buildFile << """
+            plugins {
+                alias(libs.plugins.buildLogic)
+            }
+        """
+        file("child/build.gradle") << """
+            plugins {
+                alias(libs.plugins.buildLogic)
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        pluginBuild.assertProjectPluginApplied(":")
+        pluginBuild.assertProjectPluginApplied(":child")
     }
 
     def "plugin from included plugin build can be applied at several levels of project nesting"() {
@@ -115,7 +153,9 @@ class PluginBuildsMultiPluginApplicationIntegrationTest extends AbstractPluginBu
         succeeds("help")
 
         then:
-        pluginBuild.assertProjectPluginApplied()
+        pluginBuild.assertProjectPluginApplied(":")
+        pluginBuild.assertProjectPluginApplied(":a")
+        pluginBuild.assertProjectPluginApplied(":a:b")
     }
 
     def "projects can request different versions of the same plugin from an included plugin build"() {
@@ -145,7 +185,8 @@ class PluginBuildsMultiPluginApplicationIntegrationTest extends AbstractPluginBu
         succeeds("help")
 
         then:
-        pluginBuild.assertProjectPluginApplied()
+        pluginBuild.assertProjectPluginApplied(":")
+        pluginBuild.assertProjectPluginApplied(":child")
     }
 
     def "plugin from included plugin build can be requested with a version in one project and without in another"() {
@@ -175,7 +216,8 @@ class PluginBuildsMultiPluginApplicationIntegrationTest extends AbstractPluginBu
         succeeds("help")
 
         then:
-        pluginBuild.assertProjectPluginApplied()
+        pluginBuild.assertProjectPluginApplied(":")
+        pluginBuild.assertProjectPluginApplied(":child")
 
         where:
         rootVersion | childVersion
@@ -244,7 +286,8 @@ class PluginBuildsMultiPluginApplicationIntegrationTest extends AbstractPluginBu
         // Should be:
         //   succeeds("help")
         //   pluginBuild.assertSettingsPluginApplied()
-        //   pluginBuild.assertProjectPluginApplied()
+        //   pluginBuild.assertProjectPluginApplied(":")
+        //   pluginBuild.assertProjectPluginApplied(":child")
         // The settings plugin puts the whole included build on the classpath of the root project's parent scope,
         // but only its own plugin id is recorded in the PluginVersionTracker. The project plugin id is therefore
         // seen as "on the classpath with an unknown version".
