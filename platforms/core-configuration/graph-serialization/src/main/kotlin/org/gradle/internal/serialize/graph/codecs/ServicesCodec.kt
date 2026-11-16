@@ -23,15 +23,16 @@ import org.gradle.internal.service.scopes.ServiceScope
 
 
 object ServicesCodec : EncodingProducer, Decoding {
-    override fun encodingForType(type: Class<*>): Encoding? {
-        // TODO - perhaps query the isolate owner to see whether the value is in fact a service
-        val serviceType = serviceType(GeneratedSubclasses.unpack(type))
-        return if (serviceType != null) {
-            OwnerServiceEncoding(serviceType)
-        } else {
-            null
-        }
+
+    private
+    val serviceTypes = object : ClassValue<Class<*>?>() {
+        override fun computeValue(type: Class<*>): Class<*>? =
+            // TODO - perhaps query the isolate owner to see whether the value is in fact a service
+            serviceType(GeneratedSubclasses.unpack(type))
     }
+
+    override fun encodingForType(type: Class<*>): Encoding? =
+        OwnerServiceEncoding.takeIf { serviceTypes.get(type) != null }
 
     private
     fun serviceType(type: Class<*>): Class<*>? {
@@ -53,12 +54,11 @@ object ServicesCodec : EncodingProducer, Decoding {
     override suspend fun ReadContext.decode(): Any? {
         return isolate.owner.service(readClass())
     }
-}
 
-
-internal
-class OwnerServiceEncoding(val serviceType: Class<*>) : Encoding {
-    override suspend fun WriteContext.encode(value: Any) {
-        writeClass(serviceType)
+    private
+    object OwnerServiceEncoding : Encoding {
+        override suspend fun WriteContext.encode(value: Any) {
+            writeClass(serviceTypes.get(value.javaClass)!!)
+        }
     }
 }
