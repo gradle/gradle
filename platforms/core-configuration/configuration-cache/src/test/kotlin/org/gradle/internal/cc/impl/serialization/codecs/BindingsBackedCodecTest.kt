@@ -76,11 +76,32 @@ class BindingsBackedCodecTest : AbstractUserTypeCodecTest() {
         assertThat(e.message, containsString("bind it with bind(SelectiveCodec) instead"))
     }
 
+    @Test
+    fun `asks each binding about a type only once`() {
+        val rejecting = PrefixingCodec("rejecting", Int::class.javaObjectType)
+        val accepting = PrefixingCodec("accepting", String::class.java)
+        val codec = Bindings.of {
+            bind(rejecting)
+            bind(accepting)
+        }.build()
+
+        repeat(3) {
+            assertThat(configurationCacheRoundtripOf("value", codec), equalTo("accepting:value"))
+        }
+
+        assertThat(rejecting.acceptsCalls, equalTo(1))
+        assertThat(accepting.acceptsCalls, equalTo(1))
+    }
+
     private
     class PrefixingCodec(private val prefix: String, private val acceptedType: Class<*>) : SelectiveCodec {
 
-        override fun accepts(type: Class<*>): Boolean =
-            acceptedType.isAssignableFrom(type)
+        var acceptsCalls = 0
+
+        override fun accepts(type: Class<*>): Boolean {
+            acceptsCalls++
+            return acceptedType.isAssignableFrom(type)
+        }
 
         override suspend fun WriteContext.encode(value: Any) {
             writeString(value.toString())

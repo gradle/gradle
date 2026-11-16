@@ -20,8 +20,6 @@ import com.google.common.collect.ImmutableList
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.graph.Codec
-import org.gradle.internal.serialize.graph.DecodingProvider
-import org.gradle.internal.serialize.graph.EncodingProvider
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.SerializerCodec
 import org.gradle.internal.serialize.graph.WriteContext
@@ -38,9 +36,10 @@ const val CORRUPTED_CACHE_ENTRY = "Corrupted cache entry"
  * An implementation of the Codec protocol that (based on a [Binding.tag]) chooses and delegates
  * to the proper binding (if one is found).
  *
- * The binding (a tagged codec) is chosen based on the availability of a [Binding.encoding] for the value being encoded.
- * This is basically implemented as a predicate dispatching on the value type, first available Binding.encoding wins
- * and its [Binding.tag] is recorded in the output stream so decoding can be implemented via a fast array lookup.
+ * The binding (a tagged codec) is chosen by the type of the value being encoded.
+ * This is basically implemented as a predicate dispatching on the value type, the first binding that [accepts][Binding.accepts]
+ * the type wins and its [Binding.tag] is recorded in the output stream so decoding can be implemented via a fast array lookup.
+ * The chosen binding is cached per type.
  *
  * @see Binding.tag
  */
@@ -56,18 +55,18 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
     }
 
     private
-    val encodings = ConcurrentHashMap<Class<*>, TaggedEncoding>()
+    val bindingsByType = ConcurrentHashMap<Class<*>, Binding>()
 
     override suspend fun WriteContext.encode(value: Any?) = when (value) {
         null -> writeSmallInt(NULL_VALUE)
-        else -> taggedEncodingFor(value.javaClass).run {
+        else -> bindingFor(value.javaClass).run {
             writeSmallInt(tag)
             withDebugFrame({
                 // TODO:configuration-cache evaluate whether we need to unpack the type here
                 // GeneratedSubclasses.unpackType(value).typeName
                 value.javaClass.typeName
             }, value) {
-                encoding.run { encode(value) }
+                codec.run { encode(value) }
             }
             if (isIntegrityCheckEnabled) {
                 writeSmallInt(tag)
@@ -92,8 +91,8 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
                     return null
                 }
 
-                val decoding = binding.decoding
-                val result = decoding.run { decode() }
+                val codec = binding.codec
+                val result = codec.run { decode() }
                 if (isIntegrityCheckEnabled) {
                     val tagGuard = readSmallInt()
                     val sentinel = readByte()
@@ -102,11 +101,11 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
                         onError(
                             CORRUPTED_CACHE_ENTRY,
                             IllegalArgumentException(
-                                "Tag guard mismatch for ${decoding.displayName}: expected <$tag><$SENTINEL_VALUE>, found <$tagGuard><$sentinel>"
+                                "Tag guard mismatch for ${codec.displayName}: expected <$tag><$SENTINEL_VALUE>, found <$tagGuard><$sentinel>"
                             )
                         ) {
                             text("The value cannot be decoded properly with ")
-                            reference(decoding.displayName)
+                            reference(codec.displayName)
                             text(". It may have been written incorrectly or its data is corrupted.")
                         }
                     }
@@ -117,47 +116,21 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
     }
 
     private
-    fun taggedEncodingFor(type: Class<*>): TaggedEncoding =
-        encodings.computeIfAbsent(type, ::computeEncoding)
+    fun bindingFor(type: Class<*>): Binding =
+        bindingsByType.computeIfAbsent(type, ::findBinding)
 
     private
-    fun computeEncoding(type: Class<*>): TaggedEncoding {
-        for (binding in bindings) {
-            val encoding = binding.encodingForType(type)
-            if (encoding != null) {
-                return TaggedEncoding(binding.tag, encoding)
-            }
-        }
-        throw IllegalArgumentException("Don't know how to serialize an object of type ${type.name}.")
-    }
-
-    private
-    data class TaggedEncoding(
-        val tag: Int,
-        val encoding: Encoding
-    )
+    fun findBinding(type: Class<*>): Binding =
+        bindings.firstOrNull { it.accepts(type) }
+            ?: throw IllegalArgumentException("Don't know how to serialize an object of type ${type.name}.")
 }
 
 
 data class Binding(
     val tag: Int,
-    val encoding: EncodingProducer,
-    val decoding: Decoding
-) {
-    fun encodingForType(type: Class<*>) = encoding.encodingForType(type)
-}
-
-
-/**
- * An object that can determine, for a given type, whether it can encode instances of that type, and which specific encoding to use.
- */
-interface EncodingProducer {
-
-    /**
-     * Returns the encoding to use for that type, or null, if not supported.
-     */
-    fun encodingForType(type: Class<*>): Encoding?
-}
+    val accepts: (Class<*>) -> Boolean,
+    val codec: Codec<Any>
+)
 
 
 /**
@@ -173,12 +146,6 @@ interface SelectiveCodec : Codec<Any> {
      */
     fun accepts(type: Class<*>): Boolean
 }
-
-
-typealias Encoding = EncodingProvider<Any>
-
-
-typealias Decoding = DecodingProvider<Any>
 
 
 /**
@@ -226,42 +193,23 @@ class BindingsBuilder(initialBindings: List<Binding>) {
         require(codec !is SelectiveCodec) {
             "Codec '$codec' for type '$type' is a SelectiveCodec, bind it with bind(SelectiveCodec) instead"
         }
-        require(bindings.all { it.encodingForType(type) == null }) {
+        require(bindings.none { it.accepts(type) }) {
             "There's already an encoding for type '$type'"
         }
-        val codecForAny = codec.uncheckedCast<Codec<Any>>()
-        val encodingProducer = producerForSubtypesOf(type, codecForAny)
-        bind(encodingProducer, codecForAny)
+        bind(type::isAssignableFrom, codec.uncheckedCast())
     }
 
     fun bind(codec: SelectiveCodec) =
-        bind(producerForAcceptedBy(codec), codec)
+        bind(codec::accepts, codec)
 
     private
-    fun bind(encodingProducer: EncodingProducer, decoding: Decoding) {
+    fun bind(accepts: (Class<*>) -> Boolean, codec: Codec<Any>) {
         bindings.add(
             Binding(
                 tag = bindings.size,
-                encoding = encodingProducer,
-                decoding = decoding
+                accepts = accepts,
+                codec = codec
             )
         )
-    }
-
-    private
-    fun producerForAcceptedBy(codec: SelectiveCodec): EncodingProducer = object : EncodingProducer {
-
-        override fun encodingForType(type: Class<*>) =
-            codec.takeIf { codec.accepts(type) }
-    }
-
-    private
-    fun producerForSubtypesOf(
-        superType: Class<*>,
-        codec: Codec<Any>
-    ): EncodingProducer = object : EncodingProducer {
-
-        override fun encodingForType(type: Class<*>) =
-            codec.takeIf { superType.isAssignableFrom(type) }
     }
 }
