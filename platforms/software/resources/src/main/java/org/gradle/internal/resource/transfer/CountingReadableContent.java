@@ -116,5 +116,14 @@ public final class CountingReadableContent implements ReadableContent {
         public boolean markSupported() {
             return false;
         }
+
+        @Override
+        public synchronized void mark(int readlimit) {
+        }
+
+        @Override
+        public synchronized void reset() throws IOException {
+            throw new IOException("mark/reset not supported");
+        }
     }
 }

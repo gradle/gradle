@@ -92,9 +92,26 @@ class CountingReadableContentTest extends Specification {
         reported == [1L, 1L, 1L, 1L]
     }
 
-    def "does not support mark and reset"() {
-        expect:
-        !content.open().markSupported()
+    def "does not support mark and reset, even when the source does"() {
+        given:
+        def stream = content.open()
+
+        when:
+        stream.mark(LENGTH)
+        stream.readNBytes(5)
+        stream.reset()
+
+        then:
+        !stream.markSupported()
+        thrown(IOException)
+
+        when:
+        def remaining = stream.read(new byte[LENGTH])
+
+        then:
+        // The stream stays where it was
+        remaining == LENGTH - 5
+        content.count == LENGTH
     }
 
     def "uses the length of the content"() {

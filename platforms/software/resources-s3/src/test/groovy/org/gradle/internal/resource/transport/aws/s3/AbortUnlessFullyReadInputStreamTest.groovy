@@ -66,8 +66,26 @@ class AbortUnlessFullyReadInputStreamTest extends Specification {
     }
 
     def "does not support mark and reset"() {
-        expect:
-        !stream(LENGTH).markSupported()
+        given:
+        def stream = stream(LENGTH)
+
+        when:
+        stream.mark(LENGTH)
+        stream.readNBytes(8)
+        stream.reset()
+
+        then:
+        !stream.markSupported()
+        thrown(IOException)
+
+        when:
+        def remaining = stream.read(new byte[LENGTH])
+        stream.close()
+
+        then:
+        // The stream stays where it was
+        remaining == LENGTH - 8
+        0 * abortable.abort()
     }
 
     private AbortUnlessFullyReadInputStream stream(long contentLength) {
