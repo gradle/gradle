@@ -247,9 +247,9 @@ class S3ClientTest extends Specification {
         clientConfiguration.requestConfig.proxyConfiguration.username == null
 
         where:
-        nonProxied                                               | endpointOverride
-        org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties.S3_HOSTNAME | Optional.empty()
-        "mydomain.com"                                           | Optional.empty()
+        nonProxied         | endpointOverride
+        "s3.amazonaws.com" | Optional.empty()
+        "mydomain.com"     | Optional.empty()
     }
 
     def "getMetaData wraps generic S3Exception with the resource uri"() {
