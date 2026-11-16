@@ -68,7 +68,7 @@ public abstract class JacocoPlugin implements Plugin<Project> {
      *
      * @since 3.4
      */
-    public static final String DEFAULT_JACOCO_VERSION = "0.8.15";
+    public static final String DEFAULT_JACOCO_VERSION = "0.8.16";
     /**
      * The agent configuration name.
      *

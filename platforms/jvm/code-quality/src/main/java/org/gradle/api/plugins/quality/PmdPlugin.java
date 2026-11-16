@@ -68,7 +68,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
      *
      * @since 2.4
      */
-    public static final String DEFAULT_PMD_VERSION = "7.24.0";
+    public static final String DEFAULT_PMD_VERSION = "7.29.0";
     private static final String PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION = "pmdAux";
 
     private PmdExtension extension;

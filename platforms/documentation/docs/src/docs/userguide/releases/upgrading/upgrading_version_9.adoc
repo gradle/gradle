@@ -121,6 +121,40 @@ If your build asserts on an attribute value read from a `ResolutionResult` or fr
 Build operations and published Gradle Module Metadata already reported the name, so assertions against those are unaffected.
 Do not reintroduce the old string by overriding `getName()` to return `toString()`; see <<variant_attributes.adoc#sec:creating-attributes, Creating attributes>> for why the two must agree.
 
+[[v9_upgrade_to_asm_9_11_1]]
+==== Upgrade to ASM 9.11.1
+
+ASM was upgraded from 9.10.1 to https://asm.ow2.io/versions.html[9.11.1], which is not affected by CVE-2026-110260.
+
+[[v9_upgrade_to_jacoco_0_8_16]]
+==== Upgrade to JaCoCo 0.8.16
+
+The default version of JaCoCo has been updated from 0.8.15 to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.16].
+
+[[v9_upgrade_to_pmd_7_29_0]]
+==== Upgrade to PMD 7.29.0
+
+The default version of PMD has been updated from 7.24.0 to link:https://github.com/pmd/pmd/releases/tag/pmd_releases%2F7.29.0[7.29.0].
+
+[[v9_upgrade_to_checkstyle_10_26_1]]
+==== Upgrade to Checkstyle 10.26.1
+
+The default version of Checkstyle has been updated from 10.24.0 to link:https://checkstyle.org/releasenotes.html[10.26.1].
+
+[[v9_upgrade_to_zinc_1_13_0]]
+==== Upgrade to Zinc 1.13.0
+
+The default version of Zinc used by the <<scala_plugin.adoc#scala_plugin,Scala plugin>> has been updated from 1.12.0 to https://github.com/sbt/zinc/releases/tag/v1.13.0[1.13.0].
+
+[[v9_upgraded_default_versions_of_testing_frameworks]]
+==== Upgraded default versions of testing frameworks
+
+When a <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,test suite>> uses a testing framework without specifying its version, Gradle provides a default version.
+The following default versions have changed:
+
+* JUnit Jupiter has been updated from 5.12.2 to link:https://docs.junit.org/5.14.4/release-notes/[5.14.4].
+* TestNG has been updated from 7.11.0 to link:https://github.com/testng-team/testng/releases/tag/7.12.0[7.12.0].
+
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier
 
