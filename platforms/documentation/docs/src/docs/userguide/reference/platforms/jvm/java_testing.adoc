@@ -303,7 +303,7 @@ When a test execution fails, Gradle prints a link to the page at the end of the 
 Aggregate test results: file:///path/to/project/build/reports/aggregate-test-results/index.html
 ----
 
-The summary page doesn't merge test results.
+This report doesn't merge test results.
 To combine the results of several `Test` tasks into a single HTML test report, use the <<test_report_aggregation_plugin.adoc#test_report_aggregation_plugin,Test Report Aggregation Plugin>> or a `TestReport` task.
 
 [[communicating_test_results_to_CI_servers_and_other_tools_via_xml_files]]
