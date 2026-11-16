@@ -78,8 +78,7 @@ public class AggregateTestEventReporter implements ProblemReporter, TestExecutio
             List<Execution> executionList = new ArrayList<>(executions);
             Path reportIndexFile = generateTestReport(reportLocation, executionList);
 
-            // Print report to console only if there are failures and if we have multiple results to aggregate.
-            if (executionList.stream().filter(Execution::failed).count() > 1) {
+            if (executionList.stream().anyMatch(Execution::failed)) {
                 emitReport(reportIndexFile);
             }
         }

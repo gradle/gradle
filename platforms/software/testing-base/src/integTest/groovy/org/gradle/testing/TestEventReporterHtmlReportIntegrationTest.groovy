@@ -306,12 +306,12 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
             .onlyRoot()
             .assertChildCount(1, 1)
 
-        // Aggregate results are still emitted even if we don't print the URL to console
-        outputDoesNotContain("Aggregate test results")
-        AggregateTestReportFixture.of(testDirectory).rows == [new AggregateTestReportFixture.Row("failing", "../tests/failing/index.html", "failed", 1, 0, 1, 0)]
+        def aggregateReport = AggregateTestReportFixture.of(testDirectory)
+        outputContains("Aggregate test results: " + new ConsoleRenderer().asClickableFileUrl(aggregateReport.indexFile))
+        aggregateReport.rows == [new AggregateTestReportFixture.Row("failing", "../tests/failing/index.html", "failed", 1, 0, 1, 0)]
     }
 
-    def "does not print aggregate test results URL if only one test task fails"() {
+    def "prints aggregate test results URL if one of several test tasks fails"() {
         given:
         buildFile << passingTask("passing")
         buildFile << failingTask("failing")
@@ -322,9 +322,8 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         then:
         failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing"))
 
-        // Aggregate results are still emitted even if we don't print the URL to console
-        outputDoesNotContain("Aggregate test results")
         def aggregateReport = AggregateTestReportFixture.of(testDirectory)
+        outputContains("Aggregate test results: " + new ConsoleRenderer().asClickableFileUrl(aggregateReport.indexFile))
         aggregateReport.totals == [tests: "2", failures: "1", skipped: "0", successful: "50%"]
         aggregateReport.rows*.name() == ["failing", "passing"]
         aggregateReport.failedRows*.name() == ["failing"]
@@ -378,6 +377,67 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
             new AggregateTestReportFixture.Row("broken2", "../tests/broken2/index.html", "failed", 1, 1, 0, 0)
         ]
         aggregateReport.failedRows*.name() == ["broken1", "broken2"]
+    }
+
+    def "aggregate report shows test executions with a failed test group as failed"() {
+        given:
+        buildFile("""
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @Inject
+                abstract ProjectLayout getLayout()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        name,
+                        getLayout().getBuildDirectory().dir("test-results/" + name).get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/" + name).get()
+                    )) {
+                       reporter.started(Instant.now())
+                       try (def mySuite = reporter.reportTestGroup(name + " suite")) {
+                            mySuite.started(Instant.now())
+                            if (${hasChildren}) {
+                                try (def myTest = mySuite.reportTest(name + " test", name + " test")) {
+                                     myTest.started(Instant.now())
+                                     myTest.succeeded(Instant.now())
+                                }
+                            }
+                            mySuite.failed(Instant.now(), "suite failed")
+                       }
+                       reporter.succeeded(Instant.now())
+                   }
+                }
+            }
+            tasks.register("groupFailed", CustomTestTask)
+        """)
+
+        when:
+        succeeds("groupFailed")
+
+        then:
+        def aggregateReport = AggregateTestReportFixture.of(testDirectory)
+        outputContains("Aggregate test results: " + new ConsoleRenderer().asClickableFileUrl(aggregateReport.indexFile))
+        def tests = hasChildren ? 1 : 0
+        aggregateReport.rows == [new AggregateTestReportFixture.Row("groupFailed", "../tests/groupFailed/index.html", "failed", tests, tests, 0, 0)]
+        aggregateReport.failedRows*.name() == ["groupFailed"]
+
+        where:
+        hasChildren << [false, true]
+    }
+
+    def "aggregate report shows test executions with a failed test group re-emitted without children as failed"() {
+        given:
+        buildFile << reemitsGroupWithoutChildren("failed(Instant.now(), \"lost worker\")")
+
+        when:
+        succeeds("reemitted")
+
+        then:
+        def aggregateReport = AggregateTestReportFixture.of(testDirectory)
+        aggregateReport.rows == [new AggregateTestReportFixture.Row("reemitted", "../tests/reemitted/index.html", "failed", 1, 1, 0, 0)]
     }
 
     def "stale aggregate reports are deleted if no tests were executed"() {

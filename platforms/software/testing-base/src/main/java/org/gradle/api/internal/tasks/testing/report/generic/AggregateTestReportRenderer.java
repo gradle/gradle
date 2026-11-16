@@ -132,7 +132,7 @@ public final class AggregateTestReportRenderer extends TabbedPageRenderer<List<E
         htmlWriter.endElement();
 
         htmlWriter.startElement("td");
-        htmlWriter.startElement("div").attribute("class", "infoBox " + statusClass(failed, failures, skipped) + " successRate");
+        htmlWriter.startElement("div").attribute("class", "infoBox " + statusClass(failed, skipped) + " successRate");
         htmlWriter.startElement("div").attribute("class", "percent").characters(formatSuccessRate(successRatePercent(tests, failures))).endElement();
         htmlWriter.startElement("p").characters("successful").endElement();
         htmlWriter.endElement();
@@ -219,7 +219,7 @@ public final class AggregateTestReportRenderer extends TabbedPageRenderer<List<E
 
         htmlWriter.startElement("tbody");
         for (Execution execution : executions) {
-            String statusClass = statusClass(execution.failed(), execution.failedCount(), execution.skippedCount());
+            String statusClass = statusClass(execution.failed(), execution.skippedCount());
             int successRatePercent = successRatePercent(execution.testCount(), execution.failedCount());
             long duration = execution.endTime() - execution.startTime();
             htmlWriter.startElement("tr");
@@ -255,16 +255,16 @@ public final class AggregateTestReportRenderer extends TabbedPageRenderer<List<E
      * The HTML report of the given execution, which is linked from the summary table.
      */
     private static @Nullable Path indexFile(Execution execution) {
-        return execution.report() instanceof GeneratedTestReport.Html html ? html.indexFile() : null;
+        GeneratedTestReport report = execution.report();
+        return report != null && report.kind() == GeneratedTestReport.Kind.HTML ? report.location() : null;
     }
 
     /**
      * The CSS class for the status of an execution or of the whole report.
      * Like in {@link PerRootTabRenderer}, failures win over skipped tests, which win over success.
-     * Unlike there, an execution can fail without failed tests, so its own result counts too.
      */
-    private static String statusClass(boolean failed, long failures, long skipped) {
-        if (failed || failures > 0) {
+    private static String statusClass(boolean failed, long skipped) {
+        if (failed) {
             return "failures";
         }
         if (skipped > 0) {

@@ -297,7 +297,7 @@ If any test execution failed, a *Failed* tab lists only the failed executions, a
 Each row links to the HTML test report of that execution.
 An execution that generates no HTML report, for example because its HTML report is disabled, appears without a link.
 
-When more than one test execution fails, Gradle prints a link to the page at the end of the build:
+When a test execution fails, Gradle prints a link to the page at the end of the build:
 
 ----
 Aggregate test results: file:///path/to/project/build/reports/aggregate-test-results/index.html

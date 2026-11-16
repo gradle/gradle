@@ -92,7 +92,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
     }
 
     @Override
-    public GeneratedTestReport.Html generate(List<Path> resultsDirectories) {
+    public GeneratedTestReport generate(List<Path> resultsDirectories) {
         List<SerializableTestResultStore> stores = resultsDirectories.stream()
             .distinct()
             .map(SerializableTestResultStore::new)
@@ -118,7 +118,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         } finally {
             CompositeStoppable.stoppable(outputReaders).stop();
         }
-        return new GeneratedTestReport.Html(reportsDirectory.resolve("index.html"));
+        return new GeneratedTestReport(GeneratedTestReport.Kind.HTML, reportsDirectory.resolve("index.html"));
     }
 
     private void generateReport(TestTreeModel root, List<TestOutputReader> outputReaders) {

@@ -54,7 +54,7 @@ public abstract class JunitXmlTestReportGenerator implements TestReportGenerator
     }
 
     @Override
-    public GeneratedTestReport.JUnitXml generate(List<Path> resultsDirectories) {
+    public GeneratedTestReport generate(List<Path> resultsDirectories) {
         try {
             Files.createDirectories(reportsDirectory);
         } catch (IOException e) {
@@ -62,7 +62,7 @@ public abstract class JunitXmlTestReportGenerator implements TestReportGenerator
         }
 
         if (resultsDirectories.isEmpty()) {
-            return new GeneratedTestReport.JUnitXml(reportsDirectory);
+            return new GeneratedTestReport(GeneratedTestReport.Kind.JUNIT_XML, reportsDirectory);
         }
         if (resultsDirectories.size() > 1) {
             throw new IllegalArgumentException("JunitXmlTestReportGenerator can only generate a report from a single results directory. Found: " + resultsDirectories);
@@ -76,6 +76,6 @@ public abstract class JunitXmlTestReportGenerator implements TestReportGenerator
                     reportsDirectory.toFile(), resultsProvider, xmlResultOptions
                 ).generate()
         );
-        return new GeneratedTestReport.JUnitXml(reportsDirectory);
+        return new GeneratedTestReport(GeneratedTestReport.Kind.JUNIT_XML, reportsDirectory);
     }
 }

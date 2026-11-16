@@ -82,7 +82,7 @@ Gradle now writes a [summary page for all test executions](userguide/java_testin
 When a build runs several test tasks, each writes its own test report, and you no longer have to open them one by one to find failures.
 
 The page lists every test execution, including custom test tasks that use the [Test Event Reporting API](userguide/test_reporting_api.html), with its counts and a link to its HTML test report.
-When more than one test execution fails, Gradle prints the link to this page at the end of the build:
+When a test execution fails, Gradle prints the link to this page at the end of the build:
 
 ```text
 Aggregate test results: file:///path/to/project/build/reports/aggregate-test-results/index.html

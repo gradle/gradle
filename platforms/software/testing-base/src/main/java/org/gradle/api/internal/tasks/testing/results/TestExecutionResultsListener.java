@@ -35,7 +35,7 @@ public interface TestExecutionResultsListener {
      * The results of a single test execution.
      *
      * @param displayName the display name of the root of the test execution
-     * @param failed whether the test execution as a whole failed, which can be true even if no individual test failed
+     * @param failed whether a test, a group, or the root of the test execution failed. May be true even if no individual test failed
      * @param report the report generated for the test execution, if any
      */
     record Execution(

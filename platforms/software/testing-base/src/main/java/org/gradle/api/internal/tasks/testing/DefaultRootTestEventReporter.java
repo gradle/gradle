@@ -151,7 +151,6 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         long testCount = testResultState.getTotalCount();
         long failedCount = testResultState.getFailureCount();
         long skippedCount = testCount - testResultState.getSuccessfulCount() - failedCount;
-        boolean failed = failureMessage != null || failedCount > 0;
         return new TestExecutionResultsListener.Execution(
             testDescriptor.getDisplayName(),
             getStartTime(),
@@ -159,7 +158,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
             testCount,
             failedCount,
             skippedCount,
-            failed,
+            testResultState.isFailed(),
             report
         );
     }

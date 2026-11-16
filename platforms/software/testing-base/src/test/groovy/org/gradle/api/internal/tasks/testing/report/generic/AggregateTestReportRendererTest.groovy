@@ -36,7 +36,7 @@ class AggregateTestReportRendererTest extends Specification {
         "build/reports/tests/test/index.html"       | "../tests/test/index.html"
         "sub/build/reports/tests/test/index.html"   | "../../../sub/build/reports/tests/test/index.html"
         "build/reports/tests/with space/index.html" | "../tests/with%20space/index.html"
-        "build/reports/tests/a#b?c/index.html"      | "../tests/a%23b%3Fc/index.html"
+        "build/reports/tests/a#b%c/index.html"      | "../tests/a%23b%25c/index.html"
     }
 
 }

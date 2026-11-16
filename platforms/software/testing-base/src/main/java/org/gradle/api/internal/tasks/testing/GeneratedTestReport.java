@@ -22,41 +22,17 @@ import java.nio.file.Path;
 
 /**
  * A test report written by a {@link TestReportGenerator}.
+ *
+ * @param kind the kind of the report
+ * @param location the entry point of the report. The index file of an HTML report,
+ * or the directory that contains the files of a JUnit XML report.
  */
 @NullMarked
-public sealed interface GeneratedTestReport {
+public record GeneratedTestReport(Kind kind, Path location) {
 
-    /**
-     * Where the report has been generated. May be a file or a directory.
-     */
-    Path location();
-
-    /**
-     * An HTML test report.
-     *
-     * @param indexFile The index.html entrypoint of the HTML report
-     */
-    record Html(Path indexFile) implements GeneratedTestReport {
-
-        @Override
-        public Path location() {
-            return indexFile;
-        }
-
-    }
-
-    /**
-     * A JUnit XML test report.
-     *
-     * @param directory the directory that contains the XML files
-     */
-    record JUnitXml(Path directory) implements GeneratedTestReport {
-
-        @Override
-        public Path location() {
-            return directory;
-        }
-
+    public enum Kind {
+        HTML,
+        JUNIT_XML
     }
 
 }

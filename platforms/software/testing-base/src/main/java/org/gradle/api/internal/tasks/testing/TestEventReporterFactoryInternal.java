@@ -53,7 +53,6 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
      * @return the test event reporter
      * @apiNote This API is used by {@link org.gradle.api.tasks.testing.AbstractTestTask} to support various extra features.
      * It may be worth considering these for public API in the future.
-     * @since 9.10.0
      */
     GroupTestEventReporterInternal createInternalTestEventReporter(
         LongFunction<TestDescriptorInternal> rootDescriptor,

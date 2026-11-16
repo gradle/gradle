@@ -18,6 +18,7 @@ package org.gradle.testing
 
 import org.gradle.api.internal.tasks.testing.report.AggregateTestReportFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 
@@ -62,9 +63,8 @@ class AggregateTestReportIntegrationTest extends AbstractIntegrationSpec {
         fails("test", "--continue")
 
         then:
-        // Only one test task failed, so its own report is the one to look at
-        outputDoesNotContain("Aggregate test results")
         def report = AggregateTestReportFixture.of(testDirectory)
+        outputContains("Aggregate test results: " + new ConsoleRenderer().asClickableFileUrl(report.indexFile))
         report.totals == [tests: "4", failures: "1", skipped: "1", successful: "75%"]
         report.rows*.name() == ["Gradle Test Run :app:test", "Gradle Test Run :lib:test"]
 

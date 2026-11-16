@@ -126,6 +126,7 @@ class DefaultTestEventReporter implements TestEventReporterInternal {
         if (!isComposite()) {
             testResultState.incrementFailureCount();
         }
+        testResultState.markFailed();
         listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), failures, null), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
     }
 

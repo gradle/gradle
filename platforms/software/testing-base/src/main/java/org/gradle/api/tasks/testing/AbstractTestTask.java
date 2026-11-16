@@ -871,7 +871,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         }
 
         @Override
-        public GeneratedTestReport.Html generate(List<Path> resultsDirectories) {
+        public GeneratedTestReport generate(List<Path> resultsDirectories) {
             if (resultsDirectories.size() > 1) {
                 throw new IllegalArgumentException("CustomTestReportingGenerator can only generate a report from a single results directory. Found: " + resultsDirectories);
             }
@@ -879,7 +879,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
                 resultsDirectories.get(0),
                 resultsProvider -> testReporter.generateReport(resultsProvider, outputDir)
             );
-            return new GeneratedTestReport.Html(outputDir.toPath().resolve("index.html"));
+            return new GeneratedTestReport(GeneratedTestReport.Kind.HTML, outputDir.toPath().resolve("index.html"));
         }
     }
 }
