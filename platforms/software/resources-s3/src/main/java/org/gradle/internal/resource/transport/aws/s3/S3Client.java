@@ -353,7 +353,12 @@ public class S3Client {
                     .key(s3BucketKey)
                     .uploadId(initResponse.uploadId())
                     .build();
-                amazonS3Client.abortMultipartUpload(abortRequest);
+                try {
+                    amazonS3Client.abortMultipartUpload(abortRequest);
+                } catch (RuntimeException abortFailure) {
+                    // Report the failure that stopped the upload, not the failed cleanup
+                    e.addSuppressed(abortFailure);
+                }
                 throw e;
             }
         } catch (SdkException | IOException e) {

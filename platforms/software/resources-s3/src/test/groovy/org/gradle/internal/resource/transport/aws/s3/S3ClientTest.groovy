@@ -636,6 +636,31 @@ class S3ClientTest extends Specification {
         ex.is(failure)
     }
 
+    def "keeps the original failure when aborting a multipart upload fails"() {
+        given:
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getPartSize() >> 7
+        s3Properties.getMultipartThreshold() >> 10
+        S3Client s3Client = new S3Client(amazonS3Client, s3Properties)
+        amazonS3Client.createMultipartUpload(_) >> CreateMultipartUploadResponse.builder().uploadId('1').build()
+        def failure = new ResourceException("the content went away")
+        def abortFailure = S3Exception.builder().message("could not abort").build()
+
+        when:
+        s3Client.put(new ByteArrayReadableContent(new byte[12]), new URI("s3://localhost/foo.txt"))
+
+        then:
+        1 * amazonS3Client.uploadPart(*_) >> { throw failure }
+        1 * amazonS3Client.abortMultipartUpload(_) >> { throw abortFailure }
+
+        and:
+        def ex = thrown(ResourceException)
+        ex.is(failure)
+        ex.suppressed as List == [abortFailure]
+    }
+
     def "multi-part upload reads each part once through progress logging"() {
         given:
         software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
