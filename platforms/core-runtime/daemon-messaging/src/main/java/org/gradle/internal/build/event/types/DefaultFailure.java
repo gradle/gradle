@@ -51,7 +51,7 @@ public class DefaultFailure implements Serializable, InternalFailure {
         this(message, description, description, causes, problems);
     }
 
-    private DefaultFailure(String message, @Nullable String fullDescription, String ownDescription, List<? extends InternalFailure> causes, List<InternalBasicProblemDetailsVersion3> problems) {
+    DefaultFailure(String message, @Nullable String fullDescription, String ownDescription, List<? extends InternalFailure> causes, List<InternalBasicProblemDetailsVersion3> problems) {
         this.message = message;
         this.fullDescription = fullDescription;
         this.ownDescription = ownDescription;
@@ -100,6 +100,11 @@ public class DefaultFailure implements Serializable, InternalFailure {
     @Override
     public String getOwnDescription() {
         return ownDescription;
+    }
+
+    @Nullable
+    String getFullDescription() {
+        return fullDescription;
     }
 
     public static InternalFailure fromThrowable(Throwable throwable) {
