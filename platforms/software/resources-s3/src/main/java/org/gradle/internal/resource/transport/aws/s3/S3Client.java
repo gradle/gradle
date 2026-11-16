@@ -79,8 +79,7 @@ import java.util.regex.Pattern;
 
 public class S3Client {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Client.class);
-    // AWS SDK v2 requires a region at builder time; v1 silently defaulted to us-east-1.
-    // Preserve that behavior when no region has been derived from a bucket URL.
+    // SDK v1 defaulted to us-east-1, while SDK v2 requires a region when the client is built
     private static final Region DEFAULT_REGION = Region.US_EAST_1;
     private static final String OCTET_STREAM = "application/octet-stream";
     // SDK v1's defaults; SDK v2 defaults to 2 seconds and 30 seconds.
@@ -108,8 +107,10 @@ public class S3Client {
      */
     public S3Client(S3ConnectionProperties s3ConnectionProperties) {
         this((software.amazon.awssdk.services.s3.S3Client) null, s3ConnectionProperties);
-        // SDK v1's S3 chain fell back to anonymous access when no credentials were found; the v2 chain throws.
-        // Each request walks the chain, so that a transient lookup failure doesn't stick to the anonymous provider.
+        // SDK v1's S3 chain fell back to anonymous access when it found no credentials, but SDK v2's chain throws.
+        // So the anonymous provider goes last in the chain.
+        // The chain doesn't reuse the provider that last succeeded, so a request after a transient lookup failure
+        // tries the default provider again instead of staying anonymous.
         this.credentialsProvider = AwsCredentialsProviderChain.builder()
             .reuseLastProviderEnabled(false)
             .credentialsProviders(DefaultCredentialsProvider.builder().build(), AnonymousCredentialsProvider.create())
@@ -139,6 +140,7 @@ public class S3Client {
             return amazonS3ClientMock;
         }
         Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
+        // Like SDK v1, fall back to us-east-1 when neither the endpoint nor the bucket URL names a region
         Region region = endpoint.isPresent()
             ? signingRegion(endpoint.get())
             : s3RegionalResource.getRegion().orElse(DEFAULT_REGION);
@@ -235,8 +237,16 @@ public class S3Client {
             .build());
     }
 
-    // The SDK deprecates its Apache 4 client in favor of an Apache 5 one, which would add a second HTTP stack to the distribution.
-    // The Apache 4 client reuses the httpclient that Gradle already ships.
+    /**
+     * Creates the builder for the SDK's Apache 4 HTTP client, with SDK v1's timeouts and the configured proxy.
+     * <p>
+     * The SDK deprecates its Apache 4 client in favor of an Apache 5 one, which would add a second HTTP stack to the distribution.
+     * The Apache 4 client reuses the httpclient that Gradle already ships.
+     * <p>
+     * TODO: Use the SDK's Apache 5 client once Gradle's HTTP transports move to HttpClient 5
+     *
+     * @see <a href="https://github.com/gradle/gradle/issues/39854">gradle/gradle#39854</a>
+     */
     @SuppressWarnings("deprecation")
     private SdkHttpClient.Builder<ApacheHttpClient.Builder> createProxyConfiguration() {
         ProxyConfiguration.Builder proxyConfigurationBuilder = ProxyConfiguration.builder();
@@ -368,8 +378,12 @@ public class S3Client {
     }
 
     /**
-     * A HEAD 404 has no body, and the SDK reports every one as NoSuchKey, so a missing bucket looks like a missing key.
-     * A GET for the same key gets S3's real error code.
+     * Confirms with a GET that a key a HEAD reported as missing is missing, and not its bucket.
+     * <p>
+     * S3 answers a HEAD for a missing key or a missing bucket with a 404 without a body, and the SDK reports both as NoSuchKey.
+     * The GET response carries the error code that tells them apart.
+     *
+     * @throws org.gradle.api.resources.ResourceException if the GET fails with any error other than NoSuchKey, such as NoSuchBucket
      */
     private static void confirmMissingKey(software.amazon.awssdk.services.s3.S3Client amazonS3Client, String bucketName, String s3BucketKey, URI uri) {
         try {
