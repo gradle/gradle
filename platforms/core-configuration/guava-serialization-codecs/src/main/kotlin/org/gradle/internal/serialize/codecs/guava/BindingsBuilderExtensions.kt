@@ -23,4 +23,8 @@ fun BindingsBuilder.guavaTypes() {
     bind(ImmutableListCodec)
     bind(ImmutableSetCodec)
     bind(ImmutableMapCodec)
+    bind(ImmutableListMultimapCodec)
+    bind(ImmutableSetMultimapCodec)
+    bind(TreeMultisetCodec)
+    bind(ConcurrentHashMultisetCodec)
 }
