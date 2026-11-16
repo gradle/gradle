@@ -216,39 +216,37 @@ Any log messages your build classes write using these logging toolkits will be r
 
 A library that logs with the SLF4J API writes its messages at SLF4J levels such as `INFO`.
 Gradle does not show `INFO` messages by default, so the progress messages of such a library do not appear in the build output.
-In order to get its messages logged properly in Gradle, such a library would need to do its logging using optional tags, called markers.
-These markers, like link:{javadocPath}/org/gradle/api/logging/Logging.html#LIFECYCLE[`LIFECYCLE`] and link:{javadocPath}/org/gradle/api/logging/Logging.html#QUIET[`QUIET`], are defined as part of the Gradle API and having a dependency on that, just for logging, is not ideal.
-This becomes a real issue for tools that run both on their own and inside Gradle plugins, such as a code generator with a command-line interface.
+To log at a level Gradle shows by default, the library passes an SLF4J marker with each message.
+Gradle recognizes two markers, link:{javadocPath}/org/gradle/api/logging/Logging.html#LIFECYCLE[`Logging.LIFECYCLE`] and link:{javadocPath}/org/gradle/api/logging/Logging.html#QUIET[`Logging.QUIET`], and both are part of the Gradle API.
+A library should not depend on Gradle just to log.
+This matters for tools that run both on their own and inside Gradle plugins, such as a code generator with a command-line interface.
 
-To keep the library free of a Gradle dependency, let it take an `org.slf4j.Marker` as a parameter:
+To keep the library free of a Gradle dependency, have it accept an `org.slf4j.Marker` as a parameter:
 
-[source,kotlin]
+====
+include::sample[dir="snippets/reference/runtime-configuration/slf4jMarkers/common",files="buildSrc/src/main/java/CodeGenerator.java"]
+====
+
+When the code generator runs on its own, the caller passes no marker, and the message is a plain `INFO` message.
+The Gradle task passes the code generator a Gradle marker, and the message appears at the `LIFECYCLE` level:
+
+====
+include::sample[dir="snippets/reference/runtime-configuration/slf4jMarkers/kotlin",files="build.gradle.kts[tags=generate-code-task]"]
+include::sample[dir="snippets/reference/runtime-configuration/slf4jMarkers/groovy",files="build.gradle[tags=generate-code-task]"]
+====
+
+[source,bash]
 ----
-// Depends only on slf4j-api
-class Tool(private val statusMarker: Marker? = null) {
-    private val logger = LoggerFactory.getLogger(Tool::class.java)
-
-    fun run() {
-        logger.info(statusMarker, "Processing 42 files")
-    }
-}
+$ ./gradlew generateCode
 ----
-
-When the tool runs on its own, the caller gives no marker, and the message is a plain `INFO` message.
-The Gradle plugin gives the tool a Gradle marker, and the message appears at the `LIFECYCLE` level:
-
-[source,kotlin]
+[source,text]
 ----
-abstract class ToolTask : DefaultTask() {
-    @TaskAction
-    fun execute() {
-        Tool(statusMarker = Logging.LIFECYCLE).run()
-    }
-}
+include::{snippetsPath}/reference/runtime-configuration/slf4jMarkers/tests/slf4jMarkers.out[]
 ----
 
 NOTE: Gradle recognizes only the `Logging.LIFECYCLE` and `Logging.QUIET` objects.
 A marker with the same name from `MarkerFactory.getMarker("LIFECYCLE")` is a different object, and Gradle logs its messages at the `INFO` level.
+Gradle applies these markers only to `info()` calls; other levels ignore them.
 
 [[sec:changing_what_gradle_logs]]
 == Changing what Gradle logs
