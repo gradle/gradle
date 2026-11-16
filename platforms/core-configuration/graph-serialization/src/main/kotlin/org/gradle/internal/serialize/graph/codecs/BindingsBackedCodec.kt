@@ -160,6 +160,21 @@ interface EncodingProducer {
 }
 
 
+/**
+ * A codec that handles only some types, as determined by [accepts].
+ *
+ * The decision must depend only on the type, never on the value or on the context,
+ * and must not change during the lifetime of the codec, so it can be cached per type.
+ */
+interface SelectiveCodec : Codec<Any> {
+
+    /**
+     * Returns whether this codec can encode instances of [type].
+     */
+    fun accepts(type: Class<*>): Boolean
+}
+
+
 typealias Encoding = EncodingProvider<Any>
 
 
@@ -208,6 +223,9 @@ class BindingsBuilder(initialBindings: List<Binding>) {
         bind(type, SerializerCodec(serializer))
 
     fun bind(type: Class<*>, codec: Codec<*>) {
+        require(codec !is SelectiveCodec) {
+            "Codec '$codec' for type '$type' is a SelectiveCodec, bind it with bind(SelectiveCodec) instead"
+        }
         require(bindings.all { it.encodingForType(type) == null }) {
             "There's already an encoding for type '$type'"
         }
@@ -216,9 +234,10 @@ class BindingsBuilder(initialBindings: List<Binding>) {
         bind(encodingProducer, codecForAny)
     }
 
-    fun <T> bind(codec: T) where T : EncodingProducer, T : Decoding =
-        bind(codec, codec)
+    fun bind(codec: SelectiveCodec) =
+        bind(producerForAcceptedBy(codec), codec)
 
+    private
     fun bind(encodingProducer: EncodingProducer, decoding: Decoding) {
         bindings.add(
             Binding(
@@ -227,6 +246,13 @@ class BindingsBuilder(initialBindings: List<Binding>) {
                 decoding = decoding
             )
         )
+    }
+
+    private
+    fun producerForAcceptedBy(codec: SelectiveCodec): EncodingProducer = object : EncodingProducer {
+
+        override fun encodingForType(type: Class<*>) =
+            codec.takeIf { codec.accepts(type) }
     }
 
     private

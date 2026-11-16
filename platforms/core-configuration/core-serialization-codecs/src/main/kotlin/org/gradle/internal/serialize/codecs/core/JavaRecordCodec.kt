@@ -21,9 +21,7 @@ import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.beans.services.unsupportedFieldTypeFor
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.codecs.Decoding
-import org.gradle.internal.serialize.graph.codecs.Encoding
-import org.gradle.internal.serialize.graph.codecs.EncodingProducer
+import org.gradle.internal.serialize.graph.codecs.SelectiveCodec
 import org.gradle.internal.serialize.graph.logPropertyProblem
 import org.gradle.internal.serialize.graph.readPropertyValue
 import org.gradle.internal.serialize.graph.reportUnsupportedFieldType
@@ -35,14 +33,27 @@ import java.lang.reflect.Modifier.isStatic
 
 class JavaRecordCodec(
     private val objectOpener: ObjectOpener
-) : EncodingProducer, Decoding {
+) : SelectiveCodec {
 
-    private
-    val encoding = JavaRecordEncoding(objectOpener)
-
-    override fun encodingForType(type: Class<*>): Encoding? =
+    override fun accepts(type: Class<*>): Boolean =
         // need to check by name because it's only present in Java 14+
-        encoding.takeIf { type.superclass?.canonicalName == "java.lang.Record" }
+        type.superclass?.canonicalName == "java.lang.Record"
+
+    override suspend fun WriteContext.encode(value: Any) {
+        val recordType = value::class.java
+        writeClass(recordType)
+        for (field in recordType.relevantFields) {
+            objectOpener.makeAccessible(field)
+            val fieldName = field.name
+            val fieldValue = field.get(value)
+            unsupportedFieldTypeFor(field)?.let {
+                reportUnsupportedFieldType(it, "serialize", fieldName, fieldValue)
+            }
+            withDebugFrame({ "${recordType.typeName}.$fieldName" }) {
+                writePropertyValue(PropertyKind.Field, fieldName, fieldValue)
+            }
+        }
+    }
 
     @Suppress("SpreadOperator")
     override suspend fun ReadContext.decode(): Any? {
@@ -81,28 +92,6 @@ class JavaRecordCodec(
             }
         }
         return args
-    }
-}
-
-
-private
-class JavaRecordEncoding(
-    private val objectOpener: ObjectOpener
-) : Encoding {
-    override suspend fun WriteContext.encode(value: Any) {
-        val recordType = value::class.java
-        writeClass(recordType)
-        for (field in recordType.relevantFields) {
-            objectOpener.makeAccessible(field)
-            val fieldName = field.name
-            val fieldValue = field.get(value)
-            unsupportedFieldTypeFor(field)?.let {
-                reportUnsupportedFieldType(it, "serialize", fieldName, fieldValue)
-            }
-            withDebugFrame({ "${recordType.typeName}.$fieldName" }) {
-                writePropertyValue(PropertyKind.Field, fieldName, fieldValue)
-            }
-        }
     }
 }
 

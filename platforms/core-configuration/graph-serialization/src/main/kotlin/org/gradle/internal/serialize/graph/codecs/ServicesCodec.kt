@@ -22,7 +22,7 @@ import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.service.scopes.ServiceScope
 
 
-object ServicesCodec : EncodingProducer, Decoding {
+object ServicesCodec : SelectiveCodec {
 
     private
     val serviceTypes = object : ClassValue<Class<*>?>() {
@@ -31,8 +31,12 @@ object ServicesCodec : EncodingProducer, Decoding {
             serviceType(GeneratedSubclasses.unpack(type))
     }
 
-    override fun encodingForType(type: Class<*>): Encoding? =
-        OwnerServiceEncoding.takeIf { serviceTypes.get(type) != null }
+    override fun accepts(type: Class<*>): Boolean =
+        serviceTypes.get(type) != null
+
+    override suspend fun WriteContext.encode(value: Any) {
+        writeClass(serviceTypes.get(value.javaClass)!!)
+    }
 
     private
     fun serviceType(type: Class<*>): Class<*>? {
@@ -53,12 +57,5 @@ object ServicesCodec : EncodingProducer, Decoding {
 
     override suspend fun ReadContext.decode(): Any? {
         return isolate.owner.service(readClass())
-    }
-
-    private
-    object OwnerServiceEncoding : Encoding {
-        override suspend fun WriteContext.encode(value: Any) {
-            writeClass(serviceTypes.get(value.javaClass)!!)
-        }
     }
 }

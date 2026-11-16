@@ -20,9 +20,14 @@ import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.serialize.BaseSerializerFactory.BOOLEAN_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.INTEGER_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.codecs.Bindings
+import org.gradle.internal.serialize.graph.codecs.SelectiveCodec
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.containsString
+import org.hamcrest.Matchers.equalTo
+import org.junit.Assert.assertThrows
 import org.junit.Assert.fail
 import org.junit.Test
 
@@ -48,5 +53,40 @@ class BindingsBackedCodecTest : AbstractUserTypeCodecTest() {
             // Expected
             assertThat(e.message, containsString("Cannot deserialize the value because the type tag 2 is not in the valid range [-1..1)"))
         }
+    }
+
+    @Test
+    fun `first binding that accepts the type wins`() {
+        val codec = Bindings.of {
+            bind(PrefixingCodec("first", String::class.java))
+            bind(PrefixingCodec("second", String::class.java))
+        }.build()
+
+        assertThat(configurationCacheRoundtripOf("value", codec), equalTo("first:value"))
+    }
+
+    @Test
+    fun `cannot bind selective codec to a type`() {
+        val e = assertThrows(IllegalArgumentException::class.java) {
+            Bindings.of {
+                bind(String::class, PrefixingCodec("selective", String::class.java))
+            }
+        }
+
+        assertThat(e.message, containsString("bind it with bind(SelectiveCodec) instead"))
+    }
+
+    private
+    class PrefixingCodec(private val prefix: String, private val acceptedType: Class<*>) : SelectiveCodec {
+
+        override fun accepts(type: Class<*>): Boolean =
+            acceptedType.isAssignableFrom(type)
+
+        override suspend fun WriteContext.encode(value: Any) {
+            writeString(value.toString())
+        }
+
+        override suspend fun ReadContext.decode(): Any =
+            "$prefix:${readString()}"
     }
 }

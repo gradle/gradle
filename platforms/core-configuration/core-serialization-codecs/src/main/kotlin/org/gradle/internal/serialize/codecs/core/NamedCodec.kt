@@ -20,9 +20,7 @@ import org.gradle.api.Named
 import org.gradle.api.internal.GeneratedSubclass
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.codecs.Decoding
-import org.gradle.internal.serialize.graph.codecs.Encoding
-import org.gradle.internal.serialize.graph.codecs.EncodingProducer
+import org.gradle.internal.serialize.graph.codecs.SelectiveCodec
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.state.Managed
@@ -39,14 +37,21 @@ import org.gradle.internal.state.ManagedFactoryRegistry
  */
 class NamedCodec(
     private val managedFactory: ManagedFactoryRegistry
-) : Decoding, EncodingProducer {
+) : SelectiveCodec {
 
-    override fun encodingForType(type: Class<*>): Encoding? =
-        NamedEncoding.takeIf {
-            Named::class.java.isAssignableFrom(type) &&
-                Managed::class.java.isAssignableFrom(type) &&
-                !GeneratedSubclass::class.java.isAssignableFrom(type)
+    override fun accepts(type: Class<*>): Boolean =
+        Named::class.java.isAssignableFrom(type) &&
+            Managed::class.java.isAssignableFrom(type) &&
+            !GeneratedSubclass::class.java.isAssignableFrom(type)
+
+    override suspend fun WriteContext.encode(value: Any) {
+        val managed = value as Managed
+        encodePreservingIdentityOf(managed) {
+            writeSmallInt(managed.factoryId)
+            writeClass(managed.publicType())
+            write(managed.unpackState())
         }
+    }
 
     override suspend fun ReadContext.decode(): Named =
         decodePreservingIdentity { id ->
@@ -58,16 +63,4 @@ class NamedCodec(
             isolate.identities.putInstance(id, value as Named)
             value
         }
-}
-
-private
-object NamedEncoding : Encoding {
-    override suspend fun WriteContext.encode(value: Any) {
-        val managed = value as Managed
-        encodePreservingIdentityOf(managed) {
-            writeSmallInt(managed.factoryId)
-            writeClass(managed.publicType())
-            write(managed.unpackState())
-        }
-    }
 }
