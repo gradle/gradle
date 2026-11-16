@@ -82,6 +82,8 @@ gr8 {
         proguardFile("src/main/proguard/wrapper.pro")
         // Exclude META-INF resources from Guava etc. added via transitive dependencies
         exclude("META-INF/.*")
+        // Ignore module descriptors as they are not relevant
+        exclude("module-info\\.class")
         // Exclude properties files from dependency subprojects
         exclude("gradle-.*-classpath.properties")
         exclude("gradle-.*-parameter-names.properties")
