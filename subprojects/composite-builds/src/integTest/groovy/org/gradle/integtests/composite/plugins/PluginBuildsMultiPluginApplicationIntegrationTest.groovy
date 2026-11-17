@@ -255,6 +255,7 @@ class PluginBuildsMultiPluginApplicationIntegrationTest extends AbstractPluginBu
         failureHasCause("The request for this plugin could not be satisfied because the plugin is already on the classpath with a different version (1.0).")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39546")
     @ToBeImplemented("A plugin id that has no tracked version is not recognised as local, even when a sibling plugin from the same included build put it on the classpath")
     def "settings plugin and project plugin from the same included plugin build can both be requested with a version"() {
         given:
@@ -291,6 +292,47 @@ class PluginBuildsMultiPluginApplicationIntegrationTest extends AbstractPluginBu
         // The settings plugin puts the whole included build on the classpath of the root project's parent scope,
         // but only its own plugin id is recorded in the PluginVersionTracker. The project plugin id is therefore
         // seen as "on the classpath with an unknown version".
+        fails("help")
+        failureHasCause("The request for this plugin could not be satisfied because the plugin is already on the classpath with an unknown version, so compatibility cannot be checked.")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39546")
+    @ToBeImplemented("A plugin id that has no tracked version is not recognised as local, even when a sibling plugin from the same included build put it on the classpath")
+    def "two project plugins from the same included plugin build can be requested with a version in a parent and a child project"() {
+        given:
+        def pluginBuild = pluginBuild("build-logic")
+        pluginBuild.buildFile << """
+            version = "1.1"
+        """
+        def otherProjectPluginId = "${pluginBuild.buildName}.other-project-plugin"
+        file("${pluginBuild.buildName}/src/main/groovy/${otherProjectPluginId}.gradle") << """
+            println("$otherProjectPluginId applied to project '\${project.path}'")
+        """
+        settingsFile << """
+            pluginManagement {
+                includeBuild("${pluginBuild.buildName}")
+            }
+            include("child")
+        """
+        buildFile << """
+            plugins {
+                id("${pluginBuild.projectPluginId}") version "1.0"
+            }
+        """
+        file("child/build.gradle") << """
+            plugins {
+                id("${otherProjectPluginId}") version "1.0"
+            }
+        """
+
+        expect:
+        // Should be:
+        //   succeeds("help")
+        //   pluginBuild.assertProjectPluginApplied(":")
+        //   outputContains("$otherProjectPluginId applied to project ':child'")
+        // The plugin requested by the root project puts the whole included build on the classpath of the child's
+        // parent scope, but only that plugin id is recorded in the PluginVersionTracker. The other plugin id is
+        // therefore seen as "on the classpath with an unknown version".
         fails("help")
         failureHasCause("The request for this plugin could not be satisfied because the plugin is already on the classpath with an unknown version, so compatibility cannot be checked.")
     }
