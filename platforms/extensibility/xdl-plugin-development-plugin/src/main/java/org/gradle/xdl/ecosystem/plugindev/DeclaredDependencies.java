@@ -17,10 +17,14 @@
 package org.gradle.xdl.ecosystem.plugindev;
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.provider.Provider;
 import org.gradle.xdl.ecosystem.common.dsl.Dependencies;
+import org.gradle.xdl.ecosystem.common.dsl.DependencyDeclaration;
 import org.gradle.xdl.ecosystem.common.dsl.HasDependencies;
+import org.gradle.xdl.ecosystem.common.dsl.ProjectDependencyDeclaration;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,9 +48,26 @@ final class DeclaredDependencies {
         addAll(project, "compileOnly", dependencies.compileOnly());
     }
 
-    private static void addAll(Project project, String configuration, Provider<List<String>> notations) {
-        for (String notation : notations.getOrElse(List.of())) {
-            project.getDependencies().add(configuration, notation);
+    private static void addAll(Project project, String configuration, Provider<List<DependencyDeclaration>> declared) {
+        DependencyHandler handler = project.getDependencies();
+        for (DependencyDeclaration declaration : declared.getOrElse(Collections.emptyList())) {
+            handler.add(configuration, notationOf(declaration, handler));
         }
+    }
+
+    /**
+     * The notation {@link DependencyHandler#add} takes for one declaration: a coordinate string as
+     * written, or a project dependency built from its path (whether that project exists is
+     * reported by resolution, as for any project dependency).
+     */
+    private static Object notationOf(DependencyDeclaration declaration, DependencyHandler handler) {
+        if (declaration instanceof DependencyDeclaration.StringValue) {
+            return ((DependencyDeclaration.StringValue) declaration).value();
+        }
+        if (declaration instanceof ProjectDependencyDeclaration) {
+            String path = ((ProjectDependencyDeclaration) declaration).project().get();
+            return handler.project(Collections.singletonMap("path", path));
+        }
+        throw new IllegalStateException("Unknown dependency declaration: " + declaration);
     }
 }

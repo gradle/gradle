@@ -125,6 +125,80 @@ class DeclarativePluginsDistributionIntegrationTest extends AbstractIntegrationS
         outputDoesNotContain("org.test:compile-only-dep")
     }
 
+    def "a project dependency lets one declarative plugin project build on another's schema"() {
+        given: 'a hermetic maven repository, so a module dependency can sit next to the project one'
+        mavenRepo.module("org.test", "impl-dep", "1.0").publish()
+
+        and: 'two declarative plugin projects in one build'
+        file('settings.gradle.xdl') << """
+            settings {
+              plugins [
+                { id "declarative-plugins" }
+              ]
+              dependencyResolutionManagement {
+                repositories ["${mavenRepo.uri}"]
+              }
+              include ["base", "app"]
+              rootProject { name "plugins" }
+            }
+        """
+
+        and: 'a base plugin declaring a trait'
+        file('base/build.gradle.xdl') << '''
+            declarativePlugins {
+            }
+        '''
+        file('base/src/main/xdl/base.xdls') << '''
+            package com.example.base
+
+            trait Component {
+              description: String = "A component."
+            }
+        '''.stripIndent()
+        file('base/src/main/xdl/com.example.base.xdl') << '''
+            plugin {
+            }
+        '''.stripIndent()
+
+        and: 'an app plugin whose schema builds on it, depending on :base as a project'
+        file('app/build.gradle.xdl') << '''
+            declarativePlugins {
+              dependencies {
+                api [{ project ":base" }]
+                implementation ["org.test:impl-dep:1.0"]
+              }
+            }
+        '''
+        file('app/src/main/xdl/app.xdls') << '''
+            package com.example.app
+
+            import com.example.base
+
+            root App with Component {
+              app {
+              }
+            }
+        '''.stripIndent()
+        file('app/src/main/xdl/com.example.app.xdl') << '''
+            plugin {
+            }
+        '''.stripIndent()
+
+        when:
+        succeeds(":app:dependencies", "--configuration", "compileClasspath")
+
+        then: 'the project and the module both land in the real configurations'
+        outputContains("project ':base'")
+        outputContains("org.test:impl-dep:1.0")
+
+        when:
+        succeeds(":app:jar")
+
+        then: "the app's codegen resolved the base schema through the project dependency"
+        executedAndNotSkipped(":base:jar", ":app:xdlCodegen", ":app:compileJava")
+        new JarTestFixture(file('app/build/libs/app.jar')).assertContainsFile('com/example/app/App.class')
+    }
+
     def "an included build authored with declarativePlugins supplies a plugin consumed by a declarative root build"() {
         given: 'an included build-logic build that is itself declarative: an declarativePlugins project'
         file('build-logic/settings.gradle.xdl') << '''
