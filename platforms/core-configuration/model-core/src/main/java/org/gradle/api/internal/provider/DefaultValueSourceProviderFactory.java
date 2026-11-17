@@ -22,6 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.internal.provider.ValueSupplier.ExecutionTimeValue;
 import org.gradle.api.internal.provider.ValueSupplier.Value;
+import org.gradle.api.internal.provider.ValueSupplier.ValueProducer;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ValueSource;
@@ -262,48 +263,12 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
          */
         @Override
         public ValueProducer getProducer() {
+            P parameters = value.parameters;
+            if (parameters == null) {
+                return ValueProducer.externalValue();
+            }
             try (EvaluationScopeContext ignored = openScope()) {
-                List<ValueProducer> parameterProducers = new ArrayList<>();
-                collectProducers(value.parameters, parameterProducers, Collections.newSetFromMap(new IdentityHashMap<>()));
-                if (parameterProducers.isEmpty()) {
-                    return ValueProducer.externalValue();
-                }
-                return ValueProducer.unguarded(ValueProducer.composite(parameterProducers));
-            }
-        }
-
-        private static void collectProducers(@Nullable Object value, List<ValueProducer> producers, Set<Object> visited) {
-            if (value == null || !visited.add(value)) {
-                return;
-            }
-            if (value instanceof ProviderInternal) {
-                // Properties and other providers track the producers of their own values
-                ValueProducer producer = ((ProviderInternal<?>) value).getProducer();
-                if (producer.isKnown()) {
-                    producers.add(producer);
-                }
-            } else if (value instanceof TaskDependencyContainer) {
-                // File collections, whose state cannot be unpacked without resolving their files
-                producers.add(ValueProducer.from((TaskDependencyContainer) value));
-            } else if (value instanceof Managed) {
-                // Parameters objects and nested managed objects
-                collectProducers(((Managed) value).unpackState(), producers, visited);
-            } else if (value instanceof List || value instanceof Set) {
-                // Walk the same collections as parameter isolation, see AbstractValueProcessor.
-                // Other iterables are not walked: they may be lazy, or yield new copies of
-                // themselves like Path, which the visited set cannot detect.
-                for (Object element : (Collection<?>) value) {
-                    collectProducers(element, producers, visited);
-                }
-            } else if (value instanceof Map) {
-                for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
-                    collectProducers(entry.getKey(), producers, visited);
-                    collectProducers(entry.getValue(), producers, visited);
-                }
-            } else if (value instanceof Object[]) {
-                for (Object element : (Object[]) value) {
-                    collectProducers(element, producers, visited);
-                }
+                return new ParameterProducers(parameters).toProducer();
             }
         }
 
@@ -334,6 +299,96 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         @Override
         protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
             return value.obtain().asNullableValue();
+        }
+    }
+
+    /**
+     * Collects the producers of the providers and file collections reachable from the parameters of a value source.
+     * <p>
+     * Producers are queried a lot more often than value sources have parameters with producers,
+     * e.g. for every task input backed by a Gradle property. So, this allocates nothing for parameters
+     * without producers, whose properties were left unset or were set to plain values.
+     */
+    private static class ParameterProducers {
+
+        private final Object parameters;
+        private @Nullable List<ValueProducer> producers;
+        // Only tracks the objects that are walked into, besides the parameters
+        private @Nullable Set<Object> visited;
+
+        ParameterProducers(Object parameters) {
+            this.parameters = parameters;
+            if (parameters instanceof Managed) {
+                collect(((Managed) parameters).unpackState());
+            }
+        }
+
+        ValueProducer toProducer() {
+            if (producers == null) {
+                return ValueProducer.externalValue();
+            }
+            return ValueProducer.unguarded(producers.size() == 1 ? producers.get(0) : ValueProducer.composite(producers));
+        }
+
+        private void collect(@Nullable Object value) {
+            if (value == null) {
+                return;
+            }
+            if (value instanceof ProviderInternal) {
+                // Properties and other providers track the producers of their own values
+                add(((ProviderInternal<?>) value).getProducer());
+            } else if (value instanceof TaskDependencyContainer) {
+                // File collections, whose state cannot be unpacked without resolving their files
+                add(ValueProducer.from((TaskDependencyContainer) value));
+            } else if (value instanceof Managed) {
+                // Nested managed objects
+                if (enter(value)) {
+                    collect(((Managed) value).unpackState());
+                }
+            } else if (value instanceof List || value instanceof Set) {
+                // Walk the same collections as parameter isolation, see AbstractValueProcessor.
+                // Other iterables are not walked: they may be lazy, or yield new copies of
+                // themselves like Path, which the visited set cannot detect.
+                if (enter(value)) {
+                    for (Object element : (Collection<?>) value) {
+                        collect(element);
+                    }
+                }
+            } else if (value instanceof Map) {
+                if (enter(value)) {
+                    for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+                        collect(entry.getKey());
+                        collect(entry.getValue());
+                    }
+                }
+            } else if (value instanceof Object[]) {
+                if (enter(value)) {
+                    for (Object element : (Object[]) value) {
+                        collect(element);
+                    }
+                }
+            }
+        }
+
+        private void add(ValueProducer producer) {
+            // A producer known to require no work has nothing to contribute
+            if (producer == ValueProducer.noProducer() || !producer.isKnown()) {
+                return;
+            }
+            if (producers == null) {
+                producers = new ArrayList<>();
+            }
+            producers.add(producer);
+        }
+
+        private boolean enter(Object container) {
+            if (container == parameters) {
+                return false;
+            }
+            if (visited == null) {
+                visited = Collections.newSetFromMap(new IdentityHashMap<>());
+            }
+            return visited.add(container);
         }
     }
 
