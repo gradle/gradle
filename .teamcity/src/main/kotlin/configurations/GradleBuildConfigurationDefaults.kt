@@ -168,7 +168,7 @@ private fun BaseGradleBuildType.retryDecisionStep() {
             }
             skipConditionally()
             scriptContent =
-                "\"$AGENT_JAVA_BINARY\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/RetryDecision.java " +
+                "\"$AGENT_JAVA_BINARY\" .teamcity/scripts/RetryDecision.java " +
                 "\"%teamcity.build.branch%\" \"%ai.retry.mode%\" \"%ai.retry.endpoint%\" %teamcity.build.id% " +
                 "\"%gradle-bot.teamcity.webhook.password%\""
         }
