@@ -182,7 +182,7 @@ The idea of a remote cache is to share commonly built task outputs across remote
 When both remote and local caches are enabled, then the build output is first checked in the local cache.
 If the output isn't present in the local cache, it'll be downloaded from the remote cache and also stored in the local cache.
 
-To try out the remote Build Cache, Gradle provides a free link:https://hub.docker.com/r/gradle/build-cache-node[Docker image] for a single remote Build Cache node.
+To try out the remote Build Cache, point Gradle at any HTTP server that implements the <<build_cache.adoc#sec:build_cache_configure_remote,HTTP build cache requests>>.
 For production grade deployments, link:https://develocity.ai/product/build-cache/[Develocity] is recommended.
 
 [[rb_part6_step5]]
