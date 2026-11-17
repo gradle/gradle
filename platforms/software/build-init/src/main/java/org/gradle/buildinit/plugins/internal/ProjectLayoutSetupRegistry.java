@@ -21,27 +21,29 @@ import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+/**
+ * The project types that the {@code init} task can generate. The set of types is fixed when the registry is created.
+ */
 public class ProjectLayoutSetupRegistry {
     private final Map<String, BuildInitializer> registeredProjectDescriptors = new TreeMap<>();
     private final BuildGenerator defaultType;
     private final BuildConverter converter;
     private final TemplateOperationFactory templateOperationFactory;
 
-    @SuppressWarnings("this-escape")
-    public ProjectLayoutSetupRegistry(BuildGenerator defaultType, BuildConverter converter, TemplateOperationFactory templateOperationFactory) {
+    public ProjectLayoutSetupRegistry(BuildGenerator defaultType, BuildConverter converter, TemplateOperationFactory templateOperationFactory, List<BuildInitializer> projectTypes) {
         this.defaultType = defaultType;
         this.converter = converter;
         this.templateOperationFactory = templateOperationFactory;
         add(defaultType);
         add(converter);
+        projectTypes.forEach(this::add);
     }
 
-    public void add(BuildInitializer descriptor) {
+    private void add(BuildInitializer descriptor) {
         if (registeredProjectDescriptors.containsKey(descriptor.getId())) {
             throw new GradleException(String.format("ProjectDescriptor with ID '%s' already registered.", descriptor.getId()));
         }
@@ -73,10 +75,16 @@ public class ProjectLayoutSetupRegistry {
     }
 
     /**
-     * Returns the component types, in display order.
+     * Returns the component types that have at least one registered generator, in display order.
      */
     public List<ComponentType> getComponentTypes() {
-        return Arrays.asList(ComponentType.values());
+        List<ComponentType> result = new ArrayList<>();
+        for (ComponentType componentType : ComponentType.values()) {
+            if (!getGeneratorsFor(componentType).isEmpty()) {
+                result.add(componentType);
+            }
+        }
+        return result;
     }
 
     /**
