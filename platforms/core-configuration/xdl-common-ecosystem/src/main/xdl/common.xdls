@@ -1,13 +1,24 @@
 package org.gradle.xdl.ecosystem.common.dsl
 
-/// Library dependencies, mirroring the four JVM dependency scopes. Each is a list of coordinate
-/// notations (e.g. "group:name:version"). Shared so the wiring is declared once; every built-in
-/// ecosystem schema `import`s `org.gradle.xdl.ecosystem.common.dsl`.
+/// One dependency: a module coordinate notation (`"group:name:version"`), or a project of this
+/// build by its path. The two forms mix freely in a scope's list:
+/// `api ["org.example:lib:1.0", { project ":base" }]`.
+type DependencyDeclaration = String | ProjectDependencyDeclaration
+
+/// A dependency on another project of this build, named by its path.
+record ProjectDependencyDeclaration {
+  /// The target project's Gradle path, e.g. `":base"` or `":libs:core"`.
+  project: String
+}
+
+/// Library dependencies, mirroring the four JVM dependency scopes. Each is a list of
+/// [DependencyDeclaration]s. Shared so the wiring is declared once; every built-in ecosystem schema
+/// `import`s `org.gradle.xdl.ecosystem.common.dsl`.
 record Dependencies {
-  api: [String]?
-  implementation: [String]?
-  runtimeOnly: [String]?
-  compileOnly: [String]?
+  api: [DependencyDeclaration]?
+  implementation: [DependencyDeclaration]?
+  runtimeOnly: [DependencyDeclaration]?
+  compileOnly: [DependencyDeclaration]?
 }
 
 // Repositories are deliberately NOT part of the ecosystem surface: they are build mechanics, not
