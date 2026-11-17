@@ -24,6 +24,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
+import org.gradle.api.internal.tasks.execution.ProviderOnlyIfSpec
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Actions
@@ -200,6 +201,38 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
         def foundSpec = task.getOnlyIf().findUnsatisfiedSpec(task)
         foundSpec != null
         foundSpec.displayName == "Always false"
+    }
+
+    def "can specify onlyIf predicate using a provider"() {
+        given:
+        def task = getTask()
+        def value = TestUtil.objectFactory().property(Object)
+        value.set(OnlyIfDecision.skip("skipped"))
+
+        when:
+        task.onlyIf(value)
+
+        then:
+        !task.getOnlyIf().isSatisfiedBy(task)
+        task.getOnlyIf().findUnsatisfiedSpec(task) instanceof ProviderOnlyIfSpec
+
+        when:
+        value.set(true)
+
+        then:
+        task.getOnlyIf().isSatisfiedBy(task)
+    }
+
+    def "setOnlyIf with a provider replaces existing predicates"() {
+        given:
+        def task = getTask()
+        task.onlyIf("Always false") { false }
+
+        when:
+        task.setOnlyIf(TestUtil.providerFactory().provider { true })
+
+        then:
+        task.getOnlyIf().isSatisfiedBy(task)
     }
 
     def "onlyIf predicate is true when task is enabled and all predicates are true"() {

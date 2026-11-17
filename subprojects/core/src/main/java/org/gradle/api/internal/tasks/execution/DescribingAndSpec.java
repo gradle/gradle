@@ -25,7 +25,7 @@ import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A {@link CompositeSpec} that requires all component specs to provide a description.
+ * A {@link CompositeSpec} whose component specs are either {@link SelfDescribingSpec}s or {@link ProviderOnlyIfSpec}s.
  * The aggregation is based on an {@link AndSpec}.
  *
  * @param <T> The target type for this Spec
@@ -53,12 +53,16 @@ public class DescribingAndSpec<T> extends CompositeSpec<T> {
     }
 
     @Nullable
-    public SelfDescribingSpec<? super T> findUnsatisfiedSpec(T element) {
-        return Cast.uncheckedCast(specHolder.findUnsatisfiedSpec(element));
+    public Spec<? super T> findUnsatisfiedSpec(T element) {
+        return specHolder.findUnsatisfiedSpec(element);
     }
 
     public DescribingAndSpec<T> and(Spec<? super T> spec, String description) {
         return new DescribingAndSpec<>(specHolder.and(new SelfDescribingSpec<>(spec, description)));
+    }
+
+    public DescribingAndSpec<T> and(ProviderOnlyIfSpec spec) {
+        return new DescribingAndSpec<>(specHolder.and(spec));
     }
 
     @SuppressWarnings("rawtypes")

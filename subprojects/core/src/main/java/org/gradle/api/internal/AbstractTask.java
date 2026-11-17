@@ -47,6 +47,7 @@ import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskRequiredServices;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DescribingAndSpec;
+import org.gradle.api.internal.tasks.execution.ProviderOnlyIfSpec;
 import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -370,6 +371,16 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
+    public void onlyIf(final Provider<?> onlyIfProvider) {
+        taskMutator.mutate("Task.onlyIf(Provider)", new Runnable() {
+            @Override
+            public void run() {
+                onlyIfSpec = onlyIfSpec.and(new ProviderOnlyIfSpec(onlyIfProvider));
+            }
+        });
+    }
+
+    @Override
     public void setOnlyIf(final Spec<? super Task> spec) {
         taskMutator.mutate("Task.setOnlyIf(Spec)", new Runnable() {
             @Override
@@ -385,6 +396,16 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             @Override
             public void run() {
                 onlyIfSpec = createNewOnlyIfSpec().and(spec, onlyIfReason);
+            }
+        });
+    }
+
+    @Override
+    public void setOnlyIf(final Provider<?> onlyIfProvider) {
+        taskMutator.mutate("Task.setOnlyIf(Provider)", new Runnable() {
+            @Override
+            public void run() {
+                onlyIfSpec = createNewOnlyIfSpec().and(new ProviderOnlyIfSpec(onlyIfProvider));
             }
         });
     }

@@ -30,6 +30,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.problems.internal.ProblemTaskIdentityTracker;
 import org.gradle.api.problems.internal.TaskIdentity;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.OnlyIfDecision;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.MissingTaskDependencyDetector;
@@ -58,6 +59,8 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
 
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_INCREMENTALLY;
 
@@ -239,37 +242,62 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
     private ExecutionEngine.@Nullable Result executeSkippingOnlyIf(LocalTaskNode node) {
         TaskInternal task = node.getTask();
         TaskStateInternal state = task.getState();
-        Spec<? super TaskInternal> unsatisfiedSpec = null;
+        Optional<String> skipReasonMessage;
         try {
-            Spec<? super TaskInternal> onlyIf = task.getOnlyIf();
-            // Some third-party plugins override getOnlyIf, returning a generic Spec
-            if (onlyIf instanceof DescribingAndSpec) {
-                DescribingAndSpec<? super TaskInternal> describingAndSpec = Cast.uncheckedCast(onlyIf);
-                unsatisfiedSpec = describingAndSpec.findUnsatisfiedSpec(task);
-            } else {
-                if (!onlyIf.isSatisfiedBy(task)) {
-                    unsatisfiedSpec = onlyIf;
-                }
-            }
+            skipReasonMessage = findOnlyIfSkipReasonMessage(task);
         } catch (Throwable t) {
             state.setOutcome(new GradleException(String.format("Could not evaluate onlyIf predicate for %s.", task), t));
             return null;
         }
 
-        if (unsatisfiedSpec != null) {
-            if (unsatisfiedSpec instanceof SelfDescribingSpec) {
-                SelfDescribingSpec<? super TaskInternal> selfDescribingSpec = Cast.uncheckedCast(unsatisfiedSpec);
-                LOGGER.info("Skipping {} as task onlyIf '{}' is false.", task, selfDescribingSpec.getDisplayName());
-                state.setSkipReasonMessage("'" + selfDescribingSpec.getDisplayName() + "' not satisfied");
-            } else {
-                LOGGER.info("Skipping {} as task onlyIf is false.", task);
-                state.setSkipReasonMessage("onlyIf not satisfied");
-            }
+        if (skipReasonMessage.isPresent()) {
+            state.setSkipReasonMessage(skipReasonMessage.get());
             state.setOutcome(TaskExecutionOutcome.SKIPPED);
             return null;
         }
 
         return executeSkippingWithNoActions(node);
+    }
+
+    /**
+     * Evaluates the onlyIf predicates in order, returning the skip reason message of the first unsatisfied one,
+     * or empty if all are satisfied.
+     */
+    private static Optional<String> findOnlyIfSkipReasonMessage(TaskInternal task) {
+        Spec<? super TaskInternal> onlyIf = task.getOnlyIf();
+        // Some third-party plugins override getOnlyIf, returning a generic Spec
+        if (!(onlyIf instanceof DescribingAndSpec)) {
+            return onlyIf.isSatisfiedBy(task) ? Optional.empty() : Optional.of(unsatisfiedSpecMessage(task, onlyIf));
+        }
+
+        DescribingAndSpec<TaskInternal> describingAndSpec = Cast.uncheckedCast(onlyIf);
+        for (Spec<? super TaskInternal> spec : describingAndSpec.getSpecs()) {
+            if (spec instanceof ProviderOnlyIfSpec) {
+                OnlyIfDecision decision = ((ProviderOnlyIfSpec) spec).decide();
+                if (!decision.shouldRun()) {
+                    String skipReason = decision.getSkipReason();
+                    if (skipReason == null) {
+                        LOGGER.info("Skipping {} as task onlyIf is false - no reason provided.", task);
+                        return Optional.of("onlyIf not satisfied - no reason provided");
+                    }
+                    LOGGER.info("Skipping {} as task onlyIf is false: {}", task, skipReason);
+                    return Optional.of(skipReason);
+                }
+            } else if (!spec.isSatisfiedBy(task)) {
+                return Optional.of(unsatisfiedSpecMessage(task, spec));
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static String unsatisfiedSpecMessage(TaskInternal task, Spec<? super TaskInternal> spec) {
+        if (spec instanceof SelfDescribingSpec) {
+            String description = ((SelfDescribingSpec<?>) spec).getDisplayName();
+            LOGGER.info("Skipping {} as task onlyIf '{}' is false.", task, description);
+            return "'" + description + "' not satisfied";
+        }
+        LOGGER.info("Skipping {} as task onlyIf is false.", task);
+        return "onlyIf not satisfied";
     }
 
     /**

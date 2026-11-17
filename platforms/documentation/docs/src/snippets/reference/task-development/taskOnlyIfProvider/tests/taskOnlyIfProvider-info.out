@@ -1,0 +1,7 @@
+...
+
+> Task :deploy SKIPPED
+Skipping task ':deploy' as task onlyIf is false: DEPLOY_TOKEN is not set
+:deploy (Thread[included builds,5,main]) completed. Took 0.012 secs.
+
+BUILD SUCCESSFUL in 1s

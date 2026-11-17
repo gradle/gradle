@@ -377,6 +377,37 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
     void onlyIf(String onlyIfReason, Spec<? super Task> onlyIfSpec);
 
     /**
+     * Execute the task only if the given provider's value allows it.
+     * <p>
+     * The provider is queried at task execution time, not during configuration.
+     * It must have a value of type {@link Boolean} or {@link org.gradle.api.tasks.OnlyIfDecision}.
+     * A {@code false} value or {@link org.gradle.api.tasks.OnlyIfDecision#skip(String)} skips the task.
+     * The reason of an {@code OnlyIfDecision} is reported as the reason for skipping the task.
+     * A provider without a value, or with a value of another type, fails the task.
+     * <p>
+     * You may add multiple such predicates. The task is skipped if any of the predicates do not allow it to run.
+     * Predicates are evaluated in the order they were added, and evaluation stops at the first one that skips the task.
+     * <p>
+     * Typical usage:
+     * <pre>
+     * myTask.onlyIf(providers.environmentVariable("CI").map { OnlyIfDecision.skip("running on CI") }
+     *     .orElse(OnlyIfDecision.proceed()))
+     * </pre>
+     * <p>
+     * When the configuration cache is enabled, a provider created with {@link org.gradle.api.provider.ProviderFactory#provider}
+     * is evaluated when the configuration cache entry is stored, not at task execution time.
+     * To have the decision made at task execution time, derive it from a provider such as
+     * {@link org.gradle.api.provider.ProviderFactory#environmentVariable}, {@link org.gradle.api.provider.ProviderFactory#gradleProperty},
+     * {@link org.gradle.api.provider.ProviderFactory#fileContents}, {@link org.gradle.api.provider.ProviderFactory#exec},
+     * or a custom {@link org.gradle.api.provider.ValueSource}.
+     *
+     * @param onlyIfProvider provides whether the task should run
+     * @since 9.10.0
+     */
+    @Incubating
+    void onlyIf(Provider<?> onlyIfProvider);
+
+    /**
      * <p>Execute the task only if the given closure returns true.  The closure will be evaluated at task execution
      * time, not during configuration.  The closure will be passed a single parameter, this task. If the closure returns
      * false, the task will be skipped.</p>
@@ -412,6 +443,19 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      */
     @Incubating
     void setOnlyIf(String onlyIfReason, Spec<? super Task> onlyIfSpec);
+
+    /**
+     * Execute the task only if the given provider's value allows it, replacing all existing predicates.
+     * <p>
+     * The provider is queried at task execution time, not during configuration.
+     * See {@link #onlyIf(Provider)} for the accepted values and for how the configuration cache affects
+     * when the provider is evaluated.
+     *
+     * @param onlyIfProvider provides whether the task should run
+     * @since 9.10.0
+     */
+    @Incubating
+    void setOnlyIf(Provider<?> onlyIfProvider);
 
     /**
      * Returns the execution state of this task. This provides information about the execution of this task, such as
