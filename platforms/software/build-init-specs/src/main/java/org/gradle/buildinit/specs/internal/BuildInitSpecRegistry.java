@@ -24,12 +24,11 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * A registry of the available {@link BuildInitSpec}s that can be used to generate new projects via the {@code init} task.
@@ -40,7 +39,7 @@ public final class BuildInitSpecRegistry {
 
     private static final Logger LOGGER = Logging.getLogger(BuildInitSpecRegistry.class);
 
-    private final Map<Class<? extends BuildInitGenerator>, List<BuildInitSpec>> specsByGeneratorType = new HashMap<>();
+    private final Map<Class<? extends BuildInitGenerator>, List<BuildInitSpec>> specsByGeneratorType = new LinkedHashMap<>();
 
     /**
      * Register the given generator as providing the given.
@@ -63,54 +62,12 @@ public final class BuildInitSpecRegistry {
         });
     }
 
-    public List<BuildInitSpec> getAllSpecs() {
-        return specsByGeneratorType.values().stream().flatMap(List::stream).collect(Collectors.toList());
-    }
-
-    public boolean isEmpty() {
-        return specsByGeneratorType.isEmpty();
-    }
-
     /**
-     * Returns the {@link BuildInitSpec} in the registry with the given type; throwing
-     * an exception if there is not exactly one such spec.
-     *
-     * @param type the type of the project spec to find
-     * @return the project spec with the given type
+     * Returns an immutable copy of the specs registered so far.
+     * Specs registered later do not appear in it.
      */
-    public BuildInitSpec getSpecByType(String type) {
-        List<BuildInitSpec> matchingSpecs = specsByGeneratorType.values().stream()
-            .flatMap(List::stream)
-            .filter(spec -> Objects.equals(spec.getType(), type))
-            .collect(Collectors.toList());
-
-        switch (matchingSpecs.size()) {
-            case 0:
-                throw new IllegalStateException("Build init spec with type: '" + type + "' was not found!" + System.lineSeparator() +
-                    "Known types:" + System.lineSeparator() +
-                    getAllSpecs().stream()
-                        .map(BuildInitSpec::getType)
-                        .map(t -> " - " + t)
-                        .collect(Collectors.joining(System.lineSeparator()))
-                );
-            case 1:
-                return matchingSpecs.get(0);
-            default:
-                throw new IllegalStateException("Multiple project specs: " + matchingSpecs.stream().map(BuildInitSpec::getDisplayName).collect(Collectors.joining(", ")) + " with type: '" + type + "' were found!");
-        }
-    }
-
-    /**
-     * Returns the {@link BuildInitGenerator} type that can be used to generate a project
-     * with the given {@link BuildInitSpec}.
-     * <p>
-     * This searches by project type.
-     *
-     * @param spec the project spec to find the generator for
-     * @return the type of generator that can be used to generate a project with the given spec
-     */
-    public Class<? extends BuildInitGenerator> getGeneratorForSpec(BuildInitSpec spec) {
-        return doGetGeneratorForSpec(spec).orElseThrow(() -> new IllegalStateException("Spec: '" + spec.getDisplayName() + "' with type: '" + spec.getType() + "' is not registered!"));
+    public BuildInitSpecSnapshot snapshot() {
+        return new BuildInitSpecSnapshot(specsByGeneratorType);
     }
 
     private Optional<Class<? extends BuildInitGenerator>> doGetGeneratorForSpec(BuildInitSpec spec) {

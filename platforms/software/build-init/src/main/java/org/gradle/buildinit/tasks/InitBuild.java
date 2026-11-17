@@ -57,6 +57,7 @@ import org.gradle.buildinit.specs.BuildInitGenerator;
 import org.gradle.buildinit.specs.BuildInitParameter;
 import org.gradle.buildinit.specs.BuildInitSpec;
 import org.gradle.buildinit.specs.internal.BuildInitSpecRegistry;
+import org.gradle.buildinit.specs.internal.BuildInitSpecSnapshot;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -98,6 +99,13 @@ public abstract class InitBuild extends DefaultTask {
 
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
+
+    private final BuildInitSpecSnapshot contributedSpecs;
+
+    @SuppressWarnings("this-escape")
+    public InitBuild() {
+        this.contributedSpecs = getBuildInitSpecRegistry().snapshot();
+    }
 
     /**
      * Should default values automatically be accepted for options that are not configured explicitly?
@@ -308,7 +316,7 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private boolean shouldUseInitProjectSpec(UserInputHandler inputHandler) {
-        boolean templatesAvailable = !getBuildInitSpecRegistry().isEmpty();
+        boolean templatesAvailable = !contributedSpecs.isEmpty();
         return templatesAvailable && inputHandler.askUser(uq -> uq.askBooleanQuestion("Additional project types were loaded.  Do you want to generate a project using a contributed project specification?", true)).get();
     }
 
@@ -326,15 +334,13 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private BuildInitConfig selectAndConfigureSpec(UserQuestions userQuestions) {
-        BuildInitSpecRegistry registry = getBuildInitSpecRegistry();
-
         BuildInitSpec spec;
         if (type == null) {
-            spec = userQuestions.choice("Select project type", registry.getAllSpecs())
+            spec = userQuestions.choice("Select project type", contributedSpecs.getAllSpecs())
                 .renderUsing(BuildInitSpec::getDisplayName)
                 .ask();
         } else {
-            spec = registry.getSpecByType(type);
+            spec = contributedSpecs.getSpecByType(type);
         }
 
         // TODO: Ask questions for each parameter, and return a configuration object with populated arguments
@@ -354,7 +360,7 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private BuildInitGenerator createGenerator(BuildInitConfig config) {
-        Class<? extends BuildInitGenerator> generator = getBuildInitSpecRegistry().getGeneratorForSpec(config.getBuildSpec());
+        Class<? extends BuildInitGenerator> generator = contributedSpecs.getGeneratorForSpec(config.getBuildSpec());
         return getObjectFactory().newInstance(generator);
     }
 
