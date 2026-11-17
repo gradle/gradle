@@ -162,7 +162,6 @@ private fun BaseGradleBuildType.aiRetryDecisionStep() {
                 equals("teamcity.build.step.status.$GRADLE_RUNNER_STEP_NAME", "failure")
             }
             skipConditionally()
-            onlyRunOnGitHubMergeQueueBranch()
             scriptContent =
                 "curl --silent --show-error --max-time 60 -X POST -u \"teamcity:%gradle-bot.teamcity.webhook.password%\" " +
                 "\"https://gradle-bot.grdev.net/ai/retry-decision?buildId=%teamcity.build.id%\" || exit 0"
