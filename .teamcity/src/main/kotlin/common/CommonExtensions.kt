@@ -201,9 +201,11 @@ fun BuildType.paramsForBuildToolBuild(
     }
 }
 
-fun BuildStep.onlyRunOnGitHubMergeQueueBranch() {
+const val RETRY_REQUESTED_PARAMETER = "retry.requested"
+
+fun BuildStep.onlyRunWhenRetryRequested() {
     conditions {
-        matches("teamcity.build.branch", "gh-readonly-queue/.*")
+        equals(RETRY_REQUESTED_PARAMETER, "true")
     }
 }
 
@@ -335,7 +337,7 @@ fun BuildSteps.killProcessStep(
             }
         skipConditionally(buildType)
         if (mode == KILL_ALL_GRADLE_PROCESSES && buildType is FunctionalTest) {
-            onlyRunOnGitHubMergeQueueBranch()
+            onlyRunWhenRetryRequested()
         }
     }
 }

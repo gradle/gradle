@@ -101,7 +101,9 @@ class ApplyDefaultConfigurationTest {
             listOf(
                 "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
                 "GRADLE_RUNNER",
-                "AI_RETRY_DECISION",
+                "RETRY_DECISION",
+                "REQUEST_RETRY_FOR_MERGE_QUEUE",
+                "REQUEST_RETRY_FROM_AI",
                 "KILL_ALL_GRADLE_PROCESSES",
                 "CLEAN_UP_GIT_UNTRACKED_FILES_AND_DIRECTORIES",
                 "GRADLE_RETRY_RUNNER",
@@ -135,7 +137,9 @@ class ApplyDefaultConfigurationTest {
             listOf(
                 "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
                 "GRADLE_RUNNER",
-                "AI_RETRY_DECISION",
+                "RETRY_DECISION",
+                "REQUEST_RETRY_FOR_MERGE_QUEUE",
+                "REQUEST_RETRY_FROM_AI",
                 "KILL_ALL_GRADLE_PROCESSES",
                 "CLEAN_UP_GIT_UNTRACKED_FILES_AND_DIRECTORIES",
                 "GRADLE_RETRY_RUNNER",
