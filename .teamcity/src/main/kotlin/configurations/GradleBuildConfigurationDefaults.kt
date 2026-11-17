@@ -21,7 +21,6 @@ import common.onlyRunWhenRetryRequested
 import common.skipConditionally
 import jetbrains.buildServer.configs.kotlin.BuildFeatures
 import jetbrains.buildServer.configs.kotlin.BuildStep.ExecutionMode
-import jetbrains.buildServer.configs.kotlin.BuildStepConditions
 import jetbrains.buildServer.configs.kotlin.BuildSteps
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.ProjectFeatures
@@ -34,8 +33,6 @@ import model.CIBuildModel
 
 const val GRADLE_RUNNER_STEP_NAME = "GRADLE_RUNNER"
 const val GRADLE_RETRY_RUNNER_STEP_NAME = "GRADLE_RETRY_RUNNER"
-const val AI_RETRY_MODE_PARAMETER = "ai.retry.mode"
-const val AI_RETRY_DECISION_PARAMETER = "ai.retry.decision"
 
 fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
     if (model.publishStatusToGitHub) {
@@ -156,55 +153,39 @@ fun BaseGradleBuildType.gradleRunnerStep(
     }
 }
 
-private fun BaseGradleBuildType.retryDecisionSteps(os: Os) {
+private fun BaseGradleBuildType.retryDecisionStep(os: Os) {
     params {
         param(RETRY_REQUESTED_PARAMETER, "false")
-        param(AI_RETRY_DECISION_PARAMETER, "false")
     }
     steps {
-        retryDecisionStep("RETRY_DECISION", {
-            doesNotEqual(AI_RETRY_MODE_PARAMETER, "off")
-        }) {
-            "curl --silent --show-error --fail --max-time 60 -X POST -u \"teamcity:%gradle-bot.teamcity.webhook.password%\" " +
-                "\"%ai.retry.endpoint%?buildId=%teamcity.build.id%\" || " +
-                echoServiceMessage(os, "message text='AI retry decision is unavailable, not retrying' status='WARNING'")
-        }
-        retryDecisionStep("REQUEST_RETRY_FOR_MERGE_QUEUE", {
-            matches("teamcity.build.branch", "gh-readonly-queue/.*")
-        }) {
-            echoServiceMessage(os, "setParameter name='$RETRY_REQUESTED_PARAMETER' value='true'")
-        }
-        retryDecisionStep("REQUEST_RETRY_FROM_AI", {
-            equals(AI_RETRY_MODE_PARAMETER, "retry")
-            equals(AI_RETRY_DECISION_PARAMETER, "true")
-        }) {
-            echoServiceMessage(os, "setParameter name='$RETRY_REQUESTED_PARAMETER' value='true'")
+        script {
+            name = "RETRY_DECISION"
+            id = name
+            executionMode = ExecutionMode.RUN_ONLY_ON_FAILURE
+            conditions {
+                equals("teamcity.build.step.status.$GRADLE_RUNNER_STEP_NAME", "failure")
+            }
+            skipConditionally()
+            val requestRetry = "##teamcity[setParameter name='$RETRY_REQUESTED_PARAMETER' value='true']"
+            val warning = "##teamcity[message text='Retry decision is unavailable' status='WARNING']"
+            val curl =
+                "curl --silent --show-error --fail --max-time 60 -X POST -u \"teamcity:%gradle-bot.teamcity.webhook.password%\" " +
+                    "\"%ai.retry.endpoint%?buildId=%teamcity.build.id%&mode=%ai.retry.mode%\""
+            scriptContent =
+                if (os == Os.WINDOWS) {
+                    """
+                    echo %teamcity.build.branch%| findstr /b /c:"gh-readonly-queue/" >nul && echo $requestRetry
+                    if not "%ai.retry.mode%"=="off" ($curl || echo $warning)
+                    """.trimIndent()
+                } else {
+                    """
+                    case "%teamcity.build.branch%" in gh-readonly-queue/*) echo "$requestRetry" ;; esac
+                    if [ "%ai.retry.mode%" != "off" ]; then $curl || echo "$warning"; fi
+                    """.trimIndent()
+                }
         }
     }
 }
-
-private fun BuildSteps.retryDecisionStep(
-    stepName: String,
-    stepConditions: BuildStepConditions.() -> Unit,
-    content: () -> String,
-) {
-    script {
-        name = stepName
-        id = stepName
-        executionMode = ExecutionMode.RUN_ONLY_ON_FAILURE
-        conditions {
-            equals("teamcity.build.step.status.$GRADLE_RUNNER_STEP_NAME", "failure")
-            stepConditions()
-        }
-        skipConditionally()
-        scriptContent = content()
-    }
-}
-
-private fun echoServiceMessage(
-    os: Os,
-    message: String,
-) = if (os == Os.WINDOWS) "echo ##teamcity[$message]" else "echo \"##teamcity[$message]\""
 
 fun applyDefaults(
     model: CIBuildModel,
@@ -238,7 +219,7 @@ private fun BaseGradleBuildType.addRetrySteps(
     extraParameters: String = "",
     maxParallelForks: String = "%maxParallelForks%",
 ) {
-    retryDecisionSteps(os)
+    retryDecisionStep(os)
     killProcessStep(KILL_ALL_GRADLE_PROCESSES, os, arch, executionMode = ExecutionMode.RUN_ONLY_ON_FAILURE)
     cleanUpGitUntrackedFilesAndDirectories()
     gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, maxParallelForks = maxParallelForks, isRetry = true)
