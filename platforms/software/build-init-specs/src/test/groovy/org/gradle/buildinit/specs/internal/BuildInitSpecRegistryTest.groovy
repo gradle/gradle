@@ -18,16 +18,15 @@ package org.gradle.buildinit.specs.internal
 import org.gradle.buildinit.specs.BuildInitGenerator
 import org.gradle.builtinit.specs.internal.TestBuildInitSpec
 import org.gradle.builtinit.specs.internal.TestBuildInitGenerator
-import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 /**
  * Unit tests for {@link BuildInitSpecRegistry}.
  */
 class BuildInitSpecRegistryTest extends Specification {
-    def "empty registry is empty"() {
+    def "empty registry has no specs"() {
         expect:
-        new BuildInitSpecRegistry().snapshot().isEmpty()
+        new BuildInitSpecRegistry().snapshot().getAllSpecs().isEmpty()
     }
 
     def "registry provides loaded specs"() {
@@ -41,7 +40,6 @@ class BuildInitSpecRegistryTest extends Specification {
         registry.register(generator.class, [spec1, spec2])
 
         then: "loaded specs can be found"
-        !registry.snapshot().isEmpty()
         registry.snapshot().getAllSpecs() == [spec1, spec2]
         registry.snapshot().getGeneratorForSpec(spec1) == generator.class
         registry.snapshot().getGeneratorForSpec(spec2) == generator.class
@@ -59,31 +57,6 @@ class BuildInitSpecRegistryTest extends Specification {
         then: "specs with the same display name can't be found - we're finding specs by type"
         e = thrown(IllegalStateException)
         e.message == "Spec: 'My Name' with type: 'type3' is not registered!"
-    }
-
-    def "registry can look up spec by type"() {
-        given:
-        def generator = new TestBuildInitGenerator()
-        def spec1 = new TestBuildInitSpec("type1", "My Name")
-        def spec2 = new TestBuildInitSpec("type2", "My Other Name")
-        def registry = new BuildInitSpecRegistry()
-        registry.register(generator.class, [spec1, spec2])
-
-        when: "loaded specs can be found by type"
-        def result = registry.snapshot().getSpecByType("type1")
-
-        then:
-        result == spec1
-
-        when:
-        registry.snapshot().getSpecByType("unknown")
-
-        then: "Unknown spec type can't be found"
-        def e = thrown(IllegalStateException)
-        e.message == TextUtil.toPlatformLineSeparators("""Build init spec with type: 'unknown' was not found!
-Known types:
- - type1
- - type2""")
     }
 
     def "multiple specs with same type cannot be registered"() {
@@ -129,10 +102,7 @@ Known types:
         registry.register(generator.class, [spec2])
 
         then:
-        !registry.snapshot().isEmpty()
         registry.snapshot().getAllSpecs() == [spec1, spec2]
-        registry.snapshot().getSpecByType("type") == spec1
-        registry.snapshot().getSpecByType("type-2") == spec2
         registry.snapshot().getGeneratorForSpec(spec1) == generator.class
         registry.snapshot().getGeneratorForSpec(spec2) == generator.class
     }

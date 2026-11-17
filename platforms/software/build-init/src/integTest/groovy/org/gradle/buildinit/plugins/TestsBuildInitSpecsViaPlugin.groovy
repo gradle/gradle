@@ -52,11 +52,11 @@ trait TestsBuildInitSpecsViaPlugin {
         """)
     }
 
-    void publishTestPlugin() {
+    void publishTestPlugin(List<String> specTypes = ["first-project-type", "second-project-type"]) {
         def pluginProjectDir = file("plugin").with { createDir() }
         executer.usingProjectDirectory(pluginProjectDir)
 
-        PluginBuilder pluginBuilder = buildTestPlugin()
+        PluginBuilder pluginBuilder = buildTestPlugin(specTypes)
 
         executer.requireOwnGradleUserHomeDir("Adding new API that plugin needs") // TODO: Remove this when API is solid enough that it isn't changing every test run (it slows down test running)
         def results = pluginBuilder.publishAs("org.example.myplugin:plugin:1.0", mavenRepo, executer)
@@ -66,7 +66,7 @@ trait TestsBuildInitSpecsViaPlugin {
         println "To: '${mavenRepo.uri}'"
     }
 
-    private PluginBuilder buildTestPlugin() {
+    private PluginBuilder buildTestPlugin(List<String> specTypes) {
         def pluginBuilder = new PluginBuilder(testDirectory.file("plugin"))
 
         pluginBuilder.addSettingsPluginWithCustomCode("""
@@ -77,7 +77,7 @@ trait TestsBuildInitSpecsViaPlugin {
 
                 registry.register(
                     MyGenerator.class,
-                    java.util.Arrays.asList(new MyBuildSpec("first-project-type"), new MyBuildSpec("second-project-type"))
+                    java.util.Arrays.asList(${specTypes.collect { "new MyBuildSpec(\"$it\")" }.join(", ")})
                 );
 
                 logger.warning("MyPlugin applied.");

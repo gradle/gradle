@@ -62,6 +62,7 @@ class InitBuildSpec extends Specification {
         defaultGenerator = Mock()
         buildConverter = Mock()
         init.projectLayoutRegistry = projectLayoutRegistry
+        projectLayoutRegistry.allTypes >> ["java-library", "some-type"]
         init.insecureProtocol.convention(InsecureProtocolOption.WARN)
         init.useDefaults.convention(false)
         init.comments.convention(true)
@@ -76,6 +77,7 @@ class InitBuildSpec extends Specification {
         projectLayoutRegistry.componentTypes >> ComponentType.values().toList()
         projectLayoutRegistry.defaultComponentType >> ComponentType.values().first()
         projectLayoutRegistry.default >> defaultGenerator
+        defaultGenerator.componentType >> ComponentType.BASIC
         projectLayoutRegistry.getGeneratorsFor(_) >> [defaultGenerator]
         defaultGenerator.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
         defaultGenerator.dsls >> [KOTLIN]

@@ -19,6 +19,7 @@ package org.gradle.buildinit.specs.internal
 import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.AbstractInitIntegrationSpec
 import org.gradle.buildinit.plugins.TestsBuildInitSpecsViaPlugin
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
@@ -29,6 +30,8 @@ import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
 import spock.lang.Ignore
+
+import static org.hamcrest.CoreMatchers.containsString
 
 @Requires(JdkVersionTestPreconditions.Jdk17OrLater)
 class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implements TestsBuildInitSpecsViaPlugin, JavaToolchainFixture {
@@ -197,12 +200,12 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
     }
 
     @LeaksFileHandles
-    def "can generate custom project type using argument to init"() {
+    def "generates a contributed type selected with --type"() {
         given:
         publishTestPlugin()
 
         when:
-        initSucceedsWithPluginSupplyingSpec("org.example.myplugin:1.0")
+        initSucceedsWithPluginSupplyingSpec("org.example.myplugin:1.0", "first-project-type")
 
         then:
         assertResolvedPlugin("org.example.myplugin", "1.0")
@@ -210,7 +213,6 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
         assertLoadedSpec("First Project Type", "first-project-type")
         assertLoadedSpec("Second Project Type", "second-project-type")
 
-        // Note: If running in non-interactive mode, first template is automatically used
         assertProjectFileGenerated("project.output", "MyGenerator created this First Project Type project.")
         assertWrapperGenerated()
     }
@@ -221,7 +223,7 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
         publishTestPlugin()
 
         when:
-        initSucceedsWithPluginSupplyingSpec("org.example.myplugin:1.0,$ARBITRARY_PLUGIN_SPEC")
+        initSucceedsWithPluginSupplyingSpec("org.example.myplugin:1.0,$ARBITRARY_PLUGIN_SPEC", "first-project-type")
 
         then:
         assertResolvedPlugin("org.example.myplugin", "1.0")
@@ -230,7 +232,6 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
         assertLoadedSpec("First Project Type", "first-project-type")
         assertLoadedSpec("Second Project Type", "second-project-type")
 
-        // Note: If running in non-interactive mode, first template is used
         assertProjectFileGenerated("project.output", "MyGenerator created this First Project Type project.")
         assertWrapperGenerated()
     }
@@ -249,9 +250,95 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
         assertLoadedSpec("First Project Type", "first-project-type")
         assertLoadedSpec("Second Project Type", "second-project-type")
 
-        // Note: If running in non-interactive mode, first template is used
         assertProjectFileGenerated("project.output", "MyGenerator created this Second Project Type project.")
         assertWrapperGenerated()
+    }
+
+    @LeaksFileHandles
+    def "generates the default build type when a plugin contributes types and no type is given"() {
+        given:
+        publishTestPlugin()
+
+        when:
+        initSucceedsWithPluginSupplyingSpec("org.example.myplugin:1.0")
+
+        then:
+        outputContains("MyPlugin applied.")
+        rootProjectDslFixtureFor(BuildInitDsl.KOTLIN).buildFile.assertContents(containsString("This is a general purpose Gradle build"))
+        file("new-project/project.output").assertDoesNotExist()
+        assertWrapperGenerated()
+    }
+
+    @LeaksFileHandles
+    def "generates a built-in type selected with --type when a plugin contributes types"() {
+        given:
+        publishTestPlugin()
+
+        when:
+        initSucceedsWithPluginSupplyingSpec("org.example.myplugin:1.0", "java-library")
+
+        then:
+        outputContains("MyPlugin applied.")
+        file("new-project/lib").assertIsDir()
+        file("new-project/project.output").assertDoesNotExist()
+        assertWrapperGenerated()
+    }
+
+    @LeaksFileHandles
+    def "contributed type takes precedence over a built-in type with the same id"() {
+        given:
+        publishTestPlugin(["java-application"])
+
+        when:
+        initSucceedsWithPluginSupplyingSpec("org.example.myplugin:1.0", "java-application")
+
+        then:
+        outputContains("The contributed project type 'java-application' takes precedence over the built-in type with the same id.")
+        assertProjectFileGenerated("project.output", "MyGenerator created this Java Application project.")
+        file("new-project/app").assertDoesNotExist()
+        file("new-project/settings.gradle.kts").assertDoesNotExist()
+        assertWrapperGenerated()
+    }
+
+    @LeaksFileHandles
+    def "unknown type lists built-in and contributed types"() {
+        given:
+        publishTestPlugin()
+
+        when:
+        initFailsWithPluginSupplyingSpec("org.example.myplugin:1.0", "unknown-project-type")
+
+        then:
+        failure.assertHasCause("The requested build type 'unknown-project-type' is not supported. Supported types:")
+        failure.assertThatCause(containsString("'java-application'"))
+        failure.assertThatCause(containsString("'first-project-type'"))
+        failure.assertThatCause(containsString("'second-project-type'"))
+    }
+
+    @LeaksFileHandles
+    def "offers to convert a pom when a plugin contributes types"() {
+        given:
+        publishTestPlugin()
+        file("new-project/pom.xml") << """<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>util</groupId>
+    <artifactId>util</artifactId>
+    <version>2.5</version>
+    <packaging>jar</packaging>
+</project>
+"""
+
+        when:
+        initSucceedsWithPluginSupplyingSpec("org.example.myplugin:1.0")
+
+        then:
+        outputContains("MyPlugin applied.")
+        def dslFixture = rootProjectDslFixtureFor(BuildInitDsl.KOTLIN)
+        dslFixture.buildFile.assertContents(containsString('group = "util"'))
+        dslFixture.settingsFile.assertContents(containsString('rootProject.name = "util"'))
+        file("new-project/project.output").assertDoesNotExist()
     }
 
     @LeaksFileHandles
@@ -358,7 +445,7 @@ defaults {
     }
 
     @Requires(JdkVersionTestPreconditions.Jdk17OrLater)
-    def "gives decent error message when triggered with unknown init-type after loading project specs"() {
+    def "unknown type lists built-in and Declarative prototype types"() {
         when:
         targetDir = file("new-project").with { createDir() }
         withInstallations(Jvm.current(), AvailableJavaHomes.getJdk(JavaVersion.VERSION_17))
@@ -372,12 +459,19 @@ defaults {
         fails args
 
         then:
-        failure.assertHasCause("""Build init spec with type: 'unknown-project-type' was not found!
-Known types:
- - java-application""")
+        failure.assertHasCause("The requested build type 'unknown-project-type' is not supported. Supported types:")
+        failure.assertThatCause(containsString("'java-application'"))
     }
 
     private void initSucceedsWithPluginSupplyingSpec(String pluginsProp = null, String type = null) {
+        succeeds initArgs(pluginsProp, type)
+    }
+
+    private void initFailsWithPluginSupplyingSpec(String pluginsProp = null, String type = null) {
+        fails initArgs(pluginsProp, type)
+    }
+
+    private String[] initArgs(String pluginsProp, String type) {
         targetDir = file("new-project").with { createDir() }
 
         def args = ["init"]
@@ -394,7 +488,7 @@ Known types:
         println "Executing: '${args.join(" ")}'"
         println "Working Dir: '$targetDir'"
 
-        succeeds args
+        return args as String[]
     }
 
     @Override
