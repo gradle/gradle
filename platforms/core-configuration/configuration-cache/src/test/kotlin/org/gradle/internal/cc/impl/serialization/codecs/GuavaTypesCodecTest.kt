@@ -169,6 +169,36 @@ class GuavaTypesCodecTest : AbstractUserTypeCodecTest() {
     }
 
     @Test
+    fun `can handle immutable multimaps enclosing a circular reference to themselves`() {
+        val owner = Bean("owner")
+        val list = ImmutableListMultimap.of(owner, owner)
+        val set = ImmutableSetMultimap.of(owner, owner)
+        owner.reference = Pair(list, set)
+
+        configurationCacheRoundtripOf(list).run {
+            val restoredOwner = keySet().single()
+            assertThat(get(restoredOwner).single(), sameInstance(restoredOwner))
+            val (innerList, innerSet) = restoredOwner.reference!!.uncheckedCast<Pair<ImmutableListMultimap<Bean, Bean>, ImmutableSetMultimap<Bean, Bean>>>()
+            // the inner multimap is a copy of the enclosing one, but there is only one owner
+            assertThat(innerList, equalTo(this))
+            assertThat(innerList.keySet().single(), sameInstance(restoredOwner))
+            assertThat(innerList.values().single(), sameInstance(restoredOwner))
+            assertThat(innerSet.keySet().single(), sameInstance(restoredOwner))
+            assertThat(innerSet.values().single(), sameInstance(restoredOwner))
+        }
+        configurationCacheRoundtripOf(set).run {
+            val restoredOwner = keySet().single()
+            assertThat(get(restoredOwner).single(), sameInstance(restoredOwner))
+            val (innerList, innerSet) = restoredOwner.reference!!.uncheckedCast<Pair<ImmutableListMultimap<Bean, Bean>, ImmutableSetMultimap<Bean, Bean>>>()
+            assertThat(innerSet, equalTo(this))
+            assertThat(innerSet.keySet().single(), sameInstance(restoredOwner))
+            assertThat(innerSet.values().single(), sameInstance(restoredOwner))
+            assertThat(innerList.keySet().single(), sameInstance(restoredOwner))
+            assertThat(innerList.values().single(), sameInstance(restoredOwner))
+        }
+    }
+
+    @Test
     fun `can handle TreeMultiset`() {
         verifyRoundtripOf({
             TreeMultiset.create<String>().apply {
@@ -322,6 +352,32 @@ class GuavaTypesCodecTest : AbstractUserTypeCodecTest() {
             val other = restored.elementSet().filterIsInstance<IdentityBean>().single { it !== this }
             assertThat(other.name, equalTo("other"))
             assertThat(other.reference, sameInstance<Any>(this))
+        }
+    }
+
+    @Test
+    fun `can handle multisets enclosing a circular reference to themselves`() {
+        val treeOwner = Bean("owner")
+        val tree = TreeMultiset.create(BeanNameOrder()).apply { add(treeOwner, 2) }
+        treeOwner.reference = tree
+        configurationCacheRoundtripOf(tree).run {
+            val restoredOwner = elementSet().single()
+            assertThat(count(restoredOwner), equalTo(2))
+            // the inner multiset is a copy of the enclosing one, but there is only one owner
+            val inner = restoredOwner.reference!!.uncheckedCast<TreeMultiset<Bean>>()
+            assertThat(inner.elementSet().single(), sameInstance(restoredOwner))
+            assertThat(inner.count(restoredOwner), equalTo(2))
+        }
+
+        val concurrentOwner = IdentityBean("owner")
+        val concurrent = ConcurrentHashMultiset.create<IdentityBean>().apply { add(concurrentOwner, 2) }
+        concurrentOwner.reference = concurrent
+        configurationCacheRoundtripOf(concurrent).run {
+            val restoredOwner = elementSet().single()
+            assertThat(count(restoredOwner), equalTo(2))
+            val inner = restoredOwner.reference!!.uncheckedCast<ConcurrentHashMultiset<IdentityBean>>()
+            assertThat(inner.elementSet().single(), sameInstance(restoredOwner))
+            assertThat(inner.count(restoredOwner), equalTo(2))
         }
     }
 
