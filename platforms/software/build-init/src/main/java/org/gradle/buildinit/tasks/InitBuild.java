@@ -44,9 +44,9 @@ import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.BuildGenerator;
 import org.gradle.buildinit.plugins.internal.BuildInitException;
 import org.gradle.buildinit.plugins.internal.BuildInitializer;
-import org.gradle.buildinit.plugins.internal.GenerationSettings;
 import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
+import org.gradle.buildinit.plugins.internal.ProjectTypeChoice;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
@@ -70,6 +70,7 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import javax.lang.model.SourceVersion;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -308,43 +309,70 @@ public abstract class InitBuild extends DefaultTask {
     @TaskAction
     public void setupProjectLayout() {
         UserInputHandler inputHandler = getEffectiveInputHandler();
-        if (shouldUseInitProjectSpec(inputHandler)) {
-            doInitSpecProjectGeneration(inputHandler);
-        } else {
-            doStandardProjectGeneration(inputHandler);
-        }
-    }
-
-    private boolean shouldUseInitProjectSpec(UserInputHandler inputHandler) {
-        boolean templatesAvailable = !contributedSpecs.isEmpty();
-        return templatesAvailable && inputHandler.askUser(uq -> uq.askBooleanQuestion("Additional project types were loaded.  Do you want to generate a project using a contributed project specification?", true)).get();
-    }
-
-    private void doInitSpecProjectGeneration(UserInputHandler inputHandler) {
-        BuildInitConfig config = inputHandler.askUser(this::selectAndConfigureSpec).get();
-        BuildInitGenerator generator = createGenerator(config);
-        boolean userInterrupted = inputHandler.interrupted();
-        if (userInterrupted) {
+        Runnable generation = inputHandler.askUser(this::prepareGeneration).get();
+        if (inputHandler.interrupted()) {
             throw new BuildCancelledException();
         }
-        getLogger().lifecycle("Generate '{}'", config.getBuildSpec().getDisplayName());
-        Directory projectDirectory = getProjectDirectory().get();
-        generator.generate(config, projectDirectory);
-        generateWrapper(projectDirectory);
+        generation.run();
     }
 
-    private BuildInitConfig selectAndConfigureSpec(UserQuestions userQuestions) {
-        BuildInitSpec spec;
-        if (type == null) {
-            spec = userQuestions.choice("Select project type", contributedSpecs.getAllSpecs())
-                .renderUsing(BuildInitSpec::getDisplayName)
-                .ask();
-        } else {
-            spec = contributedSpecs.getSpecByType(type);
+    private Runnable prepareGeneration(UserQuestions userQuestions) {
+        validateBuildDirectory(userQuestions);
+
+        ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
+        if (!isNullOrEmpty(type)) {
+            BuildInitSpec contributedSpec = findContributedSpec(type);
+            if (contributedSpec != null) {
+                if (projectLayoutRegistry.getAllTypes().contains(type)) {
+                    getLogger().info("The contributed project type '{}' takes precedence over the built-in type with the same id.", type);
+                }
+                return prepareContributedGeneration(contributedSpec);
+            }
+            if (projectLayoutRegistry.getAllTypes().contains(type)) {
+                return prepareStandardGeneration(userQuestions, projectLayoutRegistry.get(type));
+            }
+            throw unsupportedType(type);
         }
 
+        BuildConverter converter = projectLayoutRegistry.getBuildConverter();
+        if (converter.canApplyToCurrentDirectory(getProjectDirectory().get())) {
+            if (userQuestions.askBooleanQuestion("Found a " + converter.getSourceBuildDescription() + " build. Generate a Gradle build from this?", true)) {
+                return prepareStandardGeneration(userQuestions, converter);
+            }
+        }
+
+        ProjectTypeChoice choice = selectTypeOfBuild(userQuestions, projectLayoutRegistry);
+        BuildInitSpec contributedSpec = choice.getContributedSpec();
+        if (contributedSpec != null) {
+            return prepareContributedGeneration(contributedSpec);
+        }
+        BuildGenerator generator = selectGenerator(userQuestions, projectLayoutRegistry, Objects.requireNonNull(choice.getComponentType()));
+        return prepareStandardGeneration(userQuestions, generator);
+    }
+
+    private @Nullable BuildInitSpec findContributedSpec(String type) {
+        for (BuildInitSpec spec : contributedSpecs.getAllSpecs()) {
+            if (spec.getType().equals(type)) {
+                return spec;
+            }
+        }
+        return null;
+    }
+
+    private GradleException unsupportedType(String type) {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("The requested build type '" + type + "' is not supported. Supported types");
+        formatter.startChildren();
+        for (String candidate : getAvailableBuildTypes()) {
+            formatter.node("'" + candidate + "'");
+        }
+        formatter.endChildren();
+        return new GradleException(formatter.toString());
+    }
+
+    private Runnable prepareContributedGeneration(BuildInitSpec spec) {
         // TODO: Ask questions for each parameter, and return a configuration object with populated arguments
-        return new BuildInitConfig() {
+        BuildInitConfig config = new BuildInitConfig() {
             @Override
             @NonNull
             public BuildInitSpec getBuildSpec() {
@@ -357,35 +385,26 @@ public abstract class InitBuild extends DefaultTask {
                 return Collections.emptyMap();
             }
         };
+        return () -> {
+            BuildInitGenerator generator = getObjectFactory().newInstance(contributedSpecs.getGeneratorForSpec(spec));
+            getLogger().lifecycle("Generate '{}'", spec.getDisplayName());
+            Directory projectDirectory = getProjectDirectory().get();
+            generator.generate(config, projectDirectory);
+            generateWrapper(projectDirectory);
+        };
     }
 
-    private BuildInitGenerator createGenerator(BuildInitConfig config) {
-        Class<? extends BuildInitGenerator> generator = contributedSpecs.getGeneratorForSpec(config.getBuildSpec());
-        return getObjectFactory().newInstance(generator);
+    private Runnable prepareStandardGeneration(UserQuestions userQuestions, BuildInitializer initializer) {
+        InitSettings settings = calculateInitSettings(userQuestions, initializer);
+        return () -> {
+            initializer.generate(settings);
+            generateWrapper(settings.getTarget());
+            initializer.getFurtherReading(settings)
+                .ifPresent(link -> getLogger().lifecycle(link));
+        };
     }
 
-    private void doStandardProjectGeneration(UserInputHandler inputHandler) {
-        GenerationSettings settings = inputHandler.askUser(this::calculateGenerationSettings).get();
-
-        boolean userInterrupted = inputHandler.interrupted();
-        if (userInterrupted) {
-            throw new BuildCancelledException();
-        }
-
-        settings.getInitializer().generate(settings.getSettings());
-        generateWrapper(settings.getSettings().getTarget());
-
-        settings.getInitializer().getFurtherReading(settings.getSettings())
-            .ifPresent(link -> getLogger().lifecycle(link));
-    }
-
-    private GenerationSettings calculateGenerationSettings(UserQuestions userQuestions) {
-        validateBuildDirectory(userQuestions);
-
-        ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
-
-        BuildInitializer initializer = getBuildInitializer(userQuestions, projectLayoutRegistry);
-
+    private InitSettings calculateInitSettings(UserQuestions userQuestions, BuildInitializer initializer) {
         JavaLanguageVersion javaLanguageVersion = getJavaLanguageVersion(userQuestions, initializer);
 
         String projectName = getEffectiveProjectName(userQuestions, initializer);
@@ -404,7 +423,7 @@ public abstract class InitBuild extends DefaultTask {
         boolean generateComments = getComments().get();
 
         List<String> subprojectNames = initializer.getDefaultProjectNames();
-        InitSettings initSettings = new InitSettings(
+        return new InitSettings(
             projectName,
             useIncubatingAPIs,
             subprojectNames,
@@ -417,7 +436,6 @@ public abstract class InitBuild extends DefaultTask {
             javaLanguageVersion,
             generateComments
         );
-        return new GenerationSettings(initializer, initSettings);
     }
 
     private void generateWrapper(Directory projectDirectory) {
@@ -598,29 +616,30 @@ public abstract class InitBuild extends DefaultTask {
         return packageName;
     }
 
-    private BuildInitializer getBuildInitializer(UserQuestions userQuestions, ProjectLayoutSetupRegistry projectLayoutRegistry) {
-        if (!isNullOrEmpty(type)) {
-            return projectLayoutRegistry.get(type);
-        }
-
-        BuildConverter converter = projectLayoutRegistry.getBuildConverter();
-        if (converter.canApplyToCurrentDirectory(getProjectDirectory().get())) {
-            if (userQuestions.askBooleanQuestion("Found a " + converter.getSourceBuildDescription() + " build. Generate a Gradle build from this?", true)) {
-                return converter;
-            }
-        }
-        return selectTypeOfBuild(userQuestions, projectLayoutRegistry);
-    }
-
-    private static BuildGenerator selectTypeOfBuild(UserQuestions userQuestions, ProjectLayoutSetupRegistry projectLayoutRegistry) {
+    private ProjectTypeChoice selectTypeOfBuild(UserQuestions userQuestions, ProjectLayoutSetupRegistry projectLayoutRegistry) {
         // Require that the default option is also the first option
         assert projectLayoutRegistry.getDefaultComponentType() == projectLayoutRegistry.getComponentTypes().get(0);
 
-        ComponentType componentType = userQuestions.choice("Select type of build to generate", projectLayoutRegistry.getComponentTypes())
-            .renderUsing(ComponentType::getDisplayName)
-            .defaultOption(projectLayoutRegistry.getDefaultComponentType())
-            .whenNotConnected(projectLayoutRegistry.getDefault().getComponentType())
+        Map<ComponentType, ProjectTypeChoice> builtInChoices = new LinkedHashMap<>();
+        for (ComponentType componentType : projectLayoutRegistry.getComponentTypes()) {
+            builtInChoices.put(componentType, ProjectTypeChoice.of(componentType));
+        }
+        List<ProjectTypeChoice> choices = new ArrayList<>(builtInChoices.values());
+        for (BuildInitSpec spec : contributedSpecs.getAllSpecs()) {
+            choices.add(ProjectTypeChoice.of(spec));
+        }
+
+        return userQuestions.choice("Select type of build to generate", choices)
+            .renderUsing(ProjectTypeChoice::getDisplayName)
+            .defaultOption(Objects.requireNonNull(
+                builtInChoices.get(projectLayoutRegistry.getDefaultComponentType()),
+                () -> "No built-in choice for the default component type " + projectLayoutRegistry.getDefaultComponentType()
+            ))
+            .whenNotConnected(Objects.requireNonNull(builtInChoices.get(projectLayoutRegistry.getDefault().getComponentType())))
             .ask();
+    }
+
+    private static BuildGenerator selectGenerator(UserQuestions userQuestions, ProjectLayoutSetupRegistry projectLayoutRegistry, ComponentType componentType) {
         List<BuildGenerator> generators = projectLayoutRegistry.getGeneratorsFor(componentType);
         if (generators.size() == 1) {
             return generators.get(0);
@@ -657,7 +676,13 @@ public abstract class InitBuild extends DefaultTask {
     @OptionValues("type")
     @ToBeReplacedByLazyProperty(comment = "Not yet supported", issue = "https://github.com/gradle/gradle/issues/29341")
     public List<String> getAvailableBuildTypes() {
-        return getProjectLayoutRegistry().getAllTypes();
+        List<String> types = new ArrayList<>(getProjectLayoutRegistry().getAllTypes());
+        for (BuildInitSpec spec : contributedSpecs.getAllSpecs()) {
+            if (!types.contains(spec.getType())) {
+                types.add(spec.getType());
+            }
+        }
+        return types;
     }
 
     /**

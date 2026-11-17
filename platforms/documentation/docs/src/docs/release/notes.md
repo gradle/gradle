@@ -124,6 +124,15 @@ Gradle provides comprehensive support for [JVM languages](userguide/building_jav
 ### Core plugin and plugin authoring enhancements
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
 
+#### Plugin-contributed project types in init
+
+The project types that plugins contribute through the incubating build init specs API are now listed in the first question of the [`init` task](userguide/build_init_plugin.html), after the built-in types.
+To pick one without the questions, pass its id with `--type`.
+When a contributed type has the same id as a built-in type, `--type` picks the contributed one.
+
+Without `--type`, a non-interactive `init` now generates the default built-in build, even when a plugin contributes types.
+Before, it generated the first contributed type.
+
 ### Security and infrastructure
 Gradle provides robust [security features and underlying infrastructure](userguide/security.html) to ensure that builds are secure, reproducible, and easy to maintain.
 

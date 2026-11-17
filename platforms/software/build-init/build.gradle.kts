@@ -15,6 +15,7 @@ dependencies {
 
     api(projects.baseServices)
     api(projects.buildInitSpecs)
+    api(projects.buildInitSpecsApi)
     api(projects.core)
     api(projects.coreApi)
     api(projects.daemonServerWorker)
@@ -28,7 +29,6 @@ dependencies {
     api(projects.jvmServices)
     api(projects.workers)
 
-    implementation(projects.buildInitSpecsApi)
     implementation(projects.fileOperations)
     implementation(projects.loggingApi)
     implementation(projects.platformNative)

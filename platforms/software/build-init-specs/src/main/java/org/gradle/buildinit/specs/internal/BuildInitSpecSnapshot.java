@@ -44,38 +44,6 @@ public final class BuildInitSpecSnapshot {
         return specsByGeneratorType.values().stream().flatMap(List::stream).collect(Collectors.toList());
     }
 
-    public boolean isEmpty() {
-        return specsByGeneratorType.isEmpty();
-    }
-
-    /**
-     * Returns the {@link BuildInitSpec} with the given type; throwing
-     * an exception if there is not exactly one such spec.
-     *
-     * @param type the type of the project spec to find
-     * @return the project spec with the given type
-     */
-    public BuildInitSpec getSpecByType(String type) {
-        List<BuildInitSpec> matchingSpecs = getAllSpecs().stream()
-            .filter(spec -> Objects.equals(spec.getType(), type))
-            .collect(Collectors.toList());
-
-        switch (matchingSpecs.size()) {
-            case 0:
-                throw new IllegalStateException("Build init spec with type: '" + type + "' was not found!" + System.lineSeparator() +
-                    "Known types:" + System.lineSeparator() +
-                    getAllSpecs().stream()
-                        .map(BuildInitSpec::getType)
-                        .map(t -> " - " + t)
-                        .collect(Collectors.joining(System.lineSeparator()))
-                );
-            case 1:
-                return matchingSpecs.get(0);
-            default:
-                throw new IllegalStateException("Multiple project specs: " + matchingSpecs.stream().map(BuildInitSpec::getDisplayName).collect(Collectors.joining(", ")) + " with type: '" + type + "' were found!");
-        }
-    }
-
     /**
      * Returns the {@link BuildInitGenerator} type that can be used to generate a project
      * with the given {@link BuildInitSpec}.

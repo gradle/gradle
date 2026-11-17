@@ -26,26 +26,23 @@ import org.gradle.util.internal.TextUtil
 
 @LeaksFileHandles
 class BuildInitSpecsInteractiveIntegrationTest extends AbstractInteractiveInitIntegrationSpec implements TestsBuildInitSpecsViaPlugin {
-    def "prompts to choose dynamically loaded project type properly and generates project when selected"() {
+    def "offers contributed project types in the build type prompt and generates the selected one"() {
         given:
         publishTestPlugin()
 
         when:
         def handle = startInteractiveInit()
 
-        // Select 'yes'
-        ConcurrentTestUtil.poll(120) {
-            assert handle.standardOutput.contains("Additional project types were loaded.  Do you want to generate a project using a contributed project specification? (default: yes) [yes, no]")
-        }
-        handle.stdinPipe.write(("yes" + TextUtil.platformLineSeparator).bytes)
-
         // Select First Project Type
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("1: First Project Type")
-            assert handle.standardOutput.contains("2: Second Project Type")
+        ConcurrentTestUtil.poll(120) {
+            assert handle.standardOutput.contains(buildTypePrompt)
+            assert handle.standardOutput.contains("1: Application")
+            assert handle.standardOutput.contains("4: Basic (build structure only)")
+            assert handle.standardOutput.contains("5: First Project Type (contributed by a plugin)")
+            assert handle.standardOutput.contains("6: Second Project Type (contributed by a plugin)")
             assert !handle.standardOutput.contains("pom")
         }
-        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write(("5" + TextUtil.platformLineSeparator).bytes)
 
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains("Generate 'First Project Type'")
@@ -57,6 +54,29 @@ class BuildInitSpecsInteractiveIntegrationTest extends AbstractInteractiveInitIn
         assertWrapperGenerated()
     }
 
+    def "offers both a built-in type and a contributed type with the same id"() {
+        given:
+        publishTestPlugin(["java-application"])
+
+        when:
+        def handle = startInteractiveInit()
+
+        ConcurrentTestUtil.poll(120) {
+            assert handle.standardOutput.contains(buildTypePrompt)
+            assert handle.standardOutput.contains("1: Application")
+            assert handle.standardOutput.contains("5: Java Application (contributed by a plugin)")
+        }
+        handle.stdinPipe.write(("5" + TextUtil.platformLineSeparator).bytes)
+
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains("Generate 'Java Application'")
+        }
+        closeInteractiveExecutor(handle)
+
+        then:
+        assertProjectFileGenerated("project.output", "MyGenerator created this Java Application project.")
+    }
+
     def "can cancel generation"() {
         given:
         publishTestPlugin()
@@ -64,16 +84,13 @@ class BuildInitSpecsInteractiveIntegrationTest extends AbstractInteractiveInitIn
         when:
         def handle = startInteractiveInit()
 
-        // Select 'yes'
+        // Wait for the build type prompt
         ConcurrentTestUtil.poll(120) {
-            assert handle.standardOutput.contains("Additional project types were loaded.  Do you want to generate a project using a contributed project specification? (default: yes) [yes, no]")
-        }
-        handle.stdinPipe.write(("yes" + TextUtil.platformLineSeparator).bytes)
-
-        // Select First Project Type
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("1: First Project Type")
-            assert handle.standardOutput.contains("2: Second Project Type")
+            assert handle.standardOutput.contains(buildTypePrompt)
+            assert handle.standardOutput.contains("1: Application")
+            assert handle.standardOutput.contains("4: Basic (build structure only)")
+            assert handle.standardOutput.contains("5: First Project Type (contributed by a plugin)")
+            assert handle.standardOutput.contains("6: Second Project Type (contributed by a plugin)")
             assert !handle.standardOutput.contains("pom")
         }
         // Interrupt input
