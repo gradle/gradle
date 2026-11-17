@@ -127,6 +127,12 @@ public class TaskExecution implements MutableUnitOfWork {
     private final TaskInternal task;
 
     /**
+     * The search for the dependencies of this task, shared by all its input locations, so the task's
+     * dependency graph is searched at most once.
+     */
+    private MissingTaskDependencyDetector.@Nullable DependencySearch dependencySearch;
+
+    /**
      * The operation measuring input snapshotting and cache key calculation.
      * Started by {@link #markLegacySnapshottingInputsStarted()} and cleared by whichever of the
      * finish methods runs first.
@@ -528,28 +534,32 @@ public class TaskExecution implements MutableUnitOfWork {
     @Override
     public FileCollectionStructureVisitor getInputDependencyChecker(WorkValidationContext workValidationContext) {
         TypeValidationContext validationContext = getTypeValidationContext(workValidationContext);
+        if (dependencySearch == null) {
+            dependencySearch = new MissingTaskDependencyDetector.DependencySearch(node);
+        }
+        MissingTaskDependencyDetector.DependencySearch localSearch = dependencySearch;
         return new FileCollectionStructureVisitor() {
             @Override
             public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
                 contents.forEach(root -> missingTaskDependencyDetector.visitUnfilteredInputLocation(
-                    node, validationContext, root.getAbsolutePath()));
+                    node, localSearch, validationContext, root.getAbsolutePath()));
             }
 
             @Override
             public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
                 if (patterns.isEmpty()) {
                     missingTaskDependencyDetector.visitUnfilteredInputLocation(
-                        node, validationContext, root.getAbsolutePath());
+                        node, localSearch, validationContext, root.getAbsolutePath());
                 } else {
                     missingTaskDependencyDetector.visitFilteredInputLocation(
-                        node, validationContext, root.getAbsolutePath(), patterns.getAsSpec());
+                        node, localSearch, validationContext, root.getAbsolutePath(), patterns.getAsSpec());
                 }
             }
 
             @Override
             public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                 missingTaskDependencyDetector.visitUnfilteredInputLocation(
-                    node, validationContext, file.getAbsolutePath());
+                    node, localSearch, validationContext, file.getAbsolutePath());
             }
         };
     }

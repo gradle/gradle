@@ -16,6 +16,8 @@
 
 package org.gradle.execution.plan;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
@@ -30,7 +32,6 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.Queue;
 import java.util.Set;
 
 import static org.gradle.internal.deprecation.Documentation.userManual;
@@ -61,18 +62,22 @@ public class MissingTaskDependencyDetector {
 
     /**
      * Records the given node accessing the given input location and checks if there are any nodes producing the location that the node does not depend on.
+     *
+     * @param dependenciesOfNode the search for the dependencies of the given node, shared by all input locations of one execution of the node
      */
-    public void visitUnfilteredInputLocation(LocalTaskNode node, TypeValidationContext validationContext, String location) {
+    public void visitUnfilteredInputLocation(LocalTaskNode node, DependencySearch dependenciesOfNode, TypeValidationContext validationContext, String location) {
         inputHierarchy.recordNodeAccessingLocation(node, location);
-        collectValidationProblemsForConsumer(node, validationContext, location, outputHierarchy.getNodesAccessing(location));
+        collectValidationProblemsForConsumer(node, dependenciesOfNode, validationContext, location, outputHierarchy.getNodesAccessing(location));
     }
 
     /**
      * Records the given node accessing the given input location with a filter, and checks if there are any nodes producing the location that the node does not depend on.
+     *
+     * @param dependenciesOfNode the search for the dependencies of the given node, shared by all input locations of one execution of the node
      */
-    public void visitFilteredInputLocation(LocalTaskNode node, TypeValidationContext validationContext, String location, Spec<FileTreeElement> spec) {
+    public void visitFilteredInputLocation(LocalTaskNode node, DependencySearch dependenciesOfNode, TypeValidationContext validationContext, String location, Spec<FileTreeElement> spec) {
         inputHierarchy.recordNodeAccessingFileTree(node, location, spec);
-        collectValidationProblemsForConsumer(node, validationContext, location, outputHierarchy.getNodesAccessing(location, spec));
+        collectValidationProblemsForConsumer(node, dependenciesOfNode, validationContext, location, outputHierarchy.getNodesAccessing(location, spec));
     }
 
     /**
@@ -83,9 +88,9 @@ public class MissingTaskDependencyDetector {
         collectValidationProblemsForProducer(node, validationContext, location, inputHierarchy.getNodesAccessing(location));
     }
 
-    private static void collectValidationProblemsForConsumer(LocalTaskNode consumer, TypeValidationContext validationContext, String locationConsumedByThisTask, Collection<Node> producers) {
+    private static void collectValidationProblemsForConsumer(LocalTaskNode consumer, DependencySearch dependenciesOfConsumer, TypeValidationContext validationContext, String locationConsumedByThisTask, Collection<Node> producers) {
         for (Node producerNode : producers) {
-            if (!hasNoSpecifiedOrder(producerNode, consumer)) {
+            if (!hasNoSpecifiedOrder(producerNode, consumer, dependenciesOfConsumer)) {
                 continue;
             }
             LocalTaskNode producerWithoutDependency = asEnabledTaskNode(producerNode);
@@ -102,7 +107,7 @@ public class MissingTaskDependencyDetector {
 
     private static void collectValidationProblemsForProducer(LocalTaskNode node, TypeValidationContext validationContext, String outputPath, Collection<Node> consumers) {
         for (Node consumerNode : consumers) {
-            if (!hasNoSpecifiedOrder(node, consumerNode)) {
+            if (!hasNoSpecifiedOrder(node, consumerNode, new DependencySearch(consumerNode))) {
                 continue;
             }
             LocalTaskNode consumerWithoutDependency = asEnabledTaskNode(consumerNode);
@@ -135,11 +140,11 @@ public class MissingTaskDependencyDetector {
     // And for that case, there will be a cyclic dependency between the 'analyze' and the 'format' task if we only take output/input locations into account.
     // Therefore, we currently allow these kind of missing dependencies, as long as any order has been specified.
     // See https://github.com/gradle/gradle/issues/15616.
-    private static boolean hasNoSpecifiedOrder(Node producerNode, Node consumerNode) {
-        return missesDependency(producerNode, consumerNode) && missesDependency(consumerNode, producerNode);
+    private static boolean hasNoSpecifiedOrder(Node producerNode, Node consumerNode, DependencySearch dependenciesOfConsumer) {
+        return missesDependency(producerNode, consumerNode, dependenciesOfConsumer) && missesDependency(consumerNode, producerNode, new DependencySearch(producerNode));
     }
 
-    private static boolean missesDependency(Node producer, Node consumer) {
+    private static boolean missesDependency(Node producer, Node consumer, DependencySearch dependenciesOfConsumer) {
         if (consumer == producer) {
             return false;
         }
@@ -148,38 +153,62 @@ public class MissingTaskDependencyDetector {
         if (consumer.getDependencySuccessors().contains(producer)) {
             return false;
         }
-        // Do a breadth first search for any dependency
-        Deque<Node> queue = new ArrayDeque<>();
-        Set<Node> seenNodes = new HashSet<>();
-        addHardSuccessorTasksToQueue(consumer, seenNodes, queue);
-        while (!queue.isEmpty()) {
-            Node dependency = queue.removeFirst();
-            if (dependency == producer) {
-                return false;
-            }
-            addHardSuccessorTasksToQueue(dependency, seenNodes, queue);
-        }
-        return true;
+        return !dependenciesOfConsumer.reaches(producer);
     }
 
-    private static void addHardSuccessorTasksToQueue(Node node, Set<Node> seenNodes, Queue<Node> queue) {
-        node.getHardSuccessors().forEach(successor -> {
-            // We are searching for dependencies between tasks, so we can skip everything which is not a task when searching.
-            // For example, we can skip all the transform nodes between two task nodes.
-            if (successor instanceof TaskInAnotherBuild) {
-                // A reference to a task in another build is a proxy for the task node in the other build's work graph.
-                Node targetNode = ((TaskInAnotherBuild) successor).getTargetNode();
-                if (seenNodes.add(targetNode)) {
-                    queue.add(targetNode);
-                }
-            } else if (successor instanceof TaskNode || successor instanceof OrdinalNode) {
-                if (seenNodes.add(successor)) {
-                    queue.add(successor);
-                }
-            } else {
-                addHardSuccessorTasksToQueue(successor, seenNodes, queue);
+    /**
+     * A breadth-first search for any dependency of a node. This search short-circuits
+     * when it finds a result and caches intermediate results to avoid searching the
+     * same subgraph multiple times.
+     */
+    public static final class DependencySearch {
+
+        private final Deque<Node> queue = new ArrayDeque<>();
+        private final Set<Node> seenNodes = new HashSet<>();
+
+        /**
+         * Create a new search for the dependencies of the given node.
+         */
+        public DependencySearch(Node node) {
+            queue.add(node);
+        }
+
+        @VisibleForTesting
+        boolean reaches(Node dependency) {
+            if (seenNodes.contains(dependency)) {
+                return true;
             }
-        });
+
+            while (!queue.isEmpty()) {
+                // Add all successors of the node before returning, so the search can continue
+                // from here in the next query.
+                boolean found = false;
+                for (Node successor : queue.removeFirst().getHardSuccessors()) {
+                    Node node = getTargetNode(successor);
+                    if (seenNodes.add(node)) {
+                        queue.add(node);
+                        found |= node == dependency;
+                    }
+                }
+                if (found) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /**
+         * Return the actual target node for a given node, which may be a proxy for a node in
+         * another build.
+         */
+        private static Node getTargetNode(Node successor) {
+            if (successor instanceof TaskInAnotherBuild) {
+                return ((TaskInAnotherBuild) successor).getTargetNode();
+            }
+            return successor;
+        }
+
     }
 
     private static final String IMPLICIT_DEPENDENCY = "IMPLICIT_DEPENDENCY";
