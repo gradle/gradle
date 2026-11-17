@@ -124,7 +124,7 @@ dependencies {
         checkstyle("commons-beanutils:commons-beanutils:1.11.0") {
             because("Bump version brought in transitively by Checkstyle, to resolve CVE-2025-48734")
         }
-        checkstyle("com.google.guava:guava:33.4.6-jre") {
+        checkstyle("com.google.guava:guava:33.7.2-jre") {
             because("Bump version brought in transitively by Checkstyle, to resolve CVE-2023-2976")
         }
     }
