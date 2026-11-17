@@ -31,6 +31,7 @@ import org.gradle.features.annotations.RegistersProjectFeatures;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.tasks.execution.TaskLifecycleListenerClassInfoStore;
+import org.gradle.api.internal.tasks.execution.TaskLifecycleListenerScheme;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
@@ -268,8 +269,21 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    TaskLifecycleListenerClassInfoStore createTaskLifecycleListenerClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory, TaskScheme taskScheme, InstantiatorFactory instantiatorFactory) {
-        return new TaskLifecycleListenerClassInfoStore(cacheFactory, taskScheme.getMetadataStore(), instantiatorFactory.injectScheme());
+    TaskLifecycleListenerScheme createTaskLifecycleListenerScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
+        // Inject only, decorating the listeners with DSL support would require more services
+        InstantiationScheme instantiationScheme = instantiatorFactory.injectScheme();
+        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
+            ImmutableSet.of(ServiceReference.class),
+            ImmutableSet.of(Optional.class),
+            ImmutableSet.of(),
+            instantiationScheme,
+            TaskLifecycleListenerScheme.MISSING_ANNOTATION_HANDLER);
+        return new TaskLifecycleListenerScheme(instantiationScheme, inspectionScheme);
+    }
+
+    @Provides
+    TaskLifecycleListenerClassInfoStore createTaskLifecycleListenerClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory, TaskLifecycleListenerScheme listenerScheme) {
+        return new TaskLifecycleListenerClassInfoStore(cacheFactory, listenerScheme);
     }
 
     @Provides

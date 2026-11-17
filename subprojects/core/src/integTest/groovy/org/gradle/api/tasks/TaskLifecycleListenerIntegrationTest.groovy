@@ -1253,7 +1253,7 @@ legacy after"""
         outputContains("before :foo")
     }
 
-    def "cannot register listener with nested property"() {
+    def "cannot register listener with #annotations property"() {
         buildFile """
             import org.gradle.api.services.BuildService
             import org.gradle.api.services.BuildServiceParameters
@@ -1269,7 +1269,7 @@ legacy after"""
             }
 
             abstract class NestedListener implements TaskLifecycleListener<Task> {
-                @Nested
+                $annotations
                 abstract Greeting getGreeting()
             }
 
@@ -1282,7 +1282,95 @@ legacy after"""
         fails "foo"
 
         then:
-        assertFailedAtListenerRegistration(":foo", "Cannot use lifecycle listener NestedListener: property 'greeting' is annotated with @Nested, which is not supported for lifecycle listeners.")
+        assertFailedAtListenerRegistration(":foo", problem)
+
+        where:
+        annotations         | problem
+        "@Nested"           | "Type 'NestedListener' property 'greeting' is annotated with invalid property type @Nested."
+        "@Internal @Nested" | "Type 'NestedListener' property 'greeting' annotated with @Internal should not be also annotated with @Nested."
+    }
+
+    def "listener can have concrete getters"() {
+        buildFile """
+            abstract class TimingListener implements TaskLifecycleListener<Task> {
+                // Groovy generates getStartedBy() and setStartedBy()
+                String startedBy
+
+                String getName() { "listener" }
+
+                void beforeExecution(Task task) {
+                    startedBy = task.path
+                }
+
+                void afterExecution(Task task, TaskState state) {
+                    println "\${name} paired \${startedBy}"
+                }
+            }
+
+            tasks.register("foo") {
+                addLifecycleListener(TimingListener)
+            }
+        """
+
+        when:
+        run "foo"
+
+        then:
+        outputContains("listener paired :foo")
+    }
+
+    def "abstract getter that is neither a service reference nor an injected service is rejected at registration"() {
+        buildFile """
+            abstract class GreetingListener implements TaskLifecycleListener<Task> {
+                $declaration
+            }
+
+            tasks.register("foo") {
+                addLifecycleListener(GreetingListener)
+            }
+        """
+
+        when:
+        fails "foo"
+
+        then:
+        assertFailedAtListenerRegistration(":foo", "Type 'GreetingListener' property 'greeting' is abstract but is not annotated with @ServiceReference or @Inject.")
+
+        where:
+        declaration << [
+            "abstract Property<String> getGreeting()",
+            // Such as a base listener that leaves the getter to subclasses
+            "abstract String getGreeting()",
+            "abstract String getGreeting(); abstract void setGreeting(String value)",
+            // @Inject is missing
+            "abstract ObjectFactory getGreeting()",
+        ]
+    }
+
+    def "listener can implement abstract getters of its base listener"() {
+        buildFile """
+            abstract class ReportingListener implements TaskLifecycleListener<Task> {
+                abstract String getLabel()
+
+                void beforeExecution(Task task) {
+                    println "\${label} \${task.path}"
+                }
+            }
+
+            abstract class CompileListener extends ReportingListener {
+                String getLabel() { "compile" }
+            }
+
+            tasks.register("foo") {
+                addLifecycleListener(CompileListener)
+            }
+        """
+
+        when:
+        run "foo"
+
+        then:
+        outputContains("compile :foo")
     }
 
     def "listener can inject #service"() {
@@ -1346,13 +1434,17 @@ legacy after"""
         ]
     }
 
-    def "listener that references a type that is not a build service is rejected at registration"() {
+    def "listener with service reference of type #type is rejected at registration"() {
         buildFile """
+            import org.gradle.api.services.BuildService
+            import org.gradle.api.services.BuildServiceParameters
             import org.gradle.api.services.ServiceReference
+
+            abstract class Greeter implements BuildService<BuildServiceParameters.None> {}
 
             abstract class ReferencingListener implements TaskLifecycleListener<Task> {
                 @ServiceReference("greeter")
-                abstract Property<String> getGreeter()
+                abstract $type getGreeter()
             }
 
             tasks.register("foo") {
@@ -1364,13 +1456,20 @@ legacy after"""
         fails "foo"
 
         then:
-        assertFailedAtListenerRegistration(":foo", "Cannot use lifecycle listener ReferencingListener: property 'greeter' is annotated with @ServiceReference, but its type is not a Property of a build service.")
+        assertFailedAtListenerRegistration(":foo", problem)
+
+        where:
+        type                | problem
+        "Property<String>"  | "Type 'ReferencingListener' property 'greeter' has @ServiceReference annotation used on property of type 'java.lang.String' which is not a build service implementation."
+        "String"            | "Type 'ReferencingListener' property 'greeter' has @ServiceReference annotation used on property of type 'java.lang.String' which is not a build service implementation."
+        // Gradle cannot implement the getter, as for tasks
+        "Provider<Greeter>" | "Could not generate a decorated class for type ReferencingListener."
     }
 
     def "listener type that cannot be instantiated is rejected at registration"() {
         buildFile """
             abstract class UnsupportedListener implements TaskLifecycleListener<Task> {
-                abstract Thread getThread()
+                abstract void cleanUp()
             }
 
             tasks.register("foo") {

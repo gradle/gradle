@@ -53,6 +53,7 @@ import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
@@ -585,7 +586,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             throw new InvalidUserDataException("Listener type must not be null!");
         }
         taskMutator.mutate("Task.addLifecycleListener(Class)", () -> {
-            TaskLifecycleListenerClassInfo listenerInfo = getServices().get(TaskLifecycleListenerClassInfoStore.class).getClassInfo(listenerType);
+            TaskLifecycleListenerClassInfo listenerInfo = getServices().get(TaskLifecycleListenerClassInfoStore.class)
+                .getClassInfo(listenerType, getServices().get(ProblemsInternal.class));
             // The compiler cannot check this for Groovy or reflective callers
             for (Class<?> acceptedTaskType : listenerInfo.getAcceptedTaskTypes()) {
                 if (!acceptedTaskType.isInstance(this)) {

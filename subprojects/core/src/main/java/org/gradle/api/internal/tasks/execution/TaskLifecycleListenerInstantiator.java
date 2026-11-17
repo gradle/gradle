@@ -17,16 +17,11 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.Task;
-import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.api.tasks.TaskLifecycleListener;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
-import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
-import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -35,8 +30,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Creates instances of {@link TaskLifecycleListener}s for the tasks of a project.
- *
- * <p>Listeners can only inject {@link TaskLifecycleListenerClassInfoStore#INJECTABLE_SERVICES a curated set of services}.</p>
  */
 @ServiceScope(Scope.ProjectExecution.class)
 public class TaskLifecycleListenerInstantiator {
@@ -44,32 +37,12 @@ public class TaskLifecycleListenerInstantiator {
     private final InstantiationScheme instantiationScheme;
     private final Map<Class<?>, InstanceFactory<?>> instanceFactories = new ConcurrentHashMap<>();
 
-    public TaskLifecycleListenerInstantiator(InstantiatorFactory instantiatorFactory, ServiceRegistry projectServices) {
-        this.instantiationScheme = createInstantiationScheme(instantiatorFactory, projectServices);
+    public TaskLifecycleListenerInstantiator(TaskLifecycleListenerScheme listenerScheme, ServiceRegistry projectServices) {
+        this.instantiationScheme = listenerScheme.withProjectServices(projectServices);
     }
 
     public TaskLifecycleListener<Task> newInstance(Class<? extends TaskLifecycleListener<?>> listenerType) {
         InstanceFactory<?> instanceFactory = instanceFactories.computeIfAbsent(listenerType, instantiationScheme::forType);
         return Cast.uncheckedNonnullCast(instanceFactory.newInstance());
-    }
-
-    private static InstantiationScheme createInstantiationScheme(InstantiatorFactory instantiatorFactory, ServiceRegistry projectServices) {
-        ServiceRegistry services = ServiceRegistryBuilder.builder()
-            .displayName("task lifecycle listener services")
-            .provider(registration -> {
-                for (Class<?> serviceType : TaskLifecycleListenerClassInfoStore.INJECTABLE_SERVICES) {
-                    addProjectService(registration, projectServices, serviceType);
-                }
-                // Used by the generated listener classes, for @ServiceReference and managed properties
-                addProjectService(registration, projectServices, BuildServiceRegistry.class);
-                addProjectService(registration, projectServices, ManagedObjectRegistry.class);
-            })
-            .build();
-        // Inject only, decorating the listeners with DSL support would require more services
-        return instantiatorFactory.injectScheme().withServices(services);
-    }
-
-    private static <T> void addProjectService(ServiceRegistration registration, ServiceRegistry projectServices, Class<T> serviceType) {
-        registration.add(serviceType, projectServices.get(serviceType));
     }
 }

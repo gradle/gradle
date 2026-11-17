@@ -28,6 +28,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Locale;
 
@@ -46,12 +47,17 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
 
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
-        propertyMetadata.getAnnotation(ServiceReference.class).ifPresent(annotation -> {
-            String serviceName = annotation.value();
-            TypeToken<?> declaredType = propertyMetadata.getDeclaredType();
-            Class<?> serviceType = Cast.uncheckedCast(((ParameterizedType) declaredType.getType()).getActualTypeArguments()[0]);
-            visitor.visitServiceReference(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, serviceName, Cast.uncheckedCast(serviceType));
-        });
+        propertyMetadata.getAnnotation(ServiceReference.class).ifPresent(annotation ->
+            visitor.visitServiceReference(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, annotation.value(), serviceTypeOf(propertyMetadata))
+        );
+    }
+
+    /**
+     * Returns the build service type referenced by a {@code @ServiceReference} property, such as {@code MyService} for {@code Property<MyService>}.
+     */
+    public static Class<? extends BuildService<?>> serviceTypeOf(PropertyMetadata propertyMetadata) {
+        Type serviceType = ((ParameterizedType) propertyMetadata.getDeclaredType().getType()).getActualTypeArguments()[0];
+        return Cast.uncheckedNonnullCast(TypeToken.of(serviceType).getRawType());
     }
 
     private static final String SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE = "SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE";

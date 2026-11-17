@@ -20,32 +20,26 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.ArchiveOperations;
-import org.gradle.api.file.FileSystemOperations;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.tasks.properties.DefaultServiceReferenceSpec;
 import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.Problems;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.services.BuildService;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.services.ServiceReference;
-import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskLifecycleListener;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.internal.Cast;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.execution.model.annotations.ServiceReferencePropertyAnnotationHandler;
 import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
+import org.gradle.internal.reflect.DefaultTypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.process.ExecOperations;
 
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.Set;
@@ -60,27 +54,14 @@ import java.util.stream.Collectors;
 @ServiceScope(Scope.Global.class)
 public class TaskLifecycleListenerClassInfoStore {
 
-    /**
-     * The services that listeners can inject.
-     */
-    public static final ImmutableList<Class<?>> INJECTABLE_SERVICES = ImmutableList.of(
-        ObjectFactory.class,
-        ProviderFactory.class,
-        FileSystemOperations.class,
-        ArchiveOperations.class,
-        ExecOperations.class,
-        ProjectLayout.class,
-        Problems.class
-    );
-
     private final CrossBuildInMemoryCache<Class<?>, TaskLifecycleListenerClassInfo> classInfos;
     private final TypeMetadataStore typeMetadataStore;
     private final InstantiationScheme instantiationScheme;
 
-    public TaskLifecycleListenerClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory, TypeMetadataStore typeMetadataStore, InstantiationScheme instantiationScheme) {
+    public TaskLifecycleListenerClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory, TaskLifecycleListenerScheme listenerScheme) {
         this.classInfos = cacheFactory.newClassCache();
-        this.typeMetadataStore = typeMetadataStore;
-        this.instantiationScheme = instantiationScheme;
+        this.typeMetadataStore = listenerScheme.getMetadataStore();
+        this.instantiationScheme = listenerScheme.getInstantiationScheme();
     }
 
     /**
@@ -88,28 +69,45 @@ public class TaskLifecycleListenerClassInfoStore {
      *
      * @throws InvalidUserDataException when the type is not a valid listener.
      */
-    public TaskLifecycleListenerClassInfo getClassInfo(Class<? extends TaskLifecycleListener<?>> listenerType) {
-        return classInfos.get(listenerType, this::createClassInfo);
+    public TaskLifecycleListenerClassInfo getClassInfo(Class<? extends TaskLifecycleListener<?>> listenerType, ProblemsInternal problems) {
+        return classInfos.get(listenerType, type -> createClassInfo(type, problems));
     }
 
-    private TaskLifecycleListenerClassInfo createClassInfo(Class<?> listenerType) {
+    private TaskLifecycleListenerClassInfo createClassInfo(Class<?> listenerType, ProblemsInternal problems) {
         ImmutableList<Class<?>> acceptedTaskTypes = acceptedTaskTypesOf(listenerType);
         TypeMetadata typeMetadata = typeMetadataStore.getTypeMetadata(listenerType);
+        checkAnnotations(listenerType, typeMetadata, problems);
         ImmutableSortedSet.Builder<ServiceReferenceSpec> serviceReferences = ImmutableSortedSet.naturalOrder();
         for (PropertyMetadata property : typeMetadata.getPropertiesMetadata()) {
-            if (property.getPropertyType() == Nested.class) {
-                // The services referenced by nested beans could only be found from a listener instance
-                throw invalid(listenerType, String.format(
-                    "property '%s' is annotated with @Nested, which is not supported for lifecycle listeners. Use @ServiceReference properties or instance fields instead.",
-                    property.getPropertyName()
-                ));
-            }
             if (property.getPropertyType() == ServiceReference.class) {
-                serviceReferences.add(serviceReferenceOf(listenerType, property));
+                serviceReferences.add(serviceReferenceOf(property));
             }
         }
         checkInjectedServices(listenerType);
         return new TaskLifecycleListenerClassInfo(acceptedTaskTypes, serviceReferences.build());
+    }
+
+    /**
+     * Rejects the annotations that listeners do not support, such as {@code @Nested}:
+     * the services referenced by nested beans could only be found from a listener instance.
+     */
+    private static void checkAnnotations(Class<?> listenerType, TypeMetadata typeMetadata, ProblemsInternal problems) {
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withRootType(listenerType, false, problems);
+        typeMetadata.visitValidationFailures(null, validationContext);
+        ImmutableList<ProblemInternal> errors = validationContext.getErrors();
+        if (!errors.isEmpty()) {
+            throw new DefaultMultiCauseException(
+                String.format(errors.size() == 1
+                    ? "A problem was found with lifecycle listener %s."
+                    : "Some problems were found with lifecycle listener %s.",
+                    listenerType.getName()),
+                errors.stream()
+                    .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
+                    .sorted()
+                    .map(InvalidUserDataException::new)
+                    .collect(ImmutableList.toImmutableList())
+            );
+        }
     }
 
     private static ImmutableList<Class<?>> acceptedTaskTypesOf(Class<?> listenerType) {
@@ -125,19 +123,12 @@ public class TaskLifecycleListenerClassInfoStore {
         return ImmutableList.of(TypeToken.of(acceptedType).getRawType());
     }
 
-    private static ServiceReferenceSpec serviceReferenceOf(Class<?> listenerType, PropertyMetadata property) {
-        Type declaredType = property.getDeclaredType().getType();
-        if (declaredType instanceof ParameterizedType && Property.class.isAssignableFrom(property.getDeclaredType().getRawType())) {
-            Class<?> serviceType = TypeToken.of(((ParameterizedType) declaredType).getActualTypeArguments()[0]).getRawType();
-            if (BuildService.class.isAssignableFrom(serviceType)) {
-                String serviceName = property.getAnnotation(ServiceReference.class).map(ServiceReference::value).orElse("");
-                return new DefaultServiceReferenceSpec(property.getPropertyName(), Cast.uncheckedNonnullCast(serviceType), serviceName.trim());
-            }
-        }
-        throw invalid(listenerType, String.format(
-            "property '%s' is annotated with @ServiceReference, but its type is not a Property of a build service.",
-            property.getPropertyName()
-        ));
+    /**
+     * {@link #checkAnnotations} has already checked that the property holds a build service.
+     */
+    private static ServiceReferenceSpec serviceReferenceOf(PropertyMetadata property) {
+        String serviceName = property.getAnnotation(ServiceReference.class).map(ServiceReference::value).orElse("");
+        return new DefaultServiceReferenceSpec(property.getPropertyName(), ServiceReferencePropertyAnnotationHandler.serviceTypeOf(property), serviceName.trim());
     }
 
     /**
@@ -149,10 +140,10 @@ public class TaskLifecycleListenerClassInfoStore {
         // Nested beans are rejected, so only the listener type itself declares services
         for (Set<Class<?>> injectedServices : instanceFactory.injectedServicesByDeclaringType().values()) {
             for (Class<?> serviceType : injectedServices) {
-                if (!INJECTABLE_SERVICES.contains(serviceType)) {
+                if (!TaskLifecycleListenerScheme.INJECTABLE_SERVICES.contains(serviceType)) {
                     throw invalid(listenerType, String.format(
                         "it injects a service of type %s, which is not available to lifecycle listeners. The services that can be injected are: %s.",
-                        serviceType.getName(), INJECTABLE_SERVICES.stream().map(Class::getSimpleName).collect(Collectors.joining(", "))
+                        serviceType.getName(), TaskLifecycleListenerScheme.INJECTABLE_SERVICES.stream().map(Class::getSimpleName).collect(Collectors.joining(", "))
                     ));
                 }
             }
