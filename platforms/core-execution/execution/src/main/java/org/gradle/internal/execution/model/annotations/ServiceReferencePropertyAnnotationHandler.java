@@ -61,15 +61,17 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
         ModelType<?> propertyType = ModelType.of(propertyMetadata.getDeclaredType().getType());
         List<ModelType<?>> typeVariables = Cast.uncheckedNonnullCast(propertyType.getTypeVariables());
         if (typeVariables.size() != 1 || !BuildService.class.isAssignableFrom(typeVariables.get(0).getRawClass())) {
+            // The property type itself, when it is not a type with a single type argument, such as Property<T>
+            String serviceTypeName = (typeVariables.size() == 1 ? typeVariables.get(0) : propertyType).getName();
             validationContext.visitPropertyError(problem ->
                 problem
                     .forProperty(propertyMetadata.getPropertyName())
                     .id(problem.getGradleGroup().getPluginValidation().problemId("@ServiceReference property is not a build service")) // TODO (donat) missing test coverage
-                    .contextualLabel(String.format("has @ServiceReference annotation used on property of type '%s' which is not a build service implementation", typeVariables.get(0).getName()))
+                    .contextualLabel(String.format("has @ServiceReference annotation used on property of type '%s' which is not a build service implementation", serviceTypeName))
                     .documentedAt(userManual("validation_problems", SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE.toLowerCase(Locale.ROOT)))
                     .details(String.format("A property annotated with @ServiceReference must be of a type that implements '%s'", BuildService.class.getName()))
-                    .solution(String.format("Make '%s' implement '%s'", typeVariables.get(0).getName(), BuildService.class.getName()))
-                    .solution(String.format("Replace the @ServiceReference annotation on '%s' with @Internal and assign a value of type '%s' explicitly", propertyMetadata.getPropertyName(), typeVariables.get(0).getName()))
+                    .solution(String.format("Make '%s' implement '%s'", serviceTypeName, BuildService.class.getName()))
+                    .solution(String.format("Replace the @ServiceReference annotation on '%s' with @Internal and assign a value of type '%s' explicitly", propertyMetadata.getPropertyName(), serviceTypeName))
             );
         }
     }
