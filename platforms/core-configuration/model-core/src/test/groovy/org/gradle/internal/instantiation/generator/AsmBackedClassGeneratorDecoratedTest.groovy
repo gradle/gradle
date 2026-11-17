@@ -94,6 +94,24 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         bean.prop.get() == "via setter: called"
     }
 
+    // The generated overload would override the bridge, so Java callers of the generic setter would bypass the
+    // forwarder. Keeping the bridge instead would break assigning a Provider from Groovy, as the bridge casts to T.
+    def "fails to generate an upgraded property whose eager setter implements a generic setter"() {
+        when:
+        create(type)
+
+        then:
+        def e = thrown(ClassGenerationException)
+        e.cause.message == "Cannot generate the Groovy DSL setter for upgraded property 'prop' of AsmBackedClassGeneratorTest.${type.simpleName}, " +
+            "as it would override the compiler bridge ${type.simpleName}.setProp(Object) and callers of the generic setter it implements would bypass the eager setter."
+
+        where:
+        type << [
+            AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanWithBridgeSetter,
+            AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanSubclassWithBridgeSetter
+        ]
+    }
+
     // Pre-existing behavior, unchanged here: convention mapping and the lazy Groovy support each generate a
     // set(Object), and the JVM rejects the duplicate. Only upgraded properties skip the generated overload.
     def "fails to generate a lazy property that is not upgraded and declares its own set(Object)"() {

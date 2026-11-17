@@ -803,6 +803,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private final List<MethodMetadata> overridableGetters = new ArrayList<>();
         private final List<Method> overridableSetters = new ArrayList<>();
         private final List<Method> setters = new ArrayList<>();
+        private final List<Method> bridgeSetters = new ArrayList<>();
         private final List<Method> setMethods = new ArrayList<>();
         private MethodMetadata mainGetter;
         private Field backingField;
@@ -882,6 +883,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             return setters;
         }
 
+        /**
+         * Compiler bridges delegating to one of the {@link #getSetters() setters}, as added for a setter that
+         * implements a generic {@code set<Name>(T)}.
+         */
+        public List<Method> getBridgeSetters() {
+            return bridgeSetters;
+        }
+
         @Nullable
         public Field getBackingField() {
             return backingField;
@@ -926,7 +935,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         public void addSetter(Method method) {
             if (method.isBridge()) {
-                // Ignore bridge methods and use the real method instead
+                // Not a setter in its own right, the real method it delegates to is one
+                bridgeSetters.add(method);
                 return;
             }
             setters.add(method);

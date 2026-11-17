@@ -37,7 +37,10 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanWithAbstractSetterOfOtherType
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanWithBridgeSetter
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanSubclassWithBridgeSetter
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanRedeclaringGetter
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.GenericSetterBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanWithEagerSetterInSubclass
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractLazyPropertyBeanWithEagerSetter
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractLazyPropertyBeanWithEagerSetterInSubclass
@@ -134,6 +137,21 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         then:
         def e = thrown(ClassGenerationException)
         e.cause.message.contains("Cannot have abstract method AbstractUpgradedPropertyBeanWithAbstractSetterOfOtherType.getProp()")
+    }
+
+    // Only the Groovy DSL support refuses this shape, as it is the generated set(Object) that would override the bridge
+    def "claims property whose forwarder setter implements a generic setter when no DSL is mixed in"() {
+        def bean = create(type)
+
+        expect:
+        bean instanceof Managed
+        !bean.prop.present
+
+        (bean as GenericSetterBean<String>).setProp("value")
+        bean.prop.get().endsWith("value")
+
+        where:
+        type << [AbstractUpgradedPropertyBeanWithBridgeSetter, AbstractUpgradedPropertyBeanSubclassWithBridgeSetter]
     }
 
     def "claims property when @ReplacesEagerProperty is inherited from a super-interface getter"() {

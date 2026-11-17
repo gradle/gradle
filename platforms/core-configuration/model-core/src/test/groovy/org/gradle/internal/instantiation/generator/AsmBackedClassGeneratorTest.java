@@ -2184,6 +2184,25 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
+    public interface GenericSetterBean<T> {
+        void setProp(T value);
+    }
+
+    // The forwarder implements the generic setter, so javac adds a bridge setProp(Object) delegating to it
+    public static abstract class AbstractUpgradedPropertyBeanWithBridgeSetter implements GenericSetterBean<String> {
+        @ReplacesEagerProperty
+        public abstract Property<String> getProp();
+
+        @Override
+        public void setProp(String value) {
+            getProp().set("via setter: " + value);
+        }
+    }
+
+    // The inherited forwarder implements the generic setter, so the bridge lands in this subclass
+    public static abstract class AbstractUpgradedPropertyBeanSubclassWithBridgeSetter extends AbstractUpgradedPropertyBean implements GenericSetterBean<String> {
+    }
+
     // The forwarder keeps its body, but nothing implements the other abstract setter
     public static abstract class AbstractUpgradedPropertyBeanWithAbstractSetterOfOtherType {
         @ReplacesEagerProperty

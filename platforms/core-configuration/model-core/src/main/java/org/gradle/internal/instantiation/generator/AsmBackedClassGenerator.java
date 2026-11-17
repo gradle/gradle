@@ -940,8 +940,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
 
             // Limited to upgraded properties: elsewhere a type declaring its own set<Name>(Object) alongside a lazy property fails to generate
-            if (property.hasAnnotationOnAnyGetter(ReplacesEagerProperty.class) && implementsSetterTakingObject(property)) {
-                return;
+            if (property.hasAnnotationOnAnyGetter(ReplacesEagerProperty.class)) {
+                if (implementsSetterTakingObject(property)) {
+                    return;
+                }
+                assertNoBridgeSetterTakingObject(property);
             }
 
             // GENERATE public void set<Name>(Object p) {
@@ -977,6 +980,29 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 }
             }
             return false;
+        }
+
+        /**
+         * An eager setter that implements a generic {@code set<Name>(T)} comes with a compiler bridge
+         * {@code set<Name>(Object)} delegating to it. Our overload would override the bridge, so callers of the
+         * generic declaration would bypass the eager setter. Treating the bridge as the implementation instead would
+         * break assigning a {@code Provider} from Groovy, as the bridge casts its argument to {@code T}. Neither is
+         * right, so the shape is refused.
+         */
+        private void assertNoBridgeSetterTakingObject(PropertyMetadata property) {
+            for (Method bridge : property.getBridgeSetters()) {
+                if (bridge.getParameterTypes()[0].equals(Object.class)) {
+                    TreeFormatter formatter = new TreeFormatter();
+                    formatter.node("Cannot generate the Groovy DSL setter for upgraded property '");
+                    formatter.append(property.getName());
+                    formatter.append("' of ");
+                    formatter.appendType(type);
+                    formatter.append(", as it would override the compiler bridge ");
+                    formatter.appendMethod(bridge);
+                    formatter.append(" and callers of the generic setter it implements would bypass the eager setter.");
+                    throw new IllegalArgumentException(formatter.toString());
+                }
+            }
         }
 
         /**
