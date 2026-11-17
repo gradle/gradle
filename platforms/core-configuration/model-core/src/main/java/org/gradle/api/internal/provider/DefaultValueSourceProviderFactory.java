@@ -22,7 +22,9 @@ import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.internal.provider.ValueSupplier.ExecutionTimeValue;
 import org.gradle.api.internal.provider.ValueSupplier.Value;
+import org.gradle.api.internal.provider.ValueSupplier.ValueProducer;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
@@ -50,7 +52,6 @@ import org.gradle.process.ExecOperations;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -230,6 +231,30 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     public static class ValueSourceProvider<T, P extends ValueSourceParameters> extends AbstractMinimalProvider<T> {
         private final LazilyObtainedValue<T, P> value;
 
+        private final ValueProducer producer = new ValueProducer() {
+            @Override
+            public boolean isKnown() {
+                // Unknown producers of the parameters are ignored, so this is always known
+                return true;
+            }
+
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                P parameters = value.parameters;
+                if (parameters == null) {
+                    return;
+                }
+                try (EvaluationScopeContext ignored = openScope()) {
+                    new ParameterDependencies(parameters, context).visit();
+                }
+            }
+
+            @Override
+            public void visitGuardedDependencies(TaskDependencyResolveContext context) {
+                // Reading the value before the producers have completed is permitted
+            }
+        };
+
         private ValueSourceProvider(LazilyObtainedValue<T, P> value) {
             this.value = value;
         }
@@ -259,52 +284,13 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
          * completed is permitted, just like querying it directly. Otherwise,
          * {@code fileContents(task.output).asText.map { ... }} would fail where
          * {@code fileContents(task.output).asText.get()} does not.
+         * <p>
+         * The parameters are only walked when the dependencies are visited. The producer is
+         * queried far more often than that, e.g. before every read of a mapped value source.
          */
         @Override
         public ValueProducer getProducer() {
-            try (EvaluationScopeContext ignored = openScope()) {
-                List<ValueProducer> parameterProducers = new ArrayList<>();
-                collectProducers(value.parameters, parameterProducers, Collections.newSetFromMap(new IdentityHashMap<>()));
-                if (parameterProducers.isEmpty()) {
-                    return ValueProducer.externalValue();
-                }
-                return ValueProducer.unguarded(ValueProducer.composite(parameterProducers));
-            }
-        }
-
-        private static void collectProducers(@Nullable Object value, List<ValueProducer> producers, Set<Object> visited) {
-            if (value == null || !visited.add(value)) {
-                return;
-            }
-            if (value instanceof ProviderInternal) {
-                // Properties and other providers track the producers of their own values
-                ValueProducer producer = ((ProviderInternal<?>) value).getProducer();
-                if (producer.isKnown()) {
-                    producers.add(producer);
-                }
-            } else if (value instanceof TaskDependencyContainer) {
-                // File collections, whose state cannot be unpacked without resolving their files
-                producers.add(ValueProducer.from((TaskDependencyContainer) value));
-            } else if (value instanceof Managed) {
-                // Parameters objects and nested managed objects
-                collectProducers(((Managed) value).unpackState(), producers, visited);
-            } else if (value instanceof List || value instanceof Set) {
-                // Walk the same collections as parameter isolation, see AbstractValueProcessor.
-                // Other iterables are not walked: they may be lazy, or yield new copies of
-                // themselves like Path, which the visited set cannot detect.
-                for (Object element : (Collection<?>) value) {
-                    collectProducers(element, producers, visited);
-                }
-            } else if (value instanceof Map) {
-                for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
-                    collectProducers(entry.getKey(), producers, visited);
-                    collectProducers(entry.getValue(), producers, visited);
-                }
-            } else if (value instanceof Object[]) {
-                for (Object element : (Object[]) value) {
-                    collectProducers(element, producers, visited);
-                }
-            }
+            return producer;
         }
 
         @Override
@@ -334,6 +320,96 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         @Override
         protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
             return value.obtain().asNullableValue();
+        }
+    }
+
+    /**
+     * Visits the producers of the providers and file collections reachable from the parameters of a value source.
+     */
+    private static class ParameterDependencies {
+
+        private final Object parameters;
+        private final TaskDependencyResolveContext context;
+        // Only tracks the objects that are walked into, besides the parameters
+        private @Nullable Set<Object> visited;
+
+        ParameterDependencies(Object parameters, TaskDependencyResolveContext context) {
+            this.parameters = parameters;
+            this.context = context;
+        }
+
+        void visit() {
+            if (parameters instanceof Managed) {
+                visitState(((Managed) parameters).unpackState());
+            }
+        }
+
+        // The state is unpacked afresh on each call, so it cannot be reached again and is not tracked
+        private void visitState(@Nullable Object state) {
+            if (state instanceof Object[]) {
+                for (Object element : (Object[]) state) {
+                    visit(element);
+                }
+            } else {
+                visit(state);
+            }
+        }
+
+        private void visit(@Nullable Object value) {
+            if (value == null) {
+                return;
+            }
+            if (value instanceof ProviderInternal) {
+                // Properties and other providers track the producers of their own values
+                visitProducer(((ProviderInternal<?>) value).getProducer());
+            } else if (value instanceof TaskDependencyContainer) {
+                // File collections, whose state cannot be unpacked without resolving their files
+                ((TaskDependencyContainer) value).visitDependencies(context);
+            } else if (value instanceof Managed) {
+                // Nested managed objects
+                if (enter(value)) {
+                    visitState(((Managed) value).unpackState());
+                }
+            } else if (value instanceof List || value instanceof Set) {
+                // Walk the same collections as parameter isolation, see AbstractValueProcessor.
+                // Other iterables are not walked: they may be lazy, or yield new copies of
+                // themselves like Path, which the visited set cannot detect.
+                if (enter(value)) {
+                    for (Object element : (Collection<?>) value) {
+                        visit(element);
+                    }
+                }
+            } else if (value instanceof Map) {
+                if (enter(value)) {
+                    for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+                        visit(entry.getKey());
+                        visit(entry.getValue());
+                    }
+                }
+            } else if (value instanceof Object[]) {
+                if (enter(value)) {
+                    for (Object element : (Object[]) value) {
+                        visit(element);
+                    }
+                }
+            }
+        }
+
+        private void visitProducer(ValueProducer producer) {
+            // Unknown producers are skipped, see ValueSourceProvider.producer.isKnown()
+            if (producer.isKnown()) {
+                producer.visitDependencies(context);
+            }
+        }
+
+        private boolean enter(Object container) {
+            if (container == parameters) {
+                return false;
+            }
+            if (visited == null) {
+                visited = Collections.newSetFromMap(new IdentityHashMap<>());
+            }
+            return visited.add(container);
         }
     }
 

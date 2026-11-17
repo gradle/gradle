@@ -1147,6 +1147,41 @@ The following types/formats are supported:
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22799")
+    def "task input property cannot have #description of output file property of same task"() {
+        buildFile << """
+            abstract class ValueTask extends DefaultTask {
+                @Input
+                abstract Property<String> getValue()
+                @OutputFile
+                @Optional
+                abstract RegularFileProperty getOutFile()
+                @TaskAction
+                def go() {
+                    outFile.get().asFile.text = value.get()
+                }
+            }
+
+            tasks.register("a", ValueTask) {
+                outFile = file("out.txt")
+                value = ${provider}
+            }
+        """
+
+        when:
+        fails("a")
+
+        then:
+        failure.assertHasDescription("""Circular dependency between the following tasks:
+:a
+\\--- :a (*)""")
+
+        where:
+        description     | provider
+        "file contents" | "providers.fileContents(outFile).asText.orElse('initial')"
+        "mapped value"  | "outFile.map { it.asFile.exists() ? it.asFile.text : 'initial' }"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22799")
     def "ad hoc input property with value of custom value source with #description derived from task output file property implies dependency on the task"() {
         taskTypeWithOutputFileProperty()
         buildFile << """
@@ -1200,6 +1235,40 @@ The following types/formats are supported:
         "nested property"               | "parameters.nested.file = task.output"
         "list of providers"             | "parameters.providers = [task.output]"
         "property alongside a path"     | "parameters.path = file('x').toPath(); parameters.file = task.output"
+    }
+
+    @ToBeImplemented("Parameters declaring fields are not Managed, so their state is not walked")
+    @Issue("https://github.com/gradle/gradle/issues/22799")
+    def "ad hoc input property with value of custom value source with parameters declaring a field derived from task output file property implies dependency on the task"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            abstract class Files implements ValueSource<String, Params> {
+                static abstract class Params implements ValueSourceParameters {
+                    final List<Provider<RegularFile>> providers = []
+                }
+                String obtain() {
+                    return null
+                }
+            }
+
+            def task = tasks.create("a", FileProducer) {
+                output = file("file.txt")
+                content = "12"
+            }
+            tasks.register("b") {
+                inputs.property("value", providers.of(Files) { parameters.providers.add(task.output) }).optional(true)
+            }
+        """
+
+        when:
+        run("b", "--dry-run")
+
+        then:
+        outputDoesNotContain(":a SKIPPED")
+        outputContains(":b SKIPPED")
+        // Must be:
+        // outputContains(":a SKIPPED")
+        // outputContains(":b SKIPPED")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22799")
