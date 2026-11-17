@@ -17,6 +17,7 @@ import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
 import common.onlyRunOnGitHubMergeQueueBranch
+import common.skipConditionally
 import jetbrains.buildServer.configs.kotlin.BuildFeatures
 import jetbrains.buildServer.configs.kotlin.BuildStep.ExecutionMode
 import jetbrains.buildServer.configs.kotlin.BuildSteps
@@ -151,6 +152,24 @@ fun BaseGradleBuildType.gradleRunnerStep(
     }
 }
 
+private fun BaseGradleBuildType.aiRetryDecisionStep() {
+    steps {
+        script {
+            name = "AI_RETRY_DECISION"
+            id = name
+            executionMode = ExecutionMode.RUN_ONLY_ON_FAILURE
+            conditions {
+                equals("teamcity.build.step.status.$GRADLE_RUNNER_STEP_NAME", "failure")
+            }
+            skipConditionally()
+            onlyRunOnGitHubMergeQueueBranch()
+            scriptContent =
+                "curl --silent --show-error --max-time 60 -X POST -u \"teamcity:%gradle-bot.teamcity.webhook.password%\" " +
+                "\"https://gradle-bot.grdev.net/ai/retry-decision?buildId=%teamcity.build.id%\" || exit 0"
+        }
+    }
+}
+
 fun applyDefaults(
     model: CIBuildModel,
     buildType: BaseGradleBuildType,
@@ -183,6 +202,7 @@ private fun BaseGradleBuildType.addRetrySteps(
     extraParameters: String = "",
     maxParallelForks: String = "%maxParallelForks%",
 ) {
+    aiRetryDecisionStep()
     killProcessStep(KILL_ALL_GRADLE_PROCESSES, os, arch, executionMode = ExecutionMode.RUN_ONLY_ON_FAILURE)
     cleanUpGitUntrackedFilesAndDirectories()
     gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, maxParallelForks = maxParallelForks, isRetry = true)
