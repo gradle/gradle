@@ -18,8 +18,4 @@ object UtilProject : Project({
     buildType(UpdateWrapper)
 
     buildType(PublishKotlinDslPlugin)
-
-    params {
-        param("env.DEVELOCITY_ACCESS_KEY", "%ge.gradle.org.access.key%")
-    }
 })
