@@ -202,6 +202,8 @@ From version 4.10 onwards, Gradle automatically cleans the project-specific cach
 After building the project, version-specific cache directories in `.gradle/{gradleVersion}/` are checked periodically (at most, every 24 hours) to determine whether they are still in use.
 They are deleted if they haven't been used for 7 days.
 
+The build output files written in <<command_line_interface.adoc#sec:agent_mode,agent mode>> to `.gradle/agent/builds/` are checked on the same schedule, and those of invocations older than 7 days are deleted.
+
 [[dir:gradle_user_home:configure_cache_cleanup]]
 ==== Configuring cleanup of caches and distributions
 

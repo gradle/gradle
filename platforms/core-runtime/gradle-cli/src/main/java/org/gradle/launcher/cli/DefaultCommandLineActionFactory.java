@@ -30,6 +30,7 @@ import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
@@ -46,6 +47,9 @@ import org.gradle.internal.service.scopes.BasicGlobalScopeServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.launcher.bootstrap.CommandLineActionFactory;
 import org.gradle.launcher.bootstrap.ExecutionListener;
+import org.gradle.launcher.cli.converter.AgentModeResolver;
+import org.gradle.launcher.cli.converter.AgentModeResolver.AgentMode;
+import org.gradle.launcher.cli.converter.AgentOutputLocation;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
@@ -58,6 +62,12 @@ import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.jspecify.annotations.Nullable;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -343,7 +353,10 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             BuildOptionBackedConverter<LoggingConfiguration> loggingBuildOptions = new BuildOptionBackedConverter<>(new LoggingConfigurationBuildOptions());
             InitialPropertiesConverter propertiesConverter = new InitialPropertiesConverter();
             BuildLayoutConverter buildLayoutConverter = new BuildLayoutConverter();
-            LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(new BuildLayoutFactory());
+            BuildLayoutFactory buildLayoutFactory = new BuildLayoutFactory();
+            LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(buildLayoutFactory);
+            AgentModeResolver agentModeResolver = new AgentModeResolver();
+            AgentOutputLocation agentOutputLocation = new AgentOutputLocation(buildLayoutFactory);
             Map<String, String> environmentVariables = System.getenv();
 
             BuildLayoutResult buildLayout = buildLayoutConverter.defaultValues();
@@ -352,11 +365,15 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             propertiesConverter.configure(parser);
             buildLayoutConverter.configure(parser);
             loggingBuildOptions.configure(parser);
+            agentModeResolver.configure(parser);
+            agentOutputLocation.configure(parser);
 
             parser.allowUnknownOptions();
             parser.allowMixedSubcommandsAndOptions();
 
             WelcomeMessageConfiguration welcomeMessageConfiguration = new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.ONCE);
+            AgentMode agentMode = AgentMode.NOT_REQUESTED;
+            File agentOutputFile = null;
 
             try {
                 ParsedCommandLine parsedCommandLine = parser.parse(args);
@@ -368,6 +385,12 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 // Read *.properties files
                 AllProperties properties = layoutToPropertiesConverter.convert(initialProperties, buildLayout);
 
+                agentMode = agentModeResolver.resolve(parsedCommandLine, properties.getProperties(), environmentVariables);
+                if (agentMode.isEnabled()) {
+                    // Resolved ahead of the remaining options, whose conversion can fail, so that such a failure lands in the output file like all other output
+                    agentOutputFile = agentOutputLocation.resolve(parsedCommandLine, properties.getProperties(), buildLayout);
+                }
+
                 // Calculate the logging configuration
                 loggingBuildOptions.convert(parsedCommandLine, properties.getProperties(), environmentVariables, loggingConfiguration);
 
@@ -377,18 +400,37 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 // Ignore, deal with this problem later
             }
 
+            OutputStream agentOutput = null;
+            if (agentOutputFile != null) {
+                // Only in agent mode. System.out is replaced once the logging manager starts
+                agentOutput = openAgentOutput(agentOutputFile, System.out);
+            }
+
             LoggingManagerInternal loggingManager = loggingServices.get(LoggingManagerFactory.class).createLoggingManager();
             loggingManager.setLevelInternal(loggingConfiguration.getLogLevel());
             loggingManager.start();
             try {
                 Action<ExecutionListener> exceptionReportingAction =
                     new ExceptionReportingAction(reporter, loggingManager,
-                        new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager,
+                        new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager, agentOutput,
                             new WelcomeMessageAction(buildLayout, welcomeMessageConfiguration,
                                 new DebugLoggerWarningAction(loggingConfiguration, action))));
                 exceptionReportingAction.execute(executionListener);
             } finally {
                 loggingManager.stop();
+                IoActions.closeQuietly(agentOutput);
+            }
+        }
+
+        private static OutputStream openAgentOutput(File file, PrintStream stdout) {
+            try {
+                Files.createDirectories(file.getParentFile().toPath());
+                OutputStream output = new LineBufferingOutputStream(Files.newOutputStream(file.toPath()));
+                stdout.println(file.getAbsolutePath());
+                stdout.flush();
+                return output;
+            } catch (IOException e) {
+                throw new UncheckedIOException("Could not open agent output file " + file, e);
             }
         }
     }
