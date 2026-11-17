@@ -31,7 +31,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * NOTICE: this class is invoked via java command line, so we must NOT DEPEND ON ANY 3RD-PARTY LIBRARIES except JDK 11.
  *
  * Decides whether a failed build should be retried, and requests the retry with a TeamCity service message.
- * Merge queue builds are always retried. Other builds are retried only if gradle-bot recommends it and the mode is "retry".
+ * Merge queue builds are always retried without asking gradle-bot. Other builds are retried only if gradle-bot recommends it and the mode is "retry".
  * It never fails: if gradle-bot can't be reached, it prints a warning and doesn't request a retry.
  *
  * Usage: java build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/RetryDecision.java branch mode endpoint buildId password
@@ -49,6 +49,7 @@ public class RetryDecision {
 
         if (branch.startsWith("gh-readonly-queue/")) {
             System.out.println(REQUEST_RETRY);
+            return;
         }
         if ("off".equals(mode)) {
             return;
