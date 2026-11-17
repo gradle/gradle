@@ -43,6 +43,10 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * Renames a source file. The closure will be called with a single parameter, the name of the file.
      * The closure should return a String object with a new target name. The closure may return null,
      * in which case the original name will be used.
+     * <p>
+     * Files are renamed as they are about to be copied, together with the actions added with {@link #eachFile(Action)}.
+     * The actions of a parent spec run first, then the actions of this spec in the order they were added,
+     * so an {@code eachFile} action added to this spec before the rename sees the name before renaming.
      *
      * @param closure rename closure
      * @return this
@@ -54,6 +58,10 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * Renames a source file. The function will be called with a single parameter, the name of the file.
      * The function should return a new target name. The function may return null,
      * in which case the original name will be used.
+     * <p>
+     * Files are renamed as they are about to be copied, together with the actions added with {@link #eachFile(Action)}.
+     * The actions of a parent spec run first, then the actions of this spec in the order they were added,
+     * so an {@code eachFile} action added to this spec before the rename sees the name before renaming.
      *
      * @param renamer rename function
      * @return this
@@ -71,6 +79,10 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * rename '(.*)_OEM_BLUE_(.*)', '$1$2'
      * </pre>
      * would map the file 'style_OEM_BLUE_.css' to 'style.css'
+     * <p>
+     * Files are renamed as they are about to be copied, together with the actions added with {@link #eachFile(Action)}.
+     * The actions of a parent spec run first, then the actions of this spec in the order they were added,
+     * so an {@code eachFile} action added to this spec before the rename sees the name before renaming.
      *
      * @param sourceRegEx Source regular expression
      * @param replaceWith Replacement string (use $ syntax for capture groups)

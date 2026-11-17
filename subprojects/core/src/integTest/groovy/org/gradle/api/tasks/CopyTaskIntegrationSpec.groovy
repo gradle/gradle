@@ -690,6 +690,51 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         )
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/2721")
+    def "eachFile actions see the renames added before them"() {
+        given:
+        file('files/one.a') << 'one'
+        buildFile '''
+            task (copy, type:Copy) {
+               from 'files'
+               into 'dest'
+               eachFile { println "before rename: $it.name, $it.path" }
+               rename { it.replace('.a', '.renamed') }
+               eachFile { println "after rename: $it.name, $it.path" }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'copy'
+
+        then:
+        outputContains("before rename: one.a, one.a")
+        outputContains("after rename: one.renamed, one.renamed")
+        file('dest').assertHasDescendants('one.renamed')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/2721")
+    def "eachFile actions of a child spec see the renames of the parent spec"() {
+        given:
+        file('files/one.a') << 'one'
+        buildFile '''
+            task (copy, type:Copy) {
+               into 'dest'
+               from('files') {
+                   eachFile { println "child spec: $it.name" }
+               }
+               rename { it.replace('.a', '.renamed') }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'copy'
+
+        then:
+        outputContains("child spec: one.renamed")
+        file('dest').assertHasDescendants('one.renamed')
+    }
+
     @UnsupportedWithConfigurationCache(iterationMatchers = [".*using copy method"], because = "legacy Project.copy at execution time")
     def "copy action using #copyMethod method"() {
         given:
