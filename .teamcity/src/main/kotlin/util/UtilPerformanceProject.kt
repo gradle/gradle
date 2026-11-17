@@ -10,8 +10,4 @@ object UtilPerformanceProject : Project({
     buildType(AdHocPerformanceScenarioWindows)
     buildType(AdHocPerformanceScenarioMacOS)
     buildType(AdHocPerformanceScenarioMacAppleSilicon)
-
-    params {
-        param("env.DEVELOCITY_ACCESS_KEY", "%ge.gradle.org.access.key%")
-    }
 })
