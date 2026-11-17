@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.serialization.codecs
 
+import com.google.common.collect.ImmutableSetMultimap
 import com.google.common.reflect.TypeToken
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Project
@@ -319,6 +320,38 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
         }
     }
 
+    @Test
+    fun `can handle writeObject readObject readResolve`() {
+        verifyRoundtripOf({ pairOf(SerializableWriteObjectReadResolveBean("42")) }) { (first, second) ->
+            assertThat(
+                "it preserves identity",
+                first,
+                sameInstance(second)
+            )
+            assertThat(
+                "it returns readResolve result",
+                first.value,
+                equalTo<Any>("42")
+            )
+        }
+    }
+
+    @Test
+    fun `can handle Guava ImmutableSetMultimap`() {
+        val multimap = ImmutableSetMultimap.of("a", 1, "a", 2, "b", 3)
+        verifyRoundtripOf({ pairOf(multimap) }) { (first, second) ->
+            assertThat(
+                "it preserves identity",
+                first,
+                sameInstance(second)
+            )
+            assertThat(
+                first,
+                equalTo(multimap)
+            )
+        }
+    }
+
     private
     fun <T> pairOf(bean: T) = bean.let { it to it }
 
@@ -456,6 +489,29 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
             @Suppress("unused")
             fun readResolve(): Any = SerializableWriteReplaceBean("42")
         }
+    }
+
+    class SerializableWriteObjectReadResolveBean(@Transient var value: Any? = null) : Serializable {
+
+        @Transient
+        private
+        var replacement: SerializableWriteObjectReadResolveBean? = null
+
+        private
+        fun writeObject(objectOutputStream: ObjectOutputStream) {
+            objectOutputStream.defaultWriteObject()
+            objectOutputStream.writeObject(value)
+        }
+
+        private
+        fun readObject(objectInputStream: ObjectInputStream) {
+            objectInputStream.defaultReadObject()
+            replacement = SerializableWriteObjectReadResolveBean(objectInputStream.readObject())
+        }
+
+        @Suppress("unused")
+        private
+        fun readResolve(): Any = replacement!!
     }
 
     class SerializableWriteObjectOnlyBean(var value: Any? = null) : Serializable {

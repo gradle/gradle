@@ -45,9 +45,9 @@ class JavaSerializationEncodingLookup {
     fun calculateEncoding(type: Class<*>): EncodingDetails {
         val candidates = type.allMethods()
         val encoding = writeReplaceEncodingFor(candidates)
-            ?: readResolveEncodingFor(candidates)
             ?: writeObjectEncodingFor(candidates)
             ?: readObjectEncodingFor(candidates)
+            ?: readResolveEncodingFor(candidates)
         return EncodingDetails(encoding)
     }
 

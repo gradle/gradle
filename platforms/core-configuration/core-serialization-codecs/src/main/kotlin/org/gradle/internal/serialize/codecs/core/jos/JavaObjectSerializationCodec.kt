@@ -92,7 +92,7 @@ class JavaObjectSerializationCodec(
                                 else -> objectInputStream.defaultReadObject()
                             }
                         }
-                    }
+                    }.let { resolveWithId(id, it) }
                 }
 
                 Format.ReadObject -> {
@@ -104,7 +104,7 @@ class JavaObjectSerializationCodec(
                                 objectInputStreamAdapterFor(bean, beanStateReader)
                             )
                         }
-                    }
+                    }.let { resolveWithId(id, it) }
                 }
 
                 Format.ReadResolve -> {
@@ -189,6 +189,14 @@ class JavaObjectSerializationCodec(
         ReadObject,
         SerializedLambda
     }
+
+    private
+    fun ReadContext.resolveWithId(id: Int, bean: Any): Any =
+        readResolve(bean).also { resolved ->
+            if (resolved !== bean) {
+                putIdentity(id, resolved)
+            }
+        }
 
     private
     fun readResolve(bean: Any): Any =
