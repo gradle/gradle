@@ -35,6 +35,8 @@ class CheckProject(
             // Avoid rebuilding same revision if it's already built on another branch
             param("teamcity.vcsTrigger.runBuildOnSameRevisionInEveryBranch", "false")
             param("env.CHROME_BIN", "%linux.chrome.bin.path%")
+            param("ai.retry.mode", "retry")
+            param("ai.retry.endpoint", "https://gradle-bot.grdev.net/ai/retry-decision")
 
             text(
                 "additional.gradle.parameters",

@@ -88,3 +88,17 @@ tasks.named<Jar>("jar").configure {
 errorprone {
     nullawayEnabled = true
 }
+
+tasks.withType<Test>().configureEach {
+    doFirst {
+        val buildPropertiesFile = System.getenv("TEAMCITY_BUILD_PROPERTIES_FILE") ?: return@doFirst
+        val marker = File(File(buildPropertiesFile).parentFile, "ai-retry-flaky-marker")
+        if (!marker.exists()) {
+            marker.writeText("failed once")
+            throw GradleException(
+                "Could not GET 'https://repo.grdev.net/artifactory/libs-releases/org/example/fixture/1.0/fixture-1.0.pom'. " +
+                    "Received status code 504 from server: Gateway Time-out"
+            )
+        }
+    }
+}
