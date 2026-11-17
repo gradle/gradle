@@ -293,6 +293,7 @@ class PluginBuildsMultiPluginApplicationIntegrationTest extends AbstractPluginBu
         // but only its own plugin id is recorded in the PluginVersionTracker. The project plugin id is therefore
         // seen as "on the classpath with an unknown version".
         fails("help")
+        failureDescriptionStartsWith("Error resolving plugin [id: '${pluginBuild.projectPluginId}', version: '1.0']")
         failureHasCause("The request for this plugin could not be satisfied because the plugin is already on the classpath with an unknown version, so compatibility cannot be checked.")
     }
 
@@ -334,6 +335,7 @@ class PluginBuildsMultiPluginApplicationIntegrationTest extends AbstractPluginBu
         // parent scope, but only that plugin id is recorded in the PluginVersionTracker. The other plugin id is
         // therefore seen as "on the classpath with an unknown version".
         fails("help")
+        failureDescriptionStartsWith("Error resolving plugin [id: '${otherProjectPluginId}', version: '1.0']")
         failureHasCause("The request for this plugin could not be satisfied because the plugin is already on the classpath with an unknown version, so compatibility cannot be checked.")
     }
 }
