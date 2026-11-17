@@ -155,6 +155,14 @@ The following default versions have changed:
 * JUnit Jupiter has been updated from 5.12.2 to link:https://docs.junit.org/5.14.4/release-notes/[5.14.4].
 * TestNG has been updated from 7.11.0 to link:https://github.com/testng-team/testng/releases/tag/7.12.0[7.12.0].
 
+[[war_web_xml_precedence]]
+==== `War.webXml` takes precedence over `web.xml` in the web app directory
+
+When `webXml` is set and the web app directory or a `webInf {}` block also contains `WEB-INF/web.xml`, the archive now contains only the configured file.
+Previously, the build failed with a duplicate entry error, or, with `duplicatesStrategy` set to `INCLUDE` or `WARN`, the archive contained both files.
+
+If you set `duplicatesStrategy` only to work around this error, you can remove it.
+
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier
 

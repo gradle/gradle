@@ -195,8 +195,8 @@ public abstract class War extends Jar {
      * Returns the {@code web.xml} file to include in the WAR archive as {@code WEB-INF/web.xml}.
      * <p>
      * When set, it takes precedence over a {@code WEB-INF/web.xml} file in the {@link #getWebAppDirectory() web app directory}
-     * or in other content of the archive.
-     * When not set, the archive only contains a {@code web.xml} if one is part of its other content.
+     * or in content added with {@code from} or {@link #webInf(Action) webInf}.
+     * When not set, the archive contains the {@code web.xml} from the web app directory or other content, if there is one.
      *
      * @return The {@code web.xml} file property.
      * @since 9.7.0
@@ -248,6 +248,7 @@ public abstract class War extends Jar {
      * Lets the configured {@code web.xml} win over another {@code WEB-INF/web.xml}, which is copied after it.
      * <p>
      * The other file is marked as a duplicate to exclude instead of being excluded right away, so later actions can still move it.
+     * If a later action moves it onto a path that is already taken, it is still dropped as a duplicate.
      * The outcome only depends on whether a {@code web.xml} is configured, which is a task input, so the action is safe for caching.
      * Files that later actions rename to {@code WEB-INF/web.xml} are not affected.
      */

@@ -348,6 +348,39 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3200")
+    def "webXml takes precedence over web.xml added with #description"() {
+        given:
+        file("settings.gradle") << "rootProject.name = 'test'"
+        file('extra/web.xml') << 'from extra'
+        file('config/custom-web.xml') << 'custom'
+
+        and:
+        buildFile << """
+            plugins {
+                id 'war'
+            }
+
+            war {
+                $content
+                webXml = file('config/custom-web.xml')
+            }
+        """
+
+        when:
+        run "war"
+
+        then:
+        def war = new JarTestFixture(file('build/libs/test.war'))
+        war.assertContainsFile('WEB-INF/web.xml', 1)
+        war.content('WEB-INF/web.xml') == 'custom'
+
+        where:
+        description                       | content
+        "from(...) { into 'WEB-INF' }"    | "from('extra') { into 'WEB-INF' }"
+        "into('WEB-INF') { from(...) }"   | "into('WEB-INF') { from 'extra' }"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3200")
     def "web.xml in the web app directory can still be moved when webXml is set"() {
         given:
         file("settings.gradle") << "rootProject.name = 'test'"
