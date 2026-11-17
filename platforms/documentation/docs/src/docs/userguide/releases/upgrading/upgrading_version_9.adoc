@@ -158,13 +158,13 @@ The following default versions have changed:
 [[toolchain_archive_name_and_format]]
 ==== Toolchain archives without a file name are named from the download URL
 
-When Gradle downloads a toolchain, it names the archive after the file name the server provides.
+When Gradle downloads a toolchain, it names the archive after the file name in the `Content-Disposition` header or, if there is no such header, after the last segment of the URL.
 Previously, provisioning failed with `Can't determine filename for resource located at: <url>` when the server sent a `Content-Disposition` header without a file name.
 Gradle now names such an archive after a hash of the full download URL, including its query.
 
 Gradle reuses a downloaded archive only if it finds one with the same name.
 For archives named from a hash of the URL, a resolver that returns a different URL for each request, for example one with an expiring access token, makes Gradle download the archive again each time it provisions a toolchain.
-See <<toolchain_plugins.adoc#sec:provide_a_download_uri,Provide a download URI>>.
+See <<toolchain_plugins.adoc#sec:download_archive_naming,How Gradle names and reuses downloaded archives>>.
 
 Gradle also detects whether a toolchain archive is a zip or a tar.gz file from its content.
 Previously, Gradle relied on the file extension: it unpacked a `.zip` file as a zip archive and any other file as a tar.gz archive.
