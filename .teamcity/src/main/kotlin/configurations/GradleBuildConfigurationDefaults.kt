@@ -1,5 +1,6 @@
 package configurations
 
+import common.AGENT_JAVA_BINARY
 import common.Arch
 import common.BuildToolBuildJvm
 import common.Jvm
@@ -153,7 +154,7 @@ fun BaseGradleBuildType.gradleRunnerStep(
     }
 }
 
-private fun BaseGradleBuildType.retryDecisionStep(os: Os) {
+private fun BaseGradleBuildType.retryDecisionStep() {
     params {
         param(RETRY_REQUESTED_PARAMETER, "false")
     }
@@ -166,23 +167,10 @@ private fun BaseGradleBuildType.retryDecisionStep(os: Os) {
                 equals("teamcity.build.step.status.$GRADLE_RUNNER_STEP_NAME", "failure")
             }
             skipConditionally()
-            val requestRetry = "##teamcity[setParameter name='$RETRY_REQUESTED_PARAMETER' value='true']"
-            val warning = "##teamcity[message text='Retry decision is unavailable' status='WARNING']"
-            val curl =
-                "curl --silent --show-error --fail --max-time 60 -X POST -u \"teamcity:%gradle-bot.teamcity.webhook.password%\" " +
-                    "\"%ai.retry.endpoint%?buildId=%teamcity.build.id%&mode=%ai.retry.mode%\""
             scriptContent =
-                if (os == Os.WINDOWS) {
-                    """
-                    echo %teamcity.build.branch%| findstr /b /c:"gh-readonly-queue/" >nul && echo $requestRetry
-                    if not "%ai.retry.mode%"=="off" ($curl || echo $warning)
-                    """.trimIndent()
-                } else {
-                    """
-                    case "%teamcity.build.branch%" in gh-readonly-queue/*) echo "$requestRetry" ;; esac
-                    if [ "%ai.retry.mode%" != "off" ]; then $curl || echo "$warning"; fi
-                    """.trimIndent()
-                }
+                "\"$AGENT_JAVA_BINARY\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/RetryDecision.java " +
+                "\"%teamcity.build.branch%\" \"%ai.retry.mode%\" \"%ai.retry.endpoint%\" %teamcity.build.id% " +
+                "\"%gradle-bot.teamcity.webhook.password%\""
         }
     }
 }
@@ -219,7 +207,7 @@ private fun BaseGradleBuildType.addRetrySteps(
     extraParameters: String = "",
     maxParallelForks: String = "%maxParallelForks%",
 ) {
-    retryDecisionStep(os)
+    retryDecisionStep()
     killProcessStep(KILL_ALL_GRADLE_PROCESSES, os, arch, executionMode = ExecutionMode.RUN_ONLY_ON_FAILURE)
     cleanUpGitUntrackedFilesAndDirectories()
     gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, maxParallelForks = maxParallelForks, isRetry = true)
