@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins.internal
 
 import org.gradle.api.GradleException
+import org.gradle.buildinit.plugins.internal.modifiers.ComponentType
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
@@ -24,13 +25,10 @@ import spock.lang.Specification
 class ProjectLayoutSetupRegistrySpec extends Specification {
     def defaultType = generator("default")
     def converter = converter("maven")
-    def registry = new ProjectLayoutSetupRegistry(defaultType, converter, Mock(TemplateOperationFactory))
 
-    def "can add multiple descriptors"() {
+    def "can register multiple descriptors"() {
         when:
-        registry.add(generator("desc1"))
-        registry.add(generator("desc2"))
-        registry.add(generator("desc3"))
+        def registry = registry(generator("desc1"), generator("desc2"), generator("desc3"))
 
         then:
         registry.get("desc1") != null
@@ -38,10 +36,9 @@ class ProjectLayoutSetupRegistrySpec extends Specification {
         registry.get("desc3") != null
     }
 
-    def "cannot add multiple descriptors with same id"() {
+    def "cannot register multiple descriptors with same id"() {
         when:
-        registry.add(generator("desc1"))
-        registry.add(generator("desc1"))
+        registry(generator("desc1"), generator("desc1"))
 
         then:
         def e = thrown(GradleException)
@@ -50,9 +47,7 @@ class ProjectLayoutSetupRegistrySpec extends Specification {
 
     def "getAllTypes lists all registered types"() {
         setup:
-        registry.add(generator("desc1"))
-        registry.add(generator("desc2"))
-        registry.add(generator("desc3"))
+        def registry = registry(generator("desc1"), generator("desc2"), generator("desc3"))
 
         expect:
         registry.getAllTypes() == ["default", "desc1", "desc2", "desc3", "maven"]
@@ -60,9 +55,7 @@ class ProjectLayoutSetupRegistrySpec extends Specification {
 
     def "lookup fails for unknown type"() {
         setup:
-        registry.add(generator("desc1"))
-        registry.add(generator("desc2"))
-        registry.add(generator("desc3"))
+        def registry = registry(generator("desc1"), generator("desc2"), generator("desc3"))
 
         when:
         registry.get("unknown")
@@ -77,9 +70,23 @@ class ProjectLayoutSetupRegistrySpec extends Specification {
   - 'maven'""")
     }
 
-    BuildGenerator generator(String id) {
+    def "lists only the component types that have a registered generator, in display order"() {
+        setup:
+        defaultType = generator("basic", ComponentType.BASIC)
+        def registry = registry(generator("desc1", ComponentType.LIBRARY), generator("desc2", ComponentType.APPLICATION), generator("desc3", ComponentType.LIBRARY))
+
+        expect:
+        registry.getComponentTypes() == [ComponentType.APPLICATION, ComponentType.LIBRARY, ComponentType.BASIC]
+    }
+
+    ProjectLayoutSetupRegistry registry(BuildInitializer... projectTypes) {
+        return new ProjectLayoutSetupRegistry(defaultType, converter, Mock(TemplateOperationFactory), projectTypes.toList())
+    }
+
+    BuildGenerator generator(String id, ComponentType componentType = ComponentType.BASIC) {
         def descriptor = Mock(BuildGenerator)
         descriptor.id >> id
+        descriptor.componentType >> componentType
         return descriptor
     }
 

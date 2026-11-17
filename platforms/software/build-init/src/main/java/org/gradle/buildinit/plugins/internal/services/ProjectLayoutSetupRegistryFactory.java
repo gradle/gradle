@@ -23,32 +23,24 @@ import org.gradle.buildinit.plugins.internal.BuildContentGenerator;
 import org.gradle.buildinit.plugins.internal.BuildGenerator;
 import org.gradle.buildinit.plugins.internal.BuildInitializer;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
-import org.gradle.buildinit.plugins.internal.CppApplicationProjectInitDescriptor;
-import org.gradle.buildinit.plugins.internal.CppLibraryProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.DefaultTemplateLibraryVersionProvider;
 import org.gradle.buildinit.plugins.internal.GitAttributesGenerator;
 import org.gradle.buildinit.plugins.internal.GitIgnoreGenerator;
 import org.gradle.buildinit.plugins.internal.GradlePropertiesGenerator;
-import org.gradle.buildinit.plugins.internal.GroovyGradlePluginProjectInitDescriptor;
-import org.gradle.buildinit.plugins.internal.JavaGradlePluginProjectInitDescriptor;
-import org.gradle.buildinit.plugins.internal.JvmApplicationProjectInitDescriptor;
-import org.gradle.buildinit.plugins.internal.JvmLibraryProjectInitDescriptor;
-import org.gradle.buildinit.plugins.internal.KotlinGradlePluginProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.LanguageSpecificAdaptor;
 import org.gradle.buildinit.plugins.internal.LanguageSpecificProjectGenerator;
 import org.gradle.buildinit.plugins.internal.ProjectGenerator;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
+import org.gradle.buildinit.plugins.internal.ProjectTypeContributor;
 import org.gradle.buildinit.plugins.internal.ResourceDirsGenerator;
 import org.gradle.buildinit.plugins.internal.SimpleGlobalFilesBuildSettingsDescriptor;
 import org.gradle.buildinit.plugins.internal.SourceGeneratingBuildGenerator;
-import org.gradle.buildinit.plugins.internal.SwiftApplicationProjectInitDescriptor;
-import org.gradle.buildinit.plugins.internal.SwiftLibraryProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.TemplateLibraryVersionProvider;
 import org.gradle.buildinit.plugins.internal.TemplateOperationFactory;
 import org.gradle.unexported.buildinit.plugins.internal.maven.PomProjectInitDescriptor;
-import org.gradle.buildinit.plugins.internal.model.Description;
 import org.gradle.workers.WorkerExecutor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProjectLayoutSetupRegistryFactory {
@@ -57,11 +49,13 @@ public class ProjectLayoutSetupRegistryFactory {
     private final BuildScriptBuilderFactory scriptBuilderFactory;
     private final TemplateOperationFactory templateOperationBuilder;
     private final WorkerExecutor workerExecutor;
+    private final List<ProjectTypeContributor> projectTypeContributors;
 
-    public ProjectLayoutSetupRegistryFactory(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, WorkerExecutor workerExecutor) {
+    public ProjectLayoutSetupRegistryFactory(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, WorkerExecutor workerExecutor, List<ProjectTypeContributor> projectTypeContributors) {
         this.mavenSettingsProvider = mavenSettingsProvider;
         this.documentationRegistry = documentationRegistry;
         this.workerExecutor = workerExecutor;
+        this.projectTypeContributors = projectTypeContributors;
         this.scriptBuilderFactory = new BuildScriptBuilderFactory(documentationRegistry);
         this.templateOperationBuilder = new TemplateOperationFactory("/org/gradle/buildinit/tasks/templates", documentationRegistry);
     }
@@ -78,23 +72,32 @@ public class ProjectLayoutSetupRegistryFactory {
         List<BuildContentGenerator> commonGenerators = ImmutableList.of(settingsDescriptor, gitIgnoreGenerator, gitAttributesGenerator, gradlePropertiesGenerator);
         BuildGenerator basicType = new BasicBuildGenerator(scriptBuilderFactory, documentationRegistry, commonGenerators);
         PomProjectInitDescriptor mavenBuildConverter = new PomProjectInitDescriptor(mavenSettingsProvider, documentationRegistry, workerExecutor);
-        ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry(basicType, mavenBuildConverter, templateOperationBuilder);
-        registry.add(of(new JvmApplicationProjectInitDescriptor(Description.JAVA, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
-        registry.add(of(new JvmLibraryProjectInitDescriptor(Description.JAVA, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
-        registry.add(of(new JvmApplicationProjectInitDescriptor(Description.GROOVY, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
-        registry.add(of(new JvmLibraryProjectInitDescriptor(Description.GROOVY, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
-        registry.add(of(new JvmApplicationProjectInitDescriptor(Description.SCALA, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
-        registry.add(of(new JvmLibraryProjectInitDescriptor(Description.SCALA, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
-        registry.add(of(new JvmApplicationProjectInitDescriptor(Description.KOTLIN, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
-        registry.add(of(new JvmLibraryProjectInitDescriptor(Description.KOTLIN, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
-        registry.add(of(new CppApplicationProjectInitDescriptor(templateOperationBuilder, documentationRegistry), commonGenerators, libraryVersionProvider));
-        registry.add(of(new CppLibraryProjectInitDescriptor(templateOperationBuilder, documentationRegistry), commonGenerators, libraryVersionProvider));
-        registry.add(of(new JavaGradlePluginProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
-        registry.add(of(new GroovyGradlePluginProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
-        registry.add(of(new KotlinGradlePluginProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
-        registry.add(of(new SwiftApplicationProjectInitDescriptor(templateOperationBuilder, documentationRegistry), commonGenerators, libraryVersionProvider));
-        registry.add(of(new SwiftLibraryProjectInitDescriptor(templateOperationBuilder, documentationRegistry), commonGenerators, libraryVersionProvider));
-        return registry;
+        List<BuildInitializer> projectTypes = new ArrayList<>();
+        ProjectTypeContributor.Registrar registrar = new ProjectTypeContributor.Registrar() {
+            @Override
+            public TemplateLibraryVersionProvider getLibraryVersionProvider() {
+                return libraryVersionProvider;
+            }
+
+            @Override
+            public TemplateOperationFactory getTemplateOperationFactory() {
+                return templateOperationBuilder;
+            }
+
+            @Override
+            public void registerJvmProjectType(LanguageSpecificProjectGenerator projectGenerator) {
+                projectTypes.add(of(projectGenerator, jvmProjectGenerators, libraryVersionProvider));
+            }
+
+            @Override
+            public void registerProjectType(LanguageSpecificProjectGenerator projectGenerator) {
+                projectTypes.add(of(projectGenerator, commonGenerators, libraryVersionProvider));
+            }
+        };
+        for (ProjectTypeContributor contributor : projectTypeContributors) {
+            contributor.contribute(registrar);
+        }
+        return new ProjectLayoutSetupRegistry(basicType, mavenBuildConverter, templateOperationBuilder, projectTypes);
     }
 
     private BuildGenerator of(ProjectGenerator projectGenerator, List<BuildContentGenerator> generators) {
