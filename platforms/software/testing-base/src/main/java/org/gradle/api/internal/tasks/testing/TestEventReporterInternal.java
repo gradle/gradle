@@ -40,14 +40,15 @@ public interface TestEventReporterInternal extends TestEventReporter {
     void failed(Instant endTime, List<TestFailure> failures);
 
     /**
-     * Emit a skipped event for the test when a test was skipped due to an assumption failure.
+     * Emit a skipped event for the test when a test was skipped due to an assumption failure or annotation-based conditions.
      * <p>
      * May not be called before {@link #started(Instant)}.
      *
      * @param endTime the time the test completed
      * @param assumptionFailure the assumption failure that caused the test to be skipped
+     * @param skipReason the reason the test was skipped as reported by the test framework (for example from {@code @Disabled("...")})
      */
-    void skipped(Instant endTime, @Nullable TestFailure assumptionFailure);
+    void skipped(Instant endTime, @Nullable TestFailure assumptionFailure, @Nullable String skipReason);
 
     /**
      * Internal method to send already formed metadata events

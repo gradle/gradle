@@ -145,18 +145,26 @@ class TestEventSerializerTest extends SerializerSpec {
     def "serializes TestCompleteEvent"() {
         def event1 = new TestCompleteEvent(123L, TestResult.ResultType.SUCCESS)
         def event2 = new TestCompleteEvent(123L, null)
+        def event3 = new TestCompleteEvent(123L, TestResult.ResultType.SKIPPED, "disabled for now")
 
         when:
         def result1 = serialize(event1)
         def result2 = serialize(event2)
+        def result3 = serialize(event3)
 
         then:
         result1 instanceof TestCompleteEvent
         result1.endTime == 123L
         result1.resultType == TestResult.ResultType.SUCCESS
+        result1.skipReason == null
         result2 instanceof TestCompleteEvent
         result2.endTime == 123L
         result2.resultType == null
+        result2.skipReason == null
+        result3 instanceof TestCompleteEvent
+        result3.endTime == 123L
+        result3.resultType == TestResult.ResultType.SKIPPED
+        result3.skipReason == "disabled for now"
     }
 
     def "serializes DefaultTestOutputEvent"() {

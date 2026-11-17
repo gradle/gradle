@@ -35,6 +35,8 @@ public class TestState {
     public List<TestFailure> failures = new ArrayList<TestFailure>();
     @Nullable
     public TestFailure assumptionFailure = null;
+    @Nullable
+    public String skipReason = null;
     public long testCount;
     public long successfulCount;
     public long failedCount;
@@ -65,6 +67,7 @@ public class TestState {
 
     public void completed(TestCompleteEvent event) {
         this.completeEvent = event;
+        this.skipReason = event.getSkipReason();
         resultType = isFailed() ? TestResult.ResultType.FAILURE
                 : event.getResultType() != null ? event.getResultType() : TestResult.ResultType.SUCCESS;
 

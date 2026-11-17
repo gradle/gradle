@@ -28,6 +28,8 @@ public class DefaultTestResult implements TestResult, Serializable {
     private final List<TestFailure> failures;
     @Nullable
     private final TestFailure assumptionFailure;
+    @Nullable
+    private final String skipReason;
     private final ResultType resultType;
     private final long startTime;
     private final long endTime;
@@ -36,10 +38,10 @@ public class DefaultTestResult implements TestResult, Serializable {
     private final long failedCount;
 
     public DefaultTestResult(TestState state) {
-        this(state.resultType, state.getStartTime(), state.getEndTime(), state.testCount, state.successfulCount, state.failedCount, state.failures, state.assumptionFailure);
+        this(state.resultType, state.getStartTime(), state.getEndTime(), state.testCount, state.successfulCount, state.failedCount, state.failures, state.assumptionFailure, state.skipReason);
     }
 
-    public DefaultTestResult(ResultType resultType, long startTime, long endTime, long testCount, long successfulCount, long failedCount, List<TestFailure> failures, @Nullable TestFailure assumptionFailure) {
+    public DefaultTestResult(ResultType resultType, long startTime, long endTime, long testCount, long successfulCount, long failedCount, List<TestFailure> failures, @Nullable TestFailure assumptionFailure, @Nullable String skipReason) {
         this.resultType = resultType;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -48,6 +50,7 @@ public class DefaultTestResult implements TestResult, Serializable {
         this.failedCount = failedCount;
         this.failures = failures;
         this.assumptionFailure = assumptionFailure;
+        this.skipReason = skipReason;
     }
 
     @Override
@@ -64,6 +67,12 @@ public class DefaultTestResult implements TestResult, Serializable {
     @Nullable
     public TestFailure getAssumptionFailure() {
         return assumptionFailure;
+    }
+
+    @Override
+    @Nullable
+    public String getSkipReason() {
+        return skipReason;
     }
 
     @Override
