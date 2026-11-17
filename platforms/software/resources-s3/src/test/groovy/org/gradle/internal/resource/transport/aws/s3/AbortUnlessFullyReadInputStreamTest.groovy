@@ -27,7 +27,7 @@ class AbortUnlessFullyReadInputStreamTest extends Specification {
 
     Abortable abortable = Mock()
 
-    def "#description"() {
+    def "on close, #description"() {
         given:
         def stream = stream(contentLength)
 
