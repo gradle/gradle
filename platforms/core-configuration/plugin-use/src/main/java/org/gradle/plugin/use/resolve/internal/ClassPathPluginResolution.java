@@ -25,11 +25,14 @@ public class ClassPathPluginResolution implements PluginResolution {
 
     private final PluginId pluginId;
     private final String pluginVersion;
+    private final boolean local;
     private final PluginImplementation<?> plugin;
 
-    public ClassPathPluginResolution(PluginId pluginId, @Nullable String pluginVersion, PluginImplementation<?> plugin) {
+    public ClassPathPluginResolution(PluginId pluginId, @Nullable String pluginVersion, boolean local, PluginImplementation<?> plugin) {
+        assert !local || pluginVersion == null : "A local plugin resolution carries no version";
         this.pluginId = pluginId;
         this.pluginVersion = pluginVersion;
+        this.local = local;
         this.plugin = plugin;
     }
 
@@ -42,6 +45,11 @@ public class ClassPathPluginResolution implements PluginResolution {
     @Override
     public String getPluginVersion() {
         return pluginVersion;
+    }
+
+    @Override
+    public boolean isLocal() {
+        return local;
     }
 
     @Override

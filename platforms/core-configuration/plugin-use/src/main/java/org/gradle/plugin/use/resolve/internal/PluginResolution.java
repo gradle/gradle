@@ -42,11 +42,25 @@ public interface PluginResolution {
 
     /**
      * The resolved plugin version, if known.
+     * <p>
+     * Always {@code null} for plugins from a local build (see {@link #isLocal()}),
+     * since the version requested for such a plugin is ignored.
      *
      * @return The resolved plugin version, or null if the plugin version is not known.
      */
     @Nullable
     default String getPluginVersion() {
         return null;
+    }
+
+    /**
+     * Returns {@code true} if the plugin is from a local build, such as an included plugin build.
+     * <p>
+     * A local plugin never carries a version: {@link #getPluginVersion()} returns {@code null}
+     * and any version in the plugin request is ignored. A plugin resolution is therefore in
+     * exactly one of two states: local without a version, or non-local with an optional version.
+     */
+    default boolean isLocal() {
+        return false;
     }
 }
