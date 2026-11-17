@@ -48,6 +48,7 @@ import java.util.function.Function;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
 import static org.objectweb.asm.Opcodes.V1_5;
 import static org.objectweb.asm.Type.BOOLEAN_TYPE;
@@ -151,7 +152,7 @@ public class NamedObjectInstantiator implements ManagedFactory {
 
             String generatedTypeName = generator.getGeneratedType().getInternalName();
 
-            visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC, generatedTypeName, null, superClass.getInternalName(), interfaces);
+            visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC | ACC_STATIC, generatedTypeName, null, superClass.getInternalName(), interfaces);
 
             //
             // Add `name` field
@@ -235,7 +236,7 @@ public class NamedObjectInstantiator implements ManagedFactory {
     private Class<Object> generateFactoryClassFor(Class<?> publicClass, Type implementationType) {
         AsmClassGenerator generator = new AsmClassGenerator(publicClass, factorySuffix);
         new ClassVisitorScope(generator.getVisitor()) {{
-            visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC, generator.getGeneratedType().getInternalName(), null, CLASS_GENERATING_LOADER.getInternalName(), null);
+            visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC | ACC_STATIC, generator.getGeneratedType().getInternalName(), null, CLASS_GENERATING_LOADER.getInternalName(), null);
 
             //
             // Add constructor
