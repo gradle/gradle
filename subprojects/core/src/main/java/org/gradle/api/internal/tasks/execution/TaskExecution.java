@@ -534,34 +534,38 @@ public class TaskExecution implements MutableUnitOfWork {
     @Override
     public FileCollectionStructureVisitor getInputDependencyChecker(WorkValidationContext workValidationContext) {
         TypeValidationContext validationContext = getTypeValidationContext(workValidationContext);
-        if (dependencySearch == null) {
-            dependencySearch = new MissingTaskDependencyDetector.DependencySearch(node);
-        }
-        MissingTaskDependencyDetector.DependencySearch localSearch = dependencySearch;
+        MissingTaskDependencyDetector.DependencySearch search = getDependencySearch();
         return new FileCollectionStructureVisitor() {
             @Override
             public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
                 contents.forEach(root -> missingTaskDependencyDetector.visitUnfilteredInputLocation(
-                    node, localSearch, validationContext, root.getAbsolutePath()));
+                    search, validationContext, root.getAbsolutePath()));
             }
 
             @Override
             public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
                 if (patterns.isEmpty()) {
                     missingTaskDependencyDetector.visitUnfilteredInputLocation(
-                        node, localSearch, validationContext, root.getAbsolutePath());
+                        search, validationContext, root.getAbsolutePath());
                 } else {
                     missingTaskDependencyDetector.visitFilteredInputLocation(
-                        node, localSearch, validationContext, root.getAbsolutePath(), patterns.getAsSpec());
+                        search, validationContext, root.getAbsolutePath(), patterns.getAsSpec());
                 }
             }
 
             @Override
             public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                 missingTaskDependencyDetector.visitUnfilteredInputLocation(
-                    node, localSearch, validationContext, file.getAbsolutePath());
+                    search, validationContext, file.getAbsolutePath());
             }
         };
+    }
+
+    private MissingTaskDependencyDetector.DependencySearch getDependencySearch() {
+        if (dependencySearch == null) {
+            dependencySearch = new MissingTaskDependencyDetector.DependencySearch(node);
+        }
+        return dependencySearch;
     }
 
     private TypeValidationContext getTypeValidationContext(WorkValidationContext validationContext) {

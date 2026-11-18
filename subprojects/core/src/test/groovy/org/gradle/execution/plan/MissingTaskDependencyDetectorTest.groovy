@@ -24,18 +24,18 @@ class MissingTaskDependencyDetectorTest extends Specification {
     // How often the search asked each node for its successors, by node name
     Map<String, Integer> expansions = [:].withDefault { 0 }
 
-    def "search finds direct and transitive dependencies"() {
+    def "a node runs after its direct and transitive dependencies"() {
         given:
         def transitive = node("transitive")
         def direct = node("direct", transitive)
         def search = new MissingTaskDependencyDetector.DependencySearch(node("node", direct))
 
         expect:
-        search.reaches(direct)
-        search.reaches(transitive)
+        search.runsAfter(direct)
+        search.runsAfter(transitive)
     }
 
-    def "search does not find nodes that are not dependencies"() {
+    def "a node does not run after nodes that are not its dependencies"() {
         given:
         def dependency = node("dependency")
         def start = node("node", dependency)
@@ -44,9 +44,18 @@ class MissingTaskDependencyDetectorTest extends Specification {
         def search = new MissingTaskDependencyDetector.DependencySearch(start)
 
         expect:
-        !search.reaches(other)
-        !search.reaches(start)
-        search.reaches(dependency)
+        !search.runsAfter(other)
+        search.runsAfter(dependency)
+    }
+
+    def "a node counts as running after itself"() {
+        given:
+        def start = node("node")
+        def search = new MissingTaskDependencyDetector.DependencySearch(start)
+
+        expect:
+        search.runsAfter(start)
+        expansions == [:]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/39729")
@@ -57,8 +66,8 @@ class MissingTaskDependencyDetectorTest extends Specification {
         def search = new MissingTaskDependencyDetector.DependencySearch(node("node", inAnotherBuild(target)))
 
         expect:
-        search.reaches(target)
-        search.reaches(transitive)
+        search.runsAfter(target)
+        search.runsAfter(transitive)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/39729")
@@ -74,7 +83,7 @@ class MissingTaskDependencyDetectorTest extends Specification {
         def search = new MissingTaskDependencyDetector.DependencySearch(node("node", left, inAnotherBuild(right)))
 
         when:
-        def answers = (1..10).collect { [first, second, shared, left, right, other].collect { search.reaches(it) } }
+        def answers = (1..10).collect { [first, second, shared, left, right, other].collect { search.runsAfter(it) } }
 
         then:
         answers.every { it == [true, true, true, true, true, false] }
@@ -88,7 +97,7 @@ class MissingTaskDependencyDetectorTest extends Specification {
         def search = new MissingTaskDependencyDetector.DependencySearch(node("node", direct))
 
         expect:
-        search.reaches(direct)
+        search.runsAfter(direct)
         expansions == [node: 1]
     }
 

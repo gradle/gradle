@@ -61,23 +61,19 @@ public class MissingTaskDependencyDetector {
     }
 
     /**
-     * Records the given node accessing the given input location and checks if there are any nodes producing the location that the node does not depend on.
-     *
-     * @param dependenciesOfNode the search for the dependencies of the given node, shared by all input locations of one execution of the node
+     * Records the given consumer accessing the given input location and checks if there are any nodes producing the location that the consumer does not depend on.
      */
-    public void visitUnfilteredInputLocation(LocalTaskNode node, DependencySearch dependenciesOfNode, TypeValidationContext validationContext, String location) {
-        inputHierarchy.recordNodeAccessingLocation(node, location);
-        collectValidationProblemsForConsumer(node, dependenciesOfNode, validationContext, location, outputHierarchy.getNodesAccessing(location));
+    public void visitUnfilteredInputLocation(DependencySearch consumer, TypeValidationContext validationContext, String location) {
+        inputHierarchy.recordNodeAccessingLocation(consumer.getNode(), location);
+        collectValidationProblemsForConsumer(consumer, validationContext, location, outputHierarchy.getNodesAccessing(location));
     }
 
     /**
-     * Records the given node accessing the given input location with a filter, and checks if there are any nodes producing the location that the node does not depend on.
-     *
-     * @param dependenciesOfNode the search for the dependencies of the given node, shared by all input locations of one execution of the node
+     * Records the given consumer accessing the given input location with a filter, and checks if there are any nodes producing the location that the consumer does not depend on.
      */
-    public void visitFilteredInputLocation(LocalTaskNode node, DependencySearch dependenciesOfNode, TypeValidationContext validationContext, String location, Spec<FileTreeElement> spec) {
-        inputHierarchy.recordNodeAccessingFileTree(node, location, spec);
-        collectValidationProblemsForConsumer(node, dependenciesOfNode, validationContext, location, outputHierarchy.getNodesAccessing(location, spec));
+    public void visitFilteredInputLocation(DependencySearch consumer, TypeValidationContext validationContext, String location, Spec<FileTreeElement> spec) {
+        inputHierarchy.recordNodeAccessingFileTree(consumer.getNode(), location, spec);
+        collectValidationProblemsForConsumer(consumer, validationContext, location, outputHierarchy.getNodesAccessing(location, spec));
     }
 
     /**
@@ -88,16 +84,20 @@ public class MissingTaskDependencyDetector {
         collectValidationProblemsForProducer(node, validationContext, location, inputHierarchy.getNodesAccessing(location));
     }
 
-    private static void collectValidationProblemsForConsumer(LocalTaskNode consumer, DependencySearch dependenciesOfConsumer, TypeValidationContext validationContext, String locationConsumedByThisTask, Collection<Node> producers) {
+    private static void collectValidationProblemsForConsumer(DependencySearch consumer, TypeValidationContext validationContext, String locationConsumedByThisTask, Collection<Node> producers) {
+        if (!(consumer.getNode() instanceof LocalTaskNode)) {
+            return;
+        }
+        LocalTaskNode consumerNode = (LocalTaskNode) consumer.getNode();
         for (Node producerNode : producers) {
-            if (!hasNoSpecifiedOrder(producerNode, consumer, dependenciesOfConsumer)) {
+            if (hasSpecifiedOrder(producerNode, consumer)) {
                 continue;
             }
             LocalTaskNode producerWithoutDependency = asEnabledTaskNode(producerNode);
             if (producerWithoutDependency != null) {
                 collectValidationProblem(
                     producerWithoutDependency,
-                    consumer,
+                    consumerNode,
                     validationContext,
                     locationConsumedByThisTask
                 );
@@ -107,7 +107,7 @@ public class MissingTaskDependencyDetector {
 
     private static void collectValidationProblemsForProducer(LocalTaskNode node, TypeValidationContext validationContext, String outputPath, Collection<Node> consumers) {
         for (Node consumerNode : consumers) {
-            if (!hasNoSpecifiedOrder(node, consumerNode, new DependencySearch(consumerNode))) {
+            if (hasSpecifiedOrder(node, new DependencySearch(consumerNode))) {
                 continue;
             }
             LocalTaskNode consumerWithoutDependency = asEnabledTaskNode(consumerNode);
@@ -140,20 +140,8 @@ public class MissingTaskDependencyDetector {
     // And for that case, there will be a cyclic dependency between the 'analyze' and the 'format' task if we only take output/input locations into account.
     // Therefore, we currently allow these kind of missing dependencies, as long as any order has been specified.
     // See https://github.com/gradle/gradle/issues/15616.
-    private static boolean hasNoSpecifiedOrder(Node producerNode, Node consumerNode, DependencySearch dependenciesOfConsumer) {
-        return missesDependency(producerNode, consumerNode, dependenciesOfConsumer) && missesDependency(consumerNode, producerNode, new DependencySearch(producerNode));
-    }
-
-    private static boolean missesDependency(Node producer, Node consumer, DependencySearch dependenciesOfConsumer) {
-        if (consumer == producer) {
-            return false;
-        }
-        // This is a performance optimization to short-cut the search for a dependency if there is a direct dependency.
-        // We use `getDependencySuccessors()` instead of `getAllDependencySuccessors()`, since the former is a Set while the latter is only an Iterable.
-        if (consumer.getDependencySuccessors().contains(producer)) {
-            return false;
-        }
-        return !dependenciesOfConsumer.reaches(producer);
+    private static boolean hasSpecifiedOrder(Node producer, DependencySearch consumer) {
+        return consumer.runsAfter(producer) || new DependencySearch(producer).runsAfter(consumer.getNode());
     }
 
     /**
@@ -163,18 +151,36 @@ public class MissingTaskDependencyDetector {
      */
     public static final class DependencySearch {
 
+        private final Node node;
         private final Deque<Node> queue = new ArrayDeque<>();
         private final Set<Node> seenNodes = new HashSet<>();
 
-        /**
-         * Create a new search for the dependencies of the given node.
-         */
         public DependencySearch(Node node) {
+            this.node = node;
             queue.add(node);
         }
 
+        public Node getNode() {
+            return node;
+        }
+
+        /**
+         * Returns whether this search's node runs after the given node, or is the given node.
+         */
         @VisibleForTesting
-        boolean reaches(Node dependency) {
+        boolean runsAfter(Node other) {
+            if (node == other) {
+                return true;
+            }
+            // This is a performance optimization to short-cut the search for a dependency if there is a direct dependency.
+            // We use `getDependencySuccessors()` instead of `getAllDependencySuccessors()`, since the former is a Set while the latter is only an Iterable.
+            if (node.getDependencySuccessors().contains(other)) {
+                return true;
+            }
+            return reaches(other);
+        }
+
+        private boolean reaches(Node dependency) {
             if (seenNodes.contains(dependency)) {
                 return true;
             }
