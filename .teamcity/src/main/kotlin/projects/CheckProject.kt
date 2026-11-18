@@ -37,6 +37,7 @@ class CheckProject(
             param("env.CHROME_BIN", "%linux.chrome.bin.path%")
             param("ai.retry.mode", "retry")
             param("ai.retry.endpoint", "https://gradle-bot.grdev.net/ai/retry-decision")
+            param("ai.retry.timeout.seconds", "20")
 
             text(
                 "additional.gradle.parameters",
