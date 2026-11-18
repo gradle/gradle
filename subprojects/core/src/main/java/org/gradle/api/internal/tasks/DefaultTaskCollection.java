@@ -112,7 +112,7 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
 
     @Override
     public void addLifecycleListener(Class<? extends TaskLifecycleListener<? super T>> listenerType) {
-        configureEach(task -> task.addLifecycleListener(listenerType));
+        configureEach(task -> Task.addLifecycleListener(task, listenerType));
     }
 
     @Override

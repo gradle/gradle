@@ -521,8 +521,11 @@ include::{snippetsPath}/optimizing-builds/configuration-cache/taskLifecycleListe
 ==== Registering listeners
 
 The type parameter of `TaskLifecycleListener<T>` declares which tasks the listener accepts.
-Gradle checks it when you register the listener, and fails with a message naming both the listener's accepted type and the task type if they don't match.
-On a typed task collection, such as `tasks.withType<Copy>()`, the compiler also checks it.
+`Task.addLifecycleListener(Class)` only accepts listeners for any task.
+To register a listener for a specific task type, use a typed task collection, such as `tasks.withType<Copy>()`.
+For a single task, use the `addLifecycleListener(MyListener::class)` extension in Kotlin, or the static `Task.addLifecycleListener(task, MyListener.class)` method in Java.
+The compiler checks the task type in all of these.
+Gradle also checks it when you register the listener, for build scripts the compiler doesn't check, such as Groovy ones, and fails with a message naming both the listener's accepted type and the task type if they don't match.
 
 `TaskCollection.addLifecycleListener` registers the listener with tasks lazily, as they are configured, in the same way as `configureEach`.
 Registering the same listener type with a task more than once has no effect.

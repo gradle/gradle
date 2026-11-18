@@ -581,7 +581,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public void addLifecycleListener(Class<? extends TaskLifecycleListener<?>> listenerType) {
+    public void addLifecycleListener(Class<? extends TaskLifecycleListener<? super Task>> listenerType) {
         if (listenerType == null) {
             throw new InvalidUserDataException("Listener type must not be null!");
         }

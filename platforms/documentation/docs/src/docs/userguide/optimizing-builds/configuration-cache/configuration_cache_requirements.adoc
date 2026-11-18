@@ -568,7 +568,7 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/taskLifecycl
 <3> Gradle creates a new listener instance for each task execution, so instance fields carry state from `beforeExecution` to `afterExecution`.
 <4> `afterExecution` is called regardless of the outcome of the task, with the failure, if any, available from the `TaskState`.
 <5> Registering a listener for any task.
-<6> Registering a listener that accepts only `Copy` tasks on a typed task collection. Such a listener can also be registered directly on a `Copy` task. The task type the listener accepts is checked when it is registered.
+<6> Registering a listener that accepts only `Copy` tasks on a typed task collection. On a single `Copy` task, use the `addLifecycleListener(CopyReporter::class)` extension in Kotlin, or `Task.addLifecycleListener(task, CopyReporter.class)` in Java.
 
 Only the listener types are stored in the Configuration Cache, and the listeners are created again when the tasks execute, on both cache hits and cache misses.
 

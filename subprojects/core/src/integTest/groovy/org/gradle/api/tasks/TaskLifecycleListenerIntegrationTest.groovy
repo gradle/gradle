@@ -27,9 +27,7 @@ import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 
 import static org.hamcrest.CoreMatchers.anyOf
-import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.startsWith
-
 
 class TaskLifecycleListenerIntegrationTest extends AbstractIntegrationSpec {
 
@@ -174,7 +172,7 @@ first after"""
         outputContains("any listener on typed collection :hello")
     }
 
-    def "listener for a specific task type can be registered on a matching task in Kotlin"() {
+    def "listener for a specific task type can be registered with a matching task in Kotlin"() {
         buildKotlinFile """
             abstract class GreetingTask : DefaultTask() {
                 @TaskAction
@@ -187,8 +185,15 @@ first after"""
                 }
             }
 
+            abstract class AnyTaskListener : TaskLifecycleListener<Task> {
+                override fun beforeExecution(task: Task) {
+                    println("any listener \${task.path}")
+                }
+            }
+
             tasks.register<GreetingTask>("hello") {
-                addLifecycleListener(GreetingListener::class.java)
+                addLifecycleListener(GreetingListener::class)
+                addLifecycleListener(AnyTaskListener::class)
             }
         """
 
@@ -197,9 +202,10 @@ first after"""
 
         then:
         outputContains("greeting listener :hello")
+        outputContains("any listener :hello")
     }
 
-    def "listener for a specific task type is rejected at registration on other tasks in Kotlin"() {
+    def "listener for a specific task type cannot be registered with #description in Kotlin"() {
         buildKotlinFile """
             abstract class GreetingTask : DefaultTask() {
                 @TaskAction
@@ -208,17 +214,63 @@ first after"""
 
             abstract class GreetingListener : TaskLifecycleListener<GreetingTask>
 
-            tasks.register("other") {
-                addLifecycleListener(GreetingListener::class.java)
-            }
+            $registration
         """
 
         when:
-        fails "other"
+        fails "hello"
 
         then:
-        failure.assertThatCause(containsString("the listener accepts tasks of type"))
-        failure.assertThatCause(containsString("GreetingTask, but the task is of type org.gradle.api.DefaultTask."))
+        failure.assertHasErrorOutput(error)
+
+        where:
+        description                     | registration                                                                                 | error
+        // Task.addLifecycleListener(Class) only accepts listeners for any task
+        "the method of a matching task" | 'tasks.register<GreetingTask>("hello") { addLifecycleListener(GreetingListener::class.java) }' | "Argument type mismatch: actual type is 'Class<GreetingListener>', but 'Class<out TaskLifecycleListener<in Task>>' was expected."
+        "a task of another type"        | 'tasks.register("hello") { addLifecycleListener(GreetingListener::class) }'                  | "Argument type mismatch: actual type is 'KClass<GreetingListener>', but 'KClass<out TaskLifecycleListener<in Task>>' was expected."
+    }
+
+    def "listener for a specific task type can be registered with a matching task in Java"() {
+        file("buildSrc/src/main/java/GreetingTask.java") << """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.TaskAction;
+
+            public abstract class GreetingTask extends DefaultTask {
+                @TaskAction
+                public void greet() {}
+            }
+        """
+        file("buildSrc/src/main/java/GreetingListener.java") << """
+            import org.gradle.api.tasks.TaskLifecycleListener;
+
+            public abstract class GreetingListener implements TaskLifecycleListener<GreetingTask> {
+                @Override
+                public void beforeExecution(GreetingTask task) {
+                    System.out.println("greeting listener " + task.getPath());
+                }
+            }
+        """
+        file("buildSrc/src/main/java/GreetingPlugin.java") << """
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.Task;
+
+            public class GreetingPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    project.getTasks().register("hello", GreetingTask.class, task -> Task.addLifecycleListener(task, GreetingListener.class));
+                }
+            }
+        """
+        buildFile """
+            apply plugin: GreetingPlugin
+        """
+
+        when:
+        run "hello"
+
+        then:
+        outputContains("greeting listener :hello")
     }
 
     def "listeners of tasks executing in parallel are notified concurrently"() {

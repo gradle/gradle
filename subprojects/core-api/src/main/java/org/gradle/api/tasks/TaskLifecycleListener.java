@@ -22,8 +22,8 @@ import org.gradle.api.Task;
 /**
  * A listener notified before and after the execution of a single task.
  *
- * <p>Listeners are registered by type, using {@link Task#addLifecycleListener(Class)} or
- * {@link TaskCollection#addLifecycleListener(Class)}. Gradle creates a new instance of the listener
+ * <p>Listeners are registered by type, using {@link Task#addLifecycleListener(Class)}, {@link Task#addLifecycleListener(Task, Class)}
+ * or {@link TaskCollection#addLifecycleListener(Class)}. Gradle creates a new instance of the listener
  * for every execution of a task it is registered with. Both methods of a single task execution are called
  * on the same instance, so instance fields can be used to carry state from {@link #beforeExecution(Task)}
  * to {@link #afterExecution(Task, TaskState)}.</p>
