@@ -1,9 +1,9 @@
 # some versions are in shared-versions.properties
 [versions]
-ant = "1.10.17!!"
+ant = "1.10.18!!"
 awsS3 = "1.12.780!!"
 bouncycastle = "1.86!!"
-commonsCodec = "1.18.0!!"
+commonsCodec = "1.23.0!!"
 commonsCompress = "1.28.0!!"
 commonsHttpclient = "4.5.14!!"
 commonsIo = "2.20.0!!"
@@ -19,7 +19,7 @@ gson = "2.14.0!!"
 guava = "33.7.2-jre"
 httpcore = "4.4.16!!"
 inject = "1!!"
-ivy = "2.5.3!!"
+ivy = "2.6.0!!"
 jansi = "2.4.2!!" # If JANSI is updated run on a Windows terminal CMD.EXE to make sure the ansi control characters are not messing up the output
 jatl = "0.2.3!!"
 javaParser = "3.27.1!!"

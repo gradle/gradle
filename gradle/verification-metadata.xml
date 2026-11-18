@@ -285,7 +285,10 @@
             <trusting group="org.apache.maven.wagon" name="wagon-provider-api"/>
             <trusting group="org.codehaus.plexus" name="plexus-cipher"/>
          </trusted-key>
-         <trusted-key id="6A93161EB1990E8346E7BA2B23738DFD7C40DE43" group="org.apache.ant"/>
+         <trusted-key id="6A93161EB1990E8346E7BA2B23738DFD7C40DE43">
+            <trusting group="org.apache.ant"/>
+            <trusting group="org.apache.ivy"/>
+         </trusted-key>
          <trusted-key id="6BDACA2C0493CCA133B372D09C4F7E9D98B1CC53" group="commons-io" name="commons-io"/>
          <trusted-key id="6CB87B18A453990EAC9453F87D713008CC07E9AD" group="xerces" name="xercesImpl"/>
          <trusted-key id="6D2AF456B8CB597387901C786F29F72839B3A8E7" group="org.jboss.logging" name="jboss-logging"/>

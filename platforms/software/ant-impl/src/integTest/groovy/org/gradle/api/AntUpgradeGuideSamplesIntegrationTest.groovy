@@ -157,7 +157,7 @@ public abstract class GenerateJaxbClasses extends DefaultTask {
             }
 
             dependencies {
-                antTool("org.apache.ant:ant:1.10.17")
+                antTool("org.apache.ant:ant:1.10.18")
                 antTool("org.glassfish.jaxb:jaxb-xjc:4.0.9")
             }
 
@@ -191,7 +191,7 @@ public abstract class GenerateJaxbClasses extends DefaultTask {
             }
 
             dependencies {
-                antTool("org.apache.ant:ant:1.10.17")
+                antTool("org.apache.ant:ant:1.10.18")
                 antTool("org.glassfish.jaxb:jaxb-xjc:4.0.9")
             }
 
@@ -285,7 +285,7 @@ public abstract class GenerateJaxbClasses extends DefaultTask {
                     mavenCentral()
                 }
                 dependencies {
-                    classpath("org.apache.ant:ant:1.10.17")
+                    classpath("org.apache.ant:ant:1.10.18")
                 }
             }
 
@@ -313,7 +313,7 @@ public abstract class GenerateJaxbClasses extends DefaultTask {
                     mavenCentral()
                 }
                 dependencies {
-                    classpath("org.apache.ant:ant:1.10.17")
+                    classpath("org.apache.ant:ant:1.10.18")
                 }
             }
 
