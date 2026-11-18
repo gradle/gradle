@@ -59,6 +59,8 @@ asmCommons = { group = "org.ow2.asm", name = "asm-commons", version.ref = "asm" 
 asmTree = { group = "org.ow2.asm", name = "asm-tree", version.ref = "asm" }
 awsApacheHttpClient = { group = "software.amazon.awssdk", name = "apache-client", version.ref = "awsS3" }
 awsS3S3 = { group = "software.amazon.awssdk", name = "s3", version.ref = "awsS3" }
+awsS3Sso = { group = "software.amazon.awssdk", name = "sso", version.ref = "awsS3" }
+awsS3SsoOidc = { group = "software.amazon.awssdk", name = "ssooidc", version.ref = "awsS3" }
 awsS3Sts = { group = "software.amazon.awssdk", name = "sts", version.ref = "awsS3" }
 awsSdkAuth = { group = "software.amazon.awssdk", name = "auth", version.ref = "awsS3" }
 awsSdkAwsCore = { group = "software.amazon.awssdk", name = "aws-core", version.ref = "awsS3" }

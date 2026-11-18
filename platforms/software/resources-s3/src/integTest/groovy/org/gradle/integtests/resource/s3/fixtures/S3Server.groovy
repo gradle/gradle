@@ -50,6 +50,8 @@ class S3Server extends HttpServer implements RepositoryServer {
     public static final String SERVER_AMAZON_S3 = 'AmazonS3'
 
     TestDirectoryProvider testDirectoryProvider
+    private String requiredAccessKeyId
+    private String requiredSessionToken
 
     S3Server(TestDirectoryProvider testDirectoryProvider) {
         super()
@@ -71,6 +73,41 @@ class S3Server extends HttpServer implements RepositoryServer {
         assert stubRequest.params.every {
             request.getParameterMap()[it.key] == it.value
         }
+        if (requiredAccessKeyId) {
+            assert request.getHeader("Authorization")?.contains("Credential=${requiredAccessKeyId}/")
+            assert request.getHeader("x-amz-security-token") == requiredSessionToken
+        }
+    }
+
+    /**
+     * Fails every following S3 request that is not signed with the given session credentials.
+     */
+    void requireSignedBy(String accessKeyId, String sessionToken) {
+        requiredAccessKeyId = accessKeyId
+        requiredSessionToken = sessionToken
+    }
+
+    /**
+     * Serves the AWS SSO GetRoleCredentials operation, which exchanges a cached SSO access token for role credentials.
+     * It may be called any number of times, and answers 401 to a request without the expected access token.
+     */
+    void allowSsoRoleCredentials(String accessToken, String accountId, String roleName, String accessKeyId, String secretAccessKey, String sessionToken) {
+        allow("/federation/credentials", false, ["GET"], new HttpServer.ActionSupport("SSO role credentials") {
+            void handle(HttpRequest request, HttpResponse response) {
+                response.addHeader("Content-Type", "application/json")
+                def params = request.getParameterMap()
+                if (request.getHeader("x-amz-sso_bearer_token") != accessToken
+                    || params["account_id"]?.toList() != [accountId]
+                    || params["role_name"]?.toList() != [roleName]) {
+                    response.setStatus(401)
+                    response.outputStream.bytes = '{"message":"Unexpected SSO access token or role"}'.bytes
+                    return
+                }
+                long expiration = Instant.now().plusSeconds(3600).toEpochMilli()
+                response.setStatus(200)
+                response.outputStream.bytes = """{"roleCredentials":{"accessKeyId":"${accessKeyId}","secretAccessKey":"${secretAccessKey}","sessionToken":"${sessionToken}","expiration":${expiration}}}""".bytes
+            }
+        })
     }
 
     boolean requestMatches(HttpStub httpStub, HttpRequest request) {

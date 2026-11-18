@@ -136,6 +136,9 @@ Gradle now uses version 2 of the SDK.
 Most builds need no changes.
 If your build relies on the SDK's default credential lookup through the older system property or environment variable names, see the [upgrade guide](userguide/upgrading_version_9.html#aws_sdk_v2_for_s3_repositories).
 
+Repositories that use `AwsImAuthentication` can now also get credentials from an AWS IAM Identity Center (AWS SSO) profile, after you sign in with `aws sso login`.
+See [S3 credentials from the AWS default credential chain](userguide/supported_repository_protocols.html#sec:s3-default-credentials).
+
 ### Tooling and IDE integration
 Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
 
