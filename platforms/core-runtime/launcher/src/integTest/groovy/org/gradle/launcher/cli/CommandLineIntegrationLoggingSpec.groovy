@@ -53,10 +53,10 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
         'debug'     | ''          | ['-Dorg.gradle.logging.level=debug']
     }
 
-    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "the embedded executer throws parameter parsing errors instead of reporting a build failure")
     def "reasonable failure message when org.gradle.logging.level=#value"() {
         when:
-        executer.withArgument("-Dorg.gradle.logging.level=$value").requireDaemon().requireIsolatedDaemons()
+        executer.withArgument("-Dorg.gradle.logging.level=$value")
 
         then:
         fails "help"
