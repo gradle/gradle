@@ -91,6 +91,9 @@ errorprone {
 
 tasks.withType<Test>().configureEach {
     doFirst {
+        if (!System.getProperty("os.name").startsWith("Windows")) {
+            return@doFirst
+        }
         val buildPropertiesFile = System.getenv("TEAMCITY_BUILD_PROPERTIES_FILE") ?: return@doFirst
         val marker = File(File(buildPropertiesFile).parentFile, "ai-retry-flaky-marker")
         if (!marker.exists()) {

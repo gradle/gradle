@@ -16,6 +16,8 @@
 
 package org.gradle.util.internal
 
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.OsTestPreconditions
 import spock.lang.Specification
 
 import static org.gradle.util.internal.TextUtil.toCamelCase
@@ -24,6 +26,12 @@ import static org.gradle.util.internal.TextUtil.toLowerCamelCase
 class TextUtilTest extends Specification {
     private static String sep = "separator"
     private static String platformSep = TextUtil.platformLineSeparator
+
+    @Requires(OsTestPreconditions.NotWindows)
+    def "converts words to camel case"() {
+        expect:
+        toCamelCase("hello world") == "helloWorld"
+    }
 
     def convertLineSeparators() {
         expect:
