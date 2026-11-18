@@ -188,6 +188,30 @@ If your Maven build does not have many plugins or custom steps, you can simply r
 once the migration has completed.
 This will run the tests and produce the required artifacts automatically.
 
+[[migmvn:conversion_mirror]]
+=== Converting without access to Maven Central
+
+To convert a build, the `init` task downloads a set of Maven libraries from Maven Central.
+If your network only allows downloads through an internal repository manager, the conversion fails because it cannot resolve libraries such as `org.apache.maven:maven-core`.
+
+If your Maven `settings.xml` already declares a mirror for Maven Central, tell Gradle to use it by setting the `org.gradle.mirror.maven.settings` property when you run the conversion:
+
+[listing.terminal]
+----
+> gradle init -Dorg.gradle.mirror.maven.settings=true
+----
+
+Gradle then downloads those libraries from the mirror, using the credentials of the `<server>` entry that matches the mirror.
+The property is a Gradle property and not a project property, so `-P` has no effect.
+
+On the command line, the property only applies to that one run.
+The converted build declares the repositories of the Maven build, including Maven Central, and does not use the mirror by itself.
+To make the converted build resolve through the mirror as well, add `org.gradle.mirror.maven.settings=true` to its `gradle.properties` file.
+Alternatively, replace Maven Central with your internal repository in the generated build scripts.
+
+Reusing mirror settings from Maven is an incubating feature.
+See <<centralizing_repositories.adoc#sec:reusing-maven-mirror-settings,Reusing mirror settings from Maven>> for the mirror declarations it supports and for its limits.
+
 [[migmvn:migrating_deps]]
 == Migrating dependencies
 

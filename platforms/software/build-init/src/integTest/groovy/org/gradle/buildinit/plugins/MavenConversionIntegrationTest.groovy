@@ -989,6 +989,27 @@ Root project 'webinar-parent'
         module.allowAll()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20596")
+    def "resolves the libraries for the conversion through the Maven settings mirror"() {
+        given:
+        resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
+        server.start()
+        // The mirror serves an empty directory, so it answers every request with "not found"
+        server.allowGetOrHead("/mirror", file("empty-mirror").createDir())
+        def mirrorUrl = "${server.uri}/mirror"
+        using m2
+        m2.withCentralMirror(mirrorUrl)
+
+        when:
+        executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
+        fails 'init', '--dsl', scriptDsl.id as String
+
+        then: "init asked the mirror, and only the mirror, for its libraries"
+        failure.assertHasErrorOutput("Could not find org.apache.maven:maven-core:")
+        failure.assertHasErrorOutput("${mirrorUrl}/org/apache/maven/maven-core/")
+        failure.assertNotOutput("repo.maven.apache.org")
+    }
+
     def withSharedResources() {
         resources.maybeCopy('MavenConversionIntegrationTest/sharedResources')
     }
