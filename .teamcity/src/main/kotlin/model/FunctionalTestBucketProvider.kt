@@ -21,21 +21,31 @@ val QUICK_CROSS_VERSION_BUCKETS =
         listOf("8.0", "9.0"), // 8.0 <=version < 9.0
     )
 
+// TeamCity parallel test batches per quick cross-version bucket, keyed by start version; ignored on Linux
+val QUICK_CROSS_VERSION_BATCHES = mapOf("8.0" to 2)
+
 val ALL_CROSS_VERSION_BUCKETS =
     listOf(
-        listOf("0.0", "4.1"), // 0.0 <= version < 4.1
-        listOf("4.1", "5.0"), // 4.1 <=version < 5.0
-        listOf("5.0", "6.1"), // 5.0 <=version < 6.1
-        listOf("6.1", "7.0"), // 6.1 <=version < 7.0
-        listOf("7.0", "7.3"), // 7.0 <=version < 7.3
-        listOf("7.3", "7.6"), // 7.3 <=version < 7.6
-        listOf("7.6", "8.2"), // 7.6 <=version < 8.2
+        listOf("0.0", "4.2"), // 0.0 <= version < 4.2
+        listOf("4.2", "4.9"), // 4.2 <=version < 4.9
+        listOf("4.9", "5.4"), // 4.9 <=version < 5.4
+        listOf("5.4", "6.1"), // 5.4 <=version < 6.1
+        listOf("6.1", "6.5"), // 6.1 <=version < 6.5
+        listOf("6.5", "6.8"), // 6.5 <=version < 6.8
+        listOf("6.8", "7.1"), // 6.8 <=version < 7.1
+        listOf("7.1", "7.3"), // 7.1 <=version < 7.3
+        listOf("7.3", "7.5"), // 7.3 <=version < 7.5
+        listOf("7.5", "8.0"), // 7.5 <=version < 8.0
+        listOf("8.0", "8.2"), // 8.0 <=version < 8.2
         listOf("8.2", "8.4"), // 8.2 <=version < 8.4
-        listOf("8.4", "8.6"), // 8.4 <=version < 8.6
-        listOf("8.6", "8.8"), // 8.6 <=version < 8.8
-        listOf("8.8", "8.10"), // 8.8 <=version < 8.10
-        listOf("8.10", "8.13"), // 8.10 <=version < 8.13
-        listOf("8.13", "99.0"), // 8.13 <=version < 99.0
+        listOf("8.4", "8.5"), // 8.4 <=version < 8.5
+        listOf("8.5", "8.6"), // 8.5 <=version < 8.6
+        listOf("8.6", "8.7"), // 8.6 <=version < 8.7
+        listOf("8.7", "8.9"), // 8.7 <=version < 8.9
+        listOf("8.9", "8.11"), // 8.9 <=version < 8.11
+        listOf("8.11", "8.13"), // 8.11 <=version < 8.13
+        listOf("8.13", "8.14"), // 8.13 <=version < 8.14
+        listOf("8.14", "99.0"), // 8.14 <=version < 99.0
     )
 
 typealias BuildProjectToSubprojectTestClassTimes = Map<String, Map<String, List<TestClassTime>>>
@@ -52,7 +62,8 @@ class DefaultFunctionalTestBucketProvider(
     testBucketsJson: File,
 ) : FunctionalTestBucketProvider {
     private val allCrossVersionTestBucketProvider = CrossVersionTestBucketProvider(ALL_CROSS_VERSION_BUCKETS, model)
-    private val quickCrossVersionTestBucketProvider = CrossVersionTestBucketProvider(QUICK_CROSS_VERSION_BUCKETS, model)
+    private val quickCrossVersionTestBucketProvider =
+        CrossVersionTestBucketProvider(QUICK_CROSS_VERSION_BUCKETS, model, QUICK_CROSS_VERSION_BATCHES)
     private val functionalTestBucketProvider = StatisticBasedFunctionalTestBucketProvider(model, testBucketsJson)
 
     override fun createFunctionalTestsFor(
@@ -77,8 +88,10 @@ class DefaultFunctionalTestBucketProvider(
 class CrossVersionTestBucketProvider(
     crossVersionBuckets: List<List<String>>,
     private val model: CIBuildModel,
+    batches: Map<String, Int> = emptyMap(),
 ) : FunctionalTestBucketProvider {
-    private val buckets: List<BuildTypeBucket> = crossVersionBuckets.map { GradleVersionRangeCrossVersionTestBucket(it[0], it[1]) }
+    private val buckets: List<BuildTypeBucket> =
+        crossVersionBuckets.map { GradleVersionRangeCrossVersionTestBucket(it[0], it[1], batches[it[0]] ?: 1) }
 
     // For quickFeedbackCrossVersion and allVersionsCrossVersion, the buckets are split by Gradle version
     // By default, split them by CROSS_VERSION_BUCKETS
@@ -164,6 +177,7 @@ class StatisticBasedFunctionalTestBucketProvider(
 class GradleVersionRangeCrossVersionTestBucket(
     private val startInclusive: String,
     private val endExclusive: String,
+    private val batches: Int = 1,
 ) : BuildTypeBucket {
     override fun createFunctionalTestsFor(
         model: CIBuildModel,
@@ -174,7 +188,7 @@ class GradleVersionRangeCrossVersionTestBucket(
         val parallelizationMethod =
             when (testCoverage.os) {
                 Os.LINUX -> ParallelizationMethod.TestDistribution
-                else -> ParallelizationMethod.None
+                else -> if (batches > 1) ParallelizationMethod.TeamCityParallelTests(batches) else ParallelizationMethod.None
             }
 
         return FunctionalTest(
