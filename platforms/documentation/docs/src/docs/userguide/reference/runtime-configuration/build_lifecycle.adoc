@@ -553,7 +553,6 @@ Both methods run on the thread executing the task, so the listeners of tasks exe
 A listener can be an abstract class or an interface.
 It can reference build services with `@ServiceReference`, and inject the following services with `@Inject`:
 
-* `ObjectFactory`
 * `ProviderFactory`
 * `FileSystemOperations`
 * `ArchiveOperations`

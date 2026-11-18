@@ -22,7 +22,6 @@ import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.tasks.properties.AbstractTypeScheme;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.BuildServiceRegistry;
@@ -53,7 +52,6 @@ public class TaskLifecycleListenerScheme extends AbstractTypeScheme {
      * The services that listeners can inject.
      */
     public static final ImmutableList<Class<?>> INJECTABLE_SERVICES = ImmutableList.of(
-        ObjectFactory.class,
         ProviderFactory.class,
         FileSystemOperations.class,
         ArchiveOperations.class,

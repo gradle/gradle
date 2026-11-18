@@ -1343,7 +1343,7 @@ legacy after"""
             "abstract String getGreeting()",
             "abstract String getGreeting(); abstract void setGreeting(String value)",
             // @Inject is missing
-            "abstract ObjectFactory getGreeting()",
+            "abstract ProviderFactory getGreeting()",
         ]
     }
 
@@ -1398,7 +1398,7 @@ legacy after"""
         outputContains("injected true")
 
         where:
-        service << ["ObjectFactory", "ProviderFactory", "FileSystemOperations", "ArchiveOperations", "ExecOperations", "ProjectLayout", "org.gradle.api.problems.Problems"]
+        service << ["ProviderFactory", "FileSystemOperations", "ArchiveOperations", "ExecOperations", "ProjectLayout", "org.gradle.api.problems.Problems"]
     }
 
     def "listener that injects #serviceType is rejected at registration"() {
@@ -1429,6 +1429,8 @@ legacy after"""
             "org.gradle.api.invocation.Gradle",
             "org.gradle.api.tasks.TaskContainer",
             "org.gradle.workers.WorkerExecutor",
+            // The objects it creates, such as container elements, can inject any service of the project
+            "org.gradle.api.model.ObjectFactory",
             "org.gradle.api.services.BuildServiceRegistry",
             "org.gradle.internal.instantiation.managed.ManagedObjectRegistry"
         ]

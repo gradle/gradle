@@ -47,7 +47,6 @@ import org.gradle.api.Task;
  *
  * <p>The following services can be injected via {@code @Inject}:</p>
  * <ul>
- *     <li>{@link org.gradle.api.model.ObjectFactory}</li>
  *     <li>{@link org.gradle.api.provider.ProviderFactory}</li>
  *     <li>{@link org.gradle.api.file.FileSystemOperations}</li>
  *     <li>{@link org.gradle.api.file.ArchiveOperations}</li>

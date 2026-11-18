@@ -589,7 +589,7 @@ Changing an input value does not add task dependencies, so tasks producing files
 * If `beforeExecution` fails, the task fails without running its actions. `afterExecution` is still called on listeners whose `beforeExecution` already ran. The same applies when a listener cannot be created.
 * `afterExecution` is called after the task outputs are recorded. If it fails, the task fails in the current build, but later builds can still consider the task up-to-date or load it from the build cache. Listeners must not produce task outputs.
 
-Listeners can inject `ObjectFactory`, `ProviderFactory`, `FileSystemOperations`, `ArchiveOperations`, `ExecOperations`, `ProjectLayout`, and `Problems` via `@Inject`.
+Listeners can inject `ProviderFactory`, `FileSystemOperations`, `ArchiveOperations`, `ExecOperations`, `ProjectLayout`, and `Problems` via `@Inject`.
 Unlike tasks, listeners cannot have `@Nested` properties.
 
 === Replacing `buildFinished` with a Dataflow Action
