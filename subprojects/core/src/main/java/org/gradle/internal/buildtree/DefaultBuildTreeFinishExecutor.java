@@ -48,8 +48,14 @@ public class DefaultBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
 
         buildStateRegistry.visitBuilds(buildState -> {
             if (buildState instanceof NestedBuildState) {
-                ExecutionResult<Void> result = ((NestedBuildState) buildState).finishBuild();
-                finishNestedBuildsFailures.addAll(result.getFailures());
+                try {
+                    ExecutionResult<Void> result = ((NestedBuildState) buildState).finishBuild();
+                    finishNestedBuildsFailures.addAll(result.getFailures());
+                } catch (Throwable t) {
+                    // Do not let a nested build that cannot be finished prevent the root build
+                    // from being finished and reporting the failure.
+                    finishNestedBuildsFailures.add(t);
+                }
             }
         });
 
