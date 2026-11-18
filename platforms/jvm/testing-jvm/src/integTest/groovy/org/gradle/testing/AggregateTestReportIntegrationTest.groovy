@@ -17,7 +17,9 @@
 package org.gradle.testing
 
 import org.gradle.api.internal.tasks.testing.report.AggregateTestReportFixture
+import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ConsoleAttachment
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -77,6 +79,39 @@ class AggregateTestReportIntegrationTest extends AbstractIntegrationSpec {
         def lib = report.row("Gradle Test Run :lib:test")
         lib.href() == "../../../lib/build/reports/tests/test/index.html"
         [lib.result(), lib.tests(), lib.passed(), lib.failed(), lib.skipped()] == ["skipped", 2, 1, 0, 1]
+    }
+
+    // Tests existing behavior, not desired. Ideally the aggregate report would
+    // appear after the "What went wrong" exception block.
+    def "prints the link to the aggregate report before the build failure"() {
+        given:
+        file("app/src/test/java/app/AppTest.java") << """
+            package app;
+            import org.junit.jupiter.api.*;
+            public class AppTest {
+                @Test void fails() { throw new AssertionError("boom"); }
+            }
+        """
+        // Attach a console to both stdout and stderr, so they are merged in their order
+        executer.withTestConsoleAttached(ConsoleAttachment.ATTACHED).withConsole(ConsoleOutput.Plain)
+
+        when:
+        fails("test", "--continue")
+
+        then:
+        def aggregateReportUrl = new ConsoleRenderer().asClickableFileUrl(AggregateTestReportFixture.of(testDirectory).indexFile)
+        def appReportUrl = new ConsoleRenderer().asClickableFileUrl(file("app/build/reports/tests/test/index.html"))
+        // Not outputContains, which only looks at the output before the build failure
+        result.normalizedOutput.contains("""
+> Task :lib:test
+Aggregate test results: ${aggregateReportUrl}
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:test'.
+> There were failing tests. See the report at: ${appReportUrl}
+""")
     }
 
     def "does not print the aggregate report if all tests pass"() {
