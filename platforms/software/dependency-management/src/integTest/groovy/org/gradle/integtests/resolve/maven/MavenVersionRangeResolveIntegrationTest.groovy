@@ -156,6 +156,30 @@ class MavenVersionRangeResolveIntegrationTest extends AbstractDependencyResoluti
         failure.assertHasCause('Could not find any version that matches org.test:parent:[2.0,3.0)')
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39862")
+    def "exclusive lower bound matches later versions with differently cased special qualifiers"() {
+        given:
+        buildFile << """
+            dependencies {
+                compile "org.test:dep:(1.0-rc-1,1.0]"
+            }
+        """
+
+        and:
+        mavenRepo.module("org.test", "dep", "1.0-RC-1").publish()
+        mavenRepo.module("org.test", "dep", "1.0-RC-2").publish()
+
+        when:
+        succeeds "checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.test:dep:(1.0-rc-1,1.0]", "org.test:dep:1.0-RC-2")
+            }
+        }
+    }
+
     def "updated behaviour on upper bound exclusion"() {
         given:
         buildFile << """
