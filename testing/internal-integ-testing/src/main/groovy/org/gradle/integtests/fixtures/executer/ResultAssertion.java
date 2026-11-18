@@ -142,6 +142,13 @@ public class ResultAssertion implements Action<ExecutionResult> {
                 line.contains("java.nio.channels.CancelledKeyException")) {
                 i++;
                 i = skipStackTrace(lines, i);
+            } else if (line.contains("Could not load entry ") && line.contains(" from remote build cache")) {
+                // The Develocity agent logs a non-fatal stack trace when a remote cache load fails (e.g. a 403); the build continues.
+                i++;
+                if (i < lines.size() && lines.get(i).contains("Exception")) {
+                    i++;
+                    i = skipStackTrace(lines, i);
+                }
             } else if (line.contains("com.amazonaws.http.IdleConnectionReaper")) {
                 /*
                 2021-01-05T08:15:51.329+0100 [DEBUG] [com.amazonaws.http.IdleConnectionReaper] Reaper thread:
