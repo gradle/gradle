@@ -349,7 +349,7 @@ public class Install {
             }
         }
 
-        // The directory is now empty so delete it
+        // dir is now a file, an empty directory or a symbolic link.
         if (!dir.delete()) {
             Files.delete(dir.toPath());
         }
