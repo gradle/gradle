@@ -561,7 +561,10 @@
          </trusted-key>
          <trusted-key id="FC2C31FC25FEDE4E7AD0D18C2BFD7825A8984FBE" group="com.github.javaparser" name="javaparser-core"/>
          <trusted-key id="FC411CD3CB7DCB0ABC9801058118B3BCDB1A5000" group="jakarta.xml.bind" name="jakarta.xml.bind-api"/>
-         <trusted-key id="FEB9209F2F2F3F4664841E55AC107B386692DADD" group="com.amazonaws"/>
+         <trusted-key id="FEB9209F2F2F3F4664841E55AC107B386692DADD">
+            <trusting group="com.amazonaws"/>
+            <trusting group="^software[.]amazon($|([.].*))" regex="true"/>
+         </trusted-key>
          <trusted-key id="FF6E2C001948C5F2F38B0CC385911F425EC61B51">
             <trusting group="junit"/>
             <trusting group="org.apiguardian"/>
@@ -1072,6 +1075,11 @@
          <artifact name="reactive-streams-1.0.2.jar">
             <pgp value="263923711EF4FE3F3F0C28AF11509ED50EC155E6"/>
             <sha256 value="cc09ab0b140e0d0496c2165d4b32ce24f4d6446c0a26c5dc77b06bdf99ee8fae" origin="Verified"/>
+         </artifact>
+      </component>
+      <component group="org.reactivestreams" name="reactive-streams" version="1.0.4">
+         <artifact name="reactive-streams-1.0.4.jar">
+            <pgp value="50A628FFAF58480736B1079FD1031D14464180E0"/>
          </artifact>
       </component>
       <component group="org.simpleframework" name="simple" version="4.1.21">

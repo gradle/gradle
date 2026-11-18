@@ -81,7 +81,7 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractMavenPublishIntegTest 
         failure.assertHasCause("The AWS Access Key Id you provided does not exist in our records.")
     }
 
-    def "should fail without complaining about aws-java-sdk-sts not being in the class path"() {
+    def "should fail without complaining about the sts module not being in the class path"() {
         setup:
         settingsFile << "rootProject.name = '${projectName}'"
 
@@ -116,7 +116,7 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractMavenPublishIntegTest 
         then:
         fails 'publish'
 
-        failure.assertNotOutput('To use assume role profiles the aws-java-sdk-sts module must be on the class path.')
+        failure.assertNotOutput("the 'sts' service module must be on the class path")
     }
 
     MavenS3Repository getMavenS3Repo() {

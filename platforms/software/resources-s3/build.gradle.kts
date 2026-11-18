@@ -11,22 +11,34 @@ dependencies {
     api(projects.resources)
     api(projects.resourcesHttp)
 
-    api(libs.awsS3Core)
-    api(libs.awsS3)
-    api(libs.awsS3Kms) {
-        because("Loaded by the AWS libraries with reflection when present")
-    }
-    api(libs.guava)
+    api(libs.awsS3S3)
+    api(libs.awsSdkCore)
+    api(libs.awsSdkRegions)
+    api(libs.jspecify)
 
     implementation(projects.baseServices)
     implementation(projects.hashing)
 
+    implementation(libs.awsApacheHttpClient)
+    implementation(libs.awsSdkAuth)
+    implementation(libs.awsSdkAwsCore)
+    implementation(libs.awsSdkHttpClientSpi)
+    implementation(libs.awsSdkProfiles)
+    implementation(libs.awsSdkRetries)
+    implementation(libs.awsSdkRetriesSpi)
     implementation(libs.commonsLang)
+    implementation(libs.guava)
     implementation(libs.slf4jApi)
 
     runtimeOnly(projects.core)
     runtimeOnly(projects.coreApi)
 
+    runtimeOnly(libs.awsS3Sso) {
+        because("Loaded by the AWS libraries with reflection when present, for AWS SSO profiles: https://github.com/gradle/gradle/issues/34049")
+    }
+    runtimeOnly(libs.awsS3SsoOidc) {
+        because("Loaded by the AWS libraries with reflection when present, to refresh AWS SSO session tokens: https://github.com/gradle/gradle/issues/34049")
+    }
     runtimeOnly(libs.awsS3Sts) {
         because("Loaded by the AWS libraries with reflection when present: https://github.com/gradle/gradle/issues/15332")
     }
@@ -58,7 +70,8 @@ dependencyAnalysis {
     issues {
         onUnusedDependencies() {
             // This need to exist to be loaded reflectively
-            exclude(libs.awsS3Kms)
+            exclude(libs.awsS3Sso)
+            exclude(libs.awsS3SsoOidc)
             exclude(libs.awsS3Sts)
         }
     }
