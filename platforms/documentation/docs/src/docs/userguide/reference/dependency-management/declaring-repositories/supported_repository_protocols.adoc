@@ -70,6 +70,8 @@ include::sample[dir="snippets/reference/dependency-management/declaring-reposito
 ====
 
 Gradle verifies the identity of an SFTP server against the host keys listed in `~/.ssh/known_hosts` and `/etc/ssh/ssh_known_hosts` (`%ProgramData%\ssh\ssh_known_hosts` on Windows), in the format OpenSSH uses.
+This applies both when resolving dependencies and when publishing.
+The user file is read from the home directory of the user running the Gradle daemon.
 The connection fails if the server's host is not listed or its key does not match.
 Host certificates (`@cert-authority` entries) are not supported, and for a server on a port other than 22, the entries for its host name without a port also apply.
 
