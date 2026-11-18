@@ -40,8 +40,6 @@ import org.gradle.kotlin.dsl.invoke
 import org.gradle.util.internal.ConfigureUtil.configureByMap
 import java.io.File
 import java.nio.file.Path
-import kotlin.io.path.invariantSeparatorsPathString
-import kotlin.io.path.relativeTo
 
 
 class KotlinScriptHost<out T : Any> internal constructor(
@@ -56,20 +54,6 @@ class KotlinScriptHost<out T : Any> internal constructor(
 
     internal
     val originalScriptPath = scriptSource.fileName!!
-
-    internal
-    val buildTreeScriptPath: String by unsafeLazy {
-        val location = scriptSource.resource.location
-        location.file?.toPath()?.toAbsolutePath()?.normalize()
-            ?.let { path ->
-                // Relative path to the build-tree root, also for scripts outside of it, e.g. `../included/settings.gradle.kts`
-                if (path.root == buildTreeRootDir.root) path.relativeTo(buildTreeRootDir).invariantSeparatorsPathString
-                // Absolute path on another file system root, e.g. another Windows drive, non-relocatable
-                else path.invariantSeparatorsPathString
-            }
-            ?: location.uri?.toASCIIString() // URI, relocatable when external
-            ?: scriptSource.className // Generated class name fallback, non-relocatable
-    }
 
     internal
     val fileOperations: FileOperations by unsafeLazy {
