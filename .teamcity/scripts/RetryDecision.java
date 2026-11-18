@@ -32,14 +32,13 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * TeamCity helper script that decides whether a failed build should be retried, and requests the retry with a TeamCity service message.
  * Merge queue builds are always retried without asking gradle-bot. Other builds are retried only if gradle-bot recommends it and the mode is "retry".
- * It never fails and finishes within 10 seconds: if gradle-bot can't answer in time, it prints a warning and doesn't request a retry.
+ * It never fails and finishes within the timeout: if gradle-bot can't answer in time, it prints a warning and doesn't request a retry.
  *
  * Usage (Java 11+ single-file source execution):
- *   java .teamcity/scripts/RetryDecision.java branch mode endpoint buildId password
+ *   java .teamcity/scripts/RetryDecision.java branch mode endpoint buildId password timeoutSeconds
  */
 public class RetryDecision {
     private static final String REQUEST_RETRY = "##teamcity[setParameter name='retry.requested' value='true']";
-    private static final Duration STEP_TIMEOUT = Duration.ofSeconds(10);
     private static final Duration EXIT_MARGIN = Duration.ofSeconds(1);
 
     public static void main(String[] args) {
@@ -48,6 +47,7 @@ public class RetryDecision {
         String endpoint = args[2];
         String buildId = args[3];
         String password = args[4];
+        String timeoutSeconds = args[5];
 
         if (branch.startsWith("gh-readonly-queue/")) {
             System.out.println(REQUEST_RETRY);
@@ -57,7 +57,8 @@ public class RetryDecision {
             return;
         }
         try {
-            System.out.print(ask(endpoint, buildId, mode, password, remainingTime()));
+            Duration stepTimeout = Duration.ofSeconds(Long.parseLong(timeoutSeconds));
+            System.out.print(ask(endpoint, buildId, mode, password, timeoutSeconds, remainingTime(stepTimeout)));
         } catch (ExecutionException e) {
             warn(e.getCause());
         } catch (Exception e) {
@@ -66,23 +67,23 @@ public class RetryDecision {
         System.exit(0);
     }
 
-    private static Duration remainingTime() {
+    private static Duration remainingTime(Duration stepTimeout) {
         Duration elapsed = ProcessHandle.current().info().startInstant()
             .map(start -> Duration.between(start, Instant.now()))
             .orElse(Duration.ZERO);
-        return STEP_TIMEOUT.minus(elapsed).minus(EXIT_MARGIN);
+        return stepTimeout.minus(elapsed).minus(EXIT_MARGIN);
     }
 
     private static void warn(Throwable failure) {
         System.out.println("##teamcity[message text='" + escape("Retry decision is unavailable: " + failure) + "' status='WARNING']");
     }
 
-    private static String ask(String endpoint, String buildId, String mode, String password, Duration timeout) throws Exception {
+    private static String ask(String endpoint, String buildId, String mode, String password, String timeoutSeconds, Duration timeout) throws Exception {
         if (timeout.isNegative() || timeout.isZero()) {
-            throw new TimeoutException("no time left before the " + STEP_TIMEOUT.getSeconds() + "s limit");
+            throw new TimeoutException("no time left before the " + timeoutSeconds + "s limit");
         }
         String credentials = Base64.getEncoder().encodeToString(("teamcity:" + password).getBytes(UTF_8));
-        HttpRequest request = HttpRequest.newBuilder(URI.create(endpoint + "?buildId=" + encode(buildId) + "&mode=" + encode(mode)))
+        HttpRequest request = HttpRequest.newBuilder(URI.create(endpoint + "?buildId=" + encode(buildId) + "&mode=" + encode(mode) + "&timeoutSeconds=" + encode(timeoutSeconds)))
             .timeout(timeout)
             .header("Authorization", "Basic " + credentials)
             .POST(HttpRequest.BodyPublishers.noBody())

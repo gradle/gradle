@@ -170,7 +170,7 @@ private fun BaseGradleBuildType.retryDecisionStep() {
             scriptContent =
                 "\"$AGENT_JAVA_BINARY\" .teamcity/scripts/RetryDecision.java " +
                 "\"%teamcity.build.branch%\" \"%ai.retry.mode%\" \"%ai.retry.endpoint%\" %teamcity.build.id% " +
-                "\"%gradle-bot.teamcity.webhook.password%\""
+                "\"%gradle-bot.teamcity.webhook.password%\" %ai.retry.timeout.seconds%"
         }
     }
 }
