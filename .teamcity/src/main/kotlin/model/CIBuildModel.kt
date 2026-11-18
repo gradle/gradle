@@ -699,7 +699,7 @@ enum class SpecificBuild {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
-        ): OsAwareBaseGradleBuildType = SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, name, splitNumber = 4)
+        ): OsAwareBaseGradleBuildType = SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, name, splitNumber = 6)
     },
     SantaTrackerSmokeTests {
         override fun create(
@@ -739,7 +739,7 @@ enum class SpecificBuild {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
-        ): OsAwareBaseGradleBuildType = SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, name, "configCacheSmokeTest", splitNumber = 4)
+        ): OsAwareBaseGradleBuildType = SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, name, "configCacheSmokeTest", splitNumber = 6)
     },
     SmokeIdeTests {
         override fun create(

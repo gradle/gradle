@@ -883,19 +883,19 @@
   "buckets" : [ {
     "subprojects" : [ "dependency-management" ],
     "parallelizationMethod" : {
-      "numberOfBatches" : 8,
+      "numberOfBatches" : 9,
       "name" : "TeamCityParallelTests"
     }
   }, {
     "subprojects" : [ "configuration-cache" ],
     "parallelizationMethod" : {
-      "numberOfBatches" : 7,
+      "numberOfBatches" : 9,
       "name" : "TeamCityParallelTests"
     }
   }, {
     "subprojects" : [ "core" ],
     "parallelizationMethod" : {
-      "numberOfBatches" : 6,
+      "numberOfBatches" : 8,
       "name" : "TeamCityParallelTests"
     }
   }, {
@@ -907,7 +907,7 @@
   }, {
     "subprojects" : [ "language-java" ],
     "parallelizationMethod" : {
-      "numberOfBatches" : 2,
+      "numberOfBatches" : 3,
       "name" : "TeamCityParallelTests"
     }
   }, {
@@ -931,7 +931,7 @@
   }, {
     "subprojects" : [ "build-init" ],
     "parallelizationMethod" : {
-      "numberOfBatches" : 1,
+      "numberOfBatches" : 2,
       "name" : "TeamCityParallelTests"
     }
   }, {
@@ -1271,7 +1271,7 @@
   }, {
     "subprojects" : [ "language-groovy" ],
     "parallelizationMethod" : {
-      "numberOfBatches" : 1,
+      "numberOfBatches" : 3,
       "name" : "TeamCityParallelTests"
     }
   }, {
