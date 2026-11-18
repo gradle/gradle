@@ -67,10 +67,10 @@ public interface TaskLifecycleListener<T extends Task> {
      * Called before the task is executed, before its inputs are snapshotted
      * and before up-to-date and build cache checks.
      *
-     * <p>Called for every scheduled task, including tasks that are later skipped, up-to-date or loaded from the build cache.</p>
+     * <p>Called for every task that Gradle tries to execute, including tasks that are later skipped, up-to-date or loaded from the build cache.</p>
      *
      * <p>The values of task inputs can be changed here, and the changed values are fingerprinted.
-     * The outputs of the task are already resolved and cannot be changed. This includes values that
+     * The outputs of the task are already resolved and must not be changed. This includes values that
      * determine which outputs the task has, such as whether a report is enabled.
      * Inputs changed here do not create task dependencies, as the task graph is already built.
      * If a changed input uses files produced by another task, declare that dependency when configuring the task.</p>

@@ -507,7 +507,7 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/taskLifecycl
 <2> A listener references build services with `@ServiceReference`. The task uses these services as if it referenced them itself, so they honor `maxParallelUsages`.
 <3> Instance fields carry state from `beforeExecution` to `afterExecution`, because each task execution gets its own listener instance.
 <4> `afterExecution` receives the `TaskState`, which holds the failure, if the task failed.
-<5> `Task.addLifecycleListener` registers the listener with every task.
+<5> Registering the listener with every task in the project.
 <6> `TaskCollection.addLifecycleListener` registers a listener that accepts only `Copy` tasks with every `Copy` task.
 
 Running `copyDocs` prints the message from the `Copy` listener:
@@ -528,25 +528,27 @@ The compiler checks the task type in all of these.
 Gradle also checks it when you register the listener, for build scripts the compiler doesn't check, such as Groovy ones, and fails with a message naming both the listener's accepted type and the task type if they don't match.
 
 `TaskCollection.addLifecycleListener` registers the listener with tasks lazily, as they are configured, in the same way as `configureEach`.
+So the position of the listener among the listeners of a task is decided when the task is configured, not when `TaskCollection.addLifecycleListener` is called.
 Registering the same listener type with a task more than once has no effect.
 
 [[task_lifecycle_listeners_calls]]
 ==== When listeners are called
 
-Gradle calls the listeners of every scheduled task, including tasks that are up-to-date, skipped, or loaded from the build cache.
+Gradle calls the listeners of every task that it tries to execute, including tasks that are up-to-date, skipped, or loaded from the build cache.
 Both methods run on the thread executing the task, so the listeners of tasks executing in parallel are called concurrently.
+`beforeExecution` is called in the order the listeners were registered, and `afterExecution` in the reverse order, so the listener registered first is notified first before the task executes and last after it.
 
 `beforeExecution` runs before Gradle snapshots the task inputs and performs up-to-date and build cache checks:
 
 * It can change the values of task inputs, and Gradle fingerprints the changed values.
-* It cannot change the task's outputs, including values that determine which outputs exist, such as whether a report is enabled.
+* It must not change the task's outputs, including values that determine which outputs exist, such as whether a report is enabled.
 * It cannot change the task in other ways, such as declaring inputs or outputs, adding dependencies, actions, or listeners, or changing whether the task is skipped.
 * Changing an input value does not add task dependencies. If a changed input uses files produced by another task, declare that dependency when you configure the task.
 * If it throws an exception, the task fails without running its actions. The same applies when Gradle cannot create the listener.
 
 `afterExecution` runs after Gradle records the task outputs, regardless of the task's outcome:
 
-* Gradle calls it on every listener whose `beforeExecution` ran, even if a later listener's `beforeExecution` failed.
+* Gradle calls it on every listener whose `beforeExecution` completed, even if a later listener's `beforeExecution` failed.
 * If it throws an exception, the task fails in the current build. Later builds can still consider the task up-to-date or load it from the build cache.
 * Listeners must not produce task outputs.
 

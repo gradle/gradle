@@ -35,6 +35,7 @@ import org.gradle.internal.service.scopes.Scope;
  * To run code on the task's thread right before and after it executes,
  * use a {@link org.gradle.api.tasks.TaskLifecycleListener}.
  *
+ * @see org.gradle.api.tasks.TaskLifecycleListener
  * @deprecated This type is not supported when configuration caching is enabled.
  * @since 0.7
  */

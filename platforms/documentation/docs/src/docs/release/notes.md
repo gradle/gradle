@@ -102,7 +102,7 @@ tasks.configureEach {
 }
 ```
 
-Listeners are called for every scheduled task, including tasks that are up-to-date, skipped, or loaded from the build cache.
+Listeners are called for every task that Gradle tries to execute, including tasks that are up-to-date, skipped, or loaded from the build cache.
 Unlike the legacy listeners, which were notified one task at a time, the listeners of tasks executing in parallel are notified concurrently, so build services they share must be thread-safe.
 Build services referenced by a listener via `@ServiceReference` are used by the task as if the task referenced them, so they honor `maxParallelUsages`.
 Only the listener types are stored in the Configuration Cache.
