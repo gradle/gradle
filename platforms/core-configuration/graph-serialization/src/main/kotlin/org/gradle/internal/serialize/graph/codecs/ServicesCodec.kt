@@ -24,19 +24,30 @@ import org.gradle.internal.service.scopes.ServiceScope
 
 object ServicesCodec : SelectiveCodec {
 
+    /**
+     * Service types of the values passed to [encode], so only actual service classes get an entry.
+     *
+     * [accepts] doesn't use this cache, as it would add an entry for every type the codec rejects, which is
+     * most of them. The blueprint already caches the result of [accepts] per type. The trade-off is that the
+     * hierarchy of a service class is walked twice: in [accepts], and on the first [encode] of its value.
+     */
     private
-    val serviceTypes = object : ClassValue<Class<*>?>() {
-        override fun computeValue(type: Class<*>): Class<*>? =
-            // TODO - perhaps query the isolate owner to see whether the value is in fact a service
-            serviceType(GeneratedSubclasses.unpack(type))
+    val serviceTypes = object : ClassValue<Class<*>>() {
+        override fun computeValue(type: Class<*>): Class<*> =
+            requireNotNull(serviceTypeOf(type)) { "'${type.name}' is not a service type" }
     }
 
     override fun accepts(type: Class<*>): Boolean =
-        serviceTypes.get(type) != null
+        serviceTypeOf(type) != null
 
     override suspend fun WriteContext.encode(value: Any) {
-        writeClass(serviceTypes.get(value.javaClass)!!)
+        writeClass(serviceTypes.get(value.javaClass))
     }
+
+    private
+    fun serviceTypeOf(type: Class<*>): Class<*>? =
+        // TODO - perhaps query the isolate owner to see whether the value is in fact a service
+        serviceType(GeneratedSubclasses.unpack(type))
 
     private
     fun serviceType(type: Class<*>): Class<*>? {
