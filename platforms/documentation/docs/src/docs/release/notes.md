@@ -12,9 +12,17 @@
 
 Gradle @version@ is the second patch release for Gradle 9.9.0 (released [@releaseDate@](https://gradle.org/releases/)).
 
+This release addresses four security vulnerabilities:
+- [SFTP repositories do not verify host keys](https://github.com/gradle/gradle/security/advisories/GHSA-4mf6-7pm2-6wm8) - 8.9 High
+- [Transitive snapshot dependencies skip dependency verification](https://github.com/gradle/gradle/security/advisories/GHSA-7f7r-77ff-fr6f) - 8.8 High
+- [TestKit uses a predictable directory in the system temporary directory](https://github.com/gradle/gradle/security/advisories/GHSA-99wf-vhq9-wm2x) - 7.0 High
+- [Daemon registry is briefly readable by other local users when it is created](https://github.com/gradle/gradle/security/advisories/GHSA-35pj-rg5r-8rpv) - 7.0 High
+
 The following issues were resolved:
 
-* TODO
+- [`GenerateModuleMetadata` / `GenerateMavenPom` triggers slow graph traversal during configuration cache serialisation with `fromResolutionResult()`](https://github.com/gradle/gradle/issues/36332)
+- [Missing-dependency check is slow for producers in included builds (regression since 9.8.0)](https://github.com/gradle/gradle/issues/39729)
+- [Plugin resolution fails since 9.9.0 when the repository answers the request for the plugin marker jar with 401 (GitLab group-level registry)](https://github.com/gradle/gradle/issues/39756)
 
 Issues fixed in the first patch release:
 
