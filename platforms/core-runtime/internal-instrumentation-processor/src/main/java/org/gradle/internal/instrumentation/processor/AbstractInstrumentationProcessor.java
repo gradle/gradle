@@ -44,7 +44,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.ElementScanner8;
+import javax.lang.model.util.ElementScanner14;
 import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 import java.lang.annotation.Annotation;
@@ -205,7 +205,7 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
         return result.stream();
     }
 
-    private static class AnnotationScanner extends ElementScanner8<Set<Element>, Set<TypeElement>> {
+    private static class AnnotationScanner extends ElementScanner14<Set<Element>, Set<TypeElement>> {
         private final Set<Element> annotatedElements = new LinkedHashSet<>();
         private final Elements elements;
 

@@ -48,6 +48,10 @@ class DefaultTestEventReporter implements TestEventReporterInternal {
         this.testResultState = testResultState;
     }
 
+    protected long getStartTime() {
+        return startTime;
+    }
+
     /**
      * Only non-composite test events should be counted in the test result state.
      * @return true if this is a composite test event reporter
@@ -122,6 +126,7 @@ class DefaultTestEventReporter implements TestEventReporterInternal {
         if (!isComposite()) {
             testResultState.incrementFailureCount();
         }
+        testResultState.markFailed();
         listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), failures, null), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
     }
 

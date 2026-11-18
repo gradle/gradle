@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -29,6 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * Test 1...5 will have a parent of Group, and Group will have a parent of Root.
  * Composite test results are calculated by summing the results of all children. This is done by incrementing the parent's count when a child's count is incremented.
+ * Likewise, a test or group that failed marks its parents as failed, even when it is not counted as a failed test.
  */
 @NullMarked
 class TestResultState {
@@ -36,6 +38,7 @@ class TestResultState {
     private final AtomicLong totalCount = new AtomicLong(0);
     private final AtomicLong successfulCount = new AtomicLong(0);
     private final AtomicLong failureCount = new AtomicLong(0);
+    private final AtomicBoolean failed = new AtomicBoolean(false);
 
     TestResultState(@Nullable TestResultState parent) {
         this.parent = parent;
@@ -69,6 +72,16 @@ class TestResultState {
         failureCount.incrementAndGet();
         if (parent!=null) {
             parent.incrementFailureCount();
+        }
+    }
+
+    boolean isFailed() {
+        return failed.get();
+    }
+    void markFailed() {
+        failed.set(true);
+        if (parent!=null) {
+            parent.markFailed();
         }
     }
 }
