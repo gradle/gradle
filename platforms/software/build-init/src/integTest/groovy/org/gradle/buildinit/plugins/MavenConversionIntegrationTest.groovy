@@ -1010,6 +1010,22 @@ Root project 'webinar-parent'
         failure.assertNotOutput("repo.maven.apache.org")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20596")
+    def "the converted build keeps resolving through the Maven settings mirror"() {
+        given:
+        resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
+
+        when:
+        executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        gradlePropertiesGenerated {
+            assertConfigurationCacheEnabled()
+            assertMavenMirrorSettingsEnabled()
+        }
+    }
+
     def withSharedResources() {
         resources.maybeCopy('MavenConversionIntegrationTest/sharedResources')
     }

@@ -204,10 +204,47 @@ If your Maven `settings.xml` already declares a mirror for Maven Central, tell G
 Gradle then downloads those libraries from the mirror, using the credentials of the `<server>` entry that matches the mirror.
 The property is a Gradle property and not a project property, so `-P` has no effect.
 
-On the command line, the property only applies to that one run.
-The converted build declares the repositories of the Maven build, including Maven Central, and does not use the mirror by itself.
-To make the converted build resolve through the mirror as well, add `org.gradle.mirror.maven.settings=true` to its `gradle.properties` file.
-Alternatively, replace Maven Central with your internal repository in the generated build scripts.
+The converted build declares the repositories of the Maven build, including Maven Central.
+So that it can resolve its dependencies on the same network, the `init` task adds `org.gradle.mirror.maven.settings=true` to the generated `gradle.properties` file when you run the conversion with the property set.
+The mirrors themselves are not written into the build: every machine that runs the build needs them in its own `settings.xml`.
+
+If you would rather not depend on `settings.xml`, remove the property from `gradle.properties` and declare your internal repository in the build instead.
+Find the `repositories {}` block that the conversion generated, and replace the Maven Central entry with your repository.
+For a single-module build the block is in the build script; for a multi-module build it is in the convention plugin under `buildSrc`.
+
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
+.build.gradle.kts
+----
+repositories {
+    maven {
+        name = "companyRepo"
+        url = uri("https://repo.example.com/maven")
+        credentials(PasswordCredentials::class) // <1>
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+.build.gradle
+----
+repositories {
+    maven {
+        name = 'companyRepo'
+        url = uri('https://repo.example.com/maven')
+        credentials(PasswordCredentials) // <1>
+    }
+}
+----
+=====
+====
+<1> Only needed if the repository asks for a user name and password. Gradle reads them from the `companyRepoUsername` and `companyRepoPassword` Gradle properties; see <<supported_repository_protocols.adoc#sec:handling-credentials,Handling credentials>>.
+
+To declare the repository once for all projects of the build, see <<centralizing_repositories.adoc#centralized-repository-declaration,Centralizing Repository Declarations>>.
 
 Reusing mirror settings from Maven is an incubating feature.
 See <<centralizing_repositories.adoc#sec:reusing-maven-mirror-settings,Reusing mirror settings from Maven>> for the mirror declarations it supports and for its limits.

@@ -67,4 +67,20 @@ class GradlePropertiesGeneratorTest extends Specification {
         !propertiesFile.text.contains('org.gradle.caching=')
         propertiesFile.text.contains('org.gradle.configuration-cache=true')
     }
+
+    def "turns on Maven mirror settings when asked to"() {
+        when:
+        GradlePropertiesGenerator.generate(settings, true)
+
+        then:
+        propertiesFile.text.contains('org.gradle.mirror.maven.settings=true')
+    }
+
+    def "leaves Maven mirror settings alone by default"() {
+        when:
+        GradlePropertiesGenerator.generate(settings)
+
+        then:
+        !propertiesFile.text.contains('org.gradle.mirror.maven.settings')
+    }
 }
