@@ -202,7 +202,6 @@ If your Maven `settings.xml` already declares a mirror for Maven Central, tell G
 ----
 
 Gradle then downloads those libraries from the mirror, using the credentials of the `<server>` entry that matches the mirror.
-The property is a Gradle property and not a project property, so `-P` has no effect.
 
 The converted build declares the repositories of the Maven build, including Maven Central.
 So that it can resolve its dependencies on the same network, the `init` task adds `org.gradle.mirror.maven.settings=true` to the generated `gradle.properties` file when you run the conversion with the property set.
