@@ -218,6 +218,46 @@ class ToolingApiEclipseModelProjectDependenciesCrossVersionSpec extends ToolingA
         testAttributeByPath(a) == ["build/libs/b.jar": false, "build/libs/b-tests.jar": true]
     }
 
+    def "test jar of a closed project does not hide class directories of a test compile-only dependency"() {
+        given:
+        testJarOnB()
+        file("a/build.gradle") << """
+            dependencies {
+                testCompileOnly project(':b')
+                testImplementation project(path: ':b', configuration: 'testArtifacts')
+            }
+        """
+
+        when:
+        def a = projectAWithClosedB()
+
+        then:
+        a.projectDependencies.isEmpty()
+        testAttributeByPath(a) == ["build/classes/java/main": true, "build/libs/b-tests.jar": true]
+    }
+
+    def "subtracting a test jar keeps a compile-only dependency on the same project"() {
+        given:
+        testJarOnB()
+        file("a/build.gradle") << """
+            configurations {
+                toRemove
+            }
+            dependencies {
+                compileOnly project(':b')
+                compileOnly project(path: ':b', configuration: 'testArtifacts')
+                toRemove project(path: ':b', configuration: 'testArtifacts')
+            }
+            eclipse.classpath.minusConfigurations += [configurations.toRemove]
+        """
+
+        when:
+        def a = projectA()
+
+        then:
+        a.projectDependencies*.path == ["b"]
+    }
+
     def "closed project keeps class directories of a compile-only feature variant next to the main jar"() {
         given:
         file("b/build.gradle") << """
