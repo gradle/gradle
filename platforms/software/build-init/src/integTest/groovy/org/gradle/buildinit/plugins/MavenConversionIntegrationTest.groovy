@@ -56,6 +56,8 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
          * creating multiple ProjectBuildingRequest.
          * */
         m2.generateUserSettingsFile(m2.mavenRepo())
+        // Without this the build does not read that settings file, and the conversion fills the developer's own ~/.m2/repository
+        using m2
     }
 
     def "multiModule init with incubating"() {
@@ -997,7 +999,6 @@ Root project 'webinar-parent'
         // The mirror serves an empty directory, so it answers every request with "not found"
         server.allowGetOrHead("/mirror", file("empty-mirror").createDir())
         def mirrorUrl = "${server.uri}/mirror"
-        using m2
         m2.withCentralMirror(mirrorUrl)
 
         when:
@@ -1014,7 +1015,6 @@ Root project 'webinar-parent'
     def "turns on Maven mirror settings in the converted build when the conversion ran with them"() {
         given:
         resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
-        using m2
 
         when:
         executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
