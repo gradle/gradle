@@ -440,10 +440,11 @@ first after"""
 
         then:
         failure.assertHasDescription("Execution failed for task ':foo'")
+        failure.assertHasCause("Lifecycle listener FailingListener failed in beforeExecution.")
         failure.assertHasCause("before failure")
         outputDoesNotContain("task action ran")
         outputDoesNotContain("should not be notified")
-        outputContains("after :foo failure=before failure")
+        outputContains("after :foo failure=Lifecycle listener FailingListener failed in beforeExecution.")
     }
 
     def "failure in beforeExecution stops notifying listeners registered later"() {
@@ -496,6 +497,7 @@ first after"""
         fails "foo"
 
         then:
+        failure.assertHasCause("Lifecycle listener FailingListener failed in beforeExecution.")
         failure.assertHasCause("before failure")
         result.groupedOutput.task(":foo").output == """first before
 second before
@@ -545,6 +547,7 @@ first after"""
 
         then:
         failure.assertHasCause("action failure")
+        failure.assertHasCause("Lifecycle listener FailingListener failed in afterExecution.")
         failure.assertHasCause("after failure")
     }
 
@@ -575,6 +578,7 @@ first after"""
 
         then:
         failure.assertHasDescription("Execution failed for task ':foo'")
+        failure.assertHasCause("Lifecycle listener FailingListener failed in afterExecution.")
         failure.assertHasCause("after failure")
         outputContains("task action ran")
         outputContains("after :foo")

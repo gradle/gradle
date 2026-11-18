@@ -211,20 +211,18 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
         TaskStateInternal state = task.getState();
         List<TaskLifecycleListener<Task>> notifiedListeners = new ArrayList<>(listenerTypes.size());
         boolean beforeExecutionFailed = false;
+        state.setNotifyingLifecycleListeners(true);
         try {
-            state.setNotifyingLifecycleListeners(true);
-            try {
-                for (Class<? extends TaskLifecycleListener<?>> listenerType : listenerTypes) {
-                    TaskLifecycleListener<Task> listener = lifecycleListenerInstantiator.newInstance(listenerType);
-                    listener.beforeExecution(task);
-                    notifiedListeners.add(listener);
-                }
-            } finally {
-                state.setNotifyingLifecycleListeners(false);
+            for (Class<? extends TaskLifecycleListener<?>> listenerType : listenerTypes) {
+                TaskLifecycleListener<Task> listener = lifecycleListenerInstantiator.newInstance(listenerType);
+                notifyBeforeExecution(listener, task);
+                notifiedListeners.add(listener);
             }
         } catch (Throwable t) {
             beforeExecutionFailed = true;
             state.setOutcome(new TaskExecutionException(task, t));
+        } finally {
+            state.setNotifyingLifecycleListeners(false);
         }
 
         // The task is already failed when a listener could not be created or failed before execution
@@ -236,13 +234,21 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
                 try {
                     listener.afterExecution(task, state);
                 } catch (Throwable t) {
-                    state.addFailure(new TaskExecutionException(task, t));
+                    state.addFailure(new TaskExecutionException(task, new TaskLifecycleListenerFailure(listener, "afterExecution", t)));
                 }
             }
         } finally {
             state.setNotifyingLifecycleListeners(false);
         }
         return result;
+    }
+
+    private static void notifyBeforeExecution(TaskLifecycleListener<Task> listener, Task task) {
+        try {
+            listener.beforeExecution(task);
+        } catch (Throwable t) {
+            throw new TaskLifecycleListenerFailure(listener, "beforeExecution", t);
+        }
     }
 
     /**
