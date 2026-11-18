@@ -1011,9 +1011,10 @@ Root project 'webinar-parent'
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20596")
-    def "the converted build keeps resolving through the Maven settings mirror"() {
+    def "turns on Maven mirror settings in the converted build when the conversion ran with them"() {
         given:
         resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
+        using m2
 
         when:
         executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")

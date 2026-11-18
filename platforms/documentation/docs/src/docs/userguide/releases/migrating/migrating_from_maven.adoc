@@ -208,9 +208,12 @@ The converted build declares the repositories of the Maven build, including Mave
 So that it can resolve its dependencies on the same network, the `init` task adds `org.gradle.mirror.maven.settings=true` to the generated `gradle.properties` file when you run the conversion with the property set.
 The mirrors themselves are not written into the build: every machine that runs the build needs them in its own `settings.xml`.
 
+A mirror applies to the converted build only if it matches by `<mirrorOf>central</mirrorOf>` or by a wildcard such as `*`.
+The conversion declares repositories by URL and does not carry over their Maven ids, so a mirror declared for one specific repository id does not match; see <<centralizing_repositories.adoc#sec:maven-mirror-ids,which id a repository is matched by>>.
+
 If you would rather not depend on `settings.xml`, remove the property from `gradle.properties` and declare your internal repository in the build instead.
 Find the `repositories {}` block that the conversion generated, and replace the Maven Central entry with your repository.
-For a single-module build the block is in the build script; for a multi-module build it is in the convention plugin under `buildSrc`.
+For a single-module build the block is in the build script; for a multi-module build it is in the convention plugin under `buildSrc`, or under `build-logic` if you converted with `--incubating`.
 
 ====
 [.multi-language-sample]
