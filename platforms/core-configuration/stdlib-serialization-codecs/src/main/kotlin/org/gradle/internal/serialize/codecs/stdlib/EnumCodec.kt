@@ -16,45 +16,26 @@
 
 package org.gradle.internal.serialize.codecs.stdlib
 
-import org.gradle.internal.serialize.graph.codecs.Decoding
-import org.gradle.internal.serialize.graph.codecs.Encoding
-import org.gradle.internal.serialize.graph.codecs.EncodingProducer
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.codecs.SelectiveCodec
 
 
-object EnumCodec : EncodingProducer, Decoding {
+object EnumCodec : SelectiveCodec {
 
-    override fun encodingForType(type: Class<*>): Encoding? =
-        EnumEncoding.takeIf { type.isEnum }
-            ?: EnumSubTypeEncoding.takeIf { type.superclass?.isEnum == true }
+    override fun accepts(type: Class<*>): Boolean =
+        type.isEnum || type.superclass?.isEnum == true
+
+    override suspend fun WriteContext.encode(value: Any) {
+        // Enum constants with a body are instances of an anonymous subclass of the enum type
+        val enumClass = value.javaClass.let { if (it.isEnum) it else it.superclass }
+        writeClass(enumClass)
+        writeSmallInt((value as Enum<*>).ordinal)
+    }
 
     override suspend fun ReadContext.decode(): Any? {
         val enumClass = readClass()
         val enumOrdinal = readSmallInt()
         return enumClass.enumConstants[enumOrdinal]
     }
-}
-
-
-private
-object EnumEncoding : Encoding {
-    override suspend fun WriteContext.encode(value: Any) {
-        writeEnumValueOf(value::class.java, value)
-    }
-}
-
-
-private
-object EnumSubTypeEncoding : Encoding {
-    override suspend fun WriteContext.encode(value: Any) {
-        writeEnumValueOf(value::class.java.superclass, value)
-    }
-}
-
-
-private
-fun WriteContext.writeEnumValueOf(enumClass: Class<out Any>, enumValue: Any) {
-    writeClass(enumClass)
-    writeSmallInt((enumValue as Enum<*>).ordinal)
 }
