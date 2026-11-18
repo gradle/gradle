@@ -151,6 +151,8 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
                     return result.getDependencies();
                 })
         );
+        // Computing the dependencies is expensive, and the task's property walks would otherwise recompute them on every read
+        this.pom.getDependencies().finalizeValueOnRead();
 
         Module module = dependencyMetaDataProvider.getModule();
         MavenPublicationCoordinates coordinates = pom.getCoordinates();
