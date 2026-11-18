@@ -1260,7 +1260,7 @@ Otherwise, implement a `java.io.FilterReader` and pass it to `filter(Map, Class)
 This is a migration path for Gradle 10.
 Builds running on Gradle 9.x need no change.
 When you upgrade to Gradle 10 and want to keep using Ant's filters, add Ant to the classpath of your build logic.
-If your build uses convention plugins, add Ant as a dependency of the build that contains them, for example with `implementation("org.apache.ant:ant:1.10.17")`.
+If your build uses convention plugins, add Ant as a dependency of the build that contains them, for example with `implementation("org.apache.ant:ant:1.10.18")`.
 Otherwise, add Ant to the `classpath` configuration in the `buildscript` block of your build script:
 
 ====
@@ -1276,7 +1276,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.apache.ant:ant:1.10.17")
+        classpath("org.apache.ant:ant:1.10.18")
     }
 }
 
@@ -1299,7 +1299,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.apache.ant:ant:1.10.17")
+        classpath("org.apache.ant:ant:1.10.18")
     }
 }
 
@@ -1369,7 +1369,7 @@ repositories {
 }
 
 dependencies {
-    antTool("org.apache.ant:ant:1.10.17")
+    antTool("org.apache.ant:ant:1.10.18")
     antTool("org.glassfish.jaxb:jaxb-xjc:4.0.9")
 }
 
@@ -1396,7 +1396,7 @@ repositories {
 }
 
 dependencies {
-    antTool("org.apache.ant:ant:1.10.17")
+    antTool("org.apache.ant:ant:1.10.18")
     antTool("org.glassfish.jaxb:jaxb-xjc:4.0.9")
 }
 
