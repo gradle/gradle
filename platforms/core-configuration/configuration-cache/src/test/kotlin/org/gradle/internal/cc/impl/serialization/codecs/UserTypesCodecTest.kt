@@ -16,19 +16,31 @@
 
 package org.gradle.internal.cc.impl.serialization.codecs
 
+import org.gradle.api.Named
 import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
+import org.gradle.internal.serialize.codecs.core.NamedCodec
 import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.codecs.Bindings
+import org.gradle.internal.serialize.graph.codecs.BindingsBlueprint
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.containsString
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.internal.state.Managed
+import org.gradle.internal.state.ManagedFactory
+import org.gradle.internal.state.ManagedFactoryRegistry
 import org.junit.Assert.fail
 import org.junit.Test
+import java.lang.reflect.InvocationHandler
+import java.lang.reflect.Method
+import java.lang.reflect.Proxy
 
 
 class UserTypesCodecTest : AbstractUserTypeCodecTest() {
@@ -92,7 +104,7 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
                     ref
                 }
         }
-        val codec = Bindings.of { bind(brokenCodec) }.build()
+        val codec = BindingsBlueprint.of { bind(brokenCodec) }.build()
 
         val self = SelfRef().also { it.inner = it }
 
@@ -140,7 +152,7 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
                 TwoItems(read() as Item, read() as Item)
         }
 
-        val codec = Bindings.of {
+        val codec = BindingsBlueprint.of {
             bind(twoItemsCodec)
             bind(pollutingItemCodec)
         }.build()
@@ -176,6 +188,106 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
                 sameInstance(it)
             )
         }
+    }
+
+    @Test
+    fun `can handle plain enums`() {
+        PlainEnum.entries.forEach {
+            assertThat(
+                configurationCacheRoundtripOf(it),
+                sameInstance(it)
+            )
+        }
+    }
+
+    enum class PlainEnum {
+        One, Two
+    }
+
+    @Test
+    fun `preserves identity of Kotlin objects`() {
+        assertThat(
+            configurationCacheRoundtripOf(Peano.Z),
+            sameInstance(Peano.Z)
+        )
+    }
+
+    @Test
+    fun `can handle Java records`() {
+        val record = Point(1, "one")
+
+        val roundtrip = configurationCacheRoundtripOf(record)
+
+        assertThat(roundtrip, equalTo(record))
+    }
+
+    @JvmRecord
+    data class Point(val x: Int, val label: String)
+
+    @Test
+    fun `can handle proxies`() {
+        val proxy = Proxy.newProxyInstance(
+            Greeter::class.java.classLoader,
+            arrayOf(Greeter::class.java),
+            GreeterHandler("hello")
+        ) as Greeter
+
+        val roundtrip = configurationCacheRoundtripOf(proxy)
+
+        assertThat(Proxy.isProxyClass(roundtrip.javaClass), equalTo(true))
+        assertThat(roundtrip.greet(), equalTo("hello"))
+    }
+
+    interface Greeter {
+        fun greet(): String
+    }
+
+    class GreeterHandler(private val greeting: String) : InvocationHandler {
+        override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any = greeting
+    }
+
+    @Test
+    fun `restores services from the isolate owner`() {
+        val service = DefaultTestService()
+        val owner = object : IsolateOwner {
+            override val delegate: Any = this
+            override fun <T : Any> service(type: Class<T>): T = type.cast(service.takeIf { type == TestService::class.java })
+        }
+
+        val roundtrip = configurationCacheRoundtripOf(DefaultTestService(), readIsolateOwner = owner)
+
+        assertThat(roundtrip, sameInstance(service))
+    }
+
+    @ServiceScope(Scope.Build::class)
+    interface TestService
+
+    class DefaultTestService : TestService
+
+    @Test
+    fun `can handle managed Named instances`() {
+        val codec = BindingsBlueprint.of {
+            bind(NamedCodec(TestNamedFactory))
+            bind(STRING_SERIALIZER)
+        }.build()
+
+        val roundtrip = configurationCacheRoundtripOf(TestNamed("main"), codec)
+
+        assertThat(roundtrip.name, equalTo("main"))
+    }
+
+    class TestNamed(private val name: String) : Named, Managed {
+        override fun getName(): String = name
+        override fun unpackState(): Any = name
+        override fun isImmutable(): Boolean = true
+        override fun publicType(): Class<*> = TestNamed::class.java
+        override fun getFactoryId(): Int = TestNamedFactory.id
+    }
+
+    object TestNamedFactory : ManagedFactoryRegistry, ManagedFactory {
+        override fun lookup(id: Int): ManagedFactory = this
+        override fun getId(): Int = 42
+        override fun <T : Any?> fromState(type: Class<T>, state: Any): T = type.cast(TestNamed(state as String))
     }
 
     enum class EnumSuperType {

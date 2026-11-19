@@ -57,7 +57,7 @@ import org.gradle.internal.serialize.graph.MutableIsolateContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
-import org.gradle.internal.serialize.graph.codecs.Bindings
+import org.gradle.internal.serialize.graph.codecs.BindingsBlueprint
 import org.gradle.internal.serialize.graph.decodeBean
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.decodePreservingSharedIdentity
@@ -79,7 +79,7 @@ fun defaultCodecForProviderWithChangingValue(
     valueSourceProviderCodec: Codec<ValueSourceProvider<*, *>>,
     buildServiceProviderCodec: Codec<BuildServiceProvider<*, *>>,
     flowProvidersCodec: Codec<BuildWorkResultProvider>
-) = Bindings.of {
+) = BindingsBlueprint.of {
     bind(valueSourceProviderCodec)
     bind(buildServiceProviderCodec)
     bind(BuildServiceParameterCodec)

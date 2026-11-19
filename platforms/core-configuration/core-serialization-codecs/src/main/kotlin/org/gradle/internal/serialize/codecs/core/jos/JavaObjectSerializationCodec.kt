@@ -21,9 +21,7 @@ import org.gradle.internal.serialize.graph.BeanStateReader
 import org.gradle.internal.serialize.graph.EncodingProvider
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.codecs.Decoding
-import org.gradle.internal.serialize.graph.codecs.Encoding
-import org.gradle.internal.serialize.graph.codecs.EncodingProducer
+import org.gradle.internal.serialize.graph.codecs.SelectiveCodec
 import org.gradle.internal.serialize.graph.decodeBean
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodeBean
@@ -68,14 +66,14 @@ import java.lang.reflect.Method
 @ServiceScope(Scope.Global::class)
 class JavaObjectSerializationCodec(
     private val objectOpener: ObjectOpener
-) : EncodingProducer, Decoding {
+) : SelectiveCodec {
 
     // The cached values are attached to classes that may outlive any build,
     // so they must only reach objects that live at least as long as the class they're attached to.
 
     private
-    val encodings = object : ClassValue<Encoding?>() {
-        override fun computeValue(type: Class<*>): Encoding? = calculateEncoding(type)
+    val encodings = object : ClassValue<EncodingProvider<Any>?>() {
+        override fun computeValue(type: Class<*>): EncodingProvider<Any>? = calculateEncoding(type)
     }
 
     private
@@ -90,10 +88,12 @@ class JavaObjectSerializationCodec(
             SerializationMethods.of(type).readObjectMethodHierarchy.map { accessibleHandle(it).asReadObject() }
     }
 
-    override fun encodingForType(type: Class<*>): Encoding? =
-        type.takeIf { Serializable::class.java.isAssignableFrom(it) }?.let { serializableType ->
-            encodings.get(serializableType)
-        }
+    override fun accepts(type: Class<*>): Boolean =
+        Serializable::class.java.isAssignableFrom(type) && encodings.get(type) != null
+
+    override suspend fun WriteContext.encode(value: Any) {
+        encodings.get(value.javaClass)!!.run { encode(value) }
+    }
 
     override suspend fun ReadContext.decode(): Any =
         decodePreservingIdentity { id ->
@@ -161,7 +161,7 @@ class JavaObjectSerializationCodec(
     }
 
     private
-    object ReadObjectEncoding : Encoding {
+    object ReadObjectEncoding : EncodingProvider<Any> {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 writeEnum(Format.ReadObject)
@@ -193,7 +193,7 @@ class JavaObjectSerializationCodec(
     }
 
     private
-    object ReadResolveEncoding : Encoding {
+    object ReadResolveEncoding : EncodingProvider<Any> {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 writeEnum(Format.ReadResolveBean)
@@ -218,7 +218,7 @@ class JavaObjectSerializationCodec(
         }
 
     private
-    fun calculateEncoding(type: Class<*>): Encoding? {
+    fun calculateEncoding(type: Class<*>): EncodingProvider<Any>? {
         val candidates = SerializationMethods.of(type)
         return candidates.writeReplace
                 ?.let { WriteReplaceEncoding(accessibleHandle(it).asWriteReplace()) }
