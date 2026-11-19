@@ -702,7 +702,7 @@ first after"""
 
             abstract class PrintingListener implements TaskLifecycleListener<Task> {
                 void afterExecution(Task task, TaskState state) {
-                    println "after \${task.path}"
+                    println "after \${task.path} failure=\${state.failure?.cause?.message}"
                 }
             }
 
@@ -722,7 +722,7 @@ first after"""
         failure.assertHasCause("Lifecycle listener FailingListener failed in afterExecution.")
         failure.assertHasCause("after failure")
         outputContains("task action ran")
-        outputContains("after :foo")
+        outputContains("after :foo failure=Lifecycle listener FailingListener failed in afterExecution.")
     }
 
     def "afterExecution receives task action failure"() {

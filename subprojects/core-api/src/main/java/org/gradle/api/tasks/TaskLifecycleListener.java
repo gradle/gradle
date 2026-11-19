@@ -90,7 +90,7 @@ public interface TaskLifecycleListener<T extends Task> {
      *
      * <p>The outputs of the task have already been recorded at this point.
      * Throwing an exception fails the task in this build, but does not affect up-to-date checks or the build cache in later builds.
-     * The other listeners are still notified.</p>
+     * The other listeners are still notified, and see this failure in the task state.</p>
      *
      * @param task the executed task
      * @param state the state of the task, including the failure, if any
