@@ -16,9 +16,9 @@
 
 package org.gradle.jvm.toolchain.internal.install;
 
-import org.gradle.api.GradleException;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.SafeFileLocationUtils;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.LocalBinaryResource;
 import org.gradle.internal.resource.ResourceExceptions;
@@ -28,6 +28,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.net.URI;
@@ -45,7 +46,10 @@ public interface JavaToolchainProvisioningService {
         return true;
     }
 
-    default String getFileName(URI uri, ExternalResource resource) {
+    /**
+     * Returns the file name provided for the resource, or {@code null} if none was provided.
+     */
+    default @Nullable String getFileName(URI uri, ExternalResource resource) {
         if (resource instanceof LocalBinaryResource) {
             String fileName = ((LocalBinaryResource) resource).getBaseName();
             if (fileName != null) {
@@ -57,16 +61,23 @@ public interface JavaToolchainProvisioningService {
             throw ResourceExceptions.getMissing(uri);
         }
         String fileName = metaData.getFilename();
-        if (fileName == null) {
-            throw new GradleException("Can't determine filename for resource located at: " + uri);
-        }
-        return fileName;
+        return fileName == null || fileName.isEmpty() ? null : fileName;
     }
 
+    /**
+     * Builds the local file name for a downloaded toolchain archive.
+     * <p>
+     * Uses the file name provided for the resource. If there is none, for example when the server sends
+     * {@code Content-Disposition: attachment} without a filename, the name is derived from a hash of the URI.
+     * The archive format is detected from the file content when unpacking.
+     */
     default String buildFileNameWithDetails(URI uri, ExternalResource resource, JavaToolchainSpec spec) {
-        String originalFileName = getFileName(uri, resource);
+        String fileName = getFileName(uri, resource);
+        if (fileName == null) {
+            fileName = "jdk-" + Hashing.hashString(uri.toString()).toCompactString();
+        }
         String id = "-" + spec.getVendor().get() + '-' + spec.getLanguageVersion().get().asInt();
-        String nameWithIdUnsafe = FileUtils.addSuffixToName(originalFileName, id);
+        String nameWithIdUnsafe = FileUtils.addSuffixToName(fileName, id);
         return SafeFileLocationUtils.toSafeFileName(nameWithIdUnsafe, false);
     }
 }

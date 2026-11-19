@@ -276,6 +276,13 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
     }
 
     /**
+     * Expect a HEAD request to the given path and run the given action to create the response.
+     */
+    public ExpectedRequest head(String path, Action<? super HttpExchange> action) {
+        return new ExpectMethodAndRunAction("HEAD", normalizePath(path), action);
+    }
+
+    /**
      * Expect a GET request to the given path and run the given action to create the response.
      */
     public ExpectedRequest get(String path, Action<? super HttpExchange> action) {
