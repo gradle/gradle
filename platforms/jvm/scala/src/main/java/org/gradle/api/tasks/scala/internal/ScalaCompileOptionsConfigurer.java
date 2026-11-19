@@ -103,6 +103,8 @@ public class ScalaCompileOptionsConfigurer {
      * Computes parameters to specify how Scala should handle Java APIs and produced bytecode version.
      * <p>
      * The exact result depends on the Scala version in use and if the toolchain is user specified or not.
+     * Pre-releases are expected to accept the same parameters as their final release.
+     * Early milestones may not, if the parameter format changed during their release cycle.
      *
      * @param scalaVersion The detected scala version, without qualifier
      * @param javaToolchain The toolchain used to run compilation
@@ -126,7 +128,8 @@ public class ScalaCompileOptionsConfigurer {
                 if (effectiveTarget <= MAX_LEGACY_JVM_TARGET) {
                     return Collections.singletonList(String.format("-target:jvm-1.%s", effectiveTarget));
                 }
-                // Emit the highest supported bytecode, compiling against the toolchain's API where possible
+                // Emit the highest supported bytecode, compiling against the toolchain's API where possible.
+                // These versions only accept "-release N" as two arguments, and reject "-release:N".
                 String legacyTarget = String.format("-target:jvm-1.%s", MAX_LEGACY_JVM_TARGET);
                 if (scalaVersion.compareTo(RELEASE_SUPPORTED_SINCE_VERSION) >= 0) {
                     return Arrays.asList(legacyTarget, "-release", String.valueOf(effectiveTarget));

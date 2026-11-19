@@ -65,7 +65,7 @@ class ScalaCoverage {
         }
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)) {
             // All latest patches of 2.13 work on Java 9+
-            // 2.12 accepts a Java 9+ target since 2.12.16
+            // 2.12.20 runs on Java 9 to 23 and Gradle no longer passes it a target it rejects
             return VersionCoverage.versionsAtLeast(SCALA_2, "2.12.16")
         }
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_8)) {

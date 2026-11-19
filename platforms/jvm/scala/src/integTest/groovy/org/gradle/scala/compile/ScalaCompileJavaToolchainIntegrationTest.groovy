@@ -35,6 +35,9 @@ class AbstractScalaCompileJavaToolchainIntegrationTest extends MultiVersionInteg
     def getTargetJava8() {
         return versionNumber >= VersionNumber.parse("2.13.9") ? "-release:8"
             : versionNumber >= VersionNumber.parse("2.13.1") ? "-target:8"
+            : versionNumber >= VersionNumber.parse("2.13.0") ? "-target:jvm-1.8"
+            : versionNumber >= VersionNumber.parse("2.12.17") ? "-release:8"
+            : versionNumber >= VersionNumber.parse("2.12.16") ? "-target:8"
             : "-target:jvm-1.8"
     }
 

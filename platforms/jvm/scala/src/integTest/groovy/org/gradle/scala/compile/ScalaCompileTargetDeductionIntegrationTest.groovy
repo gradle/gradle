@@ -74,34 +74,42 @@ class ScalaCompileTargetDeductionIntegrationTest extends AbstractIntegrationSpec
         """
     }
 
-    def "deduces #expectedParameter for Scala #scalaVersion with Java 17 toolchain"() {
-        def jdk17 = AvailableJavaHomes.getJdk17()
-        Assume.assumeNotNull(jdk17)
+    def "deduces #expectedParameter for Scala #scalaVersion with Java #java toolchain"() {
+        def jdk = AvailableJavaHomes.getJdk(JavaVersion.toVersion(java))
+        Assume.assumeNotNull(jdk)
 
         scalaBuild(scalaVersion)
-        configureJavaPluginToolchainVersion(jdk17)
+        configureJavaPluginToolchainVersion(jdk)
 
         when:
-        withInstallations(jdk17).succeeds(":test")
+        withInstallations(jdk).succeeds(":test")
 
         then:
         outputContains("scalaCompileOptions.additionalParameters = [$expectedParameter]")
         JavaVersion.forClass(scalaClassFile("Greeter.class").bytes) == expectedBytecode
 
         where:
-        scalaVersion | expectedParameter                 | expectedBytecode
-        '2.11.12'    | '-target:jvm-1.8'                 | JavaVersion.VERSION_1_8
-        '2.12.15'    | '-target:jvm-1.8, -release, 17'   | JavaVersion.VERSION_1_8
-        '2.13.0'     | '-target:jvm-1.8, -release, 17'   | JavaVersion.VERSION_1_8
-        '2.12.16'    | '-target:17'                      | JavaVersion.VERSION_17
-        '2.12.17'    | '-release:17'                     | JavaVersion.VERSION_1_8
-        '2.12.20'    | '-release:17'                     | JavaVersion.VERSION_1_8
-        '2.13.16'    | '-release:17'                     | JavaVersion.VERSION_17
+        // Scala 2.12.17+ always emits Java 8 bytecode, -release only selects the Java API (scala/scala#10109)
+        java | scalaVersion | expectedParameter                 | expectedBytecode
+        8    | '2.11.12'    | '-target:jvm-1.8'                 | JavaVersion.VERSION_1_8
+        8    | '2.12.15'    | '-target:jvm-1.8'                 | JavaVersion.VERSION_1_8
+        8    | '2.12.16'    | '-target:8'                       | JavaVersion.VERSION_1_8
+        8    | '2.12.17'    | '-release:8'                      | JavaVersion.VERSION_1_8
+        8    | '2.12.20'    | '-release:8'                      | JavaVersion.VERSION_1_8
+        8    | '2.13.16'    | '-release:8'                      | JavaVersion.VERSION_1_8
+        11   | '2.12.15'    | '-target:jvm-1.8, -release, 11'   | JavaVersion.VERSION_1_8
+        11   | '2.12.20'    | '-release:11'                     | JavaVersion.VERSION_1_8
+        17   | '2.11.12'    | '-target:jvm-1.8'                 | JavaVersion.VERSION_1_8
+        17   | '2.12.15'    | '-target:jvm-1.8, -release, 17'   | JavaVersion.VERSION_1_8
+        17   | '2.13.0'     | '-target:jvm-1.8, -release, 17'   | JavaVersion.VERSION_1_8
+        17   | '2.12.16'    | '-target:17'                      | JavaVersion.VERSION_17
+        17   | '2.12.17'    | '-release:17'                     | JavaVersion.VERSION_1_8
+        17   | '2.12.20'    | '-release:17'                     | JavaVersion.VERSION_1_8
+        17   | '2.13.16'    | '-release:17'                     | JavaVersion.VERSION_17
     }
 
     def "deduces #expectedParameter for Scala #scalaVersion without configured toolchain"() {
-        // Scala 2.12.16 and 2.12.17 support Java 19 at most
-        Assume.assumeTrue(Jvm.current().javaVersion <= JavaVersion.VERSION_19)
+        Assume.assumeTrue(Jvm.current().javaVersion <= maxJava)
 
         scalaBuild(scalaVersion)
 
@@ -113,10 +121,10 @@ class ScalaCompileTargetDeductionIntegrationTest extends AbstractIntegrationSpec
         JavaVersion.forClass(scalaClassFile("Greeter.class").bytes) == JavaVersion.VERSION_1_8
 
         where:
-        scalaVersion | expectedParameter
-        '2.12.16'    | '-target:8'
-        '2.12.17'    | '-target:8'
-        '2.12.20'    | '-target:8'
-        '2.13.16'    | '-target:8'
+        scalaVersion | expectedParameter | maxJava
+        '2.12.16'    | '-target:8'       | JavaVersion.VERSION_19
+        '2.12.17'    | '-target:8'       | JavaVersion.VERSION_19
+        '2.12.20'    | '-target:8'       | JavaVersion.VERSION_23
+        '2.13.16'    | '-target:8'       | JavaVersion.VERSION_23
     }
 }
