@@ -40,14 +40,15 @@
  *  Each single {@link org.gradle.internal.serialize.graph.codecs.Binding binding} comprises:
  *  <ul>
  *     <li>a <em>tag</em> (a unique numeric identifier that represents the type the binding supports)
- *     <li>the {@link org.gradle.internal.serialize.graph.EncodingProvider encoding provider} <em>{@link org.gradle.internal.serialize.graph.EncodingProvider producer}</em>
- *     <li>the {@link org.gradle.internal.serialize.graph.DecodingProvider decoding provider}
+ *     <li>a predicate that tells whether the binding supports a given type
+ *     <li>the {@link org.gradle.internal.serialize.graph.Codec codec} that encodes and decodes the values
  *  </ul>
  *  <p>
  *  On serialization of an object of some type, the {@link org.gradle.internal.serialize.graph.codecs.BindingsBackedCodec bindings-backed composite codec}
  *  will query all bindings to find which one knows how to encode the type at hand,
- *  by invoking {@link org.gradle.internal.serialize.graph.codecs.Binding#encodingForType(java.lang.Class)} on each binding. If a binding supports the type,
- *  it will return the proper {@link org.gradle.internal.serialize.graph.EncodingProvider} (or null, otherwise).
+ *  by invoking the {@link org.gradle.internal.serialize.graph.codecs.Binding#getAccepts() accepts} predicate of each binding in order.
+ *  The first binding that supports the type is used to encode the value; the choice is cached per type.
+ *  Codecs that only handle some types implement {@link org.gradle.internal.serialize.graph.codecs.SelectiveCodec}.
  *  </p><p>
  *  Deserializing is simpler: the bindings-backed composite codec reads a tag from the stored state, and then picks the binding that is associated with that tag (and consequently, that binding's decoder).
  *  </p>

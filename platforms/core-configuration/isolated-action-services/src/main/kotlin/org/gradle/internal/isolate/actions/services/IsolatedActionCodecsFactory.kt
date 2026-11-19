@@ -43,7 +43,7 @@ import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
-import org.gradle.internal.serialize.graph.codecs.Bindings
+import org.gradle.internal.serialize.graph.codecs.BindingsBlueprint
 import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 import org.gradle.internal.serialize.graph.codecs.ServicesCodec
 import org.gradle.internal.serialize.graph.unsupported
@@ -71,24 +71,29 @@ class IsolatedActionCodecsFactory(
 
 ) : IsolationCodecsProvider {
 
-    override fun isolationCodecs(): Codec<Any?> = Bindings.of {
-        allUnsupportedTypes()
-        baseTypes(objectOpener)
-        supportedPropertyTypes()
-        groovyCodecs()
-        bind(ExternalizableCodec)
+    override fun isolationCodecs(): Codec<Any?> = isolationCodecs
 
-        bind(RegularFileCodec(fileFactory))
-        bind(DirectoryCodec(fileFactory))
+    private val isolationCodecs by lazy {
+        // Isolation Codecs don't depend on a particular project or have internal encoding/decoding state, so they can be shared.
+        BindingsBlueprint.of {
+            allUnsupportedTypes()
+            baseTypes(objectOpener)
+            supportedPropertyTypes()
+            groovyCodecs()
+            bind(ExternalizableCodec)
 
-        bind(LoggerCodec)
-        bind(ProxyCodec)
+            bind(RegularFileCodec(fileFactory))
+            bind(DirectoryCodec(fileFactory))
 
-        bind(ServicesCodec)
+            bind(LoggerCodec)
+            bind(ProxyCodec)
 
-        bind(javaObjectSerializationCodec)
-        bind(BeanCodec)
-    }.build()
+            bind(ServicesCodec)
+
+            bind(javaObjectSerializationCodec)
+            bind(BeanCodec)
+        }.build()
+    }
 
     private
     fun BindingsBuilder.allUnsupportedTypes() {
@@ -112,7 +117,7 @@ class IsolatedActionCodecsFactory(
     private
     fun fixedValueReplacingProviderCodec() =
         FixedValueReplacingProviderCodec(
-            Bindings.of {
+            BindingsBlueprint.of {
                 unsupportedProviderTypes()
                 bind(BeanCodec)
             }.build()

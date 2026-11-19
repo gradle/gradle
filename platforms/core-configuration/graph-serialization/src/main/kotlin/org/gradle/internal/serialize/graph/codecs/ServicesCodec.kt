@@ -22,16 +22,32 @@ import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.service.scopes.ServiceScope
 
 
-object ServicesCodec : EncodingProducer, Decoding {
-    override fun encodingForType(type: Class<*>): Encoding? {
-        // TODO - perhaps query the isolate owner to see whether the value is in fact a service
-        val serviceType = serviceType(GeneratedSubclasses.unpack(type))
-        return if (serviceType != null) {
-            OwnerServiceEncoding(serviceType)
-        } else {
-            null
-        }
+object ServicesCodec : SelectiveCodec {
+
+    /**
+     * Service types of the values passed to [encode], so only actual service classes get an entry.
+     *
+     * [accepts] doesn't use this cache, as it would add an entry for every type the codec rejects, which is
+     * most of them. The blueprint already caches the result of [accepts] per type. The trade-off is that the
+     * hierarchy of a service class is walked twice: in [accepts], and on the first [encode] of its value.
+     */
+    private
+    val serviceTypes = object : ClassValue<Class<*>>() {
+        override fun computeValue(type: Class<*>): Class<*> =
+            requireNotNull(serviceTypeOf(type)) { "'${type.name}' is not a service type" }
     }
+
+    override fun accepts(type: Class<*>): Boolean =
+        serviceTypeOf(type) != null
+
+    override suspend fun WriteContext.encode(value: Any) {
+        writeClass(serviceTypes.get(value.javaClass))
+    }
+
+    private
+    fun serviceTypeOf(type: Class<*>): Class<*>? =
+        // TODO - perhaps query the isolate owner to see whether the value is in fact a service
+        serviceType(GeneratedSubclasses.unpack(type))
 
     private
     fun serviceType(type: Class<*>): Class<*>? {
@@ -52,13 +68,5 @@ object ServicesCodec : EncodingProducer, Decoding {
 
     override suspend fun ReadContext.decode(): Any? {
         return isolate.owner.service(readClass())
-    }
-}
-
-
-internal
-class OwnerServiceEncoding(val serviceType: Class<*>) : Encoding {
-    override suspend fun WriteContext.encode(value: Any) {
-        writeClass(serviceType)
     }
 }
