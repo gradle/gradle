@@ -497,25 +497,18 @@ Task lifecycle listeners are compatible with the <<configuration_cache.adoc#conf
 You register a listener by type, using link:{javadocPath}/org/gradle/api/Task.html#addLifecycleListener(java.lang.Class)[`Task.addLifecycleListener(Class)`] or link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#addLifecycleListener(java.lang.Class)[`TaskCollection.addLifecycleListener(Class)`].
 Gradle creates a new instance of the listener for each task execution and calls `beforeExecution` and `afterExecution` on that instance.
 
-This example records the duration of every task in a shared build service, and prints a message after each `Copy` task:
+When an `Exec` task fails, the failure names only the executable.
+This example prints the full command line, the working directory, and the error output of the process for every `Exec` task that fails:
 
 ====
 include::sample[dir="snippets/optimizing-builds/configuration-cache/taskLifecycleListeners/kotlin",files="build.gradle.kts[tags=task-lifecycle-listeners]"]
 include::sample[dir="snippets/optimizing-builds/configuration-cache/taskLifecycleListeners/groovy",files="build.gradle[tags=task-lifecycle-listeners]"]
 ====
-<1> A build service holds state shared between task executions. It must be thread-safe, because listeners of tasks executing in parallel use it concurrently.
-<2> A listener references build services with `@ServiceReference`. The task uses these services as if it referenced them itself, so they honor `maxParallelUsages`.
-<3> Instance fields carry state from `beforeExecution` to `afterExecution`, because each task execution gets its own listener instance.
-<4> `afterExecution` receives the `TaskState`, which holds the failure, if the task failed.
-<5> Registering the listener with every task in the project.
-<6> `TaskCollection.addLifecycleListener` registers a listener that accepts only `Copy` tasks with every `Copy` task.
-
-Running `copyDocs` prints the message from the `Copy` listener:
-
-[source,text]
-----
-include::{snippetsPath}/optimizing-builds/configuration-cache/taskLifecycleListeners/tests/taskLifecycleListeners.out[]
-----
+<1> The type parameter declares that the listener accepts only `Exec` tasks, so its methods receive an `Exec` task.
+<2> Instance fields carry state from `beforeExecution` to `afterExecution`, because each task execution gets its own listener instance.
+<3> `beforeExecution` runs before the task actions. The listener copies the error output of the process, and still writes it to `System.err`, which Gradle shows in the console. This replaces an error output configured on the task.
+<4> `afterExecution` receives the `TaskState`, which holds the failure, if the task failed. The printed lines appear with the output of the failed task.
+<5> `TaskCollection.addLifecycleListener` registers the listener with every `Exec` task.
 
 [[task_lifecycle_listeners_registration]]
 ==== Registering listeners

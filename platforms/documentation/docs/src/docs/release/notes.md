@@ -78,29 +78,25 @@ Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that
 This release introduces [`TaskLifecycleListener`](javadoc/org/gradle/api/tasks/TaskLifecycleListener.html), a Configuration Cache-compatible replacement for `TaskExecutionListener`, `TaskActionListener`, and `gradle.taskGraph.beforeTask`/`afterTask`.
 `OperationCompletionListener` already replaces these for observing task results, but some use cases need code that runs synchronously right before and after the task executes: enriching task failures with task-specific details, releasing resources even when the task fails, or vetoing a task before it runs.
 
-A listener is a class registered with a task by type.
-Gradle creates a new instance of it for each task execution, so instance fields can carry state from `beforeExecution` to `afterExecution`:
+A listener is a class registered by type, with a single task or with every task of a given type.
+For example, when an `Exec` task fails, the failure names only the executable.
+This listener prints the full command line and the working directory of every `Exec` task that fails:
 
 ```kotlin
-abstract class TaskTimingListener : TaskLifecycleListener<Task> {
-    @get:ServiceReference("taskTimings")
-    abstract val timings: Property<TaskTimingsService>
-
-    private var startNanos = 0L
-
-    override fun beforeExecution(task: Task) {
-        startNanos = System.nanoTime()
-    }
-
-    override fun afterExecution(task: Task, state: TaskState) {
-        timings.get().record(task.path, System.nanoTime() - startNanos)
+abstract class ExecFailureDetails : TaskLifecycleListener<Exec> {
+    override fun afterExecution(task: Exec, state: TaskState) {
+        if (state.failure != null) {
+            println("Command: ${task.commandLine.joinToString(" ")}")
+            println("Working directory: ${task.workingDir}")
+        }
     }
 }
 
-tasks.configureEach {
-    addLifecycleListener(TaskTimingListener::class.java)
-}
+tasks.withType<Exec>().addLifecycleListener(ExecFailureDetails::class.java)
 ```
+
+Unlike an `OperationCompletionListener`, which receives only the path of the task after the task has finished, the listener receives the `Exec` task itself, and its output appears with the output of the failed task.
+Gradle creates a new instance of the listener for each task execution, so instance fields can carry state from `beforeExecution` to `afterExecution`.
 
 Listeners are called for every task that Gradle tries to execute, including tasks that are up-to-date, skipped, or loaded from the build cache.
 Unlike the legacy listeners, which were notified one task at a time, the listeners of tasks executing in parallel are notified concurrently, so build services they share must be thread-safe.
