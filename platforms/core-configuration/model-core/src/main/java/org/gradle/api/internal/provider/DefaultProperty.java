@@ -51,7 +51,12 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
 
     @Override
     public Object unpackState() {
-        return getProvider();
+        // Unpacking for isolation or snapshotting is a read, so it must honor finalize-on-read.
+        // The supplier is returned rather than its value so that immutable providers, e.g. build services, stay lazy.
+        try (EvaluationScopeContext context = openScope()) {
+            beforeRead(context, ValueConsumer.IgnoreUnsafeRead);
+            return getSupplier(context);
+        }
     }
 
     @Override
