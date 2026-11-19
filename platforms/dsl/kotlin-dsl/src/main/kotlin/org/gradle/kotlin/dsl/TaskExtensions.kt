@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Incubating
+
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Incubating
