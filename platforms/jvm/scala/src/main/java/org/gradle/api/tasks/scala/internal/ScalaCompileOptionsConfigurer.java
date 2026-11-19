@@ -20,6 +20,8 @@ import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.Arrays;
@@ -34,6 +36,7 @@ import java.util.Set;
  *
  * @since 7.3
  */
+@NullMarked
 public class ScalaCompileOptionsConfigurer {
 
     private static final int FALLBACK_JVM_TARGET = 8;
@@ -64,7 +67,7 @@ public class ScalaCompileOptionsConfigurer {
     private static final VersionNumber PLAIN_TARGET_FORMAT_IN_2_12_SINCE_VERSION = VersionNumber.parse("2.12.16");
     private static final VersionNumber RELEASE_REPLACES_TARGET_IN_2_12_SINCE_VERSION = VersionNumber.parse("2.12.17");
 
-    public static void configure(ScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath) {
+    public static void configure(ScalaCompileOptions scalaCompileOptions, @Nullable JavaInstallationMetadata toolchain, Set<File> scalaClasspath) {
         if (toolchain == null) {
             return;
         }

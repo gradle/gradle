@@ -858,7 +858,6 @@ Class <org.gradle.api.tasks.diagnostics.internal.text.StyledTable> is not annota
 Class <org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (TextReportBuilder.java:0)
 Class <org.gradle.api.tasks.internal.JavaExecExecutableUtils> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (JavaExecExecutableUtils.java:0)
 Class <org.gradle.api.tasks.scala.internal.GenerateScaladoc> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (GenerateScaladoc.java:0)
-Class <org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ScalaCompileOptionsConfigurer.java:0)
 Class <org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ScalaRuntimeHelper.java:0)
 Class <org.gradle.api.tasks.scala.internal.ScaladocParameters> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ScaladocParameters.java:0)
 Class <org.gradle.architecture.library.freeze.LineNumberIgnoringViolationStore> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (LineNumberIgnoringViolationStore.java:0)
