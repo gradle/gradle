@@ -18,8 +18,7 @@ package org.gradle.internal.execution.impl;
 
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.cache.Cache;
-import org.gradle.internal.Deferrable;
-import org.gradle.internal.Try;
+import org.gradle.internal.execution.DeferredExecution;
 import org.gradle.internal.execution.DeferredResult;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.Identity;
@@ -69,7 +68,7 @@ public class DefaultExecutionEngine implements ExecutionEngine {
             }
 
             @Override
-            public <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, DeferredResult<T>> cache) {
+            public <T> DeferredExecution<T> executeDeferred(Cache<Identity, DeferredResult<T>> cache) {
                 return pipeline.executeDeferred(work, createExecutionRequestContext(), cache);
             }
         };
