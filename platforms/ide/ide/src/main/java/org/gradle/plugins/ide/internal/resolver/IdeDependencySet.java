@@ -33,7 +33,11 @@ import org.gradle.api.artifacts.result.ArtifactResolutionResult;
 import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.Artifact;
@@ -58,6 +62,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -351,11 +356,20 @@ public class IdeDependencySet {
     }
 
     private static List<Object> variantOf(ResolvedArtifactResult artifact) {
+        ResolvedVariantResult variant = artifact.getVariant();
         Set<String> capabilities = new HashSet<>();
-        for (Capability capability : artifact.getVariant().getCapabilities()) {
+        for (Capability capability : variant.getCapabilities()) {
             capabilities.add(capability.getGroup() + ":" + capability.getName());
         }
-        return Arrays.asList(artifact.getId().getComponentIdentifier(), capabilities);
+        AttributeContainer attributes = variant.getAttributes();
+        Map<String, String> otherAttributes = new HashMap<>();
+        for (Attribute<?> attribute : attributes.keySet()) {
+            String name = attribute.getName();
+            if (!name.equals(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName()) && !name.equals(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE.getName())) {
+                otherAttributes.put(name, String.valueOf(attributes.getAttribute(attribute)));
+            }
+        }
+        return Arrays.asList(artifact.getId().getComponentIdentifier(), capabilities, otherAttributes);
     }
 
     public static boolean isJar(ResolvedArtifactResult artifact) {
