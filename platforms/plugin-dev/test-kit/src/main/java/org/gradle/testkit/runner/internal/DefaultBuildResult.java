@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
@@ -34,6 +35,8 @@ public class DefaultBuildResult implements BuildResult {
     private final ByteSource outputSource;
 
     private final List<BuildTask> tasks;
+
+    private SoftReference<String> decodedOutput = new SoftReference<>(null);
 
     public DefaultBuildResult(String output, List<BuildTask> tasks) {
         this(ByteSource.wrap(output.getBytes(Charset.defaultCharset())), tasks);
@@ -46,8 +49,14 @@ public class DefaultBuildResult implements BuildResult {
 
     @Override
     public String getOutput() {
+        String output = decodedOutput.get();
+        if (output != null) {
+            return output;
+        }
         try {
-            return outputSource.asCharSource(Charset.defaultCharset()).read();
+            output = outputSource.asCharSource(Charset.defaultCharset()).read();
+            decodedOutput = new SoftReference<>(output);
+            return output;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
