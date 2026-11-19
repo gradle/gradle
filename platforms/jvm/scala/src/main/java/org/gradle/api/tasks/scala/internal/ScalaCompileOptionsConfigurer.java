@@ -23,6 +23,7 @@ import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -36,6 +37,7 @@ import java.util.Set;
 public class ScalaCompileOptionsConfigurer {
 
     private static final int FALLBACK_JVM_TARGET = 8;
+    private static final int MAX_LEGACY_JVM_TARGET = 8;
 
     /**
      * Support for these flags in different minor releases of Scala varies,
@@ -52,6 +54,7 @@ public class ScalaCompileOptionsConfigurer {
         "-Xtarget", "--Xtarget"
     );
 
+    private static final VersionNumber RELEASE_SUPPORTED_SINCE_VERSION = VersionNumber.parse("2.12.5");
     private static final VersionNumber SCALA_3_FIRST_VERSION = VersionNumber.parse("3.0.0");
 
     private static final VersionNumber SCALA_2_13_FIRST_VERSION = VersionNumber.parse("2.13.0");
@@ -84,8 +87,8 @@ public class ScalaCompileOptionsConfigurer {
             return;
         }
 
-        String targetParameter = determineTargetParameter(scalaVersion, (JavaToolchain) toolchain);
-        scalaCompileOptions.getAdditionalParameters().add(targetParameter);
+        List<String> targetParameters = determineTargetParameters(scalaVersion.getBaseVersion(), (JavaToolchain) toolchain);
+        scalaCompileOptions.getAdditionalParameters().addAll(targetParameters);
     }
 
     private static boolean hasTargetDefiningParameter(List<String> additionalParameters) {
@@ -94,64 +97,73 @@ public class ScalaCompileOptionsConfigurer {
     }
 
     /**
-     * Computes parameter to specify how Scala should handle Java APIs and produced bytecode version.
+     * Computes parameters to specify how Scala should handle Java APIs and produced bytecode version.
      * <p>
      * The exact result depends on the Scala version in use and if the toolchain is user specified or not.
      *
-     * @param scalaVersion The detected scala version
+     * @param scalaVersion The detected scala version, without qualifier
      * @param javaToolchain The toolchain used to run compilation
-     * @return a Scala compiler parameter
+     * @return Scala compiler parameters
      */
-    private static String determineTargetParameter(VersionNumber scalaVersion, JavaToolchain javaToolchain) {
-        TargetParameterFormat parameterFormat = getTargetParameterFormat(scalaVersion);
-
+    private static List<String> determineTargetParameters(VersionNumber scalaVersion, JavaToolchain javaToolchain) {
         boolean explicitToolchain = !javaToolchain.isFallbackToolchain();
         int effectiveTarget = !explicitToolchain ? FALLBACK_JVM_TARGET : javaToolchain.getLanguageVersion().asInt();
-        if (parameterFormat == TargetParameterFormat.RELEASE_OR_HIDDEN_PLAIN_TARGET) {
-            if (explicitToolchain) {
-                return String.format("-release:%s", effectiveTarget);
-            } else {
-                return String.format("-Xtarget:%s", effectiveTarget);
-            }
-        } else if (parameterFormat == TargetParameterFormat.RELEASE_OR_PLAIN_TARGET) {
-            if (explicitToolchain) {
-                return String.format("-release:%s", effectiveTarget);
-            } else {
-                return String.format("-target:%s", effectiveTarget);
-            }
-        } else if (parameterFormat == TargetParameterFormat.PLAIN_TARGET) {
-            return String.format("-target:%s", effectiveTarget);
-        } else {
-            return String.format("-target:jvm-1.%s", effectiveTarget);
+        switch (getTargetParameterFormat(scalaVersion)) {
+            case RELEASE_OR_XTARGET:
+                return Collections.singletonList(explicitToolchain
+                    ? String.format("-release:%s", effectiveTarget)
+                    : String.format("-Xtarget:%s", effectiveTarget));
+            case RELEASE_OR_PLAIN_TARGET:
+                return Collections.singletonList(explicitToolchain
+                    ? String.format("-release:%s", effectiveTarget)
+                    : String.format("-target:%s", effectiveTarget));
+            case PLAIN_TARGET:
+                return Collections.singletonList(String.format("-target:%s", effectiveTarget));
+            case LEGACY_TARGET:
+                if (effectiveTarget <= MAX_LEGACY_JVM_TARGET) {
+                    return Collections.singletonList(String.format("-target:jvm-1.%s", effectiveTarget));
+                }
+                // Emit the highest supported bytecode, compiling against the toolchain's API where possible
+                String legacyTarget = String.format("-target:jvm-1.%s", MAX_LEGACY_JVM_TARGET);
+                if (scalaVersion.compareTo(RELEASE_SUPPORTED_SINCE_VERSION) >= 0) {
+                    return Arrays.asList(legacyTarget, "-release", String.valueOf(effectiveTarget));
+                }
+                return Collections.singletonList(legacyTarget);
+            default:
+                throw new IllegalStateException("Unknown target parameter format");
         }
     }
 
     private static TargetParameterFormat getTargetParameterFormat(VersionNumber scalaVersion) {
-        TargetParameterFormat parameterFormat = TargetParameterFormat.FULL_TARGET;
-
         if (scalaVersion.compareTo(SCALA_3_FIRST_VERSION) >= 0) {
-            parameterFormat = TargetParameterFormat.RELEASE_OR_HIDDEN_PLAIN_TARGET;
-        } else if (scalaVersion.compareTo(SCALA_2_13_FIRST_VERSION) >= 0) {
-            if (scalaVersion.compareTo(RELEASE_REPLACES_TARGET_IN_2_13_SINCE_VERSION) >= 0) {
-                parameterFormat = TargetParameterFormat.RELEASE_OR_PLAIN_TARGET;
-            } else if (scalaVersion.compareTo(PLAIN_TARGET_FORMAT_IN_2_13_SINCE_VERSION) >= 0) {
-                parameterFormat = TargetParameterFormat.PLAIN_TARGET;
-            }
-        } else {
-            // Scala versions older than 2.12.0 all use the oldest FULL_TARGET
-            if (scalaVersion.compareTo(RELEASE_REPLACES_TARGET_IN_2_12_SINCE_VERSION) >= 0) {
-                parameterFormat = TargetParameterFormat.RELEASE_OR_PLAIN_TARGET;
-            } else if (scalaVersion.compareTo(PLAIN_TARGET_FORMAT_IN_2_12_SINCE_VERSION) >= 0) {
-                parameterFormat = TargetParameterFormat.PLAIN_TARGET;
-            }
+            return TargetParameterFormat.RELEASE_OR_XTARGET;
         }
-        return parameterFormat;
+        if (scalaVersion.compareTo(SCALA_2_13_FIRST_VERSION) >= 0) {
+            if (scalaVersion.compareTo(RELEASE_REPLACES_TARGET_IN_2_13_SINCE_VERSION) >= 0) {
+                return TargetParameterFormat.RELEASE_OR_PLAIN_TARGET;
+            }
+            if (scalaVersion.compareTo(PLAIN_TARGET_FORMAT_IN_2_13_SINCE_VERSION) >= 0) {
+                return TargetParameterFormat.PLAIN_TARGET;
+            }
+            return TargetParameterFormat.LEGACY_TARGET;
+        }
+        if (scalaVersion.compareTo(RELEASE_REPLACES_TARGET_IN_2_12_SINCE_VERSION) >= 0) {
+            return TargetParameterFormat.RELEASE_OR_PLAIN_TARGET;
+        }
+        if (scalaVersion.compareTo(PLAIN_TARGET_FORMAT_IN_2_12_SINCE_VERSION) >= 0) {
+            return TargetParameterFormat.PLAIN_TARGET;
+        }
+        return TargetParameterFormat.LEGACY_TARGET;
     }
 
     private enum TargetParameterFormat {
-        FULL_TARGET,
+        /** {@code -target:jvm-1.N}, accepting N up to 8 */
+        LEGACY_TARGET,
+        /** {@code -target:N} */
         PLAIN_TARGET,
+        /** {@code -release:N}, or {@code -target:N} for the fallback toolchain */
         RELEASE_OR_PLAIN_TARGET,
-        RELEASE_OR_HIDDEN_PLAIN_TARGET,
+        /** {@code -release:N}, or {@code -Xtarget:N} for the fallback toolchain */
+        RELEASE_OR_XTARGET
     }
 }

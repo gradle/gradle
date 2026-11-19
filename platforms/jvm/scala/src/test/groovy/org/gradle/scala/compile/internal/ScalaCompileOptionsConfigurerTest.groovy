@@ -39,7 +39,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(javaToolchain, fallbackToolchain), classpath)
 
         then:
-        scalaCompileOptions.additionalParameters.last() == expectedTarget
+        scalaCompileOptions.additionalParameters.drop(1).join(' ') == expectedTarget
 
         where:
         javaToolchain | fallbackToolchain | scalaLibraryVersion | expectedTarget
@@ -61,10 +61,23 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         11            | true              | '2.12.14'           | '-target:jvm-1.8'
         11            | true              | '2.13.0'            | '-target:jvm-1.8'
 
-        11            | false             | '2.11.12'           | '-target:jvm-1.11'
-        11            | false             | '2.12.0'            | '-target:jvm-1.11'
-        11            | false             | '2.12.14'           | '-target:jvm-1.11'
-        11            | false             | '2.13.0'            | '-target:jvm-1.11'
+        11            | false             | '2.11.12'           | '-target:jvm-1.8'
+        11            | false             | '2.12.0'            | '-target:jvm-1.8'
+        11            | false             | '2.12.4'            | '-target:jvm-1.8'
+        11            | false             | '2.12.5'            | '-target:jvm-1.8 -release 11'
+        11            | false             | '2.12.14'           | '-target:jvm-1.8 -release 11'
+        17            | false             | '2.12.15'           | '-target:jvm-1.8 -release 17'
+        11            | false             | '2.13.0'            | '-target:jvm-1.8 -release 11'
+
+        8             | false             | '2.12.15'           | '-target:jvm-1.8'
+        11            | true              | '2.12.15'           | '-target:jvm-1.8'
+
+        8             | false             | '2.13.0-RC1'        | '-target:jvm-1.8'
+        11            | false             | '2.13.0-RC1'        | '-target:jvm-1.8 -release 11'
+        11            | true              | '2.13.0-RC1'        | '-target:jvm-1.8'
+        11            | true              | '2.12.17-RC1'       | '-target:8'
+        17            | false             | '2.12.17-RC1'       | '-release:17'
+        17            | true              | '3.0.0-RC1'         | '-Xtarget:8'
 
         8             | false             | '2.12.16'           | '-target:8'
         9             | false             | '2.12.16'           | '-target:9'
