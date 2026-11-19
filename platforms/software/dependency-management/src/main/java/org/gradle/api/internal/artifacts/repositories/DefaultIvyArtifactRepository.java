@@ -184,7 +184,7 @@ public abstract class DefaultIvyArtifactRepository extends AbstractAuthenticatio
     }
 
     private IvyResolver createResolver(Set<String> schemes) {
-        return createResolver(transportFactory.createTransport(schemes, getName(), getConfiguredAuthentication(), urlArtifactRepository.createRedirectVerifier()));
+        return createResolver(transportFactory.createTransport(schemes, getName(), getConfiguredAuthentication(), urlArtifactRepository.createRedirectVerifier(), urlArtifactRepository.isAllowInsecureProtocol()));
     }
 
     private void validate(Set<String> schemes) {

@@ -25,6 +25,7 @@ dependencies {
 
     api(libs.jspecify)
 
+    implementation(projects.files)
     implementation(libs.jsr305)
 }
 

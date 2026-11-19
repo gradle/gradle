@@ -15,11 +15,11 @@
  */
 package org.gradle.launcher.daemon.bootstrap;
 
-import com.google.common.io.Files;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.file.nio.OwnerOnlyFiles;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -48,8 +48,6 @@ import org.gradle.process.internal.shutdown.ShutdownHooks;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.PrintStream;
-
-import static java.nio.file.Files.newOutputStream;
 
 /**
  * The entry point for a daemon process.
@@ -126,7 +124,6 @@ public class DaemonMain extends EntryPoint {
 
     protected void initialiseLogging(LoggingManagerInternal loggingManager, File daemonLog) {
         PrintStream log = createLogFile(daemonLog);
-        reducePermissionsOnDaemonLog(daemonLog);
 
         ShutdownHooks.addShutdownHook(new Runnable() {
             @Override
@@ -153,24 +150,12 @@ public class DaemonMain extends EntryPoint {
 
     private static PrintStream createLogFile(File daemonLog) {
         try {
-            Files.createParentDirs(daemonLog);
+            OwnerOnlyFiles.createDirectory(daemonLog.getParentFile());
             // Note that DaemonDiagnostics class reads this log.
-            return new PrintStream(newOutputStream(daemonLog.toPath()), true, "UTF-8");
+            return new PrintStream(OwnerOnlyFiles.newOutputStream(daemonLog), true, "UTF-8");
         } catch (Exception e) {
             throw new RuntimeException("Unable to create daemon log file", e);
         }
-    }
-
-    /**
-     * Set the permissions for the daemon log to be only readable/writable by the current user.
-     */
-    private static void reducePermissionsOnDaemonLog(File daemonLog) {
-        //noinspection ResultOfMethodCallIgnored
-        daemonLog.setReadable(false, false);
-        //noinspection ResultOfMethodCallIgnored
-        daemonLog.setReadable(true);
-        //noinspection ResultOfMethodCallIgnored
-        daemonLog.setExecutable(false);
     }
 
     private void redirectOutputsAndInput(PrintStream printStream) {

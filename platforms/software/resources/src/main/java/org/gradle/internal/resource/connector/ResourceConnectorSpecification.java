@@ -36,4 +36,11 @@ public interface ResourceConnectorSpecification {
         return uris -> {
         };
     }
+
+    /**
+     * Whether the repository opted in to connections that do not authenticate the server, such as plain HTTP or SFTP to a host whose key is not known.
+     */
+    default boolean isAllowInsecureProtocol() {
+        return false;
+    }
 }

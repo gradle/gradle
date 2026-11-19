@@ -17,11 +17,15 @@
 package org.gradle.testkit.runner.enduser
 
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.OsTestPreconditions
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.testkit.runner.BaseGradleRunnerIntegrationTest
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.UsesNativeServices
 import org.gradle.util.internal.TextUtil
+
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermissions
 
 @NonCrossVersion
 @UsesNativeServices
@@ -89,6 +93,37 @@ class GradleRunnerDefaultTestKitDirIntegrationTest extends BaseGradleRunnerInteg
 
         then:
         succeeds 'test'
+    }
+
+    @Requires(OsTestPreconditions.Unix)
+    def "uses a private user specific test kit directory in the system temporary directory outside of a test task"() {
+        when:
+        def tmpDir = file("java-tmp").createDir()
+        buildFile << gradleTestKitDependency() << """
+            tasks.register('runOutsideOfTestTask', JavaExec) {
+                classpath = sourceSets.test.runtimeClasspath
+                mainClass = 'RunOutsideOfTestTask'
+                systemProperty 'java.io.tmpdir', '${TextUtil.normaliseFileSeparators(tmpDir.absolutePath)}'
+                systemProperty 'user.name', 'alice'
+            }
+        """
+        file("src/test/groovy/RunOutsideOfTestTask.groovy") << """
+            import org.gradle.testkit.runner.GradleRunner
+            import org.gradle.testkit.runner.internal.DefaultGradleRunner
+
+            class RunOutsideOfTestTask {
+                static void main(String[] args) {
+                    def runner = GradleRunner.create() as DefaultGradleRunner
+                    println "TestKit directory: " + runner.testKitDirProvider.ensureDirExists()
+                }
+            }
+        """
+
+        then:
+        succeeds 'runOutsideOfTestTask'
+        def testKitDir = new File(tmpDir.canonicalFile, '.gradle-test-kit-alice')
+        outputContains("TestKit directory: ${testKitDir}")
+        PosixFilePermissions.toString(Files.getPosixFilePermissions(testKitDir.toPath())) == 'rwx------'
     }
 
     def "gradle test kit directory can be changed by the user"() {
