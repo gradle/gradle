@@ -12,8 +12,11 @@
 
 Gradle @version@ is the eighth patch release for Gradle 8.14 (released [@releaseDate@](https://gradle.org/releases/)).
 
-It fixes the following issues:
-- TODO
+This release addresses four security vulnerabilities:
+- [SFTP repositories do not verify host keys](https://github.com/gradle/gradle/security/advisories/GHSA-4mf6-7pm2-6wm8) - 8.9 High
+- [Transitive snapshot dependencies skip dependency verification](https://github.com/gradle/gradle/security/advisories/GHSA-7f7r-77ff-fr6f) - 8.8 High
+- [TestKit uses a predictable directory in the system temporary directory](https://github.com/gradle/gradle/security/advisories/GHSA-99wf-vhq9-wm2x) - 7.0 High
+- [Daemon registry is briefly readable by other local users when it is created](https://github.com/gradle/gradle/security/advisories/GHSA-35pj-rg5r-8rpv) - 7.0 High
 
 Issues fixed in the seventh patch release:
 
