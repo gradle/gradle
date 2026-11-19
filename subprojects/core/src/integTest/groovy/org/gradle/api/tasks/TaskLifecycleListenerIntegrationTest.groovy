@@ -273,6 +273,147 @@ first after"""
         outputContains("greeting listener :hello")
     }
 
+    def "listener declared in an included build is notified for tasks of that build"() {
+        settingsFile """
+            includeBuild("lib")
+        """
+        settingsFile("lib/settings.gradle", """
+            rootProject.name = "lib"
+        """)
+        buildFile("lib/build.gradle", """
+            abstract class PrintingListener implements TaskLifecycleListener<Task> {
+                void beforeExecution(Task task) {
+                    println "before \${task.path}"
+                }
+
+                void afterExecution(Task task, TaskState state) {
+                    println "after \${task.path}"
+                }
+            }
+
+            tasks.register("foo") {
+                addLifecycleListener(PrintingListener)
+                doLast { println "action of foo" }
+            }
+        """)
+
+        when:
+        run ":lib:foo"
+
+        then:
+        result.groupedOutput.task(":lib:foo").output == """before :foo
+action of foo
+after :foo"""
+    }
+
+    def "listener declared in an init script is notified for tasks of every project"() {
+        initScriptFile """
+            abstract class PrintingListener implements TaskLifecycleListener<Task> {
+                void beforeExecution(Task task) {
+                    println "before \${task.path}"
+                }
+
+                void afterExecution(Task task, TaskState state) {
+                    println "after \${task.path}"
+                }
+            }
+
+            gradle.lifecycle.beforeProject {
+                tasks.addLifecycleListener(PrintingListener)
+            }
+        """
+        executer.usingInitScript(initScriptFile)
+        settingsFile """
+            include("a", "b")
+        """
+        buildFile("a/build.gradle", """
+            tasks.register("foo") { doLast { println "action of \${path}" } }
+        """)
+        buildFile("b/build.gradle", """
+            tasks.register("foo") { doLast { println "action of \${path}" } }
+        """)
+
+        when:
+        run "foo"
+
+        then:
+        result.groupedOutput.task(":a:foo").output == """before :a:foo
+action of :a:foo
+after :a:foo"""
+        result.groupedOutput.task(":b:foo").output == """before :b:foo
+action of :b:foo
+after :b:foo"""
+    }
+
+    def "listener declared in an included plugin build is notified for tasks of the main build"() {
+        settingsFile("plugin/settings.gradle", """
+            rootProject.name = "plugin"
+        """)
+        buildFile("plugin/build.gradle", """
+            plugins {
+                id("java-gradle-plugin")
+            }
+            gradlePlugin {
+                plugins {
+                    listenerPlugin {
+                        id = "printing-listener"
+                        implementationClass = "PrintingListenerPlugin"
+                    }
+                }
+            }
+        """)
+        file("plugin/src/main/java/PrintingListenerPlugin.java") << """
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+
+            public class PrintingListenerPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    project.getTasks().addLifecycleListener(PrintingListener.class);
+                }
+            }
+        """
+        file("plugin/src/main/java/PrintingListener.java") << """
+            import org.gradle.api.Task;
+            import org.gradle.api.tasks.TaskLifecycleListener;
+            import org.gradle.api.tasks.TaskState;
+
+            public abstract class PrintingListener implements TaskLifecycleListener<Task> {
+                @Override
+                public void beforeExecution(Task task) {
+                    System.out.println("before " + task.getPath());
+                }
+
+                @Override
+                public void afterExecution(Task task, TaskState state) {
+                    System.out.println("after " + task.getPath());
+                }
+            }
+        """
+        settingsFile """
+            pluginManagement {
+                includeBuild("plugin")
+            }
+        """
+        buildFile """
+            plugins {
+                id("printing-listener")
+            }
+
+            tasks.register("foo") {
+                doLast { println "action of foo" }
+            }
+        """
+
+        when:
+        run "foo"
+
+        then:
+        result.groupedOutput.task(":foo").output == """before :foo
+action of foo
+after :foo"""
+    }
+
     def "listeners of tasks executing in parallel are notified concurrently"() {
         blockingServer.start()
         createDirs("a", "b")
@@ -775,6 +916,108 @@ first after"""
         then:
         failure.assertHasDescription("Execution failed for task ':foo'")
         outputDoesNotContain("task action ran")
+    }
+
+    def "listener can use build service registered after the listener"() {
+        buildFile """
+            import org.gradle.api.services.BuildService
+            import org.gradle.api.services.BuildServiceParameters
+            import org.gradle.api.services.ServiceReference
+
+            abstract class Greeter implements BuildService<BuildServiceParameters.None> {
+                String greet(String path) { "hello \$path" }
+            }
+
+            abstract class GreetingListener implements TaskLifecycleListener<Task> {
+                @ServiceReference("greeter")
+                abstract Property<Greeter> getGreeter()
+
+                void beforeExecution(Task task) {
+                    println greeter.get().greet(task.path)
+                }
+            }
+
+            tasks.register("foo") {
+                addLifecycleListener(GreetingListener)
+                gradle.sharedServices.registerIfAbsent("greeter", Greeter)
+            }
+        """
+
+        when:
+        run "foo"
+
+        then:
+        outputContains("hello :foo")
+    }
+
+    def "listener uses the same build service instance as other users of the service (completion listener: #completionListener)"() {
+        buildFile """
+            import org.gradle.api.services.BuildService
+            import org.gradle.api.services.BuildServiceParameters
+            import org.gradle.api.services.ServiceReference
+            import org.gradle.build.event.BuildEventsListenerRegistry
+            import org.gradle.tooling.events.FinishEvent
+            import org.gradle.tooling.events.OperationCompletionListener
+            import javax.inject.Inject
+
+            abstract class TrackingService implements BuildService<BuildServiceParameters.None>, OperationCompletionListener {
+                void onFinish(FinishEvent event) {
+                    println "completion listener uses service \${System.identityHashCode(this)}"
+                }
+            }
+
+            abstract class TrackingListener implements TaskLifecycleListener<Task> {
+                @ServiceReference("tracking")
+                abstract Property<TrackingService> getService()
+
+                void afterExecution(Task task, TaskState state) {
+                    println "lifecycle listener of \${task.path} uses service \${System.identityHashCode(service.get())}"
+                }
+            }
+
+            abstract class TrackingTask extends DefaultTask {
+                @ServiceReference("tracking")
+                abstract Property<TrackingService> getService()
+
+                @TaskAction
+                void track() {
+                    println "action of \${path} uses service \${System.identityHashCode(service.get())}"
+                }
+            }
+
+            abstract class RegisteringPlugin implements Plugin<Project> {
+                @Inject
+                abstract BuildEventsListenerRegistry getEventsListenerRegistry()
+
+                void apply(Project project) {
+                    def service = project.gradle.sharedServices.registerIfAbsent("tracking", TrackingService) {}
+                    if ($completionListener) {
+                        eventsListenerRegistry.onTaskCompletion(service)
+                    }
+                }
+            }
+
+            pluginManager.apply(RegisteringPlugin)
+
+            tasks.register("a", TrackingTask) { addLifecycleListener(TrackingListener) }
+            tasks.register("b", TrackingTask) {
+                dependsOn("a")
+                addLifecycleListener(TrackingListener)
+            }
+        """
+
+        when:
+        run "b"
+
+        then:
+        def listenerInstances = serviceInstances("lifecycle listener of ")
+        listenerInstances.size() == 2
+        def otherInstances = serviceInstances("action of ") + serviceInstances("completion listener uses service ")
+        otherInstances.size() == (completionListener ? 4 : 2)
+        (listenerInstances + otherInstances).toSet().size() == 1
+
+        where:
+        completionListener << [false, true]
     }
 
     def "listener can be registered on all tasks in Kotlin DSL"() {
@@ -1540,6 +1783,10 @@ legacy after"""
 
         then:
         assertFailedAtListenerRegistration(":foo", "Could not generate a decorated class for type UnsupportedListener.")
+    }
+
+    private List<String> serviceInstances(String prefix) {
+        output.readLines().findAll { it.startsWith(prefix) }.collect { it.tokenize(" ").last() }
     }
 
     private void assertFailedAtListenerRegistration(String requestedTask, String cause) {
