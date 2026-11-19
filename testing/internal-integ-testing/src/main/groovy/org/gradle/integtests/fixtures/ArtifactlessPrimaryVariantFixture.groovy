@@ -24,7 +24,7 @@ import groovy.transform.SelfType
  * <p>
  * See {@code org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVariantSelector#nagAboutIgnoredVariant}
  * for the production emitter. The expected message string here must stay in sync with
- * the {@code DeprecationLogger.deprecateBehaviour(...).startingWithGradle10(...)} call there.
+ * the {@code DeprecationLogger.deprecateBehaviour(...).startingWithGradle11(...)} call there.
  */
 @SelfType(AbstractIntegrationSpec)
 trait ArtifactlessPrimaryVariantFixture {
@@ -49,7 +49,7 @@ trait ArtifactlessPrimaryVariantFixture {
         executer.expectDocumentedDeprecationWarning(
             "Selecting artifacts from ${producer} ignored variant '${variant}' because it has no artifacts. " +
                 "This behavior has been deprecated. " +
-                "Starting with Gradle 10, primary variants without artifacts will be selected when they are the best match. " +
+                "Starting with Gradle 11, primary variants without artifacts will be selected when they are the best match. " +
                 "Add attributes to the request so that it only matches the intended variant, or enable the 'CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS' feature preview to opt into the new behavior. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#variants_with_no_artifacts"
         )

@@ -83,6 +83,11 @@ public class DefaultResolvedVariantSet implements ResolvedVariantSet {
     }
 
     @Override
+    public ResolvedVariantSet subset(ImmutableList<ResolvedVariant> candidates) {
+        return new DefaultResolvedVariantSet(componentIdentifier, schema, selectionAttributes, candidates, transformer);
+    }
+
+    @Override
     public ResolvedArtifactSet transformCandidate(
         ResolvedVariant candidate,
         VariantDefinition variantDefinition

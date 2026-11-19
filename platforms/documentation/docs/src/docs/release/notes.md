@@ -152,6 +152,21 @@ gradle.settingsEvaluated {
 
 See the [`settingsEvaluated`](userguide/build_lifecycle.html#settings_evaluated) section in the Gradle User Manual for more details.
 
+#### Selecting primary variants without artifacts
+
+A consumable configuration can declare [secondary variants](userguide/variant_aware_resolution.html#sec:secondary-variants) while its primary variant has no artifacts.
+Before, Gradle silently dropped such a primary variant from artifact selection, even when it was the best match for the request, and selected a secondary variant instead.
+
+With the new `CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS` [feature preview](userguide/feature_lifecycle.html#feature_preview), Gradle selects such a primary variant when it is the best match, and the request resolves to no artifacts.
+This becomes the default behavior in Gradle 11.
+
+```kotlin
+// settings.gradle.kts
+enableFeaturePreview("CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS")
+```
+
+See [Primary variants without artifacts](userguide/variant_aware_resolution.html#sec:primary-variants-without-artifacts) in the Gradle User Manual and the [upgrade guide](userguide/upgrading_version_9.html#variants_with_no_artifacts) for more details.
+
 ### Platform and toolchain management
 Gradle provides comprehensive support for [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
 
