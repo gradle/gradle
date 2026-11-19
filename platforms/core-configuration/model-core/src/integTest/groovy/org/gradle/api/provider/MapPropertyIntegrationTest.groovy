@@ -580,6 +580,50 @@ task thing {
 
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/32149")
+    def "does not query providers of replaced entries and keeps order of keys when value is #description"() {
+        given:
+        buildFile """
+            abstract class Producer extends DefaultTask {
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void produce() {
+                    outputFile.get().asFile.text = 'produced'
+                }
+            }
+
+            def producer = tasks.register('producer', Producer) {
+                outputFile = layout.buildDirectory.file('out.txt')
+            }
+            def produced = $produced
+            def replaced = provider { throw new RuntimeException('replaced provider must not be queried') }
+
+            verify {
+                prop.put('a', replaced)
+                prop.put('a', providers.gradleProperty('undefined'))
+                prop.put('b', replaced)
+                prop.put('c', replaced)
+                prop.put('d', provider { 'd0' })
+                prop.putAll(produced.map { [d: "d-\$it".toString(), e: "e-\$it".toString()] })
+                prop.put('a', 'a1')
+                prop.put('b', produced.map { "b-\$it".toString() })
+                prop.putAll([c: 'c1'])
+                expected = [a: 'a1', b: 'b-produced', c: 'c1', d: 'd-produced', e: 'e-produced']
+            }
+        """
+
+        expect:
+        succeeds('verify')
+        outputContains("Actual: [a:a1, b:b-produced, c:c1, d:d-produced, e:e-produced]")
+
+        where:
+        description                | produced
+        "known at configuration"   | "provider { 'produced' }"
+        "produced by another task" | "producer.flatMap { it.outputFile }.map { it.asFile.text }"
+    }
+
     def "puts to non-defined property do nothing"() {
         given:
         buildFile << '''
