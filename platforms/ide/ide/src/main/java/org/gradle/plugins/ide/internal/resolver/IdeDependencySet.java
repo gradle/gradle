@@ -33,11 +33,7 @@ import org.gradle.api.artifacts.result.ArtifactResolutionResult;
 import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.Artifact;
@@ -62,7 +58,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -199,13 +194,8 @@ public class IdeDependencySet {
         }
 
         private void collectClassesOfJars(Configuration configuration, ArtifactCollection artifacts) {
-            SetMultimap<List<Object>, ComponentArtifactIdentifier> classes = MultimapBuilder.hashKeys().linkedHashSetValues().build();
-            for (ResolvedArtifactResult artifact : artifacts) {
-                if (artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier && isClassesDirectory(artifact)) {
-                    classes.put(variantOf(artifact), artifact.getId());
-                }
-            }
-            if (classes.isEmpty()) {
+            SetMultimap<List<Object>, ComponentArtifactIdentifier> classDirectoriesByVariant = getClassDirectoriesByVariant(artifacts);
+            if (classDirectoriesByVariant.isEmpty()) {
                 return;
             }
             ArtifactCollection jars = configuration.getIncoming().artifactView(viewConfiguration -> {
@@ -213,11 +203,27 @@ public class IdeDependencySet {
                 viewConfiguration.componentFilter(id -> id instanceof ProjectComponentIdentifier);
                 viewConfiguration.attributes(attributes -> attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, jarElements));
             }).getArtifacts();
+            Set<ComponentArtifactIdentifier> resolved = new HashSet<>();
+            for (ResolvedArtifactResult artifact : artifacts) {
+                resolved.add(artifact.getId());
+            }
             for (ResolvedArtifactResult jar : jars) {
-                if (isJar(jar)) {
-                    classesOfJars.putAll(jar.getId(), classes.get(variantOf(jar)));
+                // A jar that the configuration resolves on its own, such as a test jar published
+                // without a class directories variant, does not stand for any class directories.
+                if (isJar(jar) && !resolved.contains(jar.getId())) {
+                    classesOfJars.putAll(jar.getId(), classDirectoriesByVariant.get(variantOf(jar)));
                 }
             }
+        }
+
+        private static SetMultimap<List<Object>, ComponentArtifactIdentifier> getClassDirectoriesByVariant(ArtifactCollection artifacts) {
+            SetMultimap<List<Object>, ComponentArtifactIdentifier> classDirectoriesByVariant = MultimapBuilder.hashKeys().linkedHashSetValues().build();
+            for (ResolvedArtifactResult artifact : artifacts) {
+                if (artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier && isClassesDirectory(artifact)) {
+                    classDirectoriesByVariant.put(variantOf(artifact), artifact.getId());
+                }
+            }
+            return classDirectoriesByVariant;
         }
 
         private ArtifactCollection getResolvedArtifacts(Configuration configuration, final IdeDependencyVisitor visitor) {
@@ -356,20 +362,11 @@ public class IdeDependencySet {
     }
 
     private static List<Object> variantOf(ResolvedArtifactResult artifact) {
-        ResolvedVariantResult variant = artifact.getVariant();
         Set<String> capabilities = new HashSet<>();
-        for (Capability capability : variant.getCapabilities()) {
+        for (Capability capability : artifact.getVariant().getCapabilities()) {
             capabilities.add(capability.getGroup() + ":" + capability.getName());
         }
-        AttributeContainer attributes = variant.getAttributes();
-        Map<String, String> otherAttributes = new HashMap<>();
-        for (Attribute<?> attribute : attributes.keySet()) {
-            String name = attribute.getName();
-            if (!name.equals(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName()) && !name.equals(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE.getName())) {
-                otherAttributes.put(name, String.valueOf(attributes.getAttribute(attribute)));
-            }
-        }
-        return Arrays.asList(artifact.getId().getComponentIdentifier(), capabilities, otherAttributes);
+        return Arrays.asList(artifact.getId().getComponentIdentifier(), capabilities);
     }
 
     public static boolean isJar(ResolvedArtifactResult artifact) {
