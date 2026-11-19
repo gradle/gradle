@@ -46,6 +46,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -83,7 +84,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private boolean requiresSelection = true;
 
     private boolean reusable;
-    private boolean markedReusableAlready;
+    private @Nullable Set<NodeState> reselectionSources;
 
     // Counters used to track accumulated state of all outgoing edges that use this selector.
     // Since a ModuleResolveState tracks all selectors targeting itself, when considering
@@ -223,7 +224,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         if (outgoingEdgeCount == 0) {
             targetModule.removeSelector(this);
             // Ensure that we flag the reuse properly before setting requiresSelection
-            boolean needsSelection = markForReuse();
+            boolean needsSelection = markForReuse(edge.getFrom());
             this.requiresSelection = true;
             return needsSelection;
         }
@@ -336,24 +337,21 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
      *
      * @return true if marking this selector for reuse requires the target module to be reselected
      */
-    boolean markForReuse() {
+    private boolean markForReuse(NodeState source) {
         if (requiresSelection) {
             // Selector was marked for deferred selection - let's not trigger selection now
             return false;
         }
         this.reusable = true;
-        if (markedReusableAlready) {
-            // This selector has been added, removed, added again, and is now removed once
-            // more. Not triggering reselection breaks the cycle. We can reach this point due to:
-            // 1. Unstable graphs
-            // 2. Forced virtual platform alignment (see #39454).
-            // TODO: Fail the resolution here and ask the user to fix the graph, once
-            // alignment converges without repeatedly releasing and re-adding its edges.
-            return false;
-        } else {
-            markedReusableAlready = true;
-            return true;
+        if (reselectionSources == null) {
+            reselectionSources = new HashSet<>();
         }
+        // Different nodes can share a selector and each needs to trigger reselection when it
+        // removes the last edge. Skip repeats from the same node to break cycles in unstable
+        // graphs and forced virtual platform alignment (see #39454).
+        // TODO: Fail resolution for unstable graphs once alignment converges without repeatedly
+        // releasing and re-adding its edges.
+        return reselectionSources.add(source);
     }
 
     /**

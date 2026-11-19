@@ -2074,6 +2074,58 @@ parentFirst
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39863")
+    def "reselects a dependency when different components requesting its higher version are evicted"() {
+        given:
+        // Both a:1.0 and b:1.0 request lib:2.0. One ordering makes a:1.0 release
+        // the shared selector before b:1.0 is visited and then evicted.
+        mavenRepo.module("org", "lib", "1.0").publish()
+        mavenRepo.module("org", "extra").publish()
+        mavenRepo.module("org", "lib", "2.0").dependsOn("org", "extra", "1.0").publish()
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "lib", "2.0").publish()
+        mavenRepo.module("org", "a", "2.0").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "lib", "2.0").publish()
+        mavenRepo.module("org", "b", "2.0").publish()
+        mavenRepo.module("org", "b-upgrade").dependsOn("org", "b", "2.0").publish()
+        mavenRepo.module("org", "a-upgrade")
+            .dependsOn("org", "a", "2.0")
+            .dependsOn("org", "b", "1.0")
+            .dependsOn("org", "b-upgrade", "1.0")
+            .publish()
+        mavenRepo.module("org", "top")
+            .dependsOn("org", first, "1.0")
+            .dependsOn("org", second, "1.0")
+            .publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+            ${mavenTestRepository()}
+            dependencies {
+                implementation("org:lib:1.0")
+                implementation("org:top:1.0")
+            }
+            tasks.register("showClasspath") {
+                def classpath = configurations.runtimeClasspath
+                doLast {
+                    println(classpath.files*.name.sort())
+                }
+            }
+        """
+
+        when:
+        succeeds("showClasspath")
+
+        then:
+        outputContains("[a-2.0.jar, a-upgrade-1.0.jar, b-2.0.jar, b-upgrade-1.0.jar, lib-1.0.jar, top-1.0.jar]")
+
+        where:
+        first       | second
+        "a"         | "a-upgrade"
+        "a-upgrade" | "a"
+    }
+
     def 'order of dependency declaration does not effect transitive dependency versions'() {
         given:
         def foo11 = mavenRepo.module('org', 'foo', '1.1').publish()
