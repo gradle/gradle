@@ -16,10 +16,13 @@
 
 package org.gradle.scala.compile.internal
 
+import org.gradle.api.internal.tasks.scala.MinimalScalaCompileOptions
 import org.gradle.api.tasks.scala.ScalaCompileOptions
 import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.internal.JavaToolchain
+import org.gradle.language.scala.tasks.KeepAliveMode
+import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -29,7 +32,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
 
     def 'using Java #toolchain and Scala #scalaLibraryVersion results in #expectedTarget'() {
         given:
-        ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
+        def scalaCompileOptions = newCompileOptions()
         scalaCompileOptions.additionalParameters = ["-some-other-flag"].asImmutable()
         def isScala3 = scalaLibraryVersion.startsWith("3.")
         File scalaLibrary = new File(isScala3 ? "scala3-library_3-${scalaLibraryVersion}.jar" : "scala-library-${scalaLibraryVersion}.jar")
@@ -90,7 +93,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
 
     def 'does not configure target jvm if toolchain is not present'() {
         given:
-        ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
+        def scalaCompileOptions = newCompileOptions()
         File scalaLibrary = new File("scala-library-2.11.0.jar")
         Set<File> classpath = [scalaLibrary]
 
@@ -103,7 +106,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
 
     def 'does not configure target jvm if scala library is not present or invalid'() {
         given:
-        ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
+        def scalaCompileOptions = newCompileOptions()
         File scalaLibrary = new File("scala-invalid-2.11.0.jar")
         Set<File> classpath = [scalaLibrary]
 
@@ -122,7 +125,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
 
     def 'does not configure target jvm if scala compiler already has a configured target via #targetFlagName flag'() {
         given:
-        ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
+        def scalaCompileOptions = newCompileOptions()
         scalaCompileOptions.additionalParameters = targetFlagParts.toList()
         Set<File> classpath = [new File("scala-library-2.13.1.jar")]
 
@@ -152,6 +155,53 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         ['-Xunchecked-java-output-version', '8'] | _
 
         targetFlagName = targetFlagParts[0]
+    }
+
+    def 'contributed #parameters suppress the automatic target for Scala #scalaVersion'() {
+        given:
+        def options = TestUtil.newInstance(ScalaCompileOptions)
+        options.keepAliveMode.set(KeepAliveMode.SESSION)
+        options.additionalParameters = ['-deprecation']
+        options.compilerArgumentProviders.add({ parameters } as CommandLineArgumentProvider)
+        def snapshot = new MinimalScalaCompileOptions(options)
+        def library = scalaVersion.startsWith('3.') ? "scala3-library_3-${scalaVersion}.jar" : "scala-library-${scalaVersion}.jar"
+
+        when:
+        ScalaCompileOptionsConfigurer.configure(snapshot, createToolchain(17, false), [new File(library)] as Set)
+
+        then:
+        snapshot.additionalParameters == ['-deprecation'] + parameters
+        options.additionalParameters == ['-deprecation']
+
+        where:
+        scalaVersion | parameters
+        '2.13.16'    | ['-target:8']
+        '2.13.16'    | ['-release:8']
+        '2.13.16'    | ['-release', '8']
+        '3.3.6'      | ['-release:8']
+        '3.3.6'      | ['-java-output-version', '8']
+        '3.3.6'      | ['-Xtarget:8']
+    }
+
+    def 'automatic target is added only to the compilation snapshot'() {
+        given:
+        def options = TestUtil.newInstance(ScalaCompileOptions)
+        options.keepAliveMode.set(KeepAliveMode.SESSION)
+        options.additionalParameters = ['-deprecation']
+        def snapshot = new MinimalScalaCompileOptions(options)
+
+        when:
+        ScalaCompileOptionsConfigurer.configure(snapshot, createToolchain(17, false), [new File('scala-library-2.13.16.jar')] as Set)
+
+        then:
+        snapshot.additionalParameters == ['-deprecation', '-release:17']
+        options.additionalParameters == ['-deprecation']
+    }
+
+    private static MinimalScalaCompileOptions newCompileOptions() {
+        def options = TestUtil.newInstance(ScalaCompileOptions)
+        options.keepAliveMode.set(KeepAliveMode.SESSION)
+        return new MinimalScalaCompileOptions(options)
     }
 
     private JavaToolchain createToolchain(int javaVersion, boolean isFallback) {
