@@ -19,12 +19,15 @@ package org.gradle.buildinit.plugins.internal.services;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
+import org.gradle.buildinit.plugins.internal.ProjectTypeContributor;
 import org.gradle.buildinit.plugins.internal.action.InitBuiltInCommand;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.workers.WorkerExecutor;
+
+import java.util.List;
 
 /**
  * Provides the various build initialization services.
@@ -37,10 +40,11 @@ public class BuildInitServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
+        registration.add(ProjectTypeContributor.class, BuiltInProjectTypeContributor.class);
         registration.addProvider(new ServiceRegistrationProvider() {
             @Provides
-            ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, WorkerExecutor workerExecutor) {
-                return new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider, documentationRegistry, workerExecutor).createProjectLayoutSetupRegistry();
+            ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, WorkerExecutor workerExecutor, List<ProjectTypeContributor> projectTypeContributors) {
+                return new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider, documentationRegistry, workerExecutor, projectTypeContributors).createProjectLayoutSetupRegistry();
             }
         });
     }
