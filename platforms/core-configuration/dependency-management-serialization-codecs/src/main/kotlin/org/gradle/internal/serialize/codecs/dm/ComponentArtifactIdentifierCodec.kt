@@ -22,9 +22,8 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.SerializerCodec
-import org.gradle.internal.serialize.graph.codecs.Decoding
-import org.gradle.internal.serialize.graph.codecs.Encoding
-import org.gradle.internal.serialize.graph.codecs.EncodingProducer
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.codecs.SelectiveCodec
 
 
 /**
@@ -34,13 +33,17 @@ import org.gradle.internal.serialize.graph.codecs.EncodingProducer
  * The interface is public API, so other implementations may exist.
  * Those are not claimed by this codec, and are left to the codecs bound after it, such as the bean codec.
  */
-object ComponentArtifactIdentifierCodec : EncodingProducer, Decoding {
+object ComponentArtifactIdentifierCodec : SelectiveCodec {
 
     private
     val codec: Codec<Any> = SerializerCodec(ComponentArtifactIdentifierSerializer(ComponentIdentifierSerializer())).uncheckedCast()
 
-    override fun encodingForType(type: Class<*>): Encoding? =
-        codec.takeIf { ComponentArtifactIdentifierSerializer.isSupported(type) }
+    override fun accepts(type: Class<*>): Boolean =
+        ComponentArtifactIdentifierSerializer.isSupported(type)
+
+    override suspend fun WriteContext.encode(value: Any) {
+        codec.run { encode(value) }
+    }
 
     override suspend fun ReadContext.decode(): Any? =
         codec.run { decode() }
