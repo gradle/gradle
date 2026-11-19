@@ -51,9 +51,6 @@ task retrieve(type: Sync) {
     into 'libs'
 }
 """
-        executer.beforeExecute {
-            executer.withArgument("-Daws.java.v1.disableDeprecationAnnouncement=true")
-        }
     }
 
     def "should fail with an AWS S3 authentication error"() {

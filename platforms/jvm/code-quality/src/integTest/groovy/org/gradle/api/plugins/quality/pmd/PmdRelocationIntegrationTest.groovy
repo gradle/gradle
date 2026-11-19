@@ -41,9 +41,10 @@ class PmdRelocationIntegrationTest extends AbstractProjectRelocationIntegrationT
             """
             package org.gradle;
 
-            import static org.junit.Assert.assertTrue;
+            // JUnit Jupiter, because the default rule set's WrongTestAnnotation rule (PMD 7.26.0+) flags JUnit 4 annotations
+            import static org.junit.jupiter.api.Assertions.assertTrue;
 
-            import org.junit.Test;
+            import org.junit.jupiter.api.Test;
 
             public class Class1Test {
                 @Test

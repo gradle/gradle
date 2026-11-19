@@ -83,9 +83,9 @@ tasks {
 fun Test.setupPreconditionTesting() {
     // We only want to execute our special tests
     // so we override what classes are going to run
-    testClassesDirs = sourceSets.test.get().output.classesDirs
+    testClassesDirs = files(sourceSets.test.map { it.output.classesDirs })
     // All test should have this project's "test" source set on their classpath
-    classpath += sourceSets.test.get().output
+    classpath += files(sourceSets.test.map { it.output })
 
     // These tests should not be impacted by the predictive selection
     extensions.findByType<DevelocityTestConfiguration>()?.apply {

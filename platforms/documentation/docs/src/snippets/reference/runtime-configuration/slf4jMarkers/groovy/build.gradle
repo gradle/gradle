@@ -1,0 +1,10 @@
+// tag::generate-code-task[]
+abstract class GenerateCode extends DefaultTask {
+    @TaskAction
+    void execute() {
+        new CodeGenerator(Logging.LIFECYCLE).run()
+    }
+}
+// end::generate-code-task[]
+
+tasks.register('generateCode', GenerateCode)

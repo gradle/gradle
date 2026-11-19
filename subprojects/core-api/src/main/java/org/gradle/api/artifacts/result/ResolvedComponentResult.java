@@ -16,7 +16,10 @@
 
 package org.gradle.api.artifacts.result;
 
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.Nullable;
@@ -66,10 +69,21 @@ public interface ResolvedComponentResult extends ComponentResult {
     ComponentSelectionReason getSelectionReason();
 
     /**
-     * Returns the module version which this component belongs to, if any. A component will belong to a module version if it was found in some repository, or if the
-     * module version for the component has been declared, usually by declaring how the component should be published.
+     * Returns the module coordinates of this component, if any.
+     * <p>
+     * For components identified by a {@link ProjectComponentIdentifier},
+     * this value will be present and specified by the target project's {@link Project#getGroup()},
+     * {@link Project#getName()} and {@link Project#getVersion()}.
+     * <p>
+     * For components identified by a {@link ModuleComponentIdentifier},
+     * this value will be present and specified by the target component's {@link ModuleComponentIdentifier#getGroup()},
+     * {@link ModuleComponentIdentifier#getModule()} and {@link ModuleComponentIdentifier#getVersion()}. In this case,
+     * prefer the methods on {@link ModuleComponentIdentifier}.
+     * <p>
+     * For components identified by any other identifier, this value may be absent and must not be assumed to be present.
      *
      * @return the module version of the component, or {@code null} if this component has no associated module version.
+     *
      * @since 1.10
      */
     @Nullable

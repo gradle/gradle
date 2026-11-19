@@ -28,16 +28,21 @@ import org.gradle.api.Incubating;
 public interface ProblemSummary {
 
     /**
-     * The problem id that exceeded the threshold for the number of allowed events before we start
-     * the summarization.
+     * The problem id that exceeded the threshold for the number of allowed events, in a task or outside of tasks.
      *
      * @since 8.12
      */
     ProblemId getProblemId();
 
     /**
-     * The number of follow-up occurrences of the particular problem id.
-     * The total amount of occurences is <code>threshold + count</code>
+     * The number of distinct problems with this id that exceeded the threshold and were not sent as events.
+     * <p>
+     * Since Gradle 9.10.0, the threshold applies to each task, and problems reported outside a task share one threshold.
+     * This count adds up what all of them exceeded it by.
+     * The total number of distinct problems is the number of events received for this id plus this count.
+     * A problem counts once for each task that reports it.
+     * <p>
+     * In earlier versions, the threshold applies to the whole build, so the total is <code>threshold + count</code>.
      *
      * @since 8.12
      */

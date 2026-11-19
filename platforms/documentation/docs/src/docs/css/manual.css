@@ -681,6 +681,8 @@ select { width: 100%; }
 /* 7. SIDE NAVIGATION */
 
 .docs-navigation {
+    /* Comes after the content in the HTML, shown on the left */
+    order: -1;
     width: 18rem;
     padding: 20px 20px 20px 26px;
     background: var(--nav-color);
@@ -817,9 +819,10 @@ select { width: 100%; }
 @media not screen and (min-width: 64rem) {
     .content.content { overflow: visible; }
 
-    .main-content { flex-direction: column-reverse; }
+    .main-content { flex-direction: column; }
 
     .docs-navigation.docs-navigation {
+        order: 0;
         width: 100%;
         overflow: visible;
     }

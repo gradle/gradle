@@ -123,12 +123,15 @@ platforms/jvm/testing-jvm-infrastructure/   @gradle/bt-jvm @gradle/dv-efficiency
 # Software platform
 platforms/software/                         @gradle/bt-jvm
 
-# Extensibility
-platforms/extensibility/                    @gradle/bt-tide
+# Plugin development
+platforms/plugin-dev/                       @gradle/bt-tide
 platforms/core-runtime/daemon-messaging     @gradle/bt-tide
 
 # Observability
 platforms/observability/          @gradle/bt-tide
+
+# Reporting plugins
+platforms/reporting-plugins/      @gradle/bt-tide
 
 # Native
 platforms/native/                 @gradle/bt-jvm

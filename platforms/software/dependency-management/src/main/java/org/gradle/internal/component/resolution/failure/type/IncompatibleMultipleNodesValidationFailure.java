@@ -18,9 +18,9 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
-import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.interfaces.GraphNodesValidationFailure;
 
@@ -45,7 +45,7 @@ public final class IncompatibleMultipleNodesValidationFailure extends AbstractRe
 
     @Override
     public String describeRequestTarget() {
-        return selectedComponent.getModuleVersionId().toString();
+        return selectedComponent.getId().getDisplayName();
     }
 
     @Override

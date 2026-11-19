@@ -263,4 +263,128 @@ class DependencyConstraintsBugsIntegrationTest extends AbstractHttpDependencyRes
         failure.assertHasNoCause("Problems writing to Binary store")
         failure.assertHasNoCause("No target component for edge")
     }
+
+    def "selects a module whose pending constraint comes from a node cut off from the root"() {
+        given:
+        def pending1 = module("pending", "1").publish()
+        def pending3 = module("pending", "3").publish()
+        def upgraded2 = module("upgraded", "2").dependsOn(pending1).publish()
+        // constrainer:3 upgrades upgraded to 2, and has a pending constraint on pending until upgraded:2 depends on it
+        def constrainer3 = module("constrainer", "3").dependencyConstraint(upgraded2).dependencyConstraint(pending3).publish()
+        // cycle-a:1 <-> cycle-b:2 is a cycle, only reached through upgraded:1, which the upgrade of upgraded evicts. The
+        // cycle keeps constrainer:3 in the graph, cut off from the root
+        def cycleA1 = module("cycle-a", "1")
+        def cycleB2 = module("cycle-b", "2").dependsOn(cycleA1).publish()
+        cycleA1.dependsOn(cycleB2).dependsOn(constrainer3).publish()
+        module("upgraded", "1").dependsOn(cycleA1).publish()
+
+        settingsFile << """
+            rootProject.name = "test"
+            // Otherwise the nodes cut off from the root also deliver their artifacts
+            enableFeaturePreview("ENHANCED_GRAPH_ORDERING")
+        """
+        buildFile << """
+            ${mavenTestRepository()}
+            configurations {
+                create("conf")
+            }
+            dependencies {
+                conf("org:upgraded:1")
+            }
+            ${resolve.configureProject("conf")}
+        """
+
+        when:
+        succeeds(":checkDeps")
+
+        then:
+        // upgraded:2 is only selected because of the constraint of constrainer:3, which is cut off from the root. The
+        // cycle keeps constrainer:3 in the graph, but its constraint on pending is never applied.
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:upgraded:1", "org:upgraded:2") {
+                    byConstraint()
+                    byConflictResolution("between versions 2 and 1")
+                    module("org:pending:1")
+                }
+            }
+        }
+    }
+
+    def "resolution ends when a node with a deferred edge is cut off from the root"() {
+        given:
+        module("upgraded", "3").publish()
+        module("other", "2").publish()
+        module("other", "3").publish()
+        module("endorsed", "2").publish()
+        // org:substituted is substituted by project :substituted below
+        def substituted3 = module("substituted", "3").publish()
+        def endorsed3 = module("endorsed", "3").dependsOn(substituted3).publish()
+        def upgraded2 = module("upgraded", "2").dependsOn(endorsed3, strictly: "3", endorseStrictVersions: true).publish()
+        module("lib", "1").dependsOn(upgraded2).publish()
+
+        settingsFile << """
+            rootProject.name = "test"
+            include("substituted")
+            // Otherwise the nodes cut off from the root also deliver their artifacts
+            enableFeaturePreview("ENHANCED_GRAPH_ORDERING")
+        """
+        // The project upgrades `upgraded` to 3, which evicts upgraded:2, the only path to endorsed:3 and the project.
+        file("substituted/build.gradle") << """
+            ${mavenTestRepository()}
+            group = "org"
+            version = "3"
+            // Constraints come first, as the dependencies of a project are ordered by the name of their configuration.
+            def constraintsScope = configurations.dependencyScope("aConstraints")
+            def dependenciesScope = configurations.dependencyScope("bDependencies")
+            configurations.consumable("runtimeElements") {
+                extendsFrom(constraintsScope.get(), dependenciesScope.get())
+                attributes.attribute(Attribute.of("custom", String), "value")
+            }
+            dependencies {
+                constraints {
+                    aConstraints("org:upgraded:3")
+                    aConstraints("org:other:3")
+                }
+                bDependencies("org:other:2")
+                bDependencies("org:endorsed:2")
+            }
+        """
+        buildFile << """
+            ${mavenTestRepository()}
+            configurations {
+                create("conf") {
+                    attributes.attribute(Attribute.of("custom", String), "value")
+                    resolutionStrategy.dependencySubstitution {
+                        substitute(module("org:substituted")).using(project(":substituted"))
+                    }
+                }
+            }
+            dependencies {
+                conf("org:lib:1")
+            }
+            ${resolve.configureProject("conf")}
+        """
+
+        when:
+        succeeds(":checkDeps")
+
+        then:
+        // upgraded:3 is only selected because of the constraint of the project, which is cut off from the root
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:lib:1") {
+                    edge("org:upgraded:2", "org:upgraded:3") {
+                        byConstraint()
+                        byConflictResolution("between versions 3 and 2")
+                    }
+                }
+            }
+        }
+    }
+
+    private def module(String name, String version) {
+        return mavenRepo.module("org", name, version).withModuleMetadata()
+    }
+
 }

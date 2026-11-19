@@ -42,11 +42,7 @@ trait VerifiesGenericTestReportResults {
         return new GenericHtmlTestExecutionResult(rootBuildDir, "build/reports/${testTaskReportsDirPath}")
     }
 
-    GenericHtmlTestExecutionResult aggregateResults(String testTaskReportsDirPath = '') {
-        return aggregateResults(testDirectory, testTaskReportsDirPath, 'aggregate-test-results')
-    }
-
-    GenericHtmlTestExecutionResult aggregateResults(TestFile rootBuildDir, String testTaskReportsDirPath = 'tests/test', String reportName = 'aggregate-test-results') {
+    GenericHtmlTestExecutionResult aggregateResults(TestFile rootBuildDir, String testTaskReportsDirPath, String reportName) {
         return new GenericHtmlTestExecutionResult(rootBuildDir, "build/reports/$testTaskReportsDirPath/$reportName")
     }
 }

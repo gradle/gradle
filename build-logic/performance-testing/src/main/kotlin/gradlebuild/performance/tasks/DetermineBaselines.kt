@@ -65,7 +65,7 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
             determinedBaselines = determineFlakinessDetectionBaseline()
         } else if (configuredBaselines.getOrElse("").isNotEmpty()) {
             determinedBaselines = configuredBaselines
-        } else if (currentBranchIsMasterOrRelease() || isSecurityAdvisoryFork()) {
+        } else if (currentBranchUsesDefaultBaselines() || isSecurityAdvisoryFork()) {
             determinedBaselines = defaultBaselines
         } else {
             determinedBaselines = forkPointCommitBaseline()
@@ -84,7 +84,7 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
     fun determineFlakinessDetectionBaseline() = if (distributed) FLAKINESS_DETECTION_COMMIT_BASELINE else currentCommitBaseline()
 
     private
-    fun currentBranchIsMasterOrRelease() = logicalBranch.get() in listOf("master", "release")
+    fun currentBranchUsesDefaultBaselines() = logicalBranch.get().matches(Regex("master|release(\\d+x)?"))
 
     private
     fun currentCommitBaseline() = commitBaseline(commandExecutor.execAndGetStdout("git", "rev-parse", "HEAD"))

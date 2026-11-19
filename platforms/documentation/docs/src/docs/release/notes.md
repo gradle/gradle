@@ -76,6 +76,22 @@ Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that
 ### Test reporting and execution
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 
+#### Build-wide test summary
+
+Gradle now writes a [summary report for all test executions](userguide/java_testing.html#sec:aggregate_test_summary) of a build to `reports/aggregate-test-results/index.html` in the build directory of the root project.
+When a build runs several test tasks, each writes its own test report, and you no longer have to open them one by one to find failures.
+
+The summary report lists every test execution, including custom test tasks that use the [Test Event Reporting API](userguide/test_reporting_api.html), with test counts and a link to its HTML test report.
+When a test execution fails, Gradle prints the link to this summary report at the end of the build:
+
+```text
+Aggregate test results: file:///path/to/project/build/reports/aggregate-test-results/index.html
+```
+
+![Build-wide test summary with failed test executions](release-notes-assets/aggregate-test-summary.png)
+
+See the [Build-wide test summary](userguide/java_testing.html#sec:aggregate_test_summary) section in the Gradle User Manual for more details.
+
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 
@@ -126,6 +142,18 @@ Gradle provides a comprehensive plugin system, including built-in [Core Plugins]
 
 ### Security and infrastructure
 Gradle provides robust [security features and underlying infrastructure](userguide/security.html) to ensure that builds are secure, reproducible, and easy to maintain.
+
+#### S3 repositories use the AWS SDK for Java 2.x
+
+Gradle accesses [S3-backed repositories](userguide/supported_repository_protocols.html#sec:s3-repositories) with the AWS SDK for Java.
+AWS has ended support for version 1 of the SDK, so it no longer receives security fixes.
+
+Gradle now uses version 2 of the SDK.
+Most builds need no changes.
+If your build relies on the SDK's default credential lookup through the older system property or environment variable names, see the [upgrade guide](userguide/upgrading_version_9.html#aws_sdk_v2_for_s3_repositories).
+
+Repositories that use `AwsImAuthentication` can now also get credentials from an AWS IAM Identity Center (AWS SSO) profile, after you sign in with `aws sso login`.
+See [S3 credentials from the AWS default credential chain](userguide/supported_repository_protocols.html#sec:s3-default-credentials).
 
 ### Tooling and IDE integration
 Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.

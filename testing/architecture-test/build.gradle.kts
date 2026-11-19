@@ -21,7 +21,7 @@ description = """Verifies that Gradle code complies with architectural rules.
 
 val rootProjectDependency = configurations.dependencyScope("rootProjectDependency")
 val platformsDataResolvable = configurations.resolvable("platformsDataResolvable") {
-    extendsFrom(rootProjectDependency.get())
+    extendsFrom(rootProjectDependency)
     attributes {
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(ArchitectureDataType.PLATFORMS))
     }

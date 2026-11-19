@@ -31,6 +31,5 @@ interface BuildEnvironmentExtension {
      * @see BuildEnvironmentService.buildTimestamp
      */
     val buildTimestamp: Property<String>
-    val repoRoot: DirectoryProperty
     val rootProjectBuildDir: DirectoryProperty
 }

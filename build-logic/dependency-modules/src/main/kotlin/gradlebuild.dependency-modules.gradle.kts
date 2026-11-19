@@ -30,6 +30,14 @@ dependencies {
         // Gradle distribution - minify: remove unused transitive dependencies
         applyRule<DependencyRemovalByNameRule>("com.amazonaws:aws-java-sdk-core", setOf("jackson-dataformat-cbor"))
         applyRule<DependencyRemovalByGroupRule>("org.eclipse.jgit:org.eclipse.jgit", setOf("com.googlecode.javaewah"))
+        // The SDK's service modules inherit apache5-client and netty-nio-client as default HTTP clients.
+        // S3 repositories use apache-client only, which reuses the httpclient 4 that Gradle already ships.
+        applyRule<DependencyRemovalByNameRule>("software.amazon.awssdk:s3", setOf("apache5-client", "crt-core", "netty-nio-client"))
+        applyRule<DependencyRemovalByNameRule>("software.amazon.awssdk:sso", setOf("apache5-client", "netty-nio-client"))
+        applyRule<DependencyRemovalByNameRule>("software.amazon.awssdk:ssooidc", setOf("apache5-client", "netty-nio-client"))
+        applyRule<DependencyRemovalByNameRule>("software.amazon.awssdk:sts", setOf("apache5-client", "netty-nio-client"))
+        // Marker annotations only, and the module name collides with org.jetbrains:annotations in the distribution
+        all(RemoveAwsSdkAnnotationsRule::class.java)
 
         // We don't need the extra annotations provided by j2objc
         applyRule<DependencyRemovalByNameRule>("com.google.http-client:google-http-client", setOf("j2objc-annotations"))
@@ -274,6 +282,22 @@ fun <reified T : ComponentMetadataRule> ComponentMetadataHandler.applyRule(modul
     }
 }
 
+
+/**
+ * Removes the AWS SDK's `annotations` jar from the runtime classpath.
+ * It holds marker annotations only, and its module name collides with org.jetbrains:annotations in the distribution.
+ */
+abstract class RemoveAwsSdkAnnotationsRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        if (context.details.id.group == "software.amazon.awssdk") {
+            context.details.withVariant("runtime") {
+                withDependencies {
+                    removeAll { it.group == "software.amazon.awssdk" && it.name == "annotations" }
+                }
+            }
+        }
+    }
+}
 
 /**
  * Lowers the JVM version Groovy publishes so that Java 8 consumers can resolve it.

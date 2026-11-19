@@ -96,12 +96,12 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         then:
         daemons.daemons.size() == 2
 
-        // Check that gradle --status also shows the first daemon is unreachable
+        // Check that gradle --status shows the first daemon as gone: the process on its port failed the handshake
         when:
         executer.withArgument("--status")
         succeeds()
         then:
-        outputContains("(unable to communicate with daemon)")
+        outputContains("(by user or operating system)")
 
         cleanup:
         latch.await()

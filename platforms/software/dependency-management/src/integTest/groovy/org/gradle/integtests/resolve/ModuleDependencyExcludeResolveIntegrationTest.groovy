@@ -722,4 +722,173 @@ task check(type: Sync) {
             }
         }
     }
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    def "a constraint of a module applies once a second path relaxes the excludes of the module"() {
+        given:
+        repository {
+            // Shrunk from a Micronaut application on Oracle Cloud. The BOM is reached through two paths, of which only
+            // this one excludes jackson-databind. An exclude only applies when every path excludes, so the constraint
+            // of the BOM applies
+            id("io.micronaut.oraclecloud:micronaut-oraclecloud-bmc-jmsjavadownloads:6.1.3") {
+                dependsOn(group: "com.oracle.oci.sdk", artifact: "oci-java-sdk-jmsjavadownloads", version: "3.91.0",
+                    exclusions: [[group: "com.fasterxml.jackson.core", module: "jackson-databind"]])
+                dependsOn(group: "io.micronaut.platform", artifact: "micronaut-platform", version: "5.2.4", endorseStrictVersions: true)
+            }
+            id("io.micronaut.oraclecloud:micronaut-oraclecloud-oke-workload-identity:6.1.3") {
+                dependsOn("com.oracle.oci.sdk:oci-java-sdk-common:3.91.0")
+            }
+            id("com.oracle.oci.sdk:oci-java-sdk-common:3.91.0") {
+                dependsOn("com.fasterxml.jackson.core:jackson-databind:2.21.2")
+                dependsOn(group: "io.micronaut.oraclecloud", artifact: "micronaut-oraclecloud-bom", version: "6.1.3", endorseStrictVersions: true)
+            }
+            id("com.oracle.oci.sdk:oci-java-sdk-jmsjavadownloads:3.91.0") {
+                dependsOn(group: "io.micronaut.oraclecloud", artifact: "micronaut-oraclecloud-bom", version: "6.1.3", endorseStrictVersions: true)
+            }
+            id("io.micronaut.platform:micronaut-platform:5.2.4") {
+                constraint("com.fasterxml.jackson.core:jackson-databind:2.21.5")
+            }
+            id("io.micronaut.oraclecloud:micronaut-oraclecloud-bom:6.1.3") {
+                constraint("com.fasterxml.jackson.core:jackson-databind:2.22.1")
+            }
+            id("com.fasterxml.jackson.core:jackson-databind:2.21.2")
+            id("com.fasterxml.jackson.core:jackson-databind:2.21.5")
+            id("com.fasterxml.jackson.core:jackson-databind:2.22.1")
+        }
+
+        buildFile << """
+            dependencies {
+                conf("io.micronaut.oraclecloud:micronaut-oraclecloud-bmc-jmsjavadownloads:6.1.3")
+                conf("io.micronaut.oraclecloud:micronaut-oraclecloud-oke-workload-identity:6.1.3")
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            allowAll()
+        }
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("io.micronaut.oraclecloud:micronaut-oraclecloud-bmc-jmsjavadownloads:6.1.3") {
+                    module("com.oracle.oci.sdk:oci-java-sdk-jmsjavadownloads:3.91.0") {
+                        module("io.micronaut.oraclecloud:micronaut-oraclecloud-bom:6.1.3") {
+                            constraint("com.fasterxml.jackson.core:jackson-databind:2.22.1")
+                        }
+                    }
+                    module("io.micronaut.platform:micronaut-platform:5.2.4") {
+                        constraint("com.fasterxml.jackson.core:jackson-databind:2.21.5", "com.fasterxml.jackson.core:jackson-databind:2.22.1")
+                    }
+                }
+                module("io.micronaut.oraclecloud:micronaut-oraclecloud-oke-workload-identity:6.1.3") {
+                    module("com.oracle.oci.sdk:oci-java-sdk-common:3.91.0") {
+                        edge("com.fasterxml.jackson.core:jackson-databind:2.21.2", "com.fasterxml.jackson.core:jackson-databind:2.22.1") {
+                            byConstraint()
+                            byConflictResolution("between versions 2.22.1, 2.21.5 and 2.21.2")
+                        }
+                        module("io.micronaut.oraclecloud:micronaut-oraclecloud-bom:6.1.3")
+                    }
+                }
+            }
+        }
+    }
+
+    def "resolution ends when a cycle below an exclude is entered by a second path that leaves the graph"() {
+        given:
+        repository {
+            id("org:excluded:1")
+            // cycle-a -> cycle-b -> cycle-c -> cycle-d -> cycle-a, and cycle-c asks for excluded
+            id("org:cycle-a:1") {
+                dependsOn("org:cycle-b:1")
+            }
+            id("org:cycle-b:1") {
+                dependsOn("org:cycle-c:1")
+            }
+            id("org:cycle-c:1") {
+                dependsOn("org:excluded:1")
+                dependsOn("org:cycle-d:1")
+            }
+            id("org:cycle-d:1") {
+                dependsOn("org:cycle-a:1")
+            }
+            // excluder leads into the cycle and excludes excluded
+            id("org:parent:1") {
+                dependsOn("org:excluder:1")
+            }
+            id("org:excluder:1") {
+                dependsOn(group: "org", artifact: "cycle-a", version: "1", exclusions: [[group: "org", module: "excluded"]])
+            }
+            // bypass:1 is a second path into the cycle without the exclude. bypass is upgraded to 2, which has no
+            // dependencies, at the end of a path long enough for bypass:1 to leave the graph after the cycle is closed
+            id("org:bypass:1") {
+                dependsOn("org:cycle-a:1")
+            }
+            id("org:bypass:2")
+            id("org:step1:1") {
+                dependsOn("org:step2:1")
+            }
+            id("org:step2:1") {
+                dependsOn("org:step3:1")
+            }
+            id("org:step3:1") {
+                dependsOn("org:step4:1")
+            }
+            id("org:step4:1") {
+                dependsOn("org:step5:1")
+            }
+            id("org:step5:1") {
+                dependsOn("org:bypass:2")
+            }
+        }
+        buildFile << """
+            dependencies {
+                conf("org:step1:1")
+                conf("org:parent:1")
+                conf("org:bypass:1")
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            allowAll()
+        }
+        succeeds(":checkDeps")
+
+        then:
+        // Without the second path, the exclude applies to the whole cycle
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:step1:1") {
+                    module("org:step2:1") {
+                        module("org:step3:1") {
+                            module("org:step4:1") {
+                                module("org:step5:1") {
+                                    module("org:bypass:2")
+                                }
+                            }
+                        }
+                    }
+                }
+                module("org:parent:1") {
+                    module("org:excluder:1") {
+                        module("org:cycle-a:1") {
+                            module("org:cycle-b:1") {
+                                module("org:cycle-c:1") {
+                                    module("org:cycle-d:1") {
+                                        module("org:cycle-a:1")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                edge("org:bypass:1", "org:bypass:2") {
+                    byConflictResolution("between versions 2 and 1")
+                }
+            }
+        }
+    }
+
 }

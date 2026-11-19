@@ -68,7 +68,6 @@ import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification
 import org.gradle.internal.resource.transfer.ExternalResourceConnector
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
-import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
@@ -90,7 +89,6 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
         // region ALL MODES
         add(ToolingModelParameterCarrier.Factory::class.java, DefaultToolingModelParameterCarrierFactory::class.java)
         add(BuildToolingModelControllerFactory::class.java, DefaultBuildToolingModelControllerFactory::class.java)
-        add(JavaSerializationEncodingLookup::class.java)
         add(DeprecatedFeaturesListener::class.java)
         // This was originally only for the configuration cache, but now used for configuration cache and problems reporting
         add(ProblemFactory::class.java, DefaultProblemFactory::class.java)

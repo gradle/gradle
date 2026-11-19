@@ -106,7 +106,7 @@ public class DependencyVerifier {
         PublicKeyService publicKeyService = signatureVerificationService.getPublicKeyService();
         ComponentVerificationMetadata componentVerification = verificationMetadata.get(toStringKey(foundArtifact.getComponentIdentifier()));
         if (componentVerification != null) {
-            String foundArtifactFileName = foundArtifact.getFileName();
+            String foundArtifactFileName = foundArtifact.getDestinationFileName();
             List<ArtifactVerificationMetadata> verifications = componentVerification.getArtifactVerifications();
             for (ArtifactVerificationMetadata verification : verifications) {
                 String verifiedArtifact = verification.getArtifactName();

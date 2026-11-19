@@ -75,6 +75,33 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
         postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:8)")
     }
 
+    def "usage of upgraded properties in identical Kotlin scripts is reported for each script"() {
+        given:
+        executer.requireOwnGradleUserHomeDir("We cache report in global cache")
+        settingsKotlinFile << """
+            include("a", "b")
+        """
+        def script = """
+            plugins {
+                id("java-library")
+            }
+
+            tasks.register<JavaCompile>("myJavaCompile") {
+                source
+                source = project.files().asFileTree
+            }
+        """
+        def scriptA = file("a/build.gradle.kts") << script
+        def scriptB = file("b/build.gradle.kts") << script
+
+        when:
+        run("--property-upgrade-report")
+
+        then:
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at build.gradle(file://${scriptA.absolutePath}:7)")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at build.gradle(file://${scriptB.absolutePath}:7)")
+    }
+
     def "usage of upgraded properties is reported even when report comes from cache"() {
         given:
         javaFile("buildSrc/src/main/java/test/MyPlugin.java", """

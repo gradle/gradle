@@ -2,6 +2,8 @@
 
 We use AI tools daily and welcome AI-assisted contributions—provided the human behind them meets the standards below.
 
+This policy applies to all contributions: pull requests, issues, and comments.
+
 ## Why this policy exists
 
 There is a fundamental **asymmetry** between submitting a contribution and reviewing one: AI tools make it easy to generate and submit large amounts of code, but they do not make it equally faster for us to review it. 
@@ -12,7 +14,7 @@ A pull request is not a finished product—it is the start of a conversation, an
 ## What we expect from contributors
 
 1. **Understand the content you submit, PRs as well as issues, and be able to explain it.** Our goal is for humans to use AI tools intentionally and with full control, rather than merely serving as proxies for AI agents. If you cannot explain the reason for something, we will assume you do not understand it, and the PR or issue will likely be closed.
-2. **Disclose significant AI involvement.** If AI tools played a major role in producing your contribution, say so in the pull request description or a top-level PR comment. We are not interested in incidental use, such as asking a chatbot for advice or accepting an autocomplete suggestion—but rather in cases where a tool generated substantial portions of the work. Disclosure will not reduce the likelihood of your PR or issue being accepted; we ask because information about AI tool use helps us evaluate their impact, build new best practices, and adjust existing processes.
+2. **Disclose significant AI involvement.** If AI tools played a major role in producing your contribution, say so in the issue, pull request description or a top-level PR comment. We are not interested in incidental use, such as asking a chatbot for advice or accepting an autocomplete suggestion—but rather in cases where a tool generated substantial portions of the work. Disclosure will not reduce the likelihood of your PR or issue being accepted; we ask because information about AI tool use helps us evaluate their impact, build new best practices, and adjust existing processes.
 **Disclosure belongs in the PR conversation, not in the commit history.** Do not add AI tools as commit co-authors (for example, `Co-authored-by: Claude <...>` or similar trailers for Copilot, Cursor, or other assistants). Commit metadata—including the DCO `Signed-off-by` line—is a human attestation. AI tools are your instruments, not your collaborators, and they cannot sign the Developer Certificate of Origin.
 3. **Actively collaborate with us.** We commit real time and attention to everything we review. Low-effort submissions—where code is generated, submitted, and abandoned—waste our limited review capacity.
 
@@ -26,5 +28,5 @@ A pull request is not a finished product—it is the start of a conversation, an
 
 We welcome AI-assisted contributions from people who understand what they're submitting and are ready to collaborate on it.
 
-We reserve the right to close PRs and restrict future contributions from submitters who repeatedly violate this policy, submit low-effort AI-generated content, or fail to engage meaningfully in the review process. 
+We reserve the right to close PRs and issues, and restrict future contributions from submitters who repeatedly violate this policy, submit low-effort AI-generated content, or fail to engage meaningfully in the review process. 
 The value of a contribution is not only in the code it delivers, but in the knowledge shared and the community relationships built along the way.

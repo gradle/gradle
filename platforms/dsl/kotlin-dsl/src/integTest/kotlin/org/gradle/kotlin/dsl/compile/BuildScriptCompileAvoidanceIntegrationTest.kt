@@ -66,6 +66,22 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
     }
 
     @Test
+    fun `compiles identical build scripts of different projects once`() {
+        withSettings("""include("a", "b")""")
+        val buildScript = """
+            // $cacheBuster
+            println("configuring " + project.name)
+        """
+        withFile("a/build.gradle.kts", buildScript)
+        withFile("b/build.gradle.kts", buildScript)
+
+        configureProject()
+            .assertBuildScriptBodyCompiledOnce()
+            .assertOutputContains("configuring a")
+            .assertOutputContains("configuring b")
+    }
+
+    @Test
     @UnsupportedWithConfigurationCache(because = "test rely on configuration phase output")
     fun `avoids buildscript recompilation on included build JAR rebuild`() {
 

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints
 import org.gradle.api.specs.Specs
 import org.gradle.internal.collect.PersistentSet
@@ -212,7 +211,9 @@ class NodeStateTest extends Specification {
     }
 
     StrictVersionConstraints visit(NodeState node) {
-        node.recomputeAncestorsStrictVersions()
+        node.incomingEdges.each { it.from.updateInheritableStrictVersions() }
+        node.ancestorsStrictVersions = node.collectAncestorsStrictVersions(node.ownStrictVersions)
+        node.updateInheritableStrictVersions()
         node.ancestorsStrictVersions
     }
 
@@ -237,7 +238,7 @@ class NodeStateTest extends Specification {
             node = new NodeState(idIdx++, component, resolveState, state, true)
         }
         component.nodes >> [node]
-        node.collectOwnStrictVersions(new ModuleExclusions().nothing())
+        node.ownStrictVersions = modules(strictDependencies)
         node
     }
 

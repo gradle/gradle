@@ -94,13 +94,14 @@ enum class Os(
                 }
 
                 else -> {
-                    listOf(
+                    listOfNotNull(
                         DefaultJvm(JvmVersion.JAVA_8, JvmVendor.OPENJDK),
                         DefaultJvm(JvmVersion.JAVA_11, JvmVendor.OPENJDK),
                         DefaultJvm(JvmVersion.JAVA_17, JvmVendor.OPENJDK),
                         DefaultJvm(JvmVersion.JAVA_21, JvmVendor.OPENJDK),
                         DefaultJvm(JvmVersion.JAVA_25, JvmVendor.OPENJDK),
-                        DefaultJvm(JvmVersion.JAVA_27, JvmVendor.OPENJDK),
+                        // Temurin ships no macOS AMD64 build of Java 27
+                        if (this == MACOS) null else DefaultJvm(JvmVersion.JAVA_27, JvmVendor.OPENJDK),
                     )
                 }
             }.joinToString(",") { javaHome(it, this, arch) }

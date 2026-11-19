@@ -17,6 +17,7 @@
 package org.gradle.internal.serialize.codecs.dm.transform
 
 import com.google.common.collect.ImmutableList
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
@@ -34,7 +35,6 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
 import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -110,7 +110,7 @@ class CalculateArtifactsCodec(
                 artifact: ResolvableArtifact
             ) {
                 // TODO: Serialize the whole ResolvableArtifact, not just the files.
-                files.add(Artifact(artifact.file, artifact.artifactName.classifier))
+                files.add(Artifact(artifact.id, artifact.file, artifact.artifactName.classifier))
             }
 
             override fun requireArtifactFiles(): Boolean = true
@@ -147,7 +147,7 @@ class CalculateArtifactsCodec(
     }
 
     private
-    class Artifact(val file: File, val classifier: String?)
+    class Artifact(val id: ComponentArtifactIdentifier, val file: File, val classifier: String?)
 
     private
     class FixedFilesArtifactSet(
@@ -180,8 +180,7 @@ class CalculateArtifactsCodec(
         private
         val artifacts by lazy {
             files.map { file ->
-                val artifactId = ComponentFileArtifactIdentifier(ownerId, file.file.name)
-                PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file.file, file.classifier), artifactId, file.file, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
+                PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file.file, file.classifier), file.id, file.file, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
             }
         }
     }

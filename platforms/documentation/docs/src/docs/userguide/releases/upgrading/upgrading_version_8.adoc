@@ -19,6 +19,9 @@
 This chapter provides the information you need to migrate your Gradle 8.x builds to Gradle {gradleVersion8}.
 For migrating from Gradle 7.x, see the <<upgrading_version_7.adoc#upgrading_version_7, older migration guide>> first.
 
+NOTE: As soon as Gradle 10.0.0 ships, no security or bug fixes will be made on any release of Gradle 8.
+To receive fixes for these versions, see https://gradle.org/security-subscription/[Gradle Security Subscription].
+
 We recommend the following steps for all users:
 
 . Try running `gradle help --scan` and view the https://docs.develocity.ai/gradle/current/getting-started/#identifying-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.

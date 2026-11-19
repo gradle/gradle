@@ -353,13 +353,17 @@ include::sample[dir="snippets/reference/runtime-configuration/callbacks/groovy",
 [[before_project]]
 ==== `beforeProject`
 
-*Where*: `build.gradle(.kts)` or anywhere you have access to the Gradle instance. +
-*When*: For each project as its build script is evaluated.
+*Where*: `settings.gradle(.kts)` or an init script for `gradle.lifecycle.beforeProject`. Registering it from a build script fails, because settings have already been evaluated. `gradle.beforeProject` can also be registered from a build script. +
+*When*: For each project, before Gradle evaluates its build script.
 
 ====
 include::sample[dir="snippets/reference/runtime-configuration/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=beforeproject]"]
 include::sample[dir="snippets/reference/runtime-configuration/callbacks/groovy",files="callbacks.init.gradle[tags=beforeproject]"]
 ====
+
+With <<configuration_on_demand.adoc#configuration_and_execution,configuration on demand>>, `gradle.lifecycle.beforeProject` currently runs for every project in the build, including projects that Gradle doesn't configure.
+`gradle.beforeProject`, `gradle.afterProject`, and `gradle.lifecycle.afterProject` run only for projects that Gradle configures.
+See <<configuration_on_demand.adoc#sec:configuration_on_demand_callbacks,Configuring projects from the settings file>>.
 
 TIP: When <<isolated_projects.adoc#isolated_projects,Isolated Projects>> is enabled, applying a plugin that is resolved lazily — for example a convention plugin from a build registered via `pluginManagement.includeBuild(...)`, or a third-party plugin from a repository — requires additional setup.
 See <<isolated_projects.adoc#sec:applying_plugins_from_a_lifecycle_callback,Applying plugins from a lifecycle callback>>.
@@ -367,8 +371,8 @@ See <<isolated_projects.adoc#sec:applying_plugins_from_a_lifecycle_callback,Appl
 [[after_project]]
 ==== `afterProject`
 
-*Where*: `build.gradle(.kts)` or anywhere you have access to the Gradle instance. +
-*When*: For each project as its build script is evaluated.
+*Where*: `settings.gradle(.kts)` or an init script for `gradle.lifecycle.afterProject`. Registering it from a build script fails, because settings have already been evaluated. `gradle.afterProject` can also be registered from a build script. +
+*When*: For each project, after Gradle evaluates its build script.
 
 ====
 include::sample[dir="snippets/reference/runtime-configuration/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=afterproject]"]

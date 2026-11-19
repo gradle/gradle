@@ -28,15 +28,18 @@ import org.gradle.test.fixtures.server.http.HttpResourceHandler
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.internal.TextUtil
 
-import java.security.MessageDigest
 import java.time.ZoneId
-import java.time.ZonedDateTime
+
 import java.time.format.DateTimeFormatter
+import java.time.Instant
+
+import java.security.MessageDigest
 
 class S3Server extends HttpServer implements RepositoryServer {
 
     public static final String BUCKET_NAME = "tests3bucket"
     protected static final DateTimeFormatter RCF_822_DATE_FORMAT = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z").withZone(ZoneId.of("GMT")).withLocale(Locale.ENGLISH)
+
 
     public static final String ETAG = 'd41d8cd98f00b204e9800998ecf8427e'
     public static final String X_AMZ_REQUEST_ID = '0A398F9A1BAD4027'
@@ -47,6 +50,8 @@ class S3Server extends HttpServer implements RepositoryServer {
     public static final String SERVER_AMAZON_S3 = 'AmazonS3'
 
     TestDirectoryProvider testDirectoryProvider
+    private String requiredAccessKeyId
+    private String requiredSessionToken
 
     S3Server(TestDirectoryProvider testDirectoryProvider) {
         super()
@@ -68,6 +73,41 @@ class S3Server extends HttpServer implements RepositoryServer {
         assert stubRequest.params.every {
             request.getParameterMap()[it.key] == it.value
         }
+        if (requiredAccessKeyId) {
+            assert request.getHeader("Authorization")?.contains("Credential=${requiredAccessKeyId}/")
+            assert request.getHeader("x-amz-security-token") == requiredSessionToken
+        }
+    }
+
+    /**
+     * Fails every following S3 request that is not signed with the given session credentials.
+     */
+    void requireSignedBy(String accessKeyId, String sessionToken) {
+        requiredAccessKeyId = accessKeyId
+        requiredSessionToken = sessionToken
+    }
+
+    /**
+     * Serves the AWS SSO GetRoleCredentials operation, which exchanges a cached SSO access token for role credentials.
+     * It may be called any number of times, and answers 401 to a request without the expected access token.
+     */
+    void allowSsoRoleCredentials(String accessToken, String accountId, String roleName, String accessKeyId, String secretAccessKey, String sessionToken) {
+        allow("/federation/credentials", false, ["GET"], new HttpServer.ActionSupport("SSO role credentials") {
+            void handle(HttpRequest request, HttpResponse response) {
+                response.addHeader("Content-Type", "application/json")
+                def params = request.getParameterMap()
+                if (request.getHeader("x-amz-sso_bearer_token") != accessToken
+                    || params["account_id"]?.toList() != [accountId]
+                    || params["role_name"]?.toList() != [roleName]) {
+                    response.setStatus(401)
+                    response.outputStream.bytes = '{"message":"Unexpected SSO access token or role"}'.bytes
+                    return
+                }
+                long expiration = Instant.now().plusSeconds(3600).toEpochMilli()
+                response.setStatus(200)
+                response.outputStream.bytes = """{"roleCredentials":{"accessKeyId":"${accessKeyId}","secretAccessKey":"${secretAccessKey}","sessionToken":"${sessionToken}","expiration":${expiration}}}""".bytes
+            }
+        })
     }
 
     boolean requestMatches(HttpStub httpStub, HttpRequest request) {
@@ -172,7 +212,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                     'Date': DATE_HEADER,
                     'Server': SERVER_AMAZON_S3,
                     'Content-Length': length,
-                    'Last-Modified': ZonedDateTime.now().format(RCF_822_DATE_FORMAT)
+                    'Last-Modified': RCF_822_DATE_FORMAT.format(Instant.now())
                 ]
                 body = { xml.toString() }
             }
@@ -210,7 +250,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                     'Server': SERVER_AMAZON_S3,
                     'ETag': calculateEtag(file),
                     'Content-Length': 0,
-                    'Last-Modified': ZonedDateTime.now().format(RCF_822_DATE_FORMAT)
+                    'Last-Modified': RCF_822_DATE_FORMAT.format(Instant.now())
                 ]
             }
         }
@@ -253,7 +293,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                     'x-amz-request-id': X_AMZ_REQUEST_ID,
                     'Date': DATE_HEADER,
                     'Server': SERVER_AMAZON_S3,
-                    'Last-Modified': ZonedDateTime.now().format(RCF_822_DATE_FORMAT)
+                    'Last-Modified': RCF_822_DATE_FORMAT.format(Instant.now())
                 ]
                 body = { responseXml.toString() }
             }
@@ -264,7 +304,7 @@ class S3Server extends HttpServer implements RepositoryServer {
     def stubMetaData(File file, String url) {
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
-                method = 'GET'
+                method = 'HEAD'
                 path = url
                 headers = [
                     'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
@@ -282,7 +322,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                     'Accept-Ranges': 'bytes',
                     'Content-Type': 'application/octet-stream',
                     'Content-Length': "0",
-                    'Last-Modified': ZonedDateTime.now().format(RCF_822_DATE_FORMAT)
+                    'Last-Modified': RCF_822_DATE_FORMAT.format(Instant.now())
                 ]
             }
         }
@@ -342,7 +382,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                     'Accept-Ranges': 'bytes',
                     'Content-Type': 'application/octet-stream',
                     'Content-Length': { file.length() },
-                    'Last-Modified': ZonedDateTime.now().format(RCF_822_DATE_FORMAT)
+                    'Last-Modified': RCF_822_DATE_FORMAT.format(Instant.now())
                 ]
                 body = { file.bytes }
             }
@@ -369,10 +409,11 @@ class S3Server extends HttpServer implements RepositoryServer {
             ListBucketResult(xmlns: "http://s3.amazonaws.com/doc/2006-03-01/") {
                 Name(bucketName)
                 Prefix(prefix)
-                Marker()
                 MaxKeys('1000')
                 Delimiter('/')
                 IsTruncated('false')
+                KeyCount(files.size() + dirs.size())
+
                 files.each { currentFile ->
                     Contents {
                         Key(prefix + currentFile.name)
@@ -387,8 +428,8 @@ class S3Server extends HttpServer implements RepositoryServer {
                     }
                 }
 
-                CommonPrefixes {
-                    dirs.each { File dir ->
+                dirs.each { File dir ->
+                    CommonPrefixes {
                         String path = TextUtil.normaliseFileSeparators(dir.absolutePath)
                         Prefix("${prefix}${dir.name}/")
                     }
@@ -396,11 +437,10 @@ class S3Server extends HttpServer implements RepositoryServer {
             }
         }
 
-        println(xml.toString())
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
                 method = 'GET'
-                path = "/${bucketName}/"
+                path = "/${bucketName}"
                 headers = [
                     'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
                     'Connection': 'Keep-Alive'
@@ -408,8 +448,8 @@ class S3Server extends HttpServer implements RepositoryServer {
                 params = [
                     'prefix': [prefix],
                     'delimiter': ['/'],
-                    'max-keys': ["1000"],
-                    'encoding-type': ['url']
+                    'max-keys': ['1000'],
+                    'list-type': ['2']
                 ]
             }
             response {
@@ -533,6 +573,22 @@ class S3Server extends HttpServer implements RepositoryServer {
             }
         }
         expect(httpStub)
+
+        // Also allow (but don't require) a HEAD probe for the same path. Gradle's Ivy resolver
+        // probes URLs with HEAD before GET, and the underlying HTTP server returns 405 (Method
+        // Not Allowed) if only GET is registered. Using allow() makes the HEAD stub optional so
+        // callers that only send GET (e.g. Maven publish) don't get an unmet-expectation failure.
+        allow(url, false, ['HEAD'], new HttpServer.ActionSupport("return 404 for missing HEAD") {
+            void handle(HttpRequest request, HttpResponse response) {
+                response.addHeader('x-amz-id-2', X_AMZ_ID_2)
+                response.addHeader('x-amz-request-id', X_AMZ_REQUEST_ID)
+                response.addHeader('Date', DATE_HEADER)
+                response.addHeader('Server', SERVER_AMAZON_S3)
+                // Use setStatus, not sendError, to avoid Jetty auto-writing an HTML body /
+                // setting text/html Content-Type. A real S3 HEAD 404 has no body.
+                response.setStatus(404)
+            }
+        })
     }
 
     def stubGetFileBroken(String url) {

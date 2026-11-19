@@ -43,13 +43,13 @@ configurations.named("integTestRuntimeClasspath") {
     // The InProcessGradleExecuter and the BuildOperationsFixture currently expect the
     // under-development Gradle distribution to be on the runtime classpath. We should
     // avoid this and instead dynamically load the classpath from `integTest.gradleHomeDir` instead.
-    extendsFrom(configurations.named("integTestDistributionRuntimeOnly").get())
+    extendsFrom(configurations.named("integTestDistributionRuntimeOnly"))
 }
 configurations.named("integTestImplementation") {
     // For historical reasons, the integration tests inherit all the dependencies from the unit tests.
     // The integ test suite is not a superset of the unit test suite, so there is no reason to do this.
     // We should remove this `extendsFrom` and update our dependency declarations accordingly.
-    extendsFrom(configurations.testImplementation.get())
+    extendsFrom(configurations.testImplementation)
 
     dependencies.apply {
         // Use a provider so we don't lookup the project when we generate accessors

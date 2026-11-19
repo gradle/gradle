@@ -18,9 +18,7 @@ package org.gradle.internal.serialize.codecs.stdlib
 
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.codecs.Decoding
-import org.gradle.internal.serialize.graph.codecs.Encoding
-import org.gradle.internal.serialize.graph.codecs.EncodingProducer
+import org.gradle.internal.serialize.graph.codecs.SelectiveCodec
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 
@@ -30,26 +28,22 @@ import java.lang.reflect.Modifier
  *
  * Only the object's identity is restored, not any mutable state it holds.
  */
-object KotlinObjectCodec : EncodingProducer, Decoding {
+object KotlinObjectCodec : SelectiveCodec {
 
-    override fun encodingForType(type: Class<*>): Encoding? =
-        KotlinObjectEncoding.takeIf { type.singletonInstanceField() != null }
+    override fun accepts(type: Class<*>): Boolean =
+        type.singletonInstanceField() != null
 
-    override suspend fun ReadContext.decode(): Any? {
-        val objectClass = readClass()
-        return objectClass.singletonInstance()
-    }
-}
-
-
-private
-object KotlinObjectEncoding : Encoding {
     override suspend fun WriteContext.encode(value: Any) {
         val objectClass = value.javaClass
         require(objectClass.singletonInstance() === value) {
             "Cannot serialize an instance of Kotlin object ${objectClass.name} that is not its singleton instance."
         }
         writeClass(objectClass)
+    }
+
+    override suspend fun ReadContext.decode(): Any? {
+        val objectClass = readClass()
+        return objectClass.singletonInstance()
     }
 }
 

@@ -323,6 +323,33 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec implemen
         fixture.issuedNoPluginWarningCount(output, 1)
     }
 
+    def "does not warn for a nested build tree if --scan used"() {
+        given:
+        applyPlugin()
+        fixture.doCheckIn = false
+
+        file("other/settings.gradle") << ""
+        file("other/build.gradle") << """
+            task t {
+                doLast { println("in nested build tree") }
+            }
+        """
+        buildFile.text = """
+            task t(type: GradleBuild) {
+                dir = file("other")
+                tasks = ["t"]
+                startParameter.buildScan = true
+            }
+        """
+
+        when:
+        succeeds "t", "--scan"
+
+        then:
+        outputContains("in nested build tree")
+        fixture.issuedNoPluginWarningCount(output, 1)
+    }
+
     def "does not auto-apply plugin when Gradle Enterprise plugin is applied using plugin ID"() {
         when:
         gradleEnterpriseFixture.publishDummyPlugin(executer)

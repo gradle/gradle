@@ -39,6 +39,7 @@ import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.incremental.deleteRecursivelyOrThrow
 import org.junit.Test
+import spock.lang.Issue
 import java.util.UUID
 
 
@@ -353,6 +354,61 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
         }
     }
 
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/39434")
+    fun `kotlin script compilation is relocatable for included build outside the build-tree root`() {
+        val includedSettings = randomScriptContent()
+        val rootSettings = randomScriptContent()
+        withOwnGradleUserHomeDir("verifying Kotlin DSL script cache reuse") {
+            withProjectRoot(file("checkout-a/app")) {
+                withSiblingIncludedBuild(includedSettings, rootSettings).apply {
+                    buildForCacheInspection("help").apply {
+                        compilationCache {
+                            misses(includedSettingsFile, rootSettingsFile)
+                        }
+                    }
+                }
+            }
+
+            withProjectRoot(file("checkout-b/app")) {
+                withSiblingIncludedBuild(includedSettings, rootSettings).apply {
+                    buildForCacheInspection("help").apply {
+                        compilationCache {
+                            hits(includedSettingsFile, rootSettingsFile)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private
+    fun withSiblingIncludedBuild(includedSettings: String, rootSettings: String) =
+        SiblingIncludedBuildCachedScripts(
+            cachedSettingsFile(
+                withSettingsIn(
+                    "../plugins",
+                    """
+                    $includedSettings
+                    rootProject.name = "plugins"
+                    """
+                )
+            ),
+            cachedSettingsFile(
+                withSettings(
+                    """
+                    pluginManagement {
+                        includeBuild("../plugins")
+                    }
+                    $rootSettings
+                    rootProject.name = "app"
+                    """
+                ),
+                hasBuildscriptBlock = true,
+                hasBody = true
+            )
+        )
+
     private
     fun expectBuildCacheEntriesWritten(
         expectedEntryCount: Int,
@@ -455,4 +511,11 @@ data class MultiProjectCachedScripts(
     val rootBuildFile: CachedScript.WholeFile,
     val leftBuildFile: CachedScript.WholeFile,
     val rightBuildFile: CachedScript.WholeFile
+)
+
+
+private
+data class SiblingIncludedBuildCachedScripts(
+    val includedSettingsFile: CachedScript.WholeFile,
+    val rootSettingsFile: CachedScript.WholeFile
 )

@@ -151,8 +151,9 @@ When you build a native binary, Gradle will attempt to locate a tool chain insta
 Gradle selects the first tool chain that can build for the target operating system and architecture.
 In the future, Gradle will consider source and ABI compatibility when selecting a tool chain.
 
-Gradle has general support for the three major tool chains on major operating system: Clang footnote:[Installed with Xcode on macOS], GCC footnote:[Installed through Cygwin and MinGW for 32- and 64-bits architecture on Windows] and Visual {cpp} footnote:[Installed with Visual Studio 2010 to 2019] (Windows-only).
+Gradle has general support for the three major tool chains on major operating system: Clang footnote:[Installed with Xcode on macOS], GCC footnote:[Installed through Cygwin and MinGW for 32- and 64-bits architecture on Windows] and Visual {cpp} footnote:[Installed with Visual Studio 2017 to 2022] (Windows-only).
 GCC and Clang installed using Macports and Homebrew have been reported to work fine, but this isn’t tested continuously.
+The same applies to Visual {cpp} from Visual Studio 2015 and earlier.
 
 [[sec:cpp_tool_chain_windows]]
 ==== Windows
@@ -160,6 +161,11 @@ GCC and Clang installed using Macports and Homebrew have been reported to work f
 To build on Windows, install a compatible version of Visual Studio.
 The {cpp} plugins will discover the Visual Studio installations and select the latest version.
 If automatic discovery does not work, you can configure Visual Studio using the `toolChains` block.
+
+Gradle discovers Visual Studio installations by running `vswhere.exe` from `C:\Program Files (x86)\Microsoft Visual Studio\Installer` or the `PATH`.
+Gradle passes the `-utf8` option, which older versions of `vswhere.exe` don't support.
+With an older `vswhere.exe`, such as one left by a Visual Studio 2015 setup, discovery fails while configuring the project, even if you set the installation directory in the `toolChains` block.
+To fix this, update the Visual Studio Installer or install a current `vswhere.exe`.
 
 ====
 include::sample[dir="snippets/reference/platforms/native/cpp-basic/kotlin",files="build.gradle.kts[tags=cpp-toolchain]"]

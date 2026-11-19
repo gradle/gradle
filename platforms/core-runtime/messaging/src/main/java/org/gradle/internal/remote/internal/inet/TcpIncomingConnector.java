@@ -32,10 +32,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -124,9 +124,9 @@ public class TcpIncomingConnector implements IncomingConnector {
                         }
                         try {
                             SocketBlockingUtil.configureNonblocking(socket);
-                            waitForHandshake(socket);
+                            performHandshake(socket);
                         } catch (IOException e) {
-                            LOGGER.error("Failed connection handshake with {}.", remoteSocketAddress, e);
+                            LOGGER.error("Failed connection handshake with {}: {}", remoteSocketAddress, e.getMessage());
                             socket.close();
                             continue;
                         }
@@ -149,25 +149,15 @@ public class TcpIncomingConnector implements IncomingConnector {
             }
         }
 
-        private void waitForHandshake(SocketChannel socket) throws IOException, InterruptedException {
-            ByteBuffer buffer = ByteBuffer.allocate(CONNECTION_PREAMBLE.length + connectionToken.length);
-            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(acceptTimeoutSeconds);
-            while (buffer.hasRemaining() && System.nanoTime() < deadline) {
-                int read = socket.read(buffer);
-                if (read == -1) {
-                    break;
-                }
-                if (read == 0) {
-                    Thread.sleep(1);
-                }
+        private void performHandshake(SocketChannel socket) throws IOException {
+            byte[] handshake = ConnectionHandshake.read(socket, CONNECTION_PREAMBLE.length + ConnectionHandshake.PROOF_LENGTH, TimeUnit.SECONDS.toMillis(acceptTimeoutSeconds));
+            if (!ConnectionHandshake.matches(CONNECTION_PREAMBLE, Arrays.copyOfRange(handshake, 0, CONNECTION_PREAMBLE.length))) {
+                throw new IOException("Did not receive connection preamble");
             }
-            byte[] handshake = buffer.array();
-            if (!ByteBuffer.wrap(handshake, 0, CONNECTION_PREAMBLE.length).equals(ByteBuffer.wrap(CONNECTION_PREAMBLE))) {
-                throw new IOException("Did not receive connection preamble within " + acceptTimeoutSeconds + "s");
+            if (!ConnectionHandshake.matches(ConnectionHandshake.clientProof(connectionToken), Arrays.copyOfRange(handshake, CONNECTION_PREAMBLE.length, handshake.length))) {
+                throw new IOException("Peer did not prove it holds the expected connection token");
             }
-            if (!ByteBuffer.wrap(handshake, CONNECTION_PREAMBLE.length, connectionToken.length).equals(ByteBuffer.wrap(connectionToken))) {
-                throw new IOException("Peer did not present the expected connection token");
-            }
+            ConnectionHandshake.write(socket, ConnectionHandshake.serverProof(connectionToken));
         }
 
     }

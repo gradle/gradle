@@ -1,0 +1,15 @@
+import org.example.ConfigFileArgumentProvider
+
+plugins {
+    id 'java'
+}
+
+// tag::register-provider[]
+tasks.register('runApp', JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'org.example.App'
+    jvmArgumentProviders.add(objects.newInstance(ConfigFileArgumentProvider).tap {
+        configFile = layout.projectDirectory.file('app.conf')
+    })
+}
+// end::register-provider[]

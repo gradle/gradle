@@ -198,7 +198,7 @@ class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner
         val programId =
             ProgramId(
                 templateId,
-                scriptHost.buildTreeScriptPath,
+                scriptFileNameFor(scriptHost.originalScriptPath),
                 sourceHash,
                 parentClassLoader,
                 compilerOptions = host.compilerOptions
@@ -440,7 +440,7 @@ class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner
 
             val programId = ProgramId(
                 scriptTemplateId,
-                scriptHost.buildTreeScriptPath,
+                scriptFileNameFor(scriptHost.originalScriptPath),
                 sourceHash,
                 parentClassLoader,
                 host.hashOf(accessorsClassPath),

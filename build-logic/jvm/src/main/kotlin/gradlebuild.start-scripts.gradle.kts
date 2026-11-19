@@ -24,7 +24,7 @@ plugins {
 
 val agentsClasspath = configurations.dependencyScope("agentsClasspath")
 val resolveAgentsClasspath = configurations.resolvable("resolveAgentsClasspath") {
-    extendsFrom(agentsClasspath.get())
+    extendsFrom(agentsClasspath)
     configureAsRuntimeJarClasspath(objects)
 }
 

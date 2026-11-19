@@ -55,8 +55,8 @@ tasks.register<Zip>("allNextMajorRemovalReportsZip") {
     group = "verification"
     destinationDirectory = layout.buildDirectory.dir("reports/removal")
     archiveBaseName = "next-major-removals"
-    from(allNextMajorRemovalReports.get().htmlReportFile)
-    from(allNextMajorRemovalReports.get().csvReportFile)
+    from(allNextMajorRemovalReports.flatMap { it.htmlReportFile })
+    from(allNextMajorRemovalReports.flatMap { it.csvReportFile })
     from(resolver("html"))
 }
 

@@ -86,6 +86,11 @@ abstract class GradleModuleExtension(val tasks: TaskContainer, val objects: Obje
      */
     abstract val published: Property<Boolean>
 
+    /**
+     * Declares whether this module contributes its API stubs to the public Gradle API jars.
+     */
+    abstract val publicApiStubs: Property<Boolean>
+
 }
 
 interface ModuleIdentity {

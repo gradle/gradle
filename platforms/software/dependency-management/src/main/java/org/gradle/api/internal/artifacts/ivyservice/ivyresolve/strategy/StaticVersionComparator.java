@@ -80,6 +80,9 @@ class StaticVersionComparator implements Comparator<Version> {
             Integer sm1 = SPECIAL_MEANINGS.get(part1.toLowerCase(Locale.US));
             Integer sm2 = SPECIAL_MEANINGS.get(part2.toLowerCase(Locale.US));
             if (sm1 != null) {
+                if (sm1.equals(sm2)) {
+                    continue;
+                }
                 sm2 = sm2 == null ? 0 : sm2;
                 return sm1 - sm2;
             }

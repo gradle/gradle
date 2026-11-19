@@ -1494,7 +1494,7 @@ project ':A' FAILED
       - Could not resolve project ':A'.
           - Unable to find a matching variant of project ':A':
               - No variants exist.
-          - Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.
+          - Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_configurations.html#sec:resolvable-consumable-configs.
 
 project ':A' FAILED
 \\--- conf
@@ -1510,7 +1510,7 @@ project ':C' FAILED
       - Could not resolve project ':C'.
           - Unable to find a matching variant of project ':C':
               - No variants exist.
-          - Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.
+          - Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_configurations.html#sec:resolvable-consumable-configs.
 
 project ':C' FAILED
 \\--- project ':B'

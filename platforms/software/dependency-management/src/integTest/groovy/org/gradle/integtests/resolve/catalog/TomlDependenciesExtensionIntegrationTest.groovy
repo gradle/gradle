@@ -1239,4 +1239,33 @@ $alias = $declaration
         "kotlin.jvm"  | '{ strictly = "1.9.0" }'
         "spring.core" | '"2.9.0"'
     }
+
+    def "#entry of #alias cannot inject code into the generated accessors using '#forbidden'"() {
+        tomlFile << toml.replace('<payload>', payload)
+
+        when:
+        fails 'help'
+
+        then:
+        injectedCodeDidNotRun()
+        verifyAll(receivedProblem) {
+            fqid == "Dependencies:Declaration:$problem"
+            contextualLabel.startsWith("In version catalog libs, on alias '$alias' $entry '")
+            contextualLabel.endsWith("' contains '$forbidden', which is not allowed")
+        }
+
+        where:
+        [payload, forbidden] << INJECTION_PAYLOADS
+        combined:
+        entry               | alias     | problem                                       | toml
+        'version'           | 'example' | 'Invalid version notation in version catalog' | '[versions]\nexample = "1.0.0 <payload>"\n'
+        'preferred version' | 'example' | 'Invalid version notation in version catalog' | '[versions]\nexample = "1.0!!1.1 <payload>"\n'
+        'rejected version'  | 'example' | 'Invalid version notation in version catalog' | '[versions]\nexample = { require = "1.0", reject = ["1.1 <payload>"] }\n'
+        'group'             | 'lib'     | 'Invalid version catalog dependency notation' | '[libraries]\nlib = { group = "g <payload>", name = "n", version = "1.0" }\n'
+        'name'              | 'lib'     | 'Invalid version catalog dependency notation' | '[libraries]\nlib = { group = "g", name = "n <payload>", version = "1.0" }\n'
+        'version'           | 'lib'     | 'Invalid version notation in version catalog' | '[libraries]\nlib = "g:n:1.0 <payload>"\n'
+        'strict version'    | 'lib'     | 'Invalid version notation in version catalog' | '[libraries]\nlib = { module = "g:n", version.strictly = "1.0 <payload>" }\n'
+        'plugin id'         | 'plug'    | 'Invalid version catalog plugin notation'     | '[plugins]\nplug = { id = "p <payload>", version = "1.0" }\n'
+        'version'           | 'plug'    | 'Invalid version notation in version catalog' | '[plugins]\nplug = "p:1.0 <payload>"\n'
+    }
 }

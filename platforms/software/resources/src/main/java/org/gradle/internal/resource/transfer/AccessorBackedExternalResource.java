@@ -155,32 +155,4 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
     public ExternalResourceMetaData getMetaData() {
         return accessor.getMetaData(name, revalidate);
     }
-
-    private static class CountingReadableContent implements ReadableContent {
-        private final ReadableContent source;
-        private CountingInputStream instr;
-        private long count;
-
-        CountingReadableContent(ReadableContent source) {
-            this.source = source;
-        }
-
-        @Override
-        public InputStream open() throws ResourceException {
-            if (instr != null) {
-                count += instr.getCount();
-            }
-            instr = new CountingInputStream(source.open());
-            return instr;
-        }
-
-        @Override
-        public long getContentLength() {
-            return source.getContentLength();
-        }
-
-        public long getCount() {
-            return instr != null ? count + instr.getCount() : count;
-        }
-    }
 }

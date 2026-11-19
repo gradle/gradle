@@ -1,0 +1,3 @@
+> Task :printServers
+production -> https://example.com
+staging -> https://staging.example.com

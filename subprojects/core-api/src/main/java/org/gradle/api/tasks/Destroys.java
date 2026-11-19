@@ -26,7 +26,9 @@ import java.lang.annotation.Target;
  * <p>Marks a property as specifying a file or directory that a task destroys.
  * The file or directory belongs to another task.</p>
  *
- * <p>This annotation should be attached to the getter method or the field for the property.</p>
+ * <p>This annotation should be attached to the getter method or the field for the property.
+ * In Kotlin, use the {@code get:} use-site target to attach it to the property getter, for example {@code @get:Destroys}.
+ * This also works on abstract properties, where the annotation without a use-site target does not compile.</p>
  *
  * <p>This will cause the task to have exclusive access to this file or directory while running.  This means
  * that other tasks that either create or consume this file (by specifying the file or directory as an input

@@ -58,7 +58,7 @@ class LatestModuleConflictResolverTest extends AbstractConflictResolverTest {
 
     def "can select a release version over unqualified"() {
         given:
-        prefer('1.0-beta-1').release()
+        release('1.0-beta-1')
         prefer('1.0-beta-2')
 
         when:
@@ -70,7 +70,7 @@ class LatestModuleConflictResolverTest extends AbstractConflictResolverTest {
 
     def "can select qualified release over unqualified"() {
         given:
-        prefer('2.11.4+4').release()
+        release('2.11.4+4')
         prefer('2.11.4')
 
         when:

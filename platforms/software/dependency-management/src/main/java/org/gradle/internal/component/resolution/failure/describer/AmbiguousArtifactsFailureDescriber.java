@@ -33,7 +33,8 @@ import java.util.List;
  */
 public abstract class AmbiguousArtifactsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousArtifactsFailure> {
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
-    private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
+    private static final String AMBIGUOUS_VARIANTS_PAGE = "artifact_resolution";
+    private static final String AMBIGUOUS_VARIANTS_SECTION = "sec:artifact-selection";
 
     private final AttributeDescriberRegistry attributeDescribers;
 
@@ -48,7 +49,7 @@ public abstract class AmbiguousArtifactsFailureDescriber extends AbstractResolut
     public ArtifactSelectionException describeFailure(AmbiguousArtifactsFailure failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), attributeDescribers.getDescribers());
         String message = buildFailureMsg(failure, describer);
-        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION), suggestReviewAlgorithm());
+        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_PAGE, AMBIGUOUS_VARIANTS_SECTION), suggestReviewAlgorithm());
         return new ArtifactSelectionException(message, failure, resolutions);
     }
 

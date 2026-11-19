@@ -23,6 +23,8 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
+import java.io.IOException;
+
 /**
  * A thread-safe and reusable serializer for {@link ModuleComponentFileArtifactIdentifier}.
  */
@@ -30,15 +32,22 @@ public class ModuleComponentFileArtifactIdentifierSerializer implements Serializ
     private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
 
     @Override
-    public ModuleComponentFileArtifactIdentifier read(Decoder decoder) throws Exception {
+    public ModuleComponentFileArtifactIdentifier read(Decoder decoder) throws IOException {
         ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) componentIdentifierSerializer.read(decoder);
-        String fileName = decoder.readString();
-        return new ModuleComponentFileArtifactIdentifier(componentIdentifier, fileName);
+        String destinationFileName = decoder.readString();
+        boolean pathIsDestinationFileName = decoder.readBoolean();
+        String filePath = pathIsDestinationFileName ? destinationFileName : decoder.readString();
+        return new ModuleComponentFileArtifactIdentifier(componentIdentifier, destinationFileName, filePath);
     }
 
     @Override
-    public void write(Encoder encoder, ModuleComponentFileArtifactIdentifier value) throws Exception {
+    public void write(Encoder encoder, ModuleComponentFileArtifactIdentifier value) throws IOException {
         componentIdentifierSerializer.write(encoder, value.getComponentIdentifier());
-        encoder.writeString(value.getFileName());
+        encoder.writeString(value.getDestinationFileName());
+        boolean pathIsDestinationFileName = value.getFilePath().equals(value.getDestinationFileName());
+        encoder.writeBoolean(pathIsDestinationFileName);
+        if (!pathIsDestinationFileName) {
+            encoder.writeString(value.getFilePath());
+        }
     }
 }

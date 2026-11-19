@@ -148,6 +148,71 @@ project(":project-without-directory").projectDir.mkdirs()
 ======
 =====
 
+[[sec:intermediate_project_directories]]
+==== Intermediate projects in nested paths
+
+Including a nested path such as `:toolbox:modules:table` also creates the intermediate projects `:toolbox` and `:toolbox:modules`.
+Each intermediate project needs an existing directory too.
+By default, Gradle derives that directory from the project path, so `:toolbox` maps to `toolbox/` in the root directory.
+Setting `projectDir` on `:toolbox:modules:table` doesn't change the directories of its parents.
+
+If your directory layout doesn't match the project path, for example because the modules live in `libs/toolbox/library/modules/table`, the build fails:
+
+[source,text]
+----
+Configuring project ':toolbox' without an existing directory is not allowed. The configured projectDirectory '.../toolbox' does not exist, can't be written to or is not a directory.
+----
+
+To fix this, use a flat project name, as recommended in <<best_practices_structuring_builds.adoc#avoid_empty_projects,Avoid Unintentionally Creating Empty Projects>>:
+
+=====
+[.multi-language-sample]
+======
+.settings.gradle.kts
+[source,kotlin]
+----
+include(":toolbox-table")
+project(":toolbox-table").projectDir = file("libs/toolbox/library/modules/table")
+----
+======
+[.multi-language-sample]
+======
+.settings.gradle
+[source,groovy]
+----
+include ':toolbox-table'
+project(':toolbox-table').projectDir = file('libs/toolbox/library/modules/table')
+----
+======
+=====
+
+If you want to keep the nested project path, set `projectDir` for each intermediate project as well:
+
+=====
+[.multi-language-sample]
+======
+.settings.gradle.kts
+[source,kotlin]
+----
+include(":toolbox:modules:table")
+project(":toolbox").projectDir = file("libs/toolbox/library")
+project(":toolbox:modules").projectDir = file("libs/toolbox/library/modules")
+project(":toolbox:modules:table").projectDir = file("libs/toolbox/library/modules/table")
+----
+======
+[.multi-language-sample]
+======
+.settings.gradle
+[source,groovy]
+----
+include ':toolbox:modules:table'
+project(':toolbox').projectDir = file('libs/toolbox/library')
+project(':toolbox:modules').projectDir = file('libs/toolbox/library/modules')
+project(':toolbox:modules:table').projectDir = file('libs/toolbox/library/modules/table')
+----
+======
+=====
+
 [[sec:naming_recommendations]]
 == Naming recommendations
 

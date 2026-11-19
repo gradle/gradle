@@ -197,6 +197,43 @@ class DefaultJdkCacheDirectoryTest extends Specification {
         new File(installedJdk, "folder").isDirectory()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/37104")
+    def "detects #format archive from content when file name is #archiveName"() {
+        def jdkArchive = new File(temporaryFolder, archiveName)
+        if (format == "zip") {
+            writeZip(jdkArchive)
+        } else {
+            writeTarGz(jdkArchive)
+        }
+        def jdkCacheDirectory = new DefaultJdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector(), tmpFileProvider())
+
+        when:
+        def installedJdk = jdkCacheDirectory.provisionFromArchive(mockSpec(), jdkArchive, URI.create("uri"))
+
+        then:
+        new File(installedJdk, DefaultJdkCacheDirectory.MARKER_FILE).exists()
+        new File(installedJdk, "file").exists()
+
+        where:
+        format   | archiveName
+        "zip"    | "jdk"
+        "tar.gz" | "jdk"
+        "tar.gz" | "jdk.zip"
+    }
+
+    def "fails for unsupported archive format"() {
+        def jdkArchive = new File(temporaryFolder, "jdk.zip")
+        jdkArchive.text = "not an archive"
+        def jdkCacheDirectory = new DefaultJdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector(), tmpFileProvider())
+
+        when:
+        jdkCacheDirectory.provisionFromArchive(mockSpec(), jdkArchive, URI.create("uri"))
+
+        then:
+        def e = thrown(IOException)
+        e.message == "Unsupported JDK archive format, expected a zip or tar.gz archive: " + jdkArchive
+    }
+
     // This currently isn't working due to the linked issue
     @Ignore
     @Issue("https://github.com/gradle/gradle/issues/3982")
@@ -232,6 +269,23 @@ class DefaultJdkCacheDirectoryTest extends Specification {
         Files.isSymbolicLink(new File(installedJdk, "bin").toPath())
         new File(installedJdk, "folder").isDirectory()
         new File(installedJdk, "Contents/Home/bin").isDirectory()
+    }
+
+    private static final List<String> JDK_ENTRIES = ["file"] + ["javac", "javadoc", "jar"].collect { "bin/" + OperatingSystem.current().getExecutableName(it) }
+
+    private static void writeZip(File archive) {
+        try (def outStream = new ZipOutputStream(archive.newOutputStream())) {
+            JDK_ENTRIES.each { outStream.putNextEntry(new ZipEntry(it)) }
+        }
+    }
+
+    private static void writeTarGz(File archive) {
+        try (def outStream = new TarArchiveOutputStream(new GZIPOutputStream(archive.newOutputStream()))) {
+            JDK_ENTRIES.each {
+                outStream.putArchiveEntry(new TarArchiveEntry(it))
+                outStream.closeArchiveEntry()
+            }
+        }
     }
 
     private GradleUserHomeDirProvider newHomeDirProvider() {
