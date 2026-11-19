@@ -75,6 +75,7 @@ import javax.inject.Inject;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -308,7 +309,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     }
 
     public RepositoryTransport getTransport(String scheme) {
-        return transportFactory.createTransport(scheme, getName(), getConfiguredAuthentication(), urlArtifactRepository.createRedirectVerifier());
+        return transportFactory.createTransport(Collections.singleton(scheme), getName(), getConfiguredAuthentication(), urlArtifactRepository.createRedirectVerifier(), isAllowInsecureProtocol());
     }
 
     protected LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> getLocallyAvailableResourceFinder() {

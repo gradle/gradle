@@ -51,14 +51,16 @@ class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVe
         kind << ["md5", "sha1", "sha256", "sha512"]
     }
 
-    def "doesn't try to verify checksums for changing dependencies"() {
+    def "verifies checksums for changing dependencies"() {
         createMetadataFile {
             // empty
         }
 
         given:
         javaLibrary()
-        uncheckedModule("org", "foo", "1.0-SNAPSHOT")
+        uncheckedModule("org", "foo", "1.0-SNAPSHOT") {
+            withNonUniqueSnapshots()
+        }
         uncheckedModule("org", "bar")
         buildFile << """
             dependencies {
@@ -70,10 +72,88 @@ class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVe
         """
 
         when:
-        run ":compileJava"
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath'
+4 artifacts failed verification:
+  - bar-1.0.jar (org:bar:1.0) from repository maven
+  - bar-1.0.pom (org:bar:1.0) from repository maven
+  - foo-1.0-SNAPSHOT.jar (org:foo:1.0-SNAPSHOT) from repository maven
+  - foo-1.0-SNAPSHOT.pom (org:foo:1.0-SNAPSHOT) from repository maven
+If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file. ${docsUrl}""")
+    }
+
+    def "accepts changing dependencies matching verification metadata"() {
+        given:
+        javaLibrary()
+        def foo = uncheckedModule("org", "foo", "1.0-SNAPSHOT") {
+            withNonUniqueSnapshots()
+        }
+        def bar = uncheckedModule("org", "bar")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0-SNAPSHOT"
+                api("org:bar:1.0") {
+                   changing = true
+                }
+            }
+        """
+
+        createMetadataFile {
+            addChecksum(foo, "sha256")
+            addChecksum(foo, "sha256", "pom", "pom")
+            addChecksum(bar, "sha256")
+            addChecksum(bar, "sha256", "pom", "pom")
+        }
+
+        when:
+        succeeds ":compileJava"
 
         then:
         noExceptionThrown()
+    }
+
+    def "verifies checksums for changing dependencies brought in transitively"() {
+        given:
+        javaLibrary()
+        def foo = uncheckedModule("org", "foo", "1.0") {
+            dependsOn("org", "bar", "1.0-SNAPSHOT")
+        }
+        def bar = uncheckedModule("org", "bar", "1.0-SNAPSHOT") {
+            withNonUniqueSnapshots()
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        createMetadataFile {
+            addChecksum(foo, "sha256")
+            addChecksum(foo, "sha256", "pom", "pom")
+            addChecksum(bar, "sha256")
+            addChecksum(bar, "sha256", "pom", "pom")
+        }
+
+        when:
+        succeeds ":compileJava"
+
+        then:
+        noExceptionThrown()
+
+        when:
+        bar.publishWithChangedContent()
+        executer.withArgument("--refresh-dependencies")
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath'
+2 artifacts failed verification:
+  - bar-1.0-SNAPSHOT.jar (org:bar:1.0-SNAPSHOT) from repository maven
+  - bar-1.0-SNAPSHOT.pom (org:bar:1.0-SNAPSHOT) from repository maven
+This can indicate that a dependency has been compromised. Please carefully verify the checksums.""")
+        assertConfigCacheDiscarded()
     }
 
     def "fails verifying the file but not resolution itself if verification metadata fails for #kind"() {

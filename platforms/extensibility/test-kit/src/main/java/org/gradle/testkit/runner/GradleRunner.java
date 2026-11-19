@@ -153,7 +153,15 @@ public abstract class GradleRunner {
      * If no value has been specified when the build is initiated, a directory will be created within a temporary directory.
      * <ul>
      * <li>When executed from a Gradle Test task, the Test task's temporary directory is used (see {@link org.gradle.api.Task#getTemporaryDir()}).</li>
-     * <li>When executed from somewhere else, the system's temporary directory is used (based on {@code java.io.tmpdir}).</li>
+     * <li>When executed from somewhere else, the system's temporary directory is used (based on {@code java.io.tmpdir}).
+     * The directory created there is specific to the current user and only accessible to that user.
+     * If that path already exists, TestKit uses it only when all of the following hold:
+     * <ul>
+     * <li>it is a directory, and not a symbolic link to one</li>
+     * <li>it is owned by the current user</li>
+     * <li>only its owner can write to it</li>
+     * </ul>
+     * Otherwise, TestKit refuses it and the build is not run.</li>
      * </ul>
      * <p>
      * This directory is not deleted by the runner after the test build.

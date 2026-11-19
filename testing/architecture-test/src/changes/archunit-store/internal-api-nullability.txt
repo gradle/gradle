@@ -2295,7 +2295,6 @@ Class <org.gradle.internal.resource.transport.http.ntlm.NTLMSchemeFactory> is no
 Class <org.gradle.internal.resource.transport.sftp.LockableSftpClient> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LockableSftpClient.java:0)
 Class <org.gradle.internal.resource.transport.sftp.SftpClientFactory$DefaultLockableSftpClient> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SftpClientFactory.java:0)
 Class <org.gradle.internal.resource.transport.sftp.SftpClientFactory$SftpClientCreator$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SftpClientFactory.java:0)
-Class <org.gradle.internal.resource.transport.sftp.SftpClientFactory$SftpClientCreator$2> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SftpClientFactory.java:0)
 Class <org.gradle.internal.resource.transport.sftp.SftpClientFactory$SftpClientCreator> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SftpClientFactory.java:0)
 Class <org.gradle.internal.resource.transport.sftp.SftpClientFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SftpClientFactory.java:0)
 Class <org.gradle.internal.resource.transport.sftp.SftpConnectorFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SftpConnectorFactory.java:0)

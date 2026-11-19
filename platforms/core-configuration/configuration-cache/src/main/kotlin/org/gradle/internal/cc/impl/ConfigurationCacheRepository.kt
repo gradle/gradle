@@ -37,7 +37,7 @@ import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 import org.gradle.internal.extensions.stdlib.unsafeLazy
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker
-import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.file.nio.OwnerOnlyFiles
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.time.TimestampSuppliers
@@ -56,8 +56,7 @@ internal
 class ConfigurationCacheRepository(
     cacheBuilderFactory: BuildTreeScopedCacheBuilderFactory,
     private val cacheCleanupStrategyFactory: CacheCleanupStrategyFactory,
-    private val fileAccessTimeJournal: FileAccessTimeJournal,
-    private val fileSystem: FileSystem
+    private val fileAccessTimeJournal: FileAccessTimeJournal
 ) : Stoppable {
 
     fun forKey(cacheKey: String): ConfigurationCacheStateStore {
@@ -176,7 +175,7 @@ class ConfigurationCacheRepository(
             get() = StateFile(stateType, file)
 
         override fun outputStream(): OutputStream =
-            file.also(onFileAccess).outputStream()
+            OwnerOnlyFiles.newOutputStream(file.also(onFileAccess))
 
         override fun inputStream(): InputStream =
             throw UnsupportedOperationException()
@@ -218,12 +217,13 @@ class ConfigurationCacheRepository(
         private val baseDir: File
     ) : ConfigurationCacheStateStore {
         override fun assignSpoolFile(stateType: StateType): StateFile {
-            Files.createDirectories(baseDir.toPath())
+            OwnerOnlyFiles.createDirectory(baseDir)
             val tempFile = Files.createTempFile(baseDir.toPath(), stateType.fileBaseName, ".tmp")
             return StateFile(stateType, tempFile.toFile())
         }
 
         override fun <T> createValueStore(stateType: StateType, writer: ValueStore.Writer<T>, reader: ValueStore.Reader<T>): ValueStore<T> {
+            OwnerOnlyFiles.createDirectory(baseDir)
             return DefaultValueStore(baseDir, stateType.fileBaseName, writer, reader)
         }
 
@@ -244,21 +244,12 @@ class ConfigurationCacheRepository(
         override fun <T> useForStore(action: Layout.() -> T): ConfigurationCacheStateStore.StateAccessResult<T> =
             withExclusiveAccessToCache(baseDir) { cacheDir ->
                 // TODO GlobalCache require(!cacheDir.isDirectory)
-                Files.createDirectories(cacheDir.toPath())
-                chmod(cacheDir, 448) // octal 0700
+                OwnerOnlyFiles.createDirectory(cacheDir)
                 markAccessed(cacheDir)
                 // this needs to be thread-safe as we may have multiple adding threads
                 val stateFiles = Collections.synchronizedList(mutableListOf<File>())
                 val layout = WriteableLayout(cacheDir, stateFiles::add)
-                val actionResult = try {
-                    action(layout)
-                } finally {
-                    stateFiles.asSequence()
-                        .filter(File::isFile)
-                        .forEach {
-                            chmod(it, 384) // octal 0600
-                        }
-                }
+                val actionResult = action(layout)
 
                 ConfigurationCacheStateStore.StateAccessResult(actionResult, stateFiles.toList())
             }
@@ -301,11 +292,6 @@ class ConfigurationCacheRepository(
     private
     val fileAccessTracker by unsafeLazy {
         SingleDepthFileAccessTracker(fileAccessTimeJournal, cache.baseDir, cleanupDepth)
-    }
-
-    private
-    fun chmod(file: File, mode: Int) {
-        fileSystem.chmod(file, mode)
     }
 
     private
