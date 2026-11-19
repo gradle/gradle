@@ -25,7 +25,7 @@ import spock.lang.Issue
  * <p>
  * Such a primary variant is selected when it is the best match. Only the requested attributes decide whether it is a better match
  * than a variant with artifacts, and a transformation of a variant with artifacts is preferred over it unless it matches every requested
- * attribute. Prior to Gradle 10, selecting it requires the {@code CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS} feature preview. Without it,
+ * attribute. Prior to Gradle 11, selecting it requires the {@code CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS} feature preview. Without it,
  * the primary variant is not eligible for selection, and a deprecation warning is emitted when it would be selected.
  */
 @Issue("https://github.com/gradle/gradle/issues/29630")

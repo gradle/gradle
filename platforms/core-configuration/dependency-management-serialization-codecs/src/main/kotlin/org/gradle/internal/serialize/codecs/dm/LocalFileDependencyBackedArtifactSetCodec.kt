@@ -16,6 +16,7 @@
 
 package org.gradle.internal.serialize.codecs.dm
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
@@ -204,6 +205,10 @@ class RecordingVariantSet(
 
     override fun getCandidates(): List<ResolvedVariant> {
         return listOf(this)
+    }
+
+    override fun subset(candidates: ImmutableList<ResolvedVariant>): ResolvedVariantSet {
+        throw UnsupportedOperationException("Should not be called")
     }
 
     override fun getOverriddenAttributes(): ImmutableAttributes {
