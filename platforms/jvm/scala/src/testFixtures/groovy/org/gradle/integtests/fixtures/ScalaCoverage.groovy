@@ -65,8 +65,8 @@ class ScalaCoverage {
         }
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)) {
             // All latest patches of 2.13 work on Java 9+
-            // 2.12 in theory supports it, but doesn't actually take it as a -target so we can't use it
-            return VersionCoverage.versionsAtLeast(SCALA_2, "2.13.0")
+            // 2.12 accepts a Java 9+ target since 2.12.16
+            return VersionCoverage.versionsAtLeast(SCALA_2, "2.12.16")
         }
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_8)) {
             // Java 8 support not dropped yet
