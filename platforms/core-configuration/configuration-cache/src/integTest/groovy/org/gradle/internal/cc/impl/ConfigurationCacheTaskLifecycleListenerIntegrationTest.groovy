@@ -44,4 +44,98 @@ class ConfigurationCacheTaskLifecycleListenerIntegrationTest extends AbstractCon
         where:
         method << ["beforeExecution(Task task)", "afterExecution(Task task, TaskState state)"]
     }
+
+    def "listener on tasks building an included plugin is only notified when the cache entry is stored"() {
+        def configurationCache = newConfigurationCacheFixture()
+        pluginBuildWithListenerOnItsTasks()
+
+        when:
+        configurationCacheRun "foo"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("plugin listener before :compileJava")
+        outputContains("plugin listener before :jar")
+
+        when:
+        configurationCacheRun "foo"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputDoesNotContain("plugin listener before")
+    }
+
+    def "listener on requested tasks of an included plugin build is notified when the cache entry is reused"() {
+        def configurationCache = newConfigurationCacheFixture()
+        pluginBuildWithListenerOnItsTasks()
+
+        when:
+        configurationCacheRun "foo", ":plugin:hello"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("plugin listener before :compileJava")
+        outputContains("plugin listener before :hello\naction of hello")
+
+        when:
+        configurationCacheRun "foo", ":plugin:hello"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputDoesNotContain("plugin listener before :compileJava")
+        outputContains("plugin listener before :hello\naction of hello")
+    }
+
+    private void pluginBuildWithListenerOnItsTasks() {
+        settingsFile("plugin/settings.gradle", """
+            rootProject.name = "plugin"
+        """)
+        buildFile("plugin/build.gradle", """
+            plugins {
+                id("java-gradle-plugin")
+            }
+
+            gradlePlugin {
+                plugins {
+                    fooPlugin {
+                        id = "foo"
+                        implementationClass = "FooPlugin"
+                    }
+                }
+            }
+
+            abstract class PrintingListener implements TaskLifecycleListener<Task> {
+                void beforeExecution(Task task) {
+                    println "plugin listener before \${task.path}"
+                }
+            }
+
+            tasks.addLifecycleListener(PrintingListener)
+
+            tasks.register("hello") {
+                doLast { println "action of hello" }
+            }
+        """)
+        file("plugin/src/main/java/FooPlugin.java") << """
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+
+            public class FooPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    project.getTasks().register("foo");
+                }
+            }
+        """
+        settingsFile """
+            pluginManagement {
+                includeBuild("plugin")
+            }
+        """
+        buildFile """
+            plugins {
+                id("foo")
+            }
+        """
+    }
 }
