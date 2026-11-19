@@ -554,7 +554,7 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/buildService
 === Replacing `taskGraph.beforeTask`, `TaskExecutionListener`, and `TaskActionListener` with a Task Lifecycle Listener incubating-label:[]
 
 An `OperationCompletionListener` receives task events asynchronously, after the task has finished.
-Some use cases need code that runs on the task's thread right before and after the task executes, for example to enrich task failures with task-specific details, to release resources even when the task fails, or to veto a task before it runs.
+Some use cases need code that runs synchronously right before and after the task executes, for example to enrich task failures with task-specific details, to release resources even when the task fails, or to veto a task before it runs.
 
 For these, register a link:{javadocPath}/org/gradle/api/tasks/TaskLifecycleListener.html[`TaskLifecycleListener`] with the task.
 A listener is registered by type, using `Task.addLifecycleListener(Class)` or `TaskCollection.addLifecycleListener(Class)`:
@@ -575,7 +575,7 @@ Only the listener types are stored in the Configuration Cache, and the listeners
 [IMPORTANT]
 ====
 The legacy listeners were notified one task at a time.
-Task lifecycle listeners are called on the thread executing the task, so the listeners of tasks executing in parallel are notified concurrently.
+Task lifecycle listeners are called synchronously as part of the task execution, so the listeners of tasks executing in parallel are notified concurrently.
 When migrating, make sure that state shared between task executions, such as data recorded in a build service, is thread-safe.
 ====
 

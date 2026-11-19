@@ -76,7 +76,7 @@ Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that
 #### Configuration Cache-compatible task lifecycle listeners
 
 This release introduces [`TaskLifecycleListener`](javadoc/org/gradle/api/tasks/TaskLifecycleListener.html), a Configuration Cache-compatible replacement for `TaskExecutionListener`, `TaskActionListener`, and `gradle.taskGraph.beforeTask`/`afterTask`.
-`OperationCompletionListener` already replaces these for observing task results, but some use cases need code that runs on the task's thread right before and after the task executes: enriching task failures with task-specific details, releasing resources even when the task fails, or vetoing a task before it runs.
+`OperationCompletionListener` already replaces these for observing task results, but some use cases need code that runs synchronously right before and after the task executes: enriching task failures with task-specific details, releasing resources even when the task fails, or vetoing a task before it runs.
 
 A listener is a class registered with a task by type.
 Gradle creates a new instance of it for each task execution, so instance fields can carry state from `beforeExecution` to `afterExecution`:

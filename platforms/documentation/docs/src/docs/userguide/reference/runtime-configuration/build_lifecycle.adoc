@@ -490,7 +490,7 @@ BUILD SUCCESSFUL in 0s
 [[task_lifecycle_listeners]]
 === Task Lifecycle Listeners incubating-label:[]
 
-A link:{javadocPath}/org/gradle/api/tasks/TaskLifecycleListener.html[`TaskLifecycleListener`] runs code on the task's thread right before and after a single task executes.
+A link:{javadocPath}/org/gradle/api/tasks/TaskLifecycleListener.html[`TaskLifecycleListener`] runs code synchronously right before and after a single task executes.
 Use it to enrich task failures with task-specific details, to release resources even when the task fails, or to veto a task before it runs.
 Task lifecycle listeners are compatible with the <<configuration_cache.adoc#config_cache,Configuration Cache>>.
 
@@ -535,7 +535,7 @@ Registering the same listener type with a task more than once has no effect.
 ==== When listeners are called
 
 Gradle calls the listeners of every task that it tries to execute, including tasks that are up-to-date, skipped, or loaded from the build cache.
-Both methods run on the thread executing the task, so the listeners of tasks executing in parallel are called concurrently.
+Both methods run synchronously as part of the task execution, so the listeners of tasks executing in parallel are called concurrently.
 `beforeExecution` is called in the order the listeners were registered, and `afterExecution` in the reverse order, so the listener registered first is notified first before the task executes and last after it.
 
 `beforeExecution` runs before Gradle snapshots the task inputs and performs up-to-date and build cache checks:

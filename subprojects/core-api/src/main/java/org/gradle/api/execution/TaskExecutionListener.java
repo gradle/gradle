@@ -32,7 +32,7 @@ import org.gradle.internal.service.scopes.Scope;
  * use a {@link org.gradle.api.services.BuildService BuildService} that
  * implements {@link org.gradle.tooling.events.OperationCompletionListener}
  * and register it via {@link org.gradle.build.event.BuildEventsListenerRegistry}.
- * To run code on the task's thread right before and after it executes,
+ * To run code synchronously right before and after it executes,
  * use a {@link org.gradle.api.tasks.TaskLifecycleListener}.
  *
  * @see org.gradle.api.tasks.TaskLifecycleListener
