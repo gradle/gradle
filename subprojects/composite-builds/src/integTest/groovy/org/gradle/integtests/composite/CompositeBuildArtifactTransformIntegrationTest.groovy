@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
-
 class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
     def "can apply a transform to the outputs of included builds"() {
@@ -82,16 +80,17 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
         output.count("Transforming") == 2
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "cross-build dependency with transform in another build"() {
         given:
         def buildB = multiProjectBuild('buildB', ['app', 'lib'])
-        buildB.buildFile << """
+        buildFile(buildB.file("lib/build.gradle"), """
+            apply plugin: "java-library"
+        """)
+        buildFile(buildB.file("app/build.gradle"), """
             import org.gradle.api.artifacts.transform.TransformParameters
 
-            subprojects {
-                apply plugin: "java-library"
-            }
+            apply plugin: "java-library"
+
             abstract class FileSizer implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -103,22 +102,20 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
                 }
             }
             def artifactType = Attribute.of('artifactType', String)
-            project(':app') {
-                dependencies {
-                    implementation(project(':lib'))
-                    registerTransform(FileSizer) {
-                        from.attribute(artifactType, 'jar')
-                        to.attribute(artifactType, 'size')
-                    }
-                }
-                task resolve(type: Copy) {
-                    from configurations.runtimeClasspath.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts.artifactFiles
-                    into "\$buildDir/libs"
+            dependencies {
+                implementation(project(':lib'))
+                registerTransform(FileSizer) {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'size')
                 }
             }
-        """
+            task resolve(type: Copy) {
+                from configurations.runtimeClasspath.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts.artifactFiles
+                into "\$buildDir/libs"
+            }
+        """)
         includedBuilds << buildB
 
         buildA.buildFile << """

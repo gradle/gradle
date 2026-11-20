@@ -18,11 +18,14 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ProjectDirectoryCreator
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.util.internal.ToBeImplemented
 
-@ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
 class ArtifactTransformContinuousBuildIntegrationTest extends AbstractContinuousIntegrationTest implements ArtifactTransformTestFixture, ProjectDirectoryCreator {
+
+    @Override
+    boolean isTransformsInBuildSrc() {
+        true
+    }
 
     def setup() {
         requireOwnGradleUserHomeDir()
@@ -62,24 +65,22 @@ class ArtifactTransformContinuousBuildIntegrationTest extends AbstractContinuous
             }
         """
 
-        buildFile << """
-            allprojects { p ->
-                dependencies {
-                    registerTransform(MakeGreen) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'green')
-                        parameters {
-                            inputFiles.from(project.file("input/input.txt"))
-                        }
+        configureEachProject("""
+            dependencies {
+                registerTransform(MakeGreen) {
+                    from.attribute(color, 'blue')
+                    to.attribute(color, 'green')
+                    parameters {
+                        inputFiles.from(project.file("input/input.txt"))
                     }
                 }
             }
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
-                }
+        """)
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
             }
-        """
+        """)
 
         def producerInputFile = file("producer/input/input.txt")
         producerInputFile.text = "input"

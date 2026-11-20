@@ -21,8 +21,8 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.file.FileType
 import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType
@@ -39,6 +39,14 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
             rootProject.name = 'root'
             include 'lib'
             include 'app'
+
+            gradle.lifecycle.beforeProject { project ->
+                def usage = Attribute.of('usage', String)
+                project.dependencies.attributesSchema.attribute(usage)
+                project.configurations.create('compile') {
+                    attributes.attribute(usage, 'api')
+                }
+            }
         """
 
         buildFile << """
@@ -47,20 +55,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
             def usage = Attribute.of('usage', String)
             def artifactType = Attribute.of('artifactType', String)
             def extraAttribute = Attribute.of('extra', String)
-
-            allprojects {
-
-                dependencies {
-                    attributesSchema {
-                        attribute(usage)
-                    }
-                }
-                configurations {
-                    compile {
-                        attributes { attribute usage, 'api' }
-                    }
-                }
-            }
 
             $fileSizer
         """
@@ -94,7 +88,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         """
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "applies transforms to artifacts for external dependencies matching on implicit format attribute"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -139,7 +132,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "does not apply transforms to optional artifacts that do not exist"() {
         // A component with pom packaging may or may not have a jar. The jar is an optional artifact.
         def m1 = mavenHttpRepo.module("org", "a").hasPackaging("pom").publishPom()
@@ -184,7 +176,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "can use transformations in build script dependencies"() {
         file("buildSrc/src/main/groovy/FileSizer.groovy") << fileSizer
 
@@ -225,7 +216,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming commons-math3-3.6.1.jar to commons-math3-3.6.1.jar.txt") == 1
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "applies transforms to files from file dependencies matching on implicit format attribute"() {
         given:
         buildFile << """
@@ -273,34 +263,33 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "applies transforms to artifacts from local projects matching on implicit format attribute"() {
         given:
-        buildFile << """
-            project(':lib') {
-                task jar1(type: Jar) {
-                    destinationDirectory = buildDir
-                    archiveFileName = 'lib1.jar'
-                }
-                task jar2(type: Jar) {
-                    destinationDirectory = buildDir
-                    archiveFileName = 'lib2.jar'
-                }
-
-                artifacts {
-                    compile tasks.jar1, tasks.jar2
-                }
+        buildFile("lib/build.gradle", """
+            task jar1(type: Jar) {
+                destinationDirectory = buildDir
+                archiveFileName = 'lib1.jar'
+            }
+            task jar2(type: Jar) {
+                destinationDirectory = buildDir
+                archiveFileName = 'lib2.jar'
             }
 
-            project(':app') {
-
-                dependencies {
-                    compile project(':lib')
-                }
-
-                ${configurationAndTransform('FileSizer')}
+            artifacts {
+                compile tasks.jar1, tasks.jar2
             }
-        """
+        """)
+        buildFile("app/build.gradle", """
+            def artifactType = Attribute.of('artifactType', String)
+
+            dependencies {
+                compile project(':lib')
+            }
+
+            ${configurationAndTransform('FileSizer')}
+
+            $fileSizer
+        """)
 
         when:
         run "resolve"
@@ -332,74 +321,74 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "can map artifact extension to implicit attributes"() {
         given:
         createDirs("app2")
         settingsFile << """
             include 'app2'
         """
-        taskTypeWithOutputFileProperty()
-        taskTypeLogsArtifactCollectionDetails()
-        buildFile << """
+        taskTypeWithOutputFileProperty(file("lib/build.gradle"))
+        taskTypeLogsArtifactCollectionDetails(file("app/build.gradle"))
+        taskTypeLogsArtifactCollectionDetails(file("app2/build.gradle"))
+        buildFile("lib/build.gradle", """
+            task blueThing(type: FileProducer) {
+                output = layout.buildDir.file('lib.blue')
+            }
+
+            artifacts {
+                compile tasks.blueThing.output
+            }
+        """)
+        buildFile("app/build.gradle", """
             def contents = Attribute.of('contents', String)
 
-            project(':lib') {
-                task blueThing(type: FileProducer) {
-                    output = layout.buildDir.file('lib.blue')
-                }
+            dependencies {
+                compile project(':lib')
+            }
 
-                artifacts {
-                    compile tasks.blueThing.output
+            dependencies {
+                artifactTypes {
+                    blue {
+                        attributes.attribute(contents, 'size')
+                    }
                 }
             }
 
-            project(':app') {
+            task resolve(type: ShowArtifactCollection) {
+                collection = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(contents, 'size') }
+                }.artifacts
+            }
+        """)
+        buildFile("app2/build.gradle", """
+            def contents = Attribute.of('contents', String)
+            def artifactType = Attribute.of('artifactType', String)
 
-                dependencies {
-                    compile project(':lib')
-                }
+            dependencies {
+                compile project(':lib')
+            }
 
-                dependencies {
-                    artifactTypes {
-                        blue {
-                            attributes.attribute(contents, 'size')
-                        }
+            dependencies {
+                artifactTypes {
+                    blue {
+                        // Intentionally use different attributes in app2 vs app's artifactType registry
+                        attributes.attribute(contents, 'bin')
                     }
                 }
-
-                task resolve(type: ShowArtifactCollection) {
-                    collection = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(contents, 'size') }
-                    }.artifacts
+                registerTransform(FileSizer) {
+                    from.attribute(contents, 'bin')
+                    to.attribute(contents, 'size')
                 }
             }
-            project(':app2') {
 
-                dependencies {
-                    compile project(':lib')
-                }
-
-                dependencies {
-                    artifactTypes {
-                        blue {
-                            // Intentionally use different attributes in app2 vs app's artifactType registry
-                            attributes.attribute(contents, 'bin')
-                        }
-                    }
-                    registerTransform(FileSizer) {
-                        from.attribute(contents, 'bin')
-                        to.attribute(contents, 'size')
-                    }
-                }
-
-                task resolve(type: ShowArtifactCollection) {
-                    collection = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(contents, 'size') }
-                    }.artifacts
-                }
+            task resolve(type: ShowArtifactCollection) {
+                collection = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(contents, 'size') }
+                }.artifacts
             }
-        """
+
+            $fileSizer
+        """)
 
         when:
         run "resolve"
@@ -434,7 +423,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "applies transforms to artifacts from local projects, files and external dependencies"() {
         def dependency = mavenRepo.module("test", "test-dependency", "1.3").publish()
         dependency.artifactFile.text = "dependency"
@@ -446,54 +434,59 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         """
 
         given:
-        buildFile << """
-            allprojects {
-                repositories {
-                    maven { url = "${mavenRepo.uri}" }
-                }
+        buildFile("common/build.gradle", """
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
             }
 
-            project(':common') {
-                task jar(type: Jar) {
-                    destinationDirectory = buildDir
-                    archiveFileName = 'common.jar'
-                }
-                artifacts {
-                    compile tasks.jar
-                    compile file("common-file.jar")
-                }
+            task jar(type: Jar) {
+                destinationDirectory = buildDir
+                archiveFileName = 'common.jar'
+            }
+            artifacts {
+                compile tasks.jar
+                compile file("common-file.jar")
+            }
+        """)
+        buildFile("lib/build.gradle", """
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
             }
 
-            project(':lib') {
-                task jar1(type: Jar) {
-                    destinationDirectory = buildDir
-                    archiveFileName = 'lib1.jar'
-                }
-                task jar2(type: Jar) {
-                    destinationDirectory = buildDir
-                    archiveFileName = 'lib2.jar'
-                }
-
-                dependencies {
-                    compile "${binaryDependency.groupId}:${binaryDependency.artifactId}:${binaryDependency.version}"
-                    compile project(":common")
-                    compile files("file1.jar")
-                }
-
-                artifacts {
-                    compile tasks.jar1, tasks.jar2
-                }
+            task jar1(type: Jar) {
+                destinationDirectory = buildDir
+                archiveFileName = 'lib1.jar'
+            }
+            task jar2(type: Jar) {
+                destinationDirectory = buildDir
+                archiveFileName = 'lib2.jar'
             }
 
-            project(':app') {
-
-                dependencies {
-                    compile project(':lib')
-                }
-
-                ${configurationAndTransform('FileSizer')}
+            dependencies {
+                compile "${binaryDependency.groupId}:${binaryDependency.artifactId}:${binaryDependency.version}"
+                compile project(":common")
+                compile files("file1.jar")
             }
-        """
+
+            artifacts {
+                compile tasks.jar1, tasks.jar2
+            }
+        """)
+        buildFile("app/build.gradle", """
+            def artifactType = Attribute.of('artifactType', String)
+
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                compile project(':lib')
+            }
+
+            ${configurationAndTransform('FileSizer')}
+
+            $fileSizer
+        """)
         file("lib/file1.jar").text = "first"
         file("common/common-file.jar").text = "first"
 
@@ -516,40 +509,39 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 7
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "applies transforms to artifacts from local projects matching on explicit format attribute"() {
         given:
-        buildFile << """
-            project(':lib') {
-                task jar1(type: Jar) {
-                    destinationDirectory = buildDir
-                    archiveFileName = 'lib1.jar'
-                }
-                task zip1(type: Zip) {
-                    destinationDirectory = buildDir
-                    archiveFileName = 'lib2.zip'
-                }
+        buildFile("lib/build.gradle", """
+            task jar1(type: Jar) {
+                destinationDirectory = buildDir
+                archiveFileName = 'lib1.jar'
+            }
+            task zip1(type: Zip) {
+                destinationDirectory = buildDir
+                archiveFileName = 'lib2.zip'
+            }
 
-                configurations {
-                    compile.outgoing.variants {
-                        files {
-                            attributes.attribute(Attribute.of('artifactType', String), 'jar')
-                            artifact tasks.jar1
-                            artifact tasks.zip1
-                        }
+            configurations {
+                compile.outgoing.variants {
+                    files {
+                        attributes.attribute(Attribute.of('artifactType', String), 'jar')
+                        artifact tasks.jar1
+                        artifact tasks.zip1
                     }
                 }
             }
+        """)
+        buildFile("app/build.gradle", """
+            def artifactType = Attribute.of('artifactType', String)
 
-            project(':app') {
-
-                dependencies {
-                    compile project(':lib')
-                }
-
-                ${configurationAndTransform('FileSizer')}
+            dependencies {
+                compile project(':lib')
             }
-        """
+
+            ${configurationAndTransform('FileSizer')}
+
+            $fileSizer
+        """)
 
         when:
         run "resolve"
@@ -574,34 +566,34 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "does not apply transform to variants with requested implicit format attribute"() {
         given:
-        buildFile << """
-            project(':lib') {
-                projectDir.mkdirs()
-                def file1 = file('lib1.size')
-                file1.text = 'some text'
-                def file2 = file('lib2.size')
-                file2.text = 'some text'
-                def jar1 = file('lib1.jar')
-                jar1.text = 'some text'
+        buildFile("lib/build.gradle", """
+            projectDir.mkdirs()
+            def file1 = file('lib1.size')
+            file1.text = 'some text'
+            def file2 = file('lib2.size')
+            file2.text = 'some text'
+            def jar1 = file('lib1.jar')
+            jar1.text = 'some text'
 
-                dependencies {
-                    compile files(file1, jar1)
-                }
-                artifacts {
-                    compile file2
-                }
+            dependencies {
+                compile files(file1, jar1)
             }
+            artifacts {
+                compile file2
+            }
+        """)
+        buildFile("app/build.gradle", """
+            def artifactType = Attribute.of('artifactType', String)
 
-            project(':app') {
-                dependencies {
-                    compile project(':lib')
-                }
-                ${configurationAndTransform('FileSizer')}
+            dependencies {
+                compile project(':lib')
             }
-        """
+            ${configurationAndTransform('FileSizer')}
+
+            $fileSizer
+        """)
 
         when:
         run "resolve"
@@ -624,40 +616,39 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "does not apply transforms to artifacts from local projects matching requested format attribute"() {
         given:
-        buildFile << """
-            project(':lib') {
-                task jar1(type: Jar) {
-                    destinationDirectory = buildDir
-                    archiveFileName = 'lib1.jar'
-                }
-                task jar2(type: Jar) {
-                    destinationDirectory = buildDir
-                    archiveFileName = 'lib2.zip'
-                }
+        buildFile("lib/build.gradle", """
+            task jar1(type: Jar) {
+                destinationDirectory = buildDir
+                archiveFileName = 'lib1.jar'
+            }
+            task jar2(type: Jar) {
+                destinationDirectory = buildDir
+                archiveFileName = 'lib2.zip'
+            }
 
-                configurations {
-                    compile.outgoing.variants {
-                        files {
-                            attributes.attribute(Attribute.of('artifactType', String), 'size')
-                            artifact tasks.jar1
-                            artifact tasks.jar2
-                        }
+            configurations {
+                compile.outgoing.variants {
+                    files {
+                        attributes.attribute(Attribute.of('artifactType', String), 'size')
+                        artifact tasks.jar1
+                        artifact tasks.jar2
                     }
                 }
             }
+        """)
+        buildFile("app/build.gradle", """
+            def artifactType = Attribute.of('artifactType', String)
 
-            project(':app') {
-
-                dependencies {
-                    compile project(':lib')
-                }
-
-                ${configurationAndTransform('FileSizer')}
+            dependencies {
+                compile project(':lib')
             }
-        """
+
+            ${configurationAndTransform('FileSizer')}
+
+            $fileSizer
+        """)
 
         when:
         run "resolve"
@@ -675,70 +666,74 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "applies transforms to artifacts from local projects matching on some variant attributes"() {
         given:
-        buildFile << """
-            allprojects {
-                dependencies {
-                    attributesSchema {
-                        attribute(Attribute.of('javaVersion', String))
-                        attribute(Attribute.of('color', String))
-                    }
+        buildFile("lib/build.gradle", """
+            dependencies {
+                attributesSchema {
+                    attribute(Attribute.of('javaVersion', String))
+                    attribute(Attribute.of('color', String))
                 }
             }
 
-            project(':lib') {
-                task jar1(type: Jar) {
-                    destinationDirectory = buildDir
-                    archiveFileName = 'lib1.jar'
-                }
-                task jar2(type: Zip) {
-                    destinationDirectory = buildDir
-                    archiveFileName = 'lib2.jar'
-                }
+            task jar1(type: Jar) {
+                destinationDirectory = buildDir
+                archiveFileName = 'lib1.jar'
+            }
+            task jar2(type: Zip) {
+                destinationDirectory = buildDir
+                archiveFileName = 'lib2.jar'
+            }
 
-                configurations {
-                    compile.outgoing.variants {
-                        java7 {
-                            attributes.attribute(Attribute.of('javaVersion', String), '7')
-                            attributes.attribute(Attribute.of('color', String), 'green')
-                            artifact tasks.jar1
-                        }
-                        java8 {
-                            attributes.attribute(Attribute.of('javaVersion', String), '8')
-                            attributes.attribute(Attribute.of('color', String), 'red')
-                            artifact tasks.jar2
-                        }
+            configurations {
+                compile.outgoing.variants {
+                    java7 {
+                        attributes.attribute(Attribute.of('javaVersion', String), '7')
+                        attributes.attribute(Attribute.of('color', String), 'green')
+                        artifact tasks.jar1
+                    }
+                    java8 {
+                        attributes.attribute(Attribute.of('javaVersion', String), '8')
+                        attributes.attribute(Attribute.of('color', String), 'red')
+                        artifact tasks.jar2
                     }
                 }
             }
+        """)
+        buildFile("app/build.gradle", """
+            import org.gradle.api.artifacts.transform.TransformParameters
 
-            project(':app') {
+            def artifactType = Attribute.of('artifactType', String)
 
-                dependencies {
-                    compile project(':lib')
-
-                    registerTransform(MakeRedThings) {
-                        from.attribute(Attribute.of('color', String), "green")
-                        to.attribute(Attribute.of('color', String), "red")
-                    }
+            dependencies {
+                attributesSchema {
+                    attribute(Attribute.of('javaVersion', String))
+                    attribute(Attribute.of('color', String))
                 }
+            }
 
-                task resolve(type: Copy) {
-                    def artifacts = configurations.compile.incoming.artifactView {
-                        attributes {
-                            it.attribute(artifactType, 'jar')
-                            it.attribute(Attribute.of('javaVersion', String), '7')
-                            it.attribute(Attribute.of('color', String), 'red')
-                        }
-                    }.artifacts
-                    from artifacts.artifactFiles
-                    into "\${buildDir}/libs"
-                    doLast {
-                        println "files: " + artifacts.collect { it.file.name }
-                        println "variants: " + artifacts.collect { it.variant.attributes }
+            dependencies {
+                compile project(':lib')
+
+                registerTransform(MakeRedThings) {
+                    from.attribute(Attribute.of('color', String), "green")
+                    to.attribute(Attribute.of('color', String), "red")
+                }
+            }
+
+            task resolve(type: Copy) {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes {
+                        it.attribute(artifactType, 'jar')
+                        it.attribute(Attribute.of('javaVersion', String), '7')
+                        it.attribute(Attribute.of('color', String), 'red')
                     }
+                }.artifacts
+                from artifacts.artifactFiles
+                into "\${buildDir}/libs"
+                doLast {
+                    println "files: " + artifacts.collect { it.file.name }
+                    println "variants: " + artifacts.collect { it.variant.attributes }
                 }
             }
 
@@ -754,7 +749,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     output.text = String.valueOf(input.length())
                 }
             }
-        """
+        """)
 
         when:
         run "resolve"
@@ -780,77 +775,81 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "applies chain of transforms to artifacts from local projects matching on some variant attributes"() {
         given:
-        buildFile << """
-            allprojects {
-                dependencies {
-                    attributesSchema {
-                        attribute(Attribute.of('javaVersion', String))
-                        attribute(Attribute.of('color', String))
-                    }
+        buildFile("lib/build.gradle", """
+            dependencies {
+                attributesSchema {
+                    attribute(Attribute.of('javaVersion', String))
+                    attribute(Attribute.of('color', String))
                 }
             }
 
-            project(':lib') {
-                task jar1(type: Jar) {
-                    destinationDirectory = buildDir
-                    archiveFileName = 'lib1.jar'
-                }
-                task jar2(type: Zip) {
-                    destinationDirectory = buildDir
-                    archiveFileName = 'lib2.jar'
-                }
+            task jar1(type: Jar) {
+                destinationDirectory = buildDir
+                archiveFileName = 'lib1.jar'
+            }
+            task jar2(type: Zip) {
+                destinationDirectory = buildDir
+                archiveFileName = 'lib2.jar'
+            }
 
-                configurations {
-                    compile.outgoing.variants {
-                        java7 {
-                            attributes.attribute(Attribute.of('javaVersion', String), '7')
-                            attributes.attribute(Attribute.of('color', String), 'green')
-                            artifact tasks.jar1
-                        }
-                        java8 {
-                            attributes.attribute(Attribute.of('javaVersion', String), '8')
-                            attributes.attribute(Attribute.of('color', String), 'red')
-                            artifact tasks.jar2
-                        }
+            configurations {
+                compile.outgoing.variants {
+                    java7 {
+                        attributes.attribute(Attribute.of('javaVersion', String), '7')
+                        attributes.attribute(Attribute.of('color', String), 'green')
+                        artifact tasks.jar1
+                    }
+                    java8 {
+                        attributes.attribute(Attribute.of('javaVersion', String), '8')
+                        attributes.attribute(Attribute.of('color', String), 'red')
+                        artifact tasks.jar2
                     }
                 }
             }
+        """)
+        buildFile("app/build.gradle", """
+            import org.gradle.api.artifacts.transform.TransformParameters
 
-            project(':app') {
+            def artifactType = Attribute.of('artifactType', String)
 
-                dependencies {
-                    compile project(':lib')
-
-                    registerTransform(MakeBlueToRedThings) {
-                        from.attribute(Attribute.of('color', String), "blue")
-                        to.attribute(Attribute.of('color', String), "red")
-                    }
-                    registerTransform(MakeGreenToBlueThings) {
-                        from.attribute(Attribute.of('color', String), "green")
-                        to.attribute(Attribute.of('color', String), "blue")
-                    }
+            dependencies {
+                attributesSchema {
+                    attribute(Attribute.of('javaVersion', String))
+                    attribute(Attribute.of('color', String))
                 }
+            }
 
-                task resolve(type: Copy) {
-                    def artifacts = configurations.compile.incoming.artifactView {
-                        attributes {
-                            it.attribute(artifactType, 'jar')
-                            it.attribute(Attribute.of('javaVersion', String), '7')
-                            it.attribute(Attribute.of('color', String), 'red')
-                        }
-                    }.artifacts
-                    from artifacts.artifactFiles
-                    into "\${buildDir}/libs"
-                    doLast {
-                         println "ids: " + artifacts.collect { it.id.displayName }
-                        println "files: " + artifacts.collect { it.file.name }
-                        println "variants: " + artifacts.collect { it.variant.attributes }
-                        println "artifacts: " + artifacts.collect { it.file.name + " (" + it.id.componentIdentifier + ")" }
-                        println "components: " + artifacts.collect { it.id.componentIdentifier }
+            dependencies {
+                compile project(':lib')
+
+                registerTransform(MakeBlueToRedThings) {
+                    from.attribute(Attribute.of('color', String), "blue")
+                    to.attribute(Attribute.of('color', String), "red")
+                }
+                registerTransform(MakeGreenToBlueThings) {
+                    from.attribute(Attribute.of('color', String), "green")
+                    to.attribute(Attribute.of('color', String), "blue")
+                }
+            }
+
+            task resolve(type: Copy) {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes {
+                        it.attribute(artifactType, 'jar')
+                        it.attribute(Attribute.of('javaVersion', String), '7')
+                        it.attribute(Attribute.of('color', String), 'red')
                     }
+                }.artifacts
+                from artifacts.artifactFiles
+                into "\${buildDir}/libs"
+                doLast {
+                     println "ids: " + artifacts.collect { it.id.displayName }
+                    println "files: " + artifacts.collect { it.file.name }
+                    println "variants: " + artifacts.collect { it.variant.attributes }
+                    println "artifacts: " + artifacts.collect { it.file.name + " (" + it.id.componentIdentifier + ")" }
+                    println "components: " + artifacts.collect { it.id.componentIdentifier }
                 }
             }
 
@@ -881,7 +880,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     output.text = String.valueOf(input.length())
                 }
             }
-        """
+        """)
 
         when:
         run "resolve"
@@ -912,9 +911,14 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transforms can be applied to multiple files with the same name"() {
         given:
+        buildFile("lib/build.gradle", """
+            def f2 = file("lib.jar")
+            f2.parentFile.mkdirs()
+            f2.text = "123"
+            artifacts { compile f2 }
+        """)
         buildFile << """
             def f = file("lib.jar")
             f.text = "1234"
@@ -922,12 +926,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
             dependencies {
                 compile files(f)
                 compile project(':lib')
-            }
-            project(':lib') {
-                def f2 = file("lib.jar")
-                f2.parentFile.mkdirs()
-                f2.text = "123"
-                artifacts { compile f2 }
             }
 
             dependencies {
@@ -974,7 +972,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can register the input as an output"() {
         buildFile << """
             def f = file("lib.jar")
@@ -1021,7 +1018,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
     }
 
     @Issue("https://github.com/gradle/gradle/issues/16962")
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transforms registering the input as an output can use normalization"() {
         file("input1.jar").text = "jar"
         file("input2.jar").text = "jar"
@@ -1092,7 +1088,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22735")
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform selection prioritizes shorter transforms over attribute schema matching"() {
 
         // The lib project defines two variants:
@@ -1118,29 +1113,66 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         // Both of these potential transforms are compatible, except (1) has a favorable attribute set
         // with respect to the attribute schema. However, we want to choose (2) since it is the shorter chain.
 
-        buildFile << """
-            project(':lib') {
-                task jar(type: Jar) {
-                    destinationDirectory = buildDir
-                    archiveFileName = 'lib.jar'
-                }
+        buildFile("lib/build.gradle", """
+            def artifactType = Attribute.of('artifactType', String)
+            def extraAttribute = Attribute.of('extra', String)
 
-                configurations.compile.outgoing.variants{
-                    primary {
-                        attributes {
-                            attribute(artifactType, "jar")
-                            attribute(extraAttribute, "preferred")
-                        }
-                        artifact tasks.jar
+            task jar(type: Jar) {
+                destinationDirectory = buildDir
+                archiveFileName = 'lib.jar'
+            }
+
+            configurations.compile.outgoing.variants{
+                primary {
+                    attributes {
+                        attribute(artifactType, "jar")
+                        attribute(extraAttribute, "preferred")
                     }
-                    secondary {
-                        attributes {
-                            attribute(artifactType, "intermediate")
-                        }
-                        artifact tasks.jar
+                    artifact tasks.jar
+                }
+                secondary {
+                    attributes {
+                        attribute(artifactType, "intermediate")
                     }
+                    artifact tasks.jar
                 }
             }
+        """)
+        buildFile("app/build.gradle", """
+            def artifactType = Attribute.of('artifactType', String)
+            def extraAttribute = Attribute.of('extra', String)
+
+            dependencies {
+                compile project(':lib')
+
+                attributesSchema {
+                    attribute(extraAttribute).disambiguationRules.add(DefaultingDisambiguationRule)
+                }
+
+                registerTransform(FileSizer) { reg ->
+                    reg.getFrom().attribute(artifactType, "jar")
+                    reg.getTo().attribute(artifactType, "intermediate")
+                }
+
+                registerTransform(FileSizer) { reg ->
+                    reg.getFrom().attribute(artifactType, "intermediate")
+                    reg.getTo().attribute(artifactType, "final")
+                }
+            }
+
+            task resolve {
+                def artifactFiles = configurations.compile.incoming.artifactView { config ->
+                    config.attributes {
+                        attribute(artifactType, "final")
+                    }
+                }.files
+                inputs.files(artifactFiles)
+                doLast {
+                    println "files: " + artifactFiles.files.collect { it.name }
+                }
+            }
+
+            $fileSizer
 
             // Provides a default value of `preferred` if a given attribute is not requested.
             abstract class DefaultingDisambiguationRule implements AttributeDisambiguationRule<String> {
@@ -1161,39 +1193,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     }
                 }
             }
-
-            project(':app') {
-                dependencies {
-                    compile project(':lib')
-
-                    attributesSchema {
-                        attribute(extraAttribute).disambiguationRules.add(DefaultingDisambiguationRule)
-                    }
-
-                    registerTransform(FileSizer) { reg ->
-                        reg.getFrom().attribute(artifactType, "jar")
-                        reg.getTo().attribute(artifactType, "intermediate")
-                    }
-
-                    registerTransform(FileSizer) { reg ->
-                        reg.getFrom().attribute(artifactType, "intermediate")
-                        reg.getTo().attribute(artifactType, "final")
-                    }
-                }
-
-                task resolve {
-                    def artifactFiles = configurations.compile.incoming.artifactView { config ->
-                        config.attributes {
-                            attribute(artifactType, "final")
-                        }
-                    }.files
-                    inputs.files(artifactFiles)
-                    doLast {
-                        println "files: " + artifactFiles.files.collect { it.name }
-                    }
-                }
-            }
-        """
+        """)
 
         when:
         succeeds ":app:resolve"
@@ -1204,7 +1204,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         outputContains("files: [lib.jar.txt]")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can generate multiple output files for a single input"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -1253,7 +1252,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can generate an empty output"() {
         mavenRepo.module("test", "test", "1.3").publish()
         mavenRepo.module("test", "test2", "2.3").publish()
@@ -1299,49 +1297,50 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user receives reasonable error message when multiple transforms are available to produce requested variant"() {
         given:
-        buildFile << """
-            project(':lib') {
-                task jar1(type: Jar) {
-                    destinationDirectory = buildDir
-                    archiveBaseName = 'a'
-                    archiveExtension = 'custom'
-                }
+        buildFile("lib/build.gradle", """
+            task jar1(type: Jar) {
+                destinationDirectory = buildDir
+                archiveBaseName = 'a'
+                archiveExtension = 'custom'
+            }
 
-                artifacts {
-                    compile(tasks.jar1)
+            artifacts {
+                compile(tasks.jar1)
+            }
+        """)
+        buildFile("app/build.gradle", """
+            import org.gradle.api.artifacts.transform.TransformParameters
+
+            def artifactType = Attribute.of('artifactType', String)
+            def extraAttribute = Attribute.of('extra', String)
+
+            dependencies {
+                compile project(':lib')
+            }
+
+            dependencies {
+                registerTransform(BrokenTransform) {
+                    from.attribute(artifactType, 'custom')
+                    to.attribute(artifactType, 'transformed')
+                    from.attribute(extraAttribute, 'foo')
+                    to.attribute(extraAttribute, 'bar')
+                }
+                registerTransform(BrokenTransform) {
+                    from.attribute(artifactType, 'custom')
+                    to.attribute(artifactType, 'transformed')
+                    from.attribute(extraAttribute, 'foo')
+                    to.attribute(extraAttribute, 'baz')
                 }
             }
 
-            project(':app') {
-                dependencies {
-                    compile project(':lib')
-                }
-
-                dependencies {
-                    registerTransform(BrokenTransform) {
-                        from.attribute(artifactType, 'custom')
-                        to.attribute(artifactType, 'transformed')
-                        from.attribute(extraAttribute, 'foo')
-                        to.attribute(extraAttribute, 'bar')
-                    }
-                    registerTransform(BrokenTransform) {
-                        from.attribute(artifactType, 'custom')
-                        to.attribute(artifactType, 'transformed')
-                        from.attribute(extraAttribute, 'foo')
-                        to.attribute(extraAttribute, 'baz')
-                    }
-                }
-
-                task resolve(type: Copy) {
-                    def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute (artifactType, 'transformed') }
-                    }.artifacts
-                    from artifacts.artifactFiles
-                    into "\${buildDir}/libs"
-                }
+            task resolve(type: Copy) {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute (artifactType, 'transformed') }
+                }.artifacts
+                from artifacts.artifactFiles
+                into "\${buildDir}/libs"
             }
 
             abstract class BrokenTransform implements TransformAction<TransformParameters.None> {
@@ -1349,7 +1348,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     throw new AssertionError("should not be used")
                 }
             }
-        """
+        """)
 
         when:
         fails "resolve"
@@ -1382,71 +1381,75 @@ Found the following transformation chains:
                       - extra 'baz'"""
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user receives reasonable error message when multiple variants can be transformed to produce requested variant"() {
         given:
-        buildFile << """
+        buildFile("lib/build.gradle", """
             def buildType = Attribute.of("buildType", String)
             def flavor = Attribute.of("flavor", String)
-            allprojects {
-                dependencies.attributesSchema.attribute(buildType)
-                dependencies.attributesSchema.attribute(flavor)
+
+            dependencies.attributesSchema.attribute(buildType)
+            dependencies.attributesSchema.attribute(flavor)
+
+            task jar1(type: Jar) {
+                destinationDirectory = buildDir
+                archiveFileName = 'lib1.jar'
             }
 
-            project(':lib') {
-                task jar1(type: Jar) {
-                    destinationDirectory = buildDir
-                    archiveFileName = 'lib1.jar'
-                }
-
-                configurations {
-                    compile.outgoing.variants {
-                        variant1 {
-                            attributes.attribute(buildType, 'release')
-                            attributes.attribute(flavor, 'free')
-                            artifact tasks.jar1
-                        }
-                        variant2 {
-                            attributes.attribute(buildType, 'release')
-                            attributes.attribute(flavor, 'paid')
-                            artifact tasks.jar1
-                        }
-                        variant3 {
-                            attributes.attribute(buildType, 'debug')
-                            attributes.attribute(flavor, 'free')
-                            artifact tasks.jar1
-                        }
+            configurations {
+                compile.outgoing.variants {
+                    variant1 {
+                        attributes.attribute(buildType, 'release')
+                        attributes.attribute(flavor, 'free')
+                        artifact tasks.jar1
+                    }
+                    variant2 {
+                        attributes.attribute(buildType, 'release')
+                        attributes.attribute(flavor, 'paid')
+                        artifact tasks.jar1
+                    }
+                    variant3 {
+                        attributes.attribute(buildType, 'debug')
+                        attributes.attribute(flavor, 'free')
+                        artifact tasks.jar1
                     }
                 }
             }
+        """)
+        buildFile("app/build.gradle", """
+            import org.gradle.api.artifacts.transform.TransformParameters
 
-            project(':app') {
-                dependencies {
-                    compile project(':lib')
+            def buildType = Attribute.of("buildType", String)
+            def flavor = Attribute.of("flavor", String)
+            def artifactType = Attribute.of('artifactType', String)
+
+            dependencies.attributesSchema.attribute(buildType)
+            dependencies.attributesSchema.attribute(flavor)
+
+            dependencies {
+                compile project(':lib')
+            }
+
+            dependencies {
+                registerTransform(BrokenTransform) {
+                    from.attribute(artifactType, 'jar')
+                    from.attribute(buildType, 'release')
+                    to.attribute(artifactType, 'transformed')
                 }
+                registerTransform(BrokenTransform) {
+                    from.attribute(artifactType, 'jar')
+                    from.attribute(buildType, 'debug')
+                    to.attribute(artifactType, 'transformed')
+                }
+            }
 
-                dependencies {
-                    registerTransform(BrokenTransform) {
-                        from.attribute(artifactType, 'jar')
-                        from.attribute(buildType, 'release')
-                        to.attribute(artifactType, 'transformed')
+            task resolve(type: Copy) {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes {
+                        attribute(artifactType, 'transformed')
                     }
-                    registerTransform(BrokenTransform) {
-                        from.attribute(artifactType, 'jar')
-                        from.attribute(buildType, 'debug')
-                        to.attribute(artifactType, 'transformed')
-                    }
-                }
-
-                task resolve(type: Copy) {
-                    def artifacts = configurations.compile.incoming.artifactView {
-                        attributes {
-                            attribute(artifactType, 'transformed')
-                        }
-                    }.artifacts
-                    from artifacts.artifactFiles
-                    into "\${buildDir}/libs"
-                }
+                }.artifacts
+                from artifacts.artifactFiles
+                into "\${buildDir}/libs"
             }
 
             abstract class BrokenTransform implements TransformAction<TransformParameters.None> {
@@ -1454,7 +1457,7 @@ Found the following transformation chains:
                     throw new AssertionError("should not be used")
                 }
             }
-        """
+        """)
 
         when:
         fails "resolve"
@@ -1508,7 +1511,6 @@ Found the following transformation chains:
                       - artifactType 'transformed'"""
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "result is applied for all query methods"() {
         def resolve = new ResolveTestFixture(testDirectory)
 
@@ -1516,32 +1518,33 @@ Found the following transformation chains:
         settingsFile << """
             ${resolve.configureSettings("compile")}
         """
-        buildFile << """
-            project(':lib') {
-                projectDir.mkdirs()
-                def jar = file('lib.jar')
-                jar.text = 'some text'
+        buildFile("lib/build.gradle", """
+            projectDir.mkdirs()
+            def jar = file('lib.jar')
+            jar.text = 'some text'
 
-                artifacts { compile jar }
+            artifacts { compile jar }
+        """)
+        buildFile("app/build.gradle", """
+            def artifactType = Attribute.of('artifactType', String)
+
+            dependencies {
+                compile project(':lib')
             }
-
-            project(':app') {
-                dependencies {
-                    compile project(':lib')
-                }
-                configurations {
-                    compile {
-                        attributes.attribute(artifactType, 'size')
-                    }
-                }
-                dependencies {
-                    registerTransform(FileSizer) {
-                        from.attribute(artifactType, "jar")
-                        to.attribute(artifactType, "size")
-                    }
+            configurations {
+                compile {
+                    attributes.attribute(artifactType, 'size')
                 }
             }
-        """
+            dependencies {
+                registerTransform(FileSizer) {
+                    from.attribute(artifactType, "jar")
+                    to.attribute(artifactType, "size")
+                }
+            }
+
+            $fileSizer
+        """)
 
         when:
         succeeds ":app:checkDeps"
@@ -1556,7 +1559,6 @@ Found the following transformation chains:
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transforms are applied lazily in file collections"() {
         def m1 = mavenHttpRepo.module('org.test', 'test1', '1.0').publish()
         def m2 = mavenHttpRepo.module('org.test', 'test2', '2.0').publish()
@@ -1640,30 +1642,9 @@ Found the following transformation chains:
 
     def "transforms are created as required and a new instance created for each file"() {
         given:
-        // Replace the class-level setup buildFile to remove its allprojects block (IP-incompatible).
-        // Each project configures itself in its own build.gradle.
-        buildFile.text = """
-            import org.gradle.api.artifacts.transform.TransformParameters
-
-            def usage = Attribute.of('usage', String)
-            def artifactType = Attribute.of('artifactType', String)
-
+        buildFile << """
             dependencies {
-                attributesSchema {
-                    attribute(usage)
-                }
-            }
-
-            configurations {
-                dependencyScope('compileDeps')
-                resolvable('compile') {
-                    extendsFrom configurations.compileDeps
-                    attributes.attribute(usage, 'api')
-                }
-            }
-
-            dependencies {
-                compileDeps project(':lib')
+                compile project(':lib')
 
                 registerTransform(Hasher) {
                     from.attribute(artifactType, 'jar')
@@ -1711,16 +1692,7 @@ Found the following transformation chains:
             }
         """
 
-        // :lib configures itself: a consumable 'compile' producing two jars.
         file('lib/build.gradle') << """
-            def usage = Attribute.of('usage', String)
-
-            configurations {
-                consumable('compile') {
-                    attributes.attribute(usage, 'api')
-                }
-            }
-
             task jar1(type: Jar) { archiveFileName = 'jar1.jar' }
             task jar2(type: Jar) { archiveFileName = 'jar2.jar' }
             tasks.withType(Jar) { destinationDirectory = buildDir }
@@ -1764,7 +1736,6 @@ Found the following transformation chains:
         outputContains("files: [jar1.jar.txt, jar2.jar.txt]")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user gets a reasonable error message when a transform throws exception and continues with other inputs"() {
         given:
         buildFile << """
@@ -1813,7 +1784,6 @@ Found the following transformation chains:
         outputContains("files: [b.jar]")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { dependencies { ... } }")
     def "user gets a reasonable error message when a transform input cannot be downloaded and proceeds with other inputs"() {
         def m1 = ivyHttpRepo.module("test", "test", "1.3")
             .artifact(type: 'jar', name: 'test-api')
@@ -1906,7 +1876,6 @@ Found the following transformation chains:
         outputContains("files: [thing1.jar.txt, thing2.jar.txt]")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user gets a reasonable error message when null is registered via outputs.#method"() {
         given:
         buildFile << """
@@ -1939,7 +1908,6 @@ Found the following transformation chains:
         method << ['dir', 'file']
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user gets a reasonable error message when transform returns a non-existing file"() {
         given:
         buildFile << """
@@ -1975,7 +1943,6 @@ Found the following transformation chains:
         outputContains(":resolve NO-SOURCE")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user gets a reasonable error message when transform registers a #type output via #method"() {
         given:
         buildFile << """
@@ -1993,7 +1960,6 @@ Found the following transformation chains:
                 case FileType.Missing:
                     return """
                                 outputs.${method}('this_file_does_not.exist').delete()
-
                             """
                 case FileType.Directory:
                     return """
@@ -2046,7 +2012,6 @@ Found the following transformation chains:
         'dir'  | FileType.Missing     | 'output .*this_file_does_not.exist must exist'
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "directories are created for outputs in the workspace"() {
         given:
         buildFile << """
@@ -2082,7 +2047,6 @@ Found the following transformation chains:
         succeeds "resolve"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "directories are not created for output #method which is part of the input"() {
         given:
         buildFile << """
@@ -2129,7 +2093,6 @@ Found the following transformation chains:
         method << ["file", "dir"]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user gets a reasonable error message when transform returns a file that is not part of the input artifact or in the output directory"() {
         given:
         buildFile << """
@@ -2162,7 +2125,6 @@ Found the following transformation chains:
         failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user gets a reasonable error message when transform registers an output that is not part of the input artifact or in the output directory"() {
         given:
         buildFile << """
@@ -2203,7 +2165,6 @@ Found the following transformation chains:
         failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user gets a reasonable error message when transform cannot be instantiated"() {
         given:
         buildFile << """
@@ -2236,7 +2197,6 @@ Found the following transformation chains:
         failure.assertHasCause("broken")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { dependencies { ... } }")
     def "collects multiple failures"() {
         def m1 = mavenHttpRepo.module("test", "a", "1.3").publish()
         def m2 = mavenHttpRepo.module("test", "broken", "2.0").publish()
@@ -2312,7 +2272,6 @@ Found the following transformation chains:
         outputContains("files: [a.jar, c.jar, c-2.0.jar]")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "provides useful error message when registration action fails"() {
         when:
         buildFile << """
@@ -2330,22 +2289,20 @@ Found the following transformation chains:
         failure.assertHasCause("Bad registration")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "provides useful error message when parameter value cannot be isolated for #type transform"() {
         mavenRepo.module("test", "a", "1.3").publish()
         settingsFile << "include 'lib'"
 
-        buildFile << """
-            project(':lib') {
-                task jar(type: Jar) {
-                    destinationDirectory = buildDir
-                    archiveFileName = 'lib.jar'
-                }
-                artifacts {
-                    compile tasks.jar
-                }
+        buildFile("lib/build.gradle", """
+            task jar(type: Jar) {
+                destinationDirectory = buildDir
+                archiveFileName = 'lib.jar'
             }
-
+            artifacts {
+                compile tasks.jar
+            }
+        """)
+        buildFile << """
             repositories {
                 maven { url = '$mavenRepo.uri' }
             }
@@ -2403,7 +2360,6 @@ Found the following transformation chains:
         type = scheduled ? 'scheduled' : 'immediate'
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transformation attribute cycles are permitted"() {
         mavenRepo.module("test", "a", "1.0").publish()
 
@@ -2464,7 +2420,6 @@ Found the following transformation chains:
         outputContains("files: [a-1.0.jar.txt.txt.txt]")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "artifacts with same component id and extension, but different classifier are uniquely identifiable after transformation"() {
         def module = mavenRepo.module("test", "test", "1.3").publish()
         module.getArtifactFile(classifier: "foo").text = "1234"
@@ -2515,7 +2470,6 @@ Found the following transformation chains:
         succeeds "hasUniqueArtifactIds"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "artifact excludes applied to external dependency on different graphs are honored"() {
         def m1 = ivyRepo.module("test", "test", "1.3")
         m1.artifact(name: "test-one", conf: "*")
@@ -2590,7 +2544,6 @@ Found the following transformation chains:
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "artifacts with the same id but different content are transformed independently"() {
         def repo1 = new MavenFileRepository(testDirectory.file("repo1"))
         def repo2 = new MavenFileRepository(testDirectory.file("repo2"))
@@ -2605,24 +2558,32 @@ Found the following transformation chains:
             include "a"
             include "b"
         """
-        buildFile << """
-            project(":a") {
-                repositories {
-                    maven { url = "${repo1.uri}" }
-                }
+        // Both projects use the same transform implementation
+        file("buildSrc/src/main/groovy/FileSizer.groovy") << fileSizer
+        buildFile("a/build.gradle", """
+            def artifactType = Attribute.of('artifactType', String)
+
+            dependencies {
+                compile 'test:test:1.3'
             }
-            project(":b") {
-                repositories {
-                    maven { url = "${repo2.uri}" }
-                }
+            ${configurationAndTransform('FileSizer')}
+
+            repositories {
+                maven { url = "${repo1.uri}" }
             }
-            allprojects {
-                dependencies {
-                    compile 'test:test:1.3'
-                }
-                ${configurationAndTransform('FileSizer')}
+        """)
+        buildFile("b/build.gradle", """
+            def artifactType = Attribute.of('artifactType', String)
+
+            dependencies {
+                compile 'test:test:1.3'
             }
-        """
+            ${configurationAndTransform('FileSizer')}
+
+            repositories {
+                maven { url = "${repo2.uri}" }
+            }
+        """)
 
         when:
         run "a:resolve", "b:resolve"
@@ -2654,45 +2615,46 @@ Found the following transformation chains:
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform runs only once even when variant is consumed from multiple projects"() {
         given:
         createDirs("app2")
         settingsFile << """
             include 'app2'
         """
-        buildFile << """
-            project(':lib') {
-                projectDir.mkdirs()
-                def file1 = file('lib1.size')
-                file1.text = 'some text'
+        // Both consumers must use the same transform implementation class
+        file("buildSrc/src/main/groovy/FileSizer.groovy") << fileSizer
+        buildFile("lib/build.gradle", """
+            projectDir.mkdirs()
+            def file1 = file('lib1.size')
+            file1.text = 'some text'
 
-                task lib1(type: Jar) {
-                    destinationDirectory = buildDir
-                }
-
-                dependencies {
-                    compile files(tasks.lib1)
-                }
-                artifacts {
-                    compile file1
-                }
+            task lib1(type: Jar) {
+                destinationDirectory = buildDir
             }
 
-            project(':app') {
-                dependencies {
-                    compile project(':lib')
-                }
-                ${configurationAndTransform('FileSizer')}
+            dependencies {
+                compile files(tasks.lib1)
             }
+            artifacts {
+                compile file1
+            }
+        """)
+        buildFile("app/build.gradle", """
+            def artifactType = Attribute.of('artifactType', String)
 
-            project(':app2') {
-                dependencies {
-                    compile project(':lib')
-                }
-                ${configurationAndTransform('FileSizer')}
+            dependencies {
+                compile project(':lib')
             }
-        """
+            ${configurationAndTransform('FileSizer')}
+        """)
+        buildFile("app2/build.gradle", """
+            def artifactType = Attribute.of('artifactType', String)
+
+            dependencies {
+                compile project(':lib')
+            }
+            ${configurationAndTransform('FileSizer')}
+        """)
 
         when:
         run "app:resolve", "app2:resolve"
@@ -2701,47 +2663,47 @@ Found the following transformation chains:
         output.count("Transforming") == 1
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "can resolve transformed variant during configuration time"() {
         given:
-        buildFile << """
-            project(':lib') {
-                projectDir.mkdirs()
-                def jar1 = file('lib1.jar')
-                jar1.text = 'some text'
-                def file1 = file('lib1.size')
-                file1.text = 'some text'
+        buildFile("lib/build.gradle", """
+            projectDir.mkdirs()
+            def jar1 = file('lib1.jar')
+            jar1.text = 'some text'
+            def file1 = file('lib1.size')
+            file1.text = 'some text'
 
-                dependencies {
-                    compile files(jar1)
-                }
-                artifacts {
-                    compile file1
-                }
+            dependencies {
+                compile files(jar1)
             }
+            artifacts {
+                compile file1
+            }
+        """)
+        buildFile("app/build.gradle", """
+            def artifactType = Attribute.of('artifactType', String)
 
-            project(':app') {
-                dependencies {
-                    compile project(':lib')
-                }
-                ${declareTransform('FileSizer')}
+            dependencies {
+                compile project(':lib')
+            }
+            ${declareTransform('FileSizer')}
 
-                task resolve(type: Copy) {
-                    def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                        if (project.hasProperty("lenient")) {
-                            lenient(true)
-                        }
-                    }.artifacts
-                    // Resolve during configuration
-                    from artifacts.artifactFiles.files
-                    into "\${buildDir}/libs"
-                    doLast {
-                        // Do nothing
+            task resolve(type: Copy) {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                    if (project.hasProperty("lenient")) {
+                        lenient(true)
                     }
+                }.artifacts
+                // Resolve during configuration
+                from artifacts.artifactFiles.files
+                into "\${buildDir}/libs"
+                doLast {
+                    // Do nothing
                 }
             }
-        """
+
+            $fileSizer
+        """)
 
         when:
         run "app:resolve"
@@ -2750,11 +2712,29 @@ Found the following transformation chains:
         output.count("Transforming") == 1
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "notifies transform listeners and build operation listeners on successful execution"() {
         def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
         given:
+        buildFile("lib/build.gradle", """
+            task jar(type: Jar) {
+                archiveFileName = 'lib.jar'
+                destinationDirectory = buildDir
+            }
+            artifacts {
+                compile tasks.jar
+            }
+        """)
+        buildFile("app/build.gradle", """
+            def artifactType = Attribute.of('artifactType', String)
+
+            dependencies {
+                compile project(":lib")
+            }
+            ${configurationAndTransform('FileSizer')}
+
+            $fileSizer
+        """)
         buildFile << """
             import org.gradle.api.internal.artifacts.transform.TransformExecutionListener
             import org.gradle.internal.event.ListenerManager
@@ -2770,23 +2750,6 @@ Found the following transformation chains:
                     println "After transformer \${transformer.displayName} on \${subject.displayName}"
                 }
             })
-
-            project(":lib") {
-                task jar(type: Jar) {
-                    archiveFileName = 'lib.jar'
-                    destinationDirectory = buildDir
-                }
-                artifacts {
-                    compile tasks.jar
-                }
-            }
-
-            project(":app") {
-                dependencies {
-                    compile project(":lib")
-                }
-                ${configurationAndTransform('FileSizer')}
-            }
         """
 
         when:
@@ -2818,11 +2781,35 @@ Found the following transformation chains:
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "notifies transform listeners and build operation listeners on failed execution"() {
         def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
         given:
+        buildFile("lib/build.gradle", """
+            task jar(type: Jar) {
+                archiveFileName = 'lib.jar'
+                destinationDirectory = buildDir
+            }
+            artifacts {
+                compile tasks.jar
+            }
+        """)
+        buildFile("app/build.gradle", """
+            import org.gradle.api.artifacts.transform.TransformParameters
+
+            def artifactType = Attribute.of('artifactType', String)
+
+            dependencies {
+                compile project(":lib")
+            }
+            ${configurationAndTransform('BrokenTransform')}
+
+            abstract class BrokenTransform implements TransformAction<TransformParameters.None> {
+                void transform(TransformOutputs outputs) {
+                    throw new GradleException('broken')
+                }
+            }
+        """)
         buildFile << """
             import org.gradle.api.internal.artifacts.transform.TransformExecutionListener
             import org.gradle.internal.event.ListenerManager
@@ -2838,29 +2825,6 @@ Found the following transformation chains:
                     println "After transformer \${transformer.displayName} on \${subject.displayName}"
                 }
             })
-
-            project(":lib") {
-                task jar(type: Jar) {
-                    archiveFileName = 'lib.jar'
-                    destinationDirectory = buildDir
-                }
-                artifacts {
-                    compile tasks.jar
-                }
-            }
-
-            project(":app") {
-                dependencies {
-                    compile project(":lib")
-                }
-                ${configurationAndTransform('BrokenTransform')}
-            }
-
-            abstract class BrokenTransform implements TransformAction<TransformParameters.None> {
-                void transform(TransformOutputs outputs) {
-                    throw new GradleException('broken')
-                }
-            }
         """
 
         when:
@@ -2893,34 +2857,35 @@ Found the following transformation chains:
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6156")
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
+    @UnsupportedWithIsolatedProjects(because = "Queries the dependencies of tasks directly, which Isolated Projects does not allow")
     def "stops resolving dependencies of task when artifact transforms are encountered"() {
         given:
+        buildFile("lib/build.gradle", """
+            task jar(type: Jar) {
+                destinationDirectory = buildDir
+                archiveFileName = 'lib1.jar'
+            }
+
+            artifacts {
+                compile tasks.jar
+            }
+        """)
+        buildFile("app/build.gradle", """
+            def artifactType = Attribute.of('artifactType', String)
+
+            dependencies {
+                compile project(':lib')
+            }
+
+            ${configurationAndTransform()}
+
+            task dependent {
+                dependsOn tasks.resolve
+            }
+
+            $fileSizer
+        """)
         buildFile << """
-            project(':lib') {
-                task jar(type: Jar) {
-                    destinationDirectory = buildDir
-                    archiveFileName = 'lib1.jar'
-                }
-
-                artifacts {
-                    compile tasks.jar
-                }
-            }
-
-            project(':app') {
-
-                dependencies {
-                    compile project(':lib')
-                }
-
-                ${configurationAndTransform()}
-
-                task dependent {
-                    dependsOn tasks.resolve
-                }
-            }
-
             gradle.taskGraph.whenReady { taskGraph ->
                 taskGraph.allTasks.each { task ->
                     task.taskDependencies.getDependencies(task).each { dependency ->
@@ -2941,7 +2906,6 @@ Found the following transformation chains:
     }
 
     @Issue("https://github.com/gradle/gradle/issues/33298")
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "does not OOM due to exhaustively searching all possible transform paths when many unrelated transforms are registered"() {
         buildFile << """
             @CacheableTransform
@@ -3181,8 +3145,6 @@ Found the following transformation chains:
     def "transformed artifacts of one project with same file name are not deduplicated"() {
         given:
         file("lib/build.gradle") << """
-            $producerBuildScript
-
             def f1 = file("a/lib.jar")
             def f2 = file("b/lib.jar")
             [f1, f2]*.parentFile*.mkdirs()
@@ -3193,9 +3155,7 @@ Found the following transformation chains:
                 compile f2
             }
         """
-        buildFile.text = """
-            $consumerBuildScript
-
+        buildFile << """
             dependencies {
                 compile project(':lib')
             }
@@ -3269,8 +3229,6 @@ Found the following transformation chains:
     def "transformed artifacts with different input names and same output name are not deduplicated"() {
         given:
         file("lib/build.gradle") << """
-            $producerBuildScript
-
             def f1 = file("first.jar")
             def f2 = file("second.jar")
             f1.text = "first"
@@ -3280,9 +3238,7 @@ Found the following transformation chains:
                 compile f2
             }
         """
-        buildFile.text = """
-            $consumerBuildScript
-
+        buildFile << """
             dependencies {
                 compile project(':lib')
             }
@@ -3326,7 +3282,7 @@ Found the following transformation chains:
     def "transformed artifacts with same name and different capabilities are not deduplicated"() {
         given:
         file("lib/build.gradle") << """
-            $producerBuildScript
+            def usage = Attribute.of('usage', String)
 
             group = 'org.test'
             version = '1.0'
@@ -3346,9 +3302,7 @@ Found the following transformation chains:
                 testFixturesElements f2
             }
         """
-        buildFile.text = """
-            $consumerBuildScript
-
+        buildFile << """
             dependencies {
                 compile project(':lib')
                 compile(project(':lib')) {
@@ -3382,43 +3336,6 @@ Found the following transformation chains:
         outputContains("artifacts: [a.jar.txt, a.jar.txt]")
         outputContains("content: [4, 3]")
         outputContains("capabilities: [[lib], [lib-test-fixtures]]")
-    }
-
-    private static String getConsumerBuildScript() {
-        """
-            def usage = Attribute.of('usage', String)
-            def artifactType = Attribute.of('artifactType', String)
-
-            dependencies {
-                attributesSchema {
-                    attribute(usage)
-                }
-            }
-            configurations {
-                compile {
-                    attributes { attribute usage, 'api' }
-                }
-            }
-
-            $fileSizer
-        """
-    }
-
-    private static String getProducerBuildScript() {
-        """
-            def usage = Attribute.of('usage', String)
-
-            dependencies {
-                attributesSchema {
-                    attribute(usage)
-                }
-            }
-            configurations {
-                consumable('compile') {
-                    attributes.attribute(usage, 'api')
-                }
-            }
-        """
     }
 
     def declareTransform(String transformImplementation) {
