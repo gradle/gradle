@@ -76,7 +76,6 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> e
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
             work::visitImmutableInputs,
             work.getInputDependencyChecker(context.getValidationContext())
         );
