@@ -287,12 +287,56 @@ NullAway performs a basic verification of these statements.
 
 `@Contract` has no meaning for Kotlin code, so the return type annotations should be "pessimistic": use `@Nullable` if a method can ever return null.
 
+### Describing field invariants
+
+NullAway tracks the nullability of fields within a method, but it cannot see invariants that span several methods,
+like "this field is non-null after `init()`" or "`hasFoo()` returns true only if `foo` is set".
+Use the annotations from `org.gradle.internal.nullability` to describe these invariants:
+
+```java
+@Nullable
+private Connection connection;
+
+@EnsuresNonNull("connection")        // `connection` is non-null when the method returns normally
+private void connect() {
+    if (connection == null) {
+        connection = openConnection();
+    }
+}
+
+@EnsuresNonNullIf("connection")      // `connection` is non-null if the method returns true; use `result = false` for the inverse
+boolean isConnected() {
+    return connection != null;
+}
+
+@RequiresNonNull("connection")       // callers must ensure `connection` is non-null
+private void doSend(Message message) {
+    connection.send(message);
+}
+
+void send(Message message) {
+    connect();
+    doSend(message);                 // OK: connect() ensures `connection` is non-null
+}
+```
+
+NullAway verifies both sides: the annotated method must keep its promise, and call sites must satisfy the precondition.
+IDEA does not understand these annotations and may still warn, see [Known quirks](#idea).
+
+Limitations:
+- You can only name fields of the method's own class and its superclasses, as `foo` or `this.foo`; static fields only as `foo`.
+  Fields of an enclosing class cannot be named, so an inner class can't use these annotations for them.
+  Pass the value to the inner class explicitly instead.
+- Do not use these annotations on public API.
+
 ## Suppressing NullAway errors
 
 NullAway errors should generally be fixed, not suppressed.
 Often, the code can be restructured to avoid the failed null check.
 However, in certain cases NullAway may not be able to infer the type correctly.
 Sometimes, adding explicit type arguments or extracting parts of the code into an explicitly typed variable helps.
+If the error is about a field that is known to be non-null because of another method call, describe the invariant with
+[field contract annotations](#describing-field-invariants) instead of suppressing.
 
 When this doesn't help and suppression is necessary:
 
@@ -325,9 +369,17 @@ When this doesn't help and suppression is necessary:
     return order.compare(nullableA, nullableB);
   ```
 - [[JDK-8341779](https://bugs.java.com/bugdatabase/view_bug?bug_id=8341779)] Sometimes NullAway does not recognize `@Nullable` annotations on method parameters.
+- [[NullAway#2182](https://github.com/uber/NullAway/issues/2182)] NullAway doesn't track the receiver of `@EnsureNonNullIf`-annotated method, and always applies the type refinement to `this`.
+- NullAway forgets what it knows about non-final fields inside lambdas and anonymous classes, because it cannot tell when they run.
+  The exceptions are callbacks passed to `Stream` methods, `Iterable.forEach`, `Map.forEach` and `Collection.removeIf`, which NullAway knows to be invoked immediately.
+  For other callbacks, copy the field into a local variable before the lambda, or use `Objects.requireNonNull`.
 
 ### IDEA
 - IDEA may emit false positives in non-`@NullMarked` code, because unlike NullAway it relies on these annotations.
+
+- IDEA does not understand the [field contract annotations](#describing-field-invariants) (`@EnsuresNonNull`, `@EnsuresNonNullIf`, `@RequiresNonNull`).
+  It may warn about possible `NullPointerException` where NullAway, which verifies the contract, accepts the code.
+  If the warning gets in the way, suppress it with `@SuppressWarnings("DataFlowIssue")` on the smallest possible scope.
 
 - [[IDEA-383015](https://youtrack.jetbrains.com/issue/IDEA-383015)] IDEA considers `Optional.ofNullable` to return `Optional<@Nullable T>`, and complains about converting it to `Optional<T>`.
   For example, IDEA emits a warning for:
@@ -340,7 +392,7 @@ When this doesn't help and suppression is necessary:
 - Sometimes IDEA considers values of generic type parameter `T` nullable even if `T` is non-nullable in the context.
   This mostly happens when there is a supertype with a nullable type bound on the parameter.
   ```java
-      interface Foo<T extends @Nullable Object> {
+    interface Foo<T extends @Nullable Object> {
         void accept(T t);
     }
 

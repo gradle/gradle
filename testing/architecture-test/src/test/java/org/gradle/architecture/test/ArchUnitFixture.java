@@ -75,6 +75,7 @@ import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideOutsideOfPackages;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
+import static com.tngtech.archunit.core.domain.JavaModifier.PROTECTED;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
@@ -125,6 +126,11 @@ public interface ArchUnitFixture {
         .and(modifier(PUBLIC))
         .and(not(kotlin_internal_methods))
         .as("public API methods");
+
+    DescribedPredicate<JavaMember> public_and_protected_api_methods = declaredIn(gradlePublicApi())
+        .and(modifier(PUBLIC).or(modifier(PROTECTED)))
+        .and(not(kotlin_internal_methods))
+        .as("public and protected API methods");
 
     DescribedPredicate<JavaMethod> getters = new DescribedPredicate<JavaMethod>("getters") {
         @Override
