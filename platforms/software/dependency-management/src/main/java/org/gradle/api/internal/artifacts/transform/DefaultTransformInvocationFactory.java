@@ -24,10 +24,9 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.cache.Cache;
-import org.gradle.internal.Deferrable;
-import org.gradle.internal.Try;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
+import org.gradle.internal.execution.DeferredExecution;
 import org.gradle.internal.execution.DeferredResult;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.Identity;
@@ -75,7 +74,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     }
 
     @Override
-    public Deferrable<Try<ImmutableList<File>>> createInvocation(
+    public DeferredExecution<ImmutableList<File>> createInvocation(
         Transform transform,
         File inputArtifact,
         TransformDependencies dependencies,
@@ -131,9 +130,8 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         }
         return executionEngine.createRequest(execution)
             .executeDeferred(identityCache)
-            .map(result -> result
-                .map(successfulResult -> successfulResult.resolveForInputArtifact(inputArtifact))
-                .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure)));
+            .map(successfulResult -> successfulResult.resolveForInputArtifact(inputArtifact))
+            .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
     }
 
     @Nullable
