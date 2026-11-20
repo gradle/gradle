@@ -37,6 +37,7 @@ val smokeTestImplementation = configurations.getByName("smokeTestImplementation"
 val smokeTestDistributionRuntimeOnly = configurations.getByName("smokeTestDistributionRuntimeOnly")
 val smokeTestBinDistribution = configurations.getByName("smokeTestBinDistribution")
 val smokeTestSrcDistribution = configurations.getByName("smokeTestSrcDistribution")
+val smokeTestLocalRepository = configurations.getByName("smokeTestLocalRepository")
 
 dependencies {
     testFixturesImplementation(projects.internalIntegTesting)
@@ -72,6 +73,8 @@ dependencies {
     // These will make the bin and src distribution available through `IntegrationTestBuildContext`
     smokeTestBinDistribution(projects.distributionsFull)
     smokeTestSrcDistribution(projects.distributionsFull)
+    // The nested Gradle build uses the Kotlin DSL plugins built from this checkout (see AbstractGradleceptionSmokeTest)
+    smokeTestLocalRepository(projects.kotlinDslPlugins)
 }
 
 androidHomeWarmup {

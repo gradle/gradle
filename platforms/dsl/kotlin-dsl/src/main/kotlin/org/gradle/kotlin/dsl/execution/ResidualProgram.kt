@@ -101,5 +101,11 @@ sealed class ResidualProgram {
         override fun toString(): String = javaClass.simpleName
     }
 
-    data class PluginRequestSpec(val id: String, val version: String? = null, val apply: Boolean = true)
+    /**
+     * @param version the version written in the script. The compiled program contains it as a constant.
+     * @param expectedKotlinDslPluginsVersion request the version of the Kotlin DSL plugins that Gradle expects, for the `kotlin-dsl` accessor,
+     * which has no version in the script. The compiled program looks this version up each time it runs: the program is cached by script text,
+     * and the expected version can change between builds while the text stays the same.
+     */
+    data class PluginRequestSpec(val id: String, val version: String? = null, val apply: Boolean = true, val expectedKotlinDslPluginsVersion: Boolean = false)
 }

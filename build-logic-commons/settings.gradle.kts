@@ -16,6 +16,10 @@
 
 pluginManagement {
     includeBuild("../build-logic-settings")
+    repositories {
+        // Declare the portal. Otherwise the repositories that embedded-kotlin.settings.gradle.kts adds replace the default repository.
+        gradlePluginPortal()
+    }
 }
 
 dependencyResolutionManagement {
@@ -31,6 +35,7 @@ plugins {
 
 includeBuild("../build-logic-settings")
 
+apply(from = "../gradle/shared-with-buildSrc/embedded-kotlin.settings.gradle.kts")
 apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 // Shared basics for all

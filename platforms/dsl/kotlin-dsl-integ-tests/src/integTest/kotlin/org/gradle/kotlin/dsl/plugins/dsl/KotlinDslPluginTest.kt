@@ -21,7 +21,6 @@ import org.gradle.api.tasks.testing.TestResult
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
-import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -33,28 +32,6 @@ import org.junit.Test
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
-
-    @Test
-    fun `warns on unexpected kotlin-dsl plugin version`() {
-
-        // The test applies the in-development version of the kotlin-dsl
-        // which, by convention, it is always ahead of the version expected by
-        // the in-development version of Gradle
-        // (see publishedKotlinDslPluginVersion in the project's build logic)
-        withKotlinDslPlugin()
-
-        withDefaultSettings().appendText(
-            """
-            rootProject.name = "forty-two"
-            """
-        )
-
-        build("help").apply {
-            assertOutputContains(
-                "This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin but version '$futureKotlinDslPluginVersion' has been applied to root project 'forty-two'."
-            )
-        }
-    }
 
     @Test
     fun `gradle kotlin dsl api dependency is added`() {

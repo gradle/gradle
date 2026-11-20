@@ -23,6 +23,7 @@ plugins {
 includeBuild("build-logic-commons")
 includeBuild("build-logic")
 
+apply(from = "gradle/shared-with-buildSrc/embedded-kotlin.settings.gradle.kts")
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 // If you include a new subproject here, consult internal documentation "Adding a new Build Tool subproject" page

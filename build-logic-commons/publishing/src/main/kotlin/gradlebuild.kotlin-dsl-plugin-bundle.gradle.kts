@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.capitalize
 import gradlebuild.pluginpublish.extension.PluginPublishExtension
 import org.gradle.plugin.compatibility.compatibility
-import java.time.Year
 
 plugins {
     id("gradlebuild.module-identity")
@@ -25,6 +23,7 @@ plugins {
     signing
     `java-gradle-plugin`
     id("com.gradle.plugin-publish")
+    id("gradlebuild.kotlin-dsl-plugin-bundle-local-testing")
 }
 
 extensions.create<PluginPublishExtension>("pluginPublish", gradlePlugin)
@@ -57,108 +56,19 @@ publishing.publications.withType<MavenPublication>().configureEach {
     }
 }
 
-// publish plugin to local repository for integration testing -----------------
-// See AbstractPluginTest
-val localRepository = layout.buildDirectory.dir("repository")
-
-val publishPluginsToTestRepository = tasks.register("publishPluginsToTestRepository") {
-    dependsOn("publishPluginMavenPublicationToTestRepository")
-    val repoDir = localRepository // Prevent capturing the Gradle script instance for configuration cache compatibility
-    // This should be unified with publish-public-libraries if possible
-    doLast {
-        repoDir.get().asFileTree.matching { include("**/maven-metadata.xml") }.forEach {
-            it.writeText(it.readText().replace("\\Q<lastUpdated>\\E\\d+\\Q</lastUpdated>\\E".toRegex(), "<lastUpdated>${Year.now().value}0101000000</lastUpdated>"))
-        }
-        repoDir.get().asFileTree.matching { include("**/*.module") }.forEach {
-            val content = it.readText()
-                .replace("\"buildId\":\\s+\"\\w+\"".toRegex(), "\"buildId\": \"\"")
-                .replace("\"size\":\\s+\\d+".toRegex(), "\"size\": 0")
-                .replace("\"sha512\":\\s+\"\\w+\"".toRegex(), "\"sha512\": \"\"")
-                .replace("\"sha1\":\\s+\"\\w+\"".toRegex(), "\"sha1\": \"\"")
-                .replace("\"sha256\":\\s+\"\\w+\"".toRegex(), "\"sha256\": \"\"")
-                .replace("\"md5\":\\s+\"\\w+\"".toRegex(), "\"md5\": \"\"")
-            it.writeText(content)
-        }
-    }
-}
-
-val futurePluginVersionsPropertiesFile = layout.buildDirectory.file("generated-resources/future-plugin-versions/future-plugin-versions.properties")
-val writeFuturePluginVersions = tasks.register<WriteProperties>("writeFuturePluginVersions") {
-    destinationFile = futurePluginVersionsPropertiesFile
-}
-val futurePluginVersionsDestDir = futurePluginVersionsPropertiesFile.map { it.asFile.parentFile }
-sourceSets.main {
-    output.dir(mapOf("builtBy" to writeFuturePluginVersions), futurePluginVersionsDestDir)
-}
-configurations.runtimeElements {
-    outgoing {
-        variants.named("resources") {
-            artifact(futurePluginVersionsDestDir) {
-                builtBy(writeFuturePluginVersions)
-            }
-        }
-    }
-}
-
-publishing {
-    repositories {
-        maven {
-            name = "test"
-            url = uri(localRepository)
-        }
-    }
-}
-
 gradlePlugin {
     website = "https://github.com/gradle/gradle/tree/HEAD/platforms/dsl/kotlin-dsl-plugins"
     vcsUrl = "https://github.com/gradle/gradle/tree/HEAD/platforms/dsl/kotlin-dsl-plugins"
 
     plugins.all {
 
-        val plugin = this
-
         tags.addAll("Kotlin", "DSL")
-
-        publishPluginsToTestRepository.configure {
-            dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")
-        }
-
-        writeFuturePluginVersions {
-            property(plugin.id, version)
-        }
 
         compatibility {
             features {
                 configurationCache = true
                 isolatedProjects = true
             }
-        }
-    }
-}
-
-// For local consumption by tests - this should be unified with publish-public-libraries if possible
-configurations.create("localLibsRepositoryElements") {
-    attributes {
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named("gradle-local-repository"))
-    }
-    isCanBeResolved = false
-    isCanBeConsumed = true
-    outgoing.artifact(localRepository) {
-        builtBy(publishPluginsToTestRepository)
-    }
-}
-
-configurations.create("futureVersion") {
-    isCanBeResolved = false
-    isCanBeConsumed = true
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("future-versions-resource"))
-    }
-    outgoing {
-        artifact(futurePluginVersionsDestDir) {
-            builtBy(writeFuturePluginVersions)
         }
     }
 }
