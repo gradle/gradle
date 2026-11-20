@@ -97,8 +97,11 @@ class ProblemBodyWriter implements PartialProblemWriter {
         }
     }
 
+    /**
+     * Ends a solution with a dot, but keeps its case: a solution may start with text where case matters, such as a command.
+     */
     private static String normalize(String message) {
-        return TextUtil.capitalize(TextUtil.endLineWithDot(message));
+        return TextUtil.endLineWithDot(message);
     }
 
     private static void writePrefixedMultiline(PrintWriter output, String firstLinePrefix, int firstLineIndent, String text) {
