@@ -106,6 +106,8 @@ class ScalaCompileTargetDeductionIntegrationTest extends AbstractIntegrationSpec
         17   | '2.12.17'    | '-release:17'                     | JavaVersion.VERSION_1_8
         17   | '2.12.20'    | '-release:17'                     | JavaVersion.VERSION_1_8
         17   | '2.13.16'    | '-release:17'                     | JavaVersion.VERSION_17
+        17   | '3.7.4'      | '-release:17'                     | JavaVersion.VERSION_17
+        17   | '3.8.4'      | '-release:17'                     | JavaVersion.VERSION_17
     }
 
     def "deduces #expectedParameter for Scala #scalaVersion without configured toolchain"() {
@@ -118,13 +120,32 @@ class ScalaCompileTargetDeductionIntegrationTest extends AbstractIntegrationSpec
 
         then:
         outputContains("scalaCompileOptions.additionalParameters = [$expectedParameter]")
-        JavaVersion.forClass(scalaClassFile("Greeter.class").bytes) == JavaVersion.VERSION_1_8
+        JavaVersion.forClass(scalaClassFile("Greeter.class").bytes) == expectedBytecode
 
         where:
-        scalaVersion | expectedParameter | maxJava
-        '2.12.16'    | '-target:8'       | JavaVersion.VERSION_19
-        '2.12.17'    | '-target:8'       | JavaVersion.VERSION_19
-        '2.12.20'    | '-target:8'       | JavaVersion.VERSION_23
-        '2.13.16'    | '-target:8'       | JavaVersion.VERSION_23
+        scalaVersion | expectedParameter | expectedBytecode        | maxJava
+        '2.12.16'    | '-target:8'       | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_19
+        '2.12.17'    | '-target:8'       | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_19
+        '2.12.20'    | '-target:8'       | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_23
+        '2.13.16'    | '-target:8'       | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_23
+        '3.7.4'      | '-Xtarget:8'      | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_25
+        '3.8.4'      | '-Xtarget:17'     | JavaVersion.VERSION_17  | JavaVersion.VERSION_25
+    }
+
+    def "fails for Scala 3.8 with Java #java toolchain"() {
+        def jdk = AvailableJavaHomes.getJdk(JavaVersion.toVersion(java))
+        Assume.assumeNotNull(jdk)
+
+        scalaBuild("3.8.4")
+        configureJavaPluginToolchainVersion(jdk)
+
+        when:
+        withInstallations(jdk).fails(":compileScala")
+
+        then:
+        failure.assertHasCause("Scala 3.8.4 requires Java 17 or later, but the Java toolchain is Java $java. Use a Java toolchain of version 17 or later, or a Scala version before 3.8.")
+
+        where:
+        java << [8, 11]
     }
 }

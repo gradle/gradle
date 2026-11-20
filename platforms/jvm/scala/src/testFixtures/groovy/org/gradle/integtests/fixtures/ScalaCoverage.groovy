@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.test.fixtures.VersionCoverage
+import org.gradle.util.internal.VersionNumber
 
 import static org.hamcrest.Matchers.is
 import static org.hamcrest.Matchers.notNullValue
@@ -35,6 +36,7 @@ class ScalaCoverage {
         "3.2.2",
         "3.3.6",
         "3.7.1",
+        "3.8.4",
     ]
 
 
@@ -53,6 +55,13 @@ class ScalaCoverage {
         def latestScala3Version = SCALA_3.reverse().find { SUPPORTED_BY_JDK.contains(it) }
         assumeThat("No supported Scala 3 version found", latestScala3Version, is(notNullValue()))
         return latestScala3Version
+    }
+
+    /**
+     * The lowest bytecode version the Scala compiler can emit, which it does without a configured Java toolchain.
+     */
+    static JavaVersion minimumBytecode(String scalaVersion) {
+        return VersionNumber.parse(scalaVersion).baseVersion >= VersionNumber.parse("3.8.0") ? JavaVersion.VERSION_17 : JavaVersion.VERSION_1_8
     }
 
     static Set<String> scalaVersionsSupportedByJdk(JavaVersion javaVersion) {
@@ -100,8 +109,12 @@ class ScalaCoverage {
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
             return VersionCoverage.versionsAtLeast(SCALA_3, "3.1.3")
         }
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_8)) {
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
             return SCALA_3
+        }
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_8)) {
+            // 3.8+ requires Java 17
+            return VersionCoverage.versionsBelow(SCALA_3, "3.8.0")
         }
         throw new IllegalArgumentException("Unsupported Java version for Scala 3: " + javaVersion)
     }

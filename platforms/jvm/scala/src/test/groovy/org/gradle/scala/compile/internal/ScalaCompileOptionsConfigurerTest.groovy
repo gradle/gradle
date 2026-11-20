@@ -16,6 +16,7 @@
 
 package org.gradle.scala.compile.internal
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.scala.ScalaCompileOptions
 import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer
 import org.gradle.jvm.toolchain.JavaLanguageVersion
@@ -116,7 +117,37 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         17            | true              | '2.13.10'           | '-target:8'
         17            | true              | '3.2.1'             | '-Xtarget:8'
 
+        17            | false             | '3.7.4'             | '-release:17'
+        17            | true              | '3.7.4'             | '-Xtarget:8'
+        17            | false             | '3.8.0'             | '-release:17'
+        21            | false             | '3.8.4'             | '-release:21'
+        17            | true              | '3.8.0'             | '-Xtarget:17'
+        21            | true              | '3.10.1'            | '-Xtarget:17'
+        17            | true              | '3.8.0-RC1'         | '-Xtarget:17'
+
         toolchain = fallbackToolchain ? "$javaToolchain (fallback)" : javaToolchain
+    }
+
+    def 'fails for Scala #scalaLibraryVersion with Java #javaToolchain toolchain and #parameters'() {
+        given:
+        ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
+        scalaCompileOptions.additionalParameters = parameters
+        Set<File> classpath = [new File("scala3-library_3-${scalaLibraryVersion}.jar")]
+
+        when:
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(javaToolchain, fallbackToolchain), classpath)
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "Scala ${scalaLibraryVersion} requires Java 17 or later, but the Java toolchain is Java ${javaToolchain}. Use a Java toolchain of version 17 or later, or a Scala version before 3.8."
+
+        where:
+        javaToolchain | fallbackToolchain | scalaLibraryVersion | parameters
+        11            | false             | '3.8.0'             | []
+        8             | false             | '3.10.1'            | []
+        16            | true              | '3.8.4'             | []
+        11            | false             | '3.8.0-RC1'         | []
+        11            | false             | '3.8.0'             | ['-release:11']
     }
 
     def 'does not configure target jvm if toolchain is not present'() {

@@ -149,6 +149,15 @@ Gradle now passes parameters that these Scala versions accept:
 * Scala 2.11, older Scala 2.12 versions and Scala 2.13.0 get `-target:jvm-1.8`. From Scala 2.12.5, Gradle also passes `-release <java_version>` to compile against the API of the toolchain's Java version.
 * Pre-release versions, such as `2.13.0-RC1`, get the same parameters as their final release.
 
+#### Scala 3.8 compiles without a configured toolchain
+
+Scala 3.8 and higher require Java 17.
+Without a configured Java toolchain, Gradle passed `-Xtarget:8` to these Scala versions, which they reject, and compilation failed.
+Gradle now passes `-Xtarget:17`.
+
+With a toolchain older than Java 17, the Scala 3.8 compiler cannot run.
+Gradle now fails the compile task with a message that names the required Java version, instead of a class version error from the compiler.
+
 ### Core plugin and plugin authoring enhancements
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
 

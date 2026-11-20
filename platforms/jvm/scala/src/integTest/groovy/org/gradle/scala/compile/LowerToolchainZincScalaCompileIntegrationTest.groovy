@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,24 @@ import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.internal.jvm.Jvm
 
-@TargetCoverage({ ScalaCoverage.SUPPORTED_BY_JDK })
+@TargetCoverage({ supportedVersionsByLowerJdk() })
 class LowerToolchainZincScalaCompileIntegrationTest extends AbstractToolchainZincScalaCompileIntegrationTest {
-    @Override
-    Jvm computeJdkForTest() {
+    private static supportedVersionsByLowerJdk() {
+        def jdk = jdkForTest()
+        if (jdk == null) {
+            return []
+        }
+        return ScalaCoverage.SUPPORTED_BY_JDK.intersect(ScalaCoverage.scalaVersionsSupportedByJdk(jdk.javaVersion))
+    }
+
+    private static jdkForTest() {
         AvailableJavaHomes.getAvailableJdk {
             it.languageVersion < Jvm.current().javaVersion && it.languageVersion.isJava8Compatible()
         }
+    }
+
+    @Override
+    Jvm computeJdkForTest() {
+        jdkForTest()
     }
 }
