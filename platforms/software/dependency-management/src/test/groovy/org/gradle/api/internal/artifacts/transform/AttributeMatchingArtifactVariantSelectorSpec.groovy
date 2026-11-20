@@ -158,7 +158,8 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
             consumerProvidedVariantFinder,
             attributesFactory,
             schemaServices,
-            failureProcessor
+            failureProcessor,
+            false
         )
     }
 

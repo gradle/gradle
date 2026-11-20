@@ -67,7 +67,8 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
         ImmutableArtifactTypeRegistry artifactTypeRegistry,
         ResolvedVariantCache resolvedVariantCache,
         GraphVariantSelector graphVariantSelector,
-        VariantTransformRegistry transformRegistry
+        VariantTransformRegistry transformRegistry,
+        boolean considerArtifactlessPrimaryVariants
     ) {
         this.graphResults = graphResults;
         this.resolutionHost = resolutionHost;
@@ -79,7 +80,8 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
             consumerProvidedVariantFinder,
             attributesFactory,
             attributeSchemaServices,
-            resolutionFailureHandler
+            resolutionFailureHandler,
+            considerArtifactlessPrimaryVariants
         );
 
         this.consumerServices = new ArtifactSelectionServices(

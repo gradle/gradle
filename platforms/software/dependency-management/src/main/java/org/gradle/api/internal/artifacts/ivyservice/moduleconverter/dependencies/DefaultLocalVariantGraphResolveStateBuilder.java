@@ -147,15 +147,15 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         ImmutableSet.Builder<LocalVariantMetadata> artifactSets = ImmutableSet.builder();
         configuration.collectVariants(new ConfigurationInternal.VariantVisitor() {
             @Override
-            public void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
+            public void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts, boolean previouslyUnselectable) {
                 CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(displayName, componentId, artifacts, model, calculatedValueContainerFactory);
-                artifactSets.add(new LocalVariantMetadata(configurationName, configurationIdentifier, displayName, attributes, capabilities, variantArtifacts));
+                artifactSets.add(new LocalVariantMetadata(configurationName, configurationIdentifier, displayName, attributes, capabilities, variantArtifacts, previouslyUnselectable));
             }
 
             @Override
             public void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
                 CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(displayName, componentId, artifacts, model, calculatedValueContainerFactory);
-                artifactSets.add(new LocalVariantMetadata(configurationName + "-" + name, new NonImplicitArtifactVariantIdentifier(configurationIdentifier, name), displayName, attributes, capabilities, variantArtifacts));
+                artifactSets.add(new LocalVariantMetadata(configurationName + "-" + name, new NonImplicitArtifactVariantIdentifier(configurationIdentifier, name), displayName, attributes, capabilities, variantArtifacts, false));
             }
         });
 

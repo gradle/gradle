@@ -17,8 +17,9 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ArtifactlessPrimaryVariantFixture
 
-class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactlessPrimaryVariantFixture {
 
     // These methods return Set<File>, and do not carry task dependencies
     private static final List<String> FILE_EXPRESSION_LIST = [
@@ -394,6 +395,9 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         """
 
         expect:
+        // The primary variants of :a and :b have no artifacts and are compatible with the request, but ignored
+        expectArtifactlessPrimaryVariantDeprecation("project ':a'", "configuration ':a:compile'")
+        expectArtifactlessPrimaryVariantDeprecation("project ':b'", "configuration ':b:compile'")
         fails("show")
         failure.assertHasCause("""No variants of project ':a' match the consumer attributes:
   - Configuration ':a:compile' variant 'free' declares attribute 'usage' with value 'compile':

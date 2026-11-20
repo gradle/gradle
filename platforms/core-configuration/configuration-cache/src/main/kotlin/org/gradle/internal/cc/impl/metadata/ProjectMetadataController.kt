@@ -145,6 +145,7 @@ class ProjectMetadataController(
         write(variant.attributes)
         write(variant.capabilities)
         writeCollection(variant.artifacts)
+        writeBoolean(variant.isPreviouslyUnselectable)
     }
 
     override fun read(decoder: Decoder): LocalComponentGraphResolveState {
@@ -256,10 +257,11 @@ class ProjectMetadataController(
         val attributes = readNonNull<ImmutableAttributes>()
         val capabilities = readNonNull<ImmutableCapabilities>()
         val artifacts = readNonNullList<PublishArtifactLocalArtifactMetadata>()
+        val previouslyUnselectable = readBoolean()
         val artifactMetadata = factory.create(Describables.of(displayName, "artifacts"), ValueCalculator {
             ImmutableList.copyOf<LocalComponentArtifactMetadata>(artifacts)
         })
-        return LocalVariantMetadata(variantName, identifier, displayName, attributes, capabilities, artifactMetadata)
+        return LocalVariantMetadata(variantName, identifier, displayName, attributes, capabilities, artifactMetadata, previouslyUnselectable)
     }
 
     private
