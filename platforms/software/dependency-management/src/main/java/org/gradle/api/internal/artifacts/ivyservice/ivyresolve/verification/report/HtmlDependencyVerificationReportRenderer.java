@@ -57,7 +57,6 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     private final List<String> writeFlags;
     private final File htmlReportOutputDirectory;
     private final boolean useKeyServers;
-    private boolean hasMissingKeys = false;
 
     HtmlDependencyVerificationReportRenderer(DocumentationRegistry documentationRegistry, File verificationFile, List<String> writeFlags, File htmlReportOutputDirectory, boolean useKeyServers) {
         this.documentationRegistry = documentationRegistry;
@@ -193,7 +192,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
             .append("            It is recommended that you edit the ").append(verificationFileLink()).append(" manually. ")
             .append("            However, if you are confident that those are false positives, Gradle can help you by generating the missing verification metadata.");
 
-            if (!useKeyServers && hasMissingKeys) {
+            if (!useKeyServers) {
                 contents.append("            In this case, you can ask Gradle to export all keys it used for verification of this build to the keyring with the following command-line:</p>")
                         .append("            <pre>./gradlew --write-verification-metadata ").append(verificationOptions()).append(" --export-keys help</pre>");
             } else {
@@ -417,7 +416,6 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
                             reason = warning("Key " + keyInfo + " couldn't be found in local key file so verification couldn't be performed. Enable key resolution with --export-keys." + otherTrustedKeysNote);
                         }
                         reportItem(reason, "missing-key", "warning");
-                        hasMissingKeys = true;
                         break;
                 }
             });
