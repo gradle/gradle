@@ -53,6 +53,9 @@ class ArtifactFileTest extends Specification {
         inputFileName            | name                 | extension | version
         "some-file-1.2.zip"      | "some-file"          | "zip"     | "1.2"
         "some-file-1.2-1.2.zip"  | "some-file-1.2"      | "zip"     | "1.2"
+        "some-file-1.2.tar.gz"   | "some-file"          | "tar.gz"  | "1.2"
+        "some-file-1.2.tar.bz2"  | "some-file"          | "tar.bz2" | "1.2"
+        "producer-1.0.tar.gz"    | "producer"           | "tar.gz"  | "1.0"
         "some-file-1.2"          | "some-file"          | ""        | "1.2"
         "some-file-1.22.zip"     | "some-file-1.22"     | "zip"     | "1.2"
         "some-file-1.22.zip.zip" | "some-file-1.22.zip" | "zip"     | "1.2"

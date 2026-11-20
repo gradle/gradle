@@ -53,7 +53,10 @@ public class ArtifactFile {
                     classifier = StringUtils.substringBeforeLast(tail, ".");
                     extension = StringUtils.substringAfterLast(tail, ".");
                     done = true;
-                } else if (endVersion < name.length() && Strings.CS.lastIndexOf(name, ".") == endVersion) {
+                } else if (endVersion < name.length() && name.charAt(endVersion) == '.') {
+                    // The version is followed by the extension, which may itself
+                    // contain dots (e.g. "tar.gz"), so everything after the
+                    // version is the extension.
                     extension = name.substring(endVersion + 1);
                     name = name.substring(0, startVersion);
                     done = true;
