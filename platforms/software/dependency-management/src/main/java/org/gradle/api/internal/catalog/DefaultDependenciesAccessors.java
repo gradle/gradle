@@ -107,7 +107,6 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     private final ClassPath classPath;
     private final DependenciesAccessorsWorkspaceProvider workspace;
-    private final DefaultProjectDependencyFactory projectDependencyFactory;
     private final FeatureFlags featureFlags;
     private final ExecutionEngine engine;
     private final FileCollectionFactory fileCollectionFactory;
@@ -128,7 +127,6 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     public DefaultDependenciesAccessors(
         ClassPathRegistry registry,
         DependenciesAccessorsWorkspaceProvider workspace,
-        DefaultProjectDependencyFactory projectDependencyFactory,
         FeatureFlags featureFlags,
         ExecutionEngine engine,
         FileCollectionFactory fileCollectionFactory,
@@ -140,7 +138,6 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     ) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");
         this.workspace = workspace;
-        this.projectDependencyFactory = projectDependencyFactory;
         this.featureFlags = featureFlags;
         this.engine = engine;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -308,7 +305,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 ServiceRegistry services = project.getServices();
                 DependencyResolutionManagementInternal drm = services.get(DependencyResolutionManagementInternal.class);
                 ProjectFinder projectFinder = services.get(ProjectFinder.class);
-                createProjectsExtension(container, drm, projectFinder);
+                DefaultProjectDependencyFactory projectDependencyFactory = services.get(DefaultProjectDependencyFactory.class);
+                createProjectsExtension(container, drm, projectDependencyFactory, projectFinder);
             }
         }
     }
@@ -353,7 +351,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         return factory;
     }
 
-    private void createProjectsExtension(ExtensionContainer container, DependencyResolutionManagementInternal drm, ProjectFinder projectFinder) {
+    private void createProjectsExtension(
+        ExtensionContainer container,
+        DependencyResolutionManagementInternal drm,
+        DefaultProjectDependencyFactory projectDependencyFactory,
+        ProjectFinder projectFinder
+    ) {
         if (generatedProjectFactory == null) {
             synchronized (this) {
                 generatedProjectFactory = loadFactory(classLoaderScope, ROOT_PROJECT_ACCESSOR_FQCN);

@@ -59,6 +59,71 @@ class IsolatedProjectsAccessIntegrationTest extends AbstractIsolatedProjectsInte
         mode << ALL_MODES
     }
 
+    def "reports problem when using #api on a dependency on another project declared via #declaration"() {
+        createDirs("a", "b")
+        settingsFile """
+            enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+            include(":a", ":b")
+        """
+
+        buildFile "a/build.gradle", """
+            def dep = $declaration
+            $expr
+        """
+
+        when:
+        isolatedProjectsFailsUsing(mode, "help")
+
+        then:
+        fixture.assertIsolatedProjectsProblems(mode) {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'a/build.gradle': line 3: Project ':a' cannot access '$api' of a dependency on another project ':b'$explanation", 1)
+        }
+
+        where:
+        expr                                                                | api                                           | explanation
+        "dep.group"                                                         | "ProjectDependency.getGroup()"                | ", as the value comes from that project's 'group' property"
+        "dep.version"                                                       | "ProjectDependency.getVersion()"              | ", as the value comes from that project's 'version' property"
+        "dep.capabilities { it.requireFeature('f') }.requestedCapabilities" | "ModuleDependency.getRequestedCapabilities()" | " that requires a feature, as the capability comes from that project's 'group' and 'version' properties. Use 'ModuleDependency.getCapabilitySelectors()' instead"
+
+        combined:
+        declaration << ['dependencies.project(path: ":b")', "projects.b"]
+
+        combined:
+        mode << ALL_MODES
+    }
+
+    def "can use #expr on a dependency on its own project declared via #declaration"() {
+        createDirs("a")
+        settingsFile """
+            enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+            include(":a")
+        """
+
+        buildFile "a/build.gradle", """
+            def dep = $declaration
+            println("value: " + $expr)
+        """
+
+        when:
+        isolatedProjectsRun("help")
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":", ":a")
+        }
+
+        where:
+        expr << [
+            "dep.group",
+            "dep.version",
+            "dep.capabilities { it.requireFeature('f') }.requestedCapabilities",
+        ]
+
+        combined:
+        declaration << ['dependencies.project(path: ":a")', "projects.a"]
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/29154")
     def "exclude task option does not cause isolated projects violation"() {
         settingsFile """

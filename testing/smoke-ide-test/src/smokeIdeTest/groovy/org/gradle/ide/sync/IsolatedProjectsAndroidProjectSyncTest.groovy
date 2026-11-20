@@ -18,12 +18,14 @@ package org.gradle.ide.sync
 
 import org.gradle.profiler.mutations.ApplyBuildScriptChangeFileMutator
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import spock.lang.PendingFeature
 
 class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
 
     // https://developer.android.com/build/releases/gradle-plugin
     private final static String AGP_VERSION = "9.1.1"
 
+    @PendingFeature(reason = "AGP reads ProjectDependency.getGroup() of project dependencies in checkMultidexDependency, a cross-project access")
     def "can sync simple Android build without problems"() {
         given:
         simpleAndroidProject(AGP_VERSION)
@@ -35,6 +37,7 @@ class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
         report.htmlReport().assertHasNoProblems()
     }
 
+    @PendingFeature(reason = "AGP reads ProjectDependency.getGroup() of project dependencies in checkMultidexDependency, a cross-project access")
     def "can incrementally sync simple Android build without error"() {
         given:
         simpleAndroidProject(AGP_VERSION)
