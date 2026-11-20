@@ -1,0 +1,32 @@
+// tag::task-lifecycle-listeners[]
+abstract class ExecFailureDetails implements TaskLifecycleListener<Exec> { // <1>
+    final ByteArrayOutputStream stderr = new ByteArrayOutputStream() // <2>
+
+    void beforeExecution(Exec task) { // <3>
+        task.errorOutput = new OutputStream() {
+            @Override
+            void write(int b) {
+                System.err.write(b)
+                stderr.write(b)
+            }
+        }
+    }
+
+    void afterExecution(Exec task, TaskState state) { // <4>
+        if (state.failure != null) {
+            println "Command: ${task.commandLine.join(' ')}"
+            println "Working directory: ${task.workingDir}"
+            println 'Error output:'
+            stderr.toString().trim().readLines().each { println "  $it" }
+        }
+    }
+}
+
+tasks.withType(Exec).addLifecycleListener(ExecFailureDetails) // <5>
+// end::task-lifecycle-listeners[]
+
+tasks.register('runTool', Exec) {
+    // Runs the JVM of the build with a missing main class, so the task fails the same way on every platform
+    executable = ProcessHandle.current().info().command().get()
+    args '-cp', 'missing', 'Tool'
+}

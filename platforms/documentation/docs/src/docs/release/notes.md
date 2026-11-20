@@ -73,6 +73,38 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 ### Configuration Cache improvements
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
+#### Configuration Cache-compatible task lifecycle listeners
+
+This release introduces [`TaskLifecycleListener`](javadoc/org/gradle/api/tasks/TaskLifecycleListener.html), a Configuration Cache-compatible replacement for `TaskExecutionListener`, `TaskActionListener`, and `gradle.taskGraph.beforeTask`/`afterTask`.
+`OperationCompletionListener` already replaces these for observing task results, but some use cases need code that runs synchronously right before and after the task executes: enriching task failures with task-specific details, releasing resources even when the task fails, or vetoing a task before it runs.
+
+A listener is a class registered by type, with a single task or with every task of a given type.
+For example, when an `Exec` task fails, the failure names only the executable.
+This listener prints the full command line and the working directory of every `Exec` task that fails:
+
+```kotlin
+abstract class ExecFailureDetails : TaskLifecycleListener<Exec> {
+    override fun afterExecution(task: Exec, state: TaskState) {
+        if (state.failure != null) {
+            println("Command: ${task.commandLine.joinToString(" ")}")
+            println("Working directory: ${task.workingDir}")
+        }
+    }
+}
+
+tasks.withType<Exec>().addLifecycleListener(ExecFailureDetails::class.java)
+```
+
+Unlike an `OperationCompletionListener`, which receives only the path of the task after the task has finished, the listener receives the `Exec` task itself, and its output appears with the output of the failed task.
+Gradle creates a new instance of the listener for each task execution, so instance fields can carry state from `beforeExecution` to `afterExecution`.
+
+Listeners are called for every task that Gradle tries to execute, including tasks that are up-to-date, skipped, or loaded from the build cache.
+Unlike the legacy listeners, which were notified one task at a time, the listeners of tasks executing in parallel are notified concurrently, so build services they share must be thread-safe.
+Build services referenced by a listener via `@ServiceReference` are used by the task as if the task referenced them, so they honor `maxParallelUsages`.
+Only the listener types are stored in the Configuration Cache.
+
+See the [Replacing `taskGraph.beforeTask`, `TaskExecutionListener`, and `TaskActionListener` with a Task Lifecycle Listener](userguide/configuration_cache_requirements.html#config_cache:requirements:task_lifecycle_listeners) section in the Gradle User Manual for more details.
+
 ### Test reporting and execution
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 

@@ -29,12 +29,30 @@ import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * The build services used by a task, from three sources:
+ *
+ * <ul>
+ *     <li>services registered via {@code Task#usesService(Provider)};</li>
+ *     <li>services referenced by {@link org.gradle.api.services.ServiceReference} properties of the task,
+ *     including those of its {@link org.gradle.api.tasks.Nested} beans. Finding these requires the values
+ *     of the nested properties, which can run user code and can change during configuration,
+ *     so they are collected lazily, once, when the task is about to execute;</li>
+ *     <li>services referenced by {@link org.gradle.api.services.ServiceReference} properties of the task lifecycle listeners.
+ *     A listener is only instantiated at execution, so its references are read from its type,
+ *     without evaluating anything, when the listener is registered.</li>
+ * </ul>
+ *
+ * <p>Referenced services are resolved by name only when the required services are queried,
+ * so services can be registered after the task or listener referencing them.</p>
+ */
 public class DefaultTaskRequiredServices implements TaskRequiredServices {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
@@ -46,8 +64,18 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
     @Nullable
     private Set<RegisteredBuildServiceProvider<?, ?>> registeredServices;
 
+    /**
+     * Services referenced via {@link org.gradle.api.services.ServiceReference} properties of the task itself.
+     * Collected lazily, either when the task graph is resolved or on the first {@link #searchServices()}.
+     */
     @Nullable
     private Collection<? extends BuildServiceProvider<?, ?>> consumedServices;
+
+    /**
+     * Services referenced via {@link org.gradle.api.services.ServiceReference} by the lifecycle listeners registered with the task.
+     */
+    @Nullable
+    private List<BuildServiceProvider<?, ?>> lifecycleListenerServices;
 
     public DefaultTaskRequiredServices(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker) {
         this.task = task;
@@ -74,13 +102,22 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
             collectConsumedServices();
         }
         if (consumedServices != null) {
-            consumedServices.stream()
-                .map(it -> ((ConsumedBuildServiceProvider<?>) it).resolveIfPossible())
-                .filter(Objects::nonNull)
-                .forEach(allServicesUsed::add);
+            addResolvedServices(consumedServices, allServicesUsed);
         }
-        ImmutableSet<BuildServiceProvider<?, ?>> build = allServicesUsed.build();
-        return Cast.uncheckedCast(build);
+        if (lifecycleListenerServices != null) {
+            addResolvedServices(lifecycleListenerServices, allServicesUsed);
+        }
+        return Cast.uncheckedCast(allServicesUsed.build());
+    }
+
+    private static void addResolvedServices(
+        Collection<? extends BuildServiceProvider<?, ?>> services,
+        ImmutableSet.Builder<BuildServiceProvider<?, ?>> allServicesUsed
+    ) {
+        services.stream()
+            .map(it -> ((ConsumedBuildServiceProvider<?>) it).resolveIfPossible())
+            .filter(Objects::nonNull)
+            .forEach(allServicesUsed::add);
     }
 
     private void collectConsumedServices() {
@@ -92,7 +129,7 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
 
     @Override
     public boolean isServiceRequired(Provider<? extends BuildService<?>> toCheck) {
-        return getElements(false).stream().anyMatch(it -> BuildServiceProvider.isSameService(toCheck, it));
+        return getElements().stream().anyMatch(it -> BuildServiceProvider.isSameService(toCheck, it));
     }
 
     @Override
@@ -119,5 +156,13 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
     @Override
     public boolean hasServiceReferences() {
         return consumedServices != null;
+    }
+
+    @Override
+    public void registerLifecycleListenerServices(List<? extends BuildServiceProvider<?, ?>> services) {
+        if (lifecycleListenerServices == null) {
+            lifecycleListenerServices = new ArrayList<>(services.size());
+        }
+        lifecycleListenerServices.addAll(services);
     }
 }

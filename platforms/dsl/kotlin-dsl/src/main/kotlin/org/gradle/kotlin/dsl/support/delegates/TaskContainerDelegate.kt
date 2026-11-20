@@ -29,6 +29,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskLifecycleListener
 import org.gradle.api.tasks.TaskProvider
 
 import java.util.SortedMap
@@ -124,6 +125,9 @@ abstract class TaskContainerDelegate : TaskContainer {
 
     override fun whenTaskAdded(closure: Closure<Any>) =
         delegate.whenTaskAdded(closure)
+
+    override fun addLifecycleListener(listenerType: Class<out TaskLifecycleListener<in Task>>) =
+        delegate.addLifecycleListener(listenerType)
 
     override fun removeAll(elements: Collection<Task>): Boolean =
         delegate.removeAll(elements)

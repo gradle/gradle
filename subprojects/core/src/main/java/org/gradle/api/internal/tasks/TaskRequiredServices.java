@@ -30,8 +30,9 @@ public interface TaskRequiredServices {
     void registerServiceUsage(Provider<? extends BuildService<?>> serviceUsed);
 
     /**
-     * Returns services required, be it using {@link org.gradle.api.Task#usesService} or
-     * by annotating a property as {@link org.gradle.api.services.ServiceReference}.
+     * Returns services required, be it using {@link org.gradle.api.Task#usesService},
+     * by annotating a property as {@link org.gradle.api.services.ServiceReference},
+     * or by registering a {@link org.gradle.api.tasks.TaskLifecycleListener} with such a property.
      */
     Set<Provider<? extends BuildService<?>>> searchServices();
 
@@ -46,4 +47,6 @@ public interface TaskRequiredServices {
     void acceptServiceReferences(List<? extends BuildServiceProvider<?, ?>> serviceReferences);
 
     boolean hasServiceReferences();
+
+    void registerLifecycleListenerServices(List<? extends BuildServiceProvider<?, ?>> services);
 }

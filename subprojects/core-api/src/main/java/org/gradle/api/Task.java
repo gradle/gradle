@@ -33,10 +33,12 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInputs;
+import org.gradle.api.tasks.TaskLifecycleListener;
 import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -515,6 +517,46 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
     Task doLast(@DelegatesTo(Task.class)
                 @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Task")
                 Closure action);
+
+    /**
+     * Registers a listener to be notified before and after this task is executed.
+     *
+     * <p>Gradle creates a new instance of the listener for each execution of this task.
+     * Registering the same listener type more than once has no effect.</p>
+     *
+     * <p>The listener must accept any task. To register a listener for a specific type of task, use
+     * {@link #addLifecycleListener(Task, Class)}, or {@link org.gradle.api.tasks.TaskCollection#addLifecycleListener(Class)}
+     * on a typed collection, such as {@code tasks.withType(Copy)}.
+     * The type of task the listener is declared for is also checked when the listener is registered,
+     * for callers that the compiler does not check, such as Groovy build scripts.</p>
+     *
+     * @param listenerType The type of the listener.
+     * @see TaskLifecycleListener
+     * @since 9.10.0
+     */
+    @Incubating
+    // Only Task::addLifecycleListener as a two-argument method reference is ambiguous with the static method, and a lambda works instead
+    @SuppressWarnings("AmbiguousMethodReference")
+    void addLifecycleListener(Class<? extends TaskLifecycleListener<? super Task>> listenerType);
+
+    /**
+     * Registers a listener to be notified before and after the given task is executed.
+     *
+     * <p>Unlike {@link #addLifecycleListener(Class)}, the listener can be declared for the type of the given task.
+     * In Kotlin, use the {@code addLifecycleListener(KClass)} extension of the task instead.</p>
+     *
+     * @param task The task to register the listener with.
+     * @param listenerType The type of the listener.
+     * @param <T> The type of the task.
+     * @see TaskLifecycleListener
+     * @since 9.10.0
+     */
+    @Incubating
+    @SuppressWarnings("AmbiguousMethodReference") // See addLifecycleListener(Class)
+    static <T extends Task> void addLifecycleListener(T task, Class<? extends TaskLifecycleListener<? super T>> listenerType) {
+        // The listener accepts the type of the task, which the signature of the method on the task cannot express
+        task.addLifecycleListener(Cast.uncheckedNonnullCast(listenerType));
+    }
 
     /**
      * <p>Returns if this task is enabled or not.</p>

@@ -1,0 +1,4 @@
+Working directory: /home/user/gradle/samples
+Error output:
+  Error: Could not find or load main class Tool
+  Caused by: java.lang.ClassNotFoundException: Tool
