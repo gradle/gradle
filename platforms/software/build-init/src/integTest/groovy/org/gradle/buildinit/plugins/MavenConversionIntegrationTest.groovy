@@ -56,6 +56,8 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
          * creating multiple ProjectBuildingRequest.
          * */
         m2.generateUserSettingsFile(m2.mavenRepo())
+        // Without this the build does not read that settings file, and the conversion fills the developer's own ~/.m2/repository
+        using m2
     }
 
     def "multiModule init with incubating"() {
@@ -987,6 +989,42 @@ Root project 'webinar-parent'
     static libRequest(MavenHttpRepository repo, String group, String name, Object version) {
         MavenHttpModule module = repo.module(group, name, version as String)
         module.allowAll()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20596")
+    def "resolves the libraries for the conversion through the Maven settings mirror"() {
+        given:
+        resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
+        server.start()
+        // The mirror serves an empty directory, so it answers every request with "not found"
+        server.allowGetOrHead("/mirror", file("empty-mirror").createDir())
+        def mirrorUrl = "${server.uri}/mirror"
+        m2.withCentralMirror(mirrorUrl)
+
+        when:
+        executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
+        fails 'init', '--dsl', scriptDsl.id as String
+
+        then: "init asked the mirror, and only the mirror, for its libraries"
+        failure.assertHasErrorOutput("Could not find org.apache.maven:maven-core:")
+        failure.assertHasErrorOutput("${mirrorUrl}/org/apache/maven/maven-core/")
+        failure.assertNotOutput("repo.maven.apache.org")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20596")
+    def "turns on Maven mirror settings in the converted build when the conversion ran with them"() {
+        given:
+        resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
+
+        when:
+        executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        gradlePropertiesGenerated {
+            assertConfigurationCacheEnabled()
+            assertMavenMirrorSettingsEnabled()
+        }
     }
 
     def withSharedResources() {

@@ -258,6 +258,8 @@ The conversion process has the following features:
 
 NOTE: Due to fundamental differences between Maven and Gradle, not all features of a Maven build can be converted to Gradle. For example, Maven exclusions work differently from Gradle exclusions. The generated Gradle build should be considered a starting point for further refinement.
 
+NOTE: The conversion downloads Maven libraries from Maven Central. If you can only reach an internal mirror of Maven Central, see <<migrating_from_maven.adoc#migmvn:conversion_mirror,Converting without access to Maven Central>>.
+
 [[sec:allow_insecure]]
 ==== The `--insecure-protocol` option
 
