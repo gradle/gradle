@@ -229,7 +229,22 @@ public class DefaultFileLockManager implements FileLockManager {
 
         @Override
         public boolean isLockFile(File file) {
-            return file.equals(lockFile);
+            if (file.equals(lockFile)) {
+                return true;
+            }
+            // The same physical lock file may be reachable via different path strings
+            // (symlinks, junctions, Windows `subst`-aliased drives). Fall back to a
+            // canonical-path comparison so the lock-file identity check survives that.
+            // Short-circuit on filename first to avoid filesystem I/O on entries that
+            // obviously cannot be the lock file.
+            if (!file.getName().equals(lockFile.getName())) {
+                return false;
+            }
+            try {
+                return file.getCanonicalFile().equals(lockFile.getCanonicalFile());
+            } catch (IOException e) {
+                return false;
+            }
         }
 
         @Override
