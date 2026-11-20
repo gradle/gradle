@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift
 
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLogger
@@ -25,7 +24,6 @@ import org.gradle.nativeplatform.fixtures.app.SwiftGreeterUsingCppFunction
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
-@ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
 class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
 
     def "can compile and link against a #linkage.toLowerCase() c++ library"() {
@@ -35,31 +33,29 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
         def lib = new SwiftGreeterUsingCppFunction(cppGreeter)
 
         given:
-        buildFile << """
-            project(':hello') {
-                apply plugin: 'swift-library'
-                dependencies {
-                    api project(':cppGreeter')
-                }
-                library.binaries.configureEach {
-                    if (targetMachine.operatingSystemFamily.macOs) {
-                        linkTask.get().linkerArgs.add("-lc++")
-                    } else if (targetMachine.operatingSystemFamily.linux) {
-                        linkTask.get().linkerArgs.add("-lstdc++")
-                    }
+        buildFile("hello/build.gradle", """
+            apply plugin: 'swift-library'
+            dependencies {
+                api project(':cppGreeter')
+            }
+            library.binaries.configureEach {
+                if (targetMachine.operatingSystemFamily.macOs) {
+                    linkTask.get().linkerArgs.add("-lc++")
+                } else if (targetMachine.operatingSystemFamily.linux) {
+                    linkTask.get().linkerArgs.add("-lstdc++")
                 }
             }
-            project(':cppGreeter') {
-                apply plugin: 'cpp-library'
-                library.linkage = [Linkage.${linkage}]
-                library {
-                    linkage = [Linkage.${linkage}]
-                    binaries.configureEach {
-                        compileTask.get().positionIndependentCode = true
-                    }
+        """)
+        buildFile("cppGreeter/build.gradle", """
+            apply plugin: 'cpp-library'
+            library.linkage = [Linkage.${linkage}]
+            library {
+                linkage = [Linkage.${linkage}]
+                binaries.configureEach {
+                    compileTask.get().positionIndependentCode = true
                 }
             }
-        """
+        """)
         lib.writeToProject(file("hello"))
         cppGreeter.asLib().writeToProject(file("cppGreeter"))
 
@@ -84,29 +80,27 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
         def lib = new SwiftGreeterUsingCppFunction(cppGreeter)
 
         given:
-        buildFile << """
-            project(':hello') {
-                apply plugin: 'swift-library'
-                dependencies {
-                    api project(':cppGreeter')
+        buildFile("hello/build.gradle", """
+            apply plugin: 'swift-library'
+            dependencies {
+                api project(':cppGreeter')
+            }
+        """)
+        buildFile("cppGreeter/build.gradle", """
+            apply plugin: 'cpp-library'
+            dependencies {
+                implementation project(':logger')
+            }
+        """)
+        buildFile("logger/build.gradle", """
+            apply plugin: 'cpp-library'
+            library {
+                linkage = [Linkage.${linkage}]
+                binaries.configureEach {
+                    compileTask.get().positionIndependentCode = true
                 }
             }
-            project(':cppGreeter') {
-                apply plugin: 'cpp-library'
-                dependencies {
-                    implementation project(':logger')
-                }
-            }
-            project(':logger') {
-                apply plugin: 'cpp-library'
-                library {
-                    linkage = [Linkage.${linkage}]
-                    binaries.configureEach {
-                        compileTask.get().positionIndependentCode = true
-                    }
-                }
-            }
-        """
+        """)
         lib.writeToProject(file("hello"))
         cppGreeter.asLib().writeToProject(file("cppGreeter"))
         logger.asLib().writeToProject(file("logger"))

@@ -115,4 +115,19 @@ abstract class AbstractCppPublishingIntegrationTest extends AbstractInstalledToo
     Map<String, String> machine(String os, String architecture) {
         return new LinkedHashMap<String, String>(["os": os, "architecture": architecture])
     }
+
+    /**
+     * Build script snippet that publishes the project as {@code some.group:<name>:1.2} to the given Maven repository.
+     */
+    String mavenPublishing(URI repoUri = mavenRepo.uri) {
+        """
+            apply plugin: 'maven-publish'
+
+            group = 'some.group'
+            version = '1.2'
+            publishing {
+                repositories { maven { url = '${repoUri}' } }
+            }
+        """
+    }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.language.swift.AbstractSwiftMixedLanguageIntegrationTest
 import org.gradle.language.swift.SwiftTaskNames
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
@@ -34,7 +33,6 @@ import static org.gradle.test.preconditions.TestEnvironmentPreconditions.HasXCTe
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 @Requires(HasXCTest)
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
-@ToBeFixedForIsolatedProjects(because = "configure projects from root")
 class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest implements XCTestExecutionResult, SwiftTaskNames {
     @Override
     def getSwiftToolChain() {
@@ -71,11 +69,11 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
                 }
             }
 
-            project(':cppGreeter') {
-                apply plugin: 'cpp-library'
-                library.linkage = [Linkage.${linkage}]
-            }
         """
+        buildFile("cppGreeter/build.gradle", """
+            apply plugin: 'cpp-library'
+            library.linkage = [Linkage.${linkage}]
+        """)
         lib.writeToProject(testDirectory)
         cppGreeter.asLib().writeToProject(file("cppGreeter"))
 
@@ -103,16 +101,7 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
             include 'greeter', 'cppGreeter'
         """
         buildFile << """
-            project(':greeter') {
-                apply plugin: 'swift-library'
-                dependencies {
-                    api project(':cppGreeter')
-                }
-            }
 
-            project(':cppGreeter') {
-                apply plugin: 'cpp-library'
-            }
 
             apply plugin: 'swift-library'
 
@@ -120,6 +109,15 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
                 testImplementation project(':greeter')
             }
         """
+        buildFile("greeter/build.gradle", """
+            apply plugin: 'swift-library'
+            dependencies {
+                api project(':cppGreeter')
+            }
+        """)
+        buildFile("cppGreeter/build.gradle", """
+            apply plugin: 'cpp-library'
+        """)
         lib.writeToProject(file('greeter'))
         cppGreeter.asLib().writeToProject(file('cppGreeter'))
         test.writeToProject(testDirectory)

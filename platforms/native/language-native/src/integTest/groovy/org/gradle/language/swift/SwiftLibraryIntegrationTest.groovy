@@ -17,7 +17,6 @@
 package org.gradle.language.swift
 
 
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -267,24 +266,21 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
     }
 
-    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "can compile and link against another library"() {
         createDirs("hello", "log")
         settingsFile << "include 'hello', 'log'"
         def app = new SwiftAppWithLibraries()
 
         given:
-        buildFile << """
-            project(':hello') {
-                apply plugin: 'swift-library'
-                dependencies {
-                    implementation project(':log')
-                }
+        buildFile("hello/build.gradle", """
+            apply plugin: 'swift-library'
+            dependencies {
+                implementation project(':log')
             }
-            project(':log') {
-                apply plugin: 'swift-library'
-            }
-"""
+""")
+        buildFile("log/build.gradle", """
+            apply plugin: 'swift-library'
+""")
         app.library.writeToProject(file("hello"))
         app.logLibrary.writeToProject(file("log"))
 
@@ -304,30 +300,27 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("log/build/lib/main/release/Log").assertHasDebugSymbolsFor(app.logLibrary.sourceFileNames)
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Swift uses allprojects/subprojects (software model)")
     def "can change default module name and successfully link against library"() {
         createDirs("lib1", "lib2")
         settingsFile << "include 'lib1', 'lib2'"
         def app = new SwiftAppWithLibraries()
 
         given:
-        buildFile << """
-            project(':lib1') {
-                apply plugin: 'swift-library'
-                library {
-                    module.set('Hello')
-                }
-                dependencies {
-                    implementation project(':lib2')
-                }
+        buildFile("lib1/build.gradle", """
+            apply plugin: 'swift-library'
+            library {
+                module.set('Hello')
             }
-            project(':lib2') {
-                apply plugin: 'swift-library'
-                library {
-                    module.set('Log')
-                }
+            dependencies {
+                implementation project(':lib2')
             }
-"""
+""")
+        buildFile("lib2/build.gradle", """
+            apply plugin: 'swift-library'
+            library {
+                module.set('Log')
+            }
+""")
         app.library.writeToProject(file("lib1"))
         app.logLibrary.writeToProject(file("lib2"))
 

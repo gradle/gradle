@@ -23,10 +23,10 @@ class CppApplicationDependenciesIntegrationTest extends AbstractNativeProduction
     protected void makeComponentWithLibrary() {
         buildFile << """
             apply plugin: 'cpp-application'
-            project(':lib') {
-                apply plugin: 'cpp-library'
-            }
         """
+        buildFile("lib/build.gradle", """
+            apply plugin: 'cpp-library'
+        """)
 
         file("lib/src/main/cpp/lib.cpp") << librarySource
         file("src/main/cpp/app.cpp") << applicationSource
