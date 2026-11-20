@@ -40,6 +40,7 @@ import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.KotlinType
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.ScriptConfigurationRefinementContext
+import kotlin.script.experimental.api.SourceCode
 import kotlin.script.experimental.api.asSuccess
 import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.defaultImports
@@ -48,6 +49,7 @@ import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.experimental.api.isStandalone
 import kotlin.script.experimental.api.refineConfiguration
 import kotlin.script.experimental.api.with
+import kotlin.script.experimental.host.FileBasedScriptSource
 import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.extensions.SamWithReceiverAnnotations
 
@@ -235,10 +237,12 @@ fun ScriptCompilationConfiguration.Builder.defaultImportsForPrecompiledScript() 
         beforeCompiling { context ->
             val environment = scriptResolverEnvironmentOf(context)
             require(environment != null)
+            val script = context.script
             context.compilationConfiguration.with {
                 defaultImports(
                     PrecompiledScriptsEnvironment.implicitImportsForScript(
-                        textOf(context.script),
+                        textOf(script),
+                        scriptFileNameOf(script),
                         environment
                     )
                 )
@@ -246,6 +250,13 @@ fun ScriptCompilationConfiguration.Builder.defaultImportsForPrecompiledScript() 
         }
     }
 }
+
+
+private
+fun scriptFileNameOf(script: SourceCode): String? =
+    (script as? FileBasedScriptSource)?.file?.name
+        ?: script.name
+        ?: script.locationId?.substringAfterLast('/')?.substringAfterLast('\\')
 
 
 private

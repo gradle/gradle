@@ -45,14 +45,10 @@ internal class PrecompiledScriptPluginsMetadataDir(private val dir: File) {
         }
 
     fun implicitAccessorsImports(scriptFile: File): List<String> = with(dir) {
-        implicitImportsFrom(resolve("accessors").resolve(hashOf(scriptFile)))
+        implicitImportsFrom(resolve("accessors").resolve(KotlinScriptHashing.precompiledScriptKeyOfFile(scriptFile)))
     }
 
     private
     fun implicitImportsFrom(file: File): List<String> =
         file.takeIf { it.isFile }?.readLines() ?: emptyList()
-
-    private
-    fun hashOf(scriptFile: File) =
-        KotlinScriptHashing.hashOf(scriptFile.readText())
 }

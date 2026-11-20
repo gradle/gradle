@@ -64,7 +64,7 @@ class PrecompiledScriptPluginFactory {
             scriptFile = scriptFile,
             scriptFileName = scriptFileName,
             scriptText = scriptText,
-            hashString = KotlinScriptHashing.hashOfNormalisedString(scriptText),
+            hashString = KotlinScriptHashing.precompiledScriptKeyOfText(scriptText, scriptFileName),
             scriptType = scriptType,
             targetType = when (scriptType) {
                 KotlinScriptType.PROJECT -> Project::class.qualifiedName
