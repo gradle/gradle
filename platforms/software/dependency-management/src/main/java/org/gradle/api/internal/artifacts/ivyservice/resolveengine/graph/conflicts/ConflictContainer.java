@@ -97,6 +97,7 @@ class ConflictContainer<K, T> {
             Conflict c = conflictsByParticipant.get(participant);
             if (c != null) {
                 //there is already registered conflict with at least one matching participant, hook up to this conflict
+                c.candidateModule = replacedBy;
                 c.candidates = candidates;
                 c.participants.addAll(participants);
                 return c;
@@ -104,7 +105,7 @@ class ConflictContainer<K, T> {
         }
 
         //No conflict with matching participants found, create new
-        Conflict c = new Conflict(participants, candidates);
+        Conflict c = new Conflict(participants, replacedBy, candidates);
         conflicts.add(c);
         for (K participant : participants) {
             conflictsByParticipant.put(participant, c);
@@ -146,10 +147,12 @@ class ConflictContainer<K, T> {
 
     class Conflict {
         final Set<K> participants;
+        K candidateModule;
         Collection<? extends T> candidates;
 
-        public Conflict(Set<K> participants, Collection<? extends T> candidates) {
+        public Conflict(Set<K> participants, K candidateModule, Collection<? extends T> candidates) {
             this.participants = participants;
+            this.candidateModule = candidateModule;
             this.candidates = candidates;
         }
 

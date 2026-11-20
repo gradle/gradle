@@ -44,7 +44,9 @@ class ConflictContainerTest extends Specification {
         container.newElement("b", [1, 2], null)
         expect:
         container.size == 1
-        container.popConflict().toString() == "b:1,2"
+        def conflict = container.popConflict()
+        conflict.candidateModule == "b"
+        conflict.toString() == "b:1,2"
     }
 
     def "contains multiple conflicting elements"() {
@@ -134,7 +136,9 @@ class ConflictContainerTest extends Specification {
 
         expect:
         container.conflicts.size() == 1
-        container.popConflict().toString() == "a,b,c:3"
+        def conflict = container.popConflict()
+        conflict.candidateModule == "c"
+        conflict.toString() == "a,b,c:3"
     }
 
     def "allows registering multiple elements with the same replacedBy before the replacedBy"() {

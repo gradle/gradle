@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleResolveState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -100,6 +101,7 @@ class DefaultModuleConflictHandlerTest extends Specification {
         def selectedVersion = candidateModule.versions.find { (it.componentId as ModuleComponentIdentifier).version == '2' }
         def targetModule = selectedVersion.module
         resolveState.getModule(DefaultModuleIdentifier.newId("org", "a")) >> targetModule
+        targetModule.getVersions() >> candidateModule.versions
 
         when:
         handler.resolveNextConflict()
@@ -115,6 +117,38 @@ class DefaultModuleConflictHandlerTest extends Specification {
 
         then:
         !handler.hasConflicts()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39922")
+    def "resolves replacement conflict using the target module's current version #version"() {
+        given:
+        def target = candidate("org", "modern", "2")
+        def source = candidate("org", "legacy", "1")
+        def targetModule = resolveState.getModule(target.id)
+        def selectedVersion = Stub(ComponentState) {
+            getComponentId() >> DefaultModuleComponentIdentifier.newId(target.id, version)
+            getModule() >> targetModule
+        }
+        targetModule.getVersions() >> [selectedVersion]
+        replacements.getReplacementFor(source.id) >> new ImmutableModuleReplacements.Replacement(target.id, null)
+        handler.registerCandidate(target)
+        handler.registerCandidate(source)
+
+        when:
+        handler.resolveNextConflict()
+
+        then:
+        1 * resolver.select(_) >> { args ->
+            def details = args[0]
+            assert details.candidates == [selectedVersion]
+            details.select(selectedVersion)
+        }
+        1 * targetModule.resolveModuleConflict(selectedVersion)
+        1 * resolveState.getModule(source.id).resolveModuleConflict(selectedVersion)
+        !handler.hasConflicts()
+
+        where:
+        version << ["1", "3"]
     }
 
     private CandidateModule candidate(String group, String name, String ... versions) {
