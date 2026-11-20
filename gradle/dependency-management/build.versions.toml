@@ -29,7 +29,7 @@ develocityPlugin = { module = "com.gradle.develocity:com.gradle.develocity.gradl
 docbook = { module = "net.sf.docbook:docbook-xsl", version = "1.75.2" }
 dokkaPlugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version = "2.2.0" }
 errorProne = { module = "com.google.errorprone:error_prone_core", version.ref = "errorProne" }
-errorPronePlugin = { module = "net.ltgt.gradle:gradle-errorprone-plugin", version = "5.1.0" }
+errorPronePlugin = { module = "net.ltgt.gradle:gradle-errorprone-plugin", version = "5.2.0" }
 flexmark = { module = "com.vladsch.flexmark:flexmark-all", version = "0.34.60" } # Higher versions tested are either incompatible (0.62.2) or bring additional unwanted dependencies (0.36.8)
 foojayConventions = { module = "org.gradle.toolchains.foojay-resolver-convention:org.gradle.toolchains.foojay-resolver-convention.gradle.plugin", version = "1.0.0" }
 freemarker = { module = "org.freemarker:freemarker", version = "2.3.35" } # CVE-2026-84939 on lower versions
