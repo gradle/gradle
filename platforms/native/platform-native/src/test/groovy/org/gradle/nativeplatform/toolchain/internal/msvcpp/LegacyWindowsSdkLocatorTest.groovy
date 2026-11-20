@@ -20,12 +20,12 @@ import net.rubygrapefruit.platform.MissingRegistryEntryException
 import net.rubygrapefruit.platform.WindowsRegistry
 import org.gradle.internal.logging.text.DiagnosticsVisitor
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
-import spock.lang.Specification
 
-class LegacyWindowsSdkLocatorTest extends Specification {
+class LegacyWindowsSdkLocatorTest extends ConcurrentSpec {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final WindowsRegistry windowsRegistry = Stub(WindowsRegistry)
     final OperatingSystem operatingSystem = Stub(OperatingSystem) {
@@ -238,6 +238,33 @@ class LegacyWindowsSdkLocatorTest extends Specification {
         result.component.name == "installed sdk"
         result.component.version == VersionNumber.parse("7.0")
         result.component.baseDir == sdkDir
+    }
+
+    def "discovers SDKs once when located concurrently"() {
+        def dir = sdkDir("sdk")
+        def gate = new DiscoveryGate()
+        def results = [].asSynchronized()
+
+        given:
+        operatingSystem.findInPath(_) >> {
+            gate.discovering()
+            null
+        }
+        windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows/) >> ["v1"]
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "InstallationFolder") >> dir.absolutePath
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductVersion") >> "7.0"
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductName") >> "sdk 1"
+
+        when:
+        async {
+            start { results << windowsSdkLocator.locateComponent(null) }
+            start { results << windowsSdkLocator.locateComponent(null) }
+            gate.releaseWhenContended()
+        }
+
+        then:
+        gate.discoveries == 1
+        results*.component*.baseDir == [dir, dir]
     }
 
     def sdkDir(String name) {

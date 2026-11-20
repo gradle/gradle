@@ -22,15 +22,15 @@ import net.rubygrapefruit.platform.WindowsRegistry
 import org.gradle.internal.logging.text.TreeFormatter
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
-import spock.lang.Specification
 
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.AbstractWindowsKitComponentLocator.PLATFORMS
 
-class WindowsKitWindowsSdkLocatorTest extends Specification {
+class WindowsKitWindowsSdkLocatorTest extends ConcurrentSpec {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final WindowsRegistry windowsRegistry = Stub(WindowsRegistry)
     final SystemInfo systemInfo = Stub(SystemInfo) {
@@ -336,6 +336,29 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
 
         then:
         visitor.toString() == "The specified installation directory '$dir2' does not appear to contain a Windows SDK installation."
+    }
+
+    def "discovers kits once when located concurrently"() {
+        def dir = kitDir("sdk", "10.0.10150.0")
+        def gate = new DiscoveryGate()
+        def results = [].asSynchronized()
+
+        given:
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> {
+            gate.discovering()
+            dir.absolutePath
+        }
+
+        when:
+        async {
+            start { results << windowsSdkLocator.locateComponent(null) }
+            start { results << windowsSdkLocator.locateComponent(null) }
+            gate.releaseWhenContended()
+        }
+
+        then:
+        gate.discoveries == 1
+        results*.component*.baseDir == [dir, dir]
     }
 
     def arm64() {

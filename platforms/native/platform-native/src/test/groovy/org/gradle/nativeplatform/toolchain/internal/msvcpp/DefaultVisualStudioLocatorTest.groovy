@@ -26,15 +26,15 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioI
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadataBuilder
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionLocator
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
-import spock.lang.Specification
 
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.*
 
-class DefaultVisualStudioLocatorTest extends Specification {
+class DefaultVisualStudioLocatorTest extends ConcurrentSpec {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final VisualStudioVersionLocator commandLineLocator = Mock(VisualStudioVersionLocator)
     final VisualStudioVersionLocator windowsRegistryLocator = Mock(VisualStudioVersionLocator)
@@ -500,6 +500,31 @@ class DefaultVisualStudioLocatorTest extends Specification {
         "32-bit" | SystemInfo.Architecture.i386  | "arm64"        | false          | ARM64_ON_X86
         "64-bit" | SystemInfo.Architecture.amd64 | "arm64"        | true           | ARM64_ON_AMD64
         "64-bit" | SystemInfo.Architecture.amd64 | "arm64"        | false          | ARM64_ON_X86
+    }
+
+    def "discovers installs once when located concurrently"() {
+        def dir = vsDir("vs")
+        def install = legacyVsInstall(dir, "12.0")
+        def gate = new DiscoveryGate()
+        def results = [].asSynchronized()
+
+        given:
+        commandLineLocator.getVisualStudioInstalls() >> {
+            gate.discovering()
+            [install]
+        }
+        windowsRegistryLocator.getVisualStudioInstalls() >> []
+
+        when:
+        async {
+            start { results << visualStudioLocator.locateComponent(null) }
+            start { results << visualStudioLocator.locateComponent(null) }
+            gate.releaseWhenContended()
+        }
+
+        then:
+        gate.discoveries == 1
+        results*.component*.baseDir == [dir, dir]
     }
 
     def vs2017Dir(String name) {
