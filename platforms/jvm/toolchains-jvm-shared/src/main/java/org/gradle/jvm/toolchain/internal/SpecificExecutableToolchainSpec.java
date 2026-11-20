@@ -52,7 +52,7 @@ public class SpecificExecutableToolchainSpec extends DefaultToolchainSpec {
 
         @Override
         public int hashCode() {
-            return Objects.hash(javaExecutable);
+            return Objects.hashCode(javaExecutable);
         }
     }
 

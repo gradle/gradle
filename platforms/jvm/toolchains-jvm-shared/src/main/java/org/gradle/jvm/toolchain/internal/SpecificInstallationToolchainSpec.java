@@ -48,7 +48,7 @@ public class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
 
         @Override
         public int hashCode() {
-            return Objects.hash(javaHome);
+            return Objects.hashCode(javaHome);
         }
     }
 
