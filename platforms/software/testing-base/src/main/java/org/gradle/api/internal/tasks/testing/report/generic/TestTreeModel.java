@@ -354,30 +354,29 @@ public class TestTreeModel {
     }
 
     /**
-     * Returns true if this node is a leaf and all its results are successful
-     * (not failed and not skipped).
+     * Returns true if any of this node's results failed.
      *
-     * @return true if this is a successful leaf node
+     * @return true if this node has a failure
      */
-    public boolean isSuccessfulLeaf() {
+    private boolean hasFailure() {
         for (List<PerRootInfo> infos : getPerRootInfo()) {
             for (PerRootInfo info : infos) {
-                // A successful leaf has no failures and no skipped tests
-                if (info.getFailedLeafCount() > 0 || info.getSkippedLeafCount() > 0) {
-                    return false;
+                if (info.getFailedLeafCount() > 0) {
+                    return true;
                 }
             }
         }
-        return !perRootInfo.isEmpty();
+        return false;
     }
 
     /**
-     * Determines if this leaf test needs has useful details.
+     * Determines if this leaf test has useful details.
      * <p>
-     * This checks if the test is:
-     * - A failed test (always useful)
-     * - A skipped test with an assumption failure
-     * - A successful test is useful if it has output or metadata
+     * This checks if the test is any of the following:
+     * - A failed test
+     * - A test with an assumption failure
+     * - Has output
+     * - Has metadata
      *
      * @return true if this leaf has useful details
      */
@@ -388,7 +387,7 @@ public class TestTreeModel {
         }
 
         // Failed tests are always useful
-        if (!isSuccessfulLeaf()) {
+        if (hasFailure()) {
             return true;
         }
 
