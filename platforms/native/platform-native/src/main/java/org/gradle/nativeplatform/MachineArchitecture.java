@@ -58,7 +58,6 @@ public abstract class MachineArchitecture implements Named {
      *
      * @since 7.6
      */
-    @Incubating
     public static final String ARM64 = "aarch64";
 
     /**
