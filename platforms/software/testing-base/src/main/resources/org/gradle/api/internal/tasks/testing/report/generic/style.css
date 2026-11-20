@@ -155,3 +155,10 @@ div.metadata td {
     color: #c09853;
     display: inline-block;
 }
+
+.custom-entry {
+    /* Keep the layout and paint of custom entries from leaking into the page, without size containment so it keeps its natural size */
+    contain: content;
+    /* Paint containment clips overflow, ensure it scrolls instead */
+    overflow: auto;
+}
