@@ -62,6 +62,28 @@ class JavaGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/22794")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
+    def "creates sample source using spock with #scriptDsl build scripts (incubating: #incubating)"() {
+        when:
+        run(['init', '--type', 'java-gradle-plugin', '--test-framework', 'spock', '--dsl', scriptDsl.id] + (incubating ? ['--incubating'] : []))
+
+        then:
+        subprojectDir.file("src/main/java").assertHasDescendants("org/example/SomeThingPlugin.java")
+        subprojectDir.file("src/test/groovy").assertHasDescendants("org/example/SomeThingPluginTest.groovy")
+        subprojectDir.file("src/functionalTest/groovy").assertHasDescendants("org/example/SomeThingPluginFunctionalTest.groovy")
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("org.example.SomeThingPluginTest", "plugin registers task")
+        assertFunctionalTestPassed("org.example.SomeThingPluginFunctionalTest", "can run task")
+
+        where:
+        [scriptDsl, incubating] << [ScriptDslFixture.SCRIPT_DSLS, [false, true]].combinations()
+    }
+
     @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
     def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
         def dslFixture = dslFixtureFor(scriptDsl)

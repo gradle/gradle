@@ -49,13 +49,15 @@ public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjec
 
     @Override
     public Set<BuildInitTestFramework> getTestFrameworks(ModularizationOption modularizationOption) {
-        return ImmutableSet.of(BuildInitTestFramework.JUNIT_JUPITER);
+        return ImmutableSet.of(BuildInitTestFramework.JUNIT_JUPITER, BuildInitTestFramework.SPOCK);
     }
 
     @Override
     public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
-        if (!settings.isUseTestSuites()) {
+        if (settings.getTestFramework() == BuildInitTestFramework.SPOCK) {
+            addSpock(settings, buildScriptBuilder);
+        } else if (!settings.isUseTestSuites()) {
             buildScriptBuilder.testImplementationDependency(
                 "Use JUnit Jupiter for testing.",
                 BuildInitDependency.of("org.junit.jupiter:junit-jupiter", libraryVersionProvider.getVersion("junit-jupiter")));
@@ -75,6 +77,9 @@ public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjec
 
     @Override
     protected TemplateOperation testTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
+        if (settings.getTestFramework() == BuildInitTestFramework.SPOCK) {
+            return spockTestTemplate(settings, templateFactory, pluginId, testClassName);
+        }
         return templateFactory.fromSourceTemplate("plugin/java/junit/PluginTest.java.template", t -> {
             t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("test");
@@ -85,6 +90,9 @@ public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjec
 
     @Override
     protected TemplateOperation functionalTestTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
+        if (settings.getTestFramework() == BuildInitTestFramework.SPOCK) {
+            return spockFunctionalTestTemplate(settings, templateFactory, pluginId, testClassName);
+        }
         return templateFactory.fromSourceTemplate("plugin/java/junit/PluginFunctionalTest.java.template", t -> {
             t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("functionalTest");
