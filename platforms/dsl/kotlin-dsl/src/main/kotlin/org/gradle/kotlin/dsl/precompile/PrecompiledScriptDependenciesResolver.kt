@@ -67,7 +67,7 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
          *
          * @since 6.0
          */
-        fun implicitImportsForScript(@Suppress("unused_parameter") scriptText: CharSequence, environment: Environment?) =
+        fun implicitImportsForScript(@Suppress("UnusedParameter") scriptText: CharSequence, environment: Environment?) =
             implicitImportsFrom(environment)
 
         private
