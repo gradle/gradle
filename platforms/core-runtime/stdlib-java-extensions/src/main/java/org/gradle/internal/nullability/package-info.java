@@ -22,8 +22,13 @@
 ///
 /// NullAway matches these annotations by simple name, so renaming them would break the checks.
 ///
-/// `@EnsuresNonNullIf` is intentionally not provided: NullAway always applies its postcondition to `this` instead of
-/// the actual receiver, which is unsound, see [NullAway#2182](https://github.com/uber/NullAway/issues/2182).
+/// Other NullAway annotations are intentionally not provided:
+///
+/// - `@Contract` is served by `org.jetbrains.annotations.Contract`, which NullAway understands as well.
+/// - `@EnsuresNonNullIf`: NullAway always applies its postcondition to `this` instead of the actual receiver,
+///   which is unsound, see [NullAway#2182](https://github.com/uber/NullAway/issues/2182).
+/// - `@MonotonicNonNull`, `@PureExceptLambda`, `@Initializer`: NullAway trusts them without verifying,
+///   and we haven't found enough compelling use cases to justify having them.
 @NullMarked
 package org.gradle.internal.nullability;
 
