@@ -58,6 +58,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean configurationCacheFineGrainedPropertyTracking = true;
     private boolean isolatedProjectsDiagnostics = false;
     private boolean isolatedProjectsDangerouslyIgnoreProblems = false;
+    private boolean artifactTransformsPerScopeVariantCache = false;
     private boolean searchUpwards = true;
     private boolean useEmptySettings = false;
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
@@ -208,6 +209,7 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheFineGrainedPropertyTracking = configurationCacheFineGrainedPropertyTracking;
         p.isolatedProjectsDiagnostics = isolatedProjectsDiagnostics;
         p.isolatedProjectsDangerouslyIgnoreProblems = isolatedProjectsDangerouslyIgnoreProblems;
+        p.artifactTransformsPerScopeVariantCache = artifactTransformsPerScopeVariantCache;
         p.searchUpwards = searchUpwards;
         p.useEmptySettings = useEmptySettings;
         p.enableProblemReportGeneration = enableProblemReportGeneration;
@@ -461,6 +463,15 @@ public class StartParameterInternal extends StartParameter {
     public void setIsolatedProjectsDangerouslyIgnoreProblems(boolean isolatedProjectsDangerouslyIgnoreProblems) {
         onMutableCall("setIsolatedProjectsDangerouslyIgnoreProblems(boolean)");
         this.isolatedProjectsDangerouslyIgnoreProblems = isolatedProjectsDangerouslyIgnoreProblems;
+    }
+
+    public boolean isArtifactTransformsPerScopeVariantCache() {
+        return artifactTransformsPerScopeVariantCache;
+    }
+
+    public void setArtifactTransformsPerScopeVariantCache(boolean artifactTransformsPerScopeVariantCache) {
+        onMutableCall("setArtifactTransformsPerScopeVariantCache(boolean)");
+        this.artifactTransformsPerScopeVariantCache = artifactTransformsPerScopeVariantCache;
     }
 
     public void setContinuousBuildQuietPeriod(Duration continuousBuildQuietPeriod) {
