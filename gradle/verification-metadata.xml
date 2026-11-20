@@ -229,6 +229,7 @@
             <trusting group="org.slf4j" name="slf4j-api"/>
          </trusted-key>
          <trusted-key id="47EB6836245D2D40E89DFB4136D4E9618F3ADAB5" group="io.github.microutils" name="kotlin-logging-jvm"/>
+         <trusted-key id="47FF105DF431FF5416B821FEAECDB81D38EA9C89" group="org.commonmark"/>
          <trusted-key id="4857D1CE04E78FAB2A172E8F39B48E1BADDB933F">
             <trusting group="com.gradleup" name="gr8-plugin"/>
             <trusting group="^com[.]gradleup($|([.].*))" regex="true"/>
@@ -872,9 +873,9 @@
             <sha256 value="be5805392060c71474bf6c9a67a099471274d30b83eef84bfc4e0889a4f1dcc0" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="net.ltgt.gradle" name="gradle-errorprone-plugin" version="5.1.0">
-         <artifact name="gradle-errorprone-plugin-5.1.0.jar">
-            <sha256 value="98524cc51670cd51deb0074535bf5ea373b7298ea08669def952bc3d2cbb7b2a" origin="Verified" reason="Artifact is not signed"/>
+      <component group="net.ltgt.gradle" name="gradle-errorprone-plugin" version="5.2.0">
+         <artifact name="gradle-errorprone-plugin-5.2.0.jar">
+            <sha256 value="89124c70fe8ee74724c4b84bc66b02f93196d10b75b34f2730036f696444dada" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="net.ltgt.gradle" name="gradle-nullaway-plugin" version="2.2.0">
@@ -1080,6 +1081,11 @@
       <component group="org.reactivestreams" name="reactive-streams" version="1.0.4">
          <artifact name="reactive-streams-1.0.4.jar">
             <pgp value="50A628FFAF58480736B1079FD1031D14464180E0"/>
+         </artifact>
+      </component>
+      <component group="org.safere" name="safere" version="1.1.0">
+         <artifact name="safere-1.1.0.jar">
+            <pgp value="57213D99467517CD0B95BB32383470C6AC46CE51"/>
          </artifact>
       </component>
       <component group="org.simpleframework" name="simple" version="4.1.21">
