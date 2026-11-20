@@ -256,7 +256,7 @@ public class InterceptingMap<K, V> implements Map<K, V>, Serializable {
     }
 
     @Override
-    public V remove(@Nullable Object key) {
+    public @Nullable V remove(@Nullable Object key) {
         interceptor.onMutate("remove(Object)");
         return delegate.remove(key);
     }

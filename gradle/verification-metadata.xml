@@ -100,6 +100,7 @@
          <trusted-key id="07E20F0103D9DFC697C490D0368557390486F2C5" group="org.awaitility"/>
          <trusted-key id="09939C73246B4BA7444CAA453D002DBC5EA9615F" group="dev.drewhamilton.poko" name="poko-annotations-jvm"/>
          <trusted-key id="0A123C1ED3F13A6A0140E166C71FB765CD9DE313" group="org.apache.ant"/>
+         <trusted-key id="0C435808EE750CC72A8BA847136EA64D9C8C7A0F" group="com.uber.nullaway"/>
          <trusted-key id="0CB5871FB7BF3B351614BBF6CA85FFE638D4407A">
             <trusting group="it.unimi.dsi" name="fastutil"/>
             <trusting group="it.unimi.dsi" name="fastutil-core"/>
@@ -431,7 +432,6 @@
          </trusted-key>
          <trusted-key id="C8D37E9675158FF5B29B6D6452FC3551DA8DC57E" group="com.mysql" name="mysql-connector-j"/>
          <trusted-key id="C9A503282182EC4ECDB914EA102E05D8DA6C286D" group="com.sun.xml.bind"/>
-         <trusted-key id="C9F5BB47FCF51250930BD8E22F73DAE490984549" group="com.uber.nullaway"/>
          <trusted-key id="CACFBD4755A2FC78709BDD92BE096E29EDB8D141">
             <trusting group="com.guardsquare"/>
             <trusting group="net.sf.proguard"/>
@@ -878,9 +878,9 @@
             <sha256 value="89124c70fe8ee74724c4b84bc66b02f93196d10b75b34f2730036f696444dada" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="net.ltgt.gradle" name="gradle-nullaway-plugin" version="2.2.0">
-         <artifact name="gradle-nullaway-plugin-2.2.0.jar">
-            <sha256 value="7caa4552e349f29dec42e219d136f7029d57e990460c209c9c6d307983556b4d" origin="Verified" reason="Artifact is not signed"/>
+      <component group="net.ltgt.gradle" name="gradle-nullaway-plugin" version="3.3.0">
+         <artifact name="gradle-nullaway-plugin-3.3.0.jar">
+            <sha256 value="6863fff24e84f4a6fab94af86199350cc9379ad6d3ee224a41f8bdf213edfa76" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="net.sf.docbook" name="docbook-xsl" version="1.75.2">
