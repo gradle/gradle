@@ -20,12 +20,15 @@ import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
+
+import static java.util.Objects.requireNonNull;
 
 public class FreeListBlockStore implements BlockStore {
     private final BlockStore store;
     private final BlockStore freeListStore;
     private final int maxBlockEntries;
-    private FreeListBlock freeListBlock;
+    private @Nullable FreeListBlock freeListBlock;
 
     public FreeListBlockStore(BlockStore store, int maxBlockEntries) {
         this.store = store;
@@ -73,12 +76,12 @@ public class FreeListBlockStore implements BlockStore {
     public void remove(BlockPayload block) {
         Block container = block.getBlock();
         store.remove(block);
-        freeListBlock.add(container.getPos(), container.getSize());
+        freeListBlock().add(container.getPos(), container.getSize());
     }
 
     @Override
     public <T extends BlockPayload> T readFirst(Class<T> payloadType) {
-        return store.read(freeListBlock.getNextPos(), payloadType);
+        return store.read(freeListBlock().getNextPos(), payloadType);
     }
 
     @Override
@@ -95,7 +98,12 @@ public class FreeListBlockStore implements BlockStore {
     @Override
     public void attach(BlockPayload block) {
         store.attach(block);
-        freeListBlock.alloc(block.getBlock());
+        freeListBlock().alloc(block.getBlock());
+    }
+
+    private FreeListBlock freeListBlock() {
+        //TODO IllegalStateException might be the better option here. In the interest of not changing the behavior, we keep this
+        return requireNonNull(freeListBlock, "Store has not been opened or has already been closed");
     }
 
     @Override
@@ -108,8 +116,8 @@ public class FreeListBlockStore implements BlockStore {
         private int largestInNextBlock;
         private BlockPointer nextBlock = BlockPointer.start();
         // Transient fields
-        private FreeListBlock prev;
-        private FreeListBlock next;
+        private @Nullable FreeListBlock prev;
+        private @Nullable FreeListBlock next;
 
         @Override
         protected int getSize() {
@@ -206,7 +214,7 @@ public class FreeListBlockStore implements BlockStore {
                 return;
             }
 
-            int index = Collections.binarySearch(entries, new FreeListEntry(null, requiredSize));
+            int index = Collections.binarySearch(entries, new FreeListEntry(BlockPointer.start(), requiredSize));
             if (index < 0) {
                 index = -index - 1;
             }

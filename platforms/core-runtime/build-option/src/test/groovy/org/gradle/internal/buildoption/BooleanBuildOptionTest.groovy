@@ -19,6 +19,7 @@ package org.gradle.internal.buildoption
 import org.gradle.cli.CommandLineOption
 import org.gradle.cli.CommandLineParser
 import org.gradle.cli.ParsedCommandLine
+import org.jspecify.annotations.NonNull
 import spock.lang.Specification
 
 import static org.gradle.internal.buildoption.BuildOptionFixture.*
@@ -161,7 +162,7 @@ class BooleanBuildOptionTest extends Specification {
         }
 
         @Override
-        void applyTo(boolean value, TestSettings settings, Origin origin) {
+        void applyTo(boolean value, @NonNull TestSettings settings, Origin origin) {
             settings.value = value
             settings.origin = origin
         }

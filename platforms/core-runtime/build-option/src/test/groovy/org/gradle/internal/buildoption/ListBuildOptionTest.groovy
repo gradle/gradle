@@ -19,6 +19,7 @@ package org.gradle.internal.buildoption
 import org.gradle.cli.CommandLineOption
 import org.gradle.cli.CommandLineParser
 import org.gradle.cli.ParsedCommandLine
+import org.jspecify.annotations.NonNull
 import spock.lang.Specification
 
 import static org.gradle.internal.buildoption.BuildOptionFixture.*
@@ -153,7 +154,7 @@ class ListBuildOptionTest extends Specification {
         }
 
         @Override
-        void applyTo(List<String> values, TestSettings settings, Origin origin) {
+        void applyTo(@NonNull List<String> values, @NonNull TestSettings settings, @NonNull Origin origin) {
             settings.values.addAll(values)
             settings.origin = origin
         }
