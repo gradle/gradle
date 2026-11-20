@@ -33,9 +33,9 @@ dependencies {
         api("org.asciidoctor:asciidoctor-gradle-jvm:4.0.2")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
-        api("com.autonomousapps:dependency-analysis-gradle-plugin:1.33.0")
-        api("com.squareup.okio:okio:3.4.0") {
-            because("Bump version brought in by dependency-analysis-gradle-plugin, to resolve CVE-2022-3635")
+        api("com.autonomousapps:dependency-analysis-gradle-plugin:3.4.1")
+        api("com.autonomousapps:asm-relocated:9.9.0") {
+            because("We need a version that does not fail on Java 25 bytecode")
         }
 
         // Java Libraries
