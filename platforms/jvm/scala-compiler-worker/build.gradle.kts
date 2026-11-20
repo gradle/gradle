@@ -13,6 +13,7 @@ dependencies {
     api(projects.internalInstrumentationApi)
     api(projects.javaCompilerWorker)
     api(projects.jvmCompilerWorker)
+    api(projects.processServicesApi)
     api(projects.scopedPersistentCache)
     api(projects.stdlibJavaExtensions)
     api(libs.inject)

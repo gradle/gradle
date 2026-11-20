@@ -16,17 +16,23 @@
 
 package org.gradle.language.scala.tasks;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
@@ -58,6 +64,8 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     private boolean force;
 
     private final List<String> additionalParameters = new ArrayList<>();
+
+    private final ListProperty<CommandLineArgumentProvider> compilerArgumentProviders = getObjectFactory().listProperty(CommandLineArgumentProvider.class);
 
     private boolean listFiles;
 
@@ -238,6 +246,44 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         if (additionalParameters != null) {
             this.additionalParameters.addAll(additionalParameters);
         }
+    }
+
+    /**
+     * Returns the Scala compiler argument providers. Defaults to an empty list.
+     * <p>
+     * Arguments from these providers are appended to {@link #getAdditionalParameters()} in registration order.
+     * Replacing the additional parameters does not remove these providers.
+     * Annotate provider properties to declare their inputs for up-to-date checking and build caching.
+     * <p>
+     * These arguments are passed to the Scala compiler, not the Java compiler used during joint compilation.
+     *
+     * @since 9.10.0
+     */
+    @Incubating
+    @Nested
+    public ListProperty<CommandLineArgumentProvider> getCompilerArgumentProviders() {
+        return compilerArgumentProviders;
+    }
+
+    /**
+     * Returns the additional parameters followed by arguments from {@link #getCompilerArgumentProviders()}.
+     * <p>
+     * Arguments retain their order and are not deduplicated. The returned provider calculates the combined
+     * arguments when queried.
+     *
+     * @since 9.10.0
+     */
+    @Incubating
+    @Internal
+    public Provider<List<String>> getAllCompilerArgs() {
+        return getCompilerArgumentProviders().map(providers -> {
+            ImmutableList.Builder<String> builder = ImmutableList.builder();
+            builder.addAll(CollectionUtils.stringize(getAdditionalParameters()));
+            for (CommandLineArgumentProvider provider : providers) {
+                builder.addAll(CollectionUtils.toStringList(provider.asArguments()));
+            }
+            return builder.build();
+        });
     }
 
     /**
