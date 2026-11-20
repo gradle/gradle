@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
+import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.internal.GFileUtils
 import org.junit.Rule
@@ -57,7 +58,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
     def "should capture basic data when a foreground daemon runs multiple builds"() {
         // Both the foreground daemon and the client must request the same daemon JVM args,
         // so the client's build runs in the foreground daemon instead of a forked daemon.
-        List<String> daemonJvmArgs = ["-ea", "-Xms256m", "-Xmx512m"]
+        List<String> daemonJvmArgs = ["-ea"] + DaemonParameters.DEFAULT_JVM_ARGS
 
         given:
         buildFile << """

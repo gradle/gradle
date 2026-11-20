@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
+import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
@@ -193,7 +194,7 @@ task sleep {
     def "foreground daemon log honors log levels for logging"() {
         // Both the foreground daemon and the client must request the same daemon JVM args,
         // so the client's build runs in the foreground daemon instead of a forked daemon.
-        List<String> daemonJvmArgs = ["-ea", "-Xms256m", "-Xmx512m"]
+        List<String> daemonJvmArgs = ["-ea"] + DaemonParameters.DEFAULT_JVM_ARGS
 
         given:
         buildFile """

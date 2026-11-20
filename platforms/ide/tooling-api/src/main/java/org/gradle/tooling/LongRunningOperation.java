@@ -106,6 +106,13 @@ public interface LongRunningOperation {
      * <p>
      * If not configured, null, or an empty array is passed, then the reasonable default will be used.
      * <p>
+     * When the target Gradle version is 10.0 or later, the given arguments are merged with the default daemon JVM arguments.
+     * A default is only added if the corresponding setting is not given:
+     * {@code -Xms256m -Xmx512m} unless {@code -Xms} or {@code -Xmx} is given,
+     * {@code -XX:MaxMetaspaceSize=768m} unless {@code -XX:MaxMetaspaceSize} is given,
+     * and {@code -XX:+HeapDumpOnOutOfMemoryError} unless {@code -XX:+HeapDumpOnOutOfMemoryError} or {@code -XX:-HeapDumpOnOutOfMemoryError} is given.
+     * For earlier target versions, the given arguments replace the defaults.
+     * <p>
      * The jvm argument set by this method is independent of arguments set by {{@code addJvmArguments}} methods.
      * The daemon JVM arguments list will always have the arguments from the {{@code setJvmArguments}} at the beginning of the list, and then have the {{@code addJvmArguments}} configuration appended.
      *
@@ -168,6 +175,9 @@ public interface LongRunningOperation {
      * If you want to get hold of this information you can ask tooling API to build this model.
      * <p>
      * If not configured, null, or an empty list is passed, then the reasonable default will be used.
+     * <p>
+     * When the target Gradle version is 10.0 or later, the given arguments are merged with the default daemon JVM arguments
+     * as described in {@link #setJvmArguments(String...)}.
      * <p>
      * The jvm argument set by this method is independent of arguments set by {{@code addJvmArguments}} methods.
      * The daemon JVM arguments list will always have the arguments from the {{@code setJvmArguments}} at the beginning of the list, and then have the {{@code addJvmArguments}} configuration appended.
