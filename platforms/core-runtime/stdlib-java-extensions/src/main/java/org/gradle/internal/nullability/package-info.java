@@ -21,6 +21,9 @@
 /// they're Java 11, while we still target Java 8.
 ///
 /// NullAway matches these annotations by simple name, so renaming them would break the checks.
+///
+/// `@EnsuresNonNullIf` is intentionally not provided: NullAway always applies its postcondition to `this` instead of
+/// the actual receiver, which is unsound, see [NullAway#2182](https://github.com/uber/NullAway/issues/2182).
 @NullMarked
 package org.gradle.internal.nullability;
 

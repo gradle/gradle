@@ -290,7 +290,7 @@ NullAway performs a basic verification of these statements.
 ### Describing field invariants
 
 NullAway tracks the nullability of fields within a method, but it cannot see invariants that span several methods,
-like "this field is non-null after `init()`" or "`hasFoo()` returns true only if `foo` is set".
+like "this field is non-null after `init()`".
 Use the annotations from `org.gradle.internal.nullability` to describe these invariants:
 
 ```java
@@ -302,11 +302,6 @@ private void connect() {
     if (connection == null) {
         connection = openConnection();
     }
-}
-
-@EnsuresNonNullIf("connection")      // `connection` is non-null if the method returns true; use `result = false` for the inverse
-boolean isConnected() {
-    return connection != null;
 }
 
 @RequiresNonNull("connection")       // callers must ensure `connection` is non-null
@@ -369,7 +364,8 @@ When this doesn't help and suppression is necessary:
     return order.compare(nullableA, nullableB);
   ```
 - [[JDK-8341779](https://bugs.java.com/bugdatabase/view_bug?bug_id=8341779)] Sometimes NullAway does not recognize `@Nullable` annotations on method parameters.
-- [[NullAway#2182](https://github.com/uber/NullAway/issues/2182)] NullAway doesn't track the receiver of `@EnsureNonNullIf`-annotated method, and always applies the type refinement to `this`.
+- [[NullAway#2182](https://github.com/uber/NullAway/issues/2182)] NullAway doesn't track the receiver of `@EnsuresNonNullIf`-annotated method, and always applies the type refinement to `this`.
+  Because this is unsound, we don't provide `@EnsuresNonNullIf` in `org.gradle.internal.nullability`.
 - NullAway forgets what it knows about non-final fields inside lambdas and anonymous classes, because it cannot tell when they run.
   The exceptions are callbacks passed to `Stream` methods, `Iterable.forEach`, `Map.forEach` and `Collection.removeIf`, which NullAway knows to be invoked immediately.
   For other callbacks, copy the field into a local variable before the lambda, or use `Objects.requireNonNull`.
@@ -377,7 +373,7 @@ When this doesn't help and suppression is necessary:
 ### IDEA
 - IDEA may emit false positives in non-`@NullMarked` code, because unlike NullAway it relies on these annotations.
 
-- IDEA does not understand the [field contract annotations](#describing-field-invariants) (`@EnsuresNonNull`, `@EnsuresNonNullIf`, `@RequiresNonNull`).
+- IDEA does not understand the [field contract annotations](#describing-field-invariants) (`@EnsuresNonNull`, `@RequiresNonNull`).
   It may warn about possible `NullPointerException` where NullAway, which verifies the contract, accepts the code.
   If the warning gets in the way, suppress it with `@SuppressWarnings("DataFlowIssue")` on the smallest possible scope.
 

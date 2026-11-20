@@ -24,7 +24,6 @@ import java.lang.annotation.Target;
 /// Defines a postcondition of a method: the method ensures that the specified fields aren't null upon normal exit.
 /// NullAway verifies that when checking the annotated method. After calling the method, the field value is assumed to be non-null.
 ///
-/// @see EnsuresNonNullIf
 /// @see <a href="https://github.com/uber/NullAway/wiki/Supported-Annotations#field-contracts-precondition-and-postcondition">NullAway wiki</a>
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.METHOD)
