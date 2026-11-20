@@ -8,6 +8,8 @@ dependencies {
     api(libs.jspecify)
     api(libs.guava)
 
+    implementation(projects.stdlibJavaExtensions)
+
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 

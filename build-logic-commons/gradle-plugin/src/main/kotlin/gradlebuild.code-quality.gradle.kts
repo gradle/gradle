@@ -142,7 +142,7 @@ project.plugins.withType<JavaBasePlugin> {
 
                 nullaway {
                     checkContracts = true
-                    isJSpecifyMode = true
+                    jspecifyMode = true
                     severity = errorproneExtension.nullawayEnabled.map { if (it) CheckSeverity.ERROR else CheckSeverity.OFF }
                 }
             }
