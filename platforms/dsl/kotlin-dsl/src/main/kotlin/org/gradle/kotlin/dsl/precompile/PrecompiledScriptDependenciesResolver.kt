@@ -19,6 +19,7 @@
 package org.gradle.kotlin.dsl.precompile
 
 import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependencies
 import org.gradle.kotlin.dsl.support.KotlinScriptHashing
 import java.util.concurrent.Future
@@ -59,22 +60,19 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
             KotlinScriptHashing.hashOfNormalisedString(charSequence)
 
         /**
-         * **Optimisation note**: assumes [scriptText] contains only `\n` line separators as any script text
-         * coming from the Kotlin compiler already should.
+         * Returns the implicit imports shared by all precompiled scripts.
+         *
+         * Since Gradle 9.10.0, it does not return the type-safe accessors imports of the script,
+         * because they are found by the script file name, which is not known here.
          *
          * @since 6.0
          */
-        fun implicitImportsForScript(scriptText: CharSequence, environment: Environment?) =
-            implicitImportsFrom(environment) + precompiledScriptPluginImportsFrom(environment, scriptText)
+        fun implicitImportsForScript(@Suppress("unused_parameter") scriptText: CharSequence, environment: Environment?) =
+            implicitImportsFrom(environment)
 
         private
         fun implicitImportsFrom(environment: Environment?) =
             environment.stringList(EnvironmentProperties.kotlinDslImplicitImports)
-
-        private
-        fun precompiledScriptPluginImportsFrom(environment: Environment?, scriptText: CharSequence): List<String> =
-            // Normalised hash: the light tree parser hands over raw script text, which may contain CRLF separators.
-            environment.stringList(hashOf(scriptText))
 
         private
         fun Environment?.stringList(key: String) =
@@ -115,10 +113,7 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
             KotlinBuildScriptDependencies(
                 classpath = emptyList(),
                 sources = emptyList(),
-                imports = script.file?.let { file ->
-                    // Precompiled script imports are keyed by package and file name, see KotlinScriptHashing.
-                    implicitImportsFrom(environment) + environment.stringList(KotlinScriptHashing.precompiledScriptKeyOfText(script.text!!, file.name))
-                } ?: implicitImportsForScript(script.text!!, environment),
+                imports = PrecompiledScriptsEnvironment.implicitImportsForScript(script.text!!, script.file?.name, environment),
                 javaHome = null,
                 classPathBlocksHash = null
             )

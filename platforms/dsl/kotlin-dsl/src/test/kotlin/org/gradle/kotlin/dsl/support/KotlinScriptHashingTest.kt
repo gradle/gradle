@@ -66,8 +66,10 @@ class KotlinScriptHashingTest {
     fun variantsOf(text: String) = listOf(
         text,
         text.replace("\n", "\r\n"),
+        text.replace("\n", "\r"),
         "﻿" + text,
         "﻿" + text.replace("\n", "\r\n"),
+        "﻿" + text.replace("\n", "\r"),
     )
 
     @Test

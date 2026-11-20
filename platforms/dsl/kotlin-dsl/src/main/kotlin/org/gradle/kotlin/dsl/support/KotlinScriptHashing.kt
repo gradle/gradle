@@ -159,8 +159,12 @@ object ScriptPackageScanner {
     }
 
     private
-    fun lineEndOf(text: CharSequence, from: Int): Int =
-        text.indexOf('\n', from).let { if (it < 0) text.length else it + 1 }
+    fun lineEndOf(text: CharSequence, from: Int): Int {
+        // Also stop at a lone '\r', which Gradle turns into '\n' but the compiler and the IDE do not
+        var i = from
+        while (i < text.length && text[i] != '\n' && text[i] != '\r') i++
+        return i
+    }
 
     private
     fun startsWithWord(text: CharSequence, at: Int, word: String): Boolean =
