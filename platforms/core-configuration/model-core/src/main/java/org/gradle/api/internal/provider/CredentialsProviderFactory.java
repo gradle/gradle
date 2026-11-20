@@ -215,20 +215,20 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
         }
 
         @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            try {
-                return super.calculatePresence(consumer);
-            } catch (MissingValueException e) {
-                missingProviderErrors.add(e.getMessage());
-                if (consumer == ValueConsumer.IgnoreUnsafeRead) {
-                    return false;
-                }
-                throw e;
-            }
+        public T get() {
+            return calculateOwnValueRecordingMissingProperties(ValueConsumer.IgnoreUnsafeRead).get();
         }
 
         @Override
         protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+            try {
+                return calculateOwnValueRecordingMissingProperties(consumer);
+            } catch (MissingValueException e) {
+                return Value.missing();
+            }
+        }
+
+        private Value<? extends T> calculateOwnValueRecordingMissingProperties(ValueConsumer consumer) {
             try {
                 return super.calculateOwnValue(consumer);
             } catch (MissingValueException e) {
