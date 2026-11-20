@@ -65,6 +65,20 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         value << ["-1", "0", "foo", " 1"]
     }
 
+    def "reasonable failure message when org.gradle.daemon.healthcheckinterval=#value"() {
+        when:
+        executer.withArgument("-Dorg.gradle.daemon.healthcheckinterval=$value")
+
+        then:
+        fails "help"
+
+        and:
+        failure.assertHasDescription "Value '$value' given for org.gradle.daemon.healthcheckinterval Gradle property is invalid (the value should be a positive int)"
+
+        where:
+        value << ["-1", "0"]
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/21695")
     @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "can debug with org.gradle.debug=true"() {
