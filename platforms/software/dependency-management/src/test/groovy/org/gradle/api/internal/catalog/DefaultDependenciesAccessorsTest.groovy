@@ -16,7 +16,22 @@
 
 package org.gradle.api.internal.catalog
 
+import org.gradle.api.internal.ClassPathRegistry
+import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory
+import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser
+import org.gradle.api.internal.attributes.AttributesFactory
+import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.problems.Problems
+import org.gradle.initialization.DefaultProjectDescriptor
+import org.gradle.initialization.DefaultProjectDescriptorRegistry
+import org.gradle.initialization.ProjectDescriptorInternal
 import org.gradle.internal.build.BuildIdentity
+import org.gradle.internal.buildoption.FeatureFlags
+import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.InputFingerprinter
+import org.gradle.internal.execution.InputVisitor
+import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.operations.ProgressDisplayName
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.util.Path
@@ -27,6 +42,7 @@ import spock.lang.Specification
 class DefaultDependenciesAccessorsTest extends Specification {
 
     def buildOperationRunner = new TestBuildOperationRunner()
+    def registry = new DefaultProjectDescriptorRegistry()
 
     def "shows the generation of the dependency accessors of the #build on a worker line"() {
         when:
@@ -56,5 +72,58 @@ class DefaultDependenciesAccessorsTest extends Specification {
         build            | buildPath              | ownerToShow | displayName
         "root build"     | Path.ROOT              | null        | "Generate project accessors"
         "included build" | Path.path(":included") | ":included" | "Generate project accessors (:included)"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22095")
+    def "project accessors of #description are keyed on '#expected'"() {
+        given:
+        addProjects(rootName, paths)
+        def visitor = Mock(InputVisitor)
+
+        when:
+        projectAccessorUnitOfWork().visitImmutableInputs(visitor)
+
+        then:
+        1 * visitor.visitInputProperty("projects", { it.value == expected })
+        0 * _
+
+        where:
+        description                        | rootName | paths                     | expected
+        "an empty registry"                | null     | []                        | ""
+        "a root project"                   | "root"   | [":"]                     | "root,:"
+        "a root project with another name" | "other"  | [":"]                     | "other,:"
+        "subprojects in any order"         | "root"   | [":b", ":", ":a:c", ":a"] | "root,:,:a,:a:c,:b"
+    }
+
+    private UnitOfWork projectAccessorUnitOfWork() {
+        def accessors = new DefaultDependenciesAccessors(
+            Stub(ClassPathRegistry),
+            Stub(DependenciesAccessorsWorkspaceProvider),
+            Stub(DefaultProjectDependencyFactory),
+            Stub(FeatureFlags),
+            Stub(ExecutionEngine),
+            Stub(FileCollectionFactory),
+            Stub(InputFingerprinter),
+            Stub(AttributesFactory),
+            Stub(CapabilityNotationParser),
+            Stub(Problems),
+            buildOperationRunner
+        )
+        return new DefaultDependenciesAccessors.ProjectAccessorUnitOfWork(accessors, registry)
+    }
+
+    private void addProjects(String rootName, List<String> paths) {
+        paths.toSorted().each {
+            def path = Path.path(it)
+            if (path == Path.ROOT) {
+                projectDescriptor(rootName)
+            } else {
+                projectDescriptor(path.name, registry.getProject(path.parent.path))
+            }
+        }
+    }
+
+    private ProjectDescriptorInternal projectDescriptor(String name, ProjectDescriptorInternal parent = null) {
+        return new DefaultProjectDescriptor(parent, name, new File(name), registry, TestFiles.resolver(), Stub(Problems))
     }
 }
