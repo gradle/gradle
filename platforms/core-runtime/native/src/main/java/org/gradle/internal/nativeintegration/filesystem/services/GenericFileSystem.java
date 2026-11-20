@@ -27,6 +27,7 @@ import org.gradle.internal.file.FileModeMutator;
 import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
+import org.gradle.internal.nullability.EnsuresNonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +74,7 @@ class GenericFileSystem implements FileSystem {
     @Override
     public boolean isCaseSensitive() {
         initializeCaseSensitive();
-        return requireNonNull(caseSensitive);
+        return  caseSensitive;
     }
 
     @Override
@@ -120,6 +121,7 @@ class GenericFileSystem implements FileSystem {
         }
     }
 
+    @EnsuresNonNull("caseSensitive")
     private void initializeCaseSensitive() {
         if (caseSensitive == null) {
 
