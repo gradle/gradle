@@ -17,6 +17,7 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
     def "can finalize the value of a property using API"() {
@@ -556,6 +557,54 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
         output.count("three = [unknown]") == 2
         output.count("two = unknown") == 2
         output.count("one = null") == 2
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/28667")
+    def "reading #description finalizes upstream property marked finalizeValueOnRead"() {
+        given:
+        file("file1.txt").text = "one"
+        file("file2.txt").text = "two"
+        buildFile """
+            interface ReadFileParameters extends ValueSourceParameters {
+                RegularFileProperty getFile()
+            }
+
+            abstract class ReadFile implements ValueSource<String, ReadFileParameters> {
+                String obtain() { parameters.file.get().asFile.text }
+            }
+
+            interface ReadFileServiceParameters extends BuildServiceParameters {
+                RegularFileProperty getFile()
+            }
+
+            abstract class ReadFileService implements BuildService<ReadFileServiceParameters> {
+                String read() { parameters.file.get().asFile.text }
+            }
+
+            def file = objects.fileProperty()
+            file.convention(layout.projectDirectory.file("file1.txt"))
+            file.finalizeValueOnRead()
+
+            println("read = " + $readExpression)
+
+            file.set(layout.projectDirectory.file("file2.txt"))
+            println("property changed to " + file.get().asFile.name)
+        """
+
+        when:
+        fails("help")
+
+        then:
+        outputContains("read = one")
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
+
+        where:
+        description                     | readExpression
+        "mapped provider"               | 'file.map { it.asFile.text }.get()'
+        "providers.fileContents.asText" | 'providers.fileContents(file).asText.get()'
+        "providers.fileContents.asBytes"| 'new String(providers.fileContents(file).asBytes.get())'
+        "custom ValueSource"            | 'providers.of(ReadFile) { it.parameters.file.set(file) }.get()'
+        "build service parameters"      | 'gradle.sharedServices.registerIfAbsent("read", ReadFileService) { it.parameters.file.set(file) }.get().read()'
     }
 
     /**
