@@ -43,6 +43,44 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         'J_G_G': 'class J_G_G extends G_G { }',
     ]
 
+    def "does not fail when a stale class refers to a recompiled Java class only privately"() {
+        given:
+        // JavaBase is a private dependent of Util. Its source is Java, so it is not in the Groovy compilation unit while
+        // its class file is out of the output. Holder refers to it only in a private method, and Child, which is
+        // recompiled, inspects the methods of Holder from the previous output.
+        def util = sourceWithFileSuffix("groovy", "class Util { static String zone(String id) { id?.trim() } }")
+        sourceWithFileSuffix("java", 'public class JavaBase { String zone() { return Util.zone("UTC"); } }')
+        sourceWithFileSuffix("groovy", "class Holder { private JavaBase base() { null } }")
+        sourceWithFileSuffix("groovy", "class Child extends Holder { JavaBase base }")
+        sourceWithFileSuffix("groovy", "class Unrelated {}")
+        outputs.snapshot { run "compileGroovy" }
+
+        when:
+        util.text = "class Util { static String zone(String id) { id?.trim()?.toUpperCase() } }"
+        run "compileGroovy"
+
+        then:
+        outputs.recompiledClasses("Util", "JavaBase", "Holder", "Child")
+    }
+
+    def "does not fall back to a full recompilation when a recompiled Java class declares a constant"() {
+        given:
+        // JavaBase is recompiled as a private dependent of Util, with its source unchanged, so its constant has not changed
+        def util = sourceWithFileSuffix("groovy", "class Util { static String zone(String id) { id?.trim() } }")
+        sourceWithFileSuffix("java", 'public class JavaBase { public static final String ZONE = "UTC"; String zone() { return Util.zone(ZONE); } }')
+        sourceWithFileSuffix("groovy", "class Holder { private JavaBase base() { null } }")
+        sourceWithFileSuffix("groovy", "class Unrelated {}")
+        outputs.snapshot { run "compileGroovy" }
+
+        when:
+        util.text = "class Util { static String zone(String id) { id?.trim()?.toUpperCase() } }"
+        run "compileGroovy", "--info"
+
+        then:
+        outputDoesNotContain("Full recompilation is required")
+        outputs.recompiledClasses("Util", "JavaBase", "Holder")
+    }
+
     def 'Groovy-Java joint compilation on #scenario'() {
         given:
         applyGroovyFileSet(initialSet)
