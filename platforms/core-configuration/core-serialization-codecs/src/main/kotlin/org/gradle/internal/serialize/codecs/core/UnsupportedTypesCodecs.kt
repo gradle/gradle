@@ -43,6 +43,7 @@ import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.attributes.CompatibilityRuleChain
 import org.gradle.api.attributes.DisambiguationRuleChain
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.catalog.TypeSafeProjectDependencyFactory
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.project.IsolatedProject
 import org.gradle.api.publish.Publication
@@ -135,6 +136,10 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<ArtifactResolutionQuery>())
     bind(unsupported<DependencySet>())
     bind(unsupported<Dependency>())
+    // The type-safe project accessor (`projects`) is a factory for project dependencies:
+    // capturing it must be reported like capturing a `Dependency` instead of being
+    // stored silently and failing at execution time with a misleading "project could not be found" error.
+    bind(unsupported<TypeSafeProjectDependencyFactory>())
     bind(unsupported<DependencyLockingHandler>())
     bind(unsupported<ResolvedDependency>())
     bind(unsupported<ResolvedArtifact>())
