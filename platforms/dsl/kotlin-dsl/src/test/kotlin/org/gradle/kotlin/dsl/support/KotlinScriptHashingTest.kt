@@ -35,6 +35,28 @@ class KotlinScriptHashingTest {
         "@file:Suppress(\"UnstableApiUsage\")\n\n",
         "/*\n * License\n */\n@file:Suppress(\"a)\", \"b\")\n@file:[OptIn(Foo::class) JvmName(\"x\")]\n",
         "#!/usr/bin/env kotlin\n/* License */\n@file:Suppress(\"x\")\n",
+        "/**\n * KDoc\n */\n",
+        "@file:OptIn(ExperimentalA::class, ExperimentalB::class)\n",
+        "@file:Suppress(\"a\") @file:JvmName(\"b\")\n",
+        "@file:Suppress(\"a)\", \"b]\", \"// not a comment\", 'c')\n",
+        "@file:JvmName(\"\"\"raw ) ] string\"\"\")\n",
+    )
+
+    private
+    val malformedHeaders = listOf(
+        "﻿",
+        "#!",
+        "@file",
+        "@file:",
+        "@file:Suppress(",
+        "@file:Suppress(\"unterminated",
+        "@file:Suppress(\"ends with backslash\\",
+        "@file:Suppress('",
+        "@file:JvmName(\"\"\"unterminated raw string",
+        "@file:[OptIn(Foo::class)",
+        "@file:Foo<Bar",
+        "/* unterminated /* nested */ comment",
+        "package",
     )
 
     private
@@ -53,6 +75,21 @@ class KotlinScriptHashingTest {
         for (header in headers) {
             for (variant in variantsOf(header + "package my.conv" + body)) {
                 assertThat(variant, ScriptPackageScanner.packageOf(variant), equalTo("my.conv"))
+            }
+        }
+    }
+
+    @Test(timeout = 30_000)
+    fun `package scanner does not fail on truncated or malformed headers`() {
+        val samples = headers.map { it + "package my.conv" + body } + malformedHeaders
+        for (sample in samples.flatMap(::variantsOf)) {
+            for (end in 0..sample.length) {
+                val input = sample.substring(0, end)
+                try {
+                    ScriptPackageScanner.packageOf(input)
+                } catch (e: Exception) {
+                    throw AssertionError("Failed on: $input", e)
+                }
             }
         }
     }

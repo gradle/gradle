@@ -347,7 +347,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
         withKotlinBuildSrc()
         withFile(
             "buildSrc/src/main/kotlin/my/conv/my-plugin.gradle.kts",
-            "/*\n * License header\n */\n\n@file:Suppress(\"UnstableApiUsage\")\n\npackage my.conv\n\nplugins { java }\n\njava { withSourcesJar() }\n\ntasks.register(\"hello\") { doLast { println(\"main source set: \" + sourceSets.main.get().name) } }\n"
+            "/*\n * License header\n */\n\n@file:Suppress(\"UnstableApiUsage\")\n\npackage my.conv\n\nplugins { java }\n\njava { withSourcesJar() }\n\ntasks.register(\"hello\") { val main = sourceSets.main.get().name; doLast { println(\"main source set: \" + main) } }\n"
                 .replace("\n", "\r\n")
         )
         withBuildScript(
@@ -370,7 +370,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
             "buildSrc/src/main/kotlin/plugin-a.gradle.kts",
             """
                 plugins { java }
-                tasks.register("helloA") { doLast { println("helloA v1 " + sourceSets.main.get().name) } }
+                tasks.register("helloA") { val main = sourceSets.main.get().name; doLast { println("helloA v1 " + main) } }
             """
         )
         withFile(
@@ -378,7 +378,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
             """
                 package my.conv
                 plugins { java }
-                tasks.register("helloB") { doLast { println("helloB v1 " + sourceSets.main.get().name) } }
+                tasks.register("helloB") { val main = sourceSets.main.get().name; doLast { println("helloB v1 " + main) } }
             """
         )
         withBuildScript(
@@ -407,6 +407,68 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
         assertThat(after.keys, equalTo(before.keys))
         val rewritten = after.filter { (path, timestamp) -> before[path] != timestamp }.keys
         assertThat("rewritten class files: $rewritten", rewritten.isNotEmpty() && rewritten.all { it.startsWith("Plugin_a_gradle") }, equalTo(true))
+    }
+
+    @Test
+    fun `precompiled script plugins with the same file name in different packages get their own type-safe accessors`() {
+        withKotlinBuildSrc()
+        withFile(
+            "buildSrc/src/main/kotlin/a/conv.gradle.kts",
+            """
+                package a
+                plugins { application }
+                application { mainClass.set("a.Main") }
+            """
+        )
+        withFile(
+            "buildSrc/src/main/kotlin/b/conv.gradle.kts",
+            """
+                package b
+                plugins { `java-library` }
+                dependencies { api(files("b.jar")) }
+            """
+        )
+        withBuildScript(
+            """
+                plugins {
+                    id("a.conv")
+                    id("b.conv")
+                }
+                tasks.register("show") {
+                    val mainClass = application.mainClass
+                    doLast { println("mainClass: " + mainClass.get()) }
+                }
+            """
+        )
+
+        build("show").apply {
+            assertOutputContains("mainClass: a.Main")
+        }
+    }
+
+    @Test
+    fun `type-safe accessors are available with the in-process Kotlin compiler`() {
+        val arguments = arrayOf("-Pkotlin.compiler.execution.strategy=in-process")
+        withKotlinBuildSrc()
+        withFile(
+            "buildSrc/src/main/kotlin/my/conv/my-plugin.gradle.kts",
+            """
+                package my.conv
+                plugins { java }
+                tasks.register("hello") { val main = sourceSets.main.get().name; doLast { println("main source set: " + main) } }
+            """
+        )
+        withBuildScript(
+            """
+                plugins {
+                    id("my.conv.my-plugin")
+                }
+            """
+        )
+
+        build("hello", *arguments).apply {
+            assertOutputContains("main source set: main")
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22428")

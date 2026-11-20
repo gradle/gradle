@@ -29,12 +29,13 @@ object KotlinScriptHashing {
         Hashing.hashString(scriptText).toString()
 
     /**
-     * Stable key of a precompiled script, shared by Gradle, the Kotlin compiler and the IDE model builders.
+     * Key of a precompiled script, used to find its type-safe accessors imports.
      *
-     * Derived from the declared package and the file name only, so it is independent of the script body,
-     * of line separators, of a byte order mark and of absolute paths.
-     * The package is found by [ScriptPackageScanner], which has no dependency on Kotlin compiler internals,
-     * so the same code runs on all sides.
+     * Gradle, the Kotlin compiler and the IDE model builders all compute it, so it must be the same on every side.
+     * It does not need to match the package Kotlin sees.
+     *
+     * - Do not use the Kotlin lexer here: this code also runs inside the compiler and the IDE.
+     * - Do not depend on the script body or on absolute paths: a body edit would recompile all scripts.
      */
     fun precompiledScriptKeyOfText(scriptText: CharSequence, scriptFileName: String): String =
         Hashing.hashString("${ScriptPackageScanner.packageOf(scriptText).orEmpty()}/$scriptFileName").toString()
