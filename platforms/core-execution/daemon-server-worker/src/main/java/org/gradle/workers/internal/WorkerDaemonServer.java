@@ -74,6 +74,8 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Map;
+import java.util.Properties;
 
 public class WorkerDaemonServer implements RequestHandler<TransportableActionExecutionSpec, DefaultWorkResult> {
     private final ServiceRegistry internalServices;
@@ -103,6 +105,15 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
 
     @Override
     public DefaultWorkResult run(TransportableActionExecutionSpec spec) {
+        // The daemon is reused for work with different system properties, so give each unit of work only its own
+        Properties originalSystemProperties = new Properties();
+        originalSystemProperties.putAll(System.getProperties());
+        for (String name : spec.getClearedSystemProperties()) {
+            System.clearProperty(name);
+        }
+        for (Map.Entry<String, String> entry : spec.getSystemProperties().entrySet()) {
+            System.setProperty(entry.getKey(), entry.getValue());
+        }
         try {
             try (ManagedServiceRegistry internalServices = WorkerProjectServices.create(this.internalServices, spec.getBaseDir(), spec.getProjectCacheDir())) {
                 RequestHandler<TransportableActionExecutionSpec, DefaultWorkResult> worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), internalServices);
@@ -110,6 +121,8 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
             }
         } catch (Throwable t) {
             return new DefaultWorkResult(true, t);
+        } finally {
+            System.setProperties(originalSystemProperties);
         }
     }
 
