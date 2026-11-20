@@ -19,21 +19,16 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 @SuppressWarnings("this-escape")
 public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifact> implements MavenArtifactSet, PublicationArtifactSet<MavenArtifact> {
-    private final String publicationName;
     private final FileCollection files;
     private final NotationParser<Object, MavenArtifact> mavenArtifactParser;
 
@@ -41,19 +36,12 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
     public DefaultMavenArtifactSet(
         String publicationName,
         NotationParser<Object, MavenArtifact> mavenArtifactParser,
-        FileCollectionFactory fileCollectionFactory,
+        TaskDependencyFactory taskDependencyFactory,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator
     ) {
         super(MavenArtifact.class, collectionCallbackActionDecorator);
-        this.publicationName = publicationName;
         this.mavenArtifactParser = mavenArtifactParser;
-        this.files = fileCollectionFactory.create(
-            new ArtifactsFileCollection(), context -> {
-                for (MavenArtifact mavenArtifact : DefaultMavenArtifactSet.this) {
-                    context.add(mavenArtifact);
-                }
-            }
-        );
+        this.files = new MavenArtifactsFileCollection(publicationName, this, taskDependencyFactory);
     }
 
     @Override
@@ -73,21 +61,5 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
     @Override
     public FileCollection getFiles() {
         return files;
-    }
-
-    private class ArtifactsFileCollection implements MinimalFileSet {
-        @Override
-        public String getDisplayName() {
-            return "artifacts for Maven publication '" + publicationName + "'";
-        }
-
-        @Override
-        public Set<File> getFiles() {
-            Set<File> files = new LinkedHashSet<File>();
-            for (MavenArtifact artifact : DefaultMavenArtifactSet.this) {
-                files.add(artifact.getFile());
-            }
-            return files;
-        }
     }
 }

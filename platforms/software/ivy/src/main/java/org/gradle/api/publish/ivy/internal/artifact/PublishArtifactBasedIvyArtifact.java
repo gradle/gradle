@@ -34,6 +34,17 @@ public class PublishArtifactBasedIvyArtifact extends AbstractIvyArtifact {
         this.coordinates = coordinates;
     }
 
+    /**
+     * Returns the underlying {@link PublishArtifact} this ivy artifact wraps. Exposed so that
+     * configuration-cache serialization can inspect the delegate (e.g. detect a
+     * {@code LazyPublishArtifact} whose provider must not be resolved at store time).
+     *
+     * @return the wrapped publish artifact; never {@code null}
+     */
+    public PublishArtifact getPublishArtifact() {
+        return artifact;
+    }
+
     @Override
     protected String getDefaultName() {
         return coordinates.getModule().get();
