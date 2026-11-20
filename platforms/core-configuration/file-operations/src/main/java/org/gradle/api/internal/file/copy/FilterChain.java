@@ -41,14 +41,14 @@ import java.util.Map;
 
 public class FilterChain implements Transformer<InputStream, InputStream> {
     private final ChainingTransformer<Reader> transformers = new ChainingTransformer<Reader>(Reader.class);
-    private final String charset;
+    private final Charset charset;
 
     public FilterChain() {
-        this(Charset.defaultCharset().name());
+        this.charset = Charset.defaultCharset();
     }
 
     public FilterChain(String charset) {
-        this.charset = charset;
+        this.charset = Charset.forName(charset);
     }
 
     /**
