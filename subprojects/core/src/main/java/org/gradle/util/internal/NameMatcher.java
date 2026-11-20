@@ -120,12 +120,8 @@ public class NameMatcher {
                 kebabCasePrefixMatches.add(candidate);
                 found = true;
             }
-            if (!found) {
-                @SuppressWarnings("deprecation")
-                int levenshteinDistance = StringUtils.getLevenshteinDistance(normalisedPattern, candidate.toUpperCase(Locale.ROOT));
-                if (levenshteinDistance <= Math.min(3, pattern.length() / 2)) {
-                    candidates.add(candidate);
-                }
+            if (!found && isCloseMatch(pattern, normalisedPattern, candidate)) {
+                candidates.add(candidate);
             }
         }
 
@@ -150,6 +146,33 @@ public class NameMatcher {
         }
 
         return null;
+    }
+
+    /**
+     * Finds items within a small, case-insensitive edit distance of the pattern, without any camel case or kebab case matching.
+     * <p>
+     * Items equal to the pattern are included, so callers should only use this after an exact lookup has failed.
+     *
+     * @return The candidates. Returns an empty set when the pattern is empty or there are no candidates.
+     */
+    public static SortedSet<String> findCandidates(String pattern, Collection<String> items) {
+        SortedSet<String> result = new TreeSet<>();
+        if (pattern.isEmpty()) {
+            return result;
+        }
+        String normalisedPattern = pattern.toUpperCase(Locale.ROOT);
+        for (String item : items) {
+            if (isCloseMatch(pattern, normalisedPattern, item)) {
+                result.add(item);
+            }
+        }
+        return result;
+    }
+
+    private static boolean isCloseMatch(String pattern, String normalisedPattern, String candidate) {
+        @SuppressWarnings("deprecation")
+        int levenshteinDistance = StringUtils.getLevenshteinDistance(normalisedPattern, candidate.toUpperCase(Locale.ROOT));
+        return levenshteinDistance <= Math.min(3, pattern.length() / 2);
     }
 
     private static final String CAMEL_CASE_TRAILING_PATTERN = "[\\p{javaLowerCase}]*";

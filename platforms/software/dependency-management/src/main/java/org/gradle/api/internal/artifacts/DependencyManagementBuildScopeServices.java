@@ -75,6 +75,8 @@ import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.ExceptionProblemRegistry;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
@@ -179,7 +181,9 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         CapabilityNotationParser capabilityNotationParser,
         ObjectFactory objectFactory,
         AttributesFactory attributesFactory,
-        ProjectStateLookup projectStateLookup
+        ProjectStateLookup projectStateLookup,
+        ProblemsInternal problems,
+        ExceptionProblemRegistry exceptionProblemRegistry
     ) {
         return new DefaultProjectDependencyFactory(
             instantiator,
@@ -187,7 +191,9 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
             objectFactory,
             attributesFactory,
             projectStateLookup,
-            new UnknownProjectFinder("Project dependencies cannot be declared here.")
+            new UnknownProjectFinder("Project dependencies cannot be declared here."),
+            problems,
+            exceptionProblemRegistry
         );
     }
 

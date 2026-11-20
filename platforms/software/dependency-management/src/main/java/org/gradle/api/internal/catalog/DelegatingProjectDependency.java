@@ -51,6 +51,13 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
         return factory;
     }
 
+    /**
+     * Called by Groovy for a missing property, such as a misspelled project accessor.
+     */
+    protected Object propertyMissing(String name) {
+        throw ProjectAccessorSuggestions.unknownAccessor(factory.getClass(), getClass(), name);
+    }
+
     @Override
     public ProjectIdentity getTargetProjectIdentity() {
         return delegate.getTargetProjectIdentity();

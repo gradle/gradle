@@ -71,6 +71,8 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.ObjectConfigurationAction;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.api.problems.internal.ExceptionProblemRegistry;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -395,6 +397,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     protected abstract IsolatedProjectsProblemsReporter getIsolatedProjectsProblemsReporter();
 
     @Inject
+    protected abstract ProblemsInternal getProblemsService();
+
+    @Inject
+    protected abstract ExceptionProblemRegistry getExceptionProblemRegistry();
+
+    @Inject
     @Override
     public abstract ScriptHandlerInternal getBuildscript();
 
@@ -657,9 +665,24 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public ProjectInternal project(ProjectIdentity referrer, String path) throws UnknownProjectException {
         ProjectInternal project = findProject(referrer, path);
         if (project == null) {
-            throw new UnknownProjectException(String.format("Project with path '%s' could not be found in %s.", path, this));
+            throw unknownProject(path);
         }
         return project;
+    }
+
+    private RuntimeException unknownProject(String path) {
+        List<String> existingPaths = getOwner().getOwner().getProjects().getAllProjects().stream()
+            .map(projectState -> projectState.getProjectPath().asString())
+            .collect(Collectors.toList());
+        return ProjectPathSuggestions.unknownProject(
+            getProblemsService(),
+            getExceptionProblemRegistry(),
+            getProjectIdentity().getBuildPath().asString(),
+            String.format("Project with path '%s' could not be found in %s.", path, this),
+            path,
+            getProjectIdentity().resolveProjectPath(path).asString(),
+            existingPaths
+        );
     }
 
     @Override

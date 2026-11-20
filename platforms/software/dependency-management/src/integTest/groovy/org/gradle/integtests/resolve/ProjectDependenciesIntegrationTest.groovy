@@ -111,7 +111,63 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
         fails("help")
 
         then:
-        failure.assertHasCause("Project with path ':unknown' could not be found.")
+        failureCauseContains("Project with path ':unknown' could not be found.")
+    }
+
+    def "suggests close project paths for unknown project dependency"() {
+        createDirs("sub")
+        settingsFile << "include 'sub'"
+        buildFile("""
+            configurations.dependencyScope("deps")
+            dependencies {
+                deps(project(":sbu"))
+            }
+        """)
+
+        when:
+        fails("help")
+
+        then:
+        failureCauseContains("Project with path ':sbu' could not be found. Some candidates are: ':sub'.")
+        failureCauseContains("Project not found")
+    }
+
+    def "does not suggest projects from other builds for unknown project dependency"() {
+        createDirs("x/core")
+        settingsFile << "includeBuild 'x'"
+        file("x/settings.gradle") << "include 'core'"
+        buildFile("""
+            configurations.dependencyScope("deps")
+            dependencies {
+                deps(project(":core"))
+            }
+        """)
+
+        when:
+        fails("help")
+
+        then:
+        failureCauseContains("Project with path ':core' could not be found.")
+        failure.assertNotOutput("Some candidates are")
+    }
+
+    def "suggests build-relative project paths for unknown project dependency in included build"() {
+        createDirs("lib/core")
+        settingsFile << "includeBuild 'lib'"
+        file("lib/settings.gradle") << "include 'core'"
+        file("lib/build.gradle") << """
+            configurations.dependencyScope("deps")
+            dependencies {
+                deps(project(":cor"))
+            }
+        """
+
+        when:
+        fails(":lib:help")
+
+        then:
+        failureCauseContains("Project with path ':lib:cor' could not be found. Some candidates are: ':core'.")
+        failureCauseContains("Project not found")
     }
 
     def "can declare project dependency using project path string"() {

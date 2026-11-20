@@ -161,7 +161,8 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     @Override
     public Collection<ProjectState> getAllProjects() {
         synchronized (lock) {
-            return projectsByPath.values();
+            // A copy, as builds can register projects concurrently
+            return new ArrayList<>(projectsByPath.values());
         }
     }
 

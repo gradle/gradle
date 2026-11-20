@@ -26,6 +26,10 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.problems.Problems
+import org.gradle.api.problems.internal.ExceptionProblemRegistry
+import org.gradle.api.problems.internal.ProblemInternal
+import org.gradle.api.problems.internal.ProblemReporterInternal
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.buildoption.FeatureFlags
@@ -33,6 +37,7 @@ import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -43,7 +48,9 @@ class DefaultSettingsCommonTest extends Specification {
     ClassLoaderScope rootClassLoaderScope = Mock(ClassLoaderScope)
     ClassLoaderScope classLoaderScope = Mock(ClassLoaderScope)
     ScriptSource scriptSourceMock = Mock(ScriptSource)
-    GradleInternal gradleMock = Mock(GradleInternal)
+    GradleInternal gradleMock = Mock(GradleInternal) {
+        getIdentityPath() >> Path.ROOT
+    }
     ProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
     ServiceRegistryFactory serviceRegistryFactory
     FileResolver fileResolver = Mock(FileResolver)
@@ -69,8 +76,13 @@ class DefaultSettingsCommonTest extends Specification {
         settingsServices.get(DefaultPluginManager) >>> [pluginManager, null]
         settingsServices.get(InstantiatorFactory) >> Stub(InstantiatorFactory)
         settingsServices.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
-        settingsServices.get(Problems) >> Stub(Problems) {
+        settingsServices.get(ExceptionProblemRegistry) >> new ExceptionProblemRegistry()
+        settingsServices.get(Problems) >> Stub(ProblemsInternal) {
             getReporter() >> Stub(ProblemReporter)
+            getGroups() >> TestUtil.problemsService().groups
+            getInternalReporter() >> Stub(ProblemReporterInternal) {
+                internalCreate(_) >> Stub(ProblemInternal)
+            }
         }
 
         serviceRegistryFactory = Mock(ServiceRegistryFactory) {

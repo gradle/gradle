@@ -16,21 +16,26 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.project.ProjectPathSuggestions;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateLookup;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.internal.ExceptionProblemRegistry;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.Path;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @ServiceScope({Scope.Build.class, Scope.Project.class})
 public class DefaultProjectDependencyFactory {
@@ -40,6 +45,8 @@ public class DefaultProjectDependencyFactory {
     private final AttributesFactory attributesFactory;
     private final ProjectStateLookup projectStateLookup;
     private final ProjectFinder projectFinder;
+    private final ProblemsInternal problems;
+    private final ExceptionProblemRegistry exceptionProblemRegistry;
 
     public DefaultProjectDependencyFactory(
         Instantiator instantiator,
@@ -47,7 +54,9 @@ public class DefaultProjectDependencyFactory {
         ObjectFactory objectFactory,
         AttributesFactory attributesFactory,
         ProjectStateLookup projectStateLookup,
-        ProjectFinder projectFinder
+        ProjectFinder projectFinder,
+        ProblemsInternal problems,
+        ExceptionProblemRegistry exceptionProblemRegistry
     ) {
         this.instantiator = instantiator;
         this.capabilityNotationParser = capabilityNotationParser;
@@ -55,6 +64,8 @@ public class DefaultProjectDependencyFactory {
         this.attributesFactory = attributesFactory;
         this.projectStateLookup = projectStateLookup;
         this.projectFinder = projectFinder;
+        this.problems = problems;
+        this.exceptionProblemRegistry = exceptionProblemRegistry;
     }
 
     public ProjectDependency create(ProjectState projectState) {
@@ -64,15 +75,50 @@ public class DefaultProjectDependencyFactory {
     }
 
     public ProjectDependency create(String projectPath) {
-        return create(projectFinder.resolveIdentityPath(projectPath));
+        return create(projectPath, projectFinder);
+    }
+
+    /**
+     * Creates a dependency on a project, resolving its path with the given finder rather than the finder of this factory.
+     */
+    public ProjectDependency create(String projectPath, ProjectFinder finder) {
+        Path projectIdentityPath = finder.resolveIdentityPath(projectPath);
+        ProjectState projectState = projectStateLookup.findProject(projectIdentityPath);
+        if (projectState == null) {
+            throw unknownProject(projectPath, projectIdentityPath, finder);
+        }
+        return create(projectState);
     }
 
     public ProjectDependency create(Path projectIdentityPath) {
         ProjectState projectState = projectStateLookup.findProject(projectIdentityPath);
         if (projectState == null) {
-            throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", projectIdentityPath.asString()));
+            throw unknownProject(projectIdentityPath);
         }
         return create(projectState);
+    }
+
+    private static String unknownProjectMessage(Path projectIdentityPath) {
+        return String.format("Project with path '%s' could not be found.", projectIdentityPath.asString());
+    }
+
+    private RuntimeException unknownProject(Path projectIdentityPath) {
+        // Identity paths are unique in the build tree, so match against all of its projects
+        List<String> existingPaths = projectStateLookup.getAllProjects().stream()
+            .map(projectState -> projectState.getIdentityPath().asString())
+            .collect(Collectors.toList());
+        return ProjectPathSuggestions.unknownProject(problems, exceptionProblemRegistry, null, unknownProjectMessage(projectIdentityPath), projectIdentityPath.asString(), projectIdentityPath.asString(), existingPaths);
+    }
+
+    private RuntimeException unknownProject(String requestedPath, Path projectIdentityPath, ProjectFinder finder) {
+        // Match on paths within the build, as typed by the user
+        Path buildPath = finder.getBuildPath();
+        Path projectPath = projectIdentityPath.removeFirstSegments(buildPath.segmentCount());
+        List<String> existingPaths = projectStateLookup.getAllProjects().stream()
+            .filter(projectState -> projectState.getIdentity().getBuildPath().equals(buildPath))
+            .map(projectState -> projectState.getProjectPath().asString())
+            .collect(Collectors.toList());
+        return ProjectPathSuggestions.unknownProject(problems, exceptionProblemRegistry, buildPath.asString(), unknownProjectMessage(projectIdentityPath), requestedPath, projectPath.asString(), existingPaths);
     }
 
     private void injectServices(DefaultProjectDependency projectDependency) {

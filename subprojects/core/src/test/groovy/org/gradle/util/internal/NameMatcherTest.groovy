@@ -237,6 +237,15 @@ class NameMatcherTest extends Specification {
         matcher.candidates == ["tame", "lame"] as Set
     }
 
+    def "finds candidates by edit distance only"() {
+        expect:
+        NameMatcher.findCandidates(":app:fooo", [":app:foo", ":app:bar", ":lib"]) == [":app:foo"] as SortedSet
+        NameMatcher.findCandidates(":Core", [":core", ":other"]) == [":core"] as SortedSet
+        NameMatcher.findCandidates(":foo", [":foo"]) == [":foo"] as SortedSet
+        NameMatcher.findCandidates(":xyz", [":abcdef"]).isEmpty()
+        NameMatcher.findCandidates("", [":a"]).isEmpty()
+    }
+
     def "does not select map entry when no matches"() {
         expect:
         matcher.find("soNa", ["does not match" : 9]) == null

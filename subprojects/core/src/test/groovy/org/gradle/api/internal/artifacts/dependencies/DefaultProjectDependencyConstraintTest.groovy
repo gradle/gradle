@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateLookup
+import org.gradle.api.problems.internal.ExceptionProblemRegistry
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -89,7 +90,9 @@ class DefaultProjectDependencyConstraintTest extends Specification {
             TestUtil.objectFactory(),
             AttributeTestUtil.attributesFactory(),
             projectStateLookup,
-            new UnknownProjectFinder("")
+            new UnknownProjectFinder(""),
+            TestUtil.problemsService(),
+            new ExceptionProblemRegistry()
         )
 
         def projectDependency = dependencyFactory.create(Path.ROOT)

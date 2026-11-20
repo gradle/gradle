@@ -35,4 +35,9 @@ public interface ProjectFinder {
      */
     Path resolveIdentityPath(String path);
 
+    /**
+     * Returns the path of the build that owns this project finder's base project.
+     */
+    Path getBuildPath();
+
 }

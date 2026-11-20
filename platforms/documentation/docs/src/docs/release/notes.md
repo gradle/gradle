@@ -128,6 +128,18 @@ With [`--console-unicode=enable`](userguide/command_line_interface.html#sec:comm
 
 See the [Rich console](userguide/command_line_interface.html#sec:rich_console) section in the Gradle User Manual for more details.
 
+#### Suggestions for misspelled project paths
+
+When a build script or settings script refers to a project path that does not exist, the error now lists existing project paths with a similar spelling, as Gradle already does for misspelled task names.
+This applies to `project(...)` in build and settings scripts, to project dependencies such as `implementation(project(":app"))`, and to [type-safe project accessors](userguide/declaring_dependencies_basics.html#sec:type-safe-project-accessors) such as `projects.ap` in Groovy DSL scripts.
+
+```text
+Before  Project with path ':ap' could not be found in root project 'example'.
+After   Project with path ':ap' could not be found in root project 'example'. Some candidates are: ':app'.
+```
+
+When such a failure fails the build, Tooling API clients, such as IDEs, receive it as a problem with the requested path and the candidates attached as additional data.
+
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 

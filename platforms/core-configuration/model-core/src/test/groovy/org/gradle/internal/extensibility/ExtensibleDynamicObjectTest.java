@@ -345,6 +345,31 @@ public class ExtensibleDynamicObjectTest {
     }
 
     @Test
+    public void missingPropertyHandlerCreatesExceptionForUnknownProperty() {
+        ExtensibleDynamicObject bean = new ExtensibleDynamicObject(new Object(), Object.class, TestUtil.instantiatorFactory().decorateLenient());
+        bean.setMissingPropertyHandler(name -> new MissingPropertyException("No '" + name + "' here.", name, Object.class));
+
+        try {
+            bean.getProperty("unknown");
+            fail();
+        } catch (MissingPropertyException e) {
+            assertThat(e.getMessage(), equalTo("No 'unknown' here."));
+        }
+    }
+
+    @Test
+    public void missingPropertyHandlerIsNotUsedForExtraProperties() {
+        ExtensibleDynamicObject bean = new ExtensibleDynamicObject(new Object(), Object.class, TestUtil.instantiatorFactory().decorateLenient());
+        bean.setMissingPropertyHandler(name -> {
+            throw new AssertionError("handler called for " + name);
+        });
+        bean.getDynamicProperties().set("extra", "value");
+
+        assertThat(bean.getProperty("extra"), equalTo((Object) "value"));
+        assertFalse(bean.tryGetProperty("unknown").isFound());
+    }
+
+    @Test
     public void setPropertyFailsForUnknownProperty() {
         Bean bean = new Bean();
 

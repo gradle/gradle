@@ -37,7 +37,10 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
+import org.gradle.api.internal.project.ProjectPathSuggestions;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.ExceptionProblemRegistry;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
@@ -55,6 +58,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.plugin.management.internal.PluginManagementSpecInternal;
+import org.gradle.util.Path;
 import org.gradle.vcs.SourceControl;
 import org.jspecify.annotations.Nullable;
 
@@ -177,9 +181,24 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     public ProjectDescriptorInternal project(String path) {
         ProjectDescriptorInternal projectDescriptor = getProjectDescriptorRegistry().getProject(path);
         if (projectDescriptor == null) {
-            throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", path));
+            throw unknownProject(path);
         }
         return projectDescriptor;
+    }
+
+    private RuntimeException unknownProject(@Nullable String path) {
+        List<String> existingPaths = getProjectDescriptorRegistry().getAllProjects().stream()
+            .map(ProjectDescriptorInternal::getPath)
+            .collect(Collectors.toList());
+        return ProjectPathSuggestions.unknownProject(
+            (ProblemsInternal) getProblems(),
+            getExceptionProblemRegistry(),
+            getGradle().getIdentityPath().asString(),
+            String.format("Project with path '%s' could not be found.", path),
+            String.valueOf(path),
+            path == null || path.isEmpty() ? "" : Path.ROOT.absolutePath(path),
+            existingPaths
+        );
     }
 
     @Override
@@ -286,6 +305,9 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Inject
     public abstract Problems getProblems();
+
+    @Inject
+    protected abstract ExceptionProblemRegistry getExceptionProblemRegistry();
 
     @Override
     public ProjectDescriptorRegistry getProjectRegistry() {
