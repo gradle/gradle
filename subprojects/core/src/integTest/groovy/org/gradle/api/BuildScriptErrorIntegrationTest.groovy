@@ -75,6 +75,43 @@ class BuildScriptErrorIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39581")
+    def "produces reasonable error message when buildFile redeclares a variable in a nested closure"() {
+        given:
+        buildFile("""
+            def channel = 'stable'
+            tasks.register('t') {
+                doLast {
+                    def channel = 'unknown'
+                    println channel
+                }
+            }
+        """)
+
+        when:
+        fails("t")
+
+        then:
+        failureDescriptionContains("Could not compile build file '${buildFile}'.")
+        failure.assertThatCause(containsString("build file '$buildFile': 5: The current scope already contains a variable of the name channel"))
+            .assertHasFileName("Build file '$buildFile'")
+            .assertHasLineNumber(5)
+    }
+
+    def "produces reasonable error message when buildFile declares a self-referencing type parameter"() {
+        given:
+        buildFile("""
+            class Box<T extends T> {}
+        """)
+
+        when:
+        fails("help")
+
+        then:
+        failureDescriptionContains("Could not compile build file '${buildFile}'.")
+        failure.assertThatCause(containsString("Cycle detected: the type T cannot extend/implement itself"))
+    }
+
     def "produces reasonable error message when buildFile evaluation fails with exception"() {
         when:
         buildFile << """
