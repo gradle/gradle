@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -52,6 +53,14 @@ public class TextUtil {
      */
     public static String getWindowsLineSeparator() {
         return "\r\n";
+    }
+
+    /**
+     * Returns true if the given string is null or contains only whitespace.
+     */
+    public static boolean isNullOrBlank(@Nullable String text) {
+        if (text == null) return true;
+        return text.trim().isEmpty();
     }
 
     /**
