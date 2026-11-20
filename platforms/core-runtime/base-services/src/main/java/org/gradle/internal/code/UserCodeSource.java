@@ -19,6 +19,7 @@ package org.gradle.internal.code;
 import org.gradle.api.Describable;
 import org.jspecify.annotations.Nullable;
 
+import java.io.File;
 import java.net.URI;
 
 /**
@@ -32,6 +33,17 @@ public interface UserCodeSource {
     Describable getDisplayName();
 
     /**
+     * Returns who owns this code: the build, a third party, Gradle, or the environment the build runs in.
+     */
+    Locality getLocality();
+
+    /**
+     * Returns the code that applied this code: the plugin or script that was running when it was applied, or null when nothing was.
+     */
+    @Nullable
+    UserCodeSource getAppliedBy();
+
+    /**
      * User code that is applied as a binary plugin.
      */
     class Binary implements UserCodeSource {
@@ -39,11 +51,46 @@ public interface UserCodeSource {
         private final Describable displayName;
         private final String className;
         private final @Nullable String pluginId;
+        private final Locality locality;
+        private final @Nullable UserCodeSource appliedBy;
+        private final @Nullable File codeLocation;
 
         public Binary(Describable displayName, String className, @Nullable String pluginId) {
+            this(displayName, className, pluginId, Locality.UNKNOWN);
+        }
+
+        public Binary(Describable displayName, String className, @Nullable String pluginId, Locality locality) {
+            this(displayName, className, pluginId, locality, null);
+        }
+
+        public Binary(Describable displayName, String className, @Nullable String pluginId, Locality locality, @Nullable UserCodeSource appliedBy) {
+            this(displayName, className, pluginId, locality, appliedBy, null);
+        }
+
+        public Binary(Describable displayName, String className, @Nullable String pluginId, Locality locality, @Nullable UserCodeSource appliedBy, @Nullable File codeLocation) {
             this.displayName = displayName;
             this.className = className;
             this.pluginId = pluginId;
+            this.locality = locality;
+            this.appliedBy = appliedBy;
+            this.codeLocation = codeLocation;
+        }
+
+        /**
+         * The jar or class directory the plugin's class was loaded from, if known.
+         */
+        public @Nullable File getCodeLocation() {
+            return codeLocation;
+        }
+
+        @Override
+        public Locality getLocality() {
+            return locality;
+        }
+
+        @Override
+        public @Nullable UserCodeSource getAppliedBy() {
+            return appliedBy;
         }
 
         @Override
@@ -74,10 +121,46 @@ public interface UserCodeSource {
 
         private final Describable displayName;
         private final @Nullable URI uri;
+        private final Locality locality;
+        private final @Nullable UserCodeSource appliedBy;
+        private final boolean topLevel;
 
         public Script(Describable displayName, @Nullable URI uri) {
+            this(displayName, uri, Locality.UNKNOWN);
+        }
+
+        public Script(Describable displayName, @Nullable URI uri, Locality locality) {
+            this(displayName, uri, locality, null);
+        }
+
+        public Script(Describable displayName, @Nullable URI uri, Locality locality, @Nullable UserCodeSource appliedBy) {
+            this(displayName, uri, locality, appliedBy, true);
+        }
+
+        public Script(Describable displayName, @Nullable URI uri, Locality locality, @Nullable UserCodeSource appliedBy, boolean topLevel) {
             this.displayName = displayName;
             this.uri = uri;
+            this.locality = locality;
+            this.appliedBy = appliedBy;
+            this.topLevel = topLevel;
+        }
+
+        /**
+         * Whether this is the script of its target, such as the build script of a project, the settings script or an init script.
+         * A script that other code pulls in with {@code apply from:} is not.
+         */
+        public boolean isTopLevel() {
+            return topLevel;
+        }
+
+        @Override
+        public Locality getLocality() {
+            return locality;
+        }
+
+        @Override
+        public @Nullable UserCodeSource getAppliedBy() {
+            return appliedBy;
         }
 
         @Override

@@ -16,15 +16,61 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.internal.code.Locality;
+import org.gradle.internal.code.UserCodeSource;
+import org.jspecify.annotations.Nullable;
+
 public class TaskIdentity {
 
     private final String taskPath;
+    private final String projectPath;
+    private final String buildPath;
+    private final String typeName;
+    private final UserCodeSource registeredBy;
 
-    public TaskIdentity(String taskPath) {
+    /**
+     * @param taskPath the path of the task in the build tree
+     * @param projectPath the path of the task's project in the build tree
+     * @param buildPath the path of the build that owns the project
+     * @param typeName the name of the task's declared type
+     * @param registeredBy the code that registered the task, if known
+     */
+    public TaskIdentity(String taskPath, String projectPath, String buildPath, String typeName, @Nullable UserCodeSource registeredBy) {
         this.taskPath = taskPath;
+        this.projectPath = projectPath;
+        this.buildPath = buildPath;
+        this.typeName = typeName;
+        this.registeredBy = registeredBy;
     }
 
     public String getTaskPath() {
         return taskPath;
+    }
+
+    public String getProjectPath() {
+        return projectPath;
+    }
+
+    public String getBuildPath() {
+        return buildPath;
+    }
+
+    public String getTypeName() {
+        return typeName;
+    }
+
+    /**
+     * The code that registered the task, with the chain of code that applied it, or null if not known.
+     */
+    @Nullable
+    public UserCodeSource getRegisteredBy() {
+        return registeredBy;
+    }
+
+    /**
+     * Who owns the task: the locality of the code that registered it.
+     */
+    public Locality getLocality() {
+        return registeredBy == null ? Locality.UNKNOWN : registeredBy.getLocality();
     }
 }

@@ -32,4 +32,14 @@ public interface ProblemSummarizer extends ProblemReporter {
      * @param problem The problem to emit.
      */
     void emit(ProblemInternal problem, @Nullable OperationIdentifier id);
+
+    /**
+     * Returns the problem with what the runtime knows about where it was noticed: its detection trace, the task location, and the completed origin traces.
+     * <p>
+     * {@link #emit} does this for the problems it lets through. A caller that keeps a copy of the problem elsewhere, such as against the exception
+     * it is thrown with, calls this first so that the copy is complete too.
+     *
+     * @param id the id of the build operation the problem is reported against, or {@code null} if there is none
+     */
+    ProblemInternal locate(ProblemInternal problem, @Nullable OperationIdentifier id);
 }

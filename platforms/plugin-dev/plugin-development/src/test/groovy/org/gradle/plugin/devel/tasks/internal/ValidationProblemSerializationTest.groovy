@@ -34,6 +34,11 @@ import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.api.problems.internal.ProblemsInfrastructure
 import org.gradle.api.problems.internal.TypeValidationData
 import org.gradle.api.problems.internal.TypeValidationDataSpec
+import org.gradle.api.problems.internal.location.ClassFrame
+import org.gradle.api.problems.internal.location.FileLocationFrame
+import org.gradle.api.problems.internal.location.FilePosition
+import org.gradle.api.problems.internal.location.Trace
+import org.gradle.internal.code.Locality
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.reflect.Instantiator
@@ -240,6 +245,42 @@ class ValidationProblemSerializationTest extends Specification {
 
         where:
         asWarning << [false, true]
+    }
+
+    def "an origin trace the reporter gave keeps the name, locality and position of its frames"(boolean asWarning) {
+        given:
+        def trace = new Trace([
+            new FileLocationFrame(new FilePosition("src/main/java/com/acme/AcmeTask.java", 23, null, null, null), Locality.LOCAL),
+            new ClassFrame("com.acme.AcmeTask", Locality.EXTERNAL)
+        ])
+        def problem = problemReporter.create(problemId, {}).withOriginTraces([trace])
+
+        when:
+        def frames = serializeAndDeserialize(problem, asWarning).originTraces[0].frames
+
+        then:
+        frames*.displayName == [
+            "src/main/java/com/acme/AcmeTask.java:23",
+            "class com.acme.AcmeTask"
+        ]
+        frames*.locality == [
+            Locality.LOCAL,
+            Locality.EXTERNAL
+        ]
+        with(frames[0].position as FilePosition) {
+            path == "src/main/java/com/acme/AcmeTask.java"
+            line == 23
+            column == null
+        }
+        frames[1].position == null
+
+        where:
+        asWarning << [true, false]
+    }
+
+    def "a problem without origin traces comes back without any"() {
+        expect:
+        serializeAndDeserialize(problemReporter.create(problemId, {}), true).originTraces.empty
     }
 
     def "resolves a group created by a plugin below a predefined group"() {

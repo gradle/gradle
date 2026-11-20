@@ -42,6 +42,7 @@ import org.gradle.internal.cc.impl.DefaultConfigurationCacheDegradationControlle
 import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.configuration.problems.CommonReport
+import org.gradle.internal.configuration.problems.toOriginTrace
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
 import org.gradle.internal.configuration.problems.ProblemFactory
@@ -318,6 +319,8 @@ class ConfigurationCacheProblems(
             contextualLabel(problem.message.renderCapitalized())
             documentOfProblem(problem)
             locationOfProblem(problem)
+            // The whole path to the cause, as the origin trace; the flat location above and the text below stay for today's consumers
+            problem.trace.toOriginTrace()?.let { originTrace(it) }
             additionalDataInternal(PropertyTraceDataSpec::class.java) {
                 trace(problem.trace.containingUserCode)
             }

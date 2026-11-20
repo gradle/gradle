@@ -17,10 +17,12 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
+import org.gradle.api.problems.internal.location.Trace;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -40,6 +42,8 @@ public class DefaultProblem implements Serializable, ProblemInternal {
     private final Throwable exception;
     private final AdditionalData additionalData;
     private final boolean writtenToConsole;
+    private final Trace detectionTrace;
+    private final List<Trace> originTraces;
 
     public DefaultProblem(
         ProblemDefinition problemDefinition,
@@ -62,6 +66,37 @@ public class DefaultProblem implements Serializable, ProblemInternal {
         @Nullable AdditionalData additionalData,
         boolean writtenToConsole
     ) {
+        this(problemDefinition, contextualLabel, solutions, originLocations, contextualLocations, details, exception, additionalData, writtenToConsole, null);
+    }
+
+    public DefaultProblem(
+        ProblemDefinition problemDefinition,
+        @Nullable String contextualLabel,
+        List<String> solutions,
+        List<ProblemLocation> originLocations,
+        List<ProblemLocation> contextualLocations,
+        @Nullable String details,
+        @Nullable Throwable exception,
+        @Nullable AdditionalData additionalData,
+        boolean writtenToConsole,
+        @Nullable Trace detectionTrace
+    ) {
+        this(problemDefinition, contextualLabel, solutions, originLocations, contextualLocations, details, exception, additionalData, writtenToConsole, detectionTrace, ImmutableList.<Trace>of());
+    }
+
+    public DefaultProblem(
+        ProblemDefinition problemDefinition,
+        @Nullable String contextualLabel,
+        List<String> solutions,
+        List<ProblemLocation> originLocations,
+        List<ProblemLocation> contextualLocations,
+        @Nullable String details,
+        @Nullable Throwable exception,
+        @Nullable AdditionalData additionalData,
+        boolean writtenToConsole,
+        @Nullable Trace detectionTrace,
+        List<Trace> originTraces
+    ) {
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
         this.solutions = solutions;
@@ -71,6 +106,8 @@ public class DefaultProblem implements Serializable, ProblemInternal {
         this.exception = exception;
         this.additionalData = additionalData;
         this.writtenToConsole = writtenToConsole;
+        this.detectionTrace = detectionTrace;
+        this.originTraces = originTraces;
     }
 
     @Override
@@ -103,6 +140,17 @@ public class DefaultProblem implements Serializable, ProblemInternal {
     @Override
     public List<ProblemLocation> getContextualLocations() {
         return contextualLocations;
+    }
+
+    @Override
+    public List<Trace> getOriginTraces() {
+        return originTraces;
+    }
+
+    @Nullable
+    @Override
+    public Trace getDetectionTrace() {
+        return detectionTrace;
     }
 
     @Nullable
@@ -138,7 +186,43 @@ public class DefaultProblem implements Serializable, ProblemInternal {
             details,
             exception,
             additionalData,
-            writtenToConsole
+            writtenToConsole,
+            detectionTrace,
+            originTraces
+        );
+    }
+
+    @Override
+    public ProblemInternal withDetectionTrace(Trace detectionTrace) {
+        return new DefaultProblem(
+            problemDefinition,
+            contextualLabel,
+            solutions,
+            originLocations,
+            contextualLocations,
+            details,
+            exception,
+            additionalData,
+            writtenToConsole,
+            detectionTrace,
+            originTraces
+        );
+    }
+
+    @Override
+    public ProblemInternal withOriginTraces(List<Trace> originTraces) {
+        return new DefaultProblem(
+            problemDefinition,
+            contextualLabel,
+            solutions,
+            originLocations,
+            contextualLocations,
+            details,
+            exception,
+            additionalData,
+            writtenToConsole,
+            detectionTrace,
+            originTraces
         );
     }
 
@@ -174,6 +258,8 @@ public class DefaultProblem implements Serializable, ProblemInternal {
             ", solutions=" + solutions +
             ", originLocations=" + originLocations +
             ", contextualLocations=" + contextualLocations +
+            ", originTraces=" + originTraces +
+            ", detectionTrace=" + detectionTrace +
             ", details='" + details + '\'' +
             ", exception=" + (exception != null ? exception.toString() : "null") +
             ", additionalData=" + additionalData +

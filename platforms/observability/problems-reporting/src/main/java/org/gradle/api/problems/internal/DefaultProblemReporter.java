@@ -17,8 +17,11 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemGroups;
 import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
 import org.gradle.internal.exception.ExceptionAnalyser;
@@ -29,12 +32,14 @@ import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.StringWriter;
 import java.util.Collection;
 
 public class DefaultProblemReporter implements ProblemReporterInternal {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultProblemReporter.class);
+    private static final String RELATIVE_PATH = "Reported problem has a relative path as its location";
 
     private final ProblemSummarizer problemSummarizer;
     private final ProblemsInfrastructure infrastructure;
@@ -61,7 +66,35 @@ public class DefaultProblemReporter implements ProblemReporterInternal {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
         problemBuilder.id(problemId);
         spec.execute(problemBuilder);
-        report(problemBuilder.build());
+        ProblemInternal problem = problemBuilder.build();
+        warnAboutRelativePaths(problem);
+        report(problem);
+    }
+
+    /**
+     * The file location methods of the public write API take a path as a plain string, and it must be absolute:
+     * nothing says what a relative path is relative to, so Gradle can't tell whether the file belongs to the build.
+     * The problem is still reported as given; this adds a problem about the path, for the author of the reporting code.
+     */
+    private void warnAboutRelativePaths(ProblemInternal problem) {
+        ProblemGroups groups = infrastructure.getGroups();
+        if (groups == null) {
+            return;
+        }
+        for (ProblemLocation location : problem.getOriginLocations()) {
+            if (location instanceof FileLocation && !new File(((FileLocation) location).getPath()).isAbsolute()) {
+                String path = ((FileLocation) location).getPath();
+                DefaultProblemBuilder misuse = createProblemBuilder();
+                misuse.id(groups.getGradle().getBuildLogic().problemId(RELATIVE_PATH))
+                    .contextualLabel("Problem '" + DefaultProblemId.displayNameOf(problem.getDefinition().getId()) + "' gives the relative path '" + path + "' as its location")
+                    .details("The paths given to the file location methods of ProblemSpec must be absolute. Gradle can't tell where a relative path points, so it can't say whether the file belongs to the build.")
+                    .solution("Pass an absolute path to fileLocation, lineInFileLocation or offsetInFileLocation")
+                    .internalSeverity(Severity.WARNING);
+                report(misuse.build());
+                // One is enough to make the point
+                return;
+            }
+        }
     }
 
     @NonNull
@@ -88,7 +121,9 @@ public class DefaultProblemReporter implements ProblemReporterInternal {
         problemBuilder.id(problemId);
         spec.execute(problemBuilder);
         problemBuilder.withException(exception);
-        report(addExceptionToProblem(exception, problemBuilder.build()));
+        ProblemInternal problem = problemBuilder.build();
+        warnAboutRelativePaths(problem);
+        report(addExceptionToProblem(exception, problem));
         throw runtimeException(exception);
     }
 
@@ -125,7 +160,9 @@ public class DefaultProblemReporter implements ProblemReporterInternal {
         DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
         defaultProblemBuilder.id(problemId);
         action.execute(defaultProblemBuilder);
-        return defaultProblemBuilder.build();
+        ProblemInternal problem = defaultProblemBuilder.build();
+        warnAboutRelativePaths(problem);
+        return problem;
     }
 
     @Override
@@ -184,6 +221,8 @@ public class DefaultProblemReporter implements ProblemReporterInternal {
         ProblemInternal problemInternal = withCanonicalId((ProblemInternal) problem);
         Throwable exception = problemInternal.getException();
         if (exception != null) {
+            // The copy kept against the exception is what a build failure carries, so it gets its locations first
+            problemInternal = problemSummarizer.locate(problemInternal, id);
             exceptionProblemRegistry.onProblem(transform(exception), problemInternal);
         }
         problemSummarizer.emit(problemInternal, id);

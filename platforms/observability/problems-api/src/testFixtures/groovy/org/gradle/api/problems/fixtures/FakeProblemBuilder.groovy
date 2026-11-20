@@ -101,6 +101,12 @@ class FakeProblemBuilder implements ProblemSpec {
     }
 
     @Override
+    ProblemSpec callerLocation(Class<?> api) {
+        this.stackLocationCalled = true
+        return this
+    }
+
+    @Override
     ProblemSpec details(String details) {
         this.details = details
         return this

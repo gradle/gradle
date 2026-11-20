@@ -1,0 +1,58 @@
+/*
+ * Copyright 2026 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.tooling.events.problems;
+
+import org.gradle.api.Incubating;
+import org.jspecify.annotations.Nullable;
+
+/**
+ * One element of a {@link Trace}: a build element such as a task, a project or a build.
+ * <p>
+ * Some kinds of frame have a sub-interface with the data of that kind, such as {@link TaskFrame} and {@link ProjectFrame}.
+ * A newer Gradle version can send kinds this client has no type for.
+ * They arrive as a plain {@code Frame}, so clients should show the display name of any frame they don't handle.
+ *
+ * @since 9.10.0
+ */
+@Incubating
+public interface Frame {
+
+    /**
+     * Returns a name for this frame that can be shown to a user, such as {@code task :app:test}.
+     *
+     * @return the display name
+     * @since 9.10.0
+     */
+    String getDisplayName();
+
+    /**
+     * Returns who owns this frame.
+     *
+     * @return the locality
+     * @since 9.10.0
+     */
+    Locality getLocality();
+
+    /**
+     * Returns where in a file this frame points.
+     *
+     * @return the position, or {@code null} for a frame that isn't an authored unit or whose place isn't known
+     * @since 9.10.0
+     */
+    @Nullable
+    Position getPosition();
+}

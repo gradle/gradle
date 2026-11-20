@@ -40,7 +40,9 @@ dependencies {
     api(libs.kotlinStdlib)
 
     implementation(projects.baseServices)
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.configurationProblemsBase)
+    implementation(projects.coreApi)
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.messaging)

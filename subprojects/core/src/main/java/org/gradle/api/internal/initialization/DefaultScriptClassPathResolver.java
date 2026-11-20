@@ -152,13 +152,17 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             resolutionScope.setTypeHierarchyAnalysisResult(getAnalysisResult(classpathConfiguration));
             resolutionScope.setOriginalClasspath(originalDependencies.getFiles());
 
+            // Each call to getArtifacts() on a view selects and visits the artifacts again, so the collection is shared with the merge below
+            ArtifactCollection originalArtifacts = originalDependencies.getArtifacts();
             ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
             ArtifactCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
-            Map<FileType, List<File>> instrumentedClasspath = mergeInstrumentedClasspath(originalDependencies, instrumentedExternalDependencies, instrumentedProjectDependencies);
+            Map<FileType, List<File>> instrumentedClasspath = mergeInstrumentedClasspath(originalArtifacts, instrumentedExternalDependencies, instrumentedProjectDependencies);
+            // Where each entry came from, kept on the classpath so that the class loader built from it can say who owns a class
+            Map<File, TransformedClassPath.InstrumentationKind> kinds = InstrumentationClasspathMerger.kindsOf(instrumentedExternalDependencies, instrumentedProjectDependencies);
 
             MethodInterceptionReportCollector reportCollector = propertyUpgradeReportConfig.getReportCollector();
             instrumentedClasspath.getOrDefault(INTERCEPTED_METHODS_REPORT, Collections.emptyList()).forEach(reportCollector::collect);
-            ClassPath classPath = TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath.getOrDefault(ARTIFACT, Collections.emptyList()));
+            ClassPath classPath = TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath.getOrDefault(ARTIFACT, Collections.emptyList()), kinds);
             // The composition is repeated by the configuration cache class decoder when the classpath is restored
             // from the cache, see DefaultClassDecoder.scopeFor.
             return classLoadTimeInstrumentationComposer.composeWithThirdPartyAgentIfPresent(classPath);
@@ -175,13 +179,13 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
      * "undeclared artifact transform input" deprecation that would otherwise fire.
      */
     private static Map<FileType, List<File>> mergeInstrumentedClasspath(
-        ArtifactView originalDependencies,
+        ArtifactCollection originalDependencies,
         ArtifactCollection instrumentedExternalDependencies,
         ArtifactCollection instrumentedProjectDependencies
     ) {
         try (SafeInternalArtifactTransformAccess.Scope ignored = SafeInternalArtifactTransformAccess.safely()) {
             return InstrumentationClasspathMerger.mergeToClasspath(
-                originalDependencies.getArtifacts(),
+                originalDependencies,
                 instrumentedExternalDependencies,
                 instrumentedProjectDependencies
             );

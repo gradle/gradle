@@ -23,8 +23,10 @@ import org.gradle.api.problems.internal.ProblemReportCreator;
 import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.api.problems.internal.ProblemSummaryData;
 import org.gradle.api.problems.internal.ProblemsInfrastructure;
+import org.gradle.api.problems.internal.DetectionContext;
+import org.gradle.api.problems.internal.DetectionContextProvider;
 import org.gradle.api.problems.internal.TaskIdentity;
-import org.gradle.api.problems.internal.TaskIdentityProvider;
+import org.gradle.api.problems.internal.location.Trace;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -43,7 +45,9 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     private final Collection<ProblemEmitter> problemEmitters;
     private final ProblemReportCreator problemReportCreator;
     private final SummarizerStrategy summarizerStrategy;
-    private final TaskIdentityProvider taskProvider;
+    private final DetectionContextProvider detectionContextProvider;
+    private final File buildTreeRootDirectory;
+    private final ClassFileLookup classFiles = new ClassFileLookup();
 
     public static final InternalOption<Integer> THRESHOLD_OPTION = InternalOptions.ofInt("org.gradle.internal.problem.summary.threshold", 15);
     public static final int THRESHOLD_DEFAULT_VALUE = THRESHOLD_OPTION.getDefaultValue();
@@ -54,14 +58,16 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         Collection<ProblemEmitter> problemEmitters,
         InternalOptions internalOptions,
         ProblemReportCreator problemReportCreator,
-        TaskIdentityProvider taskProvider
+        DetectionContextProvider detectionContextProvider,
+        File buildTreeRootDirectory
     ) {
         this.eventEmitter = eventEmitter;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.problemEmitters = problemEmitters;
         this.summarizerStrategy = new SummarizerStrategy(internalOptions.getInt(THRESHOLD_OPTION));
         this.problemReportCreator = problemReportCreator;
-        this.taskProvider = taskProvider;
+        this.detectionContextProvider = detectionContextProvider;
+        this.buildTreeRootDirectory = buildTreeRootDirectory;
     }
 
     @Override
@@ -78,9 +84,14 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
 
     @Override
     public void emit(ProblemInternal problem, @Nullable OperationIdentifier id) {
-        String taskPath = getTaskPath(id);
+        // Detection is computed before summarization throttles occurrences, and attached only to the ones that pass
+        DetectionContext detection = detectionContextProvider.detectionContextFor(id);
+        TaskIdentity taskIdentity = detection.getTask();
+        String taskPath = taskIdentity == null ? null : taskIdentity.getTaskPath();
+        // The leaf is part of what tells two problems apart, so it is settled before repeated problems are dropped
+        problem = withUserCodeCallers(withDerivedOrigins(problem), detection);
         if (summarizerStrategy.shouldEmit(problem, taskPath)) {
-            problem = maybeAddTaskLocation(problem, taskPath);
+            problem = locate(problem, detection);
             problemReportCreator.addProblem(problem);
             for (ProblemEmitter problemEmitter : problemEmitters) {
                 problemEmitter.emit(problem, id);
@@ -88,9 +99,36 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         }
     }
 
-    private @Nullable String getTaskPath(@Nullable OperationIdentifier id) {
-        TaskIdentity taskIdentity = taskProvider.taskIdentityFor(id);
-        return taskIdentity == null ? null : taskIdentity.getTaskPath();
+    @Override
+    public ProblemInternal locate(ProblemInternal problem, @Nullable OperationIdentifier id) {
+        return locate(problem, detectionContextProvider.detectionContextFor(id));
+    }
+
+    private ProblemInternal locate(ProblemInternal problem, DetectionContext detection) {
+        if (problem.getDetectionTrace() != null) {
+            // Already located, by a caller that needed the complete problem before emitting it
+            return problem;
+        }
+        TaskIdentity taskIdentity = detection.getTask();
+        problem = withUserCodeCallers(withDerivedOrigins(problem), detection);
+        return maybeAddTaskLocation(problem, taskIdentity == null ? null : taskIdentity.getTaskPath())
+            .withDetectionTrace(DetectionTraces.detectedIn(detection))
+            .withOriginTraces(OriginTraces.withLineage(OriginTraces.withFileLocalities(problem.getOriginTraces(), buildTreeRootDirectory), taskIdentity));
+    }
+
+    // A reporter that gives whole traces, such as Configuration Cache, keeps them; for any other problem they come from its flat locations
+    private static ProblemInternal withDerivedOrigins(ProblemInternal problem) {
+        if (!problem.getOriginTraces().isEmpty()) {
+            return problem;
+        }
+        List<Trace> derived = OriginTraces.derivedFrom(problem);
+        return derived.isEmpty() ? problem : problem.withOriginTraces(derived);
+    }
+
+    private ProblemInternal withUserCodeCallers(ProblemInternal problem, DetectionContext detection) {
+        List<Trace> origins = problem.getOriginTraces();
+        List<Trace> withCallers = OriginTraces.withUserCodeCallers(origins, problem.getOriginLocations(), detection, classFiles);
+        return withCallers == origins ? problem : problem.withOriginTraces(withCallers);
     }
 
     private static ProblemInternal maybeAddTaskLocation(ProblemInternal problem, @Nullable String taskPath) {

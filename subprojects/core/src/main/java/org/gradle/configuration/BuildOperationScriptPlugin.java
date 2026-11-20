@@ -16,10 +16,13 @@
 
 package org.gradle.configuration;
 
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.problems.internal.ProblemProjectIdentityTracker;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationId;
+import org.gradle.internal.code.Locality;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -43,11 +46,13 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
     private final ScriptPlugin decorated;
     private final BuildOperationRunner buildOperationRunner;
     private final UserCodeApplicationContext userCodeApplicationContext;
+    private final boolean topLevelScript;
 
-    public BuildOperationScriptPlugin(ScriptPlugin decorated, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
+    public BuildOperationScriptPlugin(ScriptPlugin decorated, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, boolean topLevelScript) {
         this.decorated = decorated;
         this.buildOperationRunner = buildOperationRunner;
         this.userCodeApplicationContext = userCodeApplicationContext;
+        this.topLevelScript = topLevelScript;
     }
 
     @Override
@@ -63,29 +68,66 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
             decorated.apply(target);
         } else {
             URI uri = resource.getFile() != null ? resource.getFile().toURI() : resource.getLocation().getURI();
-            UserCodeSource source = new UserCodeSource.Script(getSource().getShortDisplayName(), uri);
+            UserCodeApplicationContext.Application applying = userCodeApplicationContext.current();
+            UserCodeSource source = new UserCodeSource.Script(getSource().getShortDisplayName(), uri, localityOf(target, resource.getFile()), applying == null ? null : applying.getSource(), topLevelScript);
             UserCodeApplicationContext.Target appTarget = getApplicationTargetFor(target);
-            userCodeApplicationContext.apply(source, appTarget, userCodeApplicationId -> buildOperationRunner.run(new RunnableBuildOperation() {
-                @Override
-                public void run(BuildOperationContext context) {
-                    decorated.apply(target);
-                    context.setResult(OPERATION_RESULT);
-                }
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    final ScriptSource source = getSource();
-                    final ResourceLocation resourceLocation = source.getResource().getLocation();
-                    final File file = resourceLocation.getFile();
-                    String name = "Apply " + source.getShortDisplayName();
-                    final String displayName = name + " to " + target;
-
-                    return BuildOperationDescriptor.displayName(displayName)
-                        .name(name)
-                        .details(new OperationDetails(file, resourceLocation, ConfigurationTargetIdentifier.of(target), userCodeApplicationId));
-                }
-            }));
+            String previousBuildPath = ProblemProjectIdentityTracker.getBuildPath();
+            ProblemProjectIdentityTracker.setBuildPath(buildPathOutsideProjects(target, previousBuildPath));
+            try {
+                applyTracked(target, source, appTarget);
+            } finally {
+                ProblemProjectIdentityTracker.setBuildPath(previousBuildPath);
+            }
         }
+    }
+
+    // A settings or init script runs outside any project; a problem it reports belongs to the build it configures
+    private static @Nullable String buildPathOutsideProjects(Object target, @Nullable String current) {
+        ConfigurationTargetIdentifier id = ConfigurationTargetIdentifier.of(target);
+        return id == null || id.getTargetType() == ConfigurationTargetIdentifier.Type.PROJECT ? current : id.getBuildPath();
+    }
+
+    private void applyTracked(final Object target, UserCodeSource userCodeSource, UserCodeApplicationContext.Target appTarget) {
+        userCodeApplicationContext.apply(userCodeSource, appTarget, userCodeApplicationId -> buildOperationRunner.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                decorated.apply(target);
+                context.setResult(OPERATION_RESULT);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                final ScriptSource source = getSource();
+                final ResourceLocation resourceLocation = source.getResource().getLocation();
+                final File file = resourceLocation.getFile();
+                String name = "Apply " + source.getShortDisplayName();
+                final String displayName = name + " to " + target;
+
+                return BuildOperationDescriptor.displayName(displayName)
+                    .name(name)
+                    .details(new OperationDetails(file, resourceLocation, ConfigurationTargetIdentifier.of(target), userCodeApplicationId));
+            }
+        }));
+    }
+
+    /**
+     * Project and settings scripts belong to the build. Init scripts come from the user's machine, CI or an IDE:
+     * those found in the Gradle user home or the installation are part of the environment,
+     * those passed on the command line can't be told apart from ones an IDE or CI plugin injected.
+     */
+    private static Locality localityOf(Object target, @Nullable File scriptFile) {
+        if (!(target instanceof GradleInternal)) {
+            return Locality.LOCAL;
+        }
+        if (scriptFile == null) {
+            return Locality.UNKNOWN;
+        }
+        for (File commandLineInitScript : ((GradleInternal) target).getStartParameter().getInitScripts()) {
+            if (commandLineInitScript.getAbsoluteFile().equals(scriptFile.getAbsoluteFile())) {
+                return Locality.UNKNOWN;
+            }
+        }
+        return Locality.ENVIRONMENT;
     }
 
     private static UserCodeApplicationContext.Target getApplicationTargetFor(Object target) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.tooling.events.problems;
 
-import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.api.Incubating;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Supplies task execution information.
+ * The application of a plugin to a project, a settings object or a build.
+ *
+ * @since 9.10.0
  */
-public interface TaskIdentityProvider {
+@Incubating
+public interface PluginApplicationFrame extends Frame {
 
     /**
-     * Returns the identity of the task the current thread is working for, or else of the task running the target build operation.
+     * Returns the id of the plugin.
      *
-     * @param id the id of the target build operation, or {@code null} if there is none
-     * @return the task identity, or {@code null} if neither is working for a task
+     * @return the plugin id, such as {@code com.acme.foo}, or null when the plugin was applied by its class
+     * @since 9.10.0
      */
     @Nullable
-    TaskIdentity taskIdentityFor(@Nullable OperationIdentifier id);
+    String getPluginId();
+
+    /**
+     * Returns the name of the plugin's class.
+     *
+     * @return the fully qualified class name
+     * @since 9.10.0
+     */
+    String getClassName();
 }

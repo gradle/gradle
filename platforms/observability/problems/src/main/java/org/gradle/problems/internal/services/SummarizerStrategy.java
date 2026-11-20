@@ -61,6 +61,6 @@ public class SummarizerStrategy {
         return seenProblemsWithCounts
             .computeIfAbsent(problem.getDefinition().getId(), key -> new HashMap<>())
             .computeIfAbsent(taskPath, key -> new ProblemSummaryInfo())
-            .shouldEmit(problem.hashCode(), threshold);
+            .shouldEmit(ProblemIdentity.of(problem).hashCode(), threshold);
     }
 }
