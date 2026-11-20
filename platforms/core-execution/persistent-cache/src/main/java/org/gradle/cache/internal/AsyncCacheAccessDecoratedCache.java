@@ -22,6 +22,7 @@ import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.jspecify.annotations.Nullable;
 
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V> {
     private final AsyncCacheAccess asyncCacheAccess;
@@ -46,6 +47,11 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsy
     @Override
     public V get(K key, Function<? super K, ? extends V> producer, Runnable completion) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean putIf(K key, V value, Predicate<? super V> condition) {
+        return asyncCacheAccess.read(() -> indexedCache.putIf(key, value, condition));
     }
 
     @Override
