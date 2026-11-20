@@ -25,8 +25,10 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
@@ -36,6 +38,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectCoordinateCollisionReporter;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
@@ -48,7 +51,9 @@ import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
@@ -73,8 +78,10 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -93,6 +100,7 @@ public class DependencyGraphBuilder {
     private final VersionParser versionParser;
     private final GraphVariantSelector variantSelector;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ProjectCoordinateCollisionReporter coordinateCollisionReporter;
 
     @Inject
     public DependencyGraphBuilder(
@@ -104,7 +112,8 @@ public class DependencyGraphBuilder {
         ComponentIdGenerator idGenerator,
         VersionParser versionParser,
         GraphVariantSelector variantSelector,
-        BuildOperationExecutor buildOperationExecutor
+        BuildOperationExecutor buildOperationExecutor,
+        Problems problems
     ) {
         this.moduleExclusions = moduleExclusions;
         this.attributesFactory = attributesFactory;
@@ -115,6 +124,7 @@ public class DependencyGraphBuilder {
         this.versionParser = versionParser;
         this.variantSelector = variantSelector;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.coordinateCollisionReporter = new ProjectCoordinateCollisionReporter(problems);
     }
 
     public void resolve(
@@ -133,6 +143,7 @@ public class DependencyGraphBuilder {
         ConflictResolution conflictResolution,
         boolean failingOnDynamicVersions,
         boolean failingOnChangingVersions,
+        DisplayName resolution,
         ResolutionParameters.FailureResolutions failureResolutions,
         DependencyGraphVisitor modelVisitor
     ) {
@@ -161,9 +172,30 @@ public class DependencyGraphBuilder {
 
         traverseGraph(resolveState);
 
+        reportCoordinateCollisions(resolveState, resolution, failureResolutions);
+
         validateGraph(resolveState, failingOnDynamicVersions, failingOnChangingVersions, conflictResolution, failureResolutions);
 
         assembleResult(resolveState, sortOrder, modelVisitor);
+    }
+
+    /**
+     * Warns about the modules that several projects resolved as, which resolution cannot tell apart.
+     */
+    private void reportCoordinateCollisions(
+        ResolveState resolveState,
+        DisplayName resolution,
+        ResolutionParameters.FailureResolutions failureResolutions
+    ) {
+        Map<ModuleIdentifier, Set<ProjectComponentIdentifier>> collisions = new LinkedHashMap<>();
+        for (ModuleResolveState module : resolveState.getModules()) {
+            Set<ProjectComponentIdentifier> collidingProjects = module.getCollidingProjects();
+            if (collidingProjects != null) {
+                collisions.put(module.getId(), collidingProjects);
+            }
+        }
+
+        coordinateCollisionReporter.report(collisions, resolution, failureResolutions);
     }
 
     /**
