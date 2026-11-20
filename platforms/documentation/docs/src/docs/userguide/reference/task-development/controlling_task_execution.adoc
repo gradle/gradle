@@ -311,6 +311,36 @@ $ ./gradlew hello -PskipHello --info
 include::{snippetsPath}/reference/task-development/taskOnlyIf/tests/taskOnlyIf-info.out[]
 ----
 
+[[sec:using_a_provider_predicate]]
+==== Using a provider as a predicate incubating-label:[]
+
+You can also pass a link:{javadocPath}/org/gradle/api/provider/Provider.html[`Provider`] to link:{javadocPath}/org/gradle/api/Task.html#onlyIf(org.gradle.api.provider.Provider)[`Task.onlyIf`].
+Gradle queries the provider just before the task executes, and its value decides whether the task runs:
+
+* A `Boolean` value runs the task when it is `true` and skips it when it is `false`.
+* An link:{javadocPath}/org/gradle/api/tasks/OnlyIfDecision.html[`OnlyIfDecision`] runs the task with `OnlyIfDecision.proceed()`, or skips it with `OnlyIfDecision.skip(reason)`.
+The reason is computed together with the decision, and is reported as the reason the task is skipped.
+
+A `false` value, or `OnlyIfDecision.skip()` without a reason, is reported as `onlyIf not satisfied - no reason provided`.
+A provider without a value, or with a value of any other type, fails the task.
+
+====
+include::sample[dir="snippets/reference/task-development/taskOnlyIfProvider/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/task-development/taskOnlyIfProvider/groovy",files="build.gradle[]"]
+====
+
+[source,bash]
+----
+$ ./gradlew deploy --info
+----
+[source,text]
+----
+include::{snippetsPath}/reference/task-development/taskOnlyIfProvider/tests/taskOnlyIfProvider-info.out[]
+----
+
+When the <<configuration_cache.adoc#config_cache,configuration cache>> is enabled, a provider created with `providers.provider {}` is evaluated when the configuration cache entry is stored, not when the task executes.
+To make the decision when the task executes, derive it from a provider such as `providers.environmentVariable()`, `providers.gradleProperty()`, `providers.fileContents()`, `providers.exec()`, or a custom <<configuration_cache_requirements.adoc#config_cache:requirements:value_source,`ValueSource`>>.
+
 [[sec:using_stopexecutionexception]]
 === 2. Using `StopExecutionException`
 

@@ -30,11 +30,13 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.properties.TaskProperties
 import org.gradle.api.specs.Spec
+import org.gradle.api.tasks.OnlyIfDecision
 import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskExecutionException
@@ -90,7 +92,9 @@ class DefaultTaskNodeExecutorTest extends Specification {
     }
 
     def taskIdentity = TestTaskIdentities.create("name", DefaultTask.class, project)
-    DescribingAndSpec<Task> onlyIfSpec = Mock()
+    DescribingAndSpec<Task> onlyIfSpec = Mock() {
+        getSpecs() >> []
+    }
     def taskOutputs = Mock(TaskOutputsEnterpriseInternal)
     def state = new TaskStateInternal()
     List<InputChangesAwareTaskAction> taskActions = new ArrayList<>()
@@ -649,10 +653,59 @@ class DefaultTaskNodeExecutorTest extends Specification {
         executor.execute(node)
 
         then:
-        1 * onlyIfSpec.findUnsatisfiedSpec(task) >> Mock(SelfDescribingSpec)
+        1 * onlyIfSpec.getSpecs() >> [Stub(SelfDescribingSpec) { getDisplayName() >> "condition" }]
         0 * executionEngine._
         0 * standardOutputCapture._
         state.outcome == TaskExecutionOutcome.SKIPPED
+        state.skipReasonMessage == "'condition' not satisfied"
+    }
+
+    def "skips task whose onlyIf provider decides to skip with reason '#reason'"() {
+        when:
+        executor.execute(node)
+
+        then:
+        1 * onlyIfSpec.getSpecs() >> [new ProviderOnlyIfSpec(Providers.of(value))]
+        0 * executionEngine._
+        0 * standardOutputCapture._
+        state.outcome == TaskExecutionOutcome.SKIPPED
+        state.skipReasonMessage == reason
+
+        where:
+        value                            | reason
+        false                            | "onlyIf not satisfied - no reason provided"
+        OnlyIfDecision.skip()            | "onlyIf not satisfied - no reason provided"
+        OnlyIfDecision.skip("on CI")     | "on CI"
+    }
+
+    def "stops evaluating onlyIf predicates at the first unsatisfied one"() {
+        given:
+        def later = Mock(Spec)
+
+        when:
+        executor.execute(node)
+
+        then:
+        1 * onlyIfSpec.getSpecs() >> [new ProviderOnlyIfSpec(Providers.of(true)), new ProviderOnlyIfSpec(Providers.of(OnlyIfDecision.skip("first"))), later]
+        0 * later._
+        state.outcome == TaskExecutionOutcome.SKIPPED
+        state.skipReasonMessage == "first"
+    }
+
+    def "fails task whose onlyIf provider is #scenario"() {
+        when:
+        executor.execute(node)
+
+        then:
+        1 * onlyIfSpec.getSpecs() >> [new ProviderOnlyIfSpec(provider)]
+        0 * executionEngine._
+        state.failure.message.startsWith('Could not evaluate onlyIf predicate for')
+        state.failure.cause.message.contains(causeMessage)
+
+        where:
+        scenario          | provider               | causeMessage
+        "of another type" | Providers.of("yes")    | "The onlyIf provider must have a value of type java.lang.Boolean or org.gradle.api.tasks.OnlyIfDecision, but its value 'yes' is of type java.lang.String."
+        "absent"          | Providers.notDefined() | "The onlyIf provider has no value. Cannot query the value of this provider because it has no value available."
     }
 
     def "handles old style onlyIf spec"() {
@@ -684,7 +737,7 @@ class DefaultTaskNodeExecutorTest extends Specification {
         executor.execute(node)
 
         then:
-        1 * onlyIfSpec.findUnsatisfiedSpec(task) >> { throw failure }
+        1 * onlyIfSpec.getSpecs() >> [Stub(SelfDescribingSpec) { isSatisfiedBy(_) >> { throw failure } }]
         0 * executionEngine._
         0 * standardOutputCapture._
         state.failure.cause == failure
