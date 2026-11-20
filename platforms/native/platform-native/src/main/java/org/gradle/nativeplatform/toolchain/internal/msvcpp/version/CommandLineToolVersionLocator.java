@@ -33,6 +33,7 @@ import org.gradle.util.internal.VersionNumber;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -86,7 +87,7 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
 
         int exitValue = result.getExitValue();
         if (exitValue == 0) {
-            return buffer.readAsString("UTF-8");
+            return buffer.readAsString(StandardCharsets.UTF_8);
         } else {
             LOGGER.debug("vswhere.exe returned a non-zero exit value ({}) - ignoring", result.getExitValue());
             return null;

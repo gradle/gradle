@@ -66,9 +66,6 @@ val errorproneExtension = project.extensions.create<ErrorProneProjectExtension>(
         "JavaxInjectOnAbstractMethod", // We use abstract injection as a pattern
         "MissingSummary", // We have another mechanism to check Javadocs on public API
         "StringSplitter", // We are fine with using String.split() as is
-
-        // TRIAGE: new in Error Prone 2.53.0
-        "PreferCharsetOverload",
     )
 
     nullawayEnabled.convention(false)
