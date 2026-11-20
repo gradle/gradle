@@ -59,7 +59,7 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
     def "fails when application cannot load shared library at runtime"() {
         buildWithApplicationAndDependencies()
         buildFile("app/build.gradle", """
-            def buildDir = isolated.rootProject.projectDirectory.dir('hello/build')
+            def buildDir = project(':hello').isolated.projectDirectory.dir('build')
             def ops = project.services.get(${FileSystemOperations.name})
             tasks.withType(XCTest).configureEach {
                 doFirst {
