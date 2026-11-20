@@ -33,9 +33,12 @@ import sbt.internal.inc.Analysis;
 import sbt.internal.inc.IncrementalCompilerImpl;
 import sbt.internal.inc.Locate;
 import sbt.internal.inc.LoggedReporter;
-import sbt.internal.inc.PlainVirtualFileConverter;
+import sbt.internal.inc.MappedFileConverter;
 import sbt.internal.inc.ScalaInstance;
+import sbt.internal.inc.Stamps;
 import scala.Option;
+import scala.jdk.javaapi.CollectionConverters;
+import xsbti.FileConverter;
 import xsbti.T2;
 import xsbti.VirtualFile;
 import xsbti.compile.AnalysisContents;
@@ -60,6 +63,7 @@ import xsbti.compile.TransactionalManagerType;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -73,7 +77,6 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
     private final ScalaInstance scalaInstance;
     private final ScalaCompiler scalaCompiler;
     private final AnalysisStoreProvider analysisStoreProvider;
-    private final static PlainVirtualFileConverter CONVERTER = PlainVirtualFileConverter.converter();
 
     private final MapBackedCache<VirtualFile, DefinesClass> definesClassCache = new MapBackedCache<>(new ConcurrentHashMap<>());
 
@@ -98,20 +101,26 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
         List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).noEmptySourcePath().build();
 
+        // Record paths relative to the project directory, so the cached analysis is relocatable
+        FileConverter converter = new MappedFileConverter(scala.collection.immutable.Map.from(CollectionConverters.asScala(Collections.singletonMap("BASE", spec.getWorkingDir().toPath()))), true);
+
         List<VirtualFile> classpath = new LinkedList<>();
         for (File classpathEntry : spec.getCompileClasspath()){
-            classpath.add(CONVERTER.toVirtualFile(classpathEntry.toPath()));
+            classpath.add(converter.toVirtualFile(classpathEntry.toPath()));
         }
         List<VirtualFile> sourceFiles = new LinkedList<>();
         for(File f: spec.getSourceFiles()){
-            sourceFiles.add(CONVERTER.toVirtualFile(f.toPath()));
+            sourceFiles.add(converter.toVirtualFile(f.toPath()));
         }
         CompileOptions compileOptions = CompileOptions.create()
                 .withSources(Iterables.toArray(sourceFiles, VirtualFile.class))
                 .withClasspath(Iterables.toArray(classpath, VirtualFile.class))
                 .withScalacOptions(scalacOptions.toArray(new String[0]))
                 .withClassesDirectory(spec.getDestinationDir().toPath())
-                .withJavacOptions(javacOptions.toArray(new String[0]));
+                .withJavacOptions(javacOptions.toArray(new String[0]))
+                .withConverter(converter)
+                // Class files loaded from the build cache have new timestamps, so compare them by content
+                .withStamper(Stamps.timeWrapBinaryStamps(converter));
 
         File analysisFile = spec.getAnalysisFile();
         Optional<AnalysisStore> analysisStore;
@@ -134,7 +143,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
                 .withTransitiveStep(5)
                 .withAuxiliaryClassFiles(auxiliaryClassFiles());
 
-        Setup setup = incremental.setup(new EntryLookup(spec),
+        Setup setup = incremental.setup(new EntryLookup(spec, converter),
                 false,
                 analysisFile.toPath(),
                 CompilerCache.fresh(),
@@ -186,11 +195,11 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
     private class EntryLookup implements PerClasspathEntryLookup {
         private final Map<VirtualFile, File> analysisMap;
 
-        public EntryLookup(ScalaJavaJointCompileSpec spec) {
+        public EntryLookup(ScalaJavaJointCompileSpec spec, FileConverter converter) {
             this.analysisMap = new HashMap<>();
-            analysisMap.put(CONVERTER.toVirtualFile(spec.getDestinationDir().toPath()), spec.getAnalysisFile());
+            analysisMap.put(converter.toVirtualFile(spec.getDestinationDir().toPath()), spec.getAnalysisFile());
             for (Map.Entry<File, File> e: spec.getAnalysisMap().entrySet()){
-                analysisMap.put(CONVERTER.toVirtualFile(e.getKey().toPath()), e.getValue());
+                analysisMap.put(converter.toVirtualFile(e.getKey().toPath()), e.getValue());
             }
         }
         @Override
