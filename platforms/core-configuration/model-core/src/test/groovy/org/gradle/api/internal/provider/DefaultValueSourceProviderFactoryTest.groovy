@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Describable
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
@@ -145,6 +146,57 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
 
         expect:
         ((Managed) provider).isImmutable()
+    }
+
+    def "provider with parameters that have no producers has the shared no-op producer"() {
+        given:
+        def provider = createProviderOf(EchoValueSource) {
+            it.parameters.value.set("42")
+        }
+
+        expect:
+        // queried for every consumer, so must not allocate a new producer on each call
+        provider.producer.is(ValueSupplier.ValueProducer.externalValue())
+    }
+
+    def "provider reports the producers of its parameters"() {
+        given:
+        def producer = Mock(ValueSupplier.ValueProducer) {
+            isKnown() >> true
+        }
+        def upstream = new AbstractMinimalProvider<String>() {
+            @Override
+            Class<String> getType() {
+                String
+            }
+
+            @Override
+            protected ValueSupplier.Value<String> calculateOwnValue(ValueSupplier.ValueConsumer consumer) {
+                ValueSupplier.Value.of("42")
+            }
+
+            @Override
+            ValueSupplier.ValueProducer getProducer() {
+                producer
+            }
+        }
+        def provider = createProviderOf(EchoValueSource) {
+            it.parameters.value.set(upstream)
+        }
+        def context = Mock(TaskDependencyResolveContext)
+
+        when:
+        provider.producer.visitDependencies(context)
+
+        then:
+        provider.producer.known
+        1 * producer.visitDependencies(context)
+
+        when:
+        provider.producer.visitGuardedDependencies(context)
+
+        then:
+        0 * producer.visitGuardedDependencies(_)
     }
 
     def "parameterless value source can be used"() {
