@@ -84,6 +84,8 @@ public class DefaultModuleConflictHandler implements ModuleConflictHandler {
     public void resolveNextConflict() {
         assert hasConflicts();
         ConflictContainer<ModuleIdentifier, ComponentState>.Conflict conflict = conflicts.popConflict();
+        // Selection may have changed since this conflict was registered.
+        conflict.candidates = resolveState.getModule(conflict.candidateModule).getVersions();
         ConflictResolverDetails<ComponentState> details = new DefaultConflictResolverDetails<>(conflict.candidates);
         resolver.select(details);
         if (details.hasFailure()) {

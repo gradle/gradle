@@ -186,6 +186,29 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'a:2', 'b'
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39922")
+    def "uses reselected replacement version with transitive dependencies declared in order #transitiveDependencies"() {
+        declaredDependencies 'library:1', 'library:2', 'bridge'
+        declaredReplacements 'legacy:library->org:library'
+        publishedMavenModules 'library:2->old', 'library:3->current', 'legacy:library->legacy-transitive'
+
+        def bridge = mavenRepo.module('org', 'bridge', '1')
+        transitiveDependencies.each {
+            def dependency = new TestDependency(it)
+            bridge.dependsOn(dependency.group, dependency.name, dependency.version)
+        }
+        bridge.publish()
+
+        expect:
+        resolvedModules 'bridge', 'library:3', 'current'
+
+        where:
+        transitiveDependencies << [
+            ['org:library:3', 'legacy:library:1'],
+            ['legacy:library:1', 'org:library:3']
+        ]
+    }
+
     def "latest replacement wins"() {
         declaredDependencies 'a', 'b', 'c'
         declaredReplacements 'a->b', 'a->c' //2 replacements for the same source module
