@@ -63,6 +63,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     private static final String LEGACY_COMPILER_FILENAME = "cl.exe";
     private static final String VS2017_COMPILER_FILENAME = "HostX86/x86/cl.exe";
 
+    // All mutable state is guarded by this: projects configured in parallel share the locator.
     private final Map<File, VisualStudioInstall> foundInstalls = new HashMap<File, VisualStudioInstall>();
     private final Set<File> brokenInstalls = new LinkedHashSet<File>();
     private final VisualStudioVersionLocator commandLineLocator;
@@ -81,7 +82,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     @Override
-    public List<? extends VisualStudioInstall> locateAllComponents() {
+    public synchronized List<? extends VisualStudioInstall> locateAllComponents() {
         initializeVisualStudioInstalls();
 
         return CollectionUtils.sort(foundInstalls.values(), new Comparator<VisualStudioInstall>() {
@@ -93,7 +94,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     @Override
-    public SearchResult<VisualStudioInstall> locateComponent(@Nullable File candidate) {
+    public synchronized SearchResult<VisualStudioInstall> locateComponent(@Nullable File candidate) {
         initializeVisualStudioInstalls();
 
         if (candidate != null) {

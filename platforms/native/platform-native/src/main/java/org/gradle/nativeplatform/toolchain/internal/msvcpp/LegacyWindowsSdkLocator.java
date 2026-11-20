@@ -69,6 +69,7 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
     private static final String RESOURCE_FILENAME = "rc.exe";
     private static final String KERNEL32_FILENAME = "kernel32.lib";
 
+    // All mutable state is guarded by this: projects configured in parallel share the locator.
     private final Map<File, WindowsSdkInstall> foundSdks = new HashMap<File, WindowsSdkInstall>();
     private final OperatingSystem os;
     private final WindowsRegistry windowsRegistry;
@@ -81,7 +82,7 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
     }
 
     @Override
-    public SearchResult<WindowsSdkInstall> locateComponent(@Nullable File candidate) {
+    public synchronized SearchResult<WindowsSdkInstall> locateComponent(@Nullable File candidate) {
         initializeWindowsSdks();
 
         if (candidate != null) {
@@ -92,7 +93,7 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
     }
 
     @Override
-    public List<? extends WindowsSdkInstall> locateAllComponents() {
+    public synchronized List<? extends WindowsSdkInstall> locateAllComponents() {
         initializeWindowsSdks();
         return Lists.newArrayList(foundSdks.values());
     }
