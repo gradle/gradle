@@ -26,6 +26,7 @@ import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.platform.internal.DefaultArchitecture
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.GccCommandLineToolConfiguration
@@ -352,6 +353,26 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         "i386"    | X86            | 32           | []        | []          | []
         "x86_64"  | X86            | 64           | []        | []          | []
         "aarch64" | ARM            | 64           | []        | []          | []
+    }
+
+    def "selects FreeBSD platforms for supported architectures"() {
+        given:
+        def freeBsd = Mock(DefaultOperatingSystem) {
+            isFreeBSD() >> true
+            isCurrent() >> true
+        }
+        platform.operatingSystem >> freeBsd
+        platform.architecture >> Architectures.forInput(arch)
+        toolSearchPath.locate(_, _) >> tool
+        metaDataProvider.getCompilerMetaData(_, _) >> correctCompiler
+
+        expect:
+        toolChain.select(platform).available == available
+
+        where:
+        arch      | available
+        "x86_64"  | true
+        "aarch64" | DefaultNativePlatform.currentArchitecture.arm64
     }
 
     def "uses supplied platform configurations in order to target binary"() {

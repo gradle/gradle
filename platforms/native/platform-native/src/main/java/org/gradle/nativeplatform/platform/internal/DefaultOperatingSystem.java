@@ -61,6 +61,8 @@ public class DefaultOperatingSystem implements OperatingSystemInternal {
             return OperatingSystemFamily.LINUX;
         } else if (isMacOsX()) {
             return OperatingSystemFamily.MACOS;
+        } else if (isFreeBSD()) {
+            return OperatingSystemFamily.FREE_BSD;
         } else {
             throw new UnsupportedOperationException("Unsupported operating system family of name '" + name + "'");
         }
