@@ -16,9 +16,14 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.build.event.types.AbstractOperationResult;
+import org.gradle.internal.build.event.types.DefaultFailureResult;
 import org.gradle.internal.build.event.types.DefaultInternalPayloadSerializedAdditionalData;
 import org.gradle.internal.build.event.types.DefaultInternalProxiedAdditionalData;
+import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
 import org.gradle.internal.build.event.types.DefaultProblemDetails;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
 import org.gradle.internal.classloader.ClassLoaderUtils;
@@ -26,11 +31,13 @@ import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.impl.IsolatableSerializerRegistry;
+import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
+import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
-import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -38,6 +45,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
+
+    private static final Logger LOGGER = Logging.getLogger(ProblemAdditionalDataRemapper.class);
 
     private final PayloadSerializer payloadSerializer;
     private final BuildEventConsumer delegate;
@@ -56,16 +65,37 @@ public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
     }
 
     private void remapAdditionalData(Object message) {
-        if (!(message instanceof DefaultProblemEvent)) {
-            return;
+        if (message instanceof DefaultProblemEvent) {
+            remapProblemDetails(((DefaultProblemEvent) message).getDetails());
+        } else if (message instanceof DefaultOperationFinishedProgressEvent) {
+            AbstractOperationResult result = ((DefaultOperationFinishedProgressEvent) message).getResult();
+            if (result instanceof DefaultFailureResult) {
+                remapFailures(((DefaultFailureResult) result).getFailures());
+            }
         }
-        DefaultProblemEvent problemEvent = (DefaultProblemEvent) message;
-        InternalProblemDetailsVersion2 details = problemEvent.getDetails();
+    }
+
+    // Problems attached to a failure, such as the build failure, can also carry typed additional data
+    private void remapFailures(List<? extends InternalFailure> failures) {
+        for (InternalFailure failure : failures) {
+            for (InternalBasicProblemDetailsVersion3 problem : failure.getProblems()) {
+                try {
+                    remapProblemDetails(problem);
+                } catch (RuntimeException e) {
+                    // Keep delivering the failure itself, with the additional data left as is
+                    LOGGER.debug("Could not remap the additional data of a problem attached to a failure.", e);
+                }
+            }
+            remapFailures(failure.getCauses());
+        }
+    }
+
+    private void remapProblemDetails(@Nullable Object details) {
         if (!(details instanceof DefaultProblemDetails)) {
             return;
         }
         InternalAdditionalData additionalData = ((DefaultProblemDetails) details).getAdditionalData();
-        if (!(additionalData instanceof DefaultInternalPayloadSerializedAdditionalData)) {
+        if (!(additionalData instanceof DefaultInternalPayloadSerializedAdditionalData) || additionalData instanceof DefaultInternalProxiedAdditionalData) {
             return;
         }
         DefaultInternalPayloadSerializedAdditionalData serializedAdditionalData = (DefaultInternalPayloadSerializedAdditionalData) additionalData;

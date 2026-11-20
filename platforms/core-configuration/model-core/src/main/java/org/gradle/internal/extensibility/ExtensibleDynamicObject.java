@@ -40,6 +40,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static org.gradle.util.internal.TextUtil.capitalize;
 
@@ -59,6 +60,8 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
     private final AbstractDynamicObject dynamicDelegate;
     private final DefaultExtensionContainer extensionContainer;
     private final DynamicObject extraPropertiesDynamicObject;
+    @Nullable
+    private Function<String, MissingPropertyException> missingPropertyHandler;
 
     @Nullable
     private DynamicObject beforeConventionNotInherited;
@@ -163,6 +166,22 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
     @Override
     public String getDisplayName() {
         return dynamicDelegate.getDisplayName();
+    }
+
+    /**
+     * Sets how to create the exception for a property that can't be found anywhere, for example to suggest close names.
+     * The handler is only called once all lookups have failed.
+     */
+    public void setMissingPropertyHandler(Function<String, MissingPropertyException> missingPropertyHandler) {
+        this.missingPropertyHandler = missingPropertyHandler;
+    }
+
+    @Override
+    public MissingPropertyException getMissingProperty(String name) {
+        if (missingPropertyHandler != null) {
+            return missingPropertyHandler.apply(name);
+        }
+        return super.getMissingProperty(name);
     }
 
     @Nullable

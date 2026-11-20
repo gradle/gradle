@@ -31,4 +31,9 @@ public class UnknownProjectFinder implements ProjectFinder {
         throw new UnknownProjectException(exceptionMessage);
     }
 
+    @Override
+    public Path getBuildPath() {
+        throw new UnknownProjectException(exceptionMessage);
+    }
+
 }

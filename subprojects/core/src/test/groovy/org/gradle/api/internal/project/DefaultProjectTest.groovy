@@ -67,6 +67,9 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.PluginContainer
+import org.gradle.api.problems.ProblemId
+import org.gradle.api.problems.internal.ProblemReporterInternal
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.configuration.ConfigurationTargetIdentifier
@@ -277,6 +280,12 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) DynamicCallContextTracker) >> Stub(DynamicCallContextTracker)
         serviceRegistryMock.get(InternalOptions) >> new DefaultInternalOptions([:])
         serviceRegistryMock.get(FeatureFlags) >> Stub(FeatureFlags)
+        serviceRegistryMock.get((Type) ProblemsInternal) >> Stub(ProblemsInternal) {
+            getGroups() >> TestUtil.problemsService().groups
+            getInternalReporter() >> Stub(ProblemReporterInternal) {
+                throwingWithoutReporting(_, _, _) >> { Throwable e, ProblemId id, Action spec -> throw e }
+            }
+        }
 
         projectState = Mock(ProjectState)
         projectState.name >> 'root'
@@ -322,6 +331,7 @@ class DefaultProjectTest extends Specification {
             projectRegistry.getProject(it.identity.projectPath) >> it
         }
         buildState.projects.rootProject >> projectState
+        buildState.projects.allProjects >> ([projectState, child1State, chilchildState, child2State] as Set)
     }
 
     private DefaultProject defaultProject(
@@ -628,6 +638,22 @@ class DefaultProjectTest extends Specification {
         then:
         def e = thrown(UnknownProjectException)
         e.message == "Project with path 'unknownchild' could not be found in root project 'root'."
+    }
+
+    def getProjectWithMisspelledAbsolutePathSuggestsCandidates() {
+        when:
+        project.project(":chld1")
+        then:
+        def e = thrown(UnknownProjectException)
+        e.message == "Project with path ':chld1' could not be found in root project 'root'. Some candidates are: ':child1', ':child2'."
+    }
+
+    def getProjectWithMisspelledRelativePathSuggestsCandidates() {
+        when:
+        child1.project("chldchild")
+        then:
+        def e = thrown(UnknownProjectException)
+        e.message == "Project with path 'chldchild' could not be found in project ':child1'. Some candidates are: ':child1:childchild'."
     }
 
     def getProjectWithEmptyPath() {

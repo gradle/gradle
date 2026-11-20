@@ -25,6 +25,7 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
@@ -59,6 +60,7 @@ import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
+import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
@@ -68,6 +70,7 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationOwner;
@@ -362,7 +365,16 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         if (generatedProjectFactory != null) {
             Property<String> defaultProjectsExtensionName = drm.getDefaultProjectsExtensionName();
             defaultProjectsExtensionName.finalizeValue();
-            container.create(defaultProjectsExtensionName.get(), generatedProjectFactory, projectDependencyFactory, projectFinder);
+            TypeSafeProjectDependencyFactory projects = container.create(defaultProjectsExtensionName.get(), generatedProjectFactory, projectDependencyFactory, projectFinder);
+            suggestMissingAccessors(projects);
+        }
+    }
+
+    private static void suggestMissingAccessors(TypeSafeProjectDependencyFactory projects) {
+        DynamicObject dynamicObject = ((DynamicObjectAware) projects).getAsDynamicObject();
+        if (dynamicObject instanceof ExtensibleDynamicObject) {
+            Class<?> rootType = projects.getClass();
+            ((ExtensibleDynamicObject) dynamicObject).setMissingPropertyHandler(name -> ProjectAccessorSuggestions.unknownAccessor(rootType, rootType, name));
         }
     }
 
