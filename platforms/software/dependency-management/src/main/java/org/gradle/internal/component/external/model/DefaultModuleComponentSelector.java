@@ -184,6 +184,10 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector, 
         return getDisplayName();
     }
 
+    public static ModuleComponentSelector newSelector(ModuleIdentifier id, ImmutableVersionConstraint version, ImmutableAttributes attributes, ImmutableSet<CapabilitySelector> capabilitySelectors) {
+        return new DefaultModuleComponentSelector(id, version, attributes, capabilitySelectors);
+    }
+
     public static ModuleComponentSelector newSelector(ModuleIdentifier id, VersionConstraint version, AttributeContainer attributes, Set<CapabilitySelector> capabilitySelectors) {
         return new DefaultModuleComponentSelector(id, DefaultImmutableVersionConstraint.of(version), ((AttributeContainerInternal) attributes).asImmutable(), ImmutableSet.copyOf(capabilitySelectors));
     }

@@ -47,6 +47,13 @@ public interface DependencySubstitution {
      *     <li>Project instances like <code>project(":api")</code></li>
      *     <li>Any instance of <code>ModuleComponentSelector</code> or <code>ProjectComponentSelector</code></li>
      * </ul>
+     * <p>
+     * The new target replaces the requested dependency entirely, including its attributes and
+     * capability selectors. A {@code platform(...)} or {@code testFixtures(...)} dependency therefore
+     * becomes a regular dependency unless the new target says otherwise. To keep the attributes and
+     * capability selectors of the requested dependency, create the target with
+     * {@link DependencySubstitutions#withModule(ComponentSelector, String, String, String)} or
+     * {@link DependencySubstitutions#withProject(ComponentSelector, String)}.
      *
      * @param notation the notation that gets parsed into an instance of {@link ComponentSelector}.
      * @since 2.4
@@ -65,6 +72,13 @@ public interface DependencySubstitution {
      *     <li>Project instances like <code>project(":api")</code></li>
      *     <li>Any instance of <code>ModuleComponentSelector</code> or <code>ProjectComponentSelector</code></li>
      * </ul>
+     * <p>
+     * The new target replaces the requested dependency entirely, including its attributes and
+     * capability selectors. A {@code platform(...)} or {@code testFixtures(...)} dependency therefore
+     * becomes a regular dependency unless the new target says otherwise. To keep the attributes and
+     * capability selectors of the requested dependency, create the target with
+     * {@link DependencySubstitutions#withModule(ComponentSelector, String, String, String)} or
+     * {@link DependencySubstitutions#withProject(ComponentSelector, String)}.
      *
      * @param notation the notation that gets parsed into an instance of {@link ComponentSelector}.
      *

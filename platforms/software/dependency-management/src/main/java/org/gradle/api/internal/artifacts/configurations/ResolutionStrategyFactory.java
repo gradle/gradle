@@ -31,13 +31,16 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCa
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCapabilitiesResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.catalog.parser.StrictVersionParser;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.Problems;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.util.internal.SimpleMapInterner;
 import org.gradle.vcs.internal.VcsResolver;
 
 import javax.inject.Inject;
@@ -60,6 +63,7 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
     private final ObjectFactory objectFactory;
     private final StartParameter startParameter;
     private final NotationParser<Object, Capability> capabilityNotationParser;
+    private final StrictVersionParser versionParser;
 
     @Inject
     public ResolutionStrategyFactory(
@@ -73,7 +77,9 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
         DependencyLockingProvider dependencyLockingProvider,
         ComponentSelectorNotationConverter moduleSelectorNotationParser,
         ObjectFactory objectFactory,
-        StartParameter startParameter
+        StartParameter startParameter,
+        SimpleMapInterner stringInterner,
+        Problems problems
     ) {
         this.currentBuild = currentBuild;
         this.instantiator = instantiator;
@@ -87,6 +93,7 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
         this.objectFactory = objectFactory;
         this.startParameter = startParameter;
         this.capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
+        this.versionParser = StrictVersionParser.forDependencyNotation(stringInterner, problems);
     }
 
     @Override
@@ -97,7 +104,7 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
         );
 
         DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forResolutionStrategy(
-            currentBuild, moduleSelectorNotationParser, instantiator, objectFactory, attributesFactory, capabilityNotationParser
+            currentBuild, moduleSelectorNotationParser, instantiator, objectFactory, attributesFactory, capabilityNotationParser, versionParser
         );
 
         CachePolicy cachePolicy = createCachePolicy(startParameter);

@@ -1,0 +1,34 @@
+plugins {
+    id("java-library")
+}
+
+repositories {
+    maven { url = layout.settingsDirectory.dir("repo") }
+}
+
+dependencies {
+    implementation(platform("com.example:platform:1.0"))
+    implementation("org.other:util")
+    implementation(testFixtures("com.example:lib:1.0"))
+}
+
+// tag::keep_variant_substitution[]
+configurations.runtimeClasspath {
+    resolutionStrategy.dependencySubstitution {
+        all { DependencySubstitution dependency ->
+            if (dependency.requested instanceof ModuleComponentSelector && dependency.requested.group == "com.example") {
+                dependency.useTarget(withModule(dependency.requested, "com.example.branch", dependency.requested.module, "1.0-branch"))
+            }
+        }
+    }
+}
+// end::keep_variant_substitution[]
+
+tasks.register("showResolution") {
+    def root = configurations.named("runtimeClasspath").flatMap { it.incoming.resolutionResult.rootComponent }
+    doLast {
+        root.get().dependencies.findAll { it instanceof ResolvedDependencyResult }.each {
+            println("${it.requested.displayName} -> ${it.selected.id.displayName} (${it.resolvedVariant.displayName})")
+        }
+    }
+}
