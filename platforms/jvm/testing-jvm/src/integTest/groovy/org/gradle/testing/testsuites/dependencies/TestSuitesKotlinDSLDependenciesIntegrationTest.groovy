@@ -22,6 +22,38 @@ import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegrationSpec {
+    def 'custom JUnit Jupiter suites contribute the JUnit BOM as a platform dependency'() {
+        given:
+        buildKotlinFile << """
+            plugins {
+                `java-library`
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            testing {
+                suites {
+                    register<JvmTestSuite>("integTest") {
+                        useJUnitJupiter()
+                    }
+                }
+            }
+
+            tasks.register("checkConfiguration") {
+                doLast {
+                    val launcher = configurations.getByName("integTestRuntimeClasspath").resolvedConfiguration.resolvedArtifacts.find {
+                        it.moduleVersion.id.group == "org.junit.platform" && it.moduleVersion.id.name == "junit-platform-launcher"
+                    }
+                    checkNotNull(launcher)
+                    check(launcher.moduleVersion.id.version == "1.12.2")
+                }
+            }
+        """
+
+        expect:
+        succeeds 'checkConfiguration'
+    }
+
     // region basic functionality
     def 'suites do not share dependencies by default'() {
         given:
