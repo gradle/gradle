@@ -663,7 +663,7 @@ If no parameters are needed, use `ValueSourceParameters.None`.
 Parameters are data holders: an interface declaring `Property`-like getters for the inputs of the value source.
 Gradle isolates them before the value is obtained, so `obtain()` sees a snapshot of the configured values, and changes made to the parameters afterwards have no effect.
 Compute anything that needs a Gradle service in the configuring `Action`, which has access to the services of the build script or plugin, and pass the result in as a parameter.
-Parameters must not inject services themselves; an `@Inject` getter or constructor on a parameters type is <<upgrading_version_9.adoc#value_source_parameters_service_injection,deprecated>>.
+Parameters must not inject services themselves; Gradle <<upgrading_major_version_10.adoc#removed_value_source_parameters_service_injection,rejects>> a parameters type with an `@Inject` getter or constructor when the provider is created.
 
 === Injecting Services
 
