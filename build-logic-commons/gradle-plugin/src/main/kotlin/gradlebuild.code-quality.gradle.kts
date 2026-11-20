@@ -68,7 +68,6 @@ val errorproneExtension = project.extensions.create<ErrorProneProjectExtension>(
         "StringSplitter", // We are fine with using String.split() as is
 
         // TRIAGE: new in Error Prone 2.53.0
-        "HashCodeInObjectsHash",
         "PreferCharsetOverload",
     )
 

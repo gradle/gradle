@@ -24,7 +24,6 @@ import org.jspecify.annotations.NullMarked;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -92,7 +91,7 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
 
         @Override
         public int hashCode() {
-            return Objects.hash(delegate);
+            return delegate.hashCode();
         }
 
         @Override
