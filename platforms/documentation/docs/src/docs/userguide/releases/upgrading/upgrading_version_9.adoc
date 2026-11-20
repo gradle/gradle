@@ -212,10 +212,11 @@ This includes system properties passed as `-D` JVM arguments.
 Compared to before:
 
 * Most system properties no longer affect daemon reuse, and the work no longer sees properties requested by other work.
-* Of the properties Gradle knows are only read when the JVM starts, only `file.encoding` affected reuse, so the work could see a different value than it requested, for example for `user.language` or `java.io.tmpdir`.
-These must now match, so builds where tasks request different values for them may start more worker daemons than before.
-* Work requesting another property that is only read once, for example by a library's static initializer, ran in a daemon started with it.
-Such a property now only takes effect if the daemon was started with it.
+* Previously, of the properties Gradle knows are only read when the JVM starts, only `file.encoding` affected reuse, so work could see a different value than it requested, for example for `user.language` or `java.io.tmpdir`.
+These properties must now match, so builds where tasks request different values start more worker daemons than before.
+See <<#more_immutable_system_properties,More system properties require a matching daemon>>.
+* Previously, work that requested a property read only once, for example by a library's static initializer, always ran in a daemon started with that property.
+Gradle can now reuse a daemon started without it, and the property only takes effect if the daemon was started with it.
 If your work depends on such a property, configure all tasks sharing the daemon to use the same value, or pass the value to the work in a different way.
 
 [[worker_daemons_require_same_jvm_args]]
@@ -233,7 +234,7 @@ To share a daemon, configure the tasks to use the same JVM arguments.
 
 Gradle treats some system properties as <<gradle_daemon.adoc#immutable_system_properties,immutable>>, because the JVM only reads them when it starts.
 A Gradle daemon or worker daemon is only reused if it was started with the same values for these properties.
-Gradle now also treats these system properties as immutable, among others: `user.timezone`, `user.home`, `line.separator`, `java.library.path`, `java.net.preferIPv4Stack`, `java.net.preferIPv6Addresses`, and the remaining locale properties such as `user.region`.
+Gradle now also treats these system properties, among others, as immutable: `user.timezone`, `user.home`, `line.separator`, `java.library.path`, `java.net.preferIPv4Stack`, `java.net.preferIPv6Addresses`, and the remaining locale properties such as `user.region`.
 
 Previously, passing one of these on the command line, such as `-Duser.timezone=UTC`, could reuse a Gradle daemon started with a different value, and the new value had no effect.
 Some of them, such as `user.home` and `java.library.path`, were not passed to the Gradle daemon at all.

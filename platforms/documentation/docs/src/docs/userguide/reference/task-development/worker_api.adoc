@@ -351,7 +351,7 @@ Each kind of system property affects daemon reuse differently:
 |`-Dfoo=bar`, values from `options.forkOptions.jvmArgumentProviders`
 |None.
 |The requested value.
-Properties requested by other work are cleared.
+Other system properties the daemon was started with are cleared.
 
 |Properties Gradle knows are only read when the JVM starts
 |`file.encoding`, `user.language`, `user.timezone`, `java.io.tmpdir`, `java.library.path` and the others in <<gradle_daemon.adoc#immutable_system_properties,the list of immutable system properties>>
