@@ -17,11 +17,83 @@
 package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements TasksWithInputsAndOutputs {
+
+    @Issue("https://github.com/gradle/gradle/issues/39821")
+    def "missing settings plugin jar invalidates a cached value source fingerprint"() {
+        given:
+        executer.requireDaemon().requireIsolatedDaemons()
+        executer.requireOwnGradleUserHomeDir("removes a cached transform")
+        def configurationCache = newConfigurationCacheFixture()
+        settingsFile << """
+            pluginManagement { includeBuild('helpers') }
+            plugins { id 'helpers' }
+            rootProject.name = 'root'
+        """
+        file('helpers/settings.gradle') << "rootProject.name = 'helpers'"
+        file('helpers/build.gradle') << """
+            plugins { id 'java-gradle-plugin' }
+            gradlePlugin {
+                plugins {
+                    helpers {
+                        id = 'helpers'
+                        implementationClass = 'HelpersPlugin'
+                    }
+                }
+            }
+        """
+        file('helpers/src/main/java/HelpersPlugin.java') << """
+            import org.gradle.api.Plugin;
+            import org.gradle.api.initialization.Settings;
+            import org.gradle.api.provider.ValueSource;
+            import org.gradle.api.provider.ValueSourceParameters;
+
+            public class HelpersPlugin implements Plugin<Settings> {
+                public void apply(Settings settings) {
+                    String value = settings.getProviders().of(SettingsValueSource.class, spec -> {}).get();
+                    System.out.println("Settings value: " + value);
+                }
+
+                public abstract static class SettingsValueSource implements ValueSource<String, ValueSourceParameters.None> {
+                    public String obtain() {
+                        return "from plugin";
+                    }
+                }
+            }
+        """
+
+        when:
+        isolatedProjectsRun('help')
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains('Settings value: from plugin')
+
+        when:
+        new DaemonLogsAnalyzer(executer.daemonBaseDir).killAll()
+        def transforms = new TestFile(executer.gradleUserHomeDir, "caches/${distribution.version.version}/transforms")
+        def cachedJars = transforms.allDescendants().findAll { it.endsWith('/transformed/original/helpers.jar') }
+        assert !cachedJars.empty
+        cachedJars.each { assert transforms.file(it).delete() }
+        isolatedProjectsRun('help')
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("configuration cache cannot be reused because a build logic input type could not be loaded")
+        outputContains('HelpersPlugin$SettingsValueSource')
+        outputContains('Settings value: from plugin')
+
+        when:
+        isolatedProjectsRun('help')
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
 
     def "disabled by default"() {
         given:
