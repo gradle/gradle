@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableCollection;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -34,4 +35,6 @@ public interface MapCollector<K, V> extends ValueSupplier {
     Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest);
 
     ExecutionTimeValue<? extends Map<? extends K, ? extends V>> calculateExecutionTimeValue();
+
+    Collection<? extends K> getKnownKeys();
 }

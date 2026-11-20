@@ -19,10 +19,12 @@ package org.gradle.api.internal.provider;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.MapCollectors.EntriesFromMap;
 import org.gradle.api.internal.provider.MapCollectors.EntriesFromMapProvider;
 import org.gradle.api.internal.provider.MapCollectors.EntryWithValueFromProvider;
+import org.gradle.api.internal.provider.MapCollectors.ReplacedEntry;
 import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
@@ -30,6 +32,11 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -584,8 +591,19 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            for (MapCollector<K, V> collector : withReplacedCollectorsSkipped().collectors) {
+                if (!collector.calculatePresence(consumer)) {
+                    // When any contributor is missing, the whole property is missing.
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
         public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
-            return calculateValue(
+            return withReplacedCollectorsSkipped().calculateValue(
                 (builder, collector) -> collector.collectKeys(consumer, keyCollector, builder),
                 ImmutableSet.<K>builder(),
                 ImmutableSet.Builder::build
@@ -595,7 +613,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         protected Value<? extends Map<K, V>> calculateOwnValue(ValueConsumer consumer) {
             // TODO - don't make a copy when the collector already produces an immutable collection
-            return calculateValue(
+            return withReplacedCollectorsSkipped().calculateValue(
                 (builder, collector) -> collector.collectEntries(consumer, entryCollector, builder),
                 // Cannot use ImmutableMap.Builder here, as it does not allow multiple entries with the same key, however the contract
                 // for MapProperty allows a provider to override the entries of earlier providers and so there can be multiple entries
@@ -606,17 +624,51 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
+        public ValueProducer getProducer() {
+            return ValueProducer.composite(Iterables.transform(() -> withReplacedCollectorsSkipped().collectors.iterator(), ValueSupplier::getProducer));
+        }
+
+        @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> addedCollector) {
             return new CollectingSupplier<>(keyCollector, entryCollector, collectors.plus(addedCollector));
+        }
+
+        private CollectingSupplier<K, V> withReplacedCollectorsSkipped() {
+            if (collectors.size() <= 1) {
+                return this;
+            }
+            Map<K, MapCollector<K, V>> lastCollectors = new HashMap<>();
+            IdentityHashMap<MapCollector<K, V>, K> replacedCollectors = new IdentityHashMap<>();
+            for (MapCollector<K, V> collector : collectors) {
+                Collection<? extends K> keys = collector.getKnownKeys();
+                for (K key : keys) {
+                    lastCollectors.put(entryCollector.keyForComparison(key), collector);
+                }
+                if (keys.size() == 1) {
+                    replacedCollectors.put(collector, entryCollector.keyForComparison(keys.iterator().next()));
+                }
+            }
+            replacedCollectors.entrySet().removeIf(entry -> lastCollectors.get(entry.getValue()) == entry.getKey());
+            if (replacedCollectors.isEmpty()) {
+                return this;
+            }
+            return new CollectingSupplier<>(
+                keyCollector,
+                entryCollector,
+                collectors.stream()
+                    .map(collector -> replacedCollectors.containsKey(collector) ? new ReplacedEntry<K, V>(Cast.uncheckedNonnullCast(replacedCollectors.get(collector))) : collector)
+                    .collect(toAppendOnceList())
+            );
         }
 
         @SuppressWarnings("unchecked")
         @Override
         public ExecutionTimeValue<? extends Map<K, V>> calculateExecutionTimeValue() {
-            return calculateExecutionTimeValue(
+            CollectingSupplier<K, V> supplier = withReplacedCollectorsSkipped();
+            return supplier.calculateExecutionTimeValue(
                 collector -> (ExecutionTimeValue<? extends Map<K, V>>) collector.calculateExecutionTimeValue(),
-                this::calculateFixedExecutionTimeValue,
-                this::calculateChangingExecutionTimeValue
+                supplier::calculateFixedExecutionTimeValue,
+                supplier::calculateChangingExecutionTimeValue
             );
         }
 
@@ -628,7 +680,14 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             // for MapProperty allows a provider to override the entries of earlier providers and so there can be multiple entries
             // with the same key.
             Map<K, V> entries = new LinkedHashMap<>();
+            // The values are in the order of the collectors
+            Iterator<MapCollector<K, V>> collectorIterator = collectors.iterator();
             for (ExecutionTimeValue<? extends Map<K, V>> value : values) {
+                MapCollector<K, V> collector = collectorIterator.next();
+                if (collector instanceof ReplacedEntry) {
+                    collector.getKnownKeys().forEach(key -> entryCollector.reserveKey(key, entries));
+                    continue;
+                }
                 entryCollector.addAll(value.getFixedValue().entrySet(), entries);
                 sideEffectBuilder.add(SideEffect.fixedFrom(value));
             }
@@ -638,10 +697,15 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         private ExecutionTimeValue<? extends Map<K, V>> calculateChangingExecutionTimeValue(
             List<ExecutionTimeValue<? extends Map<K, V>>> values
         ) {
+            // The values are in the order of the collectors, and replaced collectors keep the positions of their keys at execution time
+            Iterator<MapCollector<K, V>> collectorIterator = collectors.iterator();
             return ExecutionTimeValue.changingValue(new CollectingSupplier<>(
                 keyCollector,
                 entryCollector,
-                values.stream().map(this::toCollector).collect(toAppendOnceList())
+                values.stream().map(value -> {
+                    MapCollector<K, V> collector = collectorIterator.next();
+                    return collector instanceof ReplacedEntry ? collector : toCollector(value);
+                }).collect(toAppendOnceList())
             ));
         }
 
@@ -686,6 +750,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public ExecutionTimeValue<? extends Map<? extends K, ? extends V>> calculateExecutionTimeValue() {
             return ExecutionTimeValue.fixedValue(entries).withSideEffect(sideEffect);
+        }
+
+        @Override
+        public Collection<? extends K> getKnownKeys() {
+            // Has a side effect, so it must not be replaced
+            return Collections.emptySet();
         }
 
         @Override
