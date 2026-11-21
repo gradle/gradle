@@ -94,6 +94,7 @@ import org.gradle.internal.locking.DefaultDependencyLockingHandler
 import org.gradle.invocation.DefaultGradle
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
+import spock.lang.Issue
 import spock.lang.Shared
 
 import java.util.concurrent.CountDownLatch
@@ -323,6 +324,34 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
     private static executorServiceTypeOnCurrentJvm() {
         def shortName = Jvm.current().javaVersion.isCompatibleWith(JavaVersion.VERSION_21) ? 'AutoShutdownDelegatedExecutorService' : 'FinalizableDelegatedExecutorService'
         return 'java.util.concurrent.Executors$' + shortName
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39675")
+    def "reports when task captures the type-safe project accessors"() {
+        given:
+        createDirs("a")
+        settingsFile << """
+            rootProject.name = "root"
+            include("a")
+            enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+        """
+        buildFile << """
+            tasks.register("accessors") {
+                def accessors = projects
+                doLast {
+                    println("RESULT=" + accessors.a.path)
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails "accessors"
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Task `:accessors` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.accessors.dm.RootProjectAccessor', a subtype of 'org.gradle.api.internal.catalog.TypeSafeProjectDependencyFactory', as these are not supported with the configuration cache.")
+            problemsWithStackTraceCount = 0
+        }
     }
 
     def "reports when task field is declared with type #baseType"() {
