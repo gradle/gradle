@@ -44,6 +44,7 @@ import org.gradle.api.attributes.CompatibilityRuleChain
 import org.gradle.api.attributes.DisambiguationRuleChain
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.internal.catalog.TypeSafeProjectDependencyFactory
 import org.gradle.api.project.IsolatedProject
 import org.gradle.api.publish.Publication
 import org.gradle.api.services.BuildService
@@ -135,6 +136,8 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<ArtifactResolutionQuery>())
     bind(unsupported<DependencySet>())
     bind(unsupported<Dependency>())
+    // Type-safe project accessors, such as `projects`, look up projects in the live build
+    bind(unsupported<TypeSafeProjectDependencyFactory>())
     bind(unsupported<DependencyLockingHandler>())
     bind(unsupported<ResolvedDependency>())
     bind(unsupported<ResolvedArtifact>())
