@@ -22,6 +22,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -191,6 +192,11 @@ public class AccessTrackingEnvMap extends ForwardingMap<String, String> implemen
         // We don't know how it is going to be used afterward, and we cannot affect the fingerprint during execution.
         // Let's be pessimistic and consider everything an input. On a bright side, we don't need access tracking for the deserialized thing.
         reportAggregatingAccess();
-        return delegate;
+        // Copy into a plain HashMap: on Windows the delegate is the JDK's
+        // java.lang.ProcessEnvironment, a HashMap subtype, which the
+        // configuration-cache map codec would report as a custom map type
+        // (see https://github.com/gradle/gradle/issues/39885). The environment
+        // is read-only, so restoring it as a plain map loses nothing.
+        return new HashMap<>(delegate);
     }
 }
