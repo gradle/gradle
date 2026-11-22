@@ -37,7 +37,7 @@ class SbomReportTaskIntegrationTest extends AbstractIntegrationSpec {
         then:
         def report = new JsonSlurper().parse(file("build/reports/sbom/sbom.json"))
         report.metadata.tools[0].name == "Gradle"
-        report.nodeList.nodes.find { it.identifiers.PURL == "pkg:maven/org/leaf2@1.0" } != null
+        report.nodeList.nodes.find { it.identifiers?.PURL == "pkg:maven/org/leaf2@1.0" } != null
         report.nodeList.edges.every { it.type == "dependsOn" }
         report.nodeList.rootElements.every { it.toString().startsWith("root project") }
     }
