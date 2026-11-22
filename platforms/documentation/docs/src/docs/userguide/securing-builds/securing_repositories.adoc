@@ -221,6 +221,11 @@ Use HTTPS.
 If a legacy internal repository is HTTP-only, put a TLS-terminating proxy in front of it and update `distributionUrl` to the HTTPS endpoint.
 Enabling `allowInsecureProtocol` is not a solution; it is a permanent widening of your attack surface.
 
+For SFTP repositories, the same flag controls host key verification.
+Gradle refuses to connect to an SFTP server whose host key is not listed in the SSH known hosts files, or does not match the listed key.
+Setting `allowInsecureProtocol` to `true` disables that check and lets anyone on the network path impersonate the server.
+Add the server's key to `known_hosts` instead, see <<supported_repository_protocols.adoc#supported-transport-protocols,Supported Protocols>>.
+
 [[sec:avoid_dynamic_versions_at_repos]]
 === Avoid Dynamic Versions
 

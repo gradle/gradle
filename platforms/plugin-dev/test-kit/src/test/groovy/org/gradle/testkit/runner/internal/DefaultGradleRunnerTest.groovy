@@ -18,12 +18,17 @@ package org.gradle.testkit.runner.internal
 
 import org.gradle.api.GradleException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.FileSystemTestPreconditions
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
+
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermissions
 
 class DefaultGradleRunnerTest extends Specification {
 
@@ -79,53 +84,29 @@ class DefaultGradleRunnerTest extends Specification {
         runner.testKitDirProvider.dir.is testKitDir
     }
 
-    def "throws exception if test kit dir is not writable"() {
+    def "does not run the build when the test kit directory cannot be used"() {
         when:
-        createRunner().withProjectDir(workingDir).build()
+        createRunnerWithWorkingDirAndArgument().build()
 
         then:
-        1 * testKitDirProvider.getDir() >> {
-            Mock(File) {
-                isDirectory() >> true
-                canWrite() >> false
-                getAbsolutePath() >> "path"
-            }
-        }
-        Throwable t = thrown(InvalidRunnerConfigurationException)
-        t.message == 'Unable to write to test kit directory: path'
+        1 * testKitDirProvider.ensureDirExists() >> { throw new InvalidRunnerConfigurationException("refused") }
+        def e = thrown(InvalidRunnerConfigurationException)
+        e.message == "refused"
+        0 * gradleExecutor.run(_)
     }
 
-    def "throws exception if test kit exists and is not dir"() {
+    @Requires(FileSystemTestPreconditions.FilePermissions)
+    def "uses an explicitly set test kit directory whatever its permissions"() {
+        given:
+        def testKitDir = testDirectoryProvider.createDir('shared')
+        Files.setPosixFilePermissions(testKitDir.toPath(), PosixFilePermissions.fromString('rwxrwxrwx'))
+
         when:
-        createRunner().withProjectDir(workingDir).build()
+        createRunnerWithWorkingDirAndArgument().withTestKitDir(testKitDir).build()
 
         then:
-        1 * testKitDirProvider.getDir() >> {
-            Mock(File) {
-                isDirectory() >> false
-                exists() >> true
-                getAbsolutePath() >> "path"
-            }
-        }
-        Throwable t = thrown(InvalidRunnerConfigurationException)
-        t.message == 'Unable to use non-directory as test kit directory: path'
-    }
-
-    def "throws exception if test kit dir cannot be created"() {
-        when:
-        createRunner().withProjectDir(workingDir).build()
-
-        then:
-        1 * testKitDirProvider.getDir() >> {
-            Mock(File) {
-                isDirectory() >> false
-                exists() >> false
-                mkdirs() >> false
-                getAbsolutePath() >> "path"
-            }
-        }
-        Throwable t = thrown(InvalidRunnerConfigurationException)
-        t.message == 'Unable to create test kit directory: path'
+        1 * gradleExecutor.run({ it.gradleUserHome == testKitDir }) >> new GradleExecutionResult(BUILD_OPERATION_PARAMETERS, "", null)
+        PosixFilePermissions.toString(Files.getPosixFilePermissions(testKitDir.toPath())) == 'rwxrwxrwx'
     }
 
     def "returned arguments are unmodifiable"() {
@@ -237,7 +218,7 @@ class DefaultGradleRunnerTest extends Specification {
         createRunnerWithWorkingDirAndArgument().build()
 
         then:
-        1 * testKitDirProvider.getDir() >> gradleUserHomeDir
+        1 * testKitDirProvider.ensureDirExists() >> gradleUserHomeDir
         1 * gradleExecutor.run({ it.gradleUserHome == gradleUserHomeDir }) >> new GradleExecutionResult(BUILD_OPERATION_PARAMETERS, "", null)
     }
 
@@ -249,7 +230,7 @@ class DefaultGradleRunnerTest extends Specification {
         createRunnerWithWorkingDirAndArgument().withDebug(debug).build()
 
         then:
-        1 * testKitDirProvider.getDir() >> gradleUserHomeDir
+        1 * testKitDirProvider.ensureDirExists() >> gradleUserHomeDir
         1 * gradleExecutor.run({ it.embedded == debug }) >> new GradleExecutionResult(BUILD_OPERATION_PARAMETERS, "", null)
 
         where:
@@ -299,7 +280,7 @@ class DefaultGradleRunnerTest extends Specification {
             .build()
 
         then:
-        1 * testKitDirProvider.getDir() >> gradleUserHomeDir
+        1 * testKitDirProvider.ensureDirExists() >> gradleUserHomeDir
         1 * gradleExecutor.run({ it.standardError == null && it.standardOutput != null }) >> new GradleExecutionResult(BUILD_OPERATION_PARAMETERS, "", null)
     }
 
@@ -314,7 +295,7 @@ class DefaultGradleRunnerTest extends Specification {
             .build()
 
         then:
-        1 * testKitDirProvider.getDir() >> gradleUserHomeDir
+        1 * testKitDirProvider.ensureDirExists() >> gradleUserHomeDir
         1 * gradleExecutor.run({ it.standardError != null && it.standardOutput == null }) >> new GradleExecutionResult(BUILD_OPERATION_PARAMETERS, "", null)
     }
 
@@ -331,7 +312,7 @@ class DefaultGradleRunnerTest extends Specification {
             .build()
 
         then:
-        1 * testKitDirProvider.getDir() >> gradleUserHomeDir
+        1 * testKitDirProvider.ensureDirExists() >> gradleUserHomeDir
         1 * gradleExecutor.run({ it.standardError != null && it.standardOutput != null }) >> new GradleExecutionResult(BUILD_OPERATION_PARAMETERS, "", null)
     }
 
@@ -346,7 +327,7 @@ class DefaultGradleRunnerTest extends Specification {
             .build()
 
         then:
-        1 * testKitDirProvider.getDir() >> gradleUserHomeDir
+        1 * testKitDirProvider.ensureDirExists() >> gradleUserHomeDir
         1 * gradleExecutor.run({ it.standardInput != null }) >> new GradleExecutionResult(BUILD_OPERATION_PARAMETERS, "", null)
     }
 

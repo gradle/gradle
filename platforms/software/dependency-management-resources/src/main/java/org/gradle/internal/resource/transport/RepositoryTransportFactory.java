@@ -105,6 +105,10 @@ public class RepositoryTransportFactory {
     }
 
     public RepositoryTransport createTransport(Set<String> schemes, String name, Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier) {
+        return createTransport(schemes, name, authentications, redirectVerifier, false);
+    }
+
+    public RepositoryTransport createTransport(Set<String> schemes, String name, Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier, boolean allowInsecureProtocol) {
         validateSchemes(schemes);
 
         ResourceConnectorFactory connectorFactory = findConnectorFactory(schemes);
@@ -119,7 +123,7 @@ public class RepositoryTransportFactory {
         if (schemes.equals(Collections.singleton("file"))) {
             return createFileTransport(name);
         }
-        ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications, redirectVerifier);
+        ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications, redirectVerifier, allowInsecureProtocol);
 
         ExternalResourceConnector resourceConnector = startParameter.isOffline()
             ? new OfflineExternalResourceConnector()
@@ -190,10 +194,12 @@ public class RepositoryTransportFactory {
     private static class DefaultResourceConnectorSpecification implements ResourceConnectorSpecification {
         private final Collection<Authentication> authentications;
         private final HttpRedirectVerifier redirectVerifier;
+        private final boolean allowInsecureProtocol;
 
-        private DefaultResourceConnectorSpecification(Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier) {
+        private DefaultResourceConnectorSpecification(Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier, boolean allowInsecureProtocol) {
             this.authentications = authentications;
             this.redirectVerifier = redirectVerifier;
+            this.allowInsecureProtocol = allowInsecureProtocol;
         }
 
         @Override
@@ -222,6 +228,11 @@ public class RepositoryTransportFactory {
         @Override
         public HttpRedirectVerifier getRedirectVerifier() {
             return redirectVerifier;
+        }
+
+        @Override
+        public boolean isAllowInsecureProtocol() {
+            return allowInsecureProtocol;
         }
     }
 
