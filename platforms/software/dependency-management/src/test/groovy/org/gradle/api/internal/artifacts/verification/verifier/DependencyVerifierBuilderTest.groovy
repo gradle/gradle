@@ -17,9 +17,12 @@
 package org.gradle.api.internal.artifacts.verification.verifier
 
 
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier
 import org.gradle.api.internal.artifacts.verification.exceptions.ComponentVerificationException
 import org.gradle.api.internal.artifacts.verification.exceptions.InvalidGpgKeyIdsException
+import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
@@ -71,6 +74,25 @@ class DependencyVerifierBuilderTest extends Specification {
         "short id"            | ["AAAAAAA"]
         "long id"             | ["AAAAAAAAAAAAAA"]
         "mixed short/long id" | ["AAAAAAAA", "AAAAAAAAAAAAAA"]
+    }
+
+    def "groups the artifacts of a unique snapshot under one component"() {
+        given:
+        def module = DefaultModuleIdentifier.newId("org", "foo")
+        def snapshot = DefaultModuleComponentIdentifier.newId(module, "1.0-SNAPSHOT")
+        def timestamped = new MavenUniqueSnapshotComponentIdentifier(module, "1.0-SNAPSHOT", "20260101.120000-1")
+        def builder = new DependencyVerifierBuilder()
+        builder.addChecksum(new DefaultModuleComponentArtifactIdentifier(timestamped, "foo", "jar", "jar"), ChecksumKind.sha256, "abc", null, null)
+        builder.addChecksum(new DefaultModuleComponentArtifactIdentifier(snapshot, "foo", "pom", "pom"), ChecksumKind.sha256, "def", null, null)
+
+        when:
+        def verifier = builder.build()
+
+        then:
+        verifier.verificationMetadata.size() == 1
+        def component = verifier.verificationMetadata.first()
+        "${component.componentId.group}:${component.componentId.module}:${component.componentId.version}" == "org:foo:1.0-SNAPSHOT"
+        component.artifactVerifications*.artifactName as Set == ["foo-1.0-SNAPSHOT.jar", "foo-1.0-SNAPSHOT.pom"] as Set
     }
 
     def "ArtifactVerificationBuilder should succeed if trusted GPG key is a fingerprint"() {

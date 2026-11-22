@@ -87,16 +87,16 @@ public class DefaultGradleRunner extends GradleRunner {
             if (System.getProperties().containsKey(TEST_KIT_DIR_SYS_PROP)) {
                 return new ConstantTestKitDirProvider(new File(System.getProperty(TEST_KIT_DIR_SYS_PROP)));
             } else {
-                TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider(() -> {
-                    String rootTmpDir = SystemProperties.getInstance().getWorkerTmpDir();
-                    if (rootTmpDir == null) {
-                        @SuppressWarnings("deprecation")
-                        String javaIoTmpDir = SystemProperties.getInstance().getJavaIoTmpDir();
-                        rootTmpDir = javaIoTmpDir;
-                    }
-                    return FileUtils.canonicalize(new File(rootTmpDir));
-                });
-                return new ConstantTestKitDirProvider(temporaryFileProvider.newTemporaryFile(".gradle-test-kit"));
+                String workerTmpDir = SystemProperties.getInstance().getWorkerTmpDir();
+                if (workerTmpDir != null) {
+                    TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider(() -> FileUtils.canonicalize(new File(workerTmpDir)));
+                    return new ConstantTestKitDirProvider(temporaryFileProvider.newTemporaryFile(".gradle-test-kit"));
+                } else {
+                    // Deprecated because other users share the temporary directory; UserTemporaryTestKitDirProvider guards against them
+                    @SuppressWarnings("deprecation")
+                    String javaIoTmpDir = SystemProperties.getInstance().getJavaIoTmpDir();
+                    return new UserTemporaryTestKitDirProvider(FileUtils.canonicalize(new File(javaIoTmpDir)), System.getProperty("user.name"));
+                }
             }
         });
     }
@@ -330,7 +330,7 @@ public class DefaultGradleRunner extends GradleRunner {
                 "To run with debug mode, please remove environment variables.");
         }
 
-        File testKitDir = createTestKitDir(testKitDirProvider);
+        File testKitDir = testKitDirProvider.ensureDirExists();
 
         GradleProvider effectiveDistribution = gradleProvider == null ? findGradleInstallFromGradleRunner() : gradleProvider;
 
@@ -381,22 +381,6 @@ public class DefaultGradleRunner extends GradleRunner {
             execResult.getOutputSource(),
             execResult.getTasks()
         );
-    }
-
-    private File createTestKitDir(TestKitDirProvider testKitDirProvider) {
-        File dir = testKitDirProvider.getDir();
-        if (dir.isDirectory()) {
-            if (!dir.canWrite()) {
-                throw new InvalidRunnerConfigurationException("Unable to write to test kit directory: " + dir.getAbsolutePath());
-            }
-            return dir;
-        } else if (dir.exists() && !dir.isDirectory()) {
-            throw new InvalidRunnerConfigurationException("Unable to use non-directory as test kit directory: " + dir.getAbsolutePath());
-        } else if (dir.mkdirs() || dir.isDirectory()) {
-            return dir;
-        } else {
-            throw new InvalidRunnerConfigurationException("Unable to create test kit directory: " + dir.getAbsolutePath());
-        }
     }
 
     private static GradleProvider findGradleInstallFromGradleRunner() {

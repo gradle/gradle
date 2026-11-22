@@ -200,6 +200,54 @@ An archive that is neither a zip nor a tar.gz file fails with `Unsupported JDK a
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier
 
+[[changes_9.9.2]]
+=== Changes in Gradle 9.9.2 and above
+
+The following changes were introduced in Gradle 9.9.2, a patch release.
+They apply when upgrading to Gradle 9.9.2 or any later version, including from 9.9.0 or 9.9.1.
+
+[[sftp_host_key_verification]]
+==== SFTP repositories verify the server's host key
+
+Gradle now verifies the identity of the server when resolving from or publishing to an `sftp://` repository.
+Previously, any host key was accepted.
+
+The build now fails with "Could not verify the identity of SFTP server" when the server's host is not listed in `~/.ssh/known_hosts` or `/etc/ssh/ssh_known_hosts` (`%ProgramData%\ssh\ssh_known_hosts` on Windows), or when the listed key does not match.
+The files are read for the user running the Gradle daemon, which matters on CI agents and in containers.
+
+To fix this, check the fingerprint printed in the error message with the server's administrator and add the key to a known hosts file, for example with `ssh-keyscan`.
+Host certificates (`@cert-authority` entries) are not supported.
+
+As a last resort, setting `allowInsecureProtocol = true` on the repository disables the check.
+See <<supported_repository_protocols.adoc#supported-transport-protocols,Supported Protocols>> for details.
+
+[[dependency_verification_changing_modules]]
+==== Dependency verification applies to changing modules
+
+<<securing_dependencies.adoc#verifying-dependencies,Dependency verification>> now also verifies changing modules: `SNAPSHOT` versions and dependencies declared with `changing = true`.
+Previously, their artifacts and metadata were skipped.
+
+Builds that use verification metadata and resolve changing modules now fail with "Dependency verification failed" until those modules are covered.
+You can either:
+
+* verify them by signature, with the publisher's key as a trusted key,
+* declare them as <<securing_dependencies.adoc#sec:trusting-artifacts,trusted artifacts>>, for example by matching `.*-SNAPSHOT` versions of your own groups, or
+* record their checksums with `--write-verification-metadata`, knowing they must be updated each time the module is published again.
+
+`--write-verification-metadata` now also writes entries for changing modules, so regenerating the file adds entries that were not there before.
+
+[[testkit_default_dir_per_user]]
+==== TestKit default directory outside a `Test` task is per user
+
+When `GradleRunner` runs outside a Gradle `Test` task, such as in an IDE test runner, its default TestKit directory is now `.gradle-test-kit-<user name>` inside `java.io.tmpdir` instead of `.gradle-test-kit`.
+Gradle creates it with access restricted to the current user.
+
+The first run after upgrading starts with an empty directory, so distributions and dependencies are downloaded again; the old `.gradle-test-kit` directory can be deleted.
+The runner refuses to use an existing directory that is a symbolic link, is owned by another user, or is writable by other users.
+
+Tests run by a `Test` task, and tests that set `org.gradle.testkit.dir` or call `GradleRunner.withTestKitDir(...)`, are unaffected.
+See <<test_kit.adoc#sec:controlling_the_build_environment,Controlling the build environment>> for details.
+
 === Potential breaking changes
 
 [[gradle_exception_carries_resolutions]]

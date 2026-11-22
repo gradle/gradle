@@ -20,4 +20,11 @@ import java.io.File;
 
 public interface TestKitDirProvider {
     File getDir();
+
+    /**
+     * Returns the directory, after creating it when it does not exist.
+     *
+     * @throws org.gradle.testkit.runner.InvalidRunnerConfigurationException when the directory cannot be used
+     */
+    File ensureDirExists();
 }

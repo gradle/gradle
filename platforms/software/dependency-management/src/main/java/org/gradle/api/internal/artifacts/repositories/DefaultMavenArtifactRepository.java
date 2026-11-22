@@ -365,7 +365,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     public RepositoryTransport getTransport(String scheme) {
         // Maven mirrors apply to resolution only, never to deployment, so this keeps the
         // repository's own credentials and protocol rules. Publishing uses it.
-        return transportFactory.createTransport(scheme, getName(), getConfiguredAuthentication(), urlArtifactRepository.createRedirectVerifier());
+        return transportFactory.createTransport(Collections.singleton(scheme), getName(), getConfiguredAuthentication(), urlArtifactRepository.createRedirectVerifier(), isAllowInsecureProtocol());
     }
 
     /**
@@ -374,7 +374,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
      * mirror's too.
      */
     private RepositoryTransport getTransportForResolution(String scheme) {
-        return transportFactory.createTransport(scheme, getName(), getAuthenticationsForUrlInUse(), createRedirectVerifierForUrlInUse());
+        return transportFactory.createTransport(Collections.singleton(scheme), getName(), getAuthenticationsForUrlInUse(), createRedirectVerifierForUrlInUse(), isAllowInsecureProtocol());
     }
 
     /**

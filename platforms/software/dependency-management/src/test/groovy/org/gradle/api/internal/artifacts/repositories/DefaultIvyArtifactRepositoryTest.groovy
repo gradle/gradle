@@ -610,11 +610,11 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     }
 
     private void standardMockFileTransport() {
-        transportFactory.createTransport({ it == ['file'] as Set }, 'name', _, _) >> transport()
+        transportFactory.createTransport({ it == ['file'] as Set }, 'name', _, _, _) >> transport()
     }
 
     private void standardMockHttpTransport() {
-        transportFactory.createTransport({ it == ['https'] as Set }, 'name', _, _) >> transport()
+        transportFactory.createTransport({ it == ['https'] as Set }, 'name', _, _, _) >> transport()
     }
 
     static class CustomVersionLister implements ComponentMetadataVersionLister {
