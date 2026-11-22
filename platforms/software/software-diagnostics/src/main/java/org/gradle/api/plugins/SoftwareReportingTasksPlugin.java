@@ -27,8 +27,11 @@ import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask;
 import org.gradle.api.tasks.diagnostics.ResolvableConfigurationsReportTask;
+import org.gradle.api.tasks.diagnostics.SbomReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import org.jspecify.annotations.NullMarked;
+
+import java.util.Collections;
 
 /**
  * Adds various reporting tasks that provide information about a software project, such as information about
@@ -49,6 +52,7 @@ public abstract class SoftwareReportingTasksPlugin implements Plugin<Project> {
         tasks.register(HelpTasksPlugin.DEPENDENCY_INSIGHT_TASK, DependencyInsightReportTask.class, new DependencyInsightReportTaskAction(projectName));
         tasks.register(HelpTasksPlugin.DEPENDENCIES_TASK, DependencyReportTask.class, new DependencyReportTaskAction(projectName));
         tasks.register(BuildEnvironmentReportTask.TASK_NAME, BuildEnvironmentReportTask.class, new BuildEnvironmentReportTaskAction(projectName));
+        tasks.register(HelpTasksPlugin.SBOM_TASK, SbomReportTask.class, new SbomReportTaskAction(projectName));
 
         tasks.register(HelpTasksPlugin.OUTGOING_VARIANTS_TASK, OutgoingVariantsReportTask.class, task -> {
             task.setDescription("Displays the outgoing variants of " + projectName + ".");
@@ -102,6 +106,22 @@ public abstract class SoftwareReportingTasksPlugin implements Plugin<Project> {
             task.setDescription("Displays all dependencies declared in " + projectName + ".");
             task.setGroup(HelpTasksPlugin.HELP_GROUP);
             task.setImpliesSubProjects(true);
+        }
+    }
+
+    private static class SbomReportTaskAction implements Action<SbomReportTask> {
+        private final String projectName;
+
+        public SbomReportTaskAction(String projectName) {
+            this.projectName = projectName;
+        }
+
+        @Override
+        public void execute(SbomReportTask task) {
+            task.setDescription("Generates a protobom SBOM for " + projectName + ".");
+            task.setGroup(HelpTasksPlugin.HELP_GROUP);
+            task.getOutput().convention(task.getProject().getLayout().getBuildDirectory().file("reports/sbom/sbom.json"));
+            task.getConfigurations().convention(Collections.singletonList("runtimeClasspath"));
         }
     }
 
