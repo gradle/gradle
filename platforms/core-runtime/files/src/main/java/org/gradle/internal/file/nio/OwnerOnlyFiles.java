@@ -197,8 +197,13 @@ public final class OwnerOnlyFiles {
         }
     }
 
-    private static boolean isPosix(Path existingDirectory) throws IOException {
-        return Files.getFileStore(existingDirectory).supportsFileAttributeView("posix");
+    private static boolean isPosix(Path existingDirectory) {
+        try {
+            return Files.getFileStore(existingDirectory).supportsFileAttributeView("posix");
+        } catch (IOException e) {
+            // Workaround for https://bugs.openjdk.org/browse/JDK-8232092
+            return existingDirectory.getFileSystem().supportedFileAttributeViews().contains("posix");
+        }
     }
 
     /**
