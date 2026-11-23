@@ -44,7 +44,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * A {@link ArtifactVariantSelector} that uses attribute matching to select a matching set of artifacts.
+ * An {@link ArtifactVariantSelector} that uses attribute matching to select a matching set of artifacts.
  * <p>
  * If no producer variant is compatible with the requested attributes, this selector will attempt to construct a chain of artifact
  * transforms that can produce a variant compatible with the requested attributes.
@@ -162,7 +162,8 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
      * </ul>
      * Separate resolutions, such as of different configurations, have separate selectors, so each reports them again.
      * <p>
-     * This class is meant to be removed entirely after Gradle 11.
+     * This class is meant to be removed entirely in Gradle 11, along with the warning when the feature preview, then the default,
+     * selects a primary variant without artifacts.
      */
     private static final class SelectionWarningHelper {
         private final Set<String> reported = ConcurrentHashMap.newKeySet();
@@ -299,8 +300,9 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         }
 
         /**
-         * Returns the attributes, as {@code name=value}, of the single variant selected without the primary variant that the primary variant
-         * lacks, or has with another value, and that are not already requested or empty. Nothing is suggested if no single variant is selected.
+         * Returns the attributes, as {@code name=value}, that the single variant selected without the primary variant declares, but the primary
+         * variant lacks or has with another value, excluding attributes already requested and empty values. Nothing is suggested if no single
+         * variant is selected.
          * <p>
          * Requesting one of these makes the request more precise, so that the primary variant is no longer the best match.
          */
