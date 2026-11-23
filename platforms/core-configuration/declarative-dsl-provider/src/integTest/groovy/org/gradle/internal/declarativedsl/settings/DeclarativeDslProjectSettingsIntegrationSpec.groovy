@@ -109,8 +109,9 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
         where:
         order                                | content                                          | errorMessage
         'statement before plugin management' | 'rootProject.name = "foo"\npluginManagement { }' | "1:1: illegal content before 'pluginManagement', which can only appear as the first element in the file"
-        'plugins before plugin management'   | 'plugins { }\npluginManagement { }'              | "1:1: illegal content before 'pluginManagement', which can only appear as the first element in the file"
-        'statement before plugins'           | 'rootProject.name = "foo"\nplugins { }'          | "1:1: illegal content before 'plugins', which can only be preceded by 'pluginManagement"
+        'plugins before plugin management'   | 'plugins { }\npluginManagement { }'              | "1:1: illegal content before 'pluginManagement', which can only appear as the first element in the file. Move 'plugins' after the 'pluginManagement' block."
+        'statement before plugins'           | 'rootProject.name = "foo"\nplugins { }'          | "1:1: illegal content before 'plugins', which can only be preceded by 'pluginManagement'"
+        'block before plugins'               | 'dependencyResolutionManagement { }\nplugins { }' | "1:1: illegal content before 'plugins', which can only be preceded by 'pluginManagement'. Move 'dependencyResolutionManagement' after the 'plugins' block."
     }
 
     def 'reports duplicate #kind blocks in settings'() {
