@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ArtifactlessPrimaryVariantFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
@@ -24,7 +25,7 @@ import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import static org.hamcrest.CoreMatchers.startsWith
 
 @FluidDependenciesResolveTest
-class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactlessPrimaryVariantFixture {
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
@@ -147,6 +148,8 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
 
             configurations {
                 compile.attributes.attribute(usage, 'compile')
+                // Request jars, so that the secondary variants are a better match than the primary variants, which have no artifacts
+                compile.attributes.attribute(Attribute.of('artifactType', String), 'jar')
             }
 
             dependencies {
@@ -464,6 +467,9 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
     }
 
     def "reports failure when multiple compatible variants available"() {
+        // The request relies on the primary variant without artifacts being ignored
+        expectArtifactlessPrimaryVariantDeprecation("project ':a'", "configuration ':a:compile'")
+        expectArtifactlessPrimaryVariantDeprecation("project ':b'", "configuration ':b:compile'")
         settingsFile << """
             include 'a'
             include 'b'
@@ -567,6 +573,8 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
     }
 
     def "result includes consumer-provided variants"() {
+        // The request relies on the primary variant without artifacts being ignored
+        expectArtifactlessPrimaryVariantDeprecation("project ':a'", "configuration ':a:compile'", ["flavor=one", "artifactType=jar"])
         mavenRepo.module("org", "test", "1.0").publish()
 
         settingsFile << """
@@ -959,6 +967,8 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         issue = "https://github.com/gradle/gradle/issues/24640"
     )
     def "reports multiple failures to resolve artifacts when artifacts are queried"() {
+        // The request relies on the primary variant without artifacts being ignored
+        expectArtifactlessPrimaryVariantDeprecation("project ':a'", "configuration ':a:default'")
         settingsFile << """
             include 'a'
             dependencyResolutionManagement {
@@ -1020,6 +1030,8 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         issue = "https://github.com/gradle/gradle/issues/24640"
     )
     def "lenient artifact view reports failure to resolve graph and artifacts"() {
+        // The request relies on the primary variant without artifacts being ignored
+        expectArtifactlessPrimaryVariantDeprecation("project ':a'", "configuration ':a:default'")
         settingsFile << """
             include 'a'
             include 'b'
@@ -1107,6 +1119,8 @@ Searched in the following locations:
     }
 
     def "successfully resolved local artifacts are built when lenient file view used as task input"() {
+        // The request relies on the primary variant without artifacts being ignored
+        expectArtifactlessPrimaryVariantDeprecation("project ':a'", "configuration ':a:default'")
         settingsFile << """
             include 'a'
             include 'b'

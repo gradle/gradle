@@ -17,9 +17,11 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ArtifactlessPrimaryVariantFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
-class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
+class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec implements ArtifactlessPrimaryVariantFixture {
     ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
@@ -285,6 +287,12 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
 
     def "can declare build dependency of outgoing variant artifact using String notation"() {
         given:
+        // The request relies on the primary variant without artifacts being ignored
+        expectArtifactlessPrimaryVariantDeprecation("project ':a'", "configuration ':a:compile'")
+        if (GradleContextualExecuter.configCache) {
+            // With the configuration cache, artifacts are selected from two resolutions, whose selectors each report the deprecation
+            expectArtifactlessPrimaryVariantDeprecation("project ':a'", "configuration ':a:compile'")
+        }
         settingsFile << "include 'a', 'b'"
 
         file("a/build.gradle") << """

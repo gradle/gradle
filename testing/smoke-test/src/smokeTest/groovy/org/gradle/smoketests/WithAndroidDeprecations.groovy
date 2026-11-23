@@ -47,4 +47,34 @@ trait WithAndroidDeprecations {
         )
     }
 
+    void expectArtifactlessPrimaryVariantDeprecationsIf(boolean condition, String project, List<String> configurations) {
+        if (condition) {
+            expectArtifactlessPrimaryVariantDeprecations(project, configurations)
+        }
+    }
+
+    /**
+     * Expect the deprecation emitted for each of the given configurations of the project, whose primary variant has no artifacts,
+     * since it would have been selected had the {@code CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS} feature preview been enabled.
+     *
+     * @param attributesNotOnPrimary the attributes the deprecation suggests requesting, as {@code name=value}, in the order listed
+     */
+    void expectArtifactlessPrimaryVariantDeprecations(String project, List<String> configurations, List<String> attributesNotOnPrimary = []) {
+        def moreAttributesInRequest = attributesNotOnPrimary.empty
+            ? "Add attributes to the request so that it only matches the intended variant"
+            : "Add one of these attributes to the request to make it more precise: ${attributesNotOnPrimary.join(', ')}"
+        configurations.each { configuration ->
+            runner.expectDeprecationWarning(
+                "Selecting artifacts from project '${project}' ignored variant 'configuration '${project}:${configuration}'' because it has no artifacts. " +
+                    "This behavior has been deprecated. " +
+                    "Starting with Gradle 11, primary variants without artifacts will be selected when they are the best match. " +
+                    "${moreAttributesInRequest}; " +
+                    "or add attributes to variant 'configuration '${project}:${configuration}'' so that it is no longer the best match; " +
+                    "or enable the 'CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS' feature preview to opt into the new behavior. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#variants_with_no_artifacts",
+                "https://github.com/gradle/gradle/issues/29630"
+            )
+        }
+    }
+
 }

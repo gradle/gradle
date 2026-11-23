@@ -22,7 +22,7 @@ import groovy.transform.SelfType
  * Apply this trait to tests that resolve artifacts from a configuration whose primary variant
  * has no artifacts but which declares secondary variants.
  * <p>
- * See {@code org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVariantSelector#nagAboutIgnoredVariant}
+ * See {@code org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVariantSelector.SelectionWarningHelper#nagIfConsideringPrimaryChangesResult}
  * for the production emitter. The expected message string here must stay in sync with
  * the {@code DeprecationLogger.deprecateBehaviour(...).startingWithGradle11(...)} call there.
  */
@@ -39,18 +39,24 @@ trait ArtifactlessPrimaryVariantFixture {
     }
 
     /**
-     * Expect the deprecation emitted when the primary variant without artifacts would have been selected,
-     * had the feature preview been enabled.
+     * Expect the deprecation emitted when considering the primary variant without artifacts would change the result, had the feature
+     * preview been enabled: it, or a transformation of it, would have been selected, or it would have made the match ambiguous.
      *
      * @param producer display name of the producer, e.g. "project ':a'"
      * @param variant display name of the ignored variant, e.g. "configuration ':a:compile'"
+     * @param attributesNotOnPrimary the attributes suggested to make the request more precise, as {@code name=value}, in the order listed
      */
-    void expectArtifactlessPrimaryVariantDeprecation(String producer, String variant) {
+    void expectArtifactlessPrimaryVariantDeprecation(String producer, String variant, List<String> attributesNotOnPrimary = []) {
+        def moreAttributesInRequest = attributesNotOnPrimary.empty
+            ? "Add attributes to the request so that it only matches the intended variant"
+            : "Add one of these attributes to the request to make it more precise: ${attributesNotOnPrimary.join(', ')}"
+        def advice = "${moreAttributesInRequest}; or add attributes to variant '${variant}' so that it is no longer the best match; " +
+            "or enable the 'CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS' feature preview to opt into the new behavior."
         executer.expectDocumentedDeprecationWarning(
             "Selecting artifacts from ${producer} ignored variant '${variant}' because it has no artifacts. " +
                 "This behavior has been deprecated. " +
                 "Starting with Gradle 11, primary variants without artifacts will be selected when they are the best match. " +
-                "Add attributes to the request so that it only matches the intended variant, or enable the 'CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS' feature preview to opt into the new behavior. " +
+                "${advice} " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#variants_with_no_artifacts"
         )
     }

@@ -280,6 +280,9 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
     }
 
     def "reports failure when there is more than one compatible variant"() {
+        // The request relies on the primary variant without artifacts being ignored
+        expectArtifactlessPrimaryVariantDeprecation("project ':a'", "configuration ':a:compile'")
+        expectArtifactlessPrimaryVariantDeprecation("project ':b'", "configuration ':b:compile'")
         settingsFile << """
             include 'a', 'b'
         """
@@ -547,6 +550,8 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
     }
 
     def "reports multiple failures to resolve artifacts when files are queried using #expression"() {
+        // The request relies on the primary variant without artifacts being ignored
+        expectArtifactlessPrimaryVariantDeprecation("project ':a'", "configuration ':a:compile'")
         settingsFile << """
             include 'a'
             dependencyResolutionManagement {

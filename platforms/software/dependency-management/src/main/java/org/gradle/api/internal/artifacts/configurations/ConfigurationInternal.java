@@ -174,7 +174,7 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
          * declares child variants, it is marked as previously unselectable. Such a variant is not eligible for artifact selection,
          * even when it is the best match, unless the {@code CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS} feature preview is enabled.
          * The feature preview will be removed in Gradle 11, where such variants are always eligible. The marker remains, because
-         * artifact selection compares such a variant with the other variants on the requested attributes only.
+         * artifact selection warns when it selects such a variant.
          *
          * @param displayName the display name of the configuration
          * @param attributes the attributes of the primary variant

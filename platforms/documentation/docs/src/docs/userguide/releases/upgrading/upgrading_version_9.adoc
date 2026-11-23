@@ -206,37 +206,42 @@ You can define <<variant_aware_resolution.adoc#sec:secondary-variants,secondary 
 Earlier versions of Gradle silently dropped such a primary variant from artifact selection.
 Starting with Gradle 9.10.0, Gradle warns when it ignores such a primary variant, because Gradle 11 will select it.
 
-With the `CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS` feature preview enabled, such a primary variant is eligible for artifact selection, and is selected when it is the best match for the request.
-Because it has no artifacts, the request then resolves to no artifacts.
-Since the primary variant also lacks the attributes of artifacts, such as `artifactType`, Gradle compares it with the other variants as follows:
+With the `CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS` feature preview enabled, such a primary variant is a candidate like any other, and is selected when it is the best match for the request.
+Because it has no artifacts, the request then resolves to no artifacts, and Gradle warns that the request is likely underspecified.
+Since the primary variant also lacks the attributes of artifacts, such as `artifactType`, it often is the best match:
 
-* It is a better match than a variant with artifacts only if it matches the requested attributes strictly better.
-Attributes that the request does not ask for do not make it a better match.
-* A transformation of a variant with artifacts is preferred over it, unless it declares every requested attribute.
-If those transformations are ambiguous, selection fails.
+* It wins ties that are decided by attributes the request does not ask for, since Gradle prefers candidates that lack extra attributes.
+* It is selected over a transformation of a variant with artifacts whenever it matches the request directly.
 
 Without the feature preview, the primary variant is not eligible, even when it is the best match, and Gradle selects among the secondary variants as before.
 Starting with Gradle 11, the primary variant is always eligible and the feature preview is removed.
 
-Without the feature preview, Gradle emits a deprecation warning when the primary variant would have been selected:
+Without the feature preview, Gradle emits a deprecation warning when the primary variant, or a transformation of it, would have been selected, or would have been part of an ambiguous match.
+Within the artifact selections of a resolved configuration, each distinct message is reported once:
 
 [source,text]
 ----
-Selecting artifacts from project ':lib' ignored variant 'configuration ':lib:runtimeElements'' because it has no artifacts. This behavior has been deprecated. Starting with Gradle 11, primary variants without artifacts will be selected when they are the best match. Add attributes to the request so that it only matches the intended variant, or enable the 'CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS' feature preview to opt into the new behavior.
+Selecting artifacts from project ':lib' ignored variant 'configuration ':lib:runtimeElements'' because it has no artifacts. This behavior has been deprecated. Starting with Gradle 11, primary variants without artifacts will be selected when they are the best match. Add one of these attributes to the request to make it more precise: org.gradle.libraryelements=jar; or add attributes to variant 'configuration ':lib:runtimeElements'' so that it is no longer the best match; or enable the 'CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS' feature preview to opt into the new behavior.
 ----
 
 The warning means the request is underspecified: either it matches the primary variant better than the intended secondary variant, or no secondary variant matches it at all.
+When a single secondary variant would be selected instead, the warning lists the attributes that variant declares and the primary variant lacks.
 
-To fix the deprecation warning, add attributes to the request so that it is more precise and only matches the intended variant.
+To fix the deprecation warning, make the request more precise, for example by requesting one of the listed attributes, so that it only matches the intended variant.
+Adding attributes to the primary variant also works, but only for attributes that the secondary variants declare themselves, since secondary variants inherit the attributes of their configuration.
 If no variant carries the attributes the request needs, expose one, or add artifacts to the primary variant.
 
 This change has the following visible effects:
 
 * With the feature preview enabled, the `dependencyInsight` report lists the primary variant among the available variants.
-* A lenient artifact view that only the primary variant matches resolves to no artifacts either way, so it does not emit the warning.
-The exception is when only ambiguous transformations of the primary variant match, since selecting them fails with the feature preview.
+* An artifact view that requests its own attributes resolves to no artifacts, rather than failing, when no variant matches.
+Such a view that only the primary variant matches also emits the warning, although it resolves to no artifacts either way.
+* With the feature preview enabled, a build can succeed while resolving no artifacts where it previously resolved the secondary variant's artifacts.
+For example, an Android application can be packaged without the classes of a library it depends on.
+Check the outputs of your build after enabling the feature preview, not only whether it succeeds.
 
-To opt into the Gradle 11 behavior and silence the warning, enable the feature preview in your `settings.gradle.kts`:
+To opt into the Gradle 11 behavior, enable the feature preview in your `settings.gradle.kts`.
+Gradle then no longer emits the deprecation warning, but warns whenever it selects a primary variant without artifacts:
 
 [source,kotlin]
 ----

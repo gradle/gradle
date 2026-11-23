@@ -66,8 +66,9 @@ public interface VariantResolveMetadata {
     /**
      * Is this a primary variant without artifacts whose configuration also declares secondary variants?
      * <p>
-     * Such variants were excluded from artifact selection prior to Gradle 9.10. Since they lack the attributes of artifacts, such as
-     * {@code artifactType}, artifact selection compares them with the other variants on the requested attributes only.
+     * Such variants were excluded from artifact selection prior to Gradle 9.10. Artifact selection still excludes them unless the
+     * {@code CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS} feature preview is enabled. Without it, artifact selection warns when considering one
+     * would change the result; with it, artifact selection warns when it selects one.
      */
     default boolean isPreviouslyUnselectable() {
         return false;

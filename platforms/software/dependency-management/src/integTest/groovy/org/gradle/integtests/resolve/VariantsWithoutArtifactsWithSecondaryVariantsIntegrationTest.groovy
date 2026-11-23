@@ -23,10 +23,9 @@ import spock.lang.Issue
 /**
  * Verifies artifact selection from a configuration whose primary variant has no artifacts but which declares secondary variants.
  * <p>
- * Such a primary variant is selected when it is the best match. Only the requested attributes decide whether it is a better match
- * than a variant with artifacts, and a transformation of a variant with artifacts is preferred over it unless it matches every requested
- * attribute. Prior to Gradle 11, selecting it requires the {@code CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS} feature preview. Without it,
- * the primary variant is not eligible for selection, and a deprecation warning is emitted when it would be selected.
+ * Such a primary variant is a candidate like any other, and is selected when it is the best match, with a warning that the request is likely
+ * underspecified. Prior to Gradle 11, selecting it requires the {@code CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS} feature preview. Without it,
+ * the primary variant is not eligible for selection, so builds succeed and fail as before, and a deprecation warning is emitted when it would be selected.
  */
 @Issue("https://github.com/gradle/gradle/issues/29630")
 final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends AbstractIntegrationSpec implements ArtifactlessPrimaryVariantFixture {
@@ -67,48 +66,70 @@ final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends
         previewEnabled << [false, true]
     }
 
-    def "compatible secondary variant with artifacts is selected over primary variant without artifacts (preview enabled: #previewEnabled)"() {
+    def "primary variant without artifacts is ignored when it wins a tie with a secondary variant that has an extra attribute and emits a deprecation warning"() {
         given:
-        considerArtifactlessPrimaryVariants(previewEnabled)
+        expectArtifactlessPrimaryVariantDeprecation(PRODUCER, PRIMARY_VARIANT, ["artifactType=jar"])
 
         expect:
-        // The secondary variant has an artifactType attribute that the request does not ask for, which does not make it a worse match
+        // The secondary variant has an artifactType attribute that the request does not ask for, which breaks the tie in favor of the primary variant
         succeeds("resolve", "-PregisterSecondaryVariant=true", "-PregisterSecondaryArtifact=true", "-PsecondaryValue=value1")
         assertResolved([file("my-secondary-artifact.jar")])
-
-        where:
-        previewEnabled << [false, true]
     }
 
-    def "equally compatible secondary variant without artifacts is selected over primary variant without artifacts (preview enabled: #previewEnabled)"() {
+    def "primary variant without artifacts is selected when it wins a tie with a secondary variant that has an extra attribute"() {
         given:
-        considerArtifactlessPrimaryVariants(previewEnabled)
+        considerArtifactlessPrimaryVariants()
+
+        expect:
+        succeeds("resolve", "-PregisterSecondaryVariant=true", "-PregisterSecondaryArtifact=true", "-PsecondaryValue=value1")
+        assertResolved([])
+        assertArtifactlessPrimaryVariantSelectedWarning()
+    }
+
+    def "primary variant without artifacts is ignored when it ties with an equally compatible secondary variant and emits a deprecation warning"() {
+        given:
+        expectArtifactlessPrimaryVariantDeprecation(PRODUCER, PRIMARY_VARIANT)
 
         expect:
         succeeds("resolve", "-PregisterSecondaryVariant=true", "-PsecondaryValue=value1")
         assertResolved([])
-
-        where:
-        previewEnabled << [false, true]
     }
 
-    def "transformation of a secondary variant is selected over primary variant without artifacts that lacks a requested attribute (preview enabled: #previewEnabled)"() {
+    def "primary variant without artifacts that ties with an equally compatible secondary variant makes the match ambiguous"() {
         given:
-        considerArtifactlessPrimaryVariants(previewEnabled)
+        considerArtifactlessPrimaryVariants()
+
+        expect:
+        fails("resolve", "-PregisterSecondaryVariant=true", "-PsecondaryValue=value1")
+        failure.assertHasCause("The consumer was configured to find attribute 'myAttribute' with value 'value1'. However we cannot choose between the following variants of root project 'test'")
+        failure.assertHasErrorOutput("Configuration ':consumableConfiguration' declares")
+    }
+
+    def "primary variant without artifacts that lacks a requested attribute is ignored instead of a transformation and emits a deprecation warning"() {
+        given:
         registerJarToTxtTransform()
+        expectArtifactlessPrimaryVariantDeprecation(PRODUCER, PRIMARY_VARIANT)
 
         expect:
         succeeds("resolve", "-PregisterSecondaryVariant=true", "-PregisterSecondaryArtifact=true", "-PsecondaryValue=value1")
         outputContains("my-secondary-artifact.jar.txt]")
+    }
 
-        where:
-        previewEnabled << [false, true]
+    def "primary variant without artifacts that lacks a requested attribute is selected instead of a transformation, since it matches directly"() {
+        given:
+        registerJarToTxtTransform()
+        considerArtifactlessPrimaryVariants()
+
+        expect:
+        succeeds("resolve", "-PregisterSecondaryVariant=true", "-PregisterSecondaryArtifact=true", "-PsecondaryValue=value1")
+        assertResolved([])
+        assertArtifactlessPrimaryVariantSelectedWarning()
     }
 
     def "primary variant without artifacts is ignored when it is a better match for the requested attributes and emits a deprecation warning"() {
         given:
         registerValue1CompatibilityRule()
-        expectArtifactlessPrimaryVariantDeprecation(PRODUCER, PRIMARY_VARIANT)
+        expectArtifactlessPrimaryVariantDeprecation(PRODUCER, PRIMARY_VARIANT, ["artifactType=jar"])
 
         expect:
         // The primary variant has the requested value, the secondary variant only a compatible one
@@ -150,32 +171,36 @@ final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends
         previewEnabled << [false, true]
     }
 
-    def "ambiguity among secondary variants does not report primary variant without artifacts (preview enabled: #previewEnabled)"() {
+    def "ambiguity among secondary variants reports primary variant without artifacts only when it is considered (preview enabled: #previewEnabled)"() {
         given:
         considerArtifactlessPrimaryVariants(previewEnabled)
         addOtherSecondaryVariant()
+        if (!previewEnabled) {
+            // The primary variant ties with the secondary variants, so it is part of the ambiguity once considered
+            expectArtifactlessPrimaryVariantDeprecation(PRODUCER, PRIMARY_VARIANT)
+        }
 
         expect:
         fails("resolve", "-PregisterSecondaryVariant=true", "-PsecondaryValue=value1")
         failure.assertHasCause("The consumer was configured to find attribute 'myAttribute' with value 'value1'. However we cannot choose between the following variants of root project 'test'")
         failure.assertHasErrorOutput("Configuration ':consumableConfiguration' variant 'myOtherSecondaryVariant'")
-        failure.assertNotOutput("Configuration ':consumableConfiguration' declares")
+        failure.error.contains("Configuration ':consumableConfiguration' declares") == previewEnabled
 
         where:
         previewEnabled << [false, true]
     }
 
-    def "primary variant without artifacts that declares every requested attribute is ignored instead of a transformation and emits a deprecation warning"() {
+    def "primary variant without artifacts that matches directly is ignored instead of a transformation and emits a deprecation warning"() {
         given:
         registerMarkingTransform("myAttribute", "value2", "value1")
-        expectArtifactlessPrimaryVariantDeprecation(PRODUCER, PRIMARY_VARIANT)
+        expectArtifactlessPrimaryVariantDeprecation(PRODUCER, PRIMARY_VARIANT, ["artifactType=jar"])
 
         expect:
         succeeds("resolve", "-PregisterSecondaryVariant=true", "-PregisterSecondaryArtifact=true")
         outputContains("my-secondary-artifact.jar.transformed]")
     }
 
-    def "primary variant without artifacts that declares every requested attribute is selected instead of a transformation"() {
+    def "primary variant without artifacts that matches directly is selected instead of a transformation"() {
         given:
         registerMarkingTransform("myAttribute", "value2", "value1")
         considerArtifactlessPrimaryVariants()
@@ -277,9 +302,12 @@ final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends
         failure.assertHasCause("No variants of root project 'test' match the consumer attributes")
     }
 
-    def "lenient artifact view resolves to no artifacts without a deprecation warning when only primary variant without artifacts matches (preview enabled: #previewEnabled)"() {
+    def "lenient artifact view resolves to no artifacts when only primary variant without artifacts matches (preview enabled: #previewEnabled)"() {
         given:
         considerArtifactlessPrimaryVariants(previewEnabled)
+        if (!previewEnabled) {
+            expectArtifactlessPrimaryVariantDeprecation(PRODUCER, PRIMARY_VARIANT)
+        }
         buildKotlinFile << """
             tasks.register("resolveView") {
                 inputs.files(resolvableConfiguration.get().incoming.artifactView {
@@ -478,6 +506,10 @@ final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends
                 attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "txt")
             }
         """
+    }
+
+    private void assertArtifactlessPrimaryVariantSelectedWarning() {
+        outputContains("Selecting artifacts from ${PRODUCER} selected variant '${PRIMARY_VARIANT}', which has no artifacts.")
     }
 
     private void assertResolved(List<File> artifacts) {

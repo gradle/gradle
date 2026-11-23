@@ -79,32 +79,32 @@ class ArtifactlessPrimaryAttributeMatchingArtifactVariantSelectorSpec extends Sp
 
         where:
         primary          | secondaries                          | requested                     | transformable  | previewEnabled | expected                 | warns
-        // An equal or extra-attribute tie goes to the variant with artifacts
-        [a: "1"]         | [[a: "1"]]                           | [a: "1"]                      | []             | false          | "secondary0"             | false
-        [a: "1"]         | [[a: "1"]]                           | [a: "1"]                      | []             | true           | "secondary0"             | false
-        [a: "1"]         | [[a: "1", artifactType: "jar"]]      | [a: "1"]                      | []             | false          | "secondary0"             | false
-        [a: "1"]         | [[a: "1", artifactType: "jar"]]      | [a: "1"]                      | []             | true           | "secondary0"             | false
+        // An equal tie is ambiguous, and an extra-attribute tie goes to the primary variant, which lacks the extra attribute
+        [a: "1"]         | [[a: "1"]]                           | [a: "1"]                      | []             | false          | "secondary0"             | true
+        [a: "1"]         | [[a: "1"]]                           | [a: "1"]                      | []             | true           | "failure"                | false
+        [a: "1"]         | [[a: "1", artifactType: "jar"]]      | [a: "1"]                      | []             | false          | "secondary0"             | true
+        [a: "1"]         | [[a: "1", artifactType: "jar"]]      | [a: "1"]                      | []             | true           | "primary"                | true
         // A strictly better match for the requested attributes
         [a: "1", b: "x"] | [[a: "1"]]                           | [a: "1", b: "x"]              | []             | false          | "secondary0"             | true
-        [a: "1", b: "x"] | [[a: "1"]]                           | [a: "1", b: "x"]              | []             | true           | "primary"                | false
+        [a: "1", b: "x"] | [[a: "1"]]                           | [a: "1", b: "x"]              | []             | true           | "primary"                | true
         // Nothing else matches
         [a: "1"]         | [[a: "2"]]                           | [a: "1"]                      | []             | false          | "failure"                | true
-        [a: "1"]         | [[a: "2"]]                           | [a: "1"]                      | []             | true           | "primary"                | false
-        // A transformation beats a primary variant that lacks a requested attribute
-        [a: "1"]         | [[a: "1", artifactType: "jar"]]      | [a: "1", artifactType: "txt"] | ["secondary0"] | false          | "transformed secondary0" | false
-        [a: "1"]         | [[a: "1", artifactType: "jar"]]      | [a: "1", artifactType: "txt"] | ["secondary0"] | true           | "transformed secondary0" | false
-        // A primary variant that declares every requested attribute beats a transformation
+        [a: "1"]         | [[a: "2"]]                           | [a: "1"]                      | []             | true           | "primary"                | true
+        // A primary variant that lacks a requested attribute still matches directly, so it beats a transformation
+        [a: "1"]         | [[a: "1", artifactType: "jar"]]      | [a: "1", artifactType: "txt"] | ["secondary0"] | false          | "transformed secondary0" | true
+        [a: "1"]         | [[a: "1", artifactType: "jar"]]      | [a: "1", artifactType: "txt"] | ["secondary0"] | true           | "primary"                | true
+        // A primary variant that matches directly beats a transformation of another variant
         [a: "1"]         | [[a: "2"]]                           | [a: "1"]                      | ["secondary0"] | false          | "transformed secondary0" | true
-        [a: "1"]         | [[a: "2"]]                           | [a: "1"]                      | ["secondary0"] | true           | "primary"                | false
+        [a: "1"]         | [[a: "2"]]                           | [a: "1"]                      | ["secondary0"] | true           | "primary"                | true
         // Only a transformation of the primary variant matches
         [a: "1"]         | [[a: "2"]]                           | [a: "3"]                      | ["primary"]    | false          | "failure"                | true
-        [a: "1"]         | [[a: "2"]]                           | [a: "3"]                      | ["primary"]    | true           | "transformed primary"    | false
+        [a: "1"]         | [[a: "2"]]                           | [a: "3"]                      | ["primary"]    | true           | "transformed primary"    | true
         // An incompatible primary variant does not matter
         [a: "1"]         | [[a: "2"]]                           | [a: "2"]                      | []             | false          | "secondary0"             | false
         [a: "1"]         | [[a: "2"]]                           | [a: "2"]                      | []             | true           | "secondary0"             | false
-        // Secondary variants that tie stay ambiguous
-        [a: "1"]         | [[a: "1", f: "x"], [a: "1", f: "y"]] | [a: "1"]                      | []             | false          | "failure"                | false
-        [a: "1"]         | [[a: "1", f: "x"], [a: "1", f: "y"]] | [a: "1"]                      | []             | true           | "failure"                | false
+        // The primary variant breaks a tie between secondary variants, since it lacks their extra attribute, but without it they stay ambiguous
+        [a: "1"]         | [[a: "1", f: "x"], [a: "1", f: "y"]] | [a: "1"]                      | []             | false          | "failure"                | true
+        [a: "1"]         | [[a: "1", f: "x"], [a: "1", f: "y"]] | [a: "1"]                      | []             | true           | "primary"                | true
     }
 
     def "selects #expected for request #requested from primary #primary and secondaries #secondaries with ambiguous transformations of #ambiguous (lenient: #lenient, preview enabled: #previewEnabled, warns: #warns)"() {
@@ -131,9 +131,9 @@ class ArtifactlessPrimaryAttributeMatchingArtifactVariantSelectorSpec extends Sp
         [a: "1"] | [[a: "2"]]                      | [a: "3"]                      | "primary"    | false   | true           | "failure" | false
         [a: "1"] | [[a: "2"]]                      | [a: "3"]                      | "primary"    | true    | false          | "empty"   | true
         [a: "1"] | [[a: "2"]]                      | [a: "3"]                      | "primary"    | true    | true           | "failure" | false
-        // Ambiguous transformations of the other variants beat a primary variant that lacks a requested attribute, so selecting fails
-        [a: "1"] | [[a: "2", artifactType: "jar"]] | [a: "1", artifactType: "txt"] | "secondary0" | false   | false          | "failure" | false
-        [a: "1"] | [[a: "2", artifactType: "jar"]] | [a: "1", artifactType: "txt"] | "secondary0" | false   | true           | "failure" | false
+        // A primary variant that lacks a requested attribute still matches directly, so it beats ambiguous transformations of the other variants
+        [a: "1"] | [[a: "2", artifactType: "jar"]] | [a: "1", artifactType: "txt"] | "secondary0" | false   | false          | "failure" | true
+        [a: "1"] | [[a: "2", artifactType: "jar"]] | [a: "1", artifactType: "txt"] | "secondary0" | false   | true           | "primary" | true
     }
 
     def "deciding whether to warn does not fail a selection that does not involve the primary variant (lenient: #lenient)"() {
@@ -160,6 +160,63 @@ class ArtifactlessPrimaryAttributeMatchingArtifactVariantSelectorSpec extends Sp
         false   | "failure"
     }
 
+    def "warning lists the unrequested attributes of the variant selected without the primary variant that it lacks or has with another value (preview enabled: #previewEnabled)"() {
+        given:
+        def producer = producerOf([a: "1", b: "x", c: "z"], [[a: "1", b: "y", c: "z", artifactType: "jar"]])
+
+        when:
+        def result = selector(previewEnabled).select(producer, AttributeTestUtil.attributes([a: "1"]), false)
+
+        then:
+        describe(result) == expected
+        def warning = outputEventListener.events.find { it.logLevel == LogLevel.WARN }.toString()
+        warning.contains("Add one of these attributes to the request to make it more precise: ")
+        warning.contains("b=y")
+        warning.contains("artifactType=jar")
+        !warning.contains("a=1")
+        !warning.contains("c=z")
+        warning.contains("; or add attributes to variant 'primary' so that it is no longer the best match")
+        warning.contains("CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS") == !previewEnabled
+
+        where:
+        previewEnabled | expected
+        false          | "secondary0"
+        true           | "primary"
+    }
+
+    def "warning suggests no attributes when the variants selected without the primary variant are ambiguous (preview enabled: #previewEnabled)"() {
+        given:
+        def producer = producerOf([a: "1"], [[a: "1", f: "x", artifactType: "jar"], [a: "1", f: "y", artifactType: "jar"]])
+
+        when:
+        selector(previewEnabled).select(producer, AttributeTestUtil.attributes([a: "1"]), false)
+
+        then:
+        def warning = outputEventListener.events.find { it.logLevel == LogLevel.WARN }.toString()
+        warning.contains("Add attributes to the request so that it only matches the intended variant; ")
+        !warning.contains("Add one of these attributes")
+
+        where:
+        previewEnabled << [false, true]
+    }
+
+    def "reports each warning once per selector, however many selections trigger it (preview enabled: #previewEnabled)"() {
+        given:
+        def producer = producerOf([a: "1"], [[a: "1", artifactType: "jar"]])
+
+        when:
+        def selector = selector(previewEnabled)
+        2.times {
+            selector.select(producer, AttributeTestUtil.attributes([a: "1"]), false)
+        }
+
+        then:
+        outputEventListener.events.count { it.logLevel == LogLevel.WARN && it.toString().contains("variant 'primary'") } == 1
+
+        where:
+        previewEnabled << [false, true]
+    }
+
     private ResolvedVariantSet producerOf(Map<String, String> primary, List<Map<String, String>> secondaries) {
         def candidates = [variant("primary", primary, true)] + secondaries.withIndex().collect { attributes, i -> variant("secondary${i}", attributes, false) }
         def transformer = Stub(ResolvedVariantTransformer) {
@@ -180,7 +237,8 @@ class ArtifactlessPrimaryAttributeMatchingArtifactVariantSelectorSpec extends Sp
     }
 
     private boolean warned() {
-        outputEventListener.events.any { it.logLevel == LogLevel.WARN && it.toString().contains("ignored variant 'primary' because it has no artifacts") }
+        // Either the deprecation for ignoring it, without the preview, or the warning for selecting it, with the preview
+        outputEventListener.events.any { it.logLevel == LogLevel.WARN && it.toString() =~ /(ignored variant 'primary' because it|selected variant 'primary', which) has no artifacts/ }
     }
 
     private ResolvedVariant variant(String name, Map<String, String> attributes, boolean previouslyUnselectable) {

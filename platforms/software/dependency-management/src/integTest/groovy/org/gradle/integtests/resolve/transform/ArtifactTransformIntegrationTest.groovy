@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.transform
 
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ArtifactlessPrimaryVariantFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
@@ -32,7 +33,7 @@ import spock.lang.Issue
 
 import static org.gradle.util.Matchers.matchesRegexp
 
-class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture, UndeclaredArtifactTransformInputDeprecation {
+class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture, UndeclaredArtifactTransformInputDeprecation, ArtifactlessPrimaryVariantFixture {
     def setup() {
         createDirs("lib", "app")
         settingsFile << """
@@ -531,6 +532,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
 
                 configurations {
+                    // The primary variant has no artifacts. Declare an artifact type that is not requested, so that it is not a better match than a transformation of a secondary variant.
+                    compile.attributes.attribute(artifactType, 'none')
                     compile.outgoing.variants {
                         files {
                             attributes.attribute(Attribute.of('artifactType', String), 'jar')
@@ -699,15 +702,20 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
 
                 configurations {
+                    // The primary variant has no artifacts. Declare an artifact type that is not requested, so that it is not a better match than a transformation of a secondary variant.
+                    // The secondary variants inherit it, so they declare their own.
+                    compile.attributes.attribute(artifactType, 'none')
                     compile.outgoing.variants {
                         java7 {
                             attributes.attribute(Attribute.of('javaVersion', String), '7')
                             attributes.attribute(Attribute.of('color', String), 'green')
+                            attributes.attribute(artifactType, 'jar')
                             artifact tasks.jar1
                         }
                         java8 {
                             attributes.attribute(Attribute.of('javaVersion', String), '8')
                             attributes.attribute(Attribute.of('color', String), 'red')
+                            attributes.attribute(artifactType, 'jar')
                             artifact tasks.jar2
                         }
                     }
@@ -804,15 +812,20 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
 
                 configurations {
+                    // The primary variant has no artifacts. Declare an artifact type that is not requested, so that it is not a better match than a transformation of a secondary variant.
+                    // The secondary variants inherit it, so they declare their own.
+                    compile.attributes.attribute(artifactType, 'none')
                     compile.outgoing.variants {
                         java7 {
                             attributes.attribute(Attribute.of('javaVersion', String), '7')
                             attributes.attribute(Attribute.of('color', String), 'green')
+                            attributes.attribute(artifactType, 'jar')
                             artifact tasks.jar1
                         }
                         java8 {
                             attributes.attribute(Attribute.of('javaVersion', String), '8')
                             attributes.attribute(Attribute.of('color', String), 'red')
+                            attributes.attribute(artifactType, 'jar')
                             artifact tasks.jar2
                         }
                     }
@@ -1094,6 +1107,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
     @Issue("https://github.com/gradle/gradle/issues/22735")
     @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform selection prioritizes shorter transforms over attribute schema matching"() {
+        // The request relies on the primary variant without artifacts being ignored
+        expectArtifactlessPrimaryVariantDeprecation("project ':lib'", "configuration ':lib:compile'")
 
         // The lib project defines two variants:
         // primary:
@@ -1385,6 +1400,8 @@ Found the following transformation chains:
     @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user receives reasonable error message when multiple variants can be transformed to produce requested variant"() {
         given:
+        // The request relies on the primary variant without artifacts being ignored
+        expectArtifactlessPrimaryVariantDeprecation("project ':lib'", "configuration ':lib:compile'")
         buildFile << """
             def buildType = Attribute.of("buildType", String)
             def flavor = Attribute.of("flavor", String)

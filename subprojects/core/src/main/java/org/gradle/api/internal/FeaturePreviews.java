@@ -65,8 +65,8 @@ public class FeaturePreviews {
 
         /**
          * When enabled, the primary variant of a configuration that declares no artifacts but has secondary
-         * variants is eligible for artifact selection, and is selected when it is the best match. Only the requested
-         * attributes decide whether it is a better match than a variant with artifacts.
+         * variants is eligible for artifact selection, like any other candidate, and is selected when it is the best match.
+         * Since it lacks the attributes of artifacts, such as {@code artifactType}, it wins ties decided by unrequested attributes.
          * Opts the build into the Gradle 11 behavior early.
          *
          * @see <a href="https://docs.gradle.org/nightly/userguide/upgrading_version_9.html#variants_with_no_artifacts">Upgrade Guide</a>

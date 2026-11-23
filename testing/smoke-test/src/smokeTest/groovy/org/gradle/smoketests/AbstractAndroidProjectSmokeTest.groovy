@@ -70,6 +70,7 @@ class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements Runne
             .deprecations(AndroidProjectDeprecations) {
                 expectProjectDependencyNotationDeprecation()
                 expectSetVisibleDeprecation()
+                expectNowInAndroidArtifactlessPrimaryVariantDeprecationsIf(true)
             }
             .build()
     }
@@ -79,13 +80,92 @@ class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements Runne
             .deprecations(AndroidProjectDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache())
                 expectSetVisibleDeprecationIf(GradleContextualExecuter.isNotConfigCache())
+                expectNowInAndroidArtifactlessPrimaryVariantDeprecationsIf(GradleContextualExecuter.isNotConfigCache())
             }
             .build()
     }
 
     static class AndroidProjectDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
+        private static final List<String> ALL_DEBUG_ELEMENTS = ['demoDebugApiElements', 'demoDebugRuntimeElements', 'prodDebugApiElements', 'prodDebugRuntimeElements']
+        private static final List<String> DEBUG_RUNTIME_ELEMENTS = ['demoDebugRuntimeElements', 'prodDebugRuntimeElements']
+
+        /**
+         * The configurations of each library project whose primary variant has no artifacts, and which AGP would select
+         * with the {@code CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS} feature preview.
+         */
+        private static final Map<String, List<String>> CONFIGURATIONS_WITHOUT_ARTIFACTS = [
+            ':core:analytics': ALL_DEBUG_ELEMENTS,
+            ':core:data': ALL_DEBUG_ELEMENTS,
+            ':core:database': ALL_DEBUG_ELEMENTS,
+            ':core:datastore': ALL_DEBUG_ELEMENTS,
+            ':core:designsystem': ALL_DEBUG_ELEMENTS,
+            ':core:domain': DEBUG_RUNTIME_ELEMENTS,
+            ':core:navigation': ALL_DEBUG_ELEMENTS,
+            ':core:network': ALL_DEBUG_ELEMENTS,
+            ':core:notifications': DEBUG_RUNTIME_ELEMENTS,
+            ':core:ui': ALL_DEBUG_ELEMENTS,
+            ':feature:bookmarks:api': ALL_DEBUG_ELEMENTS,
+            ':feature:bookmarks:impl': ALL_DEBUG_ELEMENTS,
+            ':feature:foryou:api': ALL_DEBUG_ELEMENTS,
+            ':feature:foryou:impl': ALL_DEBUG_ELEMENTS,
+            ':feature:interests:api': ALL_DEBUG_ELEMENTS,
+            ':feature:interests:impl': ALL_DEBUG_ELEMENTS,
+            ':feature:search:api': ALL_DEBUG_ELEMENTS,
+            ':feature:search:impl': ALL_DEBUG_ELEMENTS,
+            ':feature:settings:impl': ALL_DEBUG_ELEMENTS,
+            ':feature:topic:api': ALL_DEBUG_ELEMENTS,
+            ':feature:topic:impl': ALL_DEBUG_ELEMENTS,
+            ':sync:work': ALL_DEBUG_ELEMENTS,
+            ':ui-test-hilt-manifest': ALL_DEBUG_ELEMENTS
+        ]
+
+        private static final List<String> DEMO_DEBUG_ELEMENTS = ['demoDebugApiElements', 'demoDebugRuntimeElements']
+
+        /**
+         * The further demo configurations whose primary variant has no artifacts, and which linting the app would select
+         * with the {@code CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS} feature preview.
+         */
+        private static final Map<String, List<String>> CONFIGURATIONS_WITHOUT_ARTIFACTS_FOR_LINT = [
+            ':app': DEMO_DEBUG_ELEMENTS,
+            ':core:data-test': DEMO_DEBUG_ELEMENTS,
+            ':core:datastore-test': DEMO_DEBUG_ELEMENTS,
+            ':core:domain': ['demoDebugApiElements'],
+            ':core:notifications': ['demoDebugApiElements'],
+            ':core:screenshot-testing': DEMO_DEBUG_ELEMENTS,
+            ':core:testing': DEMO_DEBUG_ELEMENTS,
+            ':sync:sync-test': DEMO_DEBUG_ELEMENTS
+        ]
+
         AndroidProjectDeprecations(SmokeTestGradleRunner runner) {
             super(runner)
+        }
+
+        /**
+         * Expect the deprecations for the primary variants without artifacts that linting the app ignores.
+         * Linting only resolves the demo flavor, so it ignores the demo configurations that building ignores, and some more.
+         */
+        void expectNowInAndroidLintArtifactlessPrimaryVariantDeprecations() {
+            CONFIGURATIONS_WITHOUT_ARTIFACTS.each { project, configurations ->
+                def demoConfigurations = configurations.findAll { it.startsWith('demo') }
+                expectArtifactlessPrimaryVariantDeprecations(project, demoConfigurations)
+                expectArtifactlessPrimaryVariantDeprecations(project, demoConfigurations, ['org.gradle.libraryelements=jar'])
+            }
+            CONFIGURATIONS_WITHOUT_ARTIFACTS_FOR_LINT.each { project, configurations ->
+                expectArtifactlessPrimaryVariantDeprecations(project, configurations)
+            }
+        }
+
+        /**
+         * Expect the deprecations for the library projects' primary variants without artifacts that building the app ignores.
+         * Two requests ignore each of them: one that a single secondary variant matches, so the deprecation suggests an attribute, and one that it does not.
+         */
+        void expectNowInAndroidArtifactlessPrimaryVariantDeprecationsIf(boolean condition) {
+            if (condition) {
+                CONFIGURATIONS_WITHOUT_ARTIFACTS.each { project, configurations ->
+                    expectArtifactlessPrimaryVariantDeprecations(project, configurations)
+                    expectArtifactlessPrimaryVariantDeprecations(project, configurations, ['org.gradle.libraryelements=jar'])
+                }
+            }
         }
     }
 

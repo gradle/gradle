@@ -157,8 +157,9 @@ See the [`settingsEvaluated`](userguide/build_lifecycle.html#settings_evaluated)
 A consumable configuration can declare [secondary variants](userguide/variant_aware_resolution.html#sec:secondary-variants) while its primary variant has no artifacts.
 Before, Gradle silently dropped such a primary variant from artifact selection, even when it was the best match for the request, and selected a secondary variant instead.
 
-With the new `CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS` [feature preview](userguide/feature_lifecycle.html#feature_preview), Gradle selects such a primary variant when it is the best match, and the request resolves to no artifacts.
+With the new `CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS` [feature preview](userguide/feature_lifecycle.html#feature_preview), Gradle selects such a primary variant when it is the best match, the request resolves to no artifacts, and Gradle warns that the request is likely underspecified.
 This becomes the default behavior in Gradle 11.
+Without the feature preview, Gradle warns when it ignores such a primary variant that would have been selected.
 
 ```kotlin
 // settings.gradle.kts

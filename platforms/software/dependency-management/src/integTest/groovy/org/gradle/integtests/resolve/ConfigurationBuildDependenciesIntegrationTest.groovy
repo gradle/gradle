@@ -17,9 +17,10 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ArtifactlessPrimaryVariantFixture
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 
-class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactlessPrimaryVariantFixture {
     def setup() {
         settingsFile << "include 'child'"
         buildFile << """
@@ -299,12 +300,15 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         """
 
         expect:
+        // The request relies on the primary variant without artifacts being ignored
+        expectArtifactlessPrimaryVariantDeprecation("project ':child'", "configuration ':child:default'")
         executer.withArgument("--dry-run")
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("More than one variant of project ':child' matches the consumer attributes:")
 
+        expectArtifactlessPrimaryVariantDeprecation("project ':child'", "configuration ':child:default'")
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")

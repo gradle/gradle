@@ -103,6 +103,7 @@ class AndroidProjectLintSmokeTest extends AndroidProjectSmokeTest {
             .deprecations(AndroidProjectDeprecations) {
                 expectProjectDependencyNotationDeprecation()
                 expectSetVisibleDeprecation()
+                expectNowInAndroidLintArtifactlessPrimaryVariantDeprecations()
             }
             .build()
 

@@ -17,6 +17,7 @@
 package org.gradle.integtests.internal.component.resolution.failure
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ArtifactlessPrimaryVariantFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
@@ -49,7 +50,7 @@ import org.gradle.util.GradleVersion
  * <p>
  * These tests are ordered according to the different categories of {@link ResolutionFailure}.
  */
-class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
+class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec implements ArtifactlessPrimaryVariantFixture {
     // region Component Selection failures
     def "demonstrate conflicting version constraints failure"() {
         conflictingVersionConstraints.prepare()
@@ -462,6 +463,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "demonstrate ambiguous artifact variants exception"() {
+        // The request relies on the primary variant without artifacts being ignored
+        expectArtifactlessPrimaryVariantDeprecation("root project 'example'", "configuration ':default'")
         ambiguousArtifactVariants.prepare()
 
         expect:
@@ -482,6 +485,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem(0)) {
             fqid == 'Dependencies:Artifact Resolution:Multiple artifacts exist that would match the request'
             additionalData.asMap == [requestTarget: "root project 'example'"]
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == 'Gradle:Deprecation:Ignoring primary variants without artifacts'
         }
     }
     // endregion Artifact Selection failures
