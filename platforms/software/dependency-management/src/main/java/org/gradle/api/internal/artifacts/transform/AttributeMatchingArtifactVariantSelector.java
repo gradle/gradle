@@ -96,7 +96,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
             AttributeMatcher attributeMatcher = attributeSchemaServices.getMatcher(consumerSchema, producer.getProducerSchema());
             ImmutableAttributes targetAttributes = attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
 
-            MemoizingSelector selector = new MemoizingSelector(producer, requestAttributes, targetAttributes, attributeMatcher);
+            MemoizingSelector selector = new MemoizingSelector(producer, requestAttributes, targetAttributes, attributeMatcher, failureHandler, transformationChainSelector);
 
             // A configuration whose primary variant has no artifacts, but which declares secondary variants, keeps its
             // primary variant as a candidate, marked as previously unselectable. Prior to Gradle 9.10, such a variant was
@@ -108,7 +108,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
             }
 
             ResolvedVariant primary = primaryWithoutArtifacts.get();
-            MemoizingSelector selectorWithoutPrimary = new MemoizingSelector(excluding(producer, primary), requestAttributes, targetAttributes, attributeMatcher);
+            MemoizingSelector selectorWithoutPrimary = new MemoizingSelector(excluding(producer, primary), requestAttributes, targetAttributes, attributeMatcher, failureHandler, transformationChainSelector);
 
             if (artifactlessPrimaryVariantSelectionEnabled) {
                 // Select among all candidates, as will be the default starting with Gradle 11, when only this branch remains
@@ -309,11 +309,13 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
      *     its transformed artifacts, or {@code null} if there is no chain.</li>
      * </ul>
      */
-    private final class MemoizingSelector {
+    private static final class MemoizingSelector {
         private final ResolvedVariantSet variants;
         private final ImmutableAttributes requestAttributes;
         private final ImmutableAttributes targetAttributes;
         private final AttributeMatcher matcher;
+        private final ResolutionFailureHandler failureHandler;
+        private final TransformationChainSelector transformationChainSelector;
 
         @Nullable
         private List<ResolvedVariant> matches;
@@ -325,11 +327,20 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         @Nullable
         private RuntimeException transformationChainFailure;
 
-        MemoizingSelector(ResolvedVariantSet variants, ImmutableAttributes requestAttributes, ImmutableAttributes targetAttributes, AttributeMatcher matcher) {
+        MemoizingSelector(
+            ResolvedVariantSet variants,
+            ImmutableAttributes requestAttributes,
+            ImmutableAttributes targetAttributes,
+            AttributeMatcher matcher,
+            ResolutionFailureHandler failureHandler,
+            TransformationChainSelector transformationChainSelector
+        ) {
             this.variants = variants;
             this.requestAttributes = requestAttributes;
             this.targetAttributes = targetAttributes;
             this.matcher = matcher;
+            this.failureHandler = failureHandler;
+            this.transformationChainSelector = transformationChainSelector;
         }
 
         /**
