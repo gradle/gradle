@@ -136,6 +136,31 @@ class ArtifactlessPrimaryAttributeMatchingArtifactVariantSelectorSpec extends Sp
         [a: "1"] | [[a: "2", artifactType: "jar"]] | [a: "1", artifactType: "txt"] | "secondary0" | false   | true           | "primary" | true
     }
 
+    def "selects #expected for lenient request #requested from primary #primary and secondaries #secondaries with transformable #transformable (preview enabled: #previewEnabled, warns: #warns)"() {
+        given:
+        def producer = producerOf(primary, secondaries)
+        transforms.findCandidateTransformationChains(_, _) >> { List<ResolvedVariant> sources, ImmutableAttributes target ->
+            sources.findAll { it.asDescribable().displayName in transformable }.collect { new TransformedVariant(it, Stub(VariantDefinition) { getTargetAttributes() >> target }) }
+        }
+
+        when:
+        def result = selector(previewEnabled).select(producer, AttributeTestUtil.attributes(requested), true)
+
+        then:
+        describe(result) == expected
+        warned() == warns
+
+        where:
+        primary  | secondaries | requested | transformable | previewEnabled | expected              | warns
+        // Nothing else matches, so the result has no artifacts either way, and only selecting the primary variant warns
+        [a: "1"] | [[a: "2"]]  | [a: "1"]  | []            | false          | "empty"               | false
+        [a: "1"] | [[a: "2"]]  | [a: "1"]  | []            | true           | "primary"             | true
+        [a: "1"] | [[a: "2"]]  | [a: "3"]  | ["primary"]   | false          | "empty"               | false
+        [a: "1"] | [[a: "2"]]  | [a: "3"]  | ["primary"]   | true           | "transformed primary" | true
+        // Another variant matches, so ignoring the primary variant changes the result
+        [a: "1"] | [[a: "1"]]  | [a: "1"]  | []            | false          | "secondary0"          | true
+    }
+
     def "deciding whether to warn does not fail a selection that does not involve the primary variant (lenient: #lenient)"() {
         given:
         def producer = producerOf([a: "1"], [[a: "2"]])

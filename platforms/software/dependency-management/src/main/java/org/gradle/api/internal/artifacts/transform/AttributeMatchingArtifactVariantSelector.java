@@ -52,7 +52,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * A primary variant without artifacts whose configuration declares secondary variants is a candidate like any other, and is selected when it is the best match.
  * Prior to Gradle 11, selecting it requires the {@link FeaturePreviews.Feature#CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS} feature preview.
  * Without it, such a variant is not eligible for selection, and a deprecation warning is emitted when considering it would change the result:
- * when it, or a transformation of it, would be selected, or when it would make the match ambiguous.
+ * when it, or a transformation of it, would be selected, or when it would make the match ambiguous. A lenient request that resolves to no artifacts
+ * either way, since nothing else matches and the variant has no artifacts, emits none.
  * With it, selecting such a variant emits a warning, since the request is likely underspecified.
  * See {@link SelectionWarningHelper} for how often each is reported.
  * <p>
@@ -115,7 +116,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
                 return selector.select(allowNoMatchingVariants);
             } else {
                 // Select among the other variants, as prior to Gradle 9.10, so a failure lists only those
-                selectionWarningHelper.nagIfConsideringPrimaryChangesResult(selector, selectorWithoutPrimary, primary);
+                selectionWarningHelper.nagIfConsideringPrimaryChangesResult(selector, selectorWithoutPrimary, primary, allowNoMatchingVariants);
                 return selectorWithoutPrimary.select(allowNoMatchingVariants);
             }
         } catch (Exception t) {
@@ -199,15 +200,23 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         /**
          * Would selecting among all candidates select the primary variant without artifacts, or a transformation of it, or fail since it is part of an ambiguous match?
          * <p>
+         * Selecting it does not change the result of a lenient request that nothing else matches, since both resolve to no artifacts.
+         * <p>
          * Deciding evaluates the primary variant, which selecting prior to Gradle 9.10 never did. So a failure while deciding counts as not selecting it,
          * rather than failing a selection that would otherwise succeed.
          */
         private static boolean wouldConsideringPrimaryChangeResult(
             MemoizingSelector selector,
             MemoizingSelector selectorWithoutPrimary,
-            ResolvedVariant primaryWithoutArtifacts
+            ResolvedVariant primaryWithoutArtifacts,
+            boolean allowNoMatchingVariants
         ) {
             try {
+                if (allowNoMatchingVariants && wouldSelect(selector, primaryWithoutArtifacts) && selectsNothing(selectorWithoutPrimary)) {
+                    // A lenient request resolves to no artifacts either way: since nothing else matches, and starting with Gradle 11,
+                    // since the primary variant, or a transformation of it, has no artifacts
+                    return false;
+                }
                 List<ResolvedVariant> matches = selector.getMatches();
                 if (!matches.isEmpty()) {
                     return matches.contains(primaryWithoutArtifacts);
@@ -232,9 +241,10 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         void nagIfConsideringPrimaryChangesResult(
             MemoizingSelector selector,
             MemoizingSelector selectorWithoutPrimary,
-            ResolvedVariant primaryWithoutArtifacts
+            ResolvedVariant primaryWithoutArtifacts,
+            boolean allowNoMatchingVariants
         ) {
-            if (!wouldConsideringPrimaryChangeResult(selector, selectorWithoutPrimary, primaryWithoutArtifacts)) {
+            if (!wouldConsideringPrimaryChangeResult(selector, selectorWithoutPrimary, primaryWithoutArtifacts, allowNoMatchingVariants)) {
                 return;
             }
             String summary = "Selecting artifacts from " + selector.variants.asDescribable().getDisplayName() + " ignored variant '" + primaryWithoutArtifacts.asDescribable().getDisplayName() + "' because it has no artifacts.";
@@ -277,6 +287,19 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
                 }
                 TransformedVariant selectedTransformationChain = selector.getTransformationChain();
                 return selectedTransformationChain != null && selectedTransformationChain.getRoot() == variant;
+            } catch (RuntimeException e) {
+                return false;
+            }
+        }
+
+        /**
+         * Does the selector match nothing, either directly or through a chain of transformations?
+         * <p>
+         * A selection that fails, such as for ambiguous chains of transformations, does not select nothing.
+         */
+        private static boolean selectsNothing(MemoizingSelector selector) {
+            try {
+                return selector.getMatches().isEmpty() && selector.getTransformationChain() == null;
             } catch (RuntimeException e) {
                 return false;
             }

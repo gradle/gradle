@@ -217,6 +217,7 @@ Without the feature preview, the primary variant is not eligible, even when it i
 Starting with Gradle 11, the primary variant is always eligible and the feature preview is removed.
 
 Without the feature preview, Gradle emits a deprecation warning when the primary variant, or a transformation of it, would have been selected, or would have been part of an ambiguous match.
+An artifact view that requests its own attributes, and that only the primary variant matches, resolves to no artifacts as before, and emits no deprecation warning, since it also resolves to no artifacts starting with Gradle 11.
 Each distinct message is reported once per resolution of a configuration:
 
 [source,text]
@@ -235,8 +236,6 @@ If no variant carries the attributes the request needs, expose one, or add artif
 This change has the following visible effects:
 
 * With the feature preview enabled, the `dependencyInsight` report lists the primary variant among the available variants.
-* An artifact view that requests its own attributes resolves to no artifacts, rather than failing, when no variant matches.
-Such a view that only the primary variant matches also emits the warning, although it resolves to no artifacts either way.
 * With the feature preview enabled, a build can succeed while resolving no artifacts where it previously resolved the secondary variant's artifacts.
 For example, an Android application can be packaged without the classes of a library it depends on.
 Check the outputs of your build after enabling the feature preview, not only whether it succeeds.

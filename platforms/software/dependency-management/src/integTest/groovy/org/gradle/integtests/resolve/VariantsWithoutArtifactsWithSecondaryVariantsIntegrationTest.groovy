@@ -284,6 +284,36 @@ final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends
         failure.assertNotOutput("Configuration ':consumableConfiguration' declares")
     }
 
+    def "primary variant without artifacts is still ignored when resolved through an edge whose exclusions may exclude artifacts"() {
+        given:
+        // An Ivy exclude that names an artifact may exclude artifacts, so the producer's variants are wrapped to apply it
+        ivyRepo.module("org", "wrapper", "1.0")
+            .dependsOn("org", "producer", "1.0")
+            .exclude(organisation: "org", module: "producer", artifact: "no-such-artifact")
+            .publish()
+        buildKotlinFile << """
+            repositories {
+                ivy { url = uri("${ivyRepo.uri}") }
+            }
+            dependencyScope.get().dependencies.clear()
+            dependencies {
+                dependencyScope("org:wrapper:1.0")
+            }
+            configurations.all {
+                resolutionStrategy.dependencySubstitution {
+                    substitute(module("org:producer")).using(project(":"))
+                }
+            }
+        """
+        // Applying the exclusions wraps the variant, which adds them to its display name
+        def excludingPrimaryVariant = PRIMARY_VARIANT + ' { "exclude-rule" : { "moduleId": "org:producer", "artifact" : "no-such-artifact.*", "matcher": "exactOrRegexp"} }'
+        expectArtifactlessPrimaryVariantDeprecation(PRODUCER, excludingPrimaryVariant, ["artifactType=jar"])
+
+        expect:
+        succeeds("resolve", "-PregisterSecondaryVariant=true", "-PregisterSecondaryArtifact=true", "-PsecondaryValue=value1")
+        outputContains("my-secondary-artifact.jar")
+    }
+
     def "primary variant without artifacts is selected when no other variant matches"() {
         given:
         considerArtifactlessPrimaryVariants()
@@ -302,12 +332,10 @@ final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends
         failure.assertHasCause("No variants of root project 'test' match the consumer attributes")
     }
 
-    def "lenient artifact view resolves to no artifacts when only primary variant without artifacts matches (preview enabled: #previewEnabled)"() {
+    def "lenient artifact view resolves to no artifacts without a deprecation warning when only primary variant without artifacts matches (preview enabled: #previewEnabled)"() {
         given:
+        // The result has no artifacts either way, so ignoring the primary variant does not change it
         considerArtifactlessPrimaryVariants(previewEnabled)
-        if (!previewEnabled) {
-            expectArtifactlessPrimaryVariantDeprecation(PRODUCER, PRIMARY_VARIANT)
-        }
         buildKotlinFile << """
             tasks.register("resolveView") {
                 inputs.files(resolvableConfiguration.get().incoming.artifactView {
@@ -324,6 +352,9 @@ final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends
         expect:
         succeeds("resolveView", "-PregisterSecondaryVariant=true")
         assertResolved([])
+        if (previewEnabled) {
+            assertArtifactlessPrimaryVariantSelectedWarning()
+        }
 
         where:
         previewEnabled << [false, true]
