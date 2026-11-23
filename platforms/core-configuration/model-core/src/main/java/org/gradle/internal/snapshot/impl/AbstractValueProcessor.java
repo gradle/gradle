@@ -19,6 +19,7 @@ package org.gradle.internal.snapshot.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
@@ -34,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -47,7 +49,25 @@ abstract class AbstractValueProcessor {
         this.valueSnapshotterSerializerRegistryList = valueSnapshotterSerializerRegistryList;
     }
 
+    /**
+     * Maximum number of managed beans that may be nested on the current path while
+     * isolating or snapshotting a value. A {@code @Nested} getter that forms a type
+     * cycle supplies a fresh instance at every level, so an identity-based guard
+     * cannot close the cycle; the only signal is depth. Measured against this
+     * processor, an unguarded cycle overflows the stack at roughly 1100 nested
+     * bean levels on a default stack (about 180 on a 256k stack), while real
+     * managed graphs nest a handful of levels, so 100 sits far above realistic
+     * nesting and far below stack exhaustion. A finite graph deeper than this is
+     * reported the same way as a cycle; that is the known tradeoff of a depth
+     * bound, and it only bites past 100 levels.
+     */
+    private static final int MAX_NESTED_BEAN_DEPTH = 100;
+
     protected <T> T processValue(@Nullable Object value, ValueVisitor<T> visitor) {
+        return processValue(value, visitor, new ArrayList<>());
+    }
+
+    private <T> T processValue(@Nullable Object value, ValueVisitor<T> visitor, List<Class<?>> managedTypesOnPath) {
         if (value == null) {
             return visitor.nullValue();
         }
@@ -58,7 +78,7 @@ abstract class AbstractValueProcessor {
             return visitor.booleanValue((Boolean) value);
         }
         if (value instanceof List) {
-            return processList((List<?>) value, visitor);
+            return processList((List<?>) value, visitor, managedTypesOnPath);
         }
         if (value instanceof Enum) {
             return visitor.enumValue((Enum<?>) value);
@@ -83,19 +103,19 @@ abstract class AbstractValueProcessor {
             }
         }
         if (value instanceof Set) {
-            return processSet((Set<?>) value, visitor);
+            return processSet((Set<?>) value, visitor, managedTypesOnPath);
         }
         if (value instanceof Map) {
-            return processMap((Map<?, ?>) value, visitor);
+            return processMap((Map<?, ?>) value, visitor, managedTypesOnPath);
         }
         if (valueClass.isArray()) {
-            return processArray(value, visitor);
+            return processArray(value, visitor, managedTypesOnPath);
         }
         if (value instanceof Attribute) {
             return visitor.attributeValue((Attribute<?>) value);
         }
         if (value instanceof Managed) {
-            return processManaged((Managed) value, visitor);
+            return processManaged((Managed) value, visitor, managedTypesOnPath);
         }
         if (value instanceof Isolatable) {
             return visitor.fromIsolatable((Isolatable<?>) value);
@@ -119,20 +139,90 @@ abstract class AbstractValueProcessor {
         return javaSerialization(value, visitor);
     }
 
-    private <T> T processManaged(Managed managed, ValueVisitor<T> visitor) {
+    private <T> T processManaged(Managed managed, ValueVisitor<T> visitor, List<Class<?>> managedTypesOnPath) {
         if (managed.isImmutable()) {
             return visitor.managedImmutableValue(managed);
-        } else {
-            // May (or may not) be mutable - unpack the state
-            T state = processValue(managed.unpackState(), visitor);
-            return visitor.managedValue(managed, state);
         }
+        Object state = managed.unpackState();
+        if (state instanceof Object[] && !(managed instanceof Provider)) {
+            // A generated managed type: its state is the array of its property values.
+            // A `@Nested` getter that refers back to a type already on the path can never
+            // terminate, as each level supplies a fresh instance of the same type, so an
+            // identity-based guard cannot close the cycle. A type-based guard cannot
+            // close it either: it would also reject finite graphs in which a type
+            // legitimately repeats, such as a chain or tree of the same type. The
+            // only signal that separates a cycle from a finite graph is depth, so
+            // the recursion is bounded instead: when the bound is reached the
+            // failure names the types involved, instead of recursing until the
+            // stack is exhausted.
+            // Providers are excluded: their state is a single value, not a bean's properties,
+            // and every property reports the same public type, which would flag ordinary
+            // nesting such as a bean held in a `Property` of a bean that has properties.
+            Class<?> publicType = managed.publicType();
+            if (managedTypesOnPath.size() >= MAX_NESTED_BEAN_DEPTH) {
+                throw new IllegalStateException(nestedCycleMessage(publicType, managedTypesOnPath));
+            }
+            managedTypesOnPath.add(publicType);
+            try {
+                T processedState = processValue(state, visitor, managedTypesOnPath);
+                return visitor.managedValue(managed, processedState);
+            } finally {
+                managedTypesOnPath.remove(managedTypesOnPath.size() - 1);
+            }
+        }
+        // May (or may not) be mutable - unpack the state
+        T stateValue = processValue(state, visitor, managedTypesOnPath);
+        return visitor.managedValue(managed, stateValue);
     }
 
-    private <T> T processMap(Map<?, ?> map, ValueVisitor<T> visitor) {
+    private static String nestedCycleMessage(Class<?> publicType, List<Class<?>> managedTypesOnPath) {
+        List<Class<?>> path = new ArrayList<>(managedTypesOnPath);
+        path.add(publicType);
+        // A type that repeats on the path names the cycle: render it from its first
+        // occurrence to its second. A true cycle always repeats, so this is the
+        // diagnosis a cyclic graph gets. A finite graph deeper than the bound
+        // repeats a type too and is reported the same way; see MAX_NESTED_BEAN_DEPTH.
+        for (int i = 0; i < path.size(); i++) {
+            for (int j = i + 1; j < path.size(); j++) {
+                if (path.get(i) == path.get(j)) {
+                    return cycleMessage(path, i, j);
+                }
+            }
+        }
+        // No type repeats: a chain of distinct types deeper than the bound.
+        // That is not a cycle, so say so instead of claiming one.
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("Nesting of managed beans is limited to ");
+        formatter.append(String.valueOf(MAX_NESTED_BEAN_DEPTH));
+        formatter.append(" levels, but the value reaches ");
+        formatter.append(String.valueOf(path.size()));
+        formatter.append(" levels at type ");
+        formatter.appendType(publicType);
+        formatter.append(".");
+        return formatter.toString();
+    }
+
+    private static String cycleMessage(List<Class<?>> path, int firstOccurrence, int secondOccurrence) {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("Cycles between nested beans are not allowed. Cycle detected: ");
+        for (int i = firstOccurrence; i <= secondOccurrence; i++) {
+            if (i > firstOccurrence) {
+                formatter.append(" -> ");
+            }
+            formatter.append("'");
+            formatter.appendType(path.get(i));
+            formatter.append("'");
+        }
+        formatter.append(".");
+        return formatter.toString();
+    }
+
+    private <T> T processMap(Map<?, ?> map, ValueVisitor<T> visitor, List<Class<?>> managedTypesOnPath) {
         ImmutableList.Builder<MapEntrySnapshot<T>> builder = ImmutableList.builderWithExpectedSize(map.size());
         for (Map.Entry<?, ?> entry : map.entrySet()) {
-            builder.add(new MapEntrySnapshot<>(processValue(entry.getKey(), visitor), processValue(entry.getValue(), visitor)));
+            T key = processValue(entry.getKey(), visitor, managedTypesOnPath);
+            T entryValue = processValue(entry.getValue(), visitor, managedTypesOnPath);
+            builder.add(new MapEntrySnapshot<>(key, entryValue));
         }
         if (map instanceof Properties) {
             return visitor.properties(builder.build());
@@ -141,30 +231,30 @@ abstract class AbstractValueProcessor {
         }
     }
 
-    private <T> T processSet(Set<?> set, ValueVisitor<T> visitor) {
+    private <T> T processSet(Set<?> set, ValueVisitor<T> visitor, List<Class<?>> managedTypesOnPath) {
         ImmutableSet.Builder<T> builder = ImmutableSet.builderWithExpectedSize(set.size());
         for (Object element : set) {
-            builder.add(processValue(element, visitor));
+            builder.add(processValue(element, visitor, managedTypesOnPath));
         }
         return visitor.set(builder.build());
     }
 
-    private <T> T processList(List<?> value, ValueVisitor<T> visitor) {
+    private <T> T processList(List<?> value, ValueVisitor<T> visitor, List<Class<?>> managedTypesOnPath) {
         if (value.isEmpty()) {
             return visitor.emptyList();
         }
-        return visitor.list(processListElements(value, visitor));
+        return visitor.list(processListElements(value, visitor, managedTypesOnPath));
     }
 
-    private <T> ImmutableList<T> processListElements(List<?> list, ValueVisitor<T> visitor) {
+    private <T> ImmutableList<T> processListElements(List<?> list, ValueVisitor<T> visitor, List<Class<?>> managedTypesOnPath) {
         ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(list.size());
         for (Object element : list) {
-            builder.add(processValue(element, visitor));
+            builder.add(processValue(element, visitor, managedTypesOnPath));
         }
         return builder.build();
     }
 
-    private <T> T processArray(Object value, ValueVisitor<T> visitor) {
+    private <T> T processArray(Object value, ValueVisitor<T> visitor, List<Class<?>> managedTypesOnPath) {
         Class<?> componentType = value.getClass().getComponentType();
         int length = Array.getLength(value);
         if (length == 0) {
@@ -173,14 +263,15 @@ abstract class AbstractValueProcessor {
         if (componentType.isPrimitive()) {
             return visitor.primitiveArray(value);
         }
-        return visitor.array(processArrayElements(value, length, visitor), componentType);
+        return visitor.array(processArrayElements(value, length, visitor, managedTypesOnPath), componentType);
     }
 
-    private <T> ImmutableList<T> processArrayElements(Object array, int length, ValueVisitor<T> visitor) {
+    private <T> ImmutableList<T> processArrayElements(Object array, int length, ValueVisitor<T> visitor,
+                                                       List<Class<?>> managedTypesOnPath) {
         ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(length);
         for (int i = 0; i < length; i++) {
             Object element = Array.get(array, i);
-            builder.add(processValue(element, visitor));
+            builder.add(processValue(element, visitor, managedTypesOnPath));
         }
         return builder.build();
     }
