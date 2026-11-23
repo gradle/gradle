@@ -32,7 +32,6 @@ import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuil
 import org.gradle.operations.execution.ExecuteDeferredWorkProgressDetails
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
