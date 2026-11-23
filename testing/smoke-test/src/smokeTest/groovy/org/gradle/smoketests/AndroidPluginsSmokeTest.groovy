@@ -176,7 +176,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         def result = agpRunner(agpVersion, 'assembleDebug')
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
-                expectSetVisibleDeprecationIf(!AGP_VERSIONS.isAgpNightly(agpVersion))
+                expectSetVisibleDeprecationIf(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.6.0"))
             }
             .build()
 
