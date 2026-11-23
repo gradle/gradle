@@ -67,7 +67,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
                 }
 
                 @Override
-                public BridgeMethodBuilder findBridgeMethodBuilder(String className, int tag, String owner, String name, String descriptor) {
+                public @Nullable BridgeMethodBuilder findBridgeMethodBuilder(String className, int tag, String owner, String name, String descriptor) {
                     if (metadata.isInstanceOf(owner, "org/gradle/api/Rule")) {
                         if (name.equals("getDescription") && descriptor.equals("()Ljava/lang/String;") && (tag == Opcodes.H_INVOKEVIRTUAL || tag == Opcodes.H_INVOKEINTERFACE)) {
                             DefaultBridgeMethodBuilder builder = DefaultBridgeMethodBuilder.create(
@@ -224,7 +224,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
                 }
 
                 @Override
-                public BridgeMethodBuilder findBridgeMethodBuilder(String className, int tag, String owner, String name, String descriptor) {
+                public @Nullable BridgeMethodBuilder findBridgeMethodBuilder(String className, int tag, String owner, String name, String descriptor) {
                     if (owner.equals("java/io/File")) {
                         if (name.equals("listFiles") && descriptor.equals("()[Ljava/io/File;") && (tag == Opcodes.H_INVOKEVIRTUAL || tag == Opcodes.H_INVOKEINTERFACE)) {
                             DefaultBridgeMethodBuilder builder = DefaultBridgeMethodBuilder.create(
@@ -302,7 +302,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
                 }
 
                 @Override
-                public BridgeMethodBuilder findBridgeMethodBuilder(String className, int tag, String owner, String name, String descriptor) {
+                public @Nullable BridgeMethodBuilder findBridgeMethodBuilder(String className, int tag, String owner, String name, String descriptor) {
                     if (owner.equals("java/io/File")) {
                         if (name.equals("exists") && descriptor.equals("()Z") && (tag == Opcodes.H_INVOKEVIRTUAL || tag == Opcodes.H_INVOKEINTERFACE)) {
                             DefaultBridgeMethodBuilder builder = DefaultBridgeMethodBuilder.create(

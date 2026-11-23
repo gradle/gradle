@@ -96,6 +96,119 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
             .containsElementsIn(expectedGeneratedClass)
     }
 
+    def "should keep nullability of custom adapter methods in bridge class"() {
+        given:
+        def givenSource = source """
+            package org.gradle.test;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+            import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+            import org.jspecify.annotations.Nullable;
+
+            public abstract class Task {
+                @ReplacesEagerProperty(adapter = Task.DestinationAdapter.class)
+                public abstract Property<String> getDestination();
+
+                static class DestinationAdapter {
+                    @BytecodeUpgrade
+                    static @Nullable String getDestination(Task task) {
+                        return null;
+                    }
+
+                    @BytecodeUpgrade
+                    static void setDestination(Task task, @Nullable String destination) {
+                    }
+                }
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        def expectedGeneratedClass = source """
+             package org.gradle.test;
+             import org.gradle.api.Generated;
+             import org.jspecify.annotations.Nullable;
+
+             @Generated
+             @SuppressWarnings("deprecation")
+             public final class \$\$BridgeFor\$\$Task\$\$DestinationAdapter {
+                 public static @Nullable String access_get_getDestination(Task task) {
+                     ${getDefaultPropertyUpgradeDeprecation("Task", "destination")}
+                     return Task.DestinationAdapter.getDestination(task);
+                 }
+                 public static void access_set_setDestination(Task task, @Nullable String destination) {
+                     ${getDefaultPropertyUpgradeDeprecation("Task", "destination")}
+                     Task.DestinationAdapter.setDestination(task, destination);
+                 }
+             }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(expectedGeneratedClass))
+            .containsElementsIn(expectedGeneratedClass)
+    }
+
+    def "should keep nullability of nested types of custom adapter methods in bridge class"() {
+        given:
+        def givenSource = source """
+            package org.gradle.test;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+            import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+            import org.jspecify.annotations.Nullable;
+
+            public abstract class Task {
+                @ReplacesEagerProperty(adapter = Task.OptionsAdapter.class)
+                public abstract Property<Options> getOptions();
+
+                public interface Options {
+                }
+
+                static class OptionsAdapter {
+                    @BytecodeUpgrade
+                    static Task.@Nullable Options getOptions(Task task) {
+                        return null;
+                    }
+
+                    @BytecodeUpgrade
+                    static void setOptions(Task task, Task.@Nullable Options options) {
+                    }
+                }
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        def expectedGeneratedClass = source """
+             package org.gradle.test;
+             import org.gradle.api.Generated;
+             import org.jspecify.annotations.Nullable;
+
+             @Generated
+             @SuppressWarnings("deprecation")
+             public final class \$\$BridgeFor\$\$Task\$\$OptionsAdapter {
+                 public static Task.@Nullable Options access_get_getOptions(Task task) {
+                     ${getDefaultPropertyUpgradeDeprecation("Task", "options")}
+                     return Task.OptionsAdapter.getOptions(task);
+                 }
+                 public static void access_set_setOptions(Task task, Task.@Nullable Options options) {
+                     ${getDefaultPropertyUpgradeDeprecation("Task", "options")}
+                     Task.OptionsAdapter.setOptions(task, options);
+                 }
+             }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(expectedGeneratedClass))
+            .containsElementsIn(expectedGeneratedClass)
+    }
+
     def "should generate interceptor for custom adapter"() {
         given:
         def givenSource = source """
@@ -167,6 +280,7 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
                         }
                     }
                     return false;
+                }
             }
         """
         // Just make sure that the groovy interceptors are generated

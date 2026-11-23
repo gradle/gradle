@@ -16,11 +16,13 @@
 
 package org.gradle.internal.instrumentation.processor.codegen;
 
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import org.gradle.internal.instrumentation.util.NameUtil;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.Type;
 
 import java.util.Collections;
@@ -29,6 +31,8 @@ import java.util.Map;
 import java.util.Optional;
 
 public class TypeUtils {
+
+    private static final AnnotationSpec NULLABLE = AnnotationSpec.builder(Nullable.class).build();
 
     private static final Map<Type, String> PRIMITIVE_TYPES_DEFAULT_VALUES_AS_STRING;
     static {
@@ -83,6 +87,23 @@ public class TypeUtils {
             return ArrayTypeName.of(typeName(type.getElementType()));
         }
         return className(type);
+    }
+
+    /**
+     * Returns the given type annotated with JSpecify's {@link Nullable}.
+     * The annotation is emitted in the type-use position, e.g. {@code Outer.@Nullable Inner}.
+     */
+    public static TypeName nullable(TypeName type) {
+        return type.annotated(NULLABLE);
+    }
+
+    /**
+     * Returns the given class as a type annotated with JSpecify's {@link Nullable}.
+     *
+     * @see #nullable(TypeName)
+     */
+    public static TypeName nullable(Class<?> type) {
+        return nullable(ClassName.get(type));
     }
 
     public static Optional<TypeName> getTypeParameter(TypeName typeName, int index) {

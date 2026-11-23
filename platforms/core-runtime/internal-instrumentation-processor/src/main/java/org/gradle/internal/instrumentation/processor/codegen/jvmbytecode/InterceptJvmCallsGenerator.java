@@ -63,6 +63,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.GENERATED_ANNOTATION;
+import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.nullable;
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 
 import static java.util.Objects.requireNonNull;
@@ -280,7 +281,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         return MethodSpec.methodBuilder("findBridgeMethodBuilder")
             .addAnnotation(Override.class)
             .addModifiers(Modifier.PUBLIC)
-            .returns(BridgeMethodBuilder.class)
+            .returns(nullable(BridgeMethodBuilder.class))
             .addParameter(String.class, "className")
             .addParameter(int.class, "tag")
             .addParameter(String.class, "owner")
