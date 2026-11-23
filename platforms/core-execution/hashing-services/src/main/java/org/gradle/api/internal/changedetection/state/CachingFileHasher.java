@@ -29,6 +29,7 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.InterningStringSerializer;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
@@ -138,7 +139,7 @@ public class CachingFileHasher implements FileHasher {
         }
 
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(@Nullable Object obj) {
             if (!super.equals(obj)) {
                 return false;
             }

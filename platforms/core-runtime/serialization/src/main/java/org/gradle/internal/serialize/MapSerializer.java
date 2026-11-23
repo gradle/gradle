@@ -16,6 +16,7 @@
 package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
+import org.jspecify.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -51,7 +52,7 @@ public class MapSerializer<U, V> extends AbstractSerializer<Map<U, V>> {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
         if (!super.equals(obj)) {
             return false;
         }
