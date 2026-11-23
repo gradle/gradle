@@ -77,16 +77,18 @@ class ArtifactTransformContinuousBuildIntegrationTest extends AbstractContinuous
             }
         """)
 
-        def producerInputFile = file("producer/input/input.txt")
-        producerInputFile.text = "input"
+        // The consumer resolves, so its registration (and its input file) is the one used
+        def inputFile = file("consumer/input/input.txt")
+        inputFile.text = "input"
 
         when:
         run ":consumer:resolve"
         then:
         executedAndNotSkipped(":consumer:resolve")
+        outputContains("Transforming producer.jar")
 
         when:
-        producerInputFile.text = "changed"
+        inputFile.text = "changed"
         then:
         // TODO: A build should be triggered, though it isn't since currently combine the secondary inputs into one hash
         //   buildTriggeredAndSucceeded()
