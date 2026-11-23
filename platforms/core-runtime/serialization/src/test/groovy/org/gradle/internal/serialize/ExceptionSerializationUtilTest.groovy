@@ -150,6 +150,16 @@ class ExceptionSerializationUtilTest extends Specification {
         'next'     | 2
     }
 
+    def "extracts causes from the causes collection of an external multi-cause exception"() {
+        given:
+        def standardCause = new IllegalStateException('actual cause')
+        def discoveredCauses = [new IllegalArgumentException('discovered cause 1'), new UnsupportedOperationException('discovered cause 2')]
+        def exception = new ExternalMultiCauseException(discoveredCauses, standardCause)
+
+        expect:
+        ExceptionSerializationUtil.extractCauses(exception) == discoveredCauses
+    }
+
     static class ExternalMultiCauseException extends RuntimeException {
         private final Collection<? extends Throwable> causes
 

@@ -237,8 +237,14 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec implem
         fails 'reproduce'
 
         then:
-        failureCauseContains('Intentional task failure')
         failure.assertHasFailures(1)
+        failure.assertHasFailure("Execution failed for task ':reproduce' (registered in build file 'build.gradle').") {
+            it.assertHasCauses(1)
+            it.assertHasCause('Intentional task failure')
+        }
+        // Without the fix, serializing the failure for the client adds a second failure and breaks the daemon connection
+        failure.assertNotOutput('MissingSignatureType')
+        failure.assertNotOutput('Could not receive a message from the daemon')
     }
 
     @Issue("https://github.com/gradle/gradle/issues/34280")
@@ -309,8 +315,15 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec implem
         fails 'reproduce'
 
         then:
-        failureCauseContains('Intentional worker failure')
         failure.assertHasFailures(1)
+        failure.assertHasFailure("Execution failed for task ':reproduce' (registered in build file 'build.gradle').") {
+            it.assertHasCauses(2)
+            it.assertHasFirstCause('A failure occurred while executing repro.FailingWork')
+            it.assertHasCause('Intentional worker failure')
+        }
+        // Without the fix, serializing the failure for the client adds a second failure and breaks the daemon connection
+        failure.assertNotOutput('MissingSignatureType')
+        failure.assertNotOutput('Could not receive a message from the daemon')
 
         where:
         isolationMode << ['classLoaderIsolation', 'processIsolation']
