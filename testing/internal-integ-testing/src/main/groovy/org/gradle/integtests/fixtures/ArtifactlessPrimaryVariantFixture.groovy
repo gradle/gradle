@@ -48,10 +48,10 @@ trait ArtifactlessPrimaryVariantFixture {
      */
     void expectArtifactlessPrimaryVariantDeprecation(String producer, String variant, List<String> attributesNotOnPrimary = []) {
         def moreAttributesInRequest = attributesNotOnPrimary.empty
-            ? "Add attributes to the request so that it only matches the intended variant"
-            : "Add one of these attributes to the request to make it more precise: ${attributesNotOnPrimary.join(', ')}"
-        def advice = "${moreAttributesInRequest}; or add attributes to variant '${variant}' so that it is no longer the best match; " +
-            "or enable the 'CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS' feature preview to opt into the new behavior."
+            ? "Request attributes that only the intended variant matches"
+            : "Request one of these attributes: ${attributesNotOnPrimary.join(', ')}"
+        def advice = "${moreAttributesInRequest}; add attributes to that variant so that it no longer matches; " +
+            "or enable the 'CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS' feature preview."
         executer.expectDocumentedDeprecationWarning(
             "Selecting artifacts from ${producer} ignored variant '${variant}' because it has no artifacts. " +
                 "This behavior has been deprecated. " +

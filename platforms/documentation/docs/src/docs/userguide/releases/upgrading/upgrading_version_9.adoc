@@ -221,7 +221,7 @@ Each distinct message is reported once per resolution of a configuration:
 
 [source,text]
 ----
-Selecting artifacts from project ':lib' ignored variant 'configuration ':lib:runtimeElements'' because it has no artifacts. This behavior has been deprecated. Starting with Gradle 11, primary variants without artifacts will be selected when they are the best match. Add one of these attributes to the request to make it more precise: org.gradle.libraryelements=jar; or add attributes to variant 'configuration ':lib:runtimeElements'' so that it is no longer the best match; or enable the 'CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS' feature preview to opt into the new behavior.
+Selecting artifacts from project ':lib' ignored variant 'configuration ':lib:runtimeElements'' because it has no artifacts. This behavior has been deprecated. Starting with Gradle 11, primary variants without artifacts will be selected when they are the best match. Request one of these attributes: org.gradle.libraryelements=jar; add attributes to that variant so that it no longer matches; or enable the 'CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS' feature preview.
 ----
 
 The warning means the request is underspecified: either it matches the primary variant better than the intended secondary variant, or no secondary variant matches it at all.

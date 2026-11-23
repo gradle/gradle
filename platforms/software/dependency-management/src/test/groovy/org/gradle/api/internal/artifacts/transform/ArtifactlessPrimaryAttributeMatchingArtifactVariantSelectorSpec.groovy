@@ -170,12 +170,14 @@ class ArtifactlessPrimaryAttributeMatchingArtifactVariantSelectorSpec extends Sp
         then:
         describe(result) == expected
         def warning = outputEventListener.events.find { it.logLevel == LogLevel.WARN }.toString()
-        warning.contains("Add one of these attributes to the request to make it more precise: ")
+        warning.contains("Request one of these attributes: ")
         warning.contains("b=y")
         warning.contains("artifactType=jar")
         !warning.contains("a=1")
         !warning.contains("c=z")
-        warning.contains("; or add attributes to variant 'primary' so that it is no longer the best match")
+        warning.contains(previewEnabled
+            ? "; or add attributes to that variant so that it no longer matches."
+            : "; add attributes to that variant so that it no longer matches; or enable the 'CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS' feature preview.")
         warning.contains("CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS") == !previewEnabled
 
         where:
@@ -193,8 +195,8 @@ class ArtifactlessPrimaryAttributeMatchingArtifactVariantSelectorSpec extends Sp
 
         then:
         def warning = outputEventListener.events.find { it.logLevel == LogLevel.WARN }.toString()
-        warning.contains("Add attributes to the request so that it only matches the intended variant; ")
-        !warning.contains("Add one of these attributes")
+        warning.contains("Request attributes that only the intended variant matches; ")
+        !warning.contains("Request one of these attributes")
 
         where:
         previewEnabled << [false, true]

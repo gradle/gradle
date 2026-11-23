@@ -127,6 +127,8 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
      * Returns the primary variant without artifacts among the producer's candidates, or {@code null} if there is none.
      * <p>
      * This runs for every selection from every producer, most of which have no such variant, so it loops rather than streams to avoid allocating.
+     * <p>
+     * This method is meant to be removed entirely in Gradle 11
      */
     @Nullable
     private static ResolvedVariant findPrimaryWithoutArtifacts(ResolvedVariantSet producer) {
@@ -140,6 +142,8 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
 
     /**
      * Returns the given variants without the given variant.
+     * <p>
+     * This method, and the {@link ResolvedVariantSet#subset(ImmutableList)} method it calls, are meant to be removed entirely in Gradle 11
      */
     private static ResolvedVariantSet excluding(ResolvedVariantSet variants, ResolvedVariant variant) {
         ImmutableList<ResolvedVariant> others = variants.getCandidates().stream()
@@ -166,6 +170,11 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
      * selects a primary variant without artifacts.
      */
     private static final class SelectionWarningHelper {
+        /**
+         * The advice to make the primary variant without artifacts incompatible with the request, which follows the summary that names it.
+         */
+        private static final String VARIANT_ADVICE = "add attributes to that variant so that it no longer matches";
+
         private final Set<String> reported = ConcurrentHashMap.newKeySet();
 
         /**
@@ -183,7 +192,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
             String summary = "Selecting artifacts from " + selector.variants.asDescribable().getDisplayName() + " selected variant '" + primaryWithoutArtifacts.asDescribable().getDisplayName() + "', which has no artifacts.";
             // The advice requires a selection among the other variants that selecting did not need, so it is only computed for a new warning
             if (reported.add(summary)) {
-                LOGGER.warn("{} {}.", summary, adviceForSelectedPrimary(selectorWithoutPrimary, primaryWithoutArtifacts));
+                LOGGER.warn("{} {}; or {}.", summary, requestAdvice(selectorWithoutPrimary, primaryWithoutArtifacts), VARIANT_ADVICE);
             }
         }
 
@@ -229,8 +238,8 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
                 return;
             }
             String summary = "Selecting artifacts from " + selector.variants.asDescribable().getDisplayName() + " ignored variant '" + primaryWithoutArtifacts.asDescribable().getDisplayName() + "' because it has no artifacts.";
-            String advice = adviceForSelectedPrimary(selectorWithoutPrimary, primaryWithoutArtifacts) + "; or enable the '" +
-                FeaturePreviews.Feature.CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS.name() + "' feature preview to opt into the new behavior.";
+            String advice = requestAdvice(selectorWithoutPrimary, primaryWithoutArtifacts) + "; " + VARIANT_ADVICE + "; or enable the '" +
+                FeaturePreviews.Feature.CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS.name() + "' feature preview.";
             if (reported.add(summary + " " + advice)) {
                 DeprecationLogger.deprecateBehaviour(summary)
                     .withProblemName("Ignoring primary variants without artifacts")
@@ -242,14 +251,14 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         }
 
         /**
-         * Returns the two ways to keep the primary variant without artifacts from being the best match: requesting an attribute it lacks, or adding attributes to it.
+         * Returns the advice to make the request more precise, so that the primary variant without artifacts is no longer the best match,
+         * listing the attributes to request when a single other variant would be selected.
          */
-        private static String adviceForSelectedPrimary(MemoizingSelector selectorWithoutPrimary, ResolvedVariant primaryWithoutArtifacts) {
+        private static String requestAdvice(MemoizingSelector selectorWithoutPrimary, ResolvedVariant primaryWithoutArtifacts) {
             Set<String> attributesNotOnPrimary = attributesNotOnPrimary(selectorWithoutPrimary, primaryWithoutArtifacts);
-            String moreAttributesInRequest = attributesNotOnPrimary.isEmpty()
-                ? "Add attributes to the request so that it only matches the intended variant"
-                : "Add one of these attributes to the request to make it more precise: " + String.join(", ", attributesNotOnPrimary);
-            return moreAttributesInRequest + "; or add attributes to variant '" + primaryWithoutArtifacts.asDescribable().getDisplayName() + "' so that it is no longer the best match";
+            return attributesNotOnPrimary.isEmpty()
+                ? "Request attributes that only the intended variant matches"
+                : "Request one of these attributes: " + String.join(", ", attributesNotOnPrimary);
         }
 
         /**
@@ -344,6 +353,8 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
      *     <li>{@link #getMatches()}: the direct attribute matches, after the matcher's disambiguation.</li>
      *     <li>{@link #getTransformationChain()}: the single best chain of transformations, which fails if the chains are ambiguous.</li>
      * </ul>
+     * <p>
+     * This class can be radically simplified and inlined in Gradle 11.
      */
     private static final class MemoizingSelector {
         private final ResolvedVariantSet variants;
