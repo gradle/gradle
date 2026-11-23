@@ -281,9 +281,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
             include 'app1'
             include 'app2'
         """
-        def transformClasses = """
-            import org.gradle.api.artifacts.transform.TransformParameters
-
+        settingsScriptClasses("""
             abstract class MakeThingsColored implements TransformAction<TransformParameters.None> {
                 private final String targetColor
 
@@ -321,7 +319,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     super('green')
                 }
             }
-        """
+        """)
         configureEachProject("""
             def color = Attribute.of('color', String)
 
@@ -345,25 +343,26 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     attributes { it.attribute(color, 'yellow') }
                 }.artifacts
             }
+
+            dependencies {
+                registerTransform(MakeBlueToGreenThings) {
+                    from.attribute(color, "blue")
+                    to.attribute(color, "green")
+                }
+                registerTransform(MakeGreenToRedThings) {
+                    from.attribute(color, "green")
+                    to.attribute(color, "red")
+                }
+                registerTransform(MakeGreenToYellowThings) {
+                    from.attribute(color, "green")
+                    to.attribute(color, "yellow")
+                }
+            }
         """)
         ["app1", "app2"].each { app ->
             buildFile("${app}/build.gradle", """
-                ${transformClasses}
                 dependencies {
                     compile project(':lib')
-
-                    registerTransform(MakeBlueToGreenThings) {
-                        from.attribute(Attribute.of('color', String), "blue")
-                        to.attribute(Attribute.of('color', String), "green")
-                    }
-                    registerTransform(MakeGreenToRedThings) {
-                        from.attribute(Attribute.of('color', String), "green")
-                        to.attribute(Attribute.of('color', String), "red")
-                    }
-                    registerTransform(MakeGreenToYellowThings) {
-                        from.attribute(Attribute.of('color', String), "green")
-                        to.attribute(Attribute.of('color', String), "yellow")
-                    }
                 }
             """)
         }
