@@ -68,6 +68,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.not_from_fileevents;
 import static org.gradle.architecture.test.ArchUnitFixture.not_written_in_kotlin;
 import static org.gradle.architecture.test.ArchUnitFixture.overrideMethod;
 import static org.gradle.architecture.test.ArchUnitFixture.primitive;
+import static org.gradle.architecture.test.ArchUnitFixture.public_and_protected_api_methods;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
 import static org.gradle.architecture.test.ArchUnitFixture.useJSpecifyNullable;
 
@@ -144,8 +145,13 @@ public class PublicApiCorrectnessTest {
 
     @ArchTest
     public static final ArchRule contract_annotations_not_used_in_public_api = codeUnits()
-        .that(are(public_api_methods))
+        .that(are(public_and_protected_api_methods))
         .should(notBeAnnotatedWith(jetbrainsContractAnnotation()));
+
+    @ArchTest
+    public static final ArchRule field_contract_annotations_not_used_in_public_api = codeUnits()
+        .that(are(public_and_protected_api_methods))
+        .should(notBeAnnotatedWith(gradleFieldContractAnnotations()));
 
     private static ArchCondition<JavaCodeUnit> notBeAnnotatedWith(DescribedPredicate<JavaAnnotation<?>> annotations) {
         return new ArchCondition<>("not be annotated with " + annotations.getDescription()) {
@@ -163,6 +169,15 @@ public class PublicApiCorrectnessTest {
             @Override
             public boolean test(JavaAnnotation<?> javaAnnotation) {
                 return "org.jetbrains.annotations.Contract".equals(javaAnnotation.getRawType().getName());
+            }
+        };
+    }
+
+    private static DescribedPredicate<JavaAnnotation<?>> gradleFieldContractAnnotations() {
+        return new DescribedPredicate<>("field contract annotations from org.gradle.internal.nullability") {
+            @Override
+            public boolean test(JavaAnnotation<?> javaAnnotation) {
+                return "org.gradle.internal.nullability".equals(javaAnnotation.getRawType().getPackageName());
             }
         };
     }
