@@ -17,8 +17,6 @@
 package org.gradle.internal.file.nio;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -56,7 +54,7 @@ public final class OwnerOnlyFiles {
         PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE);
     private static final FileAttribute<Set<PosixFilePermission>> OWNER_ONLY_FILE = PosixFilePermissions.asFileAttribute(OWNER_ONLY_FILE_PERMISSIONS);
     private static final FileAttribute<Set<PosixFilePermission>> OWNER_ONLY_DIRECTORY = PosixFilePermissions.asFileAttribute(OWNER_ONLY_DIRECTORY_PERMISSIONS);
-    private static final Cache<Object, Boolean> POSIX_BY_DEVICE = CacheBuilder.newBuilder().maximumSize(16).build();
+    private static volatile @Nullable Object lastPosixDevice;
 
     private OwnerOnlyFiles() {
     }
@@ -200,26 +198,26 @@ public final class OwnerOnlyFiles {
         }
     }
 
-    private static boolean isPosix(Path existingDirectory) {
+    private static boolean isPosix(Path existingDirectory) throws IOException {
         if (!existingDirectory.getFileSystem().supportedFileAttributeViews().contains("posix")) {
             return false;
         }
-        try {
-            Object device = Files.getAttribute(existingDirectory, "unix:dev");
-            return POSIX_BY_DEVICE.asMap().computeIfAbsent(device, d -> isPosixFileStore(existingDirectory));
-        } catch (IOException e) {
-            return isPosixFileStore(existingDirectory);
-        }
-    }
-
-    private static boolean isPosixFileStore(Path directoryOnPosixFileSystem) {
-        try {
-            return Files.getFileStore(directoryOnPosixFileSystem).supportsFileAttributeView("posix");
-        } catch (IOException e) {
-            // Workaround for https://bugs.openjdk.org/browse/JDK-8232092.
-            // Only called once the file system supports POSIX, so assume this store does too.
+        // "unix" comes with "posix", and this fails only when the caller's next operation would fail too.
+        Object device = Files.getAttribute(existingDirectory, "unix:dev");
+        if (device.equals(lastPosixDevice)) {
             return true;
         }
+        try {
+            // Some filesystems, like vfat on Linux, do not support posix, so filestore should be checked
+            if (!Files.getFileStore(existingDirectory).supportsFileAttributeView("posix")) {
+                return false;
+            }
+        } catch (IOException e) {
+            // Workaround for problems similar to https://bugs.openjdk.org/browse/JDK-8232092: Files.getFileStore can fail for an existing directory
+            // The file system supports POSIX, so assume this store does too.
+        }
+        lastPosixDevice = device;
+        return true;
     }
 
     /**
