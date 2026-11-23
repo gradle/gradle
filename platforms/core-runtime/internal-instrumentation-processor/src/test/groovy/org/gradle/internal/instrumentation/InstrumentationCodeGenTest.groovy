@@ -39,7 +39,6 @@ import javax.tools.JavaFileObject
 import javax.tools.StandardLocation
 
 import static com.google.testing.compile.Compiler.javac
-import static org.junit.Assume.assumeTrue
 
 abstract class InstrumentationCodeGenTest extends Specification {
 
@@ -68,9 +67,9 @@ abstract class InstrumentationCodeGenTest extends Specification {
     }
 
     private static com.google.testing.compile.Compiler getCompiler() {
-        assumeTrue("Java 20+ do not support --release=8", Jvm.current().javaVersion < JavaVersion.VERSION_20)
         if (Jvm.current().javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)) {
-            return javac().withOptions(COMPILE_OPTIONS + "--release=8")
+            // Java 20+ warns that release 8 is obsolete, which breaks succeededWithoutWarnings() assertions
+            return javac().withOptions(COMPILE_OPTIONS + "--release=8" + "-Xlint:-options")
         }
         return javac().withOptions(COMPILE_OPTIONS)
     }
