@@ -204,7 +204,7 @@ An archive that is neither a zip nor a tar.gz file fails with `Unsupported JDK a
 
 You can define <<variant_aware_resolution.adoc#sec:secondary-variants,secondary variants>> on a consumable configuration whose primary variant has no artifacts.
 Earlier versions of Gradle silently dropped such a primary variant from artifact selection.
-Starting with Gradle 9.10.0, Gradle warns when it ignores such a primary variant, because Gradle 11 will select it.
+Starting with Gradle 9.10.0, Gradle warns when it ignores such a primary variant, but considering it would change the result, as it will in Gradle 11.
 
 With the `CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS` feature preview enabled, such a primary variant is a candidate like any other, and is selected when it is the best match for the request.
 Because it has no artifacts, the request then resolves to no artifacts, and Gradle warns that the request is likely underspecified.
@@ -217,7 +217,7 @@ Without the feature preview, the primary variant is not eligible, even when it i
 Starting with Gradle 11, the primary variant is always eligible and the feature preview is removed.
 
 Without the feature preview, Gradle emits a deprecation warning when the primary variant, or a transformation of it, would have been selected, or would have been part of an ambiguous match.
-Within the artifact selections of a resolved configuration, each distinct message is reported once:
+Each distinct message is reported once per resolution of a configuration:
 
 [source,text]
 ----
@@ -225,10 +225,11 @@ Selecting artifacts from project ':lib' ignored variant 'configuration ':lib:run
 ----
 
 The warning means the request is underspecified: either it matches the primary variant better than the intended secondary variant, or no secondary variant matches it at all.
-When a single secondary variant would be selected instead, the warning lists the attributes that variant declares and the primary variant lacks.
+When a single secondary variant would be selected instead, the warning lists the attributes that variant declares and the primary variant lacks, or has with another value.
 
 To fix the deprecation warning, make the request more precise, for example by requesting one of the listed attributes, so that it only matches the intended variant.
-Adding attributes to the primary variant also works, but only for attributes that the secondary variants declare themselves, since secondary variants inherit the attributes of their configuration.
+Alternatively, make the primary variant incompatible with the request: give it a value for a requested attribute that the request does not accept, such as an `artifactType` that is never requested.
+Since secondary variants inherit the attributes of their configuration, each secondary variant must then declare its own value for that attribute.
 If no variant carries the attributes the request needs, expose one, or add artifacts to the primary variant.
 
 This change has the following visible effects:
