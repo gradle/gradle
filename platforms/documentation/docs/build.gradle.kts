@@ -5,6 +5,7 @@ import gradlebuild.basics.util.getSingleFileProvider
 import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
 import gradlebuild.integrationtests.configureTestSourceSetInIde
 import gradlebuild.integrationtests.model.GradleDistribution
+import gradlebuild.integrationtests.tasks.LocalRepositoryEnvironmentProvider
 import java.io.FileFilter
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.internal.os.OperatingSystem
@@ -79,6 +80,7 @@ dependencies {
     docsTestRuntimeOnly(testLibs.junitPlatform)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestLocalRepository(project(":kotlin-dsl-plugins"))
 
     constraints {
         "dokkaHtmlGeneratorRuntime"(buildLibs.jsoup) {
@@ -148,6 +150,9 @@ tasks.named<Test>("docsTest") {
         repoRoot = project.repoRoot()
     }
     jvmArgumentProviders.add(installationEnvProvider)
+    jvmArgumentProviders.add(LocalRepositoryEnvironmentProvider(project).apply {
+        localRepo.from(configurations.integTestLocalRepositoryPath)
+    })
 
     // IntegrationTestSamplesExecutor gives each docsTest worker its own Gradle user home next to the shared one, so
     // that the sample daemons of parallel workers never share - and deadlock on - a cache. Delete those homes before

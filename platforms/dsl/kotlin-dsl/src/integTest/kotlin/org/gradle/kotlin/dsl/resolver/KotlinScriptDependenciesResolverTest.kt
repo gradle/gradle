@@ -331,7 +331,8 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
             "projectRoot" to projectRoot,
             "gradleHome" to buildContext.gradleHomeDir,
             "gradleUserHome" to buildContext.gradleUserHomeDir.canonicalPath,
-            "gradleOptions" to listOf("-Dorg.gradle.internal.plugins.portal.url.override=${RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl()}")
+            "gradleOptions" to listOf("-Dorg.gradle.internal.plugins.portal.url.override=${RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl()}") +
+                RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsArguments()
         ) + (
             if (IntegrationTestBuildContext.isEmbedded()) emptyMap() else mapOf("gradleHome" to distribution.gradleHomeDir)
             ) + entries.toMap()

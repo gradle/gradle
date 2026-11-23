@@ -23,6 +23,7 @@ import org.gradle.api.Project
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.provider.Property
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
@@ -331,7 +332,7 @@ trait ToolingApiSpec {
         failure = toolingApiExecutor.runFailingBuildWithToolingConnection { connection ->
             def output = new ByteArrayOutputStream()
             def error = new ByteArrayOutputStream()
-            def args = executer.allArgs.tap { remove("--no-daemon") }
+            def args = getAllArgs()
             def failure
             try {
                 connection.action(buildAction)
@@ -399,6 +400,11 @@ trait ToolingApiSpec {
     def List<String> getAllArgs() {
         def args = executer.allArgs
         args.remove("--no-daemon")
+        // The executer gives the version override to the launcher JVM only, so Tooling API builds need it as an argument
+        def extraRepositoriesInitScript = RepoScriptBlockUtil.extraRepositoriesInitScriptFile()
+        if (extraRepositoriesInitScript != null && args.contains("--init-script=" + extraRepositoriesInitScript.absolutePath)) {
+            args.addAll(RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsArguments())
+        }
         args
     }
 }

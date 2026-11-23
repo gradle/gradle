@@ -21,3 +21,5 @@ Builds search it only for that version. Other versions, for example the ones tha
 Gradle expects the published version of the plugins. The tests make the builds under test expect the version in the local repository instead, with the system property `org.gradle.internal.kotlin.dsl.plugins.version.override`.
 `GradleExecuter` builds, smoke test builds and performance test builds get the property on their own.
 Tooling API tests must give it to their builds, see `RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsArguments()`. The Kotlin DSL model specs that extend `AbstractKotlinScriptModelCrossVersionTest` do this.
+The specs that extend `KotlinDslPluginRelatedToolingApiSpecification` put it in the `gradle.properties` file of the build.
+The `docsTest` task of `:docs` is not an integration test task, so its build script gives it the local repository.

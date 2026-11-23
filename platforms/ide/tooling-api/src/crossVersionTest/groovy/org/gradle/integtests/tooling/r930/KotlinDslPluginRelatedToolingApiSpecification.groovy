@@ -18,10 +18,20 @@ package org.gradle.integtests.tooling.r930
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 
 class KotlinDslPluginRelatedToolingApiSpecification extends ToolingApiSpecification {
+
+    // Tooling API builds get no arguments from the executer. A system property in gradle.properties survives the arguments that the tests set.
+    def setup() {
+        def version = RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsVersion()
+        if (version != null && targetDist.gradleHomeDir == IntegrationTestBuildContext.INSTANCE.gradleHomeDir) {
+            file("gradle.properties") << "systemProp.${RepoScriptBlockUtil.KOTLIN_DSL_PLUGINS_VERSION_OVERRIDE_PROPERTY}=${version}\n"
+        }
+    }
 
     @Override
     <T> T succeeds(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {

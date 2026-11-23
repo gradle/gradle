@@ -36,7 +36,6 @@ jsoup = "1.23.2!!"
 jspecify = "1.0.0!!"
 jsr305 = "3.0.2!!"
 kotlin = "2.4.21!!"
-kotlinDslPlugins = "6.7.13!!"
 kotlinxSerialization = "1.11.0!!"
 kryo = "2.24.0!!"
 minlog = "1.2!!"
@@ -51,6 +50,13 @@ slf4j = "2.0.17!!"
 snakeyaml = "2.6!!"
 sshd = "2.15.0!!"
 tomlj = "1.0.0!!"
+
+
+# The version of the kotlin-dsl plugins that the built distribution requests, for example in plugins { `kotlin-dsl` }.
+# It must be a published version that uses the kotlin version above.
+# It is not the version that this checkout publishes (see platforms/dsl/kotlin-dsl-plugins), nor the one that this build uses (see the wrapper).
+# Most tests use the locally built plugins instead, see platforms/dsl/kotlin-dsl-plugins/README.md.
+kotlinDslPlugins = "6.7.13!!"
 
 [libraries]
 ant = { group = "org.apache.ant", name = "ant", version.ref = "ant" }
