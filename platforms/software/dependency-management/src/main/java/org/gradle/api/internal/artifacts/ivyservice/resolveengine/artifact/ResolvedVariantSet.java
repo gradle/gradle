@@ -50,6 +50,9 @@ public interface ResolvedVariantSet {
 
     /**
      * Returns a set like this one, with the given subset of its candidates.
+     * <p>
+     * Artifact selection only calls this to exclude a candidate that is {@link ResolvedVariant#isPreviouslyUnselectable() previously unselectable},
+     * so a set without such candidates need not support it.
      */
     ResolvedVariantSet subset(ImmutableList<ResolvedVariant> candidates);
 
