@@ -25,11 +25,6 @@ import spock.lang.Issue
 @Requires(TestExecutionPreconditions.NotParallelExecutor)
 class ArtifactTransformWithDependenciesParallelIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture {
 
-    @Override
-    boolean isTransformsInBuildSrc() {
-        true
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/20975")
     def "transform is applied to project output when project and external library have conflicting group and module name"() {
         mavenRepo.module("libs", "producer", "1.0").publish()
@@ -40,11 +35,13 @@ class ArtifactTransformWithDependenciesParallelIntegrationTest extends AbstractH
         """
 
         setupBuildWithColorTransformThatTakesUpstreamArtifacts()
-        configureEachProject("""
-            repositories {
-                maven { url = "$mavenRepo.uri" }
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    maven { url = "$mavenRepo.uri" }
+                }
             }
-        """)
+        """
         buildFile """
             dependencies {
                 implementation project(':consumer')

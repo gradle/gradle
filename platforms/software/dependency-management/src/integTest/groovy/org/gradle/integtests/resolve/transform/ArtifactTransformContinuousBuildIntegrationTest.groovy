@@ -22,11 +22,6 @@ import org.gradle.util.internal.ToBeImplemented
 
 class ArtifactTransformContinuousBuildIntegrationTest extends AbstractContinuousIntegrationTest implements ArtifactTransformTestFixture, ProjectDirectoryCreator {
 
-    @Override
-    boolean isTransformsInBuildSrc() {
-        true
-    }
-
     def setup() {
         requireOwnGradleUserHomeDir()
     }
@@ -37,7 +32,7 @@ class ArtifactTransformContinuousBuildIntegrationTest extends AbstractContinuous
 
         setupBuildWithColorAttributes()
 
-        file("buildSrc/src/main/groovy/MakeGreen.groovy") << """
+        settingsScriptClasses("""
             import java.io.File
             import javax.inject.Inject;
             import org.gradle.api.provider.*
@@ -63,7 +58,7 @@ class ArtifactTransformContinuousBuildIntegrationTest extends AbstractContinuous
                     outputFile.text = "green"
                 }
             }
-        """
+        """)
 
         configureEachProject("""
             dependencies {

@@ -41,11 +41,6 @@ import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServi
 
 class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
 
-    @Override
-    boolean isTransformsInBuildSrc() {
-        true
-    }
-
     def buildOperations = new BuildOperationsFixture(executer, testDirectoryProvider)
     @Rule
     public final ScopeIdsFixture scopeIds = new ScopeIdsFixture(executer, temporaryFolder)
@@ -74,15 +69,18 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         """
     }
 
-    def setupExternalDependency(TestFile buildFile = getBuildFile()) {
+    def setupExternalDependency() {
         def m1 = mavenRepo.module("com.test", "test", "4.2").publish()
         m1.artifactFile.text = "com.test-test"
 
-        configureEachProject(buildFile, """
-            repositories {
-                maven { url = "${mavenRepo.uri}" }
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    maven { url = "${mavenRepo.uri}" }
+                }
             }
-
+        """
+        configureEachProject("""
             dependencies {
                 implementation 'com.test:test:4.2'
             }
@@ -121,7 +119,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         result.groupedOutput.task(":consumer:resolve")
             .assertOutputContains("result = [producer.jar.green, test-4.2.jar.green]")
 
-        def executionIdentifications = transformExecutionIdentifications
+        def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails)*.details
         executionIdentifications.size() == 2
         def projectTransformIdentification = executionIdentifications.find { it.artifactName == 'producer.jar' }
         def externalTransformIdentification = executionIdentifications.find { it.artifactName == 'test-4.2.jar' }
@@ -233,7 +231,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
     def "cacheability information for #type artifact transform executions is captured"() {
         setupBuildWithColorTransform()
         setupExternalDependency()
-        buildSrcClasses(cacheableMakeGreenTransform(useInputChanges: inputChanges))
+        settingsScriptClasses(cacheableMakeGreenTransform(useInputChanges: inputChanges))
 
         buildFile("consumer/build.gradle", """
             dependencies {
@@ -305,7 +303,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         """
 
         setupBuildWithColorTransform()
-        buildSrcClasses(cacheableMakeGreenTransform(useInputChanges: false, sleep: 10))
+        settingsScriptClasses(cacheableMakeGreenTransform(useInputChanges: false, sleep: 10))
         setupExternalDependency()
 
         buildFile("consumer/build.gradle", """
@@ -327,7 +325,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         executedAndNotSkipped(":consumer:resolve")
 
         def firstBuildInvocationId = scopeIds.buildInvocationId
-        def executionIdentifications = transformExecutionIdentifications
+        def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails)*.details
         executionIdentifications.size() == 2
         def projectTransformIdentification = executionIdentifications.find { it.artifactName == 'producer.jar' }
         def externalTransformIdentification = executionIdentifications.find { it.artifactName == 'test-4.2.jar' }
@@ -376,7 +374,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         """
 
         setupBuildWithColorTransform()
-        buildSrcClasses(cacheableMakeGreenTransform(useInputChanges: false, sleep: 10))
+        settingsScriptClasses(cacheableMakeGreenTransform(useInputChanges: false, sleep: 10))
         setupExternalDependency()
 
         buildFile("consumer/build.gradle", """
@@ -399,7 +397,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         executedAndNotSkipped(":consumer:resolve")
 
         def firstBuildInvocationId = scopeIds.buildInvocationId
-        def executionIdentifications = transformExecutionIdentifications
+        def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails)*.details
         executionIdentifications.size() == 2
         def projectTransformIdentification = executionIdentifications.find { it.artifactName == 'producer.jar' }
         def externalTransformIdentification = executionIdentifications.find { it.artifactName == 'test-4.2.jar' }
@@ -440,7 +438,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         createDirs("consumer1", "consumer2")
 
         setupBuildWithColorTransform()
-        buildSrcClasses(cacheableMakeGreenTransform(useInputChanges: false, sleep: 10))
+        settingsScriptClasses(cacheableMakeGreenTransform(useInputChanges: false, sleep: 10))
         setupExternalDependency()
 
         buildFile("consumer1/build.gradle", """
@@ -474,7 +472,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         executedAndNotSkipped(":consumer1:resolve", ":consumer2:resolve")
 
         def buildInvocationId = scopeIds.buildInvocationId
-        def executionIdentifications = transformExecutionIdentifications
+        def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails)*.details
         executionIdentifications.size() == 4
         def projectTransformIdentifications = executionIdentifications.findAll { it.artifactName == 'producer.jar' }
         projectTransformIdentifications.size() == 2
@@ -504,7 +502,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         createDirs("consumer1", "consumer2")
 
         setupBuildWithColorTransform()
-        buildSrcClasses(cacheableMakeGreenTransform(useInputChanges: true, sleep: 10))
+        settingsScriptClasses(cacheableMakeGreenTransform(useInputChanges: true, sleep: 10))
 
         buildFile("consumer1/build.gradle", """
             dependencies {
@@ -538,7 +536,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         executedAndNotSkipped(":consumer1:resolve", ":consumer2:resolve")
 
         def buildInvocationId = scopeIds.buildInvocationId
-        def executionIdentifications = transformExecutionIdentifications
+        def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails)*.details
         executionIdentifications.size() == 2
         def projectTransformIdentifications = executionIdentifications.findAll { it.artifactName == 'producer.jar' }
         projectTransformIdentifications.size() == 2
@@ -566,7 +564,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         createDirs("consumer1", "consumer2")
 
         setupBuildWithColorTransform()
-        buildSrcClasses(cacheableMakeGreenTransform(useInputChanges: true, sleep: 10))
+        settingsScriptClasses(cacheableMakeGreenTransform(useInputChanges: true, sleep: 10))
 
         buildFile("consumer1/build.gradle", """
             dependencies {
@@ -606,7 +604,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
 
         transformExecutions.result.skipMessage == ['UP-TO-DATE']
 
-        def executionIdentifications = transformExecutionIdentifications
+        def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails)*.details
         executionIdentifications.size() == 2
         def projectTransformIdentifications = executionIdentifications.findAll { it.artifactName == 'producer.jar' }
         projectTransformIdentifications.size() == 2
@@ -628,7 +626,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
     def "captures all information on failure"() {
         setupBuildWithColorTransform()
         setupExternalDependency()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.RELATIVE)
@@ -690,7 +688,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         """
 
         setupBuildWithColorTransform()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -722,7 +720,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         when:
         withBuildCache().run ":consumer:resolve"
         then:
-        def executionIdentifications = transformExecutionIdentifications
+        def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails).details
 
         executionIdentifications.each {
             with(it) {
@@ -768,7 +766,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         when:
         withBuildCache().run ":consumer:resolve"
         then:
-        def executionIdentifications = transformExecutionIdentifications
+        def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails).details
 
         executionIdentifications.each {
             owner.with(it) {
@@ -786,7 +784,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         setupBuildWithColorAttributes()
         setupExternalDependency()
 
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class Multiplier implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -846,7 +844,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         when:
         withBuildCache().run ":consumer:resolveArtifacts"
         then:
-        def executionIdentifications = transformExecutionIdentifications
+        def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails).details
 
         def initialArtifactNames = executionIdentifications.findAll { it.fromAttributes == [color: 'blue'] }.artifactName
         def intermediateArtifactNames = executionIdentifications.findAll { it.fromAttributes == [color: 'red'] }.artifactName
@@ -907,18 +905,8 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         }
     }
 
-    /**
-     * The identifications of transform executions, without the transforms Gradle applies to the build logic classpath, such as buildSrc's.
-     */
-    List<Map<String, ?>> getTransformExecutionIdentifications() {
-        buildOperations.progress(IdentifyTransformExecutionProgressDetails)*.details.findAll {
-            !it.transformActionClass.startsWith("org.gradle.api.internal.initialization.transform.")
-        }
-    }
-
     List<BuildOperationRecord> getTransformExecutions() {
-        def identities = transformExecutionIdentifications*.identity as Set
-        buildOperations.typed(ExecuteWorkBuildOperationType).findAll { it.details.identity in identities }
+        buildOperations.typed(ExecuteWorkBuildOperationType)
     }
 
     @NamedVariant

@@ -27,9 +27,17 @@ import org.gradle.test.fixtures.maven.MavenModule
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
+/**
+ * Sets up builds whose projects produce and consume color variants.
+ *
+ * The fixture declares its classes in the settings script and configures each project from there with
+ * {@code gradle.lifecycle.beforeProject}, which works with Isolated Projects. Classes declared in the settings script
+ * are not visible to build scripts, so tests declare the classes that the configuration applied to each project uses with
+ * {@link #settingsScriptClasses(java.lang.String)}. The color attribute is available to build scripts as the {@code color} extra property.
+ */
 @SelfType(AbstractIntegrationSpec)
 trait ArtifactTransformTestFixture extends VariantAwareDependencyResolutionTestFixture {
-    abstract TestFile getBuildFile()
+    abstract TestFile getSettingsFile()
 
     abstract ExecutionResult getResult()
 
@@ -47,68 +55,21 @@ trait ArtifactTransformTestFixture extends VariantAwareDependencyResolutionTestF
      * By default each variant will contain a single file, this can be configured using the supplied {@link Builder}.
      * Caller will need to register transforms that produce 'green' from 'blue'
      */
-    void setupBuildWithColorAttributes(TestFile buildFile = getBuildFile(), @DelegatesTo(Builder) Closure cl = {}) {
+    void setupBuildWithColorAttributes(TestFile settingsFile = getSettingsFile(), @DelegatesTo(Builder) Closure cl = {}) {
         def builder = new Builder()
         builder.produceFiles()
         cl.delegate = builder
         cl.call()
-        setupBuildWithColorAttributes(buildFile, builder)
+        setupBuildWithColorAttributes(settingsFile, builder)
     }
 
-    void setupBuildWithColorAttributes(TestFile buildFile = getBuildFile(), Builder builder) {
-        if (transformsInBuildSrc) {
-            setupBuildSrcWithColorAttributes(buildFile, builder)
-            return
-        }
-        buildFile << """
-import ${javax.inject.Inject.name}
-// TODO: Default imports should work for of inner classes
-import ${org.gradle.api.artifacts.transform.TransformParameters.name}
-
-${colorVariants()}
-allprojects {
-    task producer(type: ${builder.producerTaskClassName}) {
-        ${builder.producerConfig}
-    }
-    afterEvaluate {
-        ${builder.producerConfigOverrides}
-    }
-    artifacts {
-        implementation tasks.producer.output
-    }
-
-    task resolve(type: ShowFileCollection) {
-        def view = configurations.resolver.incoming.artifactView {
-            attributes.attribute(color, 'green')
-        }.files
-        files.from(view)
-    }
-    task resolveArtifacts(type: ShowArtifactCollection) {
-        collection = configurations.resolver.incoming.artifactView {
-            attributes.attribute(color, 'green')
-        }.artifacts
-    }
-}
-
-import ${JarOutputStream.name}
-import ${ZipEntry.name}
-
-${jarProducerTask()}
-
-${showFileCollectionTask()}
-"""
-        taskTypeWithOutputFileProperty(buildFile)
-        taskTypeWithOutputDirectoryProperty(buildFile)
-        taskTypeLogsArtifactCollectionDetails(buildFile)
-    }
-
-    private void setupBuildSrcWithColorAttributes(TestFile buildFile, Builder builder) {
-        def taskTypes = buildSrcSourceFile(buildFile, "ColorVariantTaskTypes")
-        taskTypes << jarProducerTask() << showFileCollectionTask()
-        taskTypeWithOutputFileProperty(taskTypes)
-        taskTypeWithOutputDirectoryProperty(taskTypes)
-        taskTypeLogsArtifactCollectionDetails(taskTypes)
-        configureEachProject(buildFile, """
+    void setupBuildWithColorAttributes(TestFile settingsFile = getSettingsFile(), Builder builder) {
+        withScriptImports(settingsFile)
+        settingsFile << jarProducerTask() << showFileCollectionTask()
+        taskTypeWithOutputFileProperty(settingsFile)
+        taskTypeWithOutputDirectoryProperty(settingsFile)
+        taskTypeLogsArtifactCollectionDetails(settingsFile)
+        configureEachProject(settingsFile, """
             def color = Attribute.of('color', String)
             // Lets build scripts refer to the attribute as 'color'
             ext.color = color
@@ -134,7 +95,7 @@ ${showFileCollectionTask()}
                     attributes.attribute(color, 'green')
                 }.artifacts
             }
-        """, "color-variants")
+        """)
     }
 
     private String jarProducerTask() {
@@ -170,105 +131,56 @@ class JarProducer extends DefaultTask {
     }
 
     /**
-     * Whether the fixture declares its classes in buildSrc and configures each project with plugins from buildSrc,
-     * instead of declaring them in the root build script and configuring all projects from there with {@code allprojects}.
-     * The former works with Isolated Projects. In that mode, the classes used by the build, such as transform actions,
-     * are declared with {@link #buildSrcClasses(java.lang.String)} rather than in the root build script.
-     * The color attribute is available to build scripts as the {@code color} extra property.
+     * Declares the given classes in the given settings script, so that the configuration
+     * applied to each project with {@link #configureEachProject(java.lang.String)} can use them.
      */
-    boolean isTransformsInBuildSrc() {
-        false
+    void settingsScriptClasses(TestFile settingsFile = getSettingsFile(), String classes) {
+        withScriptImports(settingsFile) << classes
     }
 
     /**
-     * Declares the given classes in buildSrc of the build that has the given root build file, so that all its projects can use them.
-     * Default imports of build scripts do not apply to buildSrc, so the commonly used packages are imported.
-     */
-    void buildSrcClasses(TestFile buildFile = getBuildFile(), String classes) {
-        def dir = buildFile.parentFile.file("buildSrc/src/main/groovy")
-        int index = (dir.listFiles()?.count { it.name.startsWith("TestClasses") } ?: 0) + 1
-        buildSrcSourceFile(buildFile, "TestClasses${index}") << classes
-    }
-
-    /**
-     * Applies the given configuration to each project of the build that has the given root build file.
-     * The configuration is the body of a plugin in buildSrc with the given name.
-     * The root build script applies the plugin, at the point where this method is called, as configuration in the root build script would
-     * have been applied to the root project. The settings script applies the plugin to each other project, before its build script runs,
+     * Applies the given configuration to each project of the build with the given settings script, before its build script runs,
      * as {@code allprojects {}} in the root build script would have configured it.
      * It runs with the project as its delegate. As it is not a build script, it declares tasks with {@code tasks.create()} rather than {@code task name(type: T)}.
      */
-    void configureEachProject(String configuration, String pluginName = "each-project") {
-        configureEachProject(getBuildFile(), configuration, pluginName)
+    void configureEachProject(String configuration) {
+        configureEachProject(getSettingsFile(), configuration)
     }
 
-    void configureEachProject(TestFile buildFile, String configuration, String pluginName = "each-project") {
-        def pluginsDir = buildFile.parentFile.file("buildSrc/src/main/resources/META-INF/gradle-plugins")
-        def pluginId = pluginName
-        for (int index = 2; pluginsDir.file("${pluginId}.properties").exists(); index++) {
-            pluginId = "${pluginName}-${index}"
-        }
-        def pluginClass = pluginId.split('-').collect { it.capitalize() }.join('') + "Plugin"
-        buildSrcSourceFile(buildFile, pluginClass) << """
-            class ${pluginClass} implements Plugin<Project> {
-                void apply(Project project) {
-                    project.with {
-                        ${configuration}
-                    }
-                }
-            }
-        """
-        pluginsDir.file("${pluginId}.properties") << "implementation-class=${pluginClass}"
-        settingsFile(buildFile.parentFile.file("settings.gradle"), """
+    void configureEachProject(TestFile settingsFile, String configuration) {
+        withScriptImports(settingsFile) << """
             gradle.lifecycle.beforeProject { project ->
-                if (project.path != ':') {
-                    project.plugins.apply('${pluginId}')
+                project.with {
+                    ${configuration}
                 }
             }
-        """)
-        buildFile << """
-            apply plugin: '${pluginId}'
         """
     }
 
-    private static TestFile buildSrcSourceFile(TestFile buildFile, String name) {
-        def file = buildFile.parentFile.file("buildSrc/src/main/groovy/${name}.groovy")
-        assert !file.exists()
-        file << """
-            import org.gradle.api.*
-            import org.gradle.api.artifacts.*
-            import org.gradle.api.artifacts.transform.*
-            import org.gradle.api.attributes.*
-            import org.gradle.api.file.*
-            import org.gradle.api.model.*
-            import org.gradle.api.provider.*
-            import org.gradle.api.services.*
-            import org.gradle.api.tasks.*
-            import org.gradle.api.tasks.Optional
-            import org.gradle.api.tasks.options.*
-            import org.gradle.process.*
-            import org.gradle.work.*
-            import javax.inject.Inject
+    /**
+     * Adds the imports that are not default imports of scripts to the given settings script, once.
+     */
+    private static TestFile withScriptImports(TestFile settingsFile) {
+        def imports = """
+            import ${javax.inject.Inject.name}
+            // TODO: Default imports should work for of inner classes
+            import ${org.gradle.api.artifacts.transform.TransformParameters.name}
             import ${JarOutputStream.name}
             import ${ZipEntry.name}
         """
-        file
+        if (!settingsFile.exists() || !settingsFile.text.contains(imports)) {
+            settingsFile << imports
+        }
+        settingsFile
     }
 
     /**
      * Adds the given configuration to each project, and declares the given classes.
      */
-    private void addToAllProjects(TestFile buildFile, String configuration, String classes) {
-        if (transformsInBuildSrc) {
-            if (!configuration.trim().empty) {
-                configureEachProject(buildFile, configuration, "color-transforms")
-            }
-            buildSrcClasses(buildFile, classes)
-        } else {
-            buildFile << """
-                ${configuration.trim().empty ? "" : "allprojects {\n${configuration}\n}"}
-                ${classes}
-            """
+    private void addToAllProjects(TestFile settingsFile, String configuration, String classes) {
+        settingsScriptClasses(settingsFile, classes)
+        if (!configuration.trim().empty) {
+            configureEachProject(settingsFile, configuration)
         }
     }
 
@@ -286,7 +198,7 @@ class JarProducer extends DefaultTask {
      */
     void setupBuildWithChainedColorTransform(boolean lenient = false) {
         setupBuildWithColorAttributes()
-        addToAllProjects(buildFile, """
+        addToAllProjects(settingsFile, """
             dependencies {
                 registerTransform(MakeColor) {
                     from.attribute(color, 'blue')
@@ -331,7 +243,7 @@ class JarProducer extends DefaultTask {
      */
     void setupBuildWithColorTransformWithAnotherTransformOutputAsInput() {
         setupBuildWithColorAttributes()
-        addToAllProjects(buildFile, """
+        addToAllProjects(settingsFile, """
             configurations {
                transform
             }
@@ -382,9 +294,9 @@ class JarProducer extends DefaultTask {
      * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a transform that converts 'blue' to 'green'.
      * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
      */
-    void setupBuildWithColorTransformImplementation(TestFile buildFile = getBuildFile(), boolean lenient = false) {
-        setupBuildWithColorTransform(buildFile)
-        addToAllProjects(buildFile, "", """
+    void setupBuildWithColorTransformImplementation(TestFile settingsFile = getSettingsFile(), boolean lenient = false) {
+        setupBuildWithColorTransform(settingsFile)
+        addToAllProjects(settingsFile, "", """
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -405,7 +317,7 @@ class JarProducer extends DefaultTask {
     }
 
     void setupBuildWithColorTransformImplementation(boolean lenient) {
-        setupBuildWithColorTransformImplementation(getBuildFile(), lenient)
+        setupBuildWithColorTransformImplementation(getSettingsFile(), lenient)
     }
 
     /**
@@ -414,7 +326,7 @@ class JarProducer extends DefaultTask {
      */
     void setupBuildWithColorTransformThatTakesUpstreamArtifacts() {
         setupBuildWithColorTransform()
-        addToAllProjects(buildFile, "", """
+        addToAllProjects(settingsFile, "", """
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifactDependencies
                 abstract FileCollection getInputArtifactDependencies()
@@ -440,7 +352,7 @@ class JarProducer extends DefaultTask {
      */
     void setupBuildWithChainedColorTransformThatTakesUpstreamArtifacts() {
         setupBuildWithColorAttributes()
-        addToAllProjects(buildFile, """
+        addToAllProjects(settingsFile, """
             dependencies {
                 registerTransform(MakeRed) {
                     from.attribute(color, 'blue')
@@ -490,13 +402,13 @@ class JarProducer extends DefaultTask {
      * Caller will need to provide an implementation of 'MakeGreen' transform configuration and use {@link TransformBuilder#params(java.lang.String)} to specify the configuration to
      * apply to the parameters.
      */
-    void setupBuildWithColorTransform(TestFile buildFile, @DelegatesTo(TransformBuilder) Closure cl = {}) {
+    void setupBuildWithColorTransform(TestFile settingsFile, @DelegatesTo(TransformBuilder) Closure cl = {}) {
         def builder = new TransformBuilder()
         cl.delegate = builder
         cl.call()
 
-        setupBuildWithColorAttributes(buildFile, builder)
-        addToAllProjects(buildFile, """
+        setupBuildWithColorAttributes(settingsFile, builder)
+        addToAllProjects(settingsFile, """
     dependencies {
         registerTransform(MakeGreen) {
             from.attribute(color, 'blue')
@@ -512,7 +424,7 @@ class JarProducer extends DefaultTask {
     }
 
     void setupBuildWithColorTransform(@DelegatesTo(TransformBuilder) Closure cl = {}) {
-        setupBuildWithColorTransform(buildFile, cl)
+        setupBuildWithColorTransform(getSettingsFile(), cl)
     }
 
     static class ProjectConfigurator {

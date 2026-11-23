@@ -22,10 +22,6 @@ import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 
 class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
-    @Override
-    boolean isTransformsInBuildSrc() {
-        true
-    }
     /**
      * Caller should add define an 'inputFiles' property to define the inputs to the transform
      */
@@ -35,7 +31,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 someFiles.from { project.inputFiles }
             """)
         }
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters{
                     $inputAnnotations
@@ -92,9 +88,15 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 include 'a', 'b', 'c'
             """
         setupBuildWithTransformFileInputs()
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    maven { url = '${mavenRepo.uri}' }
+                }
+            }
+        """
         configureEachProject("""
             configurations.create("tools") { }
-            repositories.maven { url = '${mavenRepo.uri}' }
             ext.inputFiles = configurations.tools
         """)
         buildFile("a/build.gradle", """
@@ -131,7 +133,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 nestedBean.inputFiles.from(tasks.tool)
             """)
         }
-        buildSrcClasses("""
+        settingsScriptClasses("""
             interface NestedInputFiles {
                 @InputFiles
                 ConfigurableFileCollection getInputFiles()
@@ -192,7 +194,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         run(":a:resolve")
 
         then:
-        result.ignoreBuildSrc.assertTasksScheduled(":a:tool", ":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksScheduled(":a:tool", ":b:producer", ":c:producer", ":a:resolve")
         outputContains("processing b.jar using [tool-a.jar]")
         outputContains("processing c.jar using [tool-a.jar]")
         outputContains("result = [b.jar.green, c.jar.green]")
@@ -204,7 +206,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 include 'a', 'b', 'c', 'd', 'e'
             """
         setupBuildWithTransformFileInputs()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeRed implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -253,7 +255,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         run(":a:resolve")
 
         then:
-        result.ignoreBuildSrc.assertTasksScheduled(":b:producer", ":c:producer", ":d:producer", ":e:producer", ":a:resolve")
+        result.assertTasksScheduled(":b:producer", ":c:producer", ":d:producer", ":e:producer", ":a:resolve")
         outputContains("processing b.jar using [d.jar.red, e.jar.red]")
         outputContains("processing c.jar using [d.jar.red, e.jar.red]")
         outputContains("result = [b.jar.green, c.jar.green]")
@@ -308,7 +310,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         run(":a:resolve")
 
         then:
-        result.ignoreBuildSrc.assertTasksScheduled(":tools:tool-a:producer", ":tools:tool-b:producer", ":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksScheduled(":tools:tool-a:producer", ":tools:tool-b:producer", ":b:producer", ":c:producer", ":a:resolve")
         outputContains("processing b.jar using [tool-a.jar, tool-b.jar]")
         outputContains("processing c.jar using [tool-a.jar, tool-b.jar]")
         outputContains("result = [b.jar.green, c.jar.green]")
@@ -330,7 +332,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 someFile = project.inputFile
             """)
         }
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @InputFile
@@ -359,7 +361,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         run(":a:resolve")
 
         then:
-        result.ignoreBuildSrc.assertTasksScheduled(":a:tool", ":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksScheduled(":a:tool", ":b:producer", ":c:producer", ":a:resolve")
         outputContains("processing b.jar using tool-a.jar")
         outputContains("processing c.jar using tool-a.jar")
     }
@@ -380,7 +382,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 someDir = project.inputDir
             """)
         }
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @InputDirectory
@@ -409,7 +411,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         run(":a:resolve")
 
         then:
-        result.ignoreBuildSrc.assertTasksScheduled(":a:tool", ":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksScheduled(":a:tool", ":b:producer", ":c:producer", ":a:resolve")
         outputContains("processing b.jar using tool-a-dir")
         outputContains("processing c.jar using tool-a-dir")
     }
@@ -426,7 +428,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 doLast { throw new RuntimeException('broken') }
             }
             ext.inputFiles = files(tasks.tool.output)
-        """, "tool")
+        """)
         buildFile("a/build.gradle", """
             dependencies {
                 implementation project(':b')
@@ -439,9 +441,9 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         fails(":a:resolve")
 
         then:
-        result.ignoreBuildSrc.assertTasksScheduled(":a:tool", ":b:producer", ":c:producer")
+        result.assertTasksScheduled(":a:tool", ":b:producer", ":c:producer")
         outputDoesNotContain("processing")
-        failure.assertHasDescription("Execution failed for task ':a:tool' (registered by plugin 'tool').")
+        failure.assertHasDescription("Execution failed for task ':a:tool' (registered in settings file 'settings.gradle').")
         failure.assertHasFailures(1)
         failure.assertHasCause("broken")
     }

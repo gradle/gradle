@@ -23,11 +23,6 @@ import static org.gradle.api.internal.initialization.DefaultScriptClassPathResol
 
 class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
-    @Override
-    boolean isTransformsInBuildSrc() {
-        true
-    }
-
     def "incremental artifact transform in buildscript block for included build runs without exception"() {
         createDirs("a", "included")
         settingsFile << """
@@ -64,6 +59,7 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
             rootProject.name = "included"
             include ":b"
         """
+        // The transform is registered in a buildscript block, which can only see classes from buildSrc
         file("buildSrc/src/main/groovy/MakeColor.groovy") << """
             import javax.inject.Inject
             import org.gradle.api.artifacts.transform.*
@@ -106,7 +102,7 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
             include 'a', 'b'
         """
 
-        file("buildSrc/src/main/groovy/MakeGreen.groovy") << """
+        settingsScriptClasses("""
             import java.io.File
             import javax.inject.Inject;
             import groovy.transform.CompileStatic
@@ -169,7 +165,7 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
                     files.collect { new File(input.get().asFile, it) } as Set
                 }
             }
-        """
+        """)
 
         setupBuildWithColorTransform {
             produceDirs()

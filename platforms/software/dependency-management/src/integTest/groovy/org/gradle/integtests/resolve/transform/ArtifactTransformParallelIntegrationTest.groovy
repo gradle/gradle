@@ -45,7 +45,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
             buildFile << """
                 def artifactType = Attribute.of('artifactType', String)
             """
-            configureEachProject(buildFile, """
+            configureEachProject(settingsFile, """
                 def usage = Attribute.of('usage', String)
                 def artifactType = Attribute.of('artifactType', String)
 
@@ -69,7 +69,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                     compile
                 }
             """)
-            buildSrcClasses(buildFile, """
+            settingsScriptClasses(settingsFile, """
                 abstract class SynchronizedTransform implements TransformAction<TransformParameters.None> {
                     @InputArtifact
                     abstract Provider<FileSystemLocation> getInputArtifact()

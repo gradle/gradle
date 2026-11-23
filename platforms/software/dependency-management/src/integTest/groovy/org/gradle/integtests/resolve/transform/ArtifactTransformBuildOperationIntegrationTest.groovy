@@ -49,11 +49,6 @@ import static org.gradle.api.internal.initialization.DefaultScriptClassPathResol
 
 class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture, UndeclaredArtifactTransformInputDeprecation {
 
-    @Override
-    boolean isTransformsInBuildSrc() {
-        true
-    }
-
     @EqualsAndHashCode
     static class TypedNodeId {
         String nodeType
@@ -129,15 +124,18 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         """
     }
 
-    def setupExternalDependency(TestFile buildFile = getBuildFile()) {
+    def setupExternalDependency(TestFile settingsFile = getSettingsFile()) {
         def m1 = mavenRepo.module("test", "test", "4.2").publish()
         m1.artifactFile.text = "test-test"
 
-        configureEachProject(buildFile, """
-            repositories {
-                maven { url = "${mavenRepo.uri}" }
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    maven { url = "${mavenRepo.uri}" }
+                }
             }
-
+        """
+        configureEachProject(settingsFile, """
             dependencies {
                 implementation 'test:test:4.2'
             }
@@ -524,7 +522,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         """
 
         setupBuildWithColorAttributes()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             interface TargetColor extends TransformParameters {
                 @Input
                 Property<String> getTargetColor()
@@ -648,7 +646,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             include 'producer', 'consumer'
         """
 
-        buildSrcClasses("""
+        settingsScriptClasses("""
             class OutputFilesTask extends DefaultTask {
                 @OutputFile
                 final RegularFileProperty out1 = project.objects.fileProperty()
@@ -684,7 +682,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             }
         """)
 
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<org.gradle.api.artifacts.transform.TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -881,7 +879,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         setupBuildWithColorAttributes()
         setupExternalDependency()
 
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<org.gradle.api.artifacts.transform.TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -917,7 +915,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         result.groupedOutput.transform("MakeGreen", "producer.jar (project ':producer')")
             .assertOutputContains("processing [producer.jar]")
-
 
         def plannedNodes = getPlannedNodes(1)
 
@@ -960,7 +957,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         file("included/settings.gradle") << """
             include 'nested-producer'
         """
-        setupBuildWithColorAttributes(file("included/build.gradle"))
+        setupBuildWithColorAttributes(file("included/settings.gradle"))
 
         settingsFile << """
             includeBuild("included") {
@@ -1061,12 +1058,12 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         file("included/settings.gradle") << """
             include 'producer', 'consumer'
         """
-        def includedBuildFile = file("included/build.gradle")
-        configureEachProject(includedBuildFile, """
+        def includedSettingsFile = file("included/settings.gradle")
+        configureEachProject(includedSettingsFile, """
             group = "colored"
         """)
-        setupBuildWithColorTransformImplementation(includedBuildFile)
-        setupExternalDependency(includedBuildFile)
+        setupBuildWithColorTransformImplementation(includedSettingsFile)
+        setupExternalDependency(includedSettingsFile)
         buildFile("included/consumer/build.gradle", """
             dependencies {
                 implementation project(":producer")
@@ -1140,8 +1137,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             include 'producer', 'consumer'
         """
 
-        setupBuildWithColorTransform(buildFile)
-        buildSrcClasses("""
+        setupBuildWithColorTransform()
+        settingsScriptClasses("""
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
@@ -1211,8 +1208,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             include 'producer', 'consumer'
         """
 
-        setupBuildWithColorTransform(buildFile)
-        buildSrcClasses("""
+        setupBuildWithColorTransform()
+        settingsScriptClasses("""
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
@@ -1274,7 +1271,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         setupBuildWithChainedColorTransform()
         setupExternalDependency()
 
-        buildSrcClasses("""
+        buildFile("consumer/build.gradle", """
             class ShowFileCollectionWithoutDependencies extends DefaultTask {
                 @Internal
                 final ConfigurableFileCollection files = project.objects.fileCollection()
@@ -1322,7 +1319,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         getExecutePlannedStepOperations(0).empty
     }
 
-
     def "planned transform steps from script plugin buildscript block are not captured"() {
         setupProjectTransformInBuildScriptBlock(true)
 
@@ -1338,16 +1334,16 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         getPlannedNodes(0)
         getExecutePlannedStepOperations(0).empty
 
-        // We have 5 artifact transforms: 2 MakeColor transforms and 3 from Gradle instrumentation, including the buildSrc of both builds
-        buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 5
+        // We have 4 artifact transforms: 2 MakeColor transforms and 2 from Gradle instrumentation
+        buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 4
         Map<String, List<String>> artifactTransforms = groupArtifactTransformByArtifactName()
-        artifactTransforms["buildSrc.jar"] == [ProjectDependencyInstrumentingArtifactTransform.class.name] * 2
+        artifactTransforms["buildSrc.jar"] == [ProjectDependencyInstrumentingArtifactTransform.class.name]
         artifactTransforms["nested-producer.jar"] == ["MakeColor"]
         artifactTransforms["nested-producer.jar.red"] == ["MakeColor"]
         artifactTransforms["nested-producer.jar.red.green"] == [ProjectDependencyInstrumentingArtifactTransform.class.name]
-        buildOperations.all(ExecuteWorkBuildOperationType).size() == 5
-        buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 5
-        buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 5
+        buildOperations.all(ExecuteWorkBuildOperationType).size() == 4
+        buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 4
+        buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 4
     }
 
     def "planned transform steps from project buildscript context are not captured"() {
@@ -1365,16 +1361,16 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         getPlannedNodes(0)
         getExecutePlannedStepOperations(0).empty
 
-        // We have 5 artifact transforms: 2 MakeColor transforms and 3 from Gradle instrumentation, including the buildSrc of both builds
-        buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 5
+        // We have 4 artifact transforms: 2 MakeColor transforms and 2 from Gradle instrumentation
+        buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 4
         Map<String, List<String>> artifactTransforms = groupArtifactTransformByArtifactName()
-        artifactTransforms["buildSrc.jar"] == [ProjectDependencyInstrumentingArtifactTransform.class.name] * 2
+        artifactTransforms["buildSrc.jar"] == [ProjectDependencyInstrumentingArtifactTransform.class.name]
         artifactTransforms["nested-producer.jar"] == ["MakeColor"]
         artifactTransforms["nested-producer.jar.red"] == ["MakeColor"]
         artifactTransforms["nested-producer.jar.red.green"] == [ProjectDependencyInstrumentingArtifactTransform.class.name]
-        buildOperations.all(ExecuteWorkBuildOperationType).size() == 5
-        buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 5
-        buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 5
+        buildOperations.all(ExecuteWorkBuildOperationType).size() == 4
+        buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 4
+        buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 4
     }
 
     private Map<String, List<String>> groupArtifactTransformByArtifactName() {
@@ -1385,27 +1381,12 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
     private void setupProjectTransformInBuildScriptBlock(boolean inExternalScript) {
         setupBuildWithColorAttributes()
-        // MakeColor is declared in buildSrc below
-        configureEachProject("""
-            dependencies {
-                registerTransform(MakeColor) {
-                    from.attribute(color, 'blue')
-                    to.attribute(color, 'red')
-                    parameters.targetColor.set('red')
-                }
-                registerTransform(MakeColor) {
-                    from.attribute(color, 'red')
-                    to.attribute(color, 'green')
-                    parameters.targetColor.set('green')
-                }
-            }
-        """)
 
         createDirs("included/nested-producer")
         file("included/settings.gradle") << """
             include 'nested-producer'
         """
-        setupBuildWithColorAttributes(file("included/build.gradle"))
+        setupBuildWithColorAttributes(file("included/settings.gradle"))
 
         settingsFile << """
             includeBuild("included") {
@@ -1419,7 +1400,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             include 'consumer'
         """
 
-        // Can't define classes in buildscript block, so let's do it in buildSrc
+        // The transform is registered in a buildscript block, which can only see classes from buildSrc
         file("buildSrc/src/main/groovy/TargetColor.groovy") << """
             import ${TransformParameters.name}
             import ${Property.name}

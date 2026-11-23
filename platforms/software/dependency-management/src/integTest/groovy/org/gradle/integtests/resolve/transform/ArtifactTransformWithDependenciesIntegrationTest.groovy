@@ -37,11 +37,6 @@ import java.util.regex.Pattern
 @Requires(TestExecutionPreconditions.NotParallelExecutor)
 class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture {
 
-    @Override
-    boolean isTransformsInBuildSrc() {
-        true
-    }
-
     def setup() {
         createDirs("common", "lib", "app")
         settingsFile << """
@@ -58,16 +53,19 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
     }
 
     void setupBuildWithNoSteps(@DelegatesTo(Builder) Closure cl = {}) {
-        setupBuildWithColorAttributes(buildFile, cl)
+        setupBuildWithColorAttributes(settingsFile, cl)
         setupTransformerTypes()
-        configureEachProject("""
-            repositories {
-                maven {
-                    url = '${mavenHttpRepo.uri}'
-                    metadataSources { gradleMetadata() }
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    maven {
+                        url = '${mavenHttpRepo.uri}'
+                        metadataSources { gradleMetadata() }
+                    }
                 }
             }
-
+        """
+        configureEachProject("""
             dependencies {
                 artifactTypes {
                     jar {
@@ -83,7 +81,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
                 from artifacts.artifactFiles
                 into "\${buildDir}/green"
             }
-        """, "resolve-green")
+        """)
         buildFile("lib/build.gradle", """
             dependencies {
                 implementation providers.gradleProperty('useOldDependencyVersion').map { 'org.slf4j:slf4j-api:1.7.24' }.orElse('org.slf4j:slf4j-api:1.7.25')
@@ -99,7 +97,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
     }
 
     void setupTransformerTypes() {
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class TestTransform implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
@@ -164,13 +162,17 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         setupBuildWithColorAttributes()
         setupTransformerTypes()
 
-        configureEachProject("""
-            repositories {
-                maven {
-                    url = '${mavenHttpRepo.uri}'
-                    metadataSources { gradleMetadata() }
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    maven {
+                        url = '${mavenHttpRepo.uri}'
+                        metadataSources { gradleMetadata() }
+                    }
                 }
             }
+        """
+        configureEachProject("""
             configurations {
                 testImplementation {
                     extendsFrom implementation
@@ -347,7 +349,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         setupBuildWithColorAttributes()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             interface Params extends TransformParameters {
                 @Input
                 Property<String> getTransformName()
@@ -378,10 +380,14 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
                 }
             }
         """)
-        configureEachProject("""
-            repositories {
-                maven { url = '${mavenHttpRepo.uri}' }
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    maven { url = '${mavenHttpRepo.uri}' }
+                }
             }
+        """
+        configureEachProject("""
             configurations.outgoing.outgoing.variants {
                 additional {
                     attributes {
@@ -455,7 +461,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
             .allowAll()
 
         setupBuildWithColorAttributes()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             interface Params extends TransformParameters {
                 @Input
                 Property<String> getTransformName()
@@ -487,10 +493,14 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
                 }
             }
         """)
-        configureEachProject("""
-            repositories {
-                maven { url = '${mavenHttpRepo.uri}' }
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    maven { url = '${mavenHttpRepo.uri}' }
+                }
             }
+        """
+        configureEachProject("""
             dependencies {
                 artifactTypes {
                     thing {
@@ -593,11 +603,13 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
 
         settingsFile << "include 'app', 'lib'"
         setupBuildWithChainedColorTransformThatTakesUpstreamArtifacts()
-        configureEachProject("""
-            repositories {
-                maven { url = '${mavenRepo.uri}' }
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    maven { url = '${mavenRepo.uri}' }
+                }
             }
-        """)
+        """
         buildFile("lib/build.gradle", """
             // To trigger the substitution: use coordinates that conflict with the published library but which are newer
             group = 'test'
@@ -646,7 +658,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         given:
         setupBuildWithColorAttributes()
         setupTransformerTypes()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             class ShowFilesTask extends DefaultTask {
                 @InputFiles
                 final ConfigurableFileCollection inFiles = project.files()
@@ -730,7 +742,6 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         )
         outputContains("result = [app.txt, lib.jar.txt, common.jar.txt]")
 
-
         when:
         run("app:resolveView")
 
@@ -797,14 +808,14 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         run ":app:resolveGreen"
 
         then: // no changes, should be up-to-date
-        result.ignoreBuildSrc.assertAllTasksSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // new path, should re-run
-        result.ignoreBuildSrc.assertTasksExecuted(":common:producer")
+        result.assertTasksExecuted(":common:producer")
         assertTransformationsExecuted(
             singleStep('common.jar'),
             singleStep('lib.jar', 'slf4j-api-1.7.25.jar', 'common.jar'),
@@ -814,14 +825,14 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // no changes, should be up-to-date
-        result.ignoreBuildSrc.assertAllTasksSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // new name, should re-run
-        result.ignoreBuildSrc.assertTasksExecuted(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
             singleStep('lib.jar', 'slf4j-api-1.7.25.jar', 'common-blue.jar'),
@@ -831,14 +842,14 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // no changes, should be up-to-date
-        result.ignoreBuildSrc.assertAllTasksSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar", "-DcommonContent=new"
 
         then: // new content, should re-run
-        result.ignoreBuildSrc.assertTasksExecuted(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
             singleStep('lib.jar', 'slf4j-api-1.7.25.jar', 'common-blue.jar'),
@@ -848,14 +859,14 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         run ":app:resolveGreen"
 
         then: // have seen these inputs before
-        result.ignoreBuildSrc.assertTasksExecuted(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted()
     }
 
     def "can attach @PathSensitive(NONE) to dependencies property"() {
         given:
         setupBuildWithNoSteps()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class NoneTransform implements TransformAction<TransformParameters.None> {
                 @InputArtifactDependencies @PathSensitive(PathSensitivity.NONE)
                 abstract FileCollection getInputArtifactDependencies()
@@ -898,14 +909,14 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         run ":app:resolveGreen"
 
         then: // no changes, should be up-to-date
-        result.ignoreBuildSrc.assertAllTasksSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // new path, should skip consumer
-        result.ignoreBuildSrc.assertTasksExecuted(":common:producer")
+        result.assertTasksExecuted(":common:producer")
         assertTransformationsExecuted(
             singleStep('common.jar'),
         )
@@ -914,7 +925,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // new name, should skip consumer
-        result.ignoreBuildSrc.assertTasksExecuted(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
         )
@@ -923,14 +934,14 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // no changes, should be up-to-date
-        result.ignoreBuildSrc.assertAllTasksSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar", "-DcommonContent=new"
 
         then: // new content, should re-run
-        result.ignoreBuildSrc.assertTasksExecuted(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
             singleStep('lib.jar', 'slf4j-api-1.7.25.jar', 'common-blue.jar'),
@@ -940,7 +951,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         run ":app:resolveGreen"
 
         then: // have seen these inputs before
-        result.ignoreBuildSrc.assertTasksExecuted(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted()
     }
 
@@ -949,7 +960,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         setupBuildWithNoSteps {
             produceJars()
         }
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class ClasspathTransform implements TransformAction<TransformParameters.None> {
                 @InputArtifactDependencies @${classpathAnnotation.simpleName}
                 abstract FileCollection getInputArtifactDependencies()
@@ -992,14 +1003,14 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         run ":app:resolveGreen"
 
         then: // no changes, should be up-to-date
-        result.ignoreBuildSrc.assertAllTasksSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // new path, should skip consumer
-        result.ignoreBuildSrc.assertTasksExecuted(":common:producer")
+        result.assertTasksExecuted(":common:producer")
         assertTransformationsExecuted(
             singleStep('common.jar'),
         )
@@ -1008,7 +1019,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // new name, should skip consumer
-        result.ignoreBuildSrc.assertTasksExecuted(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
         )
@@ -1017,14 +1028,14 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // no changes, should be up-to-date
-        result.ignoreBuildSrc.assertAllTasksSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar", "-DcommonContent=new"
 
         then: // new content, should re-run
-        result.ignoreBuildSrc.assertTasksExecuted(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
             singleStep('lib.jar', 'slf4j-api-1.7.25.jar', 'common-blue.jar')
@@ -1034,7 +1045,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         run ":app:resolveGreen"
 
         then: // have seen these inputs before
-        result.ignoreBuildSrc.assertTasksExecuted(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted()
 
         where:
@@ -1212,6 +1223,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
     @ToBeImplemented
     def "transform dependencies include multiple artifacts for the same output"() {
         setupBuildWithSingleStep()
+        taskTypeWithOutputFileProperty(file("common/build.gradle"))
         buildFile("common/build.gradle", """
             task secondProducer(type: FileProducer) {
                 output = layout.buildDirectory.file("common2.jar")
@@ -1291,7 +1303,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         then:
         assertTransformationsExecuted()
         if (GradleContextualExecuter.notConfigCache) {
-            failure.assertHasDescription("Execution failed for task ':app:resolveGreen' (registered by plugin 'resolve-green').") // failure is reported for task that takes the files as input
+            failure.assertHasDescription("Execution failed for task ':app:resolveGreen' (registered in settings file 'settings.gradle').") // failure is reported for task that takes the files as input
             failure.assertResolutionFailure(":app:implementation")
         } else {
             failure.assertHasDescription("Could not resolve all files for configuration ':app:implementation'.")
@@ -1318,7 +1330,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
 
         then:
         if (GradleContextualExecuter.notConfigCache) {
-            failure.assertHasDescription("Execution failed for task ':app:resolveGreen' (registered by plugin 'resolve-green').") // failure is reported for task that takes the files as input
+            failure.assertHasDescription("Execution failed for task ':app:resolveGreen' (registered in settings file 'settings.gradle').") // failure is reported for task that takes the files as input
             failure.assertResolutionFailure(":app:implementation")
         } else {
             failure.assertHasDescription("Could not resolve all files for configuration ':app:implementation'.")
@@ -1352,7 +1364,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         fails ":app:resolveGreen", '-DfailTransformOf=slf4j-api-1.7.25.jar'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':app:resolveGreen' (registered by plugin 'resolve-green').") // failure is reported for task that takes the files as input
+        failure.assertHasDescription("Execution failed for task ':app:resolveGreen' (registered in settings file 'settings.gradle').") // failure is reported for task that takes the files as input
         failure.assertResolutionFailure(":app:implementation")
         failure.assertHasFailures(1)
         failure.assertThatCause(CoreMatchers.containsString("Failed to transform slf4j-api-1.7.25.jar (org.slf4j:slf4j-api:1.7.25)"))
@@ -1384,7 +1396,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
 
         then:
         assertTransformationsExecuted()
-        failure.assertHasDescription("Execution failed for task ':common:producer' (registered by plugin 'color-variants').")
+        failure.assertHasDescription("Execution failed for task ':common:producer' (registered in settings file 'settings.gradle').")
         failure.assertHasFailures(1)
         failure.assertHasCause("broken")
     }

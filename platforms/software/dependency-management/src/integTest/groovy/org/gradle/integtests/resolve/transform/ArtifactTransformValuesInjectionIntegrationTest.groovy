@@ -52,18 +52,13 @@ import static org.gradle.util.Matchers.matchesRegexp
 
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
-    @Override
-    boolean isTransformsInBuildSrc() {
-        true
-    }
-
     def "transform can receive parameters, workspace and input artifact via abstract getter"() {
         createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
         setupBuildWithColorAttributes()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
@@ -120,7 +115,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 nested.nestedProp = ${value}
             """)
         }
-        buildSrcClasses("""
+        settingsScriptClasses("""
             interface NestedType {
                 @Input
                 ${type} getNestedProp()
@@ -172,7 +167,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         """
         setupBuildWithColorTransform()
 
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
 
                 abstract static class Parameters implements TransformParameters {
@@ -216,7 +211,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b'
         """
-        buildSrcClasses("""
+        settingsScriptClasses("""
             import ${BuildServiceParameters.name}
             import ${AtomicInteger.name}
             abstract class CountingService implements BuildService<BuildServiceParameters.None> {
@@ -235,7 +230,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             """)
         }
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Internal
@@ -268,7 +263,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             include 'a', 'b'
         """
         setupBuildWithColorTransform()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 private final ${serviceType} service
 
@@ -310,7 +305,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             include 'a', 'b'
         """
         setupBuildWithColorTransform()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @Inject
                 abstract ${serviceType} getService()
@@ -331,7 +326,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered by plugin 'color-variants').")
+        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered in settings file 'settings.gradle').")
         failure.assertHasCause("Failed to transform b.jar (project ':b') to match attributes {artifactType=jar, color=green}.")
         failure.assertHasCause("No service of type interface ${serviceType} available.")
 
@@ -348,7 +343,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b'
         """
-        buildSrcClasses("""
+        settingsScriptClasses("""
             interface NestedType {
                 @InputFile
                 RegularFileProperty getInputFile()
@@ -363,7 +358,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 nested.inputFile = file("some")
             """)
         }
-        buildSrcClasses("""
+        settingsScriptClasses("""
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
@@ -421,7 +416,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered by plugin 'color-variants').")
+        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered in settings file 'settings.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
         failure.assertHasCause("Failed to transform b.jar (project ':b') to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
@@ -589,7 +584,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 println("Configure closure parameters: " + it)
             """)
         }
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 void transform(TransformOutputs outputs) {
                     println("Parameters: " + getParameters())
@@ -619,7 +614,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 extension = 'green'
             """)
         }
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 @CacheableTask @CacheableTransform
                 interface Parameters extends TransformParameters {
@@ -643,7 +638,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered by plugin 'color-variants').")
+        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered in settings file 'settings.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
         failure.assertHasCause("Failed to transform b.jar (project ':b') to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
@@ -663,7 +658,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 extension = 'green'
             """)
         }
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
@@ -689,7 +684,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered by plugin 'color-variants').")
+        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered in settings file 'settings.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
         failure.assertHasCause("Failed to transform b.jar (project ':b') to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
@@ -722,7 +717,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 extension = 'green'
             """)
         }
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     String getExtension()
@@ -748,7 +743,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasDescription('A problem occurred configuring root project')
         failure.assertHasCause('Could not create an instance of type MakeGreen$Parameters.')
         failure.assertHasCause('Could not generate a decorated class for type MakeGreen.Parameters.')
         failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method Parameters.getBad(): String.")
@@ -768,7 +763,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 extension = 'green'
             """)
         }
-        buildSrcClasses("""
+        settingsScriptClasses("""
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
@@ -809,7 +804,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasDescription('A problem occurred configuring root project')
         failure.assertHasCause('Some problems were found with the configuration of MakeGreen.')
 
         verifyAll(receivedProblem(0)) {
@@ -886,7 +881,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             include 'a', 'b', 'c'
         """
         setupBuildWithColorTransform()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             @${ann.simpleName}
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 void transform(TransformOutputs outputs) {
@@ -905,7 +900,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasDescription('A problem occurred configuring root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
         failure.assertHasErrorOutput("Type 'MakeGreen' is incorrectly annotated with @${ann.simpleName}")
 
@@ -924,7 +919,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 extension = 'green'
             """)
         }
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
@@ -951,7 +946,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasDescription('A problem occurred configuring root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
@@ -977,7 +972,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             include 'a', 'b', 'c'
         """
         setupBuildWithColorTransform()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifactDependencies
                 abstract ${targetType} getDependencies()
@@ -1025,7 +1020,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 extension = 'green'
             """)
         }
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
@@ -1062,7 +1057,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         """
         setupBuildWithColorTransform()
         def typeName = propertyType instanceof Class ? propertyType.name : propertyType.toString()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract ${typeName} getInput()
@@ -1083,7 +1078,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project")
+        failure.assertHasDescription("A problem occurred configuring root project")
         failure.assertHasCause("Could not register artifact transform MakeGreen (from {color=blue} to {color=green})")
         failure.assertHasCause("Cannot use @InputArtifact annotation on property 'input' of type ${typeName}. Allowed property types: org.gradle.api.provider.Provider<org.gradle.api.file.FileSystemLocation>.")
 
@@ -1102,7 +1097,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             include 'a', 'b'
         """
         setupBuildWithColorTransform()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @${annotation.name}
                 abstract ${propertyType.name} getDependencies()
@@ -1123,7 +1118,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project")
+        failure.assertHasDescription("A problem occurred configuring root project")
         failure.assertHasCause("Could not register artifact transform MakeGreen (from {color=blue} to {color=green})")
         failure.assertHasCause("Cannot use @InputArtifactDependencies annotation on property 'dependencies' of type ${propertyType.name}. Allowed property types: org.gradle.api.file.FileCollection.")
 
@@ -1139,7 +1134,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             include 'a', 'b', 'c'
         """
         setupBuildWithColorTransform()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @Inject
                 abstract File getWorkspace()
@@ -1161,7 +1156,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         // Documents existing behaviour. Should fail eagerly and with a better error message
-        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered by plugin 'color-variants').")
+        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered in settings file 'settings.gradle').")
         failure.assertHasCause("Execution failed for MakeGreen: ${file('b/build/b.jar')}.")
         failure.assertHasCause("No service of type class ${File.name} available.")
     }

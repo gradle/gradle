@@ -25,7 +25,6 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -59,12 +58,14 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
             include 'util'
             include 'app'
         """
-        buildSrcClasses(resolveTask)
-        configureEachProject("""
-            repositories {
-                maven { url = '${mavenHttpRepo.uri}' }
+        settingsScriptClasses(resolveTask)
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    maven { url = '${mavenHttpRepo.uri}' }
+                }
             }
-        """, "repositories")
+        """
     }
 
     def "transform is applied to each file once per build"() {
@@ -137,10 +138,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     private void setupProjectInDir(TestFile projectDir) {
-        def rootBuildFile = projectDir.file("build.gradle")
-        buildSrcClasses(rootBuildFile, resolveTask)
-        declareAttributesInEachProject(rootBuildFile)
-        buildSrcClasses(rootBuildFile, """
+        def settingsFile = projectDir.file("settings.gradle")
+        settingsScriptClasses(settingsFile, resolveTask)
+        declareAttributesInEachProject(settingsFile)
+        settingsScriptClasses(settingsFile, """
             abstract class FileSizer implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.NAME_ONLY)
                 @InputArtifact
@@ -158,7 +159,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 }
             }
         """)
-        configureEachProject(rootBuildFile, """
+        configureEachProject(settingsFile, """
             dependencies {
                 registerTransform(FileSizer) {
                     from.attribute(artifactType, "jar")
@@ -170,7 +171,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     attributes { it.attribute(artifactType, 'size') }
                 }.artifacts
             }
-        """, "jar-size-transform")
+        """)
         buildFile(projectDir.file("util/build.gradle"), """
             dependencies {
                 compile project(':lib')
@@ -280,7 +281,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
             include 'app1'
             include 'app2'
         """
-        buildSrcClasses("""
+        def transformClasses = """
+            import org.gradle.api.artifacts.transform.TransformParameters
+
             abstract class MakeThingsColored implements TransformAction<TransformParameters.None> {
                 private final String targetColor
 
@@ -318,7 +321,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     super('green')
                 }
             }
-        """)
+        """
         configureEachProject("""
             def color = Attribute.of('color', String)
 
@@ -345,6 +348,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         """)
         ["app1", "app2"].each { app ->
             buildFile("${app}/build.gradle", """
+                ${transformClasses}
                 dependencies {
                     compile project(':lib')
 
@@ -382,7 +386,12 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     def "executes transform immediately when required during task graph building"() {
         declareAttributesInEachProject()
         setupLibJarTasks()
-        buildSrcClasses("""
+        buildFile("util/build.gradle", """
+            dependencies {
+                compile project(':lib')
+            }
+        """)
+        buildFile("app/build.gradle", """
             import org.gradle.api.artifacts.transform.TransformParameters
 
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
@@ -396,13 +405,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     outputs.file(file.name + ".green").text = "very green"
                 }
             }
-        """)
-        buildFile("util/build.gradle", """
-            dependencies {
-                compile project(':lib')
-            }
-        """)
-        buildFile("app/build.gradle", """
             dependencies {
                 compile project(':util')
 
@@ -490,7 +492,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         setupLibJarTasks()
         setupLibFileDependency("lib3.jar")
         setupLibExternalDependency("lib4")
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class TransformWithMultipleTargets implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
@@ -593,7 +595,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         given:
         declareAttributesInEachProject()
         setupLibJarTasks()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             class CustomType implements Serializable {
                 String value
             }
@@ -695,7 +697,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         given:
         declareAttributesInEachProject()
         setupLibJarTasks()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class TransformWithMultipleTargets implements TransformAction<Parameters> {
 
                 interface Parameters extends TransformParameters {
@@ -785,7 +787,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         setupLibJarTasks()
         setupLibFileDependency("lib3.jar")
         setupLibExternalDependency("lib4")
-        buildSrcClasses("""
+        settingsScriptClasses("""
             abstract class Sizer implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
@@ -962,10 +964,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     include 'util'
                     include 'app'
                 """
-                buildSrcClasses(buildFile, resolveTask)
-                declareAttributesInEachProject(buildFile)
-                setupJarSizeTransform([incremental: true], buildFile)
-                setupLibJarTasks(buildFile)
+                settingsScriptClasses(settingsFile, resolveTask)
+                declareAttributesInEachProject(settingsFile)
+                setupJarSizeTransform([incremental: true], dir)
+                setupLibJarTasks(dir)
             }
         }
 
@@ -1019,7 +1021,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 include(":producer")
             """
             file("project-artifact.jar").text = "project artifact"
-            declareAttributesInEachProject(buildFile)
+            declareAttributesInEachProject(settingsFile)
             buildFile(file("producer/build.gradle"), """
                 group = "com.test"
                 artifacts {
@@ -1037,9 +1039,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 include 'lib'
             """
             file("project-artifact.jar").text = "project artifact"
-            buildSrcClasses(buildFile, resolveTask)
-            declareAttributesInEachProject(buildFile)
-            setupJarSizeTransform([incremental: true], buildFile)
+            settingsScriptClasses(settingsFile, resolveTask)
+            declareAttributesInEachProject(settingsFile)
+            setupJarSizeTransform([incremental: true], consumerIncludedBuild)
             buildFile(file("lib-project/producer/build.gradle"), """
                 artifacts {
                     compile new File(rootDir, "project-artifact.jar")
@@ -1123,7 +1125,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         given:
         declareAttributesInEachProject()
         setupLibJarTasks()
-        buildSrcClasses(duplicatorTransform(incremental: true))
+        settingsScriptClasses(duplicatorTransform(incremental: true))
         buildFile("util/build.gradle", """
             dependencies {
                 compile project(':lib')
@@ -1188,7 +1190,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         given:
         declareAttributesInEachProject()
         setupLibJarTasks()
-        buildSrcClasses(duplicatorTransform(incremental: false, normalization: "@Classpath"))
+        settingsScriptClasses(duplicatorTransform(incremental: false, normalization: "@Classpath"))
         buildFile("util/build.gradle", """
             dependencies {
                 compile project(':lib')
@@ -1253,8 +1255,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     def "non-incremental transform succeeds even if file handle leaks"() {
         given:
         declareAttributesInEachProject()
-        buildSrcClasses(duplicatorTransform(incremental: false, normalization: "@Classpath"))
-        buildSrcClasses("""
+        settingsScriptClasses(duplicatorTransform(incremental: false, normalization: "@Classpath"))
+        settingsScriptClasses("""
             class TestState {
                 static OutputStream fileKeptOpen = null
             }
@@ -1368,7 +1370,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     def "non-incremental transform succeeds even when workspace has been tampered with a new daemon and prints warning"() {
         given:
         declareAttributesInEachProject()
-        buildSrcClasses(duplicatorTransform())
+        settingsScriptClasses(duplicatorTransform())
         buildFile("lib/build.gradle", """
             task jar1(type: Jar) {
                 archiveFileName = 'lib1.jar'
@@ -1431,7 +1433,7 @@ resultsFile:
         setupLibJarTasks()
         setupLibFileDependency("lib3.jar")
         setupLibExternalDependency("lib4")
-        buildSrcClasses(duplicatorTransform())
+        settingsScriptClasses(duplicatorTransform())
         buildFile("util/build.gradle", """
             dependencies {
                 compile project(':lib')
@@ -1509,8 +1511,8 @@ resultsFile:
         setupLibJarTasks()
         setupLibFileDependency("lib3.jar")
         setupLibExternalDependency("lib4-1.0.jar")
-        buildSrcClasses(duplicatorTransform())
-        buildSrcClasses("""
+        settingsScriptClasses(duplicatorTransform())
+        settingsScriptClasses("""
             abstract class FailingDuplicator extends Duplicator {
 
                 @Override
@@ -1562,13 +1564,13 @@ resultsFile:
                     attributes { it.attribute(artifactType, 'orange') }
                 }.artifacts
             }
-        """, "transform-chain")
+        """)
 
         when:
         fails ":app:resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':app:resolve' (registered by plugin 'transform-chain').")
+        failure.assertHasDescription("Execution failed for task ':app:resolve' (registered in settings file 'settings.gradle').")
         failure.assertResolutionFailure(":app:compile")
 
         where:
@@ -1581,7 +1583,7 @@ resultsFile:
 
         declareAttributesInEachProject()
 
-        buildSrcClasses(duplicatorTransform())
+        settingsScriptClasses(duplicatorTransform())
 
         buildFile("app/build.gradle", """
             dependencies {
@@ -1593,11 +1595,14 @@ resultsFile:
                 compile "test:test:1.3"
             }
         """)
-        configureEachProject("""
-            repositories {
-                maven { url = "${mavenHttpRepo.uri}" }
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    maven { url = "${mavenHttpRepo.uri}" }
+                }
             }
-
+        """
+        configureEachProject("""
             if ($scheduled) {
                 configurations.all {
                     // force scheduled transformation of binary artifact
@@ -1636,7 +1641,7 @@ resultsFile:
                     attributes { it.attribute(artifactType, 'yellow') }
                 }.artifacts
             }
-        """, "transform-chain")
+        """)
 
         when:
         module.pom.expectGet()
@@ -1644,7 +1649,7 @@ resultsFile:
         fails ":app:resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':app:resolve' (registered by plugin 'transform-chain').")
+        failure.assertHasDescription("Execution failed for task ':app:resolve' (registered in settings file 'settings.gradle').")
         failure.assertResolutionFailure(":app:compile")
         failure.hasErrorOutput("Received status code 500 from server: Internal Server Error")
 
@@ -1762,10 +1767,11 @@ resultsFile:
         action << ['changed', 'removed', 'added']
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform is supplied with a different output directory when transform implementation changes"() {
         given:
-        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform()
+        declareAttributesInEachProject()
+        setupJarSizeTransform()
+        setupClassesSizeTransform()
 
         file("lib/dir1.classes").file("child").createFile()
 
@@ -1789,8 +1795,7 @@ resultsFile:
 
         when:
         // change the implementation
-        buildFile.text = ""
-        buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform(fileValue: "'new value'") << withClassesSizeTransform()
+        settingsFile.replace("output.text = String.valueOf(input.length())", "output.text = 'new value'")
         succeeds ":util:resolve", ":app:resolve"
 
         then:
@@ -1817,7 +1822,7 @@ resultsFile:
 
         configureEachProject("""
             apply from: new File(rootDir, 'other.gradle')
-        """, "other-script")
+        """)
         declareAttributesInEachProject()
         setupJarSizeTransform(paramValue: "ext.value")
         setupClassesSizeTransform()
@@ -1869,10 +1874,14 @@ resultsFile:
         given:
         declareAttributesInEachProject()
         setupJarSizeTransform()
-        configureEachProject("""
-            repositories {
-                maven { url = '$ivyHttpRepo.uri' }
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    maven { url = '$ivyHttpRepo.uri' }
+                }
             }
+        """
+        configureEachProject("""
             configurations.all {
                 resolutionStrategy.cacheDynamicVersionsFor(0, "seconds")
                 resolutionStrategy.cacheChangingModulesFor(0, "seconds")
@@ -1990,7 +1999,7 @@ resultsFile:
         given:
         declareAttributesInEachProject()
         setupLibExternalDependency("lib1")
-        buildSrcClasses("""
+        settingsScriptClasses("""
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.NAME_ONLY)
@@ -2040,13 +2049,6 @@ resultsFile:
             }
             tasks.create('resolve') {
                 dependsOn(tasks.resolveGreen, tasks.resolveBlue)
-            }
-        """)
-
-        // Only the transforms should store entries in the build cache, not the compilation of buildSrc
-        buildFile("buildSrc/build.gradle", """
-            tasks.withType(AbstractCompile).configureEach {
-                outputs.doNotCacheIf("not part of the test") { true }
             }
         """)
 
@@ -2279,7 +2281,9 @@ resultsFile:
         and:
         declareAttributesInEachProject()
         setupLibExternalDependency()
-        buildSrcClasses("""
+        buildFile("app/build.gradle", """
+            import org.gradle.api.artifacts.transform.TransformParameters
+
             abstract class BlockingTransform implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -2293,8 +2297,6 @@ resultsFile:
                     ${blockingHttpServer.callFromBuild("transform")}
                 }
             }
-        """)
-        buildFile("app/build.gradle", """
             dependencies {
                 registerTransform(BlockingTransform) {
                     from.attribute(artifactType, "jar")
@@ -2400,8 +2402,8 @@ resultsFile:
      * Declares the attributes and the 'compile' configuration in each project of the build with the given root build file.
      * The attributes are available to build scripts as the 'usage' and 'artifactType' extra properties.
      */
-    void declareAttributesInEachProject(TestFile rootBuildFile = getBuildFile()) {
-        configureEachProject(rootBuildFile, """
+    void declareAttributesInEachProject(TestFile settingsFile = getSettingsFile()) {
+        configureEachProject(settingsFile, """
             def usage = Attribute.of('usage', String)
             def artifactType = Attribute.of('artifactType', String)
             ext.usage = usage
@@ -2417,19 +2419,20 @@ resultsFile:
                     attributes.attribute usage, 'api'
                 }
             }
-        """, "attributes")
+        """)
     }
 
     /**
      * Registers the FileSizer transform and a 'resolve' task in each project, and makes ':app' depend on ':util', which depends on ':lib'.
      */
-    void setupJarSizeTransform(Map options = [:], TestFile rootBuildFile = getBuildFile()) {
+    void setupJarSizeTransform(Map options = [:], TestFile projectDir = testDirectory) {
         String paramValue = options.paramValue ?: "1"
         String fileValue = options.fileValue ?: "String.valueOf(input.length())"
         boolean incremental = options.incremental ?: false
 
-        buildSrcClasses(rootBuildFile, fileSizerClass(fileValue, incremental))
-        configureEachProject(rootBuildFile, """
+        def settingsFile = projectDir.file("settings.gradle")
+        settingsScriptClasses(settingsFile, fileSizerClass(fileValue, incremental))
+        configureEachProject(settingsFile, """
             ext.paramValue = $paramValue
 
             dependencies {
@@ -2446,21 +2449,21 @@ resultsFile:
                     attributes { it.attribute(artifactType, 'size') }
                 }.artifacts
             }
-        """, "jar-size-transform")
-        buildFile(rootBuildFile.parentFile.file("util/build.gradle"), """
+        """)
+        buildFile(projectDir.file("util/build.gradle"), """
             dependencies {
                 compile project(':lib')
             }
         """)
-        buildFile(rootBuildFile.parentFile.file("app/build.gradle"), """
+        buildFile(projectDir.file("app/build.gradle"), """
             dependencies {
                 compile project(':util')
             }
         """)
     }
 
-    void setupLibJarTasks(TestFile rootBuildFile = getBuildFile()) {
-        buildFile(rootBuildFile.parentFile.file("lib/build.gradle"), """
+    void setupLibJarTasks(TestFile projectDir = testDirectory) {
+        buildFile(projectDir.file("lib/build.gradle"), """
             task jar1(type: Jar) {
                 archiveFileName = 'lib1.jar'
             }
@@ -2486,7 +2489,7 @@ resultsFile:
                     parameters { value = paramValue }
                 }
             }
-        """, "classes-size-transform")
+        """)
         buildFile("lib/build.gradle", """
             artifacts {
                 compile file("dir1.classes")
@@ -2544,51 +2547,6 @@ resultsFile:
         """
     }
 
-    def multiProjectWithJarSizeTransform(Map options = [:]) {
-        String paramValue = options.paramValue ?: "1"
-        String fileValue = options.fileValue ?: "String.valueOf(input.length())"
-        boolean incremental = options.incremental ?: false
-
-        """
-            ext.paramValue = $paramValue
-
-            ${registerFileSizer(fileValue, incremental)}
-
-            project(':util') {
-                dependencies {
-                    compile project(':lib')
-                }
-            }
-
-            project(':app') {
-                dependencies {
-                    compile project(':util')
-                }
-            }
-        """
-    }
-
-    String registerFileSizer(String fileValue, boolean incremental = false) {
-        """
-${fileSizerClass(fileValue, incremental)}            allprojects {
-                dependencies {
-                    registerTransform(FileSizer) {
-                        from.attribute(artifactType, "jar")
-                        to.attribute(artifactType, "size")
-                        parameters {
-                            value = rootProject.paramValue
-                        }
-                    }
-                }
-                tasks.register("resolve", Resolve) {
-                    artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
-                }
-            }
-            """
-    }
-
     private String fileSizerClass(String fileValue, boolean incremental) {
         """            abstract class FileSizer implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
@@ -2640,45 +2598,6 @@ ${fileSizerClass(fileValue, incremental)}            allprojects {
             }
 
 """
-    }
-
-    def withClassesSizeTransform() {
-        """
-            allprojects {
-                dependencies {
-                    registerTransform(FileSizer) {
-                        from.attribute(artifactType, "classes")
-                        to.attribute(artifactType, "size")
-                        parameters { value = rootProject.paramValue }
-                    }
-                }
-            }
-            project(':lib') {
-                artifacts {
-                    compile file("dir1.classes")
-                }
-            }
-        """
-    }
-
-    def declareAttributes() {
-        """
-            def usage = Attribute.of('usage', String)
-            def artifactType = Attribute.of('artifactType', String)
-
-            allprojects {
-                dependencies {
-                    attributesSchema {
-                        attribute(usage)
-                    }
-                }
-                configurations {
-                    compile {
-                        attributes.attribute usage, 'api'
-                    }
-                }
-            }
-        """
     }
 
     void isTransformed(String from, String to) {

@@ -33,10 +33,6 @@ import spock.lang.Issue
  */
 class ArtifactTransformIsolationIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture {
 
-    @Override
-    boolean isTransformsInBuildSrc() {
-        true
-    }
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
@@ -402,7 +398,7 @@ abstract class Resolve extends Copy {
         when:
         fails ':consumer:resolve'
         then:
-        failureDescriptionContains(isConfigCache ? "MakeGreen" : "Execution failed for task ':consumer:resolve' (registered by plugin 'color-variants').")
+        failureDescriptionContains(isConfigCache ? "MakeGreen" : "Execution failed for task ':consumer:resolve' (registered in settings file 'settings.gradle').")
         failureCauseContains(isConfigCache ? "MakeGreen" : "Could not isolate parameters TransformParameters.None of artifact transform MakeGreen")
     }
 }

@@ -37,7 +37,7 @@ class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunction
             include 'app'
         """
 
-        buildSrcClasses("""
+        settingsScriptClasses("""
             import java.nio.file.Files
             import org.gradle.api.artifacts.transform.TransformParameters
 
@@ -182,7 +182,7 @@ class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunction
         consoleType = ConsoleOutput.Rich
         BlockingHttpServer server = new BlockingHttpServer()
         server.start()
-        buildSrcClasses("""
+        settingsScriptClasses("""
             // NOTE: This is named "Red" so that the status message fits on one line
             abstract class Red extends Multiplier {
                 Red() {

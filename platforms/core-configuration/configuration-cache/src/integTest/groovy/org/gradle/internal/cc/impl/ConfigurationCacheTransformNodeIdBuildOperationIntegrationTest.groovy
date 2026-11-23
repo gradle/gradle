@@ -38,24 +38,23 @@ class ConfigurationCacheTransformNodeIdBuildOperationIntegrationTest extends Abs
         """
 
         setupBuildWithColorAttributes()
-        buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform(MakeColor) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'red')
-                        parameters.targetColor.set('red')
-                        parameters.multiplier.set(2)
-                    }
-                    registerTransform(MakeColor) {
-                        from.attribute(color, 'red')
-                        to.attribute(color, 'green')
-                        parameters.targetColor.set('green')
-                        parameters.multiplier.set(1)
-                    }
+        configureEachProject("""
+            dependencies {
+                registerTransform(MakeColor) {
+                    from.attribute(color, 'blue')
+                    to.attribute(color, 'red')
+                    parameters.targetColor.set('red')
+                    parameters.multiplier.set(2)
+                }
+                registerTransform(MakeColor) {
+                    from.attribute(color, 'red')
+                    to.attribute(color, 'green')
+                    parameters.targetColor.set('green')
+                    parameters.multiplier.set(1)
                 }
             }
-
+        """)
+        settingsScriptClasses("""
             interface TargetColor extends TransformParameters {
                 @Input
                 Property<String> getTargetColor()
@@ -77,15 +76,13 @@ class ConfigurationCacheTransformNodeIdBuildOperationIntegrationTest extends Abs
                     }
                 }
             }
-        """
+        """)
 
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
-                }
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
             }
-        """
+        """)
 
         when:
         configurationCacheRun ":consumer:resolve"
