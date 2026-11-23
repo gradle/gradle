@@ -47,7 +47,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         and:
         def abiChange = androidLibraryAndApplicationBuild(agpVersion)
-        def expectSetVisible = !AGP_VERSIONS.isAgpNightly(agpVersion)
+        def expectSetVisible = VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.6.0")
 
         and:
         def runner = agpRunner(agpVersion,
