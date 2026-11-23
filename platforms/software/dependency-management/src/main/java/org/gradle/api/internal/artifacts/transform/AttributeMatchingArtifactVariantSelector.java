@@ -30,6 +30,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.api.internal.attributes.matching.AttributeMatchingCandidate;
+import org.gradle.internal.Try;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -39,7 +40,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -96,26 +96,25 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
             AttributeMatcher attributeMatcher = attributeSchemaServices.getMatcher(consumerSchema, producer.getProducerSchema());
             ImmutableAttributes targetAttributes = attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
 
-            MemoizingSelector selector = new MemoizingSelector(producer, requestAttributes, targetAttributes, attributeMatcher, failureHandler, transformationChainSelector);
+            MemoizingSelector selector = new MemoizingSelector(producer, targetAttributes, attributeMatcher, failureHandler, transformationChainSelector);
 
             // A configuration whose primary variant has no artifacts, but which declares secondary variants, keeps its
             // primary variant as a candidate, marked as previously unselectable. Prior to Gradle 9.10, such a variant was
             // not a candidate at all, since the configuration did not expose it.
-            Optional<ResolvedVariant> primaryWithoutArtifacts = findPrimaryWithoutArtifacts(producer);
-            if (primaryWithoutArtifacts.isEmpty()) {
+            ResolvedVariant primary = findPrimaryWithoutArtifacts(producer);
+            if (primary == null) {
                 // There is nothing to exclude, so select among all candidates
                 return selector.select(allowNoMatchingVariants);
             }
 
-            ResolvedVariant primary = primaryWithoutArtifacts.get();
-            MemoizingSelector selectorWithoutPrimary = new MemoizingSelector(excluding(producer, primary), requestAttributes, targetAttributes, attributeMatcher, failureHandler, transformationChainSelector);
+            MemoizingSelector selectorWithoutPrimary = new MemoizingSelector(excluding(producer, primary), targetAttributes, attributeMatcher, failureHandler, transformationChainSelector);
 
             if (artifactlessPrimaryVariantSelectionEnabled) {
                 // Select among all candidates, as will be the default starting with Gradle 11, when only this branch remains
                 selectionWarningHelper.warnIfPrimarySelected(selector, selectorWithoutPrimary, primary);
                 return selector.select(allowNoMatchingVariants);
             } else {
-                // Prior to Gradle 9.10, the primary variant was dropped before selection, so a failure lists only the other variants
+                // Select among the other variants, as prior to Gradle 9.10, so a failure lists only those
                 selectionWarningHelper.nagIfConsideringPrimaryChangesResult(selector, selectorWithoutPrimary, primary);
                 return selectorWithoutPrimary.select(allowNoMatchingVariants);
             }
@@ -125,17 +124,18 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
     }
 
     /**
-     * Returns the primary variant without artifacts among the producer's candidates, if there is one.
+     * Returns the primary variant without artifacts among the producer's candidates, or {@code null} if there is none.
      * <p>
      * This runs for every selection from every producer, most of which have no such variant, so it loops rather than streams to avoid allocating.
      */
-    private static Optional<ResolvedVariant> findPrimaryWithoutArtifacts(ResolvedVariantSet producer) {
+    @Nullable
+    private static ResolvedVariant findPrimaryWithoutArtifacts(ResolvedVariantSet producer) {
         for (ResolvedVariant candidate : producer.getCandidates()) {
             if (candidate.isPreviouslyUnselectable()) {
-                return Optional.of(candidate);
+                return candidate;
             }
         }
-        return Optional.empty();
+        return null;
     }
 
     /**
@@ -161,22 +161,11 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
      *     variants that the result needs anyway, and different requests can need different advice.</li>
      * </ul>
      * Separate resolutions, such as of different configurations, have separate selectors, so each reports them again.
+     * <p>
+     * This class is meant to be removed entirely after Gradle 11.
      */
     private static final class SelectionWarningHelper {
         private final Set<String> reported = ConcurrentHashMap.newKeySet();
-
-        /**
-         * Did the selection select the given variant, or a transformation of it?
-         * <p>
-         * A failure while deciding counts as not selecting it, since the selection has already been made.
-         */
-        private static boolean wouldSelectPrimary(MemoizingSelector selector, ResolvedVariant variant) {
-            try {
-                return selector.wouldSelect(variant);
-            } catch (RuntimeException e) {
-                return false;
-            }
-        }
 
         /**
          * Warns, once per producer and variant, if the selection among all candidates selects the primary variant without artifacts,
@@ -187,7 +176,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
             MemoizingSelector selectorWithoutPrimary,
             ResolvedVariant primaryWithoutArtifacts
         ) {
-            if (!wouldSelectPrimary(selector, primaryWithoutArtifacts)) {
+            if (!wouldSelect(selector, primaryWithoutArtifacts)) {
                 return;
             }
             String summary = "Selecting artifacts from " + selector.variants.asDescribable().getDisplayName() + " selected variant '" + primaryWithoutArtifacts.asDescribable().getDisplayName() + "', which has no artifacts.";
@@ -213,11 +202,11 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
                 if (!matches.isEmpty()) {
                     return matches.contains(primaryWithoutArtifacts);
                 }
-                if (selector.hasAmbiguousTransformationChains()) {
+                if (hasAmbiguousTransformationChains(selector)) {
                     // Chains of transformations of the primary variant are part of the ambiguity, unless the other variants' chains are ambiguous by themselves
-                    return !selectorWithoutPrimary.hasAmbiguousTransformationChains();
+                    return !hasAmbiguousTransformationChains(selectorWithoutPrimary);
                 }
-                return selector.wouldSelect(primaryWithoutArtifacts);
+                return wouldSelect(selector, primaryWithoutArtifacts);
             } catch (RuntimeException e) {
                 return false;
             }
@@ -263,6 +252,53 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         }
 
         /**
+         * Would the selector select the given variant, or a transformation of it?
+         * <p>
+         * A selection that fails, such as for ambiguous chains of transformations, selects nothing.
+         * <p>
+         * Starting with Gradle 11, the deprecation no longer needs this, but the warning when the feature preview, then the default,
+         * selects a primary variant without artifacts still does. It can only be removed if that warning is removed too.
+         */
+        private static boolean wouldSelect(MemoizingSelector selector, ResolvedVariant variant) {
+            try {
+                List<ResolvedVariant> matchingVariants = selector.getMatches();
+                if (!matchingVariants.isEmpty()) {
+                    return matchingVariants.size() == 1 && matchingVariants.get(0) == variant;
+                }
+                TransformedVariant selectedTransformationChain = selector.getTransformationChain();
+                return selectedTransformationChain != null && selectedTransformationChain.getRoot() == variant;
+            } catch (RuntimeException e) {
+                return false;
+            }
+        }
+
+        /**
+         * Do several of the selector's chains of transformations match the request, so that they cannot be disambiguated?
+         */
+        private static boolean hasAmbiguousTransformationChains(MemoizingSelector selector) {
+            try {
+                selector.getTransformationChain();
+                return false;
+            } catch (AbstractResolutionFailureException e) {
+                return true;
+            }
+        }
+
+        /**
+         * Returns the variants that the selector matches directly, or else its single chain of transformations, if any.
+         * <p>
+         * Several are returned if the match is ambiguous, and none if the chains of transformations are ambiguous.
+         */
+        private static List<? extends AttributeMatchingCandidate> selectedCandidates(MemoizingSelector selector) {
+            List<ResolvedVariant> matchingVariants = selector.getMatches();
+            if (!matchingVariants.isEmpty() || hasAmbiguousTransformationChains(selector)) {
+                return matchingVariants;
+            }
+            TransformedVariant selectedTransformationChain = selector.getTransformationChain();
+            return selectedTransformationChain != null ? ImmutableList.of(selectedTransformationChain) : ImmutableList.of();
+        }
+
+        /**
          * Returns the attributes, as {@code name=value}, of the single variant selected without the primary variant that the primary variant
          * lacks, or has with another value, and that are not already requested or empty. Nothing is suggested if no single variant is selected.
          * <p>
@@ -271,7 +307,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         private static Set<String> attributesNotOnPrimary(MemoizingSelector selectorWithoutPrimary, ResolvedVariant primaryWithoutArtifacts) {
             List<? extends AttributeMatchingCandidate> selectedCandidates;
             try {
-                selectedCandidates = selectorWithoutPrimary.getSelectedCandidates();
+                selectedCandidates = selectedCandidates(selectorWithoutPrimary);
             } catch (RuntimeException e) {
                 // Advice must not fail a selection
                 return ImmutableSet.of();
@@ -301,42 +337,32 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
      * Selects among a set of variants as Gradle always has: a single direct match, or else a single chain of transformations.
      * <p>
      * Deciding about the primary variant without artifacts queries it as well as selecting,
-     * so a {@code MemoizingSelector} computes nothing up front. It answers three questions, computing each answer at most once:
+     * so a {@code MemoizingSelector} computes nothing up front, and computes each of these at most once, remembering any failure:
      * <ul>
      *     <li>{@link #getMatches()}: the direct attribute matches, after the matcher's disambiguation.</li>
-     *     <li>{@link #getTransformationChain()}: the single best chain of transformations. It throws if the chains are ambiguous, and remembers that failure.</li>
-     *     <li>{@link #selectIfMatching()}: one match returns that variant's artifacts. Several matches throw an ambiguity failure. Zero matches fall back to the chain:
-     *     its transformed artifacts, or {@code null} if there is no chain.</li>
+     *     <li>{@link #getTransformationChain()}: the single best chain of transformations, which fails if the chains are ambiguous.</li>
      * </ul>
      */
     private static final class MemoizingSelector {
         private final ResolvedVariantSet variants;
-        private final ImmutableAttributes requestAttributes;
         private final ImmutableAttributes targetAttributes;
         private final AttributeMatcher matcher;
         private final ResolutionFailureHandler failureHandler;
         private final TransformationChainSelector transformationChainSelector;
 
         @Nullable
-        private List<ResolvedVariant> matches;
+        private Try<List<ResolvedVariant>> matches;
         @Nullable
-        private RuntimeException matchesFailure;
-        private boolean transformationChainSelected;
-        @Nullable
-        private TransformedVariant transformationChain;
-        @Nullable
-        private RuntimeException transformationChainFailure;
+        private Try<@Nullable TransformedVariant> transformationChain;
 
         MemoizingSelector(
             ResolvedVariantSet variants,
-            ImmutableAttributes requestAttributes,
             ImmutableAttributes targetAttributes,
             AttributeMatcher matcher,
             ResolutionFailureHandler failureHandler,
             TransformationChainSelector transformationChainSelector
         ) {
             this.variants = variants;
-            this.requestAttributes = requestAttributes;
             this.targetAttributes = targetAttributes;
             this.matcher = matcher;
             this.failureHandler = failureHandler;
@@ -349,17 +375,10 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
          * A failure to match, such as an attribute rule that throws, is remembered and thrown again.
          */
         List<ResolvedVariant> getMatches() {
-            if (matches == null && matchesFailure == null) {
-                try {
-                    matches = matcher.matchMultipleCandidates(variants.getCandidates(), targetAttributes);
-                } catch (RuntimeException e) {
-                    matchesFailure = e;
-                }
+            if (matches == null) {
+                matches = Try.ofFailable(() -> matcher.matchMultipleCandidates(variants.getCandidates(), targetAttributes));
             }
-            if (matchesFailure != null) {
-                throw matchesFailure;
-            }
-            return Objects.requireNonNull(matches);
+            return matches.get();
         }
 
         /**
@@ -371,97 +390,20 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
          */
         @Nullable
         TransformedVariant getTransformationChain() {
-            if (!transformationChainSelected) {
-                transformationChainSelected = true;
-                try {
-                    transformationChain = transformationChainSelector.selectTransformationChain(variants, targetAttributes, matcher).orElse(null);
-                } catch (RuntimeException e) {
-                    transformationChainFailure = e;
-                }
+            if (transformationChain == null) {
+                transformationChain = Try.ofFailable(() -> transformationChainSelector.selectTransformationChain(variants, targetAttributes, matcher).orElse(null));
             }
-            if (transformationChainFailure != null) {
-                throw transformationChainFailure;
-            }
-            return transformationChain;
+            return transformationChain.get();
         }
 
         /**
-         * Do several chains of transformations match the request, so that they cannot be disambiguated?
-         */
-        boolean hasAmbiguousTransformationChains() {
-            try {
-                getTransformationChain();
-                return false;
-            } catch (AbstractResolutionFailureException e) {
-                return true;
-            }
-        }
-
-        /**
-         * Would selecting select the given variant, or a transformation of it?
-         * <p>
-         * Ambiguous chains of transformations select nothing.
-         */
-        boolean wouldSelect(ResolvedVariant variant) {
-            List<ResolvedVariant> matchingVariants = getMatches();
-            if (!matchingVariants.isEmpty()) {
-                return matchingVariants.size() == 1 && matchingVariants.get(0) == variant;
-            }
-            if (hasAmbiguousTransformationChains()) {
-                return false;
-            }
-            TransformedVariant selectedTransformationChain = getTransformationChain();
-            return selectedTransformationChain != null && selectedTransformationChain.getRoot() == variant;
-        }
-
-        /**
-         * Returns the variants that match directly, or else the single chain of transformations, if any.
-         * <p>
-         * Several are returned if the match is ambiguous, and none if the chains of transformations are ambiguous.
-         */
-        List<? extends AttributeMatchingCandidate> getSelectedCandidates() {
-            List<ResolvedVariant> matchingVariants = getMatches();
-            if (!matchingVariants.isEmpty() || hasAmbiguousTransformationChains()) {
-                return matchingVariants;
-            }
-            TransformedVariant selectedTransformationChain = getTransformationChain();
-            return selectedTransformationChain != null ? ImmutableList.of(selectedTransformationChain) : ImmutableList.of();
-        }
-
-        /**
-         * Selects the artifacts that match the request.
-         * <p>
-         * When nothing matches, that could be okay (and just a no match) if this is allowed, else it's a failure.
-         * A failure is returned as broken artifacts, reported against this selector's candidates, rather than thrown.
+         * Selects the artifacts of the single direct match, or else of the single chain of transformations that produces a suitable virtual variant.
          *
-         * @return the selected artifacts, {@link ResolvedArtifactSet#EMPTY} if none match and {@code allowNoMatchingVariants} is true,
-         * or broken artifacts if the match is ambiguous, or if none match and {@code allowNoMatchingVariants} is false
+         * @return the selected artifacts, or {@link ResolvedArtifactSet#EMPTY} if none match and {@code allowNoMatchingVariants} is true
+         * @throws AbstractResolutionFailureException if several variants match, several chains match and cannot be disambiguated,
+         * or none match and {@code allowNoMatchingVariants} is false
          */
         ResolvedArtifactSet select(boolean allowNoMatchingVariants) {
-            try {
-                ResolvedArtifactSet selected = selectIfMatching();
-                if (selected != null) {
-                    return selected;
-                }
-                if (allowNoMatchingVariants) {
-                    return ResolvedArtifactSet.EMPTY;
-                }
-                throw failureHandler.noCompatibleArtifactFailure(matcher, variants, targetAttributes);
-            } catch (Exception t) {
-                return new BrokenResolvedArtifactSet(failureHandler.unknownArtifactVariantSelectionFailure(variants, requestAttributes, t));
-            }
-        }
-
-        /**
-         * Returns the matched artifacts, or the artifacts of a chain of transformations that produces a suitable virtual variant,
-         * or {@code null} if neither exists.
-         *
-         * @throws AbstractResolutionFailureException if several variants match, or several chains match and cannot be disambiguated
-         */
-        @Nullable
-        ResolvedArtifactSet selectIfMatching() {
-            // Check for matching variant without using artifact transforms.  If we found only one match, return it.
-            // If we found multiple matches, there is ambiguity.
             List<ResolvedVariant> matchingVariants = getMatches();
             if (matchingVariants.size() == 1) {
                 return matchingVariants.get(0).getArtifacts();
@@ -471,9 +413,14 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
 
             // We found no matching variant.  Attempt to select a chain of transformations that produces a suitable virtual variant.
             TransformedVariant selectedTransformationChain = getTransformationChain();
-            return selectedTransformationChain != null
-                ? variants.transformCandidate(selectedTransformationChain.getRoot(), selectedTransformationChain.getTransformedVariantDefinition())
-                : null;
+            if (selectedTransformationChain != null) {
+                return variants.transformCandidate(selectedTransformationChain.getRoot(), selectedTransformationChain.getTransformedVariantDefinition());
+            }
+
+            if (allowNoMatchingVariants) {
+                return ResolvedArtifactSet.EMPTY;
+            }
+            throw failureHandler.noCompatibleArtifactFailure(matcher, variants, targetAttributes);
         }
     }
 }
