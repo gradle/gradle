@@ -10,7 +10,13 @@
 <meta name="twitter:description" content="We are excited to announce Gradle @version@.">
 <meta name="twitter:image" content="https://gradle.org/assets/images/releases/gradle-default.png">
 
-Gradle @version@ is the second patch release for Gradle 9.9.0 (released [@releaseDate@](https://gradle.org/releases/)).
+Gradle @version@ is the third patch release for Gradle 9.9.0 (released [@releaseDate@](https://gradle.org/releases/)).
+
+The following issues were resolved:
+
+* TODO
+
+Issues fixed in the second patch release:
 
 This release addresses four security vulnerabilities:
 - [SFTP repositories do not verify host keys](https://github.com/gradle/gradle/security/advisories/GHSA-4mf6-7pm2-6wm8) - 8.9 High
