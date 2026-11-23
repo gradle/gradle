@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ArtifactlessPrimaryVariantFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
@@ -532,8 +533,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
 
                 configurations {
-                    // The primary variant has no artifacts. Declare an artifact type that is not requested, so that it is not a better match than a transformation of a secondary variant.
-                    compile.attributes.attribute(artifactType, 'none')
                     compile.outgoing.variants {
                         files {
                             attributes.attribute(Attribute.of('artifactType', String), 'jar')
@@ -555,6 +554,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         """
 
         when:
+        // The request relies on the primary variant without artifacts being ignored
+        expectArtifactlessPrimaryVariantDeprecation("project ':lib'", "configuration ':lib:compile'")
         run "resolve"
 
         then:
@@ -571,6 +572,10 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming lib2.zip to lib2.zip.txt") == 1
 
         when:
+        if (GradleContextualExecuter.notConfigCache) {
+            // With the configuration cache, the build reuses the cached result without selecting artifacts again
+            expectArtifactlessPrimaryVariantDeprecation("project ':lib'", "configuration ':lib:compile'")
+        }
         run "resolve"
 
         then:
@@ -702,20 +707,15 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
 
                 configurations {
-                    // The primary variant has no artifacts. Declare an artifact type that is not requested, so that it is not a better match than a transformation of a secondary variant.
-                    // The secondary variants inherit it, so they declare their own.
-                    compile.attributes.attribute(artifactType, 'none')
                     compile.outgoing.variants {
                         java7 {
                             attributes.attribute(Attribute.of('javaVersion', String), '7')
                             attributes.attribute(Attribute.of('color', String), 'green')
-                            attributes.attribute(artifactType, 'jar')
                             artifact tasks.jar1
                         }
                         java8 {
                             attributes.attribute(Attribute.of('javaVersion', String), '8')
                             attributes.attribute(Attribute.of('color', String), 'red')
-                            attributes.attribute(artifactType, 'jar')
                             artifact tasks.jar2
                         }
                     }
@@ -765,6 +765,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         """
 
         when:
+        // The request relies on the primary variant without artifacts being ignored
+        expectArtifactlessPrimaryVariantDeprecation("project ':lib'", "configuration ':lib:compile'")
         run "resolve"
 
         then:
@@ -779,6 +781,10 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming lib1.jar to lib1.jar.red") == 1
 
         when:
+        if (GradleContextualExecuter.notConfigCache) {
+            // With the configuration cache, the build reuses the cached result without selecting artifacts again
+            expectArtifactlessPrimaryVariantDeprecation("project ':lib'", "configuration ':lib:compile'")
+        }
         run "resolve"
 
         then:
@@ -812,20 +818,15 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
 
                 configurations {
-                    // The primary variant has no artifacts. Declare an artifact type that is not requested, so that it is not a better match than a transformation of a secondary variant.
-                    // The secondary variants inherit it, so they declare their own.
-                    compile.attributes.attribute(artifactType, 'none')
                     compile.outgoing.variants {
                         java7 {
                             attributes.attribute(Attribute.of('javaVersion', String), '7')
                             attributes.attribute(Attribute.of('color', String), 'green')
-                            attributes.attribute(artifactType, 'jar')
                             artifact tasks.jar1
                         }
                         java8 {
                             attributes.attribute(Attribute.of('javaVersion', String), '8')
                             attributes.attribute(Attribute.of('color', String), 'red')
-                            attributes.attribute(artifactType, 'jar')
                             artifact tasks.jar2
                         }
                     }
@@ -897,6 +898,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         """
 
         when:
+        // The request relies on the primary variant without artifacts being ignored
+        expectArtifactlessPrimaryVariantDeprecation("project ':lib'", "configuration ':lib:compile'")
         run "resolve"
 
         then:
@@ -916,6 +919,10 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming lib1.jar.blue to lib1.jar.blue.red") == 1
 
         when:
+        if (GradleContextualExecuter.notConfigCache) {
+            // With the configuration cache, the build reuses the cached result without selecting artifacts again
+            expectArtifactlessPrimaryVariantDeprecation("project ':lib'", "configuration ':lib:compile'")
+        }
         run "resolve"
 
         then:

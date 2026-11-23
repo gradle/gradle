@@ -138,6 +138,9 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
     }
 
     def "result includes declared variant for local dependencies"() {
+        // The request relies on the primary variants without artifacts being ignored
+        expectArtifactlessPrimaryVariantDeprecation("project ':a'", "configuration ':a:compile'", ["flavor=one", "artifactType=jar"])
+        expectArtifactlessPrimaryVariantDeprecation("project ':b'", "configuration ':b:compile'", ["flavor=two", "artifactType=jar"])
         settingsFile << """
             include 'a'
             include 'b'
@@ -148,8 +151,6 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
 
             configurations {
                 compile.attributes.attribute(usage, 'compile')
-                // Request jars, so that the secondary variants are a better match than the primary variants, which have no artifacts
-                compile.attributes.attribute(Attribute.of('artifactType', String), 'jar')
             }
 
             dependencies {
