@@ -18,7 +18,6 @@ package org.gradle.integtests.composite
 
 import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.internal.build.BuildStateRegistry
@@ -28,7 +27,6 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
 
     BuildOperationsFixture fixture = new BuildOperationsFixture(executer, temporaryFolder)
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "can have buildLogic build and include build with buildLogic build"() {
         def builds = nestedBuilds {
             includedBuild {
@@ -59,7 +57,6 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         ]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "build paths are selected based on the directory hierarchy"() {
         def builds = nestedBuilds {
             includedBuild {
@@ -106,7 +103,6 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         ]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "buildSrc is relative to its including build"() {
         def builds = nestedBuilds {
             includedBuild {
@@ -146,7 +142,6 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         ]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "uses the directory hierarchy to determine the build path when the builds are not nested"() {
         def builds = nestedBuilds {
             includedBuildA {
@@ -240,12 +235,13 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
                     }
                 }
             """
-            it.buildFile << """
-                subprojects {
+            def build = it
+            ["project1", "project2"].each { name ->
+                buildFile(build.project(name).buildFile, """
                     // The Java plugin forces the configuration of the included builds
                     apply plugin: 'java'
-                }
-            """
+                """)
+            }
         }
     }
 

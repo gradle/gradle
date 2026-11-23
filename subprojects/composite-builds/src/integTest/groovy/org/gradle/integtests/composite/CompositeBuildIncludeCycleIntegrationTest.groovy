@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
@@ -176,20 +175,20 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
         canRunFromCache(buildA, 'task1')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "can depend back on root build"() {
         given:
         def rootBuild = multiProjectBuild('rootBuild', ['root1', 'root2']) {
-            buildFile << """
-                subprojects { apply plugin: 'java-library'}
-                project(':root1') {
-                    dependencies { implementation 'org.test:theNameOfBuildA' }
-                }
-            """
             settingsFile << """
                 includeBuild '../buildA'
             """
         }
+        buildFile(rootBuild.project('root1').buildFile, """
+            apply plugin: 'java-library'
+            dependencies { implementation 'org.test:theNameOfBuildA' }
+        """)
+        buildFile(rootBuild.project('root2').buildFile, """
+            apply plugin: 'java-library'
+        """)
 
         buildA.buildFile << """
             apply plugin: 'java-library'
@@ -210,25 +209,27 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
         canRunFromCache(rootBuild, ':root1:compileJava')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "can depend back on root build and back on an included build"() {
         given:
         def rootBuild = multiProjectBuild('rootBuild', ['root1', 'root2', 'x3']) {
-            buildFile << """
-                subprojects { apply plugin: 'java-library'}
-                project(':root1') {
-                    dependencies { api 'org.test:theNameOfBuildA' }
-                }
-                project(':root2') {
-                    dependencies { api 'org.test:buildB' }
-                }
-            """
             settingsFile << """
                 includeBuild '.'
                 includeBuild '../buildA'
                 includeBuild '../buildB'
             """
         }
+
+        buildFile(rootBuild.project('root1').buildFile, """
+            apply plugin: 'java-library'
+            dependencies { api 'org.test:theNameOfBuildA' }
+        """)
+        buildFile(rootBuild.project('root2').buildFile, """
+            apply plugin: 'java-library'
+            dependencies { api 'org.test:buildB' }
+        """)
+        buildFile(rootBuild.project('x3').buildFile, """
+            apply plugin: 'java-library'
+        """)
 
         buildA.buildFile << """
             apply plugin: 'java-library'
