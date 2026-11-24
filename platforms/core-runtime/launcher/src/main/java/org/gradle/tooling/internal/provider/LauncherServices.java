@@ -69,6 +69,7 @@ import org.gradle.internal.time.Time;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.FileChangeListeners;
 import org.gradle.internal.work.ProjectParallelExecutionController;
+import org.gradle.launcher.exec.AgentModeIgnoringBuildActionRunner;
 import org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner;
 import org.gradle.launcher.exec.BuildOutcomeReportingBuildActionRunner;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
@@ -253,7 +254,10 @@ public class LauncherServices extends AbstractGradleModuleServices {
                                 exceptionAnalyser,
                                 buildTreeLocations,
                                 problemReporters,
-                                new ChainingBuildActionRunner(buildActionRunners)
+                                new AgentModeIgnoringBuildActionRunner(
+                                    problemsService,
+                                    new ChainingBuildActionRunner(buildActionRunners)
+                                )
                             )
                         )
                     )
