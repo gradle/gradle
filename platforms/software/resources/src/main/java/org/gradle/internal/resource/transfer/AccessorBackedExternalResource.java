@@ -68,6 +68,14 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
         return name.getDisplayName();
     }
 
+    /**
+     * Keeps any user info of the name, as this is used as a cache key. Use {@link #getDisplayName()} for messages and logs.
+     */
+    @Override
+    public String toString() {
+        return name.toString();
+    }
+
     @Nullable
     @Override
     public ExternalResourceReadResult<Void> writeToIfPresent(File destination) throws ResourceException {

@@ -63,17 +63,24 @@ public class ExternalResourceName implements Describable {
 
     @Override
     public String getDisplayName() {
-        return getDisplayable();
+        if (encodedRoot == null) {
+            return getDisplayable();
+        }
+        return UriDisplay.withoutUserInfo(encodedRoot) + encode(path, true);
     }
 
     public String getShortDisplayName() {
         int lastSlash = path.lastIndexOf('/');
-        return lastSlash == -1 ? getDisplayable() : path.substring(lastSlash + 1);
+        return lastSlash == -1 ? getDisplayName() : path.substring(lastSlash + 1);
     }
 
+    /**
+     * Returns the {@link #getDisplayable() displayable} name, which keeps any user info of the root as this is used as a cache key.
+     * Use {@link #getDisplayName()} for messages and logs.
+     */
     @Override
     public String toString() {
-        return getDisplayName();
+        return getDisplayable();
     }
 
     /**
@@ -92,6 +99,7 @@ public class ExternalResourceName implements Describable {
 
     /**
      * Returns the 'displayable' name, which is the opaque root + the encoded path of the name.
+     * It keeps any user info of the root, use {@link #getDisplayName()} for messages and logs.
      */
     public String getDisplayable() {
         if (encodedRoot == null) {

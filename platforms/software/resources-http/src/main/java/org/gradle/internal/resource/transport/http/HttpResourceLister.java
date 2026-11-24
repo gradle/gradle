@@ -40,7 +40,7 @@ public class HttpResourceLister implements ExternalResourceLister {
             try {
                 return directoryListingParser.parse(directory.getUri(), inputStream, contentType);
             } catch (Exception e) {
-                throw new ResourceException(directory.getUri(), String.format("Unable to parse HTTP directory listing for '%s'.", directory.getUri()), e);
+                throw new ResourceException(directory.getUri(), String.format("Unable to parse HTTP directory listing for '%s'.", directory.getDisplayName()), e);
             }
         });
     }

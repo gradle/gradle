@@ -43,7 +43,7 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
     @Override
     @Nullable
     public HttpResponseResource openResource(final ExternalResourceName location, boolean revalidate) {
-        LOGGER.debug("Constructing external resource: {}", location);
+        LOGGER.debug("Constructing external resource: {}", location.getDisplayName());
 
         URI uri = location.getUri();
         HttpClient.Response response = client.performGet(uri, getHeaders(revalidate));
@@ -52,7 +52,7 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
 
     @Override
     public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) {
-        LOGGER.debug("Constructing external resource metadata: {}", location);
+        LOGGER.debug("Constructing external resource metadata: {}", location.getDisplayName());
 
         URI uri = location.getUri();
         HttpClient.Response response = client.performHead(uri, getHeaders(revalidate));
