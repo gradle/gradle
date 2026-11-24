@@ -23,7 +23,6 @@ description = "Plugin used to package a project as a distribution."
 dependencies {
     api(libs.inject)
 
-    api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.coreApi)
     api(projects.domainObjectCollections)

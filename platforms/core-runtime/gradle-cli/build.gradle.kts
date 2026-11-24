@@ -55,10 +55,8 @@ dependencies {
     implementation(projects.problemsApi)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.workerShared)
 
-    testImplementation(libs.ant)
     testImplementation(projects.kotlinDsl)
     testImplementation(testFixtures(projects.logging))
     testRuntimeOnly(projects.distributionsCore) {

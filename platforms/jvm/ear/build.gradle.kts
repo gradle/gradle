@@ -15,7 +15,6 @@ dependencies {
     api(projects.platformJvm)
 
     implementation(projects.serviceLookup)
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.core)
     implementation(projects.fileOperations)
     implementation(projects.execution)
@@ -31,11 +30,8 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsLang)
 
-    testImplementation(projects.baseServicesGroovy)
     testImplementation(testFixtures(projects.core))
-    testImplementation(projects.native)
     testImplementation(projects.war)
-    testImplementation(libs.ant)
 
     testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

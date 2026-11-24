@@ -5,7 +5,6 @@ plugins {
 description = """Extends platform-base with base types and interfaces specific to the Java Virtual Machine, including tasks for obtaining a JDK via toolchains, and for compiling and launching Java applications."""
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.core)
@@ -32,16 +31,7 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
 
-    testImplementation(projects.snapshots)
-    testImplementation(libs.ant)
-    testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.platformBase))
-    testImplementation(testFixtures(projects.platformNative))
-
-    integTestImplementation(projects.internalIntegTesting)
-
-    integTestImplementation(libs.slf4jApi)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

@@ -24,8 +24,6 @@ dependencies {
     api(projects.buildDiscovery)
     api(projects.problemsApi)
 
-    compileOnly(libs.jspecify)
-
     implementation(projects.baseServices)
 
     testImplementation(testFixtures(projects.problemsApi))

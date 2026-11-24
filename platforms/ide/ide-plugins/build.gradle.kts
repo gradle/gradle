@@ -33,7 +33,6 @@ dependencies {
     api(projects.modelCore)
     api(projects.platformJvm)
     api(projects.serviceProvider)
-    api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 
     api(libs.groovy)

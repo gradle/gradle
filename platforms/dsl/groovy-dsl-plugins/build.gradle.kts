@@ -18,7 +18,6 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.hashing)
     implementation(projects.logging)
-    implementation(projects.modelCore)
     implementation(projects.modelGroovy)
     implementation(projects.pluginDevelopment)
     implementation(projects.pluginsGroovy)
@@ -28,8 +27,6 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
 
     implementation(libs.guava)
-
-    compileOnly(libs.jspecify)
 
     testImplementation(testFixtures(projects.core))
 

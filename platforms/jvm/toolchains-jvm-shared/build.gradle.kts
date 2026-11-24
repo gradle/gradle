@@ -24,7 +24,6 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.coreApi)
     api(projects.credentialsApi)
@@ -54,7 +53,6 @@ dependencies {
     }
 
     testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(libs.commonsCompress)
 }
 
 gradleModule {

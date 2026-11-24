@@ -13,7 +13,6 @@ dependencies {
     api(projects.concurrent)
     api(projects.files)
     api(projects.serialization)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.jspecify)
 
@@ -27,16 +26,11 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
 
-    testImplementation(projects.messaging)
-    testImplementation(projects.coreApi)
-    testImplementation(projects.functional)
     testImplementation(testFixtures(projects.core))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("DefaultPersistentDirectoryCacheTest instantiates DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-
-    integTestImplementation(projects.messaging)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 

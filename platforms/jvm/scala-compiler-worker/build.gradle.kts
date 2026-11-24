@@ -10,11 +10,9 @@ dependencies {
     api(projects.classloaders)
     api(projects.coreApi)
     api(projects.hashing)
-    api(projects.internalInstrumentationApi)
     api(projects.javaCompilerWorker)
     api(projects.jvmCompilerWorker)
     api(projects.scopedPersistentCache)
-    api(projects.stdlibJavaExtensions)
     api(libs.inject)
     api(libs.jspecify)
 

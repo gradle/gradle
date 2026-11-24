@@ -6,7 +6,6 @@ plugins {
 description = "Logging infrastructure"
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.serialization)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
@@ -55,11 +54,9 @@ dependencies {
 
     integTestImplementation(testLibs.ansiControlSequenceUtil)
 
-    testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.enterpriseWorkers)
     testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(testFixtures(projects.time))
-    testFixturesImplementation(libs.slf4jApi)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 

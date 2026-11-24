@@ -17,12 +17,6 @@ dependencies {
 
     implementation(libs.slf4jApi)
 
-    testImplementation(projects.processServices)
-    testImplementation(projects.resources)
-    testImplementation(projects.native)
-    testImplementation(projects.persistentCache)
-    testImplementation(libs.ant)
-    testImplementation(libs.commonsIo)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.baseServices))
@@ -31,10 +25,7 @@ dependencies {
 
     testFixturesApi(testFixtures(projects.hashing))
 
-    testFixturesImplementation(projects.baseServices)
-    testFixturesImplementation(projects.coreApi)
     testFixturesImplementation(projects.fileCollections)
-    testFixturesImplementation(libs.commonsIo)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

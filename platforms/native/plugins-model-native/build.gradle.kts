@@ -22,7 +22,6 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.softwareDiagnostics)
-    api(projects.stdlibJavaExtensions)
     api(projects.workers)
 
     api(libs.jspecify)
@@ -40,15 +39,10 @@ dependencies {
 
     runtimeOnly(projects.dependencyManagement)
 
-    testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.coreApi))
-    testImplementation(testFixtures(projects.modelCore))
     testImplementation(testFixtures(projects.platformBase))
-    testImplementation(testFixtures(projects.platformNative))
 
-    testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(testFixtures(projects.modelCore))
-    testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(testFixtures(projects.coreApi))
 
     testRuntimeOnly(projects.distributionsCore) {
@@ -57,7 +51,6 @@ dependencies {
 
     integTestImplementation(testFixtures(projects.ideNative))
     integTestImplementation(testFixtures(projects.languageNative))
-    integTestImplementation(testFixtures(projects.platformNative))
 
     integTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("ModelReportIntegrationTest verifies the full set of tasks contributed by a Gradle distribution.")

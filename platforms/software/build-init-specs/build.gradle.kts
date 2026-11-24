@@ -22,16 +22,11 @@ description = "Contains specification registry classes used by the Build Init pl
 
 dependencies {
     api(projects.buildInitSpecsApi)
-    api(projects.stdlibJavaExtensions)
 
     implementation(projects.loggingApi)
 
-    compileOnly(libs.jspecify)
-
     testImplementation(testFixtures(project))
     testImplementation(testFixtures(projects.logging))
-
-    testFixturesImplementation(libs.commonsLang)
 }
 
 gradleModule {

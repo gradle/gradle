@@ -13,8 +13,6 @@ dependencies {
     api(projects.hashing)
     api(projects.loggingApi)
 
-    api(libs.kotlinStdlib)
-
     implementation(projects.messaging)
     implementation(projects.resources)
     implementation(projects.serviceLookup)

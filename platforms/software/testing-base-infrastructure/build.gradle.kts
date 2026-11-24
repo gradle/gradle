@@ -7,7 +7,6 @@ description = """Generalized test infrastructure to support executing tests in t
 dependencies {
     api(projects.baseServices)
     api(projects.concurrent)
-    api(projects.stdlibJavaExtensions)
     api(projects.messaging)
     api(projects.serialization)
     api(projects.time)
@@ -25,7 +24,6 @@ dependencies {
     implementation(libs.slf4jApi)
 
     testImplementation(projects.serviceRegistryImpl)
-    testImplementation(libs.commonsIo)
     testImplementation(testFixtures(projects.time))
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.time))

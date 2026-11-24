@@ -23,11 +23,8 @@ description = "Contains the API that plugins can implement to supply project spe
 dependencies {
     api(projects.baseServices)
     api(projects.coreApi)
-    api(projects.stdlibJavaExtensions)
 
     implementation(libs.commonsLang)
-
-    compileOnly(libs.jspecify)
 }
 
 gradleModule {

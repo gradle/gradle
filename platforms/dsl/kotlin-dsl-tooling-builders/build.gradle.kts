@@ -10,7 +10,6 @@ dependencies {
     api(projects.coreApi)
     api(projects.core)
     api(projects.serviceProvider)
-    api(libs.kotlinStdlib)
 
     implementation(projects.classloaders)
     implementation(projects.serviceLookup)
@@ -32,23 +31,16 @@ dependencies {
 
     testImplementation(testFixtures(projects.kotlinDsl))
 
-    integTestImplementation(projects.internalTesting)
     integTestImplementation(testFixtures(projects.toolingApi))
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 
     testFixturesImplementation(projects.kotlinDsl)
-    testFixturesImplementation(projects.toolingApi)
     testFixturesImplementation(testFixtures(projects.toolingApi))
     testFixturesImplementation(projects.internalIntegTesting)
 
     crossVersionTestImplementation(projects.internalIntegTesting)
     crossVersionTestImplementation(projects.kotlinDsl)
-    crossVersionTestImplementation(projects.kotlinDslToolingModels)
-    crossVersionTestImplementation(projects.persistentCache)
-    crossVersionTestImplementation(libs.ant)
-    crossVersionTestImplementation(libs.guava)
-    crossVersionTestImplementation(libs.slf4jApi)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Uses application plugin.")

@@ -34,7 +34,6 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
-    testImplementation(projects.internalTesting)
     testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.time))

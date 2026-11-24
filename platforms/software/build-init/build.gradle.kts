@@ -24,7 +24,6 @@ dependencies {
     api(projects.logging)
     api(projects.platformJvm)
     api(projects.serviceProvider)
-    api(projects.stdlibJavaExtensions)
     api(projects.jvmServices)
     api(projects.workers)
 
@@ -59,35 +58,14 @@ dependencies {
 
     // 3 dependencies below are recommended as implementation but doing so adds them to the distribution
     // TODO Check why we reference them and if so, why they don't need to be in the distribution
-    compileOnly(providedLibs.maven3Artifact)
-    compileOnly(providedLibs.mavenResolverApi)
-    compileOnly(providedLibs.plexusClassworlds)
-
-    compileOnly(providedLibs.maven3Core)
-    compileOnly(providedLibs.maven3PluginApi)
-
-    compileOnly(projects.platformBase)
 
     runtimeOnly(projects.wrapperMain) {
         because("WrapperGenerator uses the /gradle-wrapper.jar resource")
     }
 
-    testFixturesImplementation(projects.baseServices)
-    testFixturesImplementation(projects.platformBase)
-    testFixturesImplementation(projects.coreApi)
-    testFixturesImplementation(projects.logging)
     testFixturesImplementation(projects.pluginsJava)
-    testFixturesImplementation(projects.testingBase)
-    testFixturesImplementation(projects.testSuitesBase)
-    testFixturesImplementation(projects.pluginsJvmTestSuite)
 
-
-    testImplementation(projects.baseServicesGroovy)
-    testImplementation(projects.cli)
     testImplementation(projects.internalIntegTesting)
-    testImplementation(projects.native)
-    testImplementation(projects.snapshots)
-    testImplementation(projects.processServices)
     testImplementation(projects.wrapperMain)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.platformNative))
@@ -98,8 +76,6 @@ dependencies {
     testRuntimeOnly(projects.distributionsFull) {
         because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")
     }
-
-    integTestImplementation(projects.native)
 
     integTestRuntimeOnly(providedLibs.maven3Compat)
 

@@ -30,7 +30,6 @@ dependencies {
     implementation(projects.pluginsJavaBase)
     implementation(projects.reporting)
     implementation(projects.serviceLookup)
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.toolchainsJvm)
     implementation(projects.toolchainsJvmShared)
 

@@ -10,11 +10,9 @@ dependencies {
     api(projects.baseServices)
     api(projects.coreApi)
 
-    api(projects.internalInstrumentationApi)
     api(libs.jspecify)
 
     implementation(projects.daemonServerWorker)
-    implementation(projects.stdlibJavaExtensions)
     implementation(libs.guava)
 }
 

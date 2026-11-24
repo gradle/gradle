@@ -32,14 +32,12 @@ dependencies {
     api(projects.serialization)
     api(projects.serviceProvider)
     api(projects.snapshots)
-    api(projects.stdlibJavaExtensions)
     api(projects.testSuitesBase)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)
     api(projects.workerMain)
     api(projects.workers)
 
-    api(libs.asm)
     api(libs.fastutil)
     api(libs.jspecify)
     api(libs.inject)
@@ -62,38 +60,23 @@ dependencies {
 
     runtimeOnly(projects.javaCompilerPlugin)
 
-    testImplementation(projects.baseServicesGroovy)
-    testImplementation(projects.native)
-    testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.languageGroovy))
     testImplementation(testFixtures(projects.toolchainsJvm))
     testImplementation(testFixtures(projects.toolchainsJvmShared))
 
-    testImplementation(libs.commonsIo)
     testImplementation(libs.nativePlatform) {
         because("Required for SystemInfo")
     }
 
-    integTestImplementation(projects.messaging)
     integTestImplementation(testFixtures(projects.buildProcessServices))
     integTestImplementation(testFixtures(projects.processServices))
     integTestImplementation(testFixtures(projects.testingBase))
 
     // TODO: Make these available for all integration tests? Maybe all tests?
-    integTestImplementation(libs.jetbrainsAnnotations)
-    integTestImplementation(libs.commonsHttpclient)
 
     testFixturesApi(testFixtures(projects.languageJvm))
-    testFixturesImplementation(projects.baseServices)
-    testFixturesImplementation(projects.enterpriseOperations)
-    testFixturesImplementation(projects.core)
-    testFixturesImplementation(projects.coreApi)
-    testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(projects.platformBase)
-    testFixturesImplementation(projects.persistentCache)
-    testFixturesImplementation(libs.slf4jApi)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder test (JavaLanguagePluginTest) loads services from a Gradle distribution.")

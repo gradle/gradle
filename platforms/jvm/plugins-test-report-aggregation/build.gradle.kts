@@ -22,7 +22,6 @@ plugins {
 description = "Contains the Test Report Aggregation plugin"
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.coreApi)
     api(projects.platformJvm)
 

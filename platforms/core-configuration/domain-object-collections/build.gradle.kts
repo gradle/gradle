@@ -28,16 +28,6 @@ dependencies {
 
     testFixturesApi(testFixtures(projects.modelCore))
 
-    testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(projects.internalTesting)
-    testFixturesImplementation(projects.modelCore)
-    testFixturesImplementation(testFixtures(projects.buildOperations))
-    testFixturesImplementation(testFixtures(projects.core))
-
-    testImplementation(projects.internalTesting)
-    testImplementation(testFixtures(projects.buildOperations))
-    testImplementation(testFixtures(projects.core))
-
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 

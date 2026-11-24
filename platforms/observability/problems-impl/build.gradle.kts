@@ -23,8 +23,6 @@ description = "Daemon-only implementations of Problems API services"
 dependencies {
     api(projects.serviceProvider)
 
-    compileOnly(libs.jspecify)
-
     implementation(libs.guava)
     implementation(projects.baseServices)
     implementation(projects.classloaders)

@@ -22,7 +22,6 @@ dependencies {
     api(projects.processServices)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
-    api(projects.stdlibJavaExtensions)
     api(projects.problemsApi)
     api(projects.workerMain)
     api(projects.workerProcessServices)
@@ -42,21 +41,13 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.guava)
 
-    testImplementation(projects.native)
-    testImplementation(projects.fileCollections)
-    testImplementation(projects.resources)
-    testImplementation(projects.snapshots)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.testingBase))
 
-    integTestImplementation(projects.jvmServices)
-    integTestImplementation(projects.enterpriseOperations)
     integTestImplementation(projects.launcher)
 
-    testFixturesImplementation(libs.inject)
     testFixturesImplementation(libs.groovyJson)
-    testFixturesImplementation(projects.baseServices)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Uses application plugin.")

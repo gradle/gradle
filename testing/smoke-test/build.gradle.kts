@@ -41,21 +41,9 @@ val smokeTestSrcDistribution = configurations.getByName("smokeTestSrcDistributio
 dependencies {
     testFixturesImplementation(projects.internalIntegTesting)
 
-    smokeTestImplementation(projects.baseServices)
-    smokeTestImplementation(projects.coreApi)
     smokeTestImplementation(projects.testKit)
     smokeTestImplementation(projects.launcher)
-    smokeTestImplementation(projects.persistentCache)
-    smokeTestImplementation(projects.internalIntegTesting)
-    smokeTestImplementation(projects.internalTesting)
-    smokeTestImplementation(projects.jvmServices)
-    smokeTestImplementation(projects.buildOption)
-    smokeTestImplementation(projects.processServices)
-    smokeTestImplementation(libs.commonsIo)
     smokeTestImplementation(libs.groovyJson)
-    smokeTestImplementation(libs.commonsHttpclient)
-    smokeTestImplementation(libs.jgit)
-    smokeTestImplementation(testLibs.spock)
     smokeTestImplementation(testLibs.junitPlatform)
     smokeTestImplementation(libs.jacksonDatabind)
 

@@ -11,13 +11,9 @@ dependencies {
         because("We need org.gradle.internal.file.PathTraversalChecker")
     }
 
-    testImplementation(projects.baseServices)
     testImplementation(projects.coreApi)
-    testImplementation(projects.native)
-    testImplementation(libs.commonsCompress)
 
     integTestImplementation(projects.dependencyManagement)
-    integTestImplementation(projects.logging)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

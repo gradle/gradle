@@ -15,7 +15,6 @@ dependencies {
 
     compileOnly(libs.jspecify)
 
-    testImplementation(projects.native)
     testImplementation(projects.baseServices) {
         because("TextUtil is needed")
     }

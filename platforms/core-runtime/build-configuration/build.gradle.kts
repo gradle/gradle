@@ -14,7 +14,6 @@ dependencies {
     api(projects.native)
     api(projects.problemsApi)
     api(projects.serviceProvider)
-    api(projects.stdlibJavaExtensions)
 
     implementation(projects.baseServices)
     implementation(projects.daemonProtocol)
@@ -25,7 +24,6 @@ dependencies {
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.toolchainsJvmShared))
 
-    testFixturesImplementation(projects.coreApi)
     testFixturesImplementation(projects.internalIntegTesting)
 
     testRuntimeOnly(projects.distributionsJvm) {

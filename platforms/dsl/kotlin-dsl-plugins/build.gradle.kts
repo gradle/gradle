@@ -18,24 +18,11 @@ version = portalVersion
 base.archivesName = "plugins"
 
 dependencies {
-    compileOnly(projects.baseServices)
-    compileOnly(projects.logging)
-    compileOnly(projects.coreApi)
-    compileOnly(projects.modelCore)
-    compileOnly(projects.core)
-    compileOnly(projects.languageJvm)
     compileOnly(projects.languageJava)
-    compileOnly(projects.loggingApi)
-    compileOnly(projects.platformJvm)
     compileOnly(projects.pluginDevelopment)
     compileOnly(projects.kotlinDsl)
-    compileOnly(projects.serviceLookup)
-    compileOnly(projects.stdlibJavaExtensions)
 
     compileOnly(libs.kotlinBuildToolsApi.relaxRestriction())
-    compileOnly(libs.slf4jApi)
-    compileOnly(libs.inject)
-    compileOnly(libs.jspecify)
 
     api(libs.kotlinStdlib)
 
@@ -46,10 +33,7 @@ dependencies {
     implementation(libs.kotlinSamWithReceiver.relaxRestriction())
     implementation(libs.kotlinAssignment.relaxRestriction())
 
-
-    testImplementation(projects.logging)
     testImplementation(testFixtures(projects.kotlinDsl))
-    testImplementation(libs.slf4jApi)
     testImplementation(libs.kotlinReflect) {
         because("mockito-kotlin 1.6 requires kotlin-reflect in 1.0.7, we want to overrule that")
     }

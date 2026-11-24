@@ -42,7 +42,6 @@ dependencies {
     implementation(projects.pluginsJvmTestSuite)
 
     testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(projects.logging)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }

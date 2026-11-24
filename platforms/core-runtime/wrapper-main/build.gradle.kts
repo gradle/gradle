@@ -33,14 +33,9 @@ dependencies {
     implementation(projects.cli)
     implementation(projects.wrapperShared)
 
-    testImplementation(projects.baseServices)
     testImplementation(testFixtures(projects.core))
 
-    integTestImplementation(projects.buildOption)
     integTestImplementation(projects.launcher)
-    integTestImplementation(projects.logging)
-    integTestImplementation(projects.coreApi)
-    integTestImplementation(libs.commonsIo)
     integTestImplementation(testLibs.littleproxy)
     integTestImplementation(testFixtures(projects.buildProcessServices))
 
@@ -49,8 +44,6 @@ dependencies {
 
     crossVersionTestImplementation(projects.internalIntegTesting)
     crossVersionTestImplementation(projects.launcher)
-    crossVersionTestImplementation(projects.logging)
-    crossVersionTestImplementation(projects.persistentCache)
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
 
     crossVersionTestNormalizedDistribution(projects.distributionsFull)

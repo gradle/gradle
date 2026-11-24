@@ -5,7 +5,6 @@ plugins {
 description = "Implementation for interacting with HTTP build caches"
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
 
     api(libs.inject)
@@ -28,7 +27,6 @@ dependencies {
 
     testImplementation(testFixtures(projects.core))
 
-    integTestImplementation(projects.enterpriseOperations)
     integTestImplementation(testFixtures(projects.buildCache))
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {

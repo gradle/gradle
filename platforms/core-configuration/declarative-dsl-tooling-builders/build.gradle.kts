@@ -10,17 +10,13 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.projectFeatures)
 
-    api(libs.kotlinStdlib)
-
     implementation(projects.coreApi)
     implementation(projects.declarativeDslEvaluator)
     implementation(projects.declarativeDslProvider)
     implementation(projects.declarativeDslToolingModels)
     implementation(projects.stdlibJavaExtensions)
 
-    crossVersionTestImplementation(projects.declarativeDslCore)
     crossVersionTestImplementation(projects.declarativeDslEvaluator)
-    crossVersionTestImplementation(projects.declarativeDslToolingModels)
     crossVersionTestImplementation(projects.internalIntegTesting)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsBasics)

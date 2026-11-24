@@ -33,9 +33,6 @@ dependencies {
     implementation(projects.modelCore)
     implementation(projects.platformBase)
     implementation(projects.platformJvm)
-    implementation(projects.stdlibJavaExtensions)
-
-    compileOnly(libs.jspecify)
 
     integTestImplementation(testFixtures(projects.core))
     integTestImplementation(testFixtures(projects.jvmServices))

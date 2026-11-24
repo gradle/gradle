@@ -7,19 +7,9 @@ plugins {
 description = "Performance tests for the Gradle build tool"
 
 dependencies {
-    performanceTestImplementation(projects.baseServices)
-    performanceTestImplementation(projects.core)
     performanceTestImplementation(projects.internalIntegTesting)
-    performanceTestImplementation(projects.internalTesting)
-    performanceTestImplementation(projects.stdlibJavaExtensions)
-    performanceTestImplementation(projects.toolingApi)
 
     performanceTestImplementation(testFixtures(projects.toolingApi))
-
-    performanceTestImplementation(libs.commonsLang)
-    performanceTestImplementation(libs.commonsIo)
-    performanceTestImplementation(testLibs.gradleProfiler)
-    performanceTestImplementation(testLibs.junit)
 
     performanceTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("All Gradle features have to be available.")

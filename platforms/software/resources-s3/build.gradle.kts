@@ -16,7 +16,6 @@ dependencies {
     api(libs.awsSdkRegions)
     api(libs.jspecify)
 
-    implementation(projects.baseServices)
     implementation(projects.hashing)
 
     implementation(libs.awsApacheHttpClient)
@@ -45,9 +44,6 @@ dependencies {
     testImplementation(testFixtures(projects.ivy))
     testImplementation(testFixtures(projects.maven))
 
-    integTestImplementation(projects.logging)
-    integTestImplementation(libs.commonsIo)
-    integTestImplementation(libs.groovyXml)
     integTestImplementation(testLibs.littleproxy)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)

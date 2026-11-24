@@ -42,8 +42,6 @@ dependencies {
     implementation(libs.guava)
     implementation(testLibs.guice)
     implementation(libs.slf4jApi)
-
-    compileOnly(libs.jspecify)
 }
 
 application {

@@ -25,8 +25,6 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     implementation(libs.jsr305)
-
-    compileOnly(libs.jspecify)
 }
 
 gradleModule {

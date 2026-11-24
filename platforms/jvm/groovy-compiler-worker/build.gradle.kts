@@ -8,18 +8,15 @@ dependencies {
     api(projects.baseCompilerWorker)
     api(projects.baseServices)
     api(projects.coreApi)
-    api(projects.internalInstrumentationApi)
     api(projects.javaCompilerWorker)
     api(projects.jvmCompilerWorker)
     api(projects.problemsApi)
-    api(projects.stdlibJavaExtensions)
     api(libs.inject)
     api(libs.jspecify)
 
     implementation(projects.classloaders)
     implementation(projects.concurrent)
     implementation(projects.groovyLoader)
-    implementation(libs.asm)
     implementation(libs.groovy)
     implementation(libs.guava)
 

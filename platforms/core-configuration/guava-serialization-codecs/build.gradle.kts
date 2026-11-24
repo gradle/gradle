@@ -22,7 +22,6 @@ description = "Serialization codecs for guava types"
 
 dependencies {
     api(projects.graphSerialization)
-    api(libs.kotlinStdlib)
     api(libs.guava)
 }
 

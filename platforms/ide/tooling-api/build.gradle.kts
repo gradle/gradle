@@ -14,7 +14,6 @@ dependencies {
     api(projects.concurrent)
     api(projects.enterpriseLogging)
     api(projects.messaging)
-    api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(projects.wrapperShared)
 
@@ -39,40 +38,24 @@ dependencies {
 
     testImplementation(projects.internalDistributionTesting)
 
-    testFixturesImplementation(projects.baseServices)
-    testFixturesImplementation(projects.baseServicesGroovy)
-    testFixturesImplementation(projects.core)
-    testFixturesImplementation(projects.coreApi)
     testFixturesImplementation(projects.internalDistributionTesting)
-    testFixturesImplementation(projects.internalTesting)
-    testFixturesImplementation(projects.logging)
-    testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(testFixtures(projects.buildProcessServices))
-    testFixturesImplementation(libs.commonsIo)
-    testFixturesImplementation(libs.slf4jApi)
 
     testFixturesRuntimeOnly(testLibs.spockJUnit4) {
         because("Required for @org.junit.Rule, used in ToolingApiSpecification")
     }
 
-    integTestImplementation(projects.jvmServices)
-    integTestImplementation(projects.persistentCache)
     integTestImplementation(projects.kotlinDslToolingModels)
     integTestImplementation(testFixtures(projects.buildProcessServices))
     integTestImplementation(testFixtures(projects.launcher))
     integTestImplementation(testFixtures(projects.toolchainsJvmShared))
 
-    crossVersionTestImplementation(projects.jvmServices)
     crossVersionTestImplementation(projects.internalIntegTesting)
-    crossVersionTestImplementation(projects.internalTesting)
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
-    crossVersionTestImplementation(libs.commonsIo)
     crossVersionTestRuntimeOnly(testLibs.cglib) {
         because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
     }
-
-    testImplementation(projects.daemonMessaging)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))

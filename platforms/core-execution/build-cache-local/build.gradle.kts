@@ -16,16 +16,11 @@ dependencies {
 
     api(libs.jspecify)
 
-    implementation(projects.stdlibJavaExtensions)
-
     implementation(libs.commonsIo)
     implementation(libs.guava)
 
-    testImplementation(projects.modelCore)
-    testImplementation(projects.fileCollections)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.baseServices))
-    testImplementation(testFixtures(projects.snapshots))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

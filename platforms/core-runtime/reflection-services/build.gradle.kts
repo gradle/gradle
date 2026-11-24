@@ -26,8 +26,6 @@ dependencies {
 
     implementation(projects.instrumentationAgentServices)
 
-    compileOnly(libs.jspecify)
-
     integTestImplementation(projects.launcher)
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

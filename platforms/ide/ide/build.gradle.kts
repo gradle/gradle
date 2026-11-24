@@ -17,7 +17,6 @@ dependencies {
     api(projects.platformJvm)
     api(projects.problemsApi)
     api(projects.serviceProvider)
-    api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 
     api(libs.guava)
@@ -57,11 +56,8 @@ dependencies {
     }
     testFixturesImplementation(projects.dependencyManagement)
     testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(projects.modelCore)
-    testFixturesImplementation(libs.groovyXml)
     testFixturesImplementation(testLibs.xmlunit)
 
-    testImplementation(projects.dependencyManagement)
     testImplementation(testLibs.xmlunit)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.dependencyManagement))

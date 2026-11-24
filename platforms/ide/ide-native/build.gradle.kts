@@ -14,8 +14,6 @@ sourceSets {
 }
 
 dependencies {
-    compileOnly(libs.jetbrainsAnnotations)
-
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
@@ -46,18 +44,9 @@ dependencies {
     testImplementation(testFixtures(projects.languageNative))
     testImplementation(testFixtures(projects.versionControl))
 
-    integTestImplementation(projects.native)
-    integTestImplementation(libs.commonsIo)
-    integTestImplementation(libs.jgit)
-
-    testFixturesApi(testFixtures(projects.ide))
     testFixturesApi(testFixtures(projects.platformNative))
     testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(projects.native)
     testFixturesImplementation(libs.plist)
-    testFixturesImplementation(libs.guava)
-    testFixturesImplementation(libs.groovyXml)
-    testFixturesImplementation(testFixtures(projects.ide))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

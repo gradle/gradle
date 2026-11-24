@@ -24,7 +24,6 @@ description = "Public API classes used by project features"
 dependencies {
     api(projects.baseServices)
     api(projects.coreApi)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.kotlinStdlib)
 

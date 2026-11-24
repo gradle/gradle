@@ -28,11 +28,8 @@ dependencies {
 
     implementation(libs.slf4jApi)
 
-    compileOnly(libs.jspecify)
-
     testImplementation(testFixtures(projects.logging))
 
-    integTestImplementation(projects.classloaders)
     integTestImplementation(projects.launcher)
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

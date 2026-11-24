@@ -31,7 +31,6 @@ dependencies {
     api(projects.persistentCache)
     api(projects.serialization)
     api(projects.serviceProvider)
-    api(projects.stdlibJavaExtensions)
     api(projects.toolchainsJvmShared)
 
     // The client should not depend on core or core-api, but core still contains some types that are shared between the client and daemon

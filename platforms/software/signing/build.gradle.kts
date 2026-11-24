@@ -13,7 +13,6 @@ dependencies {
     api(projects.logging)
     api(projects.problemsApi)
     api(projects.publish)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.bouncycastlePgp)
     api(libs.jspecify)
@@ -42,12 +41,8 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsPublishing)
 
-    testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(projects.security)
     testFixturesImplementation(testFixtures(projects.core))
-
-    testFixturesImplementation(libs.slf4jApi)
 }
 
 gradleModule {

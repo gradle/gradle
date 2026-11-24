@@ -22,7 +22,6 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.snapshots)
     api(projects.startParameter)
-    api(projects.stdlibJavaExtensions)
     api(projects.testingJvm)
     api(projects.time)
 
@@ -43,22 +42,15 @@ dependencies {
         because("some used APIs (e.g. FileTree.visit) provide methods taking Groovy closures which causes compile errors")
     }
 
-    testImplementation(projects.resources)
     testImplementation(testFixtures(projects.core))
 
-    integTestImplementation(projects.internalTesting)
     integTestImplementation(projects.internalIntegTesting)
     integTestImplementation(testFixtures(projects.toolingApi))
     integTestImplementation(testFixtures(projects.core))
     integTestImplementation(testFixtures(projects.processServices))
 
     // Dependencies of the integ test fixtures
-    integTestImplementation(projects.buildOption)
-    integTestImplementation(projects.messaging)
-    integTestImplementation(projects.persistentCache)
-    integTestImplementation(projects.native)
     integTestImplementation(testFixtures(projects.problemsApi))
-    integTestImplementation(libs.guava)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

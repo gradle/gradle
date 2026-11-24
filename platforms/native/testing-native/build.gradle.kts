@@ -8,7 +8,6 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
-    api(projects.stdlibJavaExtensions)
     api(projects.languageNative)
     api(projects.modelCore)
     api(projects.native)
@@ -31,13 +30,9 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.guava)
 
-    testImplementation(projects.fileCollections)
-    testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.platformNative))
     testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.testingBase))
     testImplementation(testFixtures(projects.languageNative))
-    testImplementation(testFixtures(projects.ide))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

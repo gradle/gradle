@@ -13,8 +13,6 @@ dependencies {
     api(projects.serialization)
     api(projects.workerMain)
 
-    compileOnly(libs.jspecify)
-
     // TODO: Ideally, we would not depend on model-core in a worker.
     // All we really want is the instantiation infrastructure, but this
     // brings in core-api, which should be avoided in workers.

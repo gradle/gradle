@@ -3,7 +3,6 @@ plugins {
 }
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.coreApi)
     api(projects.files)
@@ -24,17 +23,10 @@ dependencies {
 
     implementation(libs.commonsLang)
 
-    testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.coreApi))
-    testImplementation(projects.native)
-    testImplementation(projects.snapshots)
-    testImplementation(projects.processServices)
     testImplementation(projects.softwareDiagnostics)
 
-    testFixturesApi(projects.fileCollections)
     testFixturesApi(testFixtures(projects.modelCore))
-
-    testFixturesImplementation(libs.guava)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("RuntimeShadedJarCreatorTest requires a distribution to access the ...-relocated.txt metadata")

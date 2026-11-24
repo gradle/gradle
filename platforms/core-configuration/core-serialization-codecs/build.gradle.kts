@@ -35,7 +35,6 @@ dependencies {
     api(projects.modelCore)
     api(projects.snapshots)
 
-    api(libs.kotlinStdlib)
     api(libs.slf4jApi)
 
     implementation(projects.baseServicesGroovy)
@@ -64,8 +63,6 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.groovy)
     implementation(libs.guava)
-
-    compileOnly(libs.jspecify)
 }
 
 gradleModule {

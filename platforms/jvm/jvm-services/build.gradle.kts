@@ -22,7 +22,6 @@ description = "JVM invocation and inspection abstractions"
 
 dependencies {
     api(projects.loggingApi)
-    api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.coreApi)
@@ -42,17 +41,11 @@ dependencies {
     implementation(projects.processServicesApi)
     implementation(projects.serialization)
 
-    implementation(libs.asm)
     implementation(libs.commonsLang)
     implementation(libs.guava)
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
-    testImplementation(projects.native)
-    testImplementation(projects.fileCollections)
-    testImplementation(projects.snapshots)
-    testImplementation(projects.resources)
-    testImplementation(libs.slf4jApi)
     testImplementation(testFixtures(projects.core))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)

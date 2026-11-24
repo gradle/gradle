@@ -28,7 +28,6 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.loggingApi)
 
-    api(libs.kotlinStdlib)
     api(libs.inject)
 
     implementation(projects.baseServices)

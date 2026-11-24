@@ -18,7 +18,6 @@ dependencies {
     api(projects.hashing)
     api(projects.serialization)
     api(projects.serviceLookup)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.inject)
     api(libs.jspecify)
@@ -35,10 +34,6 @@ dependencies {
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
-    integTestImplementation(projects.logging)
-
-    testFixturesApi(projects.hashing)
-    testFixturesImplementation(libs.guava)
     testImplementation(testFixtures(projects.core))
     testImplementation(testLibs.xerces)
 
@@ -46,7 +41,6 @@ dependencies {
 
     jmh(platform(projects.distributionsDependencies))
     jmh(libs.bouncycastleProvider)
-    jmh(libs.guava)
 
     // Javadoc-only: needed to resolve cross-module {@link} references (BuildService, ExtensionAware, InstantiatorFactory)
     javadocReferences(projects.coreApi)

@@ -15,7 +15,6 @@ dependencies {
     api(projects.cli)
     api(projects.fileWatching)
     api(projects.loggingApi)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.jspecify)
 

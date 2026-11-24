@@ -9,7 +9,6 @@ dependencies {
     api(projects.antWorker)
     api(projects.baseServices)
     api(projects.coreApi)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.jspecify)
 

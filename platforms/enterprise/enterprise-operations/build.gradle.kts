@@ -9,8 +9,6 @@ dependencies {
     api(projects.buildOperations)
 
     api(libs.jspecify)
-
-    implementation(projects.stdlibJavaExtensions)
 }
 
 gradleModule {

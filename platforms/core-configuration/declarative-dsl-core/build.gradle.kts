@@ -11,7 +11,6 @@ description = "Common shared classes used by the Declarative DSL"
 dependencies {
     api(projects.declarativeDslToolingModels)
 
-    api(libs.kotlinStdlib)
     api(libs.kotlinCompilerEmbeddable)
 
     implementation(libs.jetbrainsAnnotations)
@@ -22,7 +21,6 @@ dependencies {
     implementation(libs.inject)
     implementation(projects.declarativeDslApi)
 
-    testImplementation(libs.jetbrainsAnnotations)
     testImplementation(projects.coreApi)
 
     testFixturesImplementation(libs.kotlinReflect)

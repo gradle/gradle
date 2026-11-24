@@ -29,8 +29,6 @@ dependencies {
     api(projects.persistentCache)
     api(projects.serviceProvider)
 
-    api(libs.kotlinStdlib)
-
     implementation(projects.baseServices)
     implementation(projects.configurationProblemsBase)
     implementation(projects.core)
@@ -45,7 +43,6 @@ dependencies {
     implementation(libs.guava)
 
     testFixturesImplementation(testFixtures(projects.core))
-    testFixturesImplementation(testFixtures(projects.persistentCache))
 }
 
 gradleModule {

@@ -8,7 +8,6 @@ description = "Public and internal 'core' Gradle APIs with implementation"
 dependencies {
     api(projects.ant)
     api(projects.antApi)
-    api(projects.baseAsm)
     api(projects.baseServices)
     api(projects.baseServicesGroovy)
     api(projects.buildCache)
@@ -44,7 +43,6 @@ dependencies {
     api(projects.hashingServices)
     api(projects.instrumentationAgentServices)
     api(projects.instrumentationReporting)
-    api(projects.internalInstrumentationApi)
     api(projects.jvmServices)
     api(projects.logging)
     api(projects.loggingApi)
@@ -68,7 +66,6 @@ dependencies {
     api(projects.snapshots)
     api(projects.projectFeatures)
     api(projects.startParameter)
-    api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(projects.toolingApi)
     api(projects.versionedCache)
@@ -126,15 +123,11 @@ dependencies {
     runtimeOnly(projects.groovyLoader)
 
     testImplementation(projects.buildInit)
-    testImplementation(projects.platformJvm)
-    testImplementation(projects.platformNative)
     testImplementation(projects.io)
     testImplementation(projects.testingBase)
     testImplementation(libs.jsoup)
     testImplementation(libs.log4jToSlf4j)
     testImplementation(libs.jclToSlf4j)
-
-    testFixturesCompileOnly(libs.jetbrainsAnnotations)
 
     testFixturesApi(projects.baseServices) {
         because("test fixtures expose Action")
@@ -190,20 +183,8 @@ dependencies {
     testFixturesApi(projects.unitTestFixtures) {
         because("test fixtures expose ProjectBuilder")
     }
-    testFixturesImplementation(projects.buildOption)
-    testFixturesImplementation(projects.enterpriseOperations)
     testFixturesImplementation(projects.problemsReporting)
-    testFixturesImplementation(projects.messaging)
-    testFixturesImplementation(projects.normalizationJava)
-    testFixturesImplementation(projects.persistentCache)
-    testFixturesImplementation(projects.snapshots)
     testFixturesImplementation(projects.ant)
-    testFixturesImplementation(libs.ant)
-    testFixturesImplementation(libs.asm)
-    testFixturesImplementation(libs.guava)
-    testFixturesImplementation(projects.internalInstrumentationApi)
-    testFixturesImplementation(libs.ivy)
-    testFixturesImplementation(libs.slf4jApi)
     testFixturesImplementation(projects.dependencyManagement) {
         because("Used in VersionCatalogErrorMessages for org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder.getExcludedNames")
     }
@@ -218,17 +199,12 @@ dependencies {
         because("We always need a BuildStateRegistry service implementation")
     }
 
-    testImplementation(projects.dependencyManagement)
-
     testImplementation(testFixtures(projects.domainObjectCollections))
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.messaging))
-    testImplementation(testFixtures(projects.modelCore))
     testImplementation(testFixtures(projects.modelReflect))
-    testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.baseServices))
-    testImplementation(testFixtures(projects.baseDiagnostics))
     testImplementation(testFixtures(projects.processServices))
     testImplementation(testFixtures(projects.snapshots))
     testImplementation(testFixtures(projects.execution))
@@ -238,14 +214,8 @@ dependencies {
         because("This is required by ProjectBuilder, but ProjectBuilder cannot declare :distributions-core as a dependency due to conflicts with other distributions.")
     }
 
-    integTestImplementation(projects.workers)
-    integTestImplementation(projects.dependencyManagement)
-    integTestImplementation(projects.launcher)
     integTestImplementation(projects.war)
-    integTestImplementation(projects.daemonServices)
     integTestImplementation(projects.groovyDsl)
-    integTestImplementation(libs.jansi)
-    integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(testLibs.littleproxy)
     integTestImplementation(testFixtures(projects.domainObjectCollections))
     integTestImplementation(testFixtures(projects.native))

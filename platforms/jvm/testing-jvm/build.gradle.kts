@@ -22,7 +22,6 @@ dependencies {
     api(projects.processServicesApi)
     api(projects.modelCore)
     api(projects.reporting)
-    api(projects.stdlibJavaExtensions)
     api(projects.testingBase)
     api(projects.testingBaseInfrastructure)
     api(projects.time)
@@ -30,7 +29,6 @@ dependencies {
     api(projects.toolchainsJvmShared)
     api(projects.workerProcessServices)
 
-    api(libs.asm)
     api(libs.groovy)
     api(libs.groovyXml)
     api(libs.inject)
