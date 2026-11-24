@@ -21,7 +21,6 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
-import static org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequestKt.newCorrelationId
 
 class KotlinScriptModelParameters {
     static setModelParameters(modelBuilder, boolean lenient, boolean explicitlyRequestPreparationTasks = true, Iterable<File> scripts = []) {
@@ -34,7 +33,7 @@ class KotlinScriptModelParameters {
         if (explicitlyRequestPreparationTasks) {
             modelBuilder.forTasks(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
         }
-        def correlationId = newCorrelationId()
+        def correlationId = System.nanoTime().toString()
 
         def arguments =
             ["-P${KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME}=${correlationId}".toString(),

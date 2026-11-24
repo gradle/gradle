@@ -21,12 +21,10 @@ dependencies {
     implementation(projects.processServices)
     api(projects.declarativeDslApi)
     api(projects.hashing)
-    api(projects.kotlinDslToolingModels)
     api(projects.loggingApi)
     api(projects.modelCore)
     api(projects.persistentCache)
     api(projects.stdlibJavaExtensions)
-    api(projects.toolingApi)
 
     api("org.gradle:kotlin-dsl-shared-runtime") {
         because("Internal KotlinDslPluginEntriesCache exposes PluginEntriesCache")
@@ -67,6 +65,7 @@ dependencies {
     implementation(projects.snapshots)
     implementation(projects.startParameter)
     implementation(projects.projectFeatures)
+    implementation(projects.toolingApi)
     implementation(projects.wrapperShared)
 
     implementation(projects.javaApiExtractor)

@@ -108,7 +108,7 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
 
     /**
      * A {@link URI} factory function exposed to DCL.
-     * Mimics {@code SettingsScriptApi.uri} available in Kotlin DSL.
+     * Mimics {@code KotlinScript.uri} available in Kotlin DSL.
      * Primarily for use in {@link org.gradle.api.artifacts.repositories.MavenArtifactRepository#setUrl}
      *
      * @see FileOperations#uri

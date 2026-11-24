@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.kotlin.dsl.resolver.GradleInstallation
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.junit.Before
 import java.io.File
@@ -277,10 +276,6 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
 
             $repositoriesBlock
         """
-
-    private
-    fun testGradleInstallation() =
-        GradleInstallation.Local(distribution.gradleHomeDir)
 
     protected
     fun compileKotlin(taskName: String = "classes"): ExecutionResult =

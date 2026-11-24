@@ -31,6 +31,9 @@ dependencies {
     runtime(projects.kotlinDsl) {
         because("Adds support for Kotlin DSL scripts.")
     }
+    runtime(projects.kotlinDslToolingModels) {
+        because("Kotlin IDEs load the Kotlin DSL tooling models from lib/.")
+    }
     runtime(projects.declarativeDslProvider) {
         because("Adds support for interpreting files with the declarative DSL")
     }
