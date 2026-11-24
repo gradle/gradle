@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 @Requires(value = TestExecutionPreconditions.IsEmbeddedExecutor, reason = """
@@ -216,6 +217,48 @@ include 'other'
         failure.assertHasCause """Cannot find a version of 'org:databind' that satisfies the version constraints:
    Dependency path: root project 'test' (conf) --> 'org:databind:{strictly 2.7.9}'
    Constraint path: root project 'test' (conf) --> project ':other' (conf) --> org:core:2.9.4 ($coreVariant) --> org:platform:2.9.4 (default) --> 'org:databind:2.9.4' because of the following reason: belongs to platform org:platform:2.9.4"""
+    }
+
+    @ToBeImplemented("Should fail with a resolution error naming org:platform, or align, instead of crashing")
+    def "strict version range on a virtual platform does not crash resolution"() {
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf("org:core:2.9.4")
+                conf("org:kotlin:2.9.4.1")
+                constraints {
+                    conf("org:platform") {
+                        version { strictly '[2.7,2.8)' }
+                    }
+                }
+            }
+        """
+
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        allowAllRepositoryInteractions {
+            group('org') {
+                module('platform') {
+                    expectVersionListing()
+                }
+            }
+        }
+        fails ':checkDeps'
+
+        then:
+        // VirtualPlatformState.getCandidateVersions() looks up the raw strict selector "[2.7,2.8)" among selected versions
+        failure.assertHasCause("fromIndex = -1")
     }
 
     String getCoreVariant() {
