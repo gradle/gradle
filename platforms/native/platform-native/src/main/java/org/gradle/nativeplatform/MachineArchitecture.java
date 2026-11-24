@@ -64,7 +64,7 @@ public abstract class MachineArchitecture implements Named {
     /**
      * The mcst e2k 64-bit architecture
      *
-     * @since 9.10.0
+     * @since 10.0.0
      */
     @Incubating
     public static final String E2K = "e2k";

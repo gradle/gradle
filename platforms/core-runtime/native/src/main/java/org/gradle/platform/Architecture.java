@@ -45,7 +45,7 @@ public enum Architecture {
 
     /**
      * 64-bit very long instruction word (VLIW) architecture with explicitly parallel instruction computing (EPIC), including "e2k".
-     * @since 9.10.0
+     * @since 10.0.0
      */
     E2K
 }
