@@ -19,7 +19,9 @@ package org.gradle.ide.sync
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.profiler.mutations.ApplyBuildScriptChangeFileMutator
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 
+@Ignore("https://github.com/gradle/gradle-private/issues/5598")
 class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
     def setup() {
