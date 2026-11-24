@@ -16,7 +16,7 @@
 
 <develocity>
     <server>
-        <url>https://ge.gradle.org</url>
+        <url>${env.DEVELOCITY_SERVER_URL}</url>
     </server>
     <buildScan>
         <publishing>
