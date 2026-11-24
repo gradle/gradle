@@ -91,6 +91,22 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
         result.output.contains("class name: $plugin.taskClassName")
     }
 
+    def "the plugin under test is external code to the build under test"() {
+        given:
+        buildFile plugin.build().useDeclaration + """
+            def pluginUnderTest = plugins.getPlugin("$plugin.id").class
+            println "locality of the plugin under test: " + services.get(org.gradle.api.internal.initialization.CodeLocalityResolver).localityOf(pluginUnderTest)
+        """
+
+        when:
+        def result = runner("help")
+            .withPluginClasspath(plugin.implClasspath)
+            .build()
+
+        then: "the build under test uses the plugin as a stranger would"
+        result.output.contains("locality of the plugin under test: EXTERNAL")
+    }
+
     def "injected classes are not visible when plugin is not applied"() {
         given:
         buildFile plugin.echoClassNameTask()

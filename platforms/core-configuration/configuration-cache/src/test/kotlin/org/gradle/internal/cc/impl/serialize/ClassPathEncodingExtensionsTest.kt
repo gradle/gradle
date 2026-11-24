@@ -44,10 +44,11 @@ class ClassPathEncodingExtensionsTest {
 
     @Test
     fun `transformed classpath round-trips the instrumentation metadata of its entries`() {
-        val classPath = TransformedClassPath.builderWithExactSize(3)
+        val classPath = TransformedClassPath.builderWithExactSize(4)
             .add(File("external.jar"), TransformedEntry(File("instrumented/instrumented-external.jar"), File("merge/analysis.bin"), InstrumentationKind.EXTERNAL_DEPENDENCY))
             .add(File("project.jar"), TransformedEntry(File("instrumented/instrumented-project.jar"), null, InstrumentationKind.PROJECT_DEPENDENCY))
             .addUntransformed(File("plain.jar"))
+            .addUntransformed(File("local-plain.jar"), InstrumentationKind.PROJECT_DEPENDENCY)
             .build()
 
         val restored = roundTrip(classPath)
@@ -56,6 +57,8 @@ class ClassPathEncodingExtensionsTest {
         restored as TransformedClassPath
         assertThat(restored.findEntryFor(File("external.jar")), equalTo(TransformedEntry(File("instrumented/instrumented-external.jar"), File("merge/analysis.bin"), InstrumentationKind.EXTERNAL_DEPENDENCY)))
         assertThat(restored.findEntryFor(File("project.jar")), equalTo(TransformedEntry(File("instrumented/instrumented-project.jar"), null, InstrumentationKind.PROJECT_DEPENDENCY)))
+        assertThat(restored.kindOf(File("plain.jar")), equalTo(InstrumentationKind.UNKNOWN))
+        assertThat(restored.kindOf(File("local-plain.jar")), equalTo(InstrumentationKind.PROJECT_DEPENDENCY))
         assertThat(restored.findEntryFor(File("plain.jar")), nullValue())
     }
 

@@ -21,6 +21,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
+import org.gradle.api.problems.internal.ProblemProjectIdentityTracker;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginContainer;
@@ -31,6 +32,8 @@ import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.Cast;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationId;
+import org.gradle.api.internal.initialization.CodeLocalityResolver;
+import org.gradle.internal.code.Locality;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -71,10 +74,11 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     private final BuildOperationRunner buildOperationRunner;
     private final UserCodeApplicationContext userCodeApplicationContext;
+    private final CodeLocalityResolver codeLocalityResolver;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
     @SuppressWarnings("this-escape")
-    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator callbackDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator callbackDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory, CodeLocalityResolver codeLocalityResolver) {
         this.instantiator = instantiator;
         this.target = target;
         this.pluginRegistry = pluginRegistry;
@@ -82,6 +86,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this, callbackDecorator);
         this.buildOperationRunner = buildOperationRunner;
         this.userCodeApplicationContext = userCodeApplicationContext;
+        this.codeLocalityResolver = codeLocalityResolver;
     }
 
     private <T> T instantiatePlugin(Class<T> type) {
@@ -173,10 +178,17 @@ public class DefaultPluginManager implements PluginManagerInternal {
                 final Runnable adder = addPluginInternal(plugin);
                 if (adder != null) {
                     UserCodeApplicationContext.Target appTarget = getApplicationTargetFor(target);
-                    UserCodeSource source = new UserCodeSource.Binary(plugin.getDisplayName(), pluginClass.getName(), pluginIdStr);
-                    userCodeApplicationContext.apply(source, appTarget, userCodeApplicationId ->
-                        buildOperationRunner.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass, userCodeApplicationId))
-                    );
+                    UserCodeSource appliedBy = currentSource();
+                    UserCodeSource source = new UserCodeSource.Binary(plugin.getDisplayName(), pluginClass.getName(), pluginIdStr, localityOf(pluginClass, appliedBy), appliedBy, codeLocalityResolver.codeLocationOf(pluginClass));
+                    String previousBuildPath = ProblemProjectIdentityTracker.getBuildPath();
+                    ProblemProjectIdentityTracker.setBuildPath(buildPathOutsideProjects(target, previousBuildPath));
+                    try {
+                        userCodeApplicationContext.apply(source, appTarget, userCodeApplicationId ->
+                            buildOperationRunner.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass, userCodeApplicationId))
+                        );
+                    } finally {
+                        ProblemProjectIdentityTracker.setBuildPath(previousBuildPath);
+                    }
                 }
             }
         } catch (PluginApplicationException e) {
@@ -186,6 +198,26 @@ public class DefaultPluginManager implements PluginManagerInternal {
         } finally {
             Thread.currentThread().setContextClassLoader(contextClassLoader);
         }
+    }
+
+    // A plugin class that a script defines belongs to whoever the script belongs to; only that script can apply it
+    private Locality localityOf(Class<?> pluginClass, @Nullable UserCodeSource appliedBy) {
+        if (appliedBy instanceof UserCodeSource.Script && codeLocalityResolver.isDefinedInScript(pluginClass)) {
+            return appliedBy.getLocality();
+        }
+        return codeLocalityResolver.localityOf(pluginClass);
+    }
+
+    // A plugin applied to settings or to a Gradle object runs outside any project; a problem it reports belongs to that build
+    private static @Nullable String buildPathOutsideProjects(PluginTarget target, @Nullable String current) {
+        ConfigurationTargetIdentifier id = target.getConfigurationTargetIdentifier();
+        return id.getTargetType() == ConfigurationTargetIdentifier.Type.PROJECT ? current : id.getBuildPath();
+    }
+
+    // The code that is applying this plugin, if any: a convention plugin, or a script
+    private @Nullable UserCodeSource currentSource() {
+        UserCodeApplicationContext.Application current = userCodeApplicationContext.current();
+        return current == null ? null : current.getSource();
     }
 
     private static UserCodeApplicationContext.Target getApplicationTargetFor(PluginTarget target) {

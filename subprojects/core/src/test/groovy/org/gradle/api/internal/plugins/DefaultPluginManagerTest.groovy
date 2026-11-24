@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.plugins
 
+import org.gradle.api.internal.initialization.CodeLocalityResolver
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.internal.CollectionCallbackActionDecorator
@@ -41,7 +42,7 @@ class DefaultPluginManagerTest extends Specification {
     def target = Mock(PluginTarget) {
         getConfigurationTargetIdentifier() >> Mock(ConfigurationTargetIdentifier)
     }
-    def manager = new DefaultPluginManager(registry, TestUtil.instantiatorFactory().inject(), target, new TestBuildOperationRunner(), new TestUserCodeApplicationContext(), CollectionCallbackActionDecorator.NOOP, TestUtil.domainObjectCollectionFactory())
+    def manager = new DefaultPluginManager(registry, TestUtil.instantiatorFactory().inject(), target, new TestBuildOperationRunner(), new TestUserCodeApplicationContext(), CollectionCallbackActionDecorator.NOOP, TestUtil.domainObjectCollectionFactory(), Stub(CodeLocalityResolver))
 
     Class<?> rulesClass
     Class<? extends Plugin> hybridClass

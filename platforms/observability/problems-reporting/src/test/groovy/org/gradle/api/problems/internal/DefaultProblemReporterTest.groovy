@@ -30,7 +30,10 @@ import spock.lang.Specification
 
 class DefaultProblemReporterTest extends Specification {
 
-    def summarizer = Mock(ProblemSummarizer)
+    // A mock returns null by default; locating a problem gives the problem back, as it does when there is nothing to add
+    def summarizer = Mock(ProblemSummarizer) {
+        locate(_, _) >> { ProblemInternal problem, id -> problem }
+    }
     def registry = new ExceptionProblemRegistry()
 
     def "problem is attributed to the build operation provided by the operation id ref"() {

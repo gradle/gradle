@@ -62,6 +62,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             with(oneLocation(TaskLocation)) {
                 buildTreePath == ':reportProblem'
             }
+            detectionTrace.frames*.displayName == [
+                'task :reportProblem',
+                'project :',
+                'build :'
+            ]
         }
     }
 
@@ -85,6 +90,12 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             with(oneLocation(TaskLocation)) {
                 buildTreePath == ':included-lib:reportProblem'
             }
+            detectionTrace.frames*.displayName == [
+                'task :included-lib:reportProblem',
+                'project :included-lib',
+                'build :included-lib',
+                'build :'
+            ]
         }
     }
 
@@ -203,10 +214,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "can emit a problem with offset location"() {
         given:
+        def location = absolutePathOf("test-location")
         withReportProblemTask """
             ${problemIdScript()}
             problems.getReporter().report(problemId) {
-                it.offsetInFileLocation("test-location", 1, 2)
+                it.offsetInFileLocation("$location", 1, 2)
             }
         """
 
@@ -217,7 +229,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             originLocations.size() == 1
             with(originLocations[0] as OffsetInFileLocation) {
-                path == 'test-location'
+                path == location
                 offset == 1
                 length == 2
             }
@@ -227,12 +239,57 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "can emit a problem with file and line number"() {
+    def "a problem with a relative path as its location is reported as given, with a problem about the path"() {
         given:
         withReportProblemTask """
             ${problemIdScript()}
             problems.getReporter().report(problemId) {
-                it.lineInFileLocation("test-location", 1, 2)
+                it.lineInFileLocation("src/Foo.java", 3)
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then: "the reporter's problem keeps its location; nothing says whose file it is"
+        def reported = findReceivedProblem { it.fqid == 'Others:Generic:label' }
+        (reported.originLocations[0] as LineInFileLocation).path == 'src/Foo.java'
+        reported.originTraces[0].frames[0].displayName == 'src/Foo.java:3'
+        reported.originTraces[0].frames[0].locality == org.gradle.internal.code.Locality.UNKNOWN
+
+        and: "a second problem tells the author of the reporting code about the path"
+        def misuse = findReceivedProblem { it.fqid == 'Gradle:Build Logic:Reported problem has a relative path as its location' }
+        misuse.contextualLabel == "Problem 'label' gives the relative path 'src/Foo.java' as its location"
+        misuse.definition.severity == Severity.WARNING
+    }
+
+    def "an absolute path as a problem's location raises no problem about the path"() {
+        given:
+        def location = absolutePathOf("src/Foo.java")
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.lineInFileLocation("$location", 3)
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        receivedProblems.size() == 1
+        def reported = receivedProblem
+        reported.fqid == 'Others:Generic:label'
+        reported.originTraces[0].frames[0].locality == org.gradle.internal.code.Locality.LOCAL
+    }
+
+    def "can emit a problem with file and line number"() {
+        given:
+        def location = absolutePathOf("test-location")
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.lineInFileLocation("$location", 1, 2)
             }
         """
 
@@ -246,7 +303,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 length == -1
                 column == 2
                 line == 1
-                path == 'test-location'
+                path == location
             }
             contextualLocations.size() == 1
             (contextualLocations.get(0) as TaskLocation).buildTreePath == ':reportProblem'
@@ -671,6 +728,11 @@ Problem found: Project is a prototype (in Others > Sample Problems)
         verifyAll(receivedProblem) {
             it.definition.id.fqid == 'Gradle:Deprecation:Feature'
         }
+    }
+
+    // With forward slashes, so that the path can stand in a string literal of a build script on any platform
+    private String absolutePathOf(String path) {
+        org.gradle.util.internal.TextUtil.normaliseFileSeparators(file(path).absolutePath)
     }
 
     static String problemIdScript() {

@@ -21,6 +21,7 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
+import org.gradle.api.problems.internal.location.Trace;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -36,6 +37,18 @@ public interface ProblemInternal extends Problem {
      * Returns a copy of this problem with the given id; everything else is unchanged.
      */
     ProblemInternal withId(ProblemId id);
+
+    /**
+     * Returns a copy of this problem with the given detection trace; everything else is unchanged.
+     * <p>
+     * Only the runtime sets the detection trace, reporters can't.
+     */
+    ProblemInternal withDetectionTrace(Trace detectionTrace);
+
+    /**
+     * Returns a copy of this problem with the given origin traces; everything else is unchanged.
+     */
+    ProblemInternal withOriginTraces(List<Trace> originTraces);
 
     /**
      * Returns the problem definition, i.e. the data that is independent of the report context.
@@ -78,6 +91,21 @@ public interface ProblemInternal extends Problem {
      * Might be empty if there is no meaningful contextual information.
      */
     List<ProblemLocation> getContextualLocations();
+
+    /**
+     * Returns the authored causes of the problem, one trace per cause, each leaf first.
+     * <p>
+     * Empty when the cause isn't authored or Gradle can't find it.
+     */
+    List<Trace> getOriginTraces();
+
+    /**
+     * Returns what was running when the problem was noticed: task, project and build, leaf first.
+     * <p>
+     * {@code null} until the runtime has computed it.
+     */
+    @Nullable
+    Trace getDetectionTrace();
 
     /**
      * The exception that caused the problem.

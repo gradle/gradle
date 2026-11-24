@@ -20,9 +20,11 @@ import com.google.common.collect.Ordering;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.component.local.model.TransformedArtifactIdentifier;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -65,6 +67,19 @@ public class InstrumentationClasspathMerger {
             .collect(Collectors.groupingBy(InstrumentationClasspathMerger::getFileType));
     }
 
+    /**
+     * Returns where each file of the instrumentation output came from: the collections are memoized, so this walks them once more without resolving again.
+     */
+    public static Map<File, TransformedClassPath.InstrumentationKind> kindsOf(ArtifactCollection externalDependencies, ArtifactCollection projectDependencies) {
+        Map<File, TransformedClassPath.InstrumentationKind> kinds = new HashMap<>();
+        for (ResolvedArtifactResult artifact : externalDependencies.getArtifacts()) {
+            kinds.put(artifact.getFile(), TransformedClassPath.InstrumentationKind.EXTERNAL_DEPENDENCY);
+        }
+        for (ResolvedArtifactResult artifact : projectDependencies.getArtifacts()) {
+            kinds.put(artifact.getFile(), TransformedClassPath.InstrumentationKind.PROJECT_DEPENDENCY);
+        }
+        return kinds;
+    }
     private static FileType getFileType(File file) {
         return file.getName().equals(INTERCEPTED_METHODS_REPORT_FILE) ? FileType.INTERCEPTED_METHODS_REPORT : FileType.ARTIFACT;
     }

@@ -17,10 +17,14 @@
 package org.gradle.internal.serialize.codecs.core
 
 import org.gradle.internal.Describables
+import org.gradle.internal.code.Locality
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.readEnum
+import org.gradle.internal.serialize.graph.writeEnum
+import java.io.File
 import java.net.URI
 
 
@@ -33,16 +37,35 @@ object UserCodeSourceCodec : Codec<UserCodeSource> {
                 writeString(value.displayName.displayName)
                 writeString(value.className)
                 writeNullableString(value.pluginId)
+                writeEnum(value.locality)
+                writeNullableString(value.codeLocation?.path)
+                writeAppliedBy(value.appliedBy)
             }
             is UserCodeSource.Script -> {
                 writeSmallInt(2)
                 writeString(value.displayName.displayName)
                 writeNullableString(value.uri?.toString())
+                writeEnum(value.locality)
+                writeBoolean(value.isTopLevel)
+                writeAppliedBy(value.appliedBy)
             }
 
             else -> error("Unexpected user code source type: ${value.javaClass.name}")
         }
     }
+
+    // The chain of applying code is written inline with each source; a task's chain is short, but the same chain is repeated per task node
+    private suspend fun WriteContext.writeAppliedBy(appliedBy: UserCodeSource?) {
+        if (appliedBy == null) {
+            writeBoolean(false)
+        } else {
+            writeBoolean(true)
+            encode(appliedBy)
+        }
+    }
+
+    private suspend fun ReadContext.readAppliedBy(): UserCodeSource? =
+        if (readBoolean()) decode() else null
 
     override suspend fun ReadContext.decode(): UserCodeSource {
         return when (val type = readSmallInt()) {
@@ -50,13 +73,17 @@ object UserCodeSourceCodec : Codec<UserCodeSource> {
                 val displayName = readString()
                 val className = readString()
                 val pluginId = readNullableString()
-                UserCodeSource.Binary(Describables.of(displayName), className, pluginId)
+                val locality = readEnum<Locality>()
+                val codeLocation = readNullableString()?.let { File(it) }
+                UserCodeSource.Binary(Describables.of(displayName), className, pluginId, locality, readAppliedBy(), codeLocation)
             }
 
             2 -> {
                 val displayName = readString()
                 val uri = readNullableString()?.let { URI.create(it) }
-                UserCodeSource.Script(Describables.of(displayName), uri)
+                val locality = readEnum<Locality>()
+                val topLevel = readBoolean()
+                UserCodeSource.Script(Describables.of(displayName), uri, locality, readAppliedBy(), topLevel)
             }
 
             else -> error("Unexpected user code source type: $type")

@@ -182,10 +182,14 @@ sealed class PropertyTrace {
     @ConsistentCopyVisibility
     data class BuildLogic private constructor(
         val source: Describable,
-        val lineNumber: Int? = null
+        val lineNumber: Int? = null,
+        /**
+         * The path of the script file, when the build logic is a script file; the display name alone can't be opened.
+         */
+        val filePath: String? = null
     ) : PropertyTrace() {
-        constructor(location: Location) : this(location.sourceShortDisplayName, location.lineNumber)
-        constructor(userCodeSource: UserCodeSource) : this(userCodeSource.displayName)
+        constructor(location: Location) : this(location.sourceShortDisplayName, location.lineNumber, location.filePath)
+        constructor(userCodeSource: UserCodeSource) : this(userCodeSource.displayName, null, (userCodeSource as? UserCodeSource.Script)?.uri?.takeIf { it.scheme == "file" }?.let { java.io.File(it).absolutePath })
         override fun toString(): String = asString()
         override fun describe(builder: StructuredMessage.Builder) {
             with(builder) {

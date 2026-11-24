@@ -69,6 +69,7 @@ inline fun Encoder.writeTransformedClassPath(classPath: TransformedClassPath, wr
             val entry = classPath.findEntryFor(original)
             if (entry == null) {
                 writeBoolean(false)
+                writeEnum(classPath.kindOf(original))
             } else {
                 writeBoolean(true)
                 writeFile(entry.instrumentedFile)
@@ -127,7 +128,7 @@ inline fun Decoder.readTransformedClassPath(readFile: Decoder.() -> File): Class
             val analysisFile = if (readBoolean()) readFile() else null
             builder.add(original, TransformedClassPath.TransformedEntry(instrumentedFile, analysisFile, kind))
         } else {
-            builder.addUntransformed(original)
+            builder.addUntransformed(original, readEnum<TransformedClassPath.InstrumentationKind>())
         }
     }
     return builder.build()

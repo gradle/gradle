@@ -195,14 +195,38 @@ public class TransformedClassPath implements ClassPath {
     private final ClassPath originalClassPath;
     // mapping of original -> "double"
     private final ImmutableMap<File, TransformedEntry> transforms;
+    // where the entries without a "double" came from, so that every entry can say
+    private final ImmutableMap<File, InstrumentationKind> untransformedKinds;
     @Nullable
     private final ClassLoadTimeTransform classLoadTimeTransform;
 
-    private TransformedClassPath(ClassPath originalClassPath, Map<File, TransformedEntry> transforms, @Nullable ClassLoadTimeTransform classLoadTimeTransform) {
+    private TransformedClassPath(ClassPath originalClassPath, Map<File, TransformedEntry> transforms, Map<File, InstrumentationKind> untransformedKinds, @Nullable ClassLoadTimeTransform classLoadTimeTransform) {
         assert !(originalClassPath instanceof TransformedClassPath);
         this.originalClassPath = originalClassPath;
         this.transforms = ImmutableMap.copyOf(transforms);
+        this.untransformedKinds = ImmutableMap.copyOf(untransformedKinds);
         this.classLoadTimeTransform = classLoadTimeTransform;
+    }
+
+    /**
+     * Returns where the given entry came from: a project of the build, a repository, or unknown.
+     * The entry can be an original file of this classpath or the transformed "double" of one.
+     */
+    public InstrumentationKind kindOf(File entry) {
+        TransformedEntry transformed = transforms.get(entry);
+        if (transformed != null) {
+            return transformed.getKind();
+        }
+        InstrumentationKind untransformedKind = untransformedKinds.get(entry);
+        if (untransformedKind != null) {
+            return untransformedKind;
+        }
+        for (TransformedEntry candidate : transforms.values()) {
+            if (candidate.getInstrumentedFile().equals(entry)) {
+                return candidate.getKind();
+            }
+        }
+        return InstrumentationKind.UNKNOWN;
     }
 
     /**
@@ -229,7 +253,7 @@ public class TransformedClassPath implements ClassPath {
         //  where we know it must be instrumented, and the ClassLoaderFactory, where we actually build the classloader.
         //  With the single ClassPath passed down we don't have to additionally plumb the instrumentation information.
         //  However, with this runtime transform, the scheme becomes a leaky abstraction.
-        return new TransformedClassPath(originalClassPath, transforms, classLoadTimeTransform);
+        return new TransformedClassPath(originalClassPath, transforms, untransformedKinds, classLoadTimeTransform);
     }
 
     @Override
@@ -313,7 +337,7 @@ public class TransformedClassPath implements ClassPath {
         // Existing transforms for these entries have to be discarded.
         // We can think of the prepended classpath as the TransformedClassPath without actual transforms,
         // and then just append this classpath to it to achieve the desired behavior.
-        return new TransformedClassPath(classPath, ImmutableMap.of(), null).plusWithTransforms(this);
+        return new TransformedClassPath(classPath, ImmutableMap.<File, TransformedEntry>of(), ImmutableMap.<File, InstrumentationKind>of(), null).plusWithTransforms(this);
     }
 
     private TransformedClassPath plusWithTransforms(TransformedClassPath classPath) {
@@ -343,7 +367,15 @@ public class TransformedClassPath implements ClassPath {
         ClassLoadTimeTransform mergedClassLoadTimeTransform = classLoadTimeTransform != null ? classLoadTimeTransform : classPath.classLoadTimeTransform;
 
         // In the end, at most one instance of a transformed entry should be recorded for any given file.
-        return new TransformedClassPath(mergedOriginals, mergedTransforms.buildOrThrow(), mergedClassLoadTimeTransform);
+        // The kinds of the entries without a double merge the same way: the first occurrence of a file wins.
+        ImmutableMap.Builder<File, InstrumentationKind> mergedKinds = ImmutableMap.builder();
+        mergedKinds.putAll(untransformedKinds);
+        for (Map.Entry<File, InstrumentationKind> appendedKind : classPath.untransformedKinds.entrySet()) {
+            if (!thisClassPathFiles.contains(appendedKind.getKey())) {
+                mergedKinds.put(appendedKind);
+            }
+        }
+        return new TransformedClassPath(mergedOriginals, mergedTransforms.buildOrThrow(), mergedKinds.buildOrThrow(), mergedClassLoadTimeTransform);
     }
 
     /**
@@ -353,7 +385,7 @@ public class TransformedClassPath implements ClassPath {
      */
     @Override
     public TransformedClassPath plus(Collection<File> classPath) {
-        return new TransformedClassPath(originalClassPath.plus(classPath), transforms, classLoadTimeTransform);
+        return new TransformedClassPath(originalClassPath.plus(classPath), transforms, untransformedKinds, classLoadTimeTransform);
     }
 
     /**
@@ -366,7 +398,7 @@ public class TransformedClassPath implements ClassPath {
         if (classPath instanceof TransformedClassPath) {
             return plusWithTransforms((TransformedClassPath) classPath);
         }
-        return new TransformedClassPath(originalClassPath.plus(classPath), transforms, classLoadTimeTransform);
+        return new TransformedClassPath(originalClassPath.plus(classPath), transforms, untransformedKinds, classLoadTimeTransform);
     }
 
     /**
@@ -384,7 +416,13 @@ public class TransformedClassPath implements ClassPath {
                 remainingTransforms.put(remainingEntry);
             }
         }
-        return new TransformedClassPath(filteredClassPath, remainingTransforms.build(), classLoadTimeTransform);
+        ImmutableMap.Builder<File, InstrumentationKind> remainingKinds = ImmutableMap.builder();
+        for (Map.Entry<File, InstrumentationKind> remainingKind : untransformedKinds.entrySet()) {
+            if (remainingOriginals.contains(remainingKind.getKey())) {
+                remainingKinds.put(remainingKind);
+            }
+        }
+        return new TransformedClassPath(filteredClassPath, remainingTransforms.build(), remainingKinds.build(), classLoadTimeTransform);
     }
 
     /**
@@ -416,7 +454,7 @@ public class TransformedClassPath implements ClassPath {
     // and is only attached transiently on the way to a classloader.
     @Override
     public int hashCode() {
-        return originalClassPath.hashCode() + transforms.hashCode();
+        return originalClassPath.hashCode() + transforms.hashCode() + untransformedKinds.hashCode();
     }
 
     @Override
@@ -429,7 +467,8 @@ public class TransformedClassPath implements ClassPath {
         }
         TransformedClassPath other = (TransformedClassPath) obj;
         return originalClassPath.equals(other.originalClassPath)
-            && transforms.equals(other.transforms);
+            && transforms.equals(other.transforms)
+            && untransformedKinds.equals(other.untransformedKinds);
     }
 
     @Override
@@ -472,14 +511,21 @@ public class TransformedClassPath implements ClassPath {
      * @return the classpath that carries the instrumentation mappings if needed
      */
     public static ClassPath handleInstrumentingArtifactTransform(List<File> classPath) {
+        return handleInstrumentingArtifactTransform(classPath, ImmutableMap.<File, InstrumentationKind>of());
+    }
+
+    /**
+     * @param kinds where each file of the transform output came from, for the entries whose marker doesn't say so
+     */
+    public static ClassPath handleInstrumentingArtifactTransform(List<File> classPath, Map<File, InstrumentationKind> kinds) {
         if (classPath.isEmpty()) {
             return DefaultClassPath.of(classPath);
         }
 
-        return fromInstrumentingArtifactTransformOutput(classPath);
+        return fromInstrumentingArtifactTransformOutput(classPath, kinds);
     }
 
-    private static ClassPath fromInstrumentingArtifactTransformOutput(List<File> inputFiles) {
+    private static ClassPath fromInstrumentingArtifactTransformOutput(List<File> inputFiles, Map<File, InstrumentationKind> kinds) {
         // An empty value means the entry is used for classloading directly, without a transformed "double".
         Map<File, Optional<TransformedEntry>> transformedEntries = Maps.newLinkedHashMapWithExpectedSize(inputFiles.size());
         for (int i = 0; i < inputFiles.size();) {
@@ -551,7 +597,7 @@ public class TransformedClassPath implements ClassPath {
             if (entry.getValue().isPresent()) {
                 result.add(entry.getKey(), entry.getValue().get());
             } else {
-                result.addUntransformed(entry.getKey());
+                result.addUntransformed(entry.getKey(), kinds.getOrDefault(entry.getKey(), InstrumentationKind.UNKNOWN));
             }
         }
         return result.build();
@@ -580,6 +626,7 @@ public class TransformedClassPath implements ClassPath {
     public static class Builder {
         private final DefaultClassPath.Builder originals;
         private final ImmutableMap.Builder<File, TransformedEntry> transforms;
+        private final ImmutableMap.Builder<File, InstrumentationKind> untransformedKinds = ImmutableMap.builder();
 
         private Builder(int exactSize) {
             originals = DefaultClassPath.builderWithExactSize(exactSize);
@@ -607,7 +654,17 @@ public class TransformedClassPath implements ClassPath {
          * @return this builder
          */
         public Builder addUntransformed(File original) {
+            return addUntransformed(original, InstrumentationKind.UNKNOWN);
+        }
+
+        /**
+         * Adds the classpath entry without the transformed entry, with where it came from.
+         */
+        public Builder addUntransformed(File original, InstrumentationKind kind) {
             originals.add(original);
+            if (kind != InstrumentationKind.UNKNOWN) {
+                untransformedKinds.put(original, kind);
+            }
             return this;
         }
 
@@ -618,7 +675,7 @@ public class TransformedClassPath implements ClassPath {
          */
         public TransformedClassPath build() {
             Map<File, TransformedEntry> transformedMap = transforms.build();
-            return new TransformedClassPath(originals.build(), transformedMap, null);
+            return new TransformedClassPath(originals.build(), transformedMap, untransformedKinds.build(), null);
         }
     }
 }

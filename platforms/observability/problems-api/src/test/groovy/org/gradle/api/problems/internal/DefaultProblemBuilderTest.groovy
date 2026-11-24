@@ -22,6 +22,11 @@ import org.gradle.api.problems.GradleSecondLevelProblemGroup
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemGroups
 import org.gradle.api.problems.ProblemId
+import org.gradle.problems.Location
+import org.gradle.problems.ProblemDiagnostics
+import org.gradle.api.problems.internal.location.PropertyFrame
+import org.gradle.api.problems.internal.location.Trace
+import org.gradle.internal.code.Locality
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.internal.reflect.Instantiator
@@ -317,5 +322,61 @@ class DefaultProblemBuilderTest extends Specification {
 
         then:
         problem.contextualLabel == "line1 line2 line3"
+    }
+
+    def "the builder keeps the reporter's locations and derives no origin trace: the runtime does that"() {
+        when:
+        def problem = createProblemBuilder()
+            .id(problemId)
+            .lineInFileLocation("build.gradle", 12, 5)
+            .build()
+
+        then:
+        problem.originLocations.size() == 1
+        problem.originTraces.empty
+    }
+
+    def "an origin trace the reporter gives is kept"() {
+        given:
+        def trace = new Trace([new PropertyFrame("bar", Locality.UNKNOWN)])
+
+        expect:
+        createProblemBuilder().id(problemId).originTrace(trace).build().originTraces == [trace]
+    }
+
+    def "callerLocation records the stack and the API whose caller is meant"() {
+        given:
+        def stack = [
+            frame("com.google.common.collect.ImmutableList", "of", "ImmutableList.java", 20),
+            frame("com.acme.util.Helper", "callCheck", "Helper.java", 31),
+        ]
+
+        when:
+        def problem = createProblemBuilder()
+            .id(problemId)
+            .diagnostics(diagnostics(stack, null))
+            .callerLocation(com.google.common.collect.ImmutableList)
+            .build()
+
+        then:
+        problem.originLocations.size() == 1
+        with(problem.originLocations[0] as StackTraceLocation) {
+            stackTrace == stack
+            callerApi == "com.google.common.collect.ImmutableList"
+        }
+    }
+
+    private static StackTraceElement frame(String className, String method, String file, int line) {
+        new StackTraceElement(className, method, file, line)
+    }
+
+    private ProblemDiagnostics diagnostics(List<StackTraceElement> stack, Location location) {
+        Stub(ProblemDiagnostics) {
+            getStack() >> stack
+            getLocation() >> location
+            getException() >> null
+            getFailure() >> null
+            getSource() >> null
+        }
     }
 }

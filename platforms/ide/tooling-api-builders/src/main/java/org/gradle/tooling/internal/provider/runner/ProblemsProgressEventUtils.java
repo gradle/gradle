@@ -67,7 +67,29 @@ import org.gradle.tooling.internal.protocol.problem.InternalDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
 import org.gradle.tooling.internal.protocol.problem.InternalLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
+import org.gradle.tooling.internal.protocol.problem.InternalFrame;
+import org.gradle.tooling.internal.protocol.problem.InternalPosition;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
+import org.gradle.tooling.internal.protocol.problem.InternalTrace;
+import org.gradle.api.problems.internal.location.BuildFrame;
+import org.gradle.api.problems.internal.location.CompiledCodePosition;
+import org.gradle.api.problems.internal.location.FilePosition;
+import org.gradle.api.problems.internal.location.Frame;
+import org.gradle.api.problems.internal.location.Position;
+import org.gradle.api.problems.internal.location.PluginApplicationFrame;
+import org.gradle.api.problems.internal.location.PluginClassFrame;
+import org.gradle.api.problems.internal.location.ProjectFrame;
+import org.gradle.api.problems.internal.location.TaskFrame;
+import org.gradle.api.problems.internal.location.Trace;
+import org.gradle.internal.build.event.types.DefaultBuildFrame;
+import org.gradle.internal.build.event.types.DefaultProblemCompiledCodePosition;
+import org.gradle.internal.build.event.types.DefaultProblemFilePosition;
+import org.gradle.internal.build.event.types.DefaultFrame;
+import org.gradle.internal.build.event.types.DefaultPluginApplicationFrame;
+import org.gradle.internal.build.event.types.DefaultPluginClassFrame;
+import org.gradle.internal.build.event.types.DefaultProjectFrame;
+import org.gradle.internal.build.event.types.DefaultTaskFrame;
+import org.gradle.internal.build.event.types.DefaultTrace;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -135,8 +157,60 @@ public class ProblemsProgressEventUtils {
             toInternalLocations(problem.getContextualLocations()),
             toInternalSolutions(problem.getSolutions()),
             toInternalAdditionalData(problem),
-            toInternalFailure(problem.getException())
+            toInternalFailure(problem.getException()),
+            toInternalDetectionTrace(problem.getDetectionTrace()),
+            toInternalTraces(problem.getOriginTraces())
         );
+    }
+
+    private static List<InternalTrace> toInternalTraces(List<Trace> originTraces) {
+        return originTraces.stream().map(ProblemsProgressEventUtils::toInternalTrace).collect(toImmutableList());
+    }
+
+    private static @Nullable InternalTrace toInternalDetectionTrace(@Nullable Trace trace) {
+        return trace == null ? null : toInternalTrace(trace);
+    }
+
+    private static InternalTrace toInternalTrace(Trace trace) {
+        return new DefaultTrace(trace.getFrames().stream()
+            .map(ProblemsProgressEventUtils::toInternalFrame)
+            .collect(toImmutableList()));
+    }
+
+    private static InternalFrame toInternalFrame(Frame frame) {
+        String displayName = frame.getDisplayName();
+        String locality = frame.getLocality().name();
+        InternalPosition position = toInternalPosition(frame.getPosition());
+        if (frame instanceof TaskFrame) {
+            return new DefaultTaskFrame(displayName, locality, position, ((TaskFrame) frame).getBuildTreePath());
+        }
+        if (frame instanceof ProjectFrame) {
+            return new DefaultProjectFrame(displayName, locality, position, ((ProjectFrame) frame).getBuildTreePath());
+        }
+        if (frame instanceof BuildFrame) {
+            return new DefaultBuildFrame(displayName, locality, position, ((BuildFrame) frame).getBuildPath());
+        }
+        if (frame instanceof PluginApplicationFrame) {
+            return new DefaultPluginApplicationFrame(displayName, locality, position, ((PluginApplicationFrame) frame).getPluginId(), ((PluginApplicationFrame) frame).getClassName());
+        }
+        if (frame instanceof PluginClassFrame) {
+            PluginClassFrame pluginClass = (PluginClassFrame) frame;
+            return new DefaultPluginClassFrame(displayName, locality, position, pluginClass.getClassName(), pluginClass.getPluginId());
+        }
+        // A frame kind without a typed protocol class crosses as a plain frame
+        return new DefaultFrame(displayName, locality, position);
+    }
+
+    private static @Nullable InternalPosition toInternalPosition(@Nullable Position position) {
+        if (position instanceof FilePosition) {
+            FilePosition file = (FilePosition) position;
+            return new DefaultProblemFilePosition(file.getPath(), file.getLine(), file.getColumn(), file.getOffset(), file.getLength());
+        }
+        if (position instanceof CompiledCodePosition) {
+            CompiledCodePosition compiled = (CompiledCodePosition) position;
+            return new DefaultProblemCompiledCodePosition(compiled.getFileName(), compiled.getClassName(), compiled.getLine());
+        }
+        return null;
     }
 
     private static InternalProblemDefinition toInternalDefinition(ProblemDefinition definition) {

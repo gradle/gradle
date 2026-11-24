@@ -438,6 +438,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription("Execution failed for task ':a:resolve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
+
+        and: "a transform's validation problems name the property alone: no type, no lineage, and the build as the only detection frame, though a task resolved the files"
+        def validationProblems = collectedProblems.findAll { it.fqid.startsWith("Gradle:Plugin Validation:") }
+        !validationProblems.empty
+        validationProblems.every { it.detectionTrace.frames*.displayName == ["build :"] }
+        validationProblems.every { it.originTraces.size() == 1 && it.originTraces[0].frames.size() == 1 && it.originTraces[0].frames[0].displayName.startsWith("property ") }
         failure.assertHasCause("Failed to transform b.jar (project ':b') to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
