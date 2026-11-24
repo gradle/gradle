@@ -19,6 +19,7 @@ package org.gradle.internal.buildoption
 import org.gradle.cli.CommandLineOption
 import org.gradle.cli.CommandLineParser
 import org.gradle.cli.ParsedCommandLine
+import org.jspecify.annotations.NullMarked
 import spock.lang.Specification
 
 import static org.gradle.internal.buildoption.BuildOptionFixture.*
@@ -142,6 +143,7 @@ class ListBuildOptionTest extends Specification {
         testSettings.origin.source == LONG_OPTION
     }
 
+    @NullMarked
     static class TestOption extends ListBuildOption<TestSettings> {
 
         TestOption(String gradleProperty) {

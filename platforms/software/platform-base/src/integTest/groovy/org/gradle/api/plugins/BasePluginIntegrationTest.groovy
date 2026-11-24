@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.FileSystemTestPreconditions
+import org.gradle.util.GradleVersion
 
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -131,7 +132,7 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         expect:
         executer.expectDocumentedDeprecationWarning(
             "The archives configuration has been deprecated for artifact declaration. " +
-                "This will fail with an error in Gradle 10. " +
+                "This will fail with an error in Gradle ${GradleVersion.current().majorVersion + 1}. " +
                 "Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#sec:archives-configuration"
         )

@@ -16,9 +16,12 @@
 
 package org.gradle.cache.internal.locklistener;
 
+import org.jspecify.annotations.Nullable;
+
 import java.net.InetAddress;
 
 public interface InetAddressProvider {
     InetAddress getWildcardBindingAddress();
+    @Nullable
     InetAddress getCommunicationAddress();
 }

@@ -6,7 +6,7 @@
 </div>
 
 <div align="center">
-  <a href="https://ge.gradle.org/scans">
+  <a href="https://develocity.gradle.org/scans">
     <img src="https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A" alt="Revved up by Develocity">
   </a>
   <a href="https://bestpractices.coreinfrastructure.org/projects/4898">

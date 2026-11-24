@@ -21,6 +21,7 @@ import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +35,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import static java.util.Objects.requireNonNull;
 
 // todo - stream serialised value to file
 // todo - handle hash collisions (properly, this time)
@@ -55,7 +58,8 @@ public class BTreePersistentIndexedCache<K, V> {
     private final short maxChildIndexEntries;
     private final int minIndexChildNodes;
     private final StateCheckBlockStore store;
-    private HeaderBlock header;
+    // Set by doOpen(). Stays null when the cache could neither be opened nor rebuilt
+    private @Nullable HeaderBlock header;
 
     public BTreePersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         this(cacheFile, keySerializer, valueSerializer, (short) 512, 512);
@@ -122,10 +126,11 @@ public class BTreePersistentIndexedCache<K, V> {
         header = store.readFirst(HeaderBlock.class);
     }
 
+    @Nullable
     public V get(K key) {
         try {
             try {
-                DataBlock block = header.getRoot().get(key);
+                DataBlock block = getHeader().getRoot().get(key);
                 if (block != null) {
                     return block.getValue();
                 }
@@ -142,7 +147,7 @@ public class BTreePersistentIndexedCache<K, V> {
     public void put(K key, V value) {
         try {
             long hashCode = keyHasher.getHashCode(key);
-            Lookup lookup = header.getRoot().find(hashCode);
+            Lookup lookup = getHeader().getRoot().find(hashCode);
             DataBlock newBlock = null;
             if (lookup.entry != null) {
                 DataBlock block = store.read(lookup.entry.dataBlock, DataBlock.class);
@@ -166,7 +171,7 @@ public class BTreePersistentIndexedCache<K, V> {
 
     public void remove(K key) {
         try {
-            Lookup lookup = header.getRoot().find(key);
+            Lookup lookup = getHeader().getRoot().find(key);
             if (lookup.entry == null) {
                 return;
             }
@@ -179,7 +184,7 @@ public class BTreePersistentIndexedCache<K, V> {
         }
     }
 
-    private IndexBlock load(BlockPointer pos, IndexRoot root, IndexBlock parent, int index) {
+    private IndexBlock load(BlockPointer pos, @Nullable IndexRoot root, @Nullable IndexBlock parent, int index) {
         IndexBlock block = store.read(pos, IndexBlock.class);
         block.root = root;
         block.parent = parent;
@@ -367,9 +372,10 @@ public class BTreePersistentIndexedCache<K, V> {
         private final List<IndexEntry> entries = new ArrayList<IndexEntry>();
         private BlockPointer tailPos = BlockPointer.start();
         // Transient fields
-        private IndexBlock parent;
+        private @Nullable IndexBlock parent;
         private int parentEntryIndex;
-        private IndexRoot root;
+        // Set by load()
+        private @Nullable IndexRoot root;
 
         @Override
         protected byte getType() {
@@ -394,11 +400,10 @@ public class BTreePersistentIndexedCache<K, V> {
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
             entries.clear();
             for (int i = 0; i < count; i++) {
-                IndexEntry entry = new IndexEntry();
-                entry.hashCode = buffer.getLong();
-                entry.dataBlock = BlockPointer.pos(buffer.getLong());
-                entry.childIndexBlock = BlockPointer.pos(buffer.getLong());
-                entries.add(entry);
+                long hashCode = buffer.getLong();
+                BlockPointer dataBlock = BlockPointer.pos(buffer.getLong());
+                BlockPointer childIndexBlock = BlockPointer.pos(buffer.getLong());
+                entries.add(new IndexEntry(hashCode, dataBlock, childIndexBlock));
             }
             tailPos = BlockPointer.pos(buffer.getLong());
         }
@@ -415,20 +420,14 @@ public class BTreePersistentIndexedCache<K, V> {
         }
 
         public void put(long hashCode, BlockPointer pos) throws Exception {
-            int index = Collections.binarySearch(entries, new IndexEntry(hashCode));
-            IndexEntry entry;
+            int index = Collections.binarySearch(entries, IndexEntry.searchKey(hashCode));
             if (index >= 0) {
-                entry = entries.get(index);
+                entries.get(index).dataBlock = pos;
             } else {
                 assert tailPos.isNull();
-                entry = new IndexEntry();
-                entry.hashCode = hashCode;
-                entry.childIndexBlock = BlockPointer.start();
-                index = -index - 1;
-                entries.add(index, entry);
+                entries.add(-index - 1, new IndexEntry(hashCode, pos, BlockPointer.start()));
             }
 
-            entry.dataBlock = pos;
             store.write(this);
 
             maybeSplit();
@@ -439,7 +438,7 @@ public class BTreePersistentIndexedCache<K, V> {
                 int splitPos = entries.size() / 2;
                 IndexEntry splitEntry = entries.remove(splitPos);
                 if (parent == null) {
-                    parent = root.newRoot();
+                    parent = requireNonNull(root).newRoot();
                 }
                 IndexBlock sibling = new IndexBlock();
                 store.write(sibling);
@@ -470,6 +469,7 @@ public class BTreePersistentIndexedCache<K, V> {
             maybeSplit();
         }
 
+        @Nullable
         public DataBlock get(K key) throws Exception {
             Lookup lookup = find(key);
             if (lookup.entry == null) {
@@ -485,7 +485,7 @@ public class BTreePersistentIndexedCache<K, V> {
         }
 
         private Lookup find(long hashCode) throws Exception {
-            int index = Collections.binarySearch(entries, new IndexEntry(hashCode));
+            int index = Collections.binarySearch(entries, IndexEntry.searchKey(hashCode));
             if (index >= 0) {
                 return new Lookup(this, entries.get(index));
             }
@@ -530,7 +530,7 @@ public class BTreePersistentIndexedCache<K, V> {
                 // This is the root block. Can have any number of children <= maxChildIndexEntries
                 if (entries.size() == 0 && !tailPos.isNull()) {
                     // This is an empty root block, discard it
-                    header.index.setRootPos(tailPos);
+                    getHeader().index.setRootPos(tailPos);
                     store.remove(this);
                 }
                 return;
@@ -580,10 +580,11 @@ public class BTreePersistentIndexedCache<K, V> {
             }
 
             // Should not happen
-            throw new IllegalStateException(String.format("%s does not have any siblings.", getBlock()));
+            throw new IllegalStateException(String.format("%s does not have any siblings.", isAttached() ? getBlock() : null));
         }
 
         private void mergeFrom(IndexBlock right) throws Exception {
+            IndexBlock parent = requireNonNull(this.parent, "The root block cannot be merged");
             IndexEntry newChildEntry = parent.entries.remove(parentEntryIndex);
             if (right.getPos().equals(parent.tailPos)) {
                 parent.tailPos = getPos();
@@ -601,6 +602,7 @@ public class BTreePersistentIndexedCache<K, V> {
             store.remove(right);
         }
 
+        @Nullable
         private IndexBlock getNext(IndexBlock indexBlock) throws Exception {
             int index = indexBlock.parentEntryIndex + 1;
             if (index > entries.size()) {
@@ -612,6 +614,7 @@ public class BTreePersistentIndexedCache<K, V> {
             return load(entries.get(index).childIndexBlock, root, this, index);
         }
 
+        @Nullable
         private IndexBlock getPrevious(IndexBlock indexBlock) throws Exception {
             int index = indexBlock.parentEntryIndex - 1;
             if (index < 0) {
@@ -628,35 +631,40 @@ public class BTreePersistentIndexedCache<K, V> {
         }
     }
 
+    private HeaderBlock getHeader() {
+        //TODO IllegalStateException might be the better option here. In the interest of not changing the behavior, we keep this
+        return requireNonNull(header);
+    }
+
     private static class IndexEntry implements Comparable<IndexEntry> {
         long hashCode;
         BlockPointer dataBlock;
         BlockPointer childIndexBlock;
 
-        private IndexEntry() {
+        private IndexEntry(long hashCode, BlockPointer dataBlock, BlockPointer childIndexBlock) {
+            this.hashCode = hashCode;
+            this.dataBlock = dataBlock;
+            this.childIndexBlock = childIndexBlock;
         }
 
-        private IndexEntry(long hashCode) {
-            this.hashCode = hashCode;
+        /**
+         * An entry to look up the given hash code with {@link Collections#binarySearch}, which compares only the hash code.
+         */
+        static IndexEntry searchKey(long hashCode) {
+            return new IndexEntry(hashCode, BlockPointer.start(), BlockPointer.start());
         }
 
         @Override
         public int compareTo(IndexEntry indexEntry) {
-            if (hashCode > indexEntry.hashCode) {
-                return 1;
-            }
-            if (hashCode < indexEntry.hashCode) {
-                return -1;
-            }
-            return 0;
+            return Long.compare(hashCode, indexEntry.hashCode);
         }
     }
 
     private class Lookup {
         final IndexBlock indexBlock;
-        final IndexEntry entry;
+        final @Nullable IndexEntry entry;
 
-        private Lookup(IndexBlock indexBlock, IndexEntry entry) {
+        private Lookup(IndexBlock indexBlock, @Nullable IndexEntry entry) {
             this.indexBlock = indexBlock;
             this.entry = entry;
         }
@@ -664,8 +672,8 @@ public class BTreePersistentIndexedCache<K, V> {
 
     private class DataBlock extends BlockPayload {
         private int size;
-        private StreamByteBuffer buffer;
-        private V value;
+        private @Nullable StreamByteBuffer buffer;
+        private @Nullable V value;
 
         private DataBlock() {
         }
@@ -673,7 +681,7 @@ public class BTreePersistentIndexedCache<K, V> {
         public DataBlock(V value) throws Exception {
             this.value = value;
             setValue(value);
-            size = buffer.totalBytesUnread();
+            size = getBuffer().totalBytesUnread();
         }
 
         public DataBlock(V value, StreamByteBuffer buffer) throws Exception {
@@ -691,7 +699,7 @@ public class BTreePersistentIndexedCache<K, V> {
 
         public V getValue() throws Exception {
             if (value == null) {
-                value = serializer.read(new KryoBackedDecoder(buffer.getInputStream()));
+                value = serializer.read(new KryoBackedDecoder(getBuffer().getInputStream()));
                 buffer = null;
             }
             return value;
@@ -717,13 +725,20 @@ public class BTreePersistentIndexedCache<K, V> {
         @Override
         public void write(DataOutputStream outstr) throws Exception {
             outstr.writeInt(size);
+            StreamByteBuffer buffer = getBuffer();
             outstr.writeInt(buffer.totalBytesUnread());
             buffer.writeTo(outstr);
-            buffer = null;
+            this.buffer = null;
+        }
+
+        private StreamByteBuffer getBuffer() {
+            //TODO IllegalStateException might be the better option here. In the interest of not changing the behavior, we keep this
+            return requireNonNull(this.buffer);
         }
 
         public DataBlockUpdateResult useNewValue(V value) throws Exception {
             setValue(value);
+            StreamByteBuffer buffer = getBuffer();
             boolean ok = buffer.totalBytesUnread() <= size;
             if (ok) {
                 this.value = value;
@@ -738,9 +753,9 @@ public class BTreePersistentIndexedCache<K, V> {
     private static class DataBlockUpdateResult {
         private static final DataBlockUpdateResult SUCCESS = new DataBlockUpdateResult(true, null);
         private final boolean success;
-        private final StreamByteBuffer serializedValue;
+        private final @Nullable StreamByteBuffer serializedValue;
 
-        private DataBlockUpdateResult(boolean success, StreamByteBuffer serializedValue) {
+        private DataBlockUpdateResult(boolean success, @Nullable StreamByteBuffer serializedValue) {
             this.success = success;
             this.serializedValue = serializedValue;
         }
@@ -758,7 +773,7 @@ public class BTreePersistentIndexedCache<K, V> {
         }
 
         public StreamByteBuffer getSerializedValue() {
-            return serializedValue;
+            return requireNonNull(serializedValue, "Only available for failed updates");
         }
     }
 }

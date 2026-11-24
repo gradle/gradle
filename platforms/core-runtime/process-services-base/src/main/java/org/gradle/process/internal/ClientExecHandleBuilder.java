@@ -73,12 +73,11 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     String getExecutable();
 
-    @Nullable
     File getWorkingDir();
 
-    ClientExecHandleBuilder setWorkingDir(@Nullable Object dir);
+    ClientExecHandleBuilder setWorkingDir(Object dir);
 
-    ClientExecHandleBuilder setWorkingDir(@Nullable File dir);
+    ClientExecHandleBuilder setWorkingDir(File dir);
 
     OutputStream getErrorOutput();
 

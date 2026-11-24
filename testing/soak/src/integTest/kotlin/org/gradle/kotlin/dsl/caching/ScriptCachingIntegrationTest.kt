@@ -62,10 +62,12 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                 }
                 // then: single compilation and classloading
                 compilationCache {
-                    misses(settingsFile, rootBuildFile, leftBuildFile, rightBuildFile)
+                    misses(settingsFile, rootBuildFile, leftBuildFile)
+                    hits(rightBuildFile)
                 }
                 classLoadingCache {
-                    misses(settingsFile, rootBuildFile, leftBuildFile, rightBuildFile)
+                    misses(settingsFile, rootBuildFile, leftBuildFile)
+                    hits(rightBuildFile)
                 }
             }
 
@@ -96,7 +98,8 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                     hits(leftBuildFile, rootBuildFile, rightBuildFile)
                 }
                 classLoadingCache {
-                    misses(rootBuildFile, leftBuildFile, rightBuildFile)
+                    misses(rootBuildFile, leftBuildFile)
+                    hits(rightBuildFile)
                 }
             }
         }
@@ -182,10 +185,14 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
                 // then: compilation and classloading
                 compilationCache {
-                    misses(leftBuildFile, rightBuildFile)
+                    misses(leftBuildFile)
+                    hits(rightBuildFile.stage1)
+                    misses(rightBuildFile.stage2)
                 }
                 classLoadingCache {
-                    misses(leftBuildFile, rightBuildFile)
+                    misses(leftBuildFile)
+                    hits(rightBuildFile.stage1)
+                    misses(rightBuildFile.stage2)
                 }
             }
 
@@ -210,7 +217,9 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                     hits(leftBuildFile, rightBuildFile)
                 }
                 classLoadingCache {
-                    misses(leftBuildFile, rightBuildFile)
+                    misses(leftBuildFile)
+                    hits(rightBuildFile.stage1)
+                    misses(rightBuildFile.stage2)
                 }
             }
         }
@@ -303,10 +312,12 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                 ).apply {
                     buildForCacheInspection("help", "--build-cache", "-Dorg.gradle.internal.kotlin-script-accessors-caching-disabled=false").apply {
                         compilationCache {
-                            misses(rootBuildFile, leftBuildFile, rightBuildFile)
+                            misses(rootBuildFile, leftBuildFile.stage2)
+                            hits(leftBuildFile.stage1, rightBuildFile)
                         }
                         classLoadingCache {
-                            misses(rootBuildFile, leftBuildFile, rightBuildFile)
+                            misses(rootBuildFile, leftBuildFile.stage2)
+                            hits(leftBuildFile.stage1, rightBuildFile)
                         }
                         assertOutputContains("Stored cache entry for Kotlin DSL plugin specs accessors")
                         assertOutputContains("Stored cache entry for Kotlin DSL accessors for root project 'top'")
@@ -338,7 +349,8 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                             hits(rootBuildFile, leftBuildFile, rightBuildFile)
                         }
                         classLoadingCache {
-                            misses(rootBuildFile, leftBuildFile, rightBuildFile)
+                            misses(rootBuildFile, leftBuildFile.stage2)
+                            hits(leftBuildFile.stage1, rightBuildFile)
                         }
                         assertOutputContains("Loaded cache entry for Kotlin DSL plugin specs accessors")
                         assertOutputContains("Loaded cache entry for Kotlin DSL accessors for root project 'bottom'")

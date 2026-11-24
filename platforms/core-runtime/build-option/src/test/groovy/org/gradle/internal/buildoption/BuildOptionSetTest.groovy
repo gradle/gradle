@@ -18,6 +18,7 @@ package org.gradle.internal.buildoption
 
 
 import org.gradle.cli.CommandLineParser
+import org.jspecify.annotations.NullMarked
 import spock.lang.Specification
 
 class BuildOptionSetTest extends Specification {
@@ -92,6 +93,7 @@ class BuildOptionSetTest extends Specification {
         }
     }
 
+    @NullMarked
     private class TestFlag extends BooleanBuildOption<Bean> {
         static final String ENV_VAR = "SOME_FLAG"
 

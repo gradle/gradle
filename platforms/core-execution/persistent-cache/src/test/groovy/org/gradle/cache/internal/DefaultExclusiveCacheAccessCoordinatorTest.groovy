@@ -721,6 +721,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
 
         given:
         CrossProcessCacheAccess cpAccess
+        lock.getState() >> Stub(FileLock.State)
         decorator.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafeIndexedCache indexedCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
             cpAccess = crossProcessCacheAccess
             indexedCache
@@ -855,6 +856,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         def access = newAccess()
         def decorator = Mock(CacheDecorator)
         lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
+        lock.getState() >> Stub(FileLock.State)
         decorator.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafeIndexedCache indexedCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
             indexedCache
         }

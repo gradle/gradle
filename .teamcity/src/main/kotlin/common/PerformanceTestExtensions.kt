@@ -82,7 +82,7 @@ fun BuildType.cleanUpGitUntrackedFilesAndDirectories() {
             executionMode = BuildStep.ExecutionMode.RUN_ONLY_ON_FAILURE
             scriptContent = "git clean -fdx -e test-splits/ -e .gradle/workspace-id.txt -e \"*.psoutput\""
             skipConditionally()
-            onlyRunOnGitHubMergeQueueBranch()
+            onlyRunWhenRetryRequested()
         }
     }
 }

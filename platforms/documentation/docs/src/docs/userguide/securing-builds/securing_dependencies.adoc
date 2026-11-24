@@ -229,8 +229,11 @@ Gradle verifies any artifact downloaded via its dependency management engine, in
 - Plugins (both project and settings plugins)
 - Artifacts resolved via advanced dependency resolution APIs
 
-Gradle does _not_ verify changing dependencies (specifically `SNAPSHOT` versions) or locally produced artifacts (such as JARs generated during the build itself).
-By nature, the checksums and signatures of these files change constantly.
+Gradle also verifies changing dependencies, such as `SNAPSHOT` versions.
+The checksums of these artifacts change every time they are published again, so checksum verification fails until the verification metadata is updated.
+For changing dependencies, prefer <<#sec:signature-verification,signature verification>>, or declare them as <<#sec:trusting-artifacts,trusted artifacts>> when you control the repository that serves them.
+
+Gradle does _not_ verify locally produced artifacts (such as JARs generated during the build itself).
 
 [[sec:verification-scope]]
 === Scope of Dependency Verification
@@ -892,6 +895,22 @@ To trust all artifacts in `com.mycompany` and all subgroups, you can use:
    <configuration>
       <trusted-artifacts>
          <trust group="^com[.]mycompany($|([.].*))" regex="true" reason="We trust all mycompany artifacts"/>
+      </trusted-artifacts>
+   </configuration>
+</verification-metadata>
+----
+
+To trust only the snapshot versions of your own modules, match on the version:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
+   <configuration>
+      <trusted-artifacts>
+         <trust group="com.mycompany" version=".*-SNAPSHOT" regex="true" reason="Snapshots from our internal repository"/>
       </trusted-artifacts>
    </configuration>
 </verification-metadata>

@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.AdditionalData;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Additional data for a {@link org.gradle.internal.configuration.problems.PropertyTrace} .
@@ -25,5 +26,6 @@ import org.gradle.api.problems.AdditionalData;
  * These data classes are part of the concept used for adding structured additional data to problems.
  */
 public interface PropertyTraceData extends AdditionalData {
+    @Nullable
     String getTrace();
 }

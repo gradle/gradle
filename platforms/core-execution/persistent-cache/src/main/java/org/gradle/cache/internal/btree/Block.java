@@ -15,12 +15,16 @@
  */
 package org.gradle.cache.internal.btree;
 
+import org.jspecify.annotations.Nullable;
+
+import static java.util.Objects.requireNonNull;
+
 public abstract class Block {
     static final int LONG_SIZE = 8;
     static final int INT_SIZE = 4;
     static final int SHORT_SIZE = 2;
 
-    private BlockPayload payload;
+    private @Nullable BlockPayload payload;
 
     @SuppressWarnings("this-escape")
     protected Block(BlockPayload payload) {
@@ -29,11 +33,12 @@ public abstract class Block {
     }
 
     public BlockPayload getPayload() {
-        return payload;
+        //TODO IllegalStateException might be the better option here. In the interest of not changing the behavior, we keep this
+        return requireNonNull(payload, "Block has been detached");
     }
 
     protected void detach() {
-        payload.setBlock(null);
+        getPayload().clearBlock();
         payload = null;
     }
 
@@ -45,7 +50,8 @@ public abstract class Block {
 
     @Override
     public String toString() {
-        return payload.getClass().getSimpleName() + " " + getPos();
+        BlockPayload payload = this.payload;
+        return (payload == null ? "detached" : payload.getClass().getSimpleName()) + " " + getPos();
     }
 
     public BlockPointer getNextPos() {
