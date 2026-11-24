@@ -17,12 +17,13 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ArtifactlessPrimaryVariantFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
 
 @FluidDependenciesResolveTest
-class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactlessPrimaryVariantFixture {
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
@@ -657,6 +658,8 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
     }
 
     def "result includes consumer-provided variants"() {
+        // The request relies on the primary variant without artifacts being ignored
+        expectArtifactlessPrimaryVariantDeprecation("project ':lib'", "configuration ':lib:compile'", ["flavor=one", "artifactType=jar"])
         def m1 = ivyHttpRepo.module("org", "test", "1.0").publish()
 
         buildFile << """

@@ -197,6 +197,58 @@ Previously, Gradle relied on the file extension: it unpacked a `.zip` file as a 
 An archive whose extension does not match its content now unpacks correctly.
 An archive that is neither a zip nor a tar.gz file fails with `Unsupported JDK archive format`.
 
+=== Deprecations
+
+[[variants_with_no_artifacts]]
+==== Ignoring a better-matching primary variant without artifacts is deprecated
+
+You can define <<variant_aware_resolution.adoc#sec:secondary-variants,secondary variants>> on a consumable configuration whose primary variant has no artifacts.
+Earlier versions of Gradle silently dropped such a primary variant from artifact selection.
+Starting with Gradle 9.10.0, Gradle warns when it ignores such a primary variant, but considering it would change the result, as it will in Gradle 11.
+
+With the `CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS` feature preview enabled, such a primary variant is a candidate like any other, and is selected when it is the best match for the request.
+Because it has no artifacts, the request then resolves to no artifacts, and Gradle warns that the request is likely underspecified.
+Since the primary variant also lacks the attributes of artifacts, such as `artifactType`, it often is the best match:
+
+* It wins ties that are decided by attributes the request does not ask for, since Gradle prefers candidates that lack extra attributes.
+* It is selected over a transformation of a variant with artifacts whenever it matches the request directly.
+
+Without the feature preview, the primary variant is not eligible, even when it is the best match, and Gradle selects among the secondary variants as before.
+Starting with Gradle 11, the primary variant is always eligible and the feature preview is removed.
+
+Without the feature preview, Gradle emits a deprecation warning when the primary variant, or a transformation of it, would have been selected, or would have been part of an ambiguous match.
+An artifact view that requests its own attributes, and that only the primary variant matches, resolves to no artifacts as before, and emits no deprecation warning, since it also resolves to no artifacts starting with Gradle 11.
+Each distinct message is reported once per resolution of a configuration:
+
+[source,text]
+----
+Selecting artifacts from project ':lib' ignored variant 'configuration ':lib:runtimeElements'' because it has no artifacts. This behavior has been deprecated. Starting with Gradle 11, primary variants without artifacts will be selected when they are the best match. Request one of these attributes: org.gradle.libraryelements=jar; add attributes to that variant so that it no longer matches; or enable the 'CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS' feature preview.
+----
+
+The warning means the request is underspecified: either it matches the primary variant better than the intended secondary variant, or no secondary variant matches it at all.
+When a single secondary variant would be selected instead, the warning lists the attributes that variant declares and the primary variant lacks, or has with another value.
+
+To fix the deprecation warning, make the request more precise, for example by requesting one of the listed attributes, so that it only matches the intended variant.
+Alternatively, make the primary variant incompatible with the request: give it a value for a requested attribute that the request does not accept, such as an `artifactType` that is never requested.
+Since secondary variants inherit the attributes of their configuration, each secondary variant must then declare its own value for that attribute.
+If no variant carries the attributes the request needs, expose one, or add artifacts to the primary variant.
+
+This change has the following visible effects:
+
+* With the feature preview enabled, the `dependencyInsight` report lists the primary variant among the available variants.
+* With the feature preview enabled, a build can succeed while resolving no artifacts where it previously resolved the secondary variant's artifacts.
+For example, an Android application can be packaged without the classes of a library it depends on.
+Check the outputs of your build after enabling the feature preview, not only whether it succeeds.
+
+To opt into the Gradle 11 behavior, enable the feature preview in your `settings.gradle.kts`.
+Gradle then no longer emits the deprecation warning, but warns whenever it selects a primary variant without artifacts:
+
+[source,kotlin]
+----
+// settings.gradle.kts
+enableFeaturePreview("CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS")
+----
+
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier
 

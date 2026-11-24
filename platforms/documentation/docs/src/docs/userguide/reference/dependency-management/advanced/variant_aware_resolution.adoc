@@ -224,6 +224,10 @@ If candidates **still** remain, Gradle eliminates candidates based on **requeste
 ** ELSE, *remove candidates* that do provide it.
 * IF **only one candidate remains**, that candidate wins.
 
+NOTE: Steps 4 and 5 favor candidates that lack extra attributes.
+During artifact selection with the `CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS` feature preview enabled, a primary variant without artifacts lacks the attributes of artifacts, such as `artifactType`, so these steps can favor it over a variant with artifacts.
+See <<#sec:primary-variants-without-artifacts,primary variants without artifacts>>.
+
 [[sec:step_6_failure_condition]]
 === Step 6: Failure Condition
 
@@ -463,6 +467,17 @@ $ ./gradlew outgoingVariants -q
 ----
 include::{snippetsPath}/reference/dependency-management/advanced/customizingResolution-secondaryVariants/tests/secondaryVariantsNew.out[]
 ----
+
+[[sec:primary-variants-without-artifacts]]
+A configuration can declare secondary variants while its primary variant has no artifacts.
+Such a primary variant is not eligible for artifact selection, even when it is the best match for the request, unless you enable the `CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS` <<feature_lifecycle.adoc#feature_preview,feature preview>>.
+With the feature preview enabled, it is a candidate like any other: Gradle selects it, or a transformation of it, when it is the best match, the request resolves to no artifacts, and Gradle warns that the request is likely underspecified.
+Because it lacks the attributes of artifacts, such as `artifactType`, it wins ties that extra attributes decide, in steps 4 and 5 above.
+Because it can match a request directly, it is also selected over a transformation of a variant with artifacts.
+To keep selecting a secondary variant, request an attribute that the secondary variant declares and the primary variant lacks.
+Alternatively, make the primary variant incompatible with the request: give it a value for a requested attribute that the request does not accept, such as an `artifactType` that is never requested.
+Since secondary variants inherit the attributes of their configuration, each secondary variant must then declare its own value for that attribute.
+Starting with Gradle 11, such a primary variant is always eligible, and the feature preview is removed; see <<upgrading_version_9.adoc#variants_with_no_artifacts,the upgrade guide>>.
 
 [[sec:variant-visual]]
 == Visualizing Variant Information

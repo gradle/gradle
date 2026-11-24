@@ -19,9 +19,12 @@ package org.gradle.smoketests
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.internal.VersionNumber
+
+import java.util.zip.ZipFile
 
 /**
  * For these tests to run you need to set ANDROID_SDK_ROOT to your Android SDK directory
@@ -36,6 +39,21 @@ import org.gradle.util.internal.VersionNumber
 class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker, RunnerFactory {
 
     public static final String JAVA_COMPILE_DEPRECATION_MESSAGE = "Extending the JavaCompile task has been deprecated. This is scheduled to be removed in Gradle 7.0. Configure the task instead."
+
+    /**
+     * The configurations of the library whose primary variant has no artifacts, and which the app would select
+     * with the {@code CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS} feature preview.
+     */
+    private static final List<String> LIBRARY_CONFIGURATIONS_WITHOUT_ARTIFACTS = ['debugRuntimeElements', 'debugApiElements']
+
+    /**
+     * The configurations of the library whose primary variant without artifacts the app ignores in a way that changes the result.
+     * The app's request for the API elements is lenient and nothing else matches it, so it resolves to no artifacts either way.
+     */
+    private static final List<String> LIBRARY_CONFIGURATIONS_WITH_DEPRECATION = ['debugRuntimeElements']
+
+    private static final String APP_ACTIVITY_CLASS = 'Lorg/gradle/android/example/app/AppActivity;'
+    private static final String LIBRARY_ACTIVITY_CLASS = 'Lorg/gradle/android/example/library/LibraryActivity;'
 
     def setup() {
         AndroidHome.assertIsSet()
@@ -60,6 +78,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
                 expectSetVisibleDeprecationIf(expectSetVisible)
+                expectArtifactlessPrimaryVariantDeprecations(':library', LIBRARY_CONFIGURATIONS_WITH_DEPRECATION)
             }
             .build()
 
@@ -72,6 +91,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         assert !result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
 
         and:
+        LIBRARY_ACTIVITY_CLASS in classesInApk(agpVersion)
+
+        and:
         if (GradleContextualExecuter.isConfigCache()) {
             result.assertConfigurationCacheStateStored()
         }
@@ -81,6 +103,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
                 expectSetVisibleDeprecationIf(expectSetVisible && GradleContextualExecuter.isNotConfigCache())
+                expectArtifactlessPrimaryVariantDeprecationsIf(GradleContextualExecuter.isNotConfigCache(), ':library', LIBRARY_CONFIGURATIONS_WITH_DEPRECATION)
             }
             .build()
 
@@ -101,6 +124,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
                 expectSetVisibleDeprecationIf(expectSetVisible && GradleContextualExecuter.isNotConfigCache())
+                expectArtifactlessPrimaryVariantDeprecationsIf(GradleContextualExecuter.isNotConfigCache(), ':library', LIBRARY_CONFIGURATIONS_WITH_DEPRECATION)
             }
             .build()
 
@@ -126,6 +150,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
                 expectSetVisibleDeprecationIf(expectSetVisible && GradleContextualExecuter.isNotConfigCache())
+                expectArtifactlessPrimaryVariantDeprecationsIf(GradleContextualExecuter.isNotConfigCache(), ':library', LIBRARY_CONFIGURATIONS_WITH_DEPRECATION)
             }.build()
 
         then:
@@ -143,6 +168,55 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             TestedVersions.androidGradle.toList(),
             [false, true]
         ].combinations()
+    }
+
+    def "android application APK lacks library classes when artifactless primary variants are considered (agp=#agpVersion)"() {
+        given:
+        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+
+        and:
+        androidLibraryAndApplicationBuild(agpVersion)
+        file('settings.gradle') << 'enableFeaturePreview("CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS")\n'
+
+        when:
+        def result = agpRunner(agpVersion, 'assembleDebug')
+            .deprecations(AndroidDeprecations) {
+                expectProjectDependencyNotationDeprecationIf(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
+                expectSetVisibleDeprecationIf(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.6.0"))
+            }
+            .build()
+
+        then:
+        result.task(':app:assembleDebug').outcome == TaskOutcome.SUCCESS
+        LIBRARY_CONFIGURATIONS_WITHOUT_ARTIFACTS.every { configuration ->
+            result.output.contains("Selecting artifacts from project ':library' selected variant 'configuration ':library:${configuration}'', which has no artifacts.")
+        }
+
+        and:
+        // The app selects the library's primary variants, which have no artifacts, so its APK silently lacks the library's classes
+        def classes = classesInApk(agpVersion)
+        APP_ACTIVITY_CLASS in classes
+        !(LIBRARY_ACTIVITY_CLASS in classes)
+
+        where:
+        agpVersion << TestedVersions.androidGradle.toList()
+    }
+
+    /**
+     * Returns the descriptors of the classes defined in the app's debug APK, as listed by the SDK's {@code dexdump}.
+     */
+    private Set<String> classesInApk(String agpVersion) {
+        def dexdump = new File(AndroidHome.get(), "build-tools/${AGP_VERSIONS.getBuildToolsVersionFor(agpVersion)}/${OperatingSystem.current().getExecutableName('dexdump')}")
+        def dexDir = file('build/apk-dex').createDir()
+        new ZipFile(file('app/build/outputs/apk/debug/app-debug.apk')).withCloseable { apk ->
+            apk.entries().findAll { it.name ==~ /classes\d*\.dex/ }.each { entry ->
+                new File(dexDir, entry.name).bytes = apk.getInputStream(entry).bytes
+            }
+        }
+        dexDir.listFiles().collectMany { dex ->
+            def output = [dexdump.absolutePath, dex.absolutePath].execute().text
+            (output =~ /Class descriptor\s*:\s*'([^']+)'/).collect { it[1] }
+        } as Set<String>
     }
 
     /**

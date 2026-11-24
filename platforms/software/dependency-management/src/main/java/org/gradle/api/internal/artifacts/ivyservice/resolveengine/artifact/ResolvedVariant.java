@@ -47,4 +47,16 @@ public interface ResolvedVariant extends AttributeMatchingCandidate {
 
     ImmutableCapabilities getCapabilities();
 
+    /**
+     * Is this a primary variant without artifacts whose configuration also declares secondary variants?
+     * <p>
+     * Variants backed by component metadata report the value from {@link VariantResolveMetadata#isPreviouslyUnselectable()},
+     * regardless of whether the {@code CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS} feature preview is enabled.
+     * The preview only changes how the selector treats such a variant. Ad hoc variants, such as file dependencies,
+     * are never primary variants, so they keep this default.
+     */
+    default boolean isPreviouslyUnselectable() {
+        return false;
+    }
+
 }

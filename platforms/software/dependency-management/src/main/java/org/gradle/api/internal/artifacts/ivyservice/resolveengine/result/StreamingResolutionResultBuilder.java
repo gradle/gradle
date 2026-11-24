@@ -94,6 +94,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private final LongSet visitedComponents = new LongOpenHashSet();
     private final List<ModuleVersionResolveException> failures = new ArrayList<>();
     private @Nullable List<List<ResolvedVariantResult>> allSelectableVariantResults;
+    private final boolean considerArtifactlessPrimaryVariants;
 
     public StreamingResolutionResultBuilder(
         BinaryStore store,
@@ -105,12 +106,14 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         AttributesFactory attributeFactory,
         NamedObjectInstantiator namedDomainObjectInstantiator,
-        boolean includeAllSelectableVariantResults
+        boolean includeAllSelectableVariantResults,
+        boolean considerArtifactlessPrimaryVariants
     ) {
         this.store = store;
         this.cache = cache;
         this.graphElementStore = graphElementStore;
         this.attributeDesugaring = attributeDesugaring;
+        this.considerArtifactlessPrimaryVariants = considerArtifactlessPrimaryVariants;
 
         // These deduplicating serializers reduce the size overhead of the serialized
         // graphs and their de-serialized in-memory representation.
@@ -211,6 +214,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             .getVariantsForAttributeMatching()
             .stream()
             .flatMap(variant -> variant.prepareForArtifactResolution().getArtifactVariants().stream())
+            .filter(artifactSet -> considerArtifactlessPrimaryVariants || !artifactSet.isPreviouslyUnselectable())
             .map(artifactSet -> new DefaultResolvedVariantResult(
                 component.getId(),
                 Describables.of(artifactSet.getName()),

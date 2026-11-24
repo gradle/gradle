@@ -141,6 +141,7 @@ class KnownProblemIds {
         'Dependencies:Declaration:Importing multiple version catalog files is not supported': [VersionCatalogProblemId.TOO_MANY_IMPORT_FILES.name],
         "Dependencies:Declaration:Multiple 'from' invocations in version catalog": [VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION.name],
         'Dependencies:Declaration:No version catalog files were resolved to be imported': [VersionCatalogProblemId.NO_IMPORT_FILES.name],
+        'Gradle:Deprecation:Ignoring primary variants without artifacts': ['Ignoring primary variants without artifacts'],
         'Gradle:Deprecation:Implicit dependency between tasks in different builds': ['Implicit dependency between tasks in different builds'],
         'Gradle:Deprecation:Implicit lookup of methods in parent projects': ['Implicit lookup of methods in parent projects'],
         'Gradle:Deprecation:Implicit lookup of properties in parent projects': ['Implicit lookup of properties in parent projects'],

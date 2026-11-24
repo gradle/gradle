@@ -237,6 +237,14 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
             return Collections.singletonList(this);
         }
 
+        /**
+         * Not supported, since this set's only candidate, a file dependency, is never previously unselectable, so artifact selection never takes a subset of it.
+         */
+        @Override
+        public ResolvedVariantSet subset(ImmutableList<ResolvedVariant> candidates) {
+            throw new UnsupportedOperationException();
+        }
+
         @Override
         public ImmutableAttributes getOverriddenAttributes() {
             return ImmutableAttributes.EMPTY;
