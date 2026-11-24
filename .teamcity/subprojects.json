@@ -442,7 +442,7 @@
   },
   {
     "name": "declarative-dsl-api",
-    "path": "platforms/core-configuration/declarative-dsl-api",
+    "path": "platforms/dsl/declarative-dsl-api",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false

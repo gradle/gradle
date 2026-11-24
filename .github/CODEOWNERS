@@ -82,7 +82,7 @@ build-logic/kotlin-dsl-shared-runtime/                      @gradle/bt-tide
 platforms/dsl/                                              @gradle/bt-tide
 
 # Declarative DSL
-platforms/core-configuration/declarative-dsl-api/                   @gradle/bt-declarative-gradle-project
+platforms/dsl/declarative-dsl-api/                                  @gradle/bt-declarative-gradle-project
 platforms/dsl/declarative-dsl-core/                                 @gradle/bt-declarative-gradle-project
 platforms/dsl/declarative-dsl-evaluator/                            @gradle/bt-declarative-gradle-project
 platforms/dsl/declarative-dsl-provider/                             @gradle/bt-declarative-gradle-project
