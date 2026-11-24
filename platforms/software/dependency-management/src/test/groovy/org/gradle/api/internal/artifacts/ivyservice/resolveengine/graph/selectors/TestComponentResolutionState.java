@@ -15,37 +15,45 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.VirtualPlatformState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
 public class TestComponentResolutionState implements ComponentResolutionState {
-    private ComponentIdentifier componentIdentifier;
-    private ModuleVersionIdentifier id;
+    private final ComponentIdentifier componentIdentifier;
+    private final String version;
+    private final @Nullable CandidateModule module;
     private boolean rejected;
 
-    public TestComponentResolutionState(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id) {
+    public TestComponentResolutionState(ComponentIdentifier componentIdentifier, String version) {
         this.componentIdentifier = componentIdentifier;
-        this.id = id;
+        this.version = version;
+        this.module = null;
     }
 
     public TestComponentResolutionState(ModuleVersionIdentifier id) {
         this.componentIdentifier = DefaultModuleComponentIdentifier.newId(id);
-        this.id = id;
+        this.version = id.getVersion();
+        this.module = new TestCandidateModule(id.getModule());
     }
 
     @Override
     public String getVersion() {
-        return id.getVersion();
+        return version;
     }
 
     @Override
@@ -54,19 +62,23 @@ public class TestComponentResolutionState implements ComponentResolutionState {
     }
 
     @Override
-    public ModuleVersionIdentifier getId() {
-        return id;
-    }
-
-    @Override
     public CandidateModule getModule() {
-        return null;
+        return module;
     }
 
     @Nullable
     @Override
     public ComponentGraphResolveMetadata getMetadataOrNull() {
         return null;
+    }
+
+    @Override
+    public boolean alreadyResolved() {
+        return false;
+    }
+
+    @Override
+    public void setState(@Nullable ComponentGraphResolveState state, @Nullable ComponentGraphSpecificResolveState graphState) {
     }
 
     @Override
@@ -91,5 +103,32 @@ public class TestComponentResolutionState implements ComponentResolutionState {
     @Override
     public VirtualPlatformState getPlatformState() {
         return null;
+    }
+
+    private static class TestCandidateModule implements CandidateModule {
+        private final ModuleIdentifier id;
+
+        TestCandidateModule(ModuleIdentifier id) {
+            this.id = id;
+        }
+
+        @Override
+        public ModuleIdentifier getId() {
+            return id;
+        }
+
+        @Override
+        public Collection<ComponentState> getVersions() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public void changeSelection(ComponentState selected) {
+        }
+
+        @Override
+        public boolean isVirtualPlatform() {
+            return false;
+        }
     }
 }

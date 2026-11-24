@@ -15,8 +15,8 @@ plugins {
 }
 
 val smokeTestSourceSet = sourceSets.create("smokeTest") {
-    compileClasspath += sourceSets.main.get().output
-    runtimeClasspath += sourceSets.main.get().output
+    compileClasspath += files(sourceSets.main.map { it.output })
+    runtimeClasspath += files(sourceSets.main.map { it.output })
 }
 
 configureTestSourceSetInIde(smokeTestSourceSet)
@@ -79,6 +79,7 @@ androidHomeWarmup {
     sdkVersions.set(
         listOf(
             SdkVersion(compileSdk = 36, buildTools = "36.0.0", agpVersion = "9.0.1"),
+            SdkVersion(compileSdk = 36, buildTools = "37.0.0", agpVersion = "9.0.1"),
         ),
     )
 }

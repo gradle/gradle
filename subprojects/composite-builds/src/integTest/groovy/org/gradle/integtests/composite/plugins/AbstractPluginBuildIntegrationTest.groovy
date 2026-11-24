@@ -72,7 +72,7 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
             """
             projectPluginFile = file("$buildName/src/main/$sourceDirectory/${projectPluginId}${fileExtension}")
             projectPluginFile << """
-                println("$projectPluginId applied")
+                println("$projectPluginId applied to project '\${project.path}'")
             """
         }
 
@@ -89,8 +89,8 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
             outputDoesNotContain("$settingsPluginId applied")
         }
 
-        void assertProjectPluginApplied() {
-            outputContains("$projectPluginId applied")
+        void assertProjectPluginApplied(String projectPath = null) {
+            outputContains(projectPath == null ? "$projectPluginId applied" : "$projectPluginId applied to project '$projectPath'")
         }
 
         void assertProjectPluginNotApplied() {

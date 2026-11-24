@@ -17,6 +17,7 @@
 package org.gradle.cache.internal.locklistener;
 
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -27,7 +28,7 @@ import java.util.Set;
 
 @NullMarked
 public interface FileLockCommunicator {
-    boolean pingOwner(InetAddress address, int ownerPort, long lockId, String displayName);
+    boolean pingOwner(@Nullable InetAddress address, int ownerPort, long lockId, String displayName);
 
     Optional<DatagramPacket> receive() throws IOException;
 

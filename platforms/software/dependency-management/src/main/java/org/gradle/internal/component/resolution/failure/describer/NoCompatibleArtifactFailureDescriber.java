@@ -35,7 +35,8 @@ import static org.gradle.internal.exceptions.StyledException.style;
  */
 public abstract class NoCompatibleArtifactFailureDescriber extends AbstractResolutionFailureDescriber<NoCompatibleArtifactFailure> {
     private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
-    private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
+    private static final String NO_MATCHING_VARIANTS_PAGE = "artifact_resolution";
+    private static final String NO_MATCHING_VARIANTS_SECTION = "sec:artifact-selection";
 
     private final AttributeDescriberRegistry attributeDescribers;
 
@@ -49,7 +50,7 @@ public abstract class NoCompatibleArtifactFailureDescriber extends AbstractResol
     @Override
     public ArtifactSelectionException describeFailure(NoCompatibleArtifactFailure failure) {
         String message = buildFailureMsg(failure, attributeDescribers.getDescribers());
-        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION), suggestReviewAlgorithm());
+        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_PAGE, NO_MATCHING_VARIANTS_SECTION), suggestReviewAlgorithm());
         return new ArtifactSelectionException(message, failure, resolutions);
     }
 

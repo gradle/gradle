@@ -31,7 +31,7 @@ import org.gradle.internal.isolation.IsolatedActionsForTesting.isolatedActionLam
 import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
 import org.gradle.internal.serialize.beans.services.test.beanStateReaderLookupForTesting
-import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
+import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec
 import org.gradle.util.TestUtil
 import org.gradle.util.TestUtil.objectFactory
 import org.gradle.util.TestUtil.propertyFactory
@@ -120,6 +120,28 @@ class IsolatedActionCodecsFactoryTest {
         )
     }
 
+    @Test
+    fun `can reuse codecs across serializations and deserializations`() {
+        val codecsFactory = isolatedActionCodecsFactory()
+
+        val serialized = listOf<TestableIsolatedAction<Any>>(
+            isolatedActionCarrying(1),
+            isolatedActionLambdaWith(propertyOf("2")),
+            isolatedActionLambdaWith(3),
+            isolatedActionCarrying(propertyOf("4")),
+            isolatedActionCarrying(5),
+            isolatedActionLambdaWith(propertyOf("6")),
+        ).map { serialize(it, codecsFactory) }
+
+        // Every project deserializes the same actions
+        repeat(3) {
+            val loaded = serialized.map { action ->
+                valueCarriedBy(deserialize(action, codecsFactory)).let { if (it is Provider<*>) it.get() else it }
+            }
+            assertThat(loaded, equalTo(listOf(1, "2", 3, "4", 5, "6")))
+        }
+    }
+
     private
     fun <T : Any> assertProviderRoundtrip(property: Provider<out T>, expectedValue: T) {
         val loaded = valueCarriedBy(roundtripOf(isolatedActionLambdaWith(property)))
@@ -174,13 +196,16 @@ class IsolatedActionCodecsFactoryTest {
         deserialize(serialize(action))
 
     private
-    fun <T> serialize(action: TestableIsolatedAction<T>) =
-        IsolatedActionSerializer(ownerGradle(), DefaultBeanStateWriterLookup(ObjectOpener.agentless()), isolatedActionCodecsFactory())
+    fun <T> serialize(action: TestableIsolatedAction<T>, codecsFactory: IsolatedActionCodecsFactory = isolatedActionCodecsFactory()) =
+        IsolatedActionSerializer(ownerGradle(), DefaultBeanStateWriterLookup(ObjectOpener.agentless()), codecsFactory)
             .serialize(action)
 
     private
-    fun <T> deserialize(serialized: SerializedIsolatedActionGraph<TestableIsolatedAction<T>>) =
-        IsolatedActionDeserializer(ownerGradle(), beanStateReaderLookupForTesting(), isolatedActionCodecsFactory())
+    fun <T> deserialize(
+        serialized: SerializedIsolatedActionGraph<TestableIsolatedAction<T>>,
+        codecsFactory: IsolatedActionCodecsFactory = isolatedActionCodecsFactory()
+    ) =
+        IsolatedActionDeserializer(ownerGradle(), beanStateReaderLookupForTesting(), codecsFactory)
             .deserialize(serialized)
 
     private
@@ -197,7 +222,7 @@ class IsolatedActionCodecsFactoryTest {
     private
     fun isolatedActionCodecsFactory(): IsolatedActionCodecsFactory =
         IsolatedActionCodecsFactory(
-            javaSerializationEncodingLookup = JavaSerializationEncodingLookup(ObjectOpener.agentless()),
+            javaObjectSerializationCodec = JavaObjectSerializationCodec(ObjectOpener.agentless()),
             propertyFactory = propertyFactory(),
             fileFactory = TestFiles.fileFactory(),
             filePropertyFactory = TestFiles.filePropertyFactory(),

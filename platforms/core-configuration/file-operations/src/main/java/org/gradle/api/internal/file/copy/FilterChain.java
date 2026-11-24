@@ -26,6 +26,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.io.FilterReader;
 import java.io.IOException;
@@ -41,14 +42,14 @@ import java.util.Map;
 
 public class FilterChain implements Transformer<InputStream, InputStream> {
     private final ChainingTransformer<Reader> transformers = new ChainingTransformer<Reader>(Reader.class);
-    private final String charset;
+    private final @Nullable Charset charset;
 
     public FilterChain() {
-        this(Charset.defaultCharset().name());
+        this.charset = Charset.defaultCharset();
     }
 
-    public FilterChain(String charset) {
-        this.charset = charset;
+    public FilterChain(@Nullable String charset) {
+        this.charset = charset != null ? Charset.forName(charset) : null;
     }
 
     /**

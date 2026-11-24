@@ -46,13 +46,16 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 public class DependencyVerifierBuilder {
     private static final Comparator<ModuleComponentIdentifier> MODULE_COMPONENT_IDENTIFIER_COMPARATOR = Comparator.comparing(ModuleComponentIdentifier::getGroup)
         .thenComparing(ModuleComponentIdentifier::getModule)
         .thenComparing(ModuleComponentIdentifier::getVersion);
-    private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = new HashMap<>();
+    // Keyed like DependencyVerifier, by group:module:version, as the artifacts of a unique snapshot
+    // do not all carry the timestamped identifier.
+    private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = new TreeMap<>(MODULE_COMPONENT_IDENTIFIER_COMPARATOR);
     private final List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts = new ArrayList<>();
     private final Set<DependencyVerificationConfiguration.TrustedKey> trustedKeys = new LinkedHashSet<>();
     // Descriptions of trust entries that were dropped as duplicates while building (differing only
@@ -100,7 +103,7 @@ public class DependencyVerifierBuilder {
         boolean droppedAsDuplicate = byComponent.computeIfAbsent(componentIdentifier, ComponentVerificationsBuilder::new)
             .addTrustedKey(artifact, key, origin, reason);
         if (droppedAsDuplicate) {
-            droppedDuplicateTrustEntries.add("trusted PGP key '" + key.toUpperCase(Locale.ROOT) + "' for " + componentIdentifier + " (" + artifact.getFileName() + ")");
+            droppedDuplicateTrustEntries.add("trusted PGP key '" + key.toUpperCase(Locale.ROOT) + "' for " + componentIdentifier + " (" + artifact.getDestinationFileName() + ")");
         }
     }
 
@@ -240,15 +243,15 @@ public class DependencyVerifierBuilder {
         }
 
         void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value, @Nullable String origin, @Nullable String reason) {
-            byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addChecksum(kind, value, origin, reason);
+            byArtifact.computeIfAbsent(artifact.getDestinationFileName(), id -> new ArtifactVerificationBuilder()).addChecksum(kind, value, origin, reason);
         }
 
         boolean addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key, @Nullable String origin, @Nullable String reason) {
-            return byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addTrustedKey(key, origin, reason);
+            return byArtifact.computeIfAbsent(artifact.getDestinationFileName(), id -> new ArtifactVerificationBuilder()).addTrustedKey(key, origin, reason);
         }
 
         void addIgnoredKey(ModuleComponentArtifactIdentifier artifact, IgnoredKey key) {
-            byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addIgnoredKey(key);
+            byArtifact.computeIfAbsent(artifact.getDestinationFileName(), id -> new ArtifactVerificationBuilder()).addIgnoredKey(key);
         }
 
         private static ArtifactVerificationMetadata toArtifactVerification(Map.Entry<String, ArtifactVerificationBuilder> entry) throws InvalidGpgKeyIdsException {

@@ -122,6 +122,22 @@ tasks.register("removeTempDir") {
 }
 // end::adhoc-destroyable-task[]
 
+// tag::ad-hoc-classpath[]
+tasks.register("processClasses") {
+    inputs.files(fileTree("libs"))
+        .withPropertyName("classpath")
+        .withNormalizer(ClasspathNormalizer::class.java)
+    localState.register(layout.buildDirectory.dir("analysis"))
+// end::ad-hoc-classpath[]
+    val report = layout.buildDirectory.file("classes-report.txt")
+    outputs.file(report)
+    doLast {
+        report.get().asFile.writeText("done")
+    }
+// tag::ad-hoc-classpath[]
+}
+// end::ad-hoc-classpath[]
+
 tasks.build {
     dependsOn(processTemplates, "processTemplatesAdHoc", "processTemplatesAdHocSkipWhenEmpty", "processTemplatesWithExtraInputs")
 }

@@ -17,7 +17,9 @@
 package org.gradle.api.internal.filestore
 
 import org.gradle.api.Action
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
 import org.gradle.internal.file.FileAccessTracker
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import spock.lang.Specification
@@ -26,7 +28,7 @@ import spock.lang.Subject
 class TwoStageArtifactIdentifierFileStoreTest extends Specification {
     def readStore = Mock(ArtifactIdentifierFileStore)
     def writeStore = Mock(ArtifactIdentifierFileStore)
-    def key = Stub(ModuleComponentArtifactIdentifier)
+    def key = new ModuleComponentFileArtifactIdentifier(DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "1.0"), "module-1.0.jar")
     def file = Stub(File)
     def action = Stub(Action)
 

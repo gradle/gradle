@@ -742,6 +742,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "groovy-dsl-plugins",
+    "path": "platforms/dsl/groovy-dsl-plugins",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
     "name": "groovy-loader",
     "path": "platforms/core-runtime/groovy-loader",
     "unitTests": false,
@@ -1191,14 +1198,14 @@
   },
   {
     "name": "plugin-development",
-    "path": "platforms/extensibility/plugin-development",
+    "path": "platforms/plugin-dev/plugin-development",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": true
+    "crossVersionTests": false
   },
   {
     "name": "plugin-use",
-    "path": "platforms/extensibility/plugin-use",
+    "path": "platforms/core-configuration/plugin-use",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -1408,7 +1415,7 @@
   },
   {
     "name": "reporting",
-    "path": "platforms/software/reporting",
+    "path": "platforms/reporting-plugins/reporting",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -1604,7 +1611,7 @@
   },
   {
     "name": "test-kit",
-    "path": "platforms/extensibility/test-kit",
+    "path": "platforms/plugin-dev/test-kit",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -1709,7 +1716,7 @@
   },
   {
     "name": "unit-test-fixtures",
-    "path": "platforms/extensibility/unit-test-fixtures",
+    "path": "platforms/plugin-dev/unit-test-fixtures",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

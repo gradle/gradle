@@ -339,7 +339,7 @@ For more information on the configuration cache, see the [user manual](https://d
 
 ### Remote build cache
 
-Gradle Technologies runs a set of remote build cache nodes to speed up local builds when developing Gradle. 
+Develocity runs a remote build cache to speed up local builds when developing Gradle. 
 
 The build cache has anonymous read access, so you don't need to authenticate in order to use it. You can select a different edge node by following the instructions in [this doc](https://github.com/gradle/gradle-org-conventions-plugin#change-edge-node-location).
 

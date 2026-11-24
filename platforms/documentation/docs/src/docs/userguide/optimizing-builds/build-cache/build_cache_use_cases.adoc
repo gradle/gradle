@@ -64,6 +64,11 @@ You can utilize both a local and a remote cache for a compound effect.
 While loading results from a CI-filled remote cache helps to avoid work needed because of changes by other developers, the local cache can speed up switching branches and doing `git bisect`.
 On CI machines the local cache can act as a mirror of the remote cache, significantly reducing network usage.
 
+However, avoid keeping or sharing the local cache between CI builds when CI populates a remote cache for developers.
+When Gradle finds an entry in the local cache, it doesn't request it from the remote cache, so the remote cache can't tell that the entry is still in use.
+If the remote cache discards entries that haven't been requested recently, CI keeps reusing an entry locally while developers miss it in the remote cache.
+On CI agents that push to the remote cache, start with an empty local cache for each build, or disable the local cache, as shown in <<build_cache.adoc#sec:build_cache_configure_local,Built-in local build cache>>.
+
 [[sec:share_results_between_developers]]
 == Share results between developers
 

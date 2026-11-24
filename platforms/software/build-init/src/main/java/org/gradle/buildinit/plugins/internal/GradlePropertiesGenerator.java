@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.initialization.StartParameterBuildOptions.SharedMavenMirrorSettingsOption;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
@@ -33,6 +34,13 @@ public class GradlePropertiesGenerator implements BuildContentGenerator {
     }
 
     public static void generate(InitSettings settings) {
+        generate(settings, false);
+    }
+
+    /**
+     * @param reuseMavenMirrorSettings whether the generated build should resolve through the mirrors declared in the Maven settings.xml
+     */
+    public static void generate(InitSettings settings, boolean reuseMavenMirrorSettings) {
         File file = settings.getTarget().file("gradle.properties").getAsFile();
         try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(file.toPath(), UTF_8))) {
             if (settings.isWithComments()) {
@@ -44,6 +52,13 @@ public class GradlePropertiesGenerator implements BuildContentGenerator {
             if (settings.isUseIncubatingAPIs()) {
                 writer.println("org.gradle.parallel=true");
                 writer.println("org.gradle.caching=true");
+            }
+            if (reuseMavenMirrorSettings) {
+                if (settings.isWithComments()) {
+                    writer.println();
+                    writer.println("# Resolve through the mirrors declared in the Maven settings.xml, as the 'init' task did for the conversion.");
+                }
+                writer.println(SharedMavenMirrorSettingsOption.GRADLE_PROPERTY + "=true");
             }
             writer.println();
         } catch (IOException e) {

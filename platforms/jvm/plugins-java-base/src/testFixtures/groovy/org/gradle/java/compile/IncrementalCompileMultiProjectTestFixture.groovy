@@ -24,21 +24,19 @@ import org.gradle.test.fixtures.file.TestFile
 @SelfType(AbstractIntegrationSpec)
 trait IncrementalCompileMultiProjectTestFixture {
     TestFile libraryAppProjectWithIncrementalCompilation(CompiledLanguage language = CompiledLanguage.JAVA) {
-        multiProjectBuild('incremental', ['library', 'app'], language) {
-            buildFile << """
-                subprojects {
-                    apply plugin: '${language.name}'
-                    ${language.compileTaskName}.options.incremental = true
-                }
-                ${language.projectGroovyDependencies('subprojects')}
-
-                project(':app') {
-                    dependencies {
-                        implementation project(':library')
-                    }
-                }
-            """.stripIndent()
+        multiProjectBuild('incremental', ['library', 'app'], language)
+        ['library', 'app'].each {
+            buildFile("$it/build.gradle", """
+                apply plugin: '${language.name}'
+                ${language.compileTaskName}.options.incremental = true
+                ${language.projectGroovyDependencies()}
+            """)
         }
+        buildFile("app/build.gradle", """
+            dependencies {
+                implementation project(':library')
+            }
+        """)
         file("app/src/main/${language.name}/AClass.${language.name}") << 'public class AClass { }'
     }
 

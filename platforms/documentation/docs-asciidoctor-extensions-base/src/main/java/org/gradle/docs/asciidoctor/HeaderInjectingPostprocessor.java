@@ -44,7 +44,7 @@ public class HeaderInjectingPostprocessor extends Postprocessor {
         return output.replaceAll("<div id=\"header\">", Matcher.quoteReplacement(resolvedHeader) + "<div id=\"header\">");
     }
 
-    private static String substituteGradleVersion(String html, Document document) {
+    static String substituteGradleVersion(String html, Document document) {
         // Asciidoctor normalizes attribute names to lowercase.
         Object version = document.getAttribute("gradleversion");
         if (version == null) {

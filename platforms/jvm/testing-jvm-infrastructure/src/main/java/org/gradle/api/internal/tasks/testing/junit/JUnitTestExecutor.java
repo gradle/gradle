@@ -147,7 +147,8 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
 
     private List<Filter> buildFilters(String testClassName, Runner filteredRunner) {
         List<Filter> filters = new ArrayList<>();
-        if (categoryFilter != null) {
+        Description description = filteredRunner.getDescription();
+        if (categoryFilter != null && excludesAnything(description, categoryFilter)) {
             filters.add(categoryFilter);
         }
 
@@ -158,7 +159,7 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
             TestSelectionMatcher matcher = new TestSelectionMatcher(filterSpec);
             // For test suites (including suite-like custom Runners), if the test suite class
             // matches the filter, run the entire suite instead of filtering away its contents.
-            if (!filteredRunner.getDescription().isSuite() || !matcher.matchesTest(testClassName, null)) {
+            if (!description.isSuite() || !matcher.matchesTest(testClassName, null)) {
                 filters.add(new MethodNameFilter(matcher));
             }
         }
@@ -229,6 +230,21 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
         if (failed) {
             throw new GradleException("JUnit Categories defined but declared JUnit version does not support Categories.");
         }
+    }
+
+    // Some runners treat any filter() call as "only a subset of my tests are running" and change
+    // behavior accordingly, even if the filter didn't exclude anything.
+    // See https://github.com/gradle/gradle/issues/10694.
+    private boolean excludesAnything(Description description, Filter filter) {
+        if (description.getChildren().isEmpty()) {
+            return !filter.shouldRun(description);
+        }
+        for (Description child : description.getChildren()) {
+            if (excludesAnything(child, filter)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean allTestsFiltered(Runner runner, List<Filter> filters) {

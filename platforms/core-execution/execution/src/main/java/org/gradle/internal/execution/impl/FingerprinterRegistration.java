@@ -21,8 +21,6 @@ import org.gradle.internal.execution.FileNormalizationSpec;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
-import java.util.Objects;
-
 public class FingerprinterRegistration {
     private final FileNormalizationSpec spec;
     private final FileCollectionFingerprinter fingerprinter;
@@ -61,6 +59,6 @@ public class FingerprinterRegistration {
 
     @Override
     public int hashCode() {
-        return Objects.hash(spec);
+        return spec.hashCode();
     }
 }

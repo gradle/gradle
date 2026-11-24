@@ -16,31 +16,32 @@
 
 package org.gradle.api.publish.internal.mapping;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalDependency;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
-import org.gradle.internal.Actions;
 import org.gradle.internal.component.local.model.ProjectComponentSelectorInternal;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Set;
-
-import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
 
 /**
  * A {@link VariantDependencyResolver} that performs version mapping.
@@ -50,14 +51,14 @@ import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentR
 public class VersionMappingComponentDependencyResolver implements ComponentDependencyResolver {
 
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
-    private final ResolvedComponentResult root;
+    private final Lazy<ResolvedGraph> lazyGraph;
 
     public VersionMappingComponentDependencyResolver(
         ProjectDependencyPublicationResolver projectDependencyResolver,
         ResolvedComponentResult root
     ) {
         this.projectDependencyResolver = projectDependencyResolver;
-        this.root = root;
+        this.lazyGraph = Lazy.unsafe().of(() -> buildResolvedGraph(root));
     }
 
     @Nullable
@@ -96,39 +97,28 @@ public class VersionMappingComponentDependencyResolver implements ComponentDepen
 
     @Nullable
     public ModuleVersionIdentifier maybeResolveVersion(String group, String module, @Nullable Path identityPath) {
-        final Set<ResolvedComponentResult> resolvedComponentResults = new LinkedHashSet<>();
-        eachElement(root, Actions.doNothing(), Actions.doNothing(), resolvedComponentResults);
+        ModuleIdentifier moduleId = DefaultModuleIdentifier.newId(group, module);
+        ResolvedGraph graph = lazyGraph.get();
 
-        for (ResolvedComponentResult selected : resolvedComponentResults) {
-            ModuleVersionIdentifier moduleVersion = selected.getModuleVersion();
-            if (moduleVersion != null && group.equals(moduleVersion.getGroup()) && module.equals(moduleVersion.getName())) {
-                return moduleVersion;
-            }
+        ModuleVersionIdentifier moduleVersion = graph.resolvedModuleVersions().get(moduleId);
+        if (moduleVersion != null) {
+            return moduleVersion;
         }
-
-        final Set<DependencyResult> allDependencies = new LinkedHashSet<>();
-        eachElement(root, Actions.doNothing(), allDependencies::add, new HashSet<>());
 
         // If we reach this point it means we have a dependency which doesn't belong to the resolution result
         // Which can mean two things:
         // 1. the graph used to get the resolved version has nothing to do with the dependencies we're trying to get versions for (likely user error)
-        // 2. the graph contains first-level dependencies which have been substituted (likely) so we're going to iterate on dependencies instead
-        for (DependencyResult dependencyResult : allDependencies) {
-            if (dependencyResult instanceof ResolvedDependencyResult) {
-                ComponentSelector rcs = dependencyResult.getRequested();
-                ResolvedComponentResult selected = ((ResolvedDependencyResult) dependencyResult).getSelected();
-                if (rcs instanceof ModuleComponentSelector) {
-                    ModuleComponentSelector requested = (ModuleComponentSelector) rcs;
-                    if (requested.getGroup().equals(group) && requested.getModule().equals(module)) {
-                        return getModuleVersionId(selected);
-                    }
-                } else if (rcs instanceof ProjectComponentSelector) {
-                    ProjectComponentSelectorInternal pcs = (ProjectComponentSelectorInternal) rcs;
-                    if (pcs.getIdentityPath().equals(identityPath)) {
-                        return getModuleVersionId(selected);
-                    }
-                }
+        // 2. the graph contains first-level dependencies which have been substituted (likely) so we're going to look at what the dependencies requested instead
+        if (identityPath != null) {
+            ResolvedComponentResult selected = graph.byRequestedProject().get(identityPath);
+            if (selected != null) {
+                return getModuleVersionId(selected);
             }
+        }
+
+        ResolvedComponentResult selected = graph.byRequestedModule().get(moduleId);
+        if (selected != null) {
+            return getModuleVersionId(selected);
         }
 
         return null;
@@ -143,4 +133,52 @@ public class VersionMappingComponentDependencyResolver implements ComponentDepen
         }
         return selected.getModuleVersion();
     }
+
+    private static ResolvedGraph buildResolvedGraph(ResolvedComponentResult root) {
+        ImmutableMap.Builder<ModuleIdentifier, ModuleVersionIdentifier> resolvedModuleVersions = ImmutableMap.builder();
+        ImmutableMap.Builder<ModuleIdentifier, ResolvedComponentResult> byRequestedModule = ImmutableMap.builder();
+        ImmutableMap.Builder<Path, ResolvedComponentResult> byRequestedProject = ImmutableMap.builder();
+
+        Set<ResolvedComponentResult> visited = new HashSet<>();
+        Deque<ResolvedComponentResult> queue = new ArrayDeque<>();
+        visited.add(root);
+        queue.add(root);
+
+        while (!queue.isEmpty()) {
+            ResolvedComponentResult component = queue.remove();
+            ModuleVersionIdentifier mvId = component.getModuleVersion();
+            if (mvId != null) {
+                resolvedModuleVersions.put(mvId.getModule(), mvId);
+            }
+
+            for (DependencyResult dependencyResult : component.getDependencies()) {
+                if (dependencyResult instanceof ResolvedDependencyResult rdr) {
+                    ComponentSelector requested = rdr.getRequested();
+                    ResolvedComponentResult selected = rdr.getSelected();
+
+                    if (requested instanceof ModuleComponentSelector mcs) {
+                        byRequestedModule.put(mcs.getModuleIdentifier(), selected);
+                    } else if (requested instanceof ProjectComponentSelectorInternal pcs) {
+                        byRequestedProject.put(pcs.getIdentityPath(), selected);
+                    }
+                    if (visited.add(selected)) {
+                        queue.add(selected);
+                    }
+                }
+            }
+        }
+
+        return new ResolvedGraph(
+            resolvedModuleVersions.buildKeepingLast(),
+            byRequestedModule.buildKeepingLast(),
+            byRequestedProject.buildKeepingLast()
+        );
+    }
+
+    private record ResolvedGraph(
+        ImmutableMap<ModuleIdentifier, ModuleVersionIdentifier> resolvedModuleVersions,
+        ImmutableMap<ModuleIdentifier, ResolvedComponentResult> byRequestedModule,
+        ImmutableMap<Path, ResolvedComponentResult> byRequestedProject
+    ) { }
+
 }

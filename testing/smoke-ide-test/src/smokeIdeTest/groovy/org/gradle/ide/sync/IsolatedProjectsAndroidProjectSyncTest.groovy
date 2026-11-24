@@ -18,8 +18,10 @@ package org.gradle.ide.sync
 
 import org.gradle.profiler.mutations.ApplyBuildScriptChangeFileMutator
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import spock.lang.Ignore
 import spock.lang.PendingFeature
 
+@Ignore("https://github.com/gradle/gradle-private/issues/5598")
 class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
 
     // https://developer.android.com/build/releases/gradle-plugin

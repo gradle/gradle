@@ -1,3 +1,11 @@
+import java.util.concurrent.atomic.AtomicInteger
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
+import org.gradle.api.services.BuildServiceRegistry
+import org.gradle.build.event.BuildEventsListenerRegistry
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationCompletionListener
+import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.api.artifacts.dsl.DependencyConstraintFactory
 import org.gradle.api.component.SoftwareComponentFactory
 import org.gradle.api.file.FileSystemOperations
@@ -20,8 +28,8 @@ repositories {
 
 // tag::object-factory[]
 tasks.register("myObjectFactoryTask") {
+    def objectFactory = project.objects
     doLast {
-        def objectFactory = project.objects
         def myProperty = objectFactory.property(String)
         myProperty.set("Hello, Gradle!")
         println myProperty.get()
@@ -32,16 +40,18 @@ tasks.register("myObjectFactoryTask") {
 // tag::object-factory-inject[]
 abstract class MyObjectFactoryTask extends DefaultTask {
     private ObjectFactory objectFactory
+    private ProjectLayout layout
 
     @Inject //@javax.inject.Inject
-    MyObjectFactoryTask(ObjectFactory objectFactory) {
+    MyObjectFactoryTask(ObjectFactory objectFactory, ProjectLayout layout) {
         this.objectFactory = objectFactory
+        this.layout = layout
     }
 
     @TaskAction
     void doTaskAction() {
         var outputDirectory = objectFactory.directoryProperty()
-        outputDirectory.convention(project.layout.projectDirectory)
+        outputDirectory.convention(layout.projectDirectory)
         println(outputDirectory.get())
     }
 }
@@ -51,8 +61,8 @@ tasks.register("myInjectedObjectFactoryTask",MyObjectFactoryTask) {}
 
 // tag::project-layout[]
 tasks.register('showLayout') {
+    def layout = project.layout
     doLast {
-        def layout = project.layout
         println "Project Directory: ${layout.projectDirectory}"
         println "Build Directory: ${layout.buildDirectory.get()}"
     }
@@ -80,8 +90,8 @@ tasks.register("myInjectedProjectLayoutTask",MyProjectLayoutTask) {}
 
 // tag::provider-factory[]
 tasks.register('printMessage') {
+    def providerFactory = project.providers
     doLast {
-        def providerFactory = project.providers
         def messageProvider = providerFactory.provider { "Hello, Gradle!" }
         println messageProvider.get()
     }
@@ -123,9 +133,6 @@ abstract class MyWorkAction implements WorkAction<WorkParameters.None> {
 }
 
 abstract class MyWorkerTask extends DefaultTask {
-    @Input
-    abstract Property<Boolean> getBooleanFlag()
-
     @Inject
     abstract WorkerExecutor getWorkerExecutor()
 
@@ -176,29 +183,41 @@ tasks.register('myAdHocFileSystemOperationsTask') {
 }
 // end::file-system-adhoc[]
 
+def packageSources = tasks.register('packageSources', Zip) {
+    from(layout.projectDirectory) { include '*.gradle' }
+    archiveFileName = 'sources.zip'
+    destinationDirectory = layout.buildDirectory.dir('archives')
+}
+
 // tag::archive-op-inject[]
 abstract class MyArchiveOperationsTask extends DefaultTask {
-    private ArchiveOperations archiveOperations
-    private ProjectLayout layout
-    private FileSystemOperations fs
+    @InputFile
+    abstract RegularFileProperty getArchiveFile()
+
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDirectory()
 
     @Inject
-    MyArchiveOperationsTask(ArchiveOperations archiveOperations, ProjectLayout layout, FileSystemOperations fs) {
-        this.archiveOperations = archiveOperations
-        this.layout = layout
-        this.fs = fs
-    }
+    abstract ArchiveOperations getArchiveOperations()
+
+    @Inject
+    abstract FileSystemOperations getFs()
 
     @TaskAction
     void doTaskAction() {
+        def tree = archiveOperations.zipTree(archiveFile)
+        def destination = outputDirectory
         fs.sync {
-            from(archiveOperations.zipTree(layout.projectDirectory.file("sources.jar")))
-            into(layout.buildDirectory.dir("unpacked-sources"))
+            from(tree)
+            into(destination)
         }
     }
 }
 
-tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask)
+tasks.register('myInjectedArchiveOperationsTask', MyArchiveOperationsTask) {
+    archiveFile = packageSources.flatMap { it.archiveFile }
+    outputDirectory = layout.buildDirectory.dir('unpacked-sources')
+}
 // end::archive-op-inject[]
 
 // tag::archive-op-adhoc[]
@@ -353,6 +372,89 @@ class CustomComponentPlugin implements Plugin<Project> {
     }
 }
 // end::software-component-factory-inject[]
+
+// tag::build-service-registry-inject[]
+abstract class CounterService implements BuildService<BuildServiceParameters.None> {
+    private final AtomicInteger count = new AtomicInteger()
+
+    int increment() {
+        count.incrementAndGet()
+    }
+}
+
+class CounterPlugin implements Plugin<Project> {
+    private final BuildServiceRegistry registry
+
+    @Inject
+    CounterPlugin(BuildServiceRegistry registry) {
+        this.registry = registry
+    }
+
+    void apply(Project project) {
+        def counter = registry.registerIfAbsent('counter', CounterService) {}
+        project.tasks.register('count') {
+            usesService(counter)
+            doLast {
+                println "Count: ${counter.get().increment()}"
+            }
+        }
+    }
+}
+
+apply plugin: CounterPlugin
+// end::build-service-registry-inject[]
+
+// tag::java-toolchain-service-inject[]
+abstract class PrintJavaVersionTask extends DefaultTask {
+
+    @Nested
+    abstract Property<JavaLauncher> getLauncher()
+
+    @Inject
+    PrintJavaVersionTask(JavaToolchainService toolchains) {
+        launcher.convention(toolchains.launcherFor { spec ->
+            spec.languageVersion = JavaLanguageVersion.current()
+        })
+    }
+
+    @TaskAction
+    void printVersion() {
+        println "Java version: ${launcher.get().metadata.languageVersion}"
+    }
+}
+
+tasks.register('printJavaVersion', PrintJavaVersionTask)
+// end::java-toolchain-service-inject[]
+
+// tag::build-events-listener-registry-inject[]
+abstract class TaskEventsService implements BuildService<BuildServiceParameters.None>, OperationCompletionListener {
+
+    @Override
+    void onFinish(FinishEvent event) {
+        if (event instanceof TaskFinishEvent) {
+            println "Finished ${event.descriptor.taskPath}"
+        }
+    }
+}
+
+class TaskEventsPlugin implements Plugin<Project> {
+    private final BuildEventsListenerRegistry listenerRegistry
+    private final BuildServiceRegistry serviceRegistry
+
+    @Inject
+    TaskEventsPlugin(BuildEventsListenerRegistry listenerRegistry, BuildServiceRegistry serviceRegistry) {
+        this.listenerRegistry = listenerRegistry
+        this.serviceRegistry = serviceRegistry
+    }
+
+    void apply(Project project) {
+        def service = serviceRegistry.registerIfAbsent('taskEvents', TaskEventsService) {}
+        listenerRegistry.onTaskCompletion(service)
+    }
+}
+
+apply plugin: TaskEventsPlugin
+// end::build-events-listener-registry-inject[]
 
 // tag::clean-temp-inject[]
 abstract class CleanTempTask extends DefaultTask {

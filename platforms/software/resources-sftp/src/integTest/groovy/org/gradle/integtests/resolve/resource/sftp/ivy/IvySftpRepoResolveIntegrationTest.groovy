@@ -19,10 +19,8 @@ package org.gradle.integtests.resolve.resource.sftp.ivy
 import org.gradle.integtests.resolve.ivy.AbstractIvyRemoteRepoResolveIntegrationTest
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.sftp.SFTPServer
-import org.gradle.test.fixtures.Flaky
 import org.junit.Rule
 
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/5038")
 class IvySftpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegrationTest {
 
     @Rule
@@ -34,6 +32,7 @@ class IvySftpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
     }
 
     def setup() {
+        server.trustHostKey(executer)
         // SFTP test fixture does not handle parallel resolution requests
         executer.beforeExecute {
             it.withArgument("--max-workers=1")

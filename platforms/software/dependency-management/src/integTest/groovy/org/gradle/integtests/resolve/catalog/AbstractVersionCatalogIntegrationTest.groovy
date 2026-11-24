@@ -38,6 +38,15 @@ abstract class AbstractVersionCatalogIntegrationTest extends AbstractHttpDepende
         executer.withPluginRepositoryMirrorDisabled() // otherwise the plugin portal fixture doesn't work!
     }
 
+    protected static final List<List<String>> INJECTION_PAYLOADS = [
+        ['*/ { System.out.println(\\"BUG\\"); } /*', '*/'],
+        ['\\\\u002a/ { System.out.println(\\"BUG\\"); } /\\\\u002a', '\\u'],
+    ]
+
+    protected boolean injectedCodeDidNotRun() {
+        !(result.output + result.error).readLines().any { it.startsWith("BUG") }
+    }
+
     protected static String docUrlFor(String section) {
         new DocumentationRegistry().getDocumentationFor("version_catalog_problems", section)
     }

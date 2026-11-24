@@ -41,7 +41,8 @@ import static org.gradle.internal.exceptions.StyledException.style;
  */
 public abstract class AmbiguousVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousVariantsFailure> {
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
-    private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
+    private static final String AMBIGUOUS_VARIANTS_PAGE = "variant_aware_resolution";
+    private static final String AMBIGUOUS_VARIANTS_SECTION = "sec:step_3_disambiguation_using_requested_attributes";
 
     private final AttributeDescriberRegistry attributeDescribers;
 
@@ -55,7 +56,7 @@ public abstract class AmbiguousVariantsFailureDescriber extends AbstractResoluti
     @Override
     public VariantSelectionByAttributesException describeFailure(AmbiguousVariantsFailure failure) {
         String message = buildFailureMsg(failure, attributeDescribers.getDescribers());
-        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION), suggestReviewAlgorithm());
+        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_PAGE, AMBIGUOUS_VARIANTS_SECTION), suggestReviewAlgorithm());
         return new VariantSelectionByAttributesException(message, failure, resolutions);
     }
 

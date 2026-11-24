@@ -28,6 +28,7 @@ import org.gradle.test.fixtures.file.TestFile
 import static org.gradle.initialization.ParallelismBuildOptions.ParallelOption
 import static org.gradle.initialization.StartParameterBuildOptions.BuildCacheOption
 import static org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
+import static org.gradle.initialization.StartParameterBuildOptions.SharedMavenMirrorSettingsOption
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
@@ -172,6 +173,10 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
 
         void assertCachingEnabled() {
             assertEnabled(BuildCacheOption.GRADLE_PROPERTY)
+        }
+
+        void assertMavenMirrorSettingsEnabled() {
+            assertEnabled(SharedMavenMirrorSettingsOption.GRADLE_PROPERTY)
         }
 
         void assertConfigurationCacheEnabled() {

@@ -116,8 +116,8 @@ class InterpreterTest : TestWithTempFiles() {
         val stage1CacheDir = root.resolve("stage1").apply { mkdir() }
         val stage2CacheDir = root.resolve("stage2").apply { mkdir() }
 
-        val stage1ProgramId = ProgramId(stage1TemplateId, scriptPath, sourceHash, parentClassLoader)
-        val stage2ProgramId = ProgramId(stage2TemplateId, scriptPath, sourceHash, targetScopeExportClassLoader, accessorsClassPathHash, compilationClassPathHash)
+        val stage1ProgramId = ProgramId(stage1TemplateId, "settings.gradle.kts", sourceHash, parentClassLoader)
+        val stage2ProgramId = ProgramId(stage2TemplateId, "settings.gradle.kts", sourceHash, targetScopeExportClassLoader, accessorsClassPathHash, compilationClassPathHash)
 
         val mockServiceRegistry = mock<ServiceRegistry> {
             on { get(GradleUserHomeTemporaryFileProvider::class.java) } doReturn GradleUserHomeTemporaryFileProvider {
@@ -317,7 +317,34 @@ class InterpreterTest : TestWithTempFiles() {
     }
 
     @Test
-    fun `eval treats different scriptBuildTreePath as cache miss`() {
+    fun `eval uses cached program for identical script with same file name in another directory`() {
+        val scriptText = "println(\"test\")"
+        val sourceHash = TestHashCodes.hashCodeFrom(42)
+
+        val scriptSource1 = createScriptSource("a/build.gradle.kts", scriptText)
+        val scriptSource2 = createScriptSource("b/build.gradle.kts", scriptText)
+
+        val parentClassLoader = mock<ClassLoader>()
+        val baseScope = createMockScope(parentClassLoader)
+        val targetScope = createMockScope(mock(), baseScope)
+
+        val buildOperationRunner = TestBuildOperationRunner()
+        val cachingHost = createCachingHostMock(DummyCompiledScript(TestProgram1::class.java))
+
+        val interpreter = Interpreter(cachingHost.host, buildOperationRunner)
+        val target = mock<Settings>()
+
+        interpreter.eval(target, scriptSource1, sourceHash, mock(), targetScope, baseScope, true)
+        interpreter.eval(target, scriptSource2, sourceHash, mock(), targetScope, baseScope, true)
+
+        assert(cachingHost.compilationCount == 1) {
+            "Identical script in another directory should use cache, not recompile (compilations: ${cachingHost.compilationCount})"
+        }
+        assert(cachingHost.programCache.keys.map { it.scriptFileName } == listOf("build.gradle.kts"))
+    }
+
+    @Test
+    fun `eval treats different script file name as cache miss`() {
         val scriptText = "println(\"test\")"
         val sourceHash = TestHashCodes.hashCodeFrom(42)
 
@@ -353,8 +380,8 @@ class InterpreterTest : TestWithTempFiles() {
 
         // And both should be in the cache with different keys
         assert(cachingHost.programCache.size == 2) { "Cache should contain entries for both scriptFileNames" }
-        val cachedFileNames = cachingHost.programCache.keys.map { it.buildTreeScriptPath }.toSet()
-        assert("src/settings.gradle.kts" in cachedFileNames && "src/settings-v2.gradle.kts" in cachedFileNames) {
+        val cachedFileNames = cachingHost.programCache.keys.map { it.scriptFileName }.toSet()
+        assert("settings.gradle.kts" in cachedFileNames && "settings-v2.gradle.kts" in cachedFileNames) {
             "Both scriptFileNames should be cache keys"
         }
     }

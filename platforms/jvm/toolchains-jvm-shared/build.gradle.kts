@@ -39,6 +39,7 @@ dependencies {
 
     implementation(projects.credentials)
     implementation(projects.functional)
+    implementation(projects.hashing)
     implementation(projects.logging)
 
     implementation(libs.guava)

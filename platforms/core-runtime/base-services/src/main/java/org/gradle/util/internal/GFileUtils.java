@@ -146,10 +146,10 @@ public class GFileUtils {
     }
 
     public static String readFile(File file) {
-        return readFile(file, Charset.defaultCharset().name());
+        return readFile(file, Charset.defaultCharset());
     }
 
-    public static String readFile(File file, String encoding) {
+    public static String readFile(File file, Charset encoding) {
         try {
             return FileUtils.readFileToString(file, encoding);
         } catch (IOException e) {
@@ -173,10 +173,10 @@ public class GFileUtils {
     }
 
     public static void writeFile(String content, File destination) {
-        writeFile(content, destination, Charset.defaultCharset().name());
+        writeFile(content, destination, Charset.defaultCharset());
     }
 
-    public static void writeFile(String content, File destination, String encoding) {
+    public static void writeFile(String content, File destination, Charset encoding) {
         try {
             FileUtils.writeStringToFile(destination, content, encoding);
         } catch (IOException e) {

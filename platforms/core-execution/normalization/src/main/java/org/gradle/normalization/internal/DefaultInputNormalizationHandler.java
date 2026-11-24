@@ -18,6 +18,7 @@ package org.gradle.normalization.internal;
 
 import org.gradle.api.Action;
 import org.gradle.normalization.RuntimeClasspathNormalization;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultInputNormalizationHandler implements InputNormalizationHandlerInternal {
     private final RuntimeClasspathNormalizationInternal runtimeClasspathNormalization;
@@ -36,6 +37,7 @@ public class DefaultInputNormalizationHandler implements InputNormalizationHandl
         configuration.execute(getRuntimeClasspath());
     }
 
+    @Nullable
     @Override
     public CachedState computeCachedState() {
         RuntimeClasspathNormalizationInternal.CachedState runtimeClasspathState = runtimeClasspathNormalization.computeCachedState();

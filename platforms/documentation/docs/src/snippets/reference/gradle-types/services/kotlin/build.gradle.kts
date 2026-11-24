@@ -5,6 +5,14 @@ import org.gradle.api.component.SoftwareComponentFactory
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.invocation.BuildInvocationDetails
 import java.util.Date
+import java.util.concurrent.atomic.AtomicInteger
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
+import org.gradle.api.services.BuildServiceRegistry
+import org.gradle.build.event.BuildEventsListenerRegistry
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationCompletionListener
+import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
@@ -26,8 +34,8 @@ repositories {
 
 // tag::object-factory[]
 tasks.register("myObjectFactoryTask") {
+    val objectFactory = project.objects
     doLast {
-        val objectFactory = project.objects
         val myProperty = objectFactory.property(String::class)
         myProperty.set("Hello, Gradle!")
         println(myProperty.get())
@@ -37,12 +45,15 @@ tasks.register("myObjectFactoryTask") {
 
 // tag::object-factory-inject[]
 abstract class MyObjectFactoryTask
-@Inject constructor(private var objectFactory: ObjectFactory) : DefaultTask() {
+@Inject constructor(
+    private val objectFactory: ObjectFactory,
+    private val layout: ProjectLayout
+) : DefaultTask() {
 
     @TaskAction
     fun doTaskAction() {
         val outputDirectory = objectFactory.directoryProperty()
-        outputDirectory.convention(project.layout.projectDirectory)
+        outputDirectory.convention(layout.projectDirectory)
         println(outputDirectory.get())
     }
 }
@@ -53,8 +64,8 @@ tasks.register("myInjectedObjectFactoryTask", MyObjectFactoryTask::class) {}
 
 // tag::project-layout[]
 tasks.register("showLayout") {
+    val layout = project.layout
     doLast {
-        val layout = project.layout
         println("Project Directory: ${layout.projectDirectory}")
         println("Build Directory: ${layout.buildDirectory.get()}")
     }
@@ -77,8 +88,8 @@ tasks.register("myInjectedProjectLayoutTask", MyProjectLayoutTask::class) {}
 
 // tag::provider-factory[]
 tasks.register("printMessage") {
+    val providerFactory = project.providers
     doLast {
-        val providerFactory = project.providers
         val messageProvider = providerFactory.provider { "Hello, Gradle!" }
         println(messageProvider.get())
     }
@@ -110,8 +121,6 @@ abstract class MyWorkAction : WorkAction<WorkParameters.None> {
 
 abstract class MyWorkerTask
 @Inject constructor(private var workerExecutor: WorkerExecutor) : DefaultTask() {
-    @get:Input
-    abstract val booleanFlag: Property<Boolean>
     @TaskAction
     fun doThings() {
         workerExecutor.noIsolation().submit(MyWorkAction::class.java) {}
@@ -153,23 +162,37 @@ tasks.register("myAdHocFileSystemOperationsTask") {
 }
 // end::file-system-adhoc[]
 
+val packageSources = tasks.register<Zip>("packageSources") {
+    from(layout.projectDirectory) { include("*.gradle.kts") }
+    archiveFileName = "sources.zip"
+    destinationDirectory = layout.buildDirectory.dir("archives")
+}
+
 // tag::archive-op-inject[]
 abstract class MyArchiveOperationsTask
 @Inject constructor(
     private val archiveOperations: ArchiveOperations,
-    private val layout: ProjectLayout,
     private val fs: FileSystemOperations
 ) : DefaultTask() {
+    @get:InputFile
+    abstract val archiveFile: RegularFileProperty
+
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
+
     @TaskAction
     fun doTaskAction() {
         fs.sync {
-            from(archiveOperations.zipTree(layout.projectDirectory.file("sources.jar")))
-            into(layout.buildDirectory.dir("unpacked-sources"))
+            from(archiveOperations.zipTree(archiveFile))
+            into(outputDirectory)
         }
     }
 }
 
-tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask::class)
+tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask::class) {
+    archiveFile = packageSources.flatMap { it.archiveFile }
+    outputDirectory = layout.buildDirectory.dir("unpacked-sources")
+}
 // end::archive-op-inject[]
 
 // tag::archive-op-adhoc[]
@@ -293,6 +316,77 @@ class CustomComponentPlugin
     }
 }
 // end::software-component-factory-inject[]
+
+// tag::build-service-registry-inject[]
+abstract class CounterService : BuildService<BuildServiceParameters.None> {
+    private val count = AtomicInteger()
+
+    fun increment(): Int = count.incrementAndGet()
+}
+
+class CounterPlugin
+@Inject constructor(private val registry: BuildServiceRegistry) : Plugin<Project> {
+
+    override fun apply(project: Project) {
+        val counter = registry.registerIfAbsent("counter", CounterService::class.java) {}
+        project.tasks.register("count") {
+            usesService(counter)
+            doLast {
+                println("Count: ${counter.get().increment()}")
+            }
+        }
+    }
+}
+
+apply<CounterPlugin>()
+// end::build-service-registry-inject[]
+
+// tag::java-toolchain-service-inject[]
+abstract class PrintJavaVersionTask
+@Inject constructor(toolchains: JavaToolchainService) : DefaultTask() {
+
+    @get:Nested
+    abstract val launcher: Property<JavaLauncher>
+
+    init {
+        launcher.convention(toolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.current()
+        })
+    }
+
+    @TaskAction
+    fun printVersion() {
+        println("Java version: ${launcher.get().metadata.languageVersion}")
+    }
+}
+
+tasks.register("printJavaVersion", PrintJavaVersionTask::class) {}
+// end::java-toolchain-service-inject[]
+
+// tag::build-events-listener-registry-inject[]
+abstract class TaskEventsService : BuildService<BuildServiceParameters.None>, OperationCompletionListener {
+
+    override fun onFinish(event: FinishEvent) {
+        if (event is TaskFinishEvent) {
+            println("Finished ${event.descriptor.taskPath}")
+        }
+    }
+}
+
+class TaskEventsPlugin
+@Inject constructor(
+    private val listenerRegistry: BuildEventsListenerRegistry,
+    private val serviceRegistry: BuildServiceRegistry
+) : Plugin<Project> {
+
+    override fun apply(project: Project) {
+        val service = serviceRegistry.registerIfAbsent("taskEvents", TaskEventsService::class.java) {}
+        listenerRegistry.onTaskCompletion(service)
+    }
+}
+
+apply<TaskEventsPlugin>()
+// end::build-events-listener-registry-inject[]
 
 // tag::clean-temp-inject[]
 abstract class CleanTempTask

@@ -22,6 +22,7 @@ import org.gradle.cache.FileLockReleasedSignal;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import static org.gradle.cache.internal.locklistener.FileLockPacketType.LOCK_RELEASE_CONFIRMATION;
+import static java.util.Objects.requireNonNull;
 
 /**
  * The contention handler is responsible for negotiating the transfer of a lock from one process to another.
@@ -95,9 +97,9 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private final ExecutorFactory executorFactory;
 
     @GuardedBy("lock")
-    private ManagedExecutor fileLockRequestListener;
+    private @Nullable ManagedExecutor fileLockRequestListener;
     @GuardedBy("lock")
-    private ManagedExecutor unlockActionExecutor;
+    private @Nullable ManagedExecutor unlockActionExecutor;
 
     @GuardedBy("lock")
     private boolean stopped;
@@ -180,7 +182,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     @GuardedBy("lock")
     private void startLockReleaseAsLockHolder(ContendedAction contendedAction) {
         contendedAction.running = true;
-        unlockActionExecutor.execute(contendedAction);
+        requireNonNull(unlockActionExecutor, "Contention handling has not been started").execute(contendedAction);
     }
 
     @GuardedBy("lock")
@@ -226,7 +228,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     }
 
     @Override
-    public boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal) {
+    public boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed, @Nullable FileLockReleasedSignal signal) {
         assert port != UNKNOWN_PORT;
 
         lock.lock();
@@ -324,7 +326,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         private final Lock lock = new ReentrantLock();
         private final long lockId;
         private final Consumer<FileLockReleasedSignal> action;
-        private Set<SocketAddress> requesters = new LinkedHashSet<>();
+        private @Nullable Set<SocketAddress> requesters = new LinkedHashSet<>();
         private boolean running;
 
         private ContendedAction(long lockId, Consumer<FileLockReleasedSignal> action) {
@@ -354,6 +356,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
             }
         }
 
+        @Nullable
         private Set<SocketAddress> consumeRequesters() {
             lock.lock();
             try {

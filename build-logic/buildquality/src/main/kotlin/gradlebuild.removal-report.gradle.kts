@@ -34,7 +34,7 @@ val reportTask = tasks.register<NextMajorRemovalReportTask>("nextMajorRemovalRep
     description = "Generates a report of deprecations scheduled for removal / to become an error in the next major Gradle version"
     title = project.name
     targetMajorVersion = nextMajor
-    sources.from(sourceSets.main.get().java.sourceDirectories)
+    sources.from(sourceSets.main.map { it.java.sourceDirectories })
     htmlReportFile = file(layout.buildDirectory.file("reports/removal/${project.name}.html"))
     textReportFile = file(layout.buildDirectory.file("reports/removal/${project.name}.txt"))
 }
@@ -61,6 +61,6 @@ fun consumableVariant(reportType: String, artifact: Provider<RegularFile>) = con
     // TODO(mlopatkin): extending `implementation` mirrors `runtimeElements` incompletely (it misses `runtimeOnly`),
     //  so consumers do not see projects such as :problems. Drop the extendsFrom and have consumers reselect this
     //  variant over the runtime graph instead, as gradlebuild.package-info-data.gradle.kts does.
-    extendsFrom(configurations.implementation.get())
+    extendsFrom(configurations.implementation)
     outgoing.artifact(artifact)
 }

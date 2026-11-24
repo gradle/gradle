@@ -32,9 +32,8 @@ public interface AppliedPlugin {
      * The ID of the plugin.
      * <p>
      * An example of a plugin ID would be {@code "org.gradle.java"}.
-     * This method always returns the fully qualified ID, regardless of whether the fully qualified ID was used to apply the plugin or not.
-     * <p>
-     * This value is guaranteed to be unique, for a given {@link org.gradle.api.plugins.PluginAware}.
+     * This method returns the ID that was used to look up the plugin, for example with {@link PluginManager#findPlugin(String)} or {@link PluginManager#withPlugin(String, org.gradle.api.Action)}.
+     * Core plugins can be looked up by name, so for the plugin with ID {@code "org.gradle.java"}, looking it up with {@code "java"} returns {@code "java"}.
      *
      * @return the ID of the plugin
      * @since 2.3
@@ -45,9 +44,8 @@ public interface AppliedPlugin {
      * The namespace of the plugin.
      * <p>
      * An example of a plugin namespace would be {@code "org.gradle"} for the plugin with ID {@code "org.gradle.java"}.
-     * This method always returns the namespace, regardless of whether the fully qualified ID was used to apply the plugin or not.
      * <p>
-     * If the plugin has an unqualified ID, this method will return {@code null}.
+     * If the plugin was looked up by an unqualified ID, such as {@code "java"}, this method returns {@code null}.
      *
      * @return the namespace of the plugin
      * @since 2.3

@@ -62,6 +62,13 @@
                 <div class="layout">
                     <xsl:call-template name="header.navigation"></xsl:call-template>
                     <main class="main-content">
+                        <div class="content">
+                            <div id="content">
+                                <xsl:copy-of select="$content"/>
+                            </div>
+                            <aside class="secondary-navigation"></aside>
+                        </div>
+                        <!-- After the content, so agents and screen readers reach the page first. CSS shows it on the left. -->
                         <nav class="docs-navigation">
                             <div class="search-container">
                                 <input type="search" name="q" id="search-input" class="search-input" placeholder="Search Docs"/>
@@ -72,12 +79,6 @@
                                 <xsl:apply-templates select="/book/section[not(@condition) or @condition != 'noNavBar']/table[@role = 'dslTypes']" mode="sidebar"/>
                             </ul>
                         </nav>
-                        <div class="content">
-                            <div id="content">
-                                <xsl:copy-of select="$content"/>
-                            </div>
-                            <aside class="secondary-navigation"></aside>
-                        </div>
                     </main>
                     <!-- Site footer: injected by documentation-portal at publish time (SiteChromeReplacingTransformer). -->
                     <xsl:text disable-output-escaping="yes">&lt;!-- site-footer-placeholder --&gt;</xsl:text>

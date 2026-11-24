@@ -21,6 +21,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.FileLockReleasedSignal;
 import org.gradle.cache.LockOptions;
 import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,9 +42,9 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
     private final Runnable unlocker;
     private final Consumer<FileLockReleasedSignal> whenContended;
     private int lockCount;
-    private FileLock fileLock;
+    private @Nullable FileLock fileLock;
     private final CacheInitializationAction initAction;
-    private FileLockReleasedSignal lockReleaseSignal;
+    private @Nullable FileLockReleasedSignal lockReleaseSignal;
 
     /**
      * Actions are notified when lock is opened or closed. Actions are called while holding state lock, so that no other threads are working with cache while these are running.
@@ -103,7 +104,8 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Acquiring file lock for {}", cacheDisplayName);
                 }
-                fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "", whenContended);
+                FileLock fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "", whenContended);
+                this.fileLock = fileLock;
                 try {
                     if (initAction.requiresInitialization(fileLock)) {
                         fileLock.writeFile(() -> initAction.initialize(fileLock));
@@ -111,7 +113,7 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
                     onOpen.accept(fileLock);
                 } catch (Exception e) {
                     fileLock.close();
-                    fileLock = null;
+                    this.fileLock = null;
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
             }

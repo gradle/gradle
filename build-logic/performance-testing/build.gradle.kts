@@ -35,7 +35,7 @@ gradlePlugin {
 }
 
 tasks.compileGroovy.configure {
-    classpath = sourceSets.main.get().compileClasspath
+    classpath = files(sourceSets.main.map { it.compileClasspath })
 }
 
 tasks.compileKotlin.configure {

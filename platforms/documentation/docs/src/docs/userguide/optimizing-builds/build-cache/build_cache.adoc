@@ -45,6 +45,14 @@ Gradle will try to reuse outputs from previous builds for all builds, unless exp
 When the build cache is enabled, it will store build outputs in the Gradle User Home.
 For configuring this directory or different kinds of build caches see <<#sec:build_cache_configure,Configure the Build Cache>>.
 
+IMPORTANT: The `org.gradle.caching` property and the `--build-cache` option are the only ways to turn on the build cache.
+The `enabled` settings of the local and remote caches in the `buildCache {}` block only select which caches Gradle uses once the build cache is on.
+If the build cache is off, Gradle ignores them, even when they are set to `true`.
+
+When you turn on the build cache, Gradle reuses outputs based on the inputs and outputs that each cacheable task declares.
+If a task does not declare all of its inputs, Gradle can load outputs that don't match the current inputs.
+Before you turn on the build cache, check that your build works with <<incremental_build#incremental_build,incremental build>>, and that custom tasks declare their inputs and outputs correctly.
+
 [[sec:task_output_caching]]
 == Task Output Caching
 
@@ -193,7 +201,7 @@ NOTE: The task path is _not_ an input to the build cache key.
 This means that tasks with different task paths can re-use each other's outputs as long as Gradle determines that executing them yields the same result.
 
 In order to ensure that the inputs and outputs are properly declared use integration tests (for example using TestKit) to check that a task produces the same outputs for identical inputs and captures all output files for the task.
-We suggest adding tests to ensure that the task inputs are relocatable, i.e. that the task can be loaded from the cache into a different build directory (see link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[@PathSensitive]).
+We suggest adding tests to ensure that the task inputs are relocatable, i.e. that the task can be loaded from the cache into a different build directory (see link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[`@PathSensitive`] and <<best_practices_tasks.adoc#default_path_sensitivities,choosing a path sensitivity>>).
 
 In order to handle volatile inputs for your tasks consider <<incremental_build.adoc#sec:configure_input_normalization,configuring input normalization>>.
 
@@ -273,6 +281,7 @@ include::sample[dir="snippets/optimizing-builds/build-cache/cacheable-bundle/gro
 == Configure the Build Cache
 
 You can configure the build cache by using the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:buildCache(org.gradle.api.Action)[Settings.buildCache(org.gradle.api.Action)] block in `settings.gradle`.
+This configuration only takes effect when the build cache is turned on, as described in <<#sec:build_cache_enable,Enable the Build Cache>>.
 
 Gradle supports a `local` and a `remote` build cache that can be configured separately.
 When both build caches are enabled, Gradle tries to load build outputs from the local build cache first, and then tries the remote build cache if no build outputs are found.
@@ -285,7 +294,7 @@ The local build cache is pre-configured to be a link:{groovyDslPath}/org.gradle.
 The remote build cache can be configured by specifying the type of build cache to connect to (link:{groovyDslPath}/org.gradle.caching.configuration.BuildCacheConfiguration.html#org.gradle.caching.configuration.BuildCacheConfiguration:remote(java.lang.Class)[BuildCacheConfiguration.remote(java.lang.Class)]).
 
 [[sec:build_cache_configure_local]]
-=== Built-in local build cache
+=== Built-in local Build Cache
 
 The built-in local build cache, link:{groovyDslPath}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache], uses a directory to store build cache artifacts.
 By default, this directory resides in the Gradle User Home, but its location is configurable.
@@ -310,7 +319,7 @@ How often Gradle will perform this clean-up and how long entries will be retaine
 <<directory_layout.adoc#dir:gradle_user_home:configure_cache_cleanup, in this section>>.
 
 [[sec:build_cache_configure_remote]]
-=== Remote HTTP build cache
+=== Remote HTTP Build Cache
 
 link:{groovyDslPath}/org.gradle.caching.http.HttpBuildCache.html[HttpBuildCache] provides the ability read to and write from a remote cache via HTTP.
 
@@ -326,7 +335,8 @@ The response must have a `2xx` status and the cache entry as the body, or a `404
 
 When attempting to store an entry, a `PUT` request is made to `\https://example.com:8123/cache/«cache-key»`.
 Any `2xx` response status is interpreted as success.
-A `413 Payload Too Large` response may be returned to indicate that the payload is larger than the server will accept, which will not be treated as an error.
+A server can return a `413 Payload Too Large` response to reject an entry that is too large.
+Gradle treats it like any other error response, as described in <<#sec:build_cache_error_handling,Network error handling>>.
 
 ==== Specifying access credentials
 
@@ -349,12 +359,23 @@ without the entry payload as the body.
 [[sec:build_cache_error_handling]]
 ==== Network error handling
 
-Requests that fail during request transmission, after having established a TCP connection, will be retried automatically.
+Gradle retries some failed requests automatically, up to 3 times:
 
-This prevents temporary problems, such as connection drops, read or write timeouts, and low level network failures such as a connection resets, causing cache operations to fail and disabling the remote cache for the remainder of the build.
+* Load (`GET`) requests are retried when the connection drops or is reset.
+* Store (`PUT`) requests are retried only if the connection fails before Gradle has sent the whole entry.
 
-Requests will be retried up to 3 times.
-If the problem persists, the cache operation will fail and the remote cache will be disabled for the remainder of the build.
+Gradle does not retry requests that time out, requests that fail to connect, or requests that receive an error response, such as `500 Internal Server Error`.
+
+When a load or store request fails, Gradle logs a warning such as:
+
+----
+Could not store entry 7a4f1b0c9d2e3f45a6b7c8d9e0f1a2b3 in remote build cache: Read timed out
+----
+
+The failure does not fail the build.
+Instead, Gradle disables the remote build cache for the rest of the build, so it doesn't load or store any more entries, including the one that failed.
+At the end of the build, Gradle logs `The remote build cache was disabled during the build due to errors.`
+To include the stack trace in the warning, run the build with `--stacktrace`.
 
 ==== Using SSL
 
@@ -413,7 +434,7 @@ include::sample[dir="snippets/optimizing-builds/build-cache/configure-by-init-sc
 ====
 
 [[sec:build_cache_composite]]
-=== Build cache, composite builds and `buildSrc`
+=== Build Cache, composite builds, and `buildSrc`
 
 Gradle's <<composite_builds.adoc#composite_builds,composite build feature>> allows including other complete Gradle builds into another.
 Such included builds will inherit the build cache configuration from the top level build, regardless of whether the included builds define build cache configuration themselves or not.
@@ -426,16 +447,45 @@ The <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,`buildSrc`
 NOTE: This configuration precedence does not apply to <<composite_builds.adoc#included_plugin_builds,plugin builds>> included through `pluginManagement` as these are loaded _before_ the cache configuration itself.
 
 [[sec:build_cache_setup_http_backend]]
-== How to set up an HTTP build cache backend
+== Set up a Remote Build Cache
 
-Gradle provides a Docker image for a link:https://hub.docker.com/r/gradle/build-cache-node/[build cache node], which can connect with Develocity for centralized management.
-The cache node can also be used without a Develocity installation with restricted functionality.
+Gradle's built-in `HttpBuildCache` works with any HTTP server that implements the two requests described in <<#sec:build_cache_configure_remote,Remote HTTP Build Cache>>:
+
+* `GET <url>/<cache-key>` returns the entry with a `2xx` status, or `404 Not Found` if it does not exist.
+* `PUT <url>/<cache-key>` stores the entry and returns a `2xx` status. It may return `413 Payload Too Large` to reject entries over a size limit.
+
+A minimal backend can be a web server or reverse proxy that maps those requests onto disk or object storage.
+The protocol is simple, but running a shared cache well takes more than serving files.
+Before you roll your own, plan for:
+
+Eviction:: Gradle never deletes remote entries. Your server must cap disk usage and evict old or unused entries, or it will eventually fill up.
+Access control:: Use HTTPS, and let only trusted CI builds write to the cache (see <<#sec:build_cache_configure_use_cases,Configuration use cases>>). A cache that anyone can write to is a way to inject compromised build outputs into other builds.
+Latency and placement:: Cache hits only save time if downloading an entry is faster than rebuilding it. Put the cache on the same network as your CI agents. Distributed teams and multi-region CI may need several nodes, plus a way to keep them in sync.
+Size limits:: Return `413` for oversized entries rather than failing the request, so builds continue normally.
+Observability:: Without hit-rate and transfer metrics, it is hard to tell whether the cache is helping or quietly serving misses.
+
+[[sec:build_cache_develocity]]
+== Use Develocity as your Remote Build Cache
+
+If you would rather not build and operate this infrastructure yourself, link:https://develocity.ai/product/build-cache/[Develocity Build Cache] provides a managed, production-grade remote cache.
+
+It is served by link:https://docs.develocity.ai/edge/current/user-manual/[Develocity Edge], a set of cache nodes you deploy close to your build agents, in each data center, cloud region or Kubernetes cluster.
+Edge handles the operational concerns listed above:
+
+* Nodes replicate entries between locations, so a result built in one region is available everywhere.
+* Builds authenticate with access keys, and Develocity controls which users can read from or write to the cache.
+* Every Build Scan shows cache hits, misses and transfer times for each task, so you can find and fix cacheability problems. Develocity also reports cache performance across all of your builds.
+* Edge can proxy Build Scan uploads and other Develocity traffic, so agents in restricted networks only need to reach one endpoint.
+
+The Build Cache only skips work during task execution.
+On ephemeral CI agents, much of the time goes to downloading dependencies and configuring the build before any task runs.
+link:https://develocity.ai/product/universal-cache/[Develocity Universal Cache] adds an link:https://develocity.ai/product/artifact-cache/[Artifact Cache] and a link:https://develocity.ai/product/setup-cache/[Setup Cache] on the same Edge nodes, covering dependency resolution and Gradle's initialization and configuration phases as well.
 
 [[sec:build_cache_implement]]
-== Implement your own Build Cache
+== Implement your own Build Cache connector
 
-Using a different build cache backend to store build outputs (which is not covered by the built-in support for connecting to an HTTP backend) requires implementing
-your own logic for connecting to your custom build cache backend.
-To this end, custom build cache types can be registered via link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#registerBuildCacheService(java.lang.Class,java.lang.Class)[BuildCacheConfiguration.registerBuildCacheService(java.lang.Class, java.lang.Class)].
+If your backend cannot speak the HTTP protocol above, for example a native object store, a database or an internal storage service, you can write a custom connector.
+Implement link:{javadocPath}/org/gradle/caching/BuildCacheService.html[BuildCacheService] and link:{javadocPath}/org/gradle/caching/BuildCacheServiceFactory.html[BuildCacheServiceFactory], then register them with link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#registerBuildCacheService(java.lang.Class,java.lang.Class)[BuildCacheConfiguration.registerBuildCacheService(java.lang.Class, java.lang.Class)].
+You can then configure the new type as the `remote` cache, just like `HttpBuildCache`.
 
-link:https://develocity.ai/product/build-cache/[Develocity] includes a high-performance, easy to install and operate, shared build cache backend.
+A custom connector still has to deal with eviction, access control and latency, as described in <<#sec:build_cache_setup_http_backend,Set up a Remote Build Cache>>.

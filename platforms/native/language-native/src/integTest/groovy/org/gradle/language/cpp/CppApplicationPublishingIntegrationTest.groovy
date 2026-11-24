@@ -17,7 +17,6 @@
 package org.gradle.language.cpp
 
 
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -161,35 +160,25 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         installation.exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can publish an executable and library to a Maven repository"() {
         def app = new CppAppWithLibrary()
 
         given:
         createDirs("greeter", "app")
         settingsFile << "include 'greeter', 'app'"
-        buildFile << """
-            subprojects {
-                apply plugin: 'maven-publish'
-
-                group = 'some.group'
-                version = '1.2'
-                publishing {
-                    repositories { maven { url = '${mavenRepo.uri}' } }
+        buildFile("app/build.gradle", """
+            ${mavenPublishing()}
+            apply plugin: 'cpp-application'
+            application {
+                dependencies {
+                    implementation project(':greeter')
                 }
             }
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
-                    dependencies {
-                        implementation project(':greeter')
-                    }
-                }
-            }
-            project(':greeter') {
-                apply plugin: 'cpp-library'
-            }
-        """
+        """)
+        buildFile("greeter/build.gradle", """
+            ${mavenPublishing()}
+            apply plugin: 'cpp-library'
+        """)
         app.greeter.writeToProject(file('greeter'))
         app.main.writeToProject(file('app'))
 
@@ -245,7 +234,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         installation.exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can publish an executable and a binary-specific dependency to a Maven repository"() {
         def app = new CppAppWithLibrary()
         def logger = new CppLogger().asLib()
@@ -253,38 +241,30 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         given:
         createDirs("greeter", "app", "logger")
         settingsFile << "include 'greeter', 'app', 'logger'"
-        buildFile << """
-            subprojects {
-                apply plugin: 'maven-publish'
-
-                group = 'some.group'
-                version = '1.2'
-                publishing {
-                    repositories { maven { url = '${mavenRepo.uri}' } }
+        buildFile("app/build.gradle", """
+            ${mavenPublishing()}
+            apply plugin: 'cpp-application'
+            application {
+                dependencies {
+                    implementation project(':greeter')
                 }
-            }
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
+                binaries.configureEach {
                     dependencies {
-                        implementation project(':greeter')
-                    }
-                    binaries.configureEach {
-                        dependencies {
-                            if (!optimized) {
-                                implementation project(':logger')
-                            }
+                        if (!optimized) {
+                            implementation project(':logger')
                         }
                     }
                 }
             }
-            project(':greeter') {
-                apply plugin: 'cpp-library'
-            }
-            project(':logger') {
-                apply plugin: 'cpp-library'
-            }
-        """
+        """)
+        buildFile("greeter/build.gradle", """
+            ${mavenPublishing()}
+            apply plugin: 'cpp-library'
+        """)
+        buildFile("logger/build.gradle", """
+            ${mavenPublishing()}
+            apply plugin: 'cpp-library'
+        """)
         app.greeter.writeToProject(file('greeter'))
         app.main.writeToProject(file('app'))
         logger.writeToProject(file('logger'))
@@ -340,37 +320,27 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         installation.exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "uses the basename to calculate the coordinates"() {
         def app = new CppAppWithLibrary()
 
         given:
         createDirs("greeter", "app")
         settingsFile << "include 'greeter', 'app'"
-        buildFile << """
-            subprojects {
-                apply plugin: 'maven-publish'
-
-                group = 'some.group'
-                version = '1.2'
-                publishing {
-                    repositories { maven { url = '${mavenRepo.uri}' } }
+        buildFile("app/build.gradle", """
+            ${mavenPublishing()}
+            apply plugin: 'cpp-application'
+            application {
+                baseName = 'testApp'
+                dependencies {
+                    implementation project(':greeter')
                 }
             }
-            project(':app') {
-                apply plugin: 'cpp-application'
-                application {
-                    baseName = 'testApp'
-                    dependencies {
-                        implementation project(':greeter')
-                    }
-                }
-            }
-            project(':greeter') {
-                apply plugin: 'cpp-library'
-                library.baseName = 'appGreeter'
-            }
-        """
+        """)
+        buildFile("greeter/build.gradle", """
+            ${mavenPublishing()}
+            apply plugin: 'cpp-library'
+            library.baseName = 'appGreeter'
+        """)
         app.greeter.writeToProject(file('greeter'))
         app.main.writeToProject(file('app'))
 

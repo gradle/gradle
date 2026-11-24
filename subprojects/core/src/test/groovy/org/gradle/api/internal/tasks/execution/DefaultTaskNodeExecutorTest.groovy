@@ -25,6 +25,7 @@ import org.gradle.api.internal.TaskOutputsEnterpriseInternal
 import org.gradle.api.internal.changedetection.TaskExecutionMode
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver
 import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionMode
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
@@ -37,6 +38,7 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskExecutionException
+import org.gradle.execution.plan.ExecutionNodeAccessHierarchies
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.MissingTaskDependencyDetector
 import org.gradle.execution.plan.MutationInfo
@@ -58,15 +60,18 @@ import org.gradle.internal.execution.WorkOutput
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry
+import org.gradle.internal.file.Stat
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.util.Path
+import spock.lang.Issue
 import spock.lang.Specification
 
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS
@@ -142,7 +147,8 @@ class DefaultTaskNodeExecutorTest extends Specification {
     def executionEngine = Mock(ExecutionEngine)
     def listenerManager = Stub(ListenerManager)
     def reservedFileSystemLocationRegistry = Stub(ReservedFileSystemLocationRegistry)
-    def missingTaskDependencyDetector = Stub(MissingTaskDependencyDetector)
+    def accessHierarchies = new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_SENSITIVE, Stub(Stat))
+    def missingTaskDependencyDetector = new MissingTaskDependencyDetector(accessHierarchies.outputHierarchy, accessHierarchies.createInputHierarchy())
 
     def executor = new DefaultTaskNodeExecutor(
         buildOperationRunner,
@@ -709,6 +715,50 @@ class DefaultTaskNodeExecutorTest extends Specification {
 
         and:
         state.outcome == TaskExecutionOutcome.EXECUTED
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39729")
+    def "searches the dependencies of a task once for all its input locations"() {
+        given:
+        Map<String, Integer> expansions = [:].withDefault { 0 }
+        def dependency = Stub(TaskNode) {
+            getHardSuccessors() >> {
+                expansions["dependency"] = expansions["dependency"] + 1
+                return []
+            }
+        }
+        node.getHardSuccessors() >> {
+            expansions["node"] = expansions["node"] + 1
+            return [dependency]
+        }
+        // The task does not depend on the producer, so checking each input location searches the task's dependencies
+        def producer = Stub(TaskNode)
+        def first = new File("first").absoluteFile
+        def second = new File("second").absoluteFile
+        accessHierarchies.outputHierarchy.recordNodeAccessingLocation(producer, first.path)
+        accessHierarchies.outputHierarchy.recordNodeAccessingLocation(producer, second.path)
+
+        taskActions.add(action1)
+        UnitOfWork work = null
+        executionEngine.createRequest(_) >> { UnitOfWork w ->
+            work = w
+            Stub(ExecutionEngine.Request) {
+                execute() >> Stub(ExecutionEngine.Result) {
+                    getExecution() >> Try.successful(Stub(Execution) {
+                        getOutcome() >> Execution.ExecutionOutcome.UP_TO_DATE
+                    })
+                }
+            }
+        }
+        executor.execute(node)
+
+        when:
+        // Each input property gets its own checker
+        work.getInputDependencyChecker(node.validationContext).visitCollection(Stub(FileCollectionInternal.Source), [first])
+        work.getInputDependencyChecker(node.validationContext).visitCollection(Stub(FileCollectionInternal.Source), [second])
+
+        then:
+        expansions == [node: 1, dependency: 1]
     }
 
     private TaskNode dependencyTaskNode(boolean skipped) {

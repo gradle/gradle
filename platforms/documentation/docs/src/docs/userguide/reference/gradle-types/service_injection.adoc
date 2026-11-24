@@ -22,7 +22,8 @@ A *service* is a collaborator object whose lifecycle Gradle manages; a single in
 These services aren't meant to be constructed directly, since they rely on internal Gradle state.
 
 To use a *service*, your custom type declares a dependency on it and Gradle supplies the instance.
-This pattern is called _service injection_, and it works uniformly across every type Gradle instantiates for you, including tasks, plugins, extensions, value sources, build services, and worker actions.
+This pattern is called _service injection_, and it works for every type Gradle instantiates for you, including tasks, plugins, extensions, value sources, build services, and work actions.
+Which services a type can inject depends on where Gradle creates it, as described in <<#services_for_injection,Available services>>.
 
 The most common form is constructor injection on an abstract type.
 The same `CleanTempTask` is shown below as a Kotlin DSL class, a Groovy DSL class, and a stand-alone Java class that you would typically place in `buildSrc` or a binary plugin:
@@ -41,10 +42,21 @@ See <<#service_injection_patterns,Service injection patterns>> for the full set 
 [[services_for_injection]]
 == Available services
 
-WARNING: You should avoid injecting types not listed below. Internal services can sometimes technically be injected, but this practice is not supported and may lead to breaking changes in the future.
-Only inject the services explicitly listed below to ensure stability and compatibility.
+This section lists every service that Gradle supports for injection.
+The Javadoc of each listed service also states that it can be injected.
 
-The following services are available for injection in all Gradle instantiated objects:
+WARNING: Only inject the services listed below.
+Other types, including internal services and model objects such as `DependencyHandler`, can sometimes be injected, but this is not supported and can break in any Gradle release.
+
+The services you can inject depend on where Gradle creates the object:
+
+* The first table lists services available to every type Gradle instantiates, with the exception of value sources.
+* The following sections list additional services that are only available in a specific scope.
+An object can only inject a service from a scope it belongs to.
+For example, `ProjectLayout` is listed under projects, so a work action, which does not belong to a project, cannot inject it.
+* A link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] can only inject `ExecOperations`.
+
+The following services are available for injection in all Gradle instantiated objects except value sources:
 
 [%header,cols="1,4"]
 |===
@@ -67,19 +79,34 @@ The following services are available for injection in all Gradle instantiated ob
 
 | <<problems,`Problems`>> incubating-label:[]
 | Reports structured problems that surface in the console, the HTML problems report, and the Tooling API. Use it to surface errors or warnings consistently to the IDE, the problems report, and Build Scan.
+
+| <<buildserviceregistry,`BuildServiceRegistry`>>
+| Registers and looks up shared build services. Use it to register a build service from a plugin without a `Gradle` reference. Not available in work actions that use `processIsolation()`.
 |===
 
-=== Additional services in workers
+[[additional_services_in_workers]]
+=== Services in work actions
 
-The following services are available for injection in worker API actions and parameters:
+A link:{javadocPath}/org/gradle/workers/WorkAction.html[`WorkAction`] submitted through the <<worker_api.adoc#worker_api,Worker API>> can inject the services in the table above, with one exception: `BuildServiceRegistry` is not available with `processIsolation()`.
+`WorkerExecutor` is also available, but only with `noIsolation()`:
 
-[%header,cols="1,4"]
+[%header,cols="2,1,1,1"]
 |===
-| Service | Description
+| Service | `noIsolation()` | `classLoaderIsolation()` | `processIsolation()`
 
 | <<workerexecutor,`WorkerExecutor`>>
-| Schedules work to run in parallel via the Worker API. Use it from a task that needs to run CPU-bound work in parallel or in an isolated classloader.
+| Yes
+| No
+| No
+
+| <<buildserviceregistry,`BuildServiceRegistry`>>
+| Yes
+| Yes
+| No
 |===
+
+Work actions do not belong to a project or settings, so services from those scopes, such as `ProjectLayout`, are not available.
+Pass the values the work needs through the work parameters instead, as shown in <<worker_api.adoc#worker_api_services,Injecting services into work actions>>.
 
 === Additional services in projects and settings
 
@@ -106,6 +133,9 @@ The following services are available for injection in both project and settings 
 
 | <<buildinvocationdetails,`BuildInvocationDetails`>> incubating-label:[]
 | Exposes information about the current build invocation, such as its wall-clock start time. Use it to read the build's start time for timing or reporting.
+
+| <<buildeventslistenerregistry,`BuildEventsListenerRegistry`>>
+| Registers listeners for task completion events. Use it to receive task results in a build service without `Gradle` or `Project` listeners.
 |===
 
 === Additional services in projects
@@ -127,6 +157,9 @@ The following services are available for injection in project plugins, extension
 
 | <<softwarecomponentfactory,`SoftwareComponentFactory`>>
 | Creates adhoc software components for publishing. Use it to define a custom publishable software component without a full component model.
+
+| <<javatoolchainservice,`JavaToolchainService`>>
+| Resolves Java toolchains such as compilers, launchers, and Javadoc tools. Use it to run a tool with a specific Java version from a custom task.
 |===
 
 === Additional services in settings
@@ -267,8 +300,8 @@ The `ProviderFactory` service is injected into the `MyProviderFactoryTask` task'
 link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[`WorkerExecutor`] is a service that allows you to perform parallel execution of tasks using worker processes.
 This is particularly useful for tasks that perform CPU-intensive or long-running operations, as it allows them to be executed in parallel, improving build performance.
 
-Using `WorkerExecutor`, you can submit units of work (called actions) to be executed in separate worker processes.
-This helps isolate the work from the main Gradle process, providing better reliability and performance.
+Using `WorkerExecutor`, you can submit units of work (called actions) to a work queue.
+Depending on the isolation mode of the queue, the work runs in a thread of the Gradle daemon or in a separate worker process.
 
 Here's a basic example of how you might use `WorkerExecutor` in a build script:
 
@@ -319,7 +352,8 @@ include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="bui
 include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=archive-op-inject]"]
 ====
 
-The `ArchiveOperations` service is injected into the `MyArchiveOperationsTask` task's constructor using the `@Inject` annotation.
+The `ArchiveOperations` service is injected into the `MyArchiveOperationsTask` task using the `@Inject` annotation.
+The task unpacks the archive produced by a `Zip` task, which it declares as an input file.
 
 With some ceremony, it is possible to use `ArchiveOperations` in an ad-hoc task defined in a build script:
 
@@ -472,6 +506,49 @@ include::sample[dir="snippets/reference/gradle-types/services/groovy",files="bui
 
 The `ReportBuildStartTask` task receives a `BuildInvocationDetails` instance through its constructor using the `@Inject` annotation.
 
+[[buildserviceregistry]]
+== `BuildServiceRegistry`
+
+link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html[`BuildServiceRegistry`] is a service that registers and looks up <<build_services.adoc#build_services,shared build services>>.
+It is the same registry that `gradle.sharedServices` returns, so a plugin can register a build service without a reference to the `Gradle` object:
+
+====
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=build-service-registry-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=build-service-registry-inject]"]
+====
+
+The `CounterPlugin` plugin receives a `BuildServiceRegistry` instance through its constructor using the `@Inject` annotation, and registers a `CounterService` that its `count` task uses.
+
+`BuildServiceRegistry` is available in all Gradle instantiated objects except value sources and work actions that use `processIsolation()`.
+
+[[buildeventslistenerregistry]]
+== `BuildEventsListenerRegistry`
+
+link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html[`BuildEventsListenerRegistry`] is a service that registers listeners for events from the build, such as task completion.
+The listener is a <<build_services.adoc#build_services,build service>> that implements link:{javadocPath}/org/gradle/tooling/events/OperationCompletionListener.html[`OperationCompletionListener`], which keeps it compatible with the <<configuration_cache.adoc#config_cache,Configuration Cache>>:
+
+====
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=build-events-listener-registry-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=build-events-listener-registry-inject]"]
+====
+
+The `TaskEventsPlugin` plugin receives `BuildEventsListenerRegistry` and `BuildServiceRegistry` instances through its constructor, registers the `TaskEventsService` build service, and subscribes it to task completion events.
+
+You can learn more in <<build_services.adoc#operation_listener,Receiving information about task execution>>.
+
+[[javatoolchainservice]]
+== `JavaToolchainService`
+
+link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainService.html[`JavaToolchainService`] is a service that resolves <<toolchains.adoc#toolchains,Java toolchains>>, returning a compiler, launcher, or Javadoc tool for a given Java version.
+A custom task uses it to run a tool with a specific Java version, independent of the JVM that runs Gradle:
+
+====
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=java-toolchain-service-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=java-toolchain-service-inject]"]
+====
+
+The `PrintJavaVersionTask` task receives a `JavaToolchainService` instance through its constructor and uses it to set the convention of its `launcher` property.
+
 [[softwarecomponentfactory]]
 == `SoftwareComponentFactory`
 
@@ -526,3 +603,11 @@ Here is an example that shows a task type that receives two services via propert
 ----
 include::{snippetsPath}/reference/plugin-development/propertyServiceInjection/groovy/buildSrc/src/main/java/Download.java[tags=download]
 ----
+
+[[service_lookup]]
+=== Looking up services at runtime
+
+Gradle has no public API for looking up a service by type at runtime.
+Declare each service your type needs with `@Inject`, using constructor or property injection.
+
+The Kotlin DSL `serviceOf()` extension in `org.gradle.kotlin.dsl.support` is internal API and can change without notice.

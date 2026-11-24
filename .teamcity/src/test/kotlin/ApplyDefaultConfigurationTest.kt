@@ -101,6 +101,7 @@ class ApplyDefaultConfigurationTest {
             listOf(
                 "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
                 "GRADLE_RUNNER",
+                "RETRY_DECISION",
                 "KILL_ALL_GRADLE_PROCESSES",
                 "CLEAN_UP_GIT_UNTRACKED_FILES_AND_DIRECTORIES",
                 "GRADLE_RETRY_RUNNER",
@@ -134,6 +135,7 @@ class ApplyDefaultConfigurationTest {
             listOf(
                 "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
                 "GRADLE_RUNNER",
+                "RETRY_DECISION",
                 "KILL_ALL_GRADLE_PROCESSES",
                 "CLEAN_UP_GIT_UNTRACKED_FILES_AND_DIRECTORIES",
                 "GRADLE_RETRY_RUNNER",

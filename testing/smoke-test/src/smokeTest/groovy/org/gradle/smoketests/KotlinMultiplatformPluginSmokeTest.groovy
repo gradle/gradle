@@ -47,7 +47,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             )
             .expectLegacyDeprecationWarningIf(
                 kotlinVersionNumber.baseVersion > KotlinGradlePluginVersions.KOTLIN_2_1_20 && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_3_21,
-                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
+                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle ${GradleVersion.current().majorVersion + 1}. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
             )
             .expectLegacyDeprecationWarningIf(
                 kotlinVersionNumber.baseVersion >= KotlinGradlePluginVersions.KOTLIN_2_3_21 && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_4_20,
@@ -94,7 +94,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             )
             .expectLegacyDeprecationWarningIf(
                 kotlinVersionNumber.baseVersion > KotlinGradlePluginVersions.KOTLIN_2_1_20 && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_3_21,
-                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
+                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle ${GradleVersion.current().majorVersion + 1}. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
             )
             .build()
 
@@ -135,7 +135,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         def result = kgpRunner(kotlinVersionNumber, ':tasks')
             .expectLegacyDeprecationWarningIf(
                 kotlinVersionNumber.baseVersion > KotlinGradlePluginVersions.KOTLIN_2_1_20 && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_3_21,
-                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
+                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle ${GradleVersion.current().majorVersion + 1}. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
             )
             .expectLegacyDeprecationWarningIf(
                 kotlinVersionNumber.baseVersion >= KotlinGradlePluginVersions.KOTLIN_2_3_21 && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_4_20,
@@ -199,7 +199,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         def testRunner = kgpRunner(kotlinVersionNumber, ':resolve', '--stacktrace')
             .expectLegacyDeprecationWarningIf(
                 kotlinVersionNumber.baseVersion > KotlinGradlePluginVersions.KOTLIN_2_1_20 && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_3_21,
-                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
+                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle ${GradleVersion.current().majorVersion + 1}. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
             )
         def result = testRunner.build()
 
@@ -231,14 +231,15 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             deprecations << "The Configuration.setVisible(boolean) method has been deprecated. This is scheduled to be removed in Gradle 11. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#deprecate-visible-property".toString()
         }
         if (kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_3_21) {
-            deprecations << "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration".toString()
+            deprecations << "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle ${GradleVersion.current().majorVersion + 1}. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration".toString()
         }
-        // The KGP 2.0.x line declares an attribute of type KotlinNativeBundleArtifactsTypes,
-        // a plain enum that does not implement Named. Attribute.of allows this via a targeted
-        // compatibility exception and emits a KGP-specific deprecation warning. KGP 2.1.0+ no
-        // longer uses the plain enum, so the deprecation is expected only for the 2.0.x range.
+        // KGP 2.0.0 through 2.4.x declare an attribute of type KotlinNativeBundleArtifactsTypes, a plain
+        // enum that does not implement Named. Attribute.of allows this via a targeted compatibility
+        // exception and emits a KGP-specific deprecation warning.
+        // This test has no Kotlin/Native targets. Without them, only KGP 2.0.x declares the attribute,
+        // so only 2.0.x warns here. KGP 2.1.0 through 2.4.x also warn, but only in builds with native targets.
         if (kotlinVersionNumber.baseVersion >= KotlinGradlePluginVersions.KOTLIN_2_0_0 && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_1_0) {
-            deprecations << "Using the enum type KotlinNativeBundleArtifactsTypes as an attribute value type has been deprecated. This will fail with an error in Gradle 10. This enum does not implement Named. All Enums used as Attribute values should implement Named. This enum type is used by the Kotlin Gradle Plugin 2.0.x line. Upgrade to KGP 2.1.0 or later, in which the plugin no longer uses a plain enum for this attribute. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#kgp_native_bundle_attribute_enum".toString()
+            deprecations << "Using the enum type KotlinNativeBundleArtifactsTypes as an attribute value type has been deprecated. This will fail with an error in Gradle 10. This enum does not implement Named. All Enums used as Attribute values should implement Named. This enum type is used by Kotlin Gradle Plugin 2.0.0 through 2.4.x. Upgrade to KGP 2.5.0 or later, in which the plugin no longer uses a plain enum for this attribute. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#kgp_native_bundle_attribute_enum".toString()
         }
         return deprecations
     }

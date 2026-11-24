@@ -22,7 +22,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
       - name: Setup java
-        uses: actions/setup-java@v6.1.0
+        uses: actions/setup-java@v6.3.0
         with:
           distribution: temurin
           java-version: 25
@@ -34,7 +34,11 @@ jobs:
 
           git reset origin/master --hard
 
-          ./gradlew :wrapper --gradle-version=nightly
+          NIGHTLY=$(curl -fsSL https://services.gradle.org/versions/nightly)
+          NIGHTLY_VERSION=$(echo "$NIGHTLY" | jq -er '.version')
+          NIGHTLY_CHECKSUM=$(echo "$NIGHTLY" | jq -er '.checksum')
+
+          ./gradlew :wrapper --gradle-version="$NIGHTLY_VERSION" --gradle-distribution-sha256-sum="$NIGHTLY_CHECKSUM"
           ./gradlew :wrapper
 
           if ! git diff --quiet; then

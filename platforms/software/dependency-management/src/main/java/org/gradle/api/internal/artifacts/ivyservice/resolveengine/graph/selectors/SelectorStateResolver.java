@@ -43,27 +43,26 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class SelectorStateResolver<T extends ComponentResolutionState> {
+
     private final ModuleConflictResolver<T> conflictResolver;
-    private final ComponentStateFactory<T> componentFactory;
     private final T rootComponent;
     private final ModuleIdentifier rootModuleId;
     private final ResolveOptimizations resolveOptimizations;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
 
-    public SelectorStateResolver(ModuleConflictResolver<T> conflictResolver, ComponentStateFactory<T> componentFactory, T rootComponent, ResolveOptimizations resolveOptimizations, Comparator<Version> versionComparator, VersionParser versionParser) {
+    public SelectorStateResolver(ModuleConflictResolver<T> conflictResolver, T rootComponent, ResolveOptimizations resolveOptimizations, Comparator<Version> versionComparator, VersionParser versionParser) {
         this.conflictResolver = conflictResolver;
-        this.componentFactory = componentFactory;
         this.rootComponent = rootComponent;
-        this.rootModuleId = rootComponent.getId().getModule();
+        this.rootModuleId = rootComponent.getModule().getId();
         this.resolveOptimizations = resolveOptimizations;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
     }
 
-    public T selectBest(ModuleIdentifier moduleId, ModuleSelectors<? extends ResolvableSelectorState> selectors) {
+    public T selectBest(ModuleIdentifier moduleId, ModuleSelectors<? extends ResolvableSelectorState> selectors, ComponentStateFactory<T> componentFactory) {
         VersionSelector allRejects = createAllRejects(selectors);
-        List<T> candidates = resolveSelectors(selectors, allRejects);
+        List<T> candidates = resolveSelectors(selectors, allRejects, componentFactory);
         assert !candidates.isEmpty();
 
         // If the module matches, add the root component into the mix
@@ -94,27 +93,27 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         return resolveConflicts(candidates);
     }
 
-    private List<T> resolveSelectors(ModuleSelectors<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
+    private List<T> resolveSelectors(ModuleSelectors<? extends ResolvableSelectorState> selectors, VersionSelector allRejects, ComponentStateFactory<T> componentFactory) {
         if (selectors.size() == 1) {
             ResolvableSelectorState selectorState = selectors.first();
             // Short-circuit selector merging for single selector without 'prefer'
             if (selectorState.getVersionConstraint() == null || selectorState.getVersionConstraint().getPreferredSelector() == null) {
-                return resolveSingleSelector(selectorState, allRejects);
+                return resolveSingleSelector(selectorState, allRejects, componentFactory);
             }
         }
 
-        List<T> results = buildResolveResults(selectors, allRejects);
+        List<T> results = buildResolveResults(selectors, allRejects, componentFactory);
         if (results.isEmpty()) {
             // Every selector was empty: simply 'resolve' one of them
-            return resolveSingleSelector(selectors.first(), allRejects);
+            return resolveSingleSelector(selectors.first(), allRejects, componentFactory);
         }
         return results;
     }
 
-    private List<T> resolveSingleSelector(ResolvableSelectorState selectorState, VersionSelector allRejects) {
+    private List<T> resolveSingleSelector(ResolvableSelectorState selectorState, VersionSelector allRejects, ComponentStateFactory<T> componentFactory) {
         assert selectorState.getVersionConstraint() == null || selectorState.getVersionConstraint().getPreferredSelector() == null;
         ComponentIdResolveResult resolved = selectorState.resolve(allRejects);
-        T selected = SelectorStateResolverResults.componentForIdResolveResult(componentFactory, resolved, selectorState);
+        T selected = SelectorStateResolverResults.componentForIdResolveResult(componentFactory, resolved);
         return Collections.singletonList(selected);
     }
 
@@ -123,7 +122,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      * If a single version can satisfy all of the selectors, the result will reflect this.
      * If not, a minimal set of versions will be provided in the result, and conflict resolution will be required to choose.
      */
-    private List<T> buildResolveResults(ModuleSelectors<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
+    private List<T> buildResolveResults(ModuleSelectors<? extends ResolvableSelectorState> selectors, VersionSelector allRejects, ComponentStateFactory<T> componentFactory) {
         SelectorStateResolverResults results = new SelectorStateResolverResults(versionComparator, versionParser, selectors.size());
         TreeSet<ComponentIdResolveResult> preferResults = null; // Created only on demand
 
@@ -251,4 +250,5 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
             return versionComparator.compare(versionParser.transform(o2.getModuleVersionId().getVersion()), versionParser.transform(o1.getModuleVersionId().getVersion()));
         }
     }
+
 }

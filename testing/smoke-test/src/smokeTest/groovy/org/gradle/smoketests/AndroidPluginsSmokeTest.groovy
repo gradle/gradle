@@ -47,6 +47,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         and:
         def abiChange = androidLibraryAndApplicationBuild(agpVersion)
+        def expectSetVisible = VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.6.0")
 
         and:
         def runner = agpRunner(agpVersion,
@@ -58,7 +59,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         def result = runner
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
-                expectSetVisibleDeprecation()
+                expectSetVisibleDeprecationIf(expectSetVisible)
             }
             .build()
 
@@ -79,7 +80,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result = runner
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
-                expectSetVisibleDeprecationIf(GradleContextualExecuter.isNotConfigCache())
+                expectSetVisibleDeprecationIf(expectSetVisible && GradleContextualExecuter.isNotConfigCache())
             }
             .build()
 
@@ -99,7 +100,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result = runner
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
-                expectSetVisibleDeprecationIf(GradleContextualExecuter.isNotConfigCache())
+                expectSetVisibleDeprecationIf(expectSetVisible && GradleContextualExecuter.isNotConfigCache())
             }
             .build()
 
@@ -118,13 +119,13 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         agpRunner(agpVersion, 'clean')
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
-                expectSetVisibleDeprecation()
+                expectSetVisibleDeprecationIf(expectSetVisible)
             }
             .build()
         result = runner
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
-                expectSetVisibleDeprecationIf(GradleContextualExecuter.isNotConfigCache())
+                expectSetVisibleDeprecationIf(expectSetVisible && GradleContextualExecuter.isNotConfigCache())
             }.build()
 
         then:

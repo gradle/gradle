@@ -19,6 +19,8 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.internal.cc.impl.fixtures.BuildLogicChangeFixture
+import org.gradle.internal.cc.impl.inputs.undeclared.EnvVariableInjection
+import org.gradle.util.internal.ToBeImplemented
 
 import static org.junit.Assume.assumeFalse
 
@@ -101,5 +103,87 @@ class ConfigurationCacheIncludedBuildInputsChangesIntegrationTest extends Abstra
         'system property'     | 'providers.systemProperty("test_is_ci")' | '-Dtest_is_ci=true'
         'Gradle property'     | 'providers.gradleProperty("test_is_ci")' | '-Ptest_is_ci=true'
         'gradle.properties'   | 'providers.gradleProperty("test_is_ci")' | ''
+    }
+
+    def "invalidates cache upon change to environment variable read by included build logic task"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        withIncludedBuildLogicTaskReadingEnvVar()
+
+        when:
+        executer.withEnvironmentVars(FOO: "one")
+        configurationCacheRun "greet"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("FOO = one")
+
+        when:
+        executer.withEnvironmentVars(FOO: "two")
+        configurationCacheRun "greet"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("environment variable 'FOO' has changed")
+    }
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/39887")
+    def "invalidates cache upon change to environment variable read by included build logic task that was up-to-date when cache entry was stored"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        withIncludedBuildLogicTaskReadingEnvVar()
+
+        when: "build logic is built without configuration cache"
+        executer.withEnvironmentVars(FOO: "one")
+        run "greet", "--no-configuration-cache"
+
+        then:
+        outputContains("FOO = one")
+
+        when: "build logic task is up-to-date, so its environment variable read is not recorded"
+        executer.withEnvironmentVars(FOO: "one")
+        configurationCacheRun "greet"
+
+        then:
+        configurationCache.assertStateStored()
+        result.assertTaskSkipped(":build-logic:jar")
+        outputDoesNotContain("FOO =")
+
+        when:
+        executer.withEnvironmentVars(FOO: "two")
+        configurationCacheRun "greet"
+
+        then:
+        // TODO: the cache entry should be invalidated, because the build logic task reads FOO
+        configurationCache.assertStateLoaded()
+        outputDoesNotContain("environment variable 'FOO' has changed")
+    }
+
+    private void withIncludedBuildLogicTaskReadingEnvVar() {
+        EnvVariableInjection.checkEnvironmentVariableUnset("FOO")
+        settingsFile """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+        """
+        buildFile """
+            plugins { id("my-plugin") }
+        """
+        settingsFile "build-logic/settings.gradle", ""
+        buildFile "build-logic/build.gradle", """
+            plugins { id("groovy-gradle-plugin") }
+
+            tasks.named("jar") {
+                doLast {
+                    // not declared as an input
+                    println("FOO = " + System.getenv("FOO"))
+                }
+            }
+        """
+        groovyFile "build-logic/src/main/groovy/my-plugin.gradle", """
+            tasks.register("greet") {
+                doLast { println("Hello!") }
+            }
+        """
     }
 }

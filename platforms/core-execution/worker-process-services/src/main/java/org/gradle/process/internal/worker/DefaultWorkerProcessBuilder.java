@@ -28,6 +28,7 @@ import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.remote.ObjectConnection;
+import org.gradle.internal.remote.internal.inet.ConnectionHandshake;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.JavaExecHandleBuilder;
@@ -49,7 +50,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
-import java.security.SecureRandom;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -226,8 +226,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         final WorkerJvmMemoryStatus memoryStatus = shouldPublishJvmMemoryInfo ? new WorkerJvmMemoryStatus() : null;
         final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS, memoryStatus);
 
-        byte[] connectionToken = new byte[16];
-        new SecureRandom().nextBytes(connectionToken);
+        byte[] connectionToken = ConnectionHandshake.newConnectionToken();
 
         ConnectionAcceptor acceptor = server.accept(connection ->
             workerProcess.onConnect(connection, () -> {

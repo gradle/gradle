@@ -25,10 +25,13 @@ class SampleIncludeProcessorTest extends AbstractAsciidoctorTest {
     @Rule
     TemporaryFolder tmpDir = new TemporaryFolder()
 
-    def setup() {
-        tmpDir.newFolder("src", "samples")
+    def setupSpec() {
         JavaExtensionRegistry extensionRegistry = asciidoctor.javaExtensionRegistry()
         extensionRegistry.includeProcessor(SampleIncludeProcessor.class)
+    }
+
+    def setup() {
+        tmpDir.newFolder("src", "samples")
     }
 
     def "requires dir and files attributes"() {

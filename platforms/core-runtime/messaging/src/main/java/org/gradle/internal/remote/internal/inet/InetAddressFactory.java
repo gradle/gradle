@@ -25,9 +25,12 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Set;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Provides information on how two processes on this machine can communicate via IP addresses
@@ -36,9 +39,9 @@ import java.util.Set;
 public class InetAddressFactory {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Object lock = new Object();
-    private InetAddress localBindingAddress;
-    private InetAddress wildcardBindingAddress;
-    private InetAddresses inetAddresses;
+    private @Nullable InetAddress localBindingAddress;
+    private @Nullable InetAddress wildcardBindingAddress;
+    private @Nullable InetAddresses inetAddresses;
     private boolean initialized;
 
     public InetAddressFactory() {
@@ -53,12 +56,31 @@ public class InetAddressFactory {
      * Determines if the IP address can be used for communication with this machine
      */
     public boolean isCommunicationAddress(InetAddress address) {
-        return getLocalBindingAddress().equals(address);
+        //TODO IllegalStateException might be a better option here. In the interest of not changing the behavior, we keep this
+        return requireNonNull(getLocalBindingAddress()).equals(address);
     }
 
     /**
-     * Local communication address for this machine
+     * Determines if the IP address belongs to this machine: a loopback or wildcard address, or an address of one of its network interfaces.
+     * Unlike {@link #isCommunicationAddress(InetAddress)}, it does not depend on this process's bind address configuration,
+     * so it also accepts the address of a daemon that was started with a different one.
      */
+    public static boolean isLocalAddress(InetAddress address) {
+        if (address.isLoopbackAddress() || address.isAnyLocalAddress()) {
+            return true;
+        }
+        try {
+            return NetworkInterface.getByInetAddress(address) != null;
+        } catch (SocketException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Local communication address for this machine.
+     * Returns null when a previous call failed to determine the address.
+     */
+    @Nullable
     public InetAddress getLocalBindingAddress() {
         try {
             synchronized (lock) {
@@ -79,7 +101,7 @@ public class InetAddressFactory {
         try {
             synchronized (lock) {
                 init();
-                return wildcardBindingAddress;
+                return requireNonNull(wildcardBindingAddress);
             }
         } catch (InvalidUserDataException e) {
             throw e;

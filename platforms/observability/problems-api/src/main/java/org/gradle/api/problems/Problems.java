@@ -29,6 +29,8 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * <p>
  * Clients should expect that in future Gradle versions the reported problems will appear in console messages, reports, etc.
  *
+ * <p>An instance of this type can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}.</p>
+ *
  * @since 8.4
  */
 @Incubating

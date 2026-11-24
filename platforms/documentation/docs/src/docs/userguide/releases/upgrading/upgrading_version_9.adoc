@@ -44,6 +44,43 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+[[architecture_e2k]]
+==== New `E2K` constant in the incubating `Architecture` enum
+
+The incubating link:{javadocPath}/org/gradle/platform/Architecture.html[`Architecture`] enum has a new constant, `E2K`, for MCST Elbrus processors.
+Gradle recognizes the architecture but doesn't support it yet.
+
+This affects builds that add `E2K` to the `toolchainPlatforms` of the `updateDaemonJvm` task:
+
+* A `JavaToolchainResolver` that handles every `Architecture` value explicitly, for example with an exhaustive Kotlin `when` without an `else` branch, fails when it receives `E2K`. Resolvers should return `Optional.empty()` for architectures they don't support.
+* Gradle versions earlier than 9.10.0 can't read a `gradle-daemon-jvm.properties` file that contains `toolchainUrl.<OS>.E2K` entries, and fail at startup.
+
+[[aws_sdk_v2_for_s3_repositories]]
+==== S3 repositories use the AWS SDK for Java 2.x
+
+Gradle now uses version 2 of the AWS SDK for Java to access <<supported_repository_protocols.adoc#sec:s3-repositories,S3-backed repositories>>.
+Version 1 is no longer part of the Gradle distribution.
+
+Repositories that use `AwsImAuthentication` get their credentials from the default credential lookup of the AWS SDK.
+Until now, that lookup also read the following names, through version 1 of the SDK.
+Version 2 doesn't read them, so builds that provide credentials through them must switch to the names that version 2 reads:
+
+* The `aws.secretKey` system property: use `aws.secretAccessKey`.
+* The `AWS_ACCESS_KEY` environment variable: use `AWS_ACCESS_KEY_ID`.
+* The `AWS_SECRET_KEY` environment variable: use `AWS_SECRET_ACCESS_KEY`.
+* The `AWS_CREDENTIAL_PROFILES_FILE` environment variable: use `AWS_SHARED_CREDENTIALS_FILE`.
+
+When Gradle requests the metadata of a resource that doesn't exist, it now makes two requests instead of one.
+Version 2 of the SDK reads metadata with a `HEAD` request, and S3's `404` response to it doesn't say whether the resource or the whole bucket is missing, so Gradle follows up with a `GET` request to find out.
+Build results don't change: a missing resource is still reported as missing, and a misspelled or deleted bucket still fails the build with S3's "The specified bucket does not exist" error, as with version 1 of the SDK.
+The follow-up request needs the same `s3:GetObject` permission as downloads, so builds that resolve from S3 need no new permissions.
+The only difference is the extra request for each missing resource, which S3 counts like any other `GET` request.
+
+Gradle keeps ignoring the endpoint settings of the AWS SDK, such as the `AWS_ENDPOINT_URL` environment variable and the `endpoint_url` profile property.
+Use the <<supported_repository_protocols.adoc#sec:s3-configuration-properties,`org.gradle.s3.endpoint` system property>> to change the endpoint.
+
+The `aws.java.v1.disableDeprecationAnnouncement` system property no longer has any effect and can be removed.
+
 [[derived_task_output_providers_execution_time]]
 ==== Transformations after `asFile`, `dir`, `file` and `zip` on task outputs are deferred
 
@@ -160,8 +197,106 @@ If your build asserts on an attribute value read from a `ResolutionResult` or fr
 Build operations and published Gradle Module Metadata already reported the name, so assertions against those are unaffected.
 Do not reintroduce the old string by overriding `getName()` to return `toString()`; see <<variant_attributes.adoc#sec:creating-attributes, Creating attributes>> for why the two must agree.
 
+[[v9_upgrade_to_asm_9_11_1]]
+==== Upgrade to ASM 9.11.1
+
+ASM was upgraded from 9.10.1 to https://asm.ow2.io/versions.html[9.11.1], which is not affected by CVE-2026-110260.
+
+[[v9_upgrade_to_jacoco_0_8_16]]
+==== Upgrade to JaCoCo 0.8.16
+
+The default version of JaCoCo has been updated from 0.8.15 to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.16].
+
+[[v9_upgrade_to_pmd_7_29_0]]
+==== Upgrade to PMD 7.29.0
+
+The default version of PMD has been updated from 7.24.0 to link:https://github.com/pmd/pmd/releases/tag/pmd_releases%2F7.29.0[7.29.0].
+
+[[v9_upgrade_to_checkstyle_10_26_1]]
+==== Upgrade to Checkstyle 10.26.1
+
+The default version of Checkstyle has been updated from 10.24.0 to link:https://checkstyle.org/releasenotes.html[10.26.1].
+
+[[v9_upgrade_to_zinc_1_13_0]]
+==== Upgrade to Zinc 1.13.0
+
+The default version of Zinc used by the <<scala_plugin.adoc#scala_plugin,Scala plugin>> has been updated from 1.12.0 to https://github.com/sbt/zinc/releases/tag/v1.13.0[1.13.0].
+
+[[v9_upgraded_default_versions_of_testing_frameworks]]
+==== Upgraded default versions of testing frameworks
+
+When a <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,test suite>> uses a testing framework without specifying its version, Gradle provides a default version.
+The following default versions have changed:
+
+* JUnit Jupiter has been updated from 5.12.2 to link:https://docs.junit.org/5.14.4/release-notes/[5.14.4].
+* TestNG has been updated from 7.11.0 to link:https://github.com/testng-team/testng/releases/tag/7.12.0[7.12.0].
+
+[[toolchain_archive_name_and_format]]
+==== Toolchain archives without a file name are named from the download URL
+
+When Gradle downloads a toolchain, it names the archive after the file name in the `Content-Disposition` header or, if there is no such header, after the last segment of the URL.
+Previously, provisioning failed with `Can't determine filename for resource located at: <url>` when the server sent a `Content-Disposition` header without a file name.
+Gradle now names such an archive after a hash of the full download URL, including its query.
+
+Gradle reuses a downloaded archive only if it finds one with the same name.
+For archives named from a hash of the URL, a resolver that returns a different URL for each request, for example one with an expiring access token, makes Gradle download the archive again each time it provisions a toolchain.
+See <<toolchain_plugins.adoc#sec:download_archive_naming,How Gradle names and reuses downloaded archives>>.
+
+Gradle also detects whether a toolchain archive is a zip or a tar.gz file from its content.
+Previously, Gradle relied on the file extension: it unpacked a `.zip` file as a zip archive and any other file as a tar.gz archive.
+An archive whose extension does not match its content now unpacks correctly.
+An archive that is neither a zip nor a tar.gz file fails with `Unsupported JDK archive format`.
+
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier
+
+[[changes_9.9.2]]
+=== Changes in Gradle 9.9.2 and above
+
+The following changes were introduced in Gradle 9.9.2, a patch release.
+They apply when upgrading to Gradle 9.9.2 or any later version, including from 9.9.0 or 9.9.1.
+
+[[sftp_host_key_verification]]
+==== SFTP repositories verify the server's host key
+
+Gradle now verifies the identity of the server when resolving from or publishing to an `sftp://` repository.
+Previously, any host key was accepted.
+
+The build now fails with "Could not verify the identity of SFTP server" when the server's host is not listed in `~/.ssh/known_hosts` or `/etc/ssh/ssh_known_hosts` (`%ProgramData%\ssh\ssh_known_hosts` on Windows), or when the listed key does not match.
+The files are read for the user running the Gradle daemon, which matters on CI agents and in containers.
+
+To fix this, check the fingerprint printed in the error message with the server's administrator and add the key to a known hosts file, for example with `ssh-keyscan`.
+Host certificates (`@cert-authority` entries) are not supported.
+
+As a last resort, setting `allowInsecureProtocol = true` on the repository disables the check.
+See <<supported_repository_protocols.adoc#supported-transport-protocols,Supported Protocols>> for details.
+
+[[dependency_verification_changing_modules]]
+==== Dependency verification applies to changing modules
+
+<<securing_dependencies.adoc#verifying-dependencies,Dependency verification>> now also verifies changing modules: `SNAPSHOT` versions and dependencies declared with `changing = true`.
+Previously, their artifacts and metadata were skipped.
+
+Builds that use verification metadata and resolve changing modules now fail with "Dependency verification failed" until those modules are covered.
+You can either:
+
+* verify them by signature, with the publisher's key as a trusted key,
+* declare them as <<securing_dependencies.adoc#sec:trusting-artifacts,trusted artifacts>>, for example by matching `.*-SNAPSHOT` versions of your own groups, or
+* record their checksums with `--write-verification-metadata`, knowing they must be updated each time the module is published again.
+
+`--write-verification-metadata` now also writes entries for changing modules, so regenerating the file adds entries that were not there before.
+
+[[testkit_default_dir_per_user]]
+==== TestKit default directory outside a `Test` task is per user
+
+When `GradleRunner` runs outside a Gradle `Test` task, such as in an IDE test runner, its default TestKit directory is now `.gradle-test-kit-<user name>` inside `java.io.tmpdir` instead of `.gradle-test-kit`.
+Gradle creates it with access restricted to the current user.
+
+The first run after upgrading starts with an empty directory, so distributions and dependencies are downloaded again; the old `.gradle-test-kit` directory can be deleted.
+The runner refuses to use an existing directory that is a symbolic link, is owned by another user, or is writable by other users.
+
+Tests run by a `Test` task, and tests that set `org.gradle.testkit.dir` or call `GradleRunner.withTestKitDir(...)`, are unaffected.
+See <<test_kit.adoc#sec:controlling_the_build_environment,Controlling the build environment>> for details.
 
 === Potential breaking changes
 
@@ -1725,12 +1860,15 @@ See the <<variant_attributes.adoc#sec:creating-attributes, variant attributes do
 [[kgp_native_bundle_attribute_enum]]
 ==== Deprecation of using `KotlinNativeBundleArtifactsTypes` as an attribute value type
 
-The Kotlin Gradle Plugin (KGP) 2.0.x line registers an attribute of type `org.jetbrains.kotlin.gradle.targets.native.toolchain.KotlinNativeBundleArtifactFormat.KotlinNativeBundleArtifactsTypes` — a plain Java `Enum` that does not implement `org.gradle.api.Named`.
+Kotlin Gradle Plugin (KGP) 2.0.0 through 2.4.x register an attribute of type `org.jetbrains.kotlin.gradle.targets.native.toolchain.KotlinNativeBundleArtifactFormat.KotlinNativeBundleArtifactsTypes` — a plain Java `Enum` that does not implement `org.gradle.api.Named`.
+KGP 2.0.x triggers this deprecation in every build. KGP 2.1.0 through 2.4.x trigger it only in builds with Kotlin/Native targets.
 
 This deprecation is a specialized variant of the general <<#unsupported_attribute_value_type, unsupported attribute value type>> deprecation, called out separately so users can identify KGP as the source and remediate by upgrading the plugin.
 
-To fix builds affected by this deprecation, upgrade the Kotlin Gradle Plugin to 2.1.0 or later.
-KGP 2.1.0 and newer do not use a plain enum for this attribute and are unaffected.
+To fix builds affected by this deprecation, upgrade the Kotlin Gradle Plugin to 2.5.0 or later.
+KGP 2.5.0 and newer do not use a plain enum for this attribute and are unaffected (link:https://youtrack.jetbrains.com/issue/KT-89265[KT-89265]).
+
+At the time of writing, KGP 2.5.0 is not yet stable, so builds with Kotlin/Native targets on stable KGP cannot avoid this warning.
 
 Like the general case, this deprecation will become an error in Gradle 10.
 

@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
@@ -64,18 +63,16 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
         long componentId,
         long variantId,
         LenientPlatformResolveMetadata metadata,
-        VirtualPlatformState virtualPlatformState,
-        ResolveState resolveState
+        VirtualPlatformState virtualPlatformState
     ) {
         super(componentId, metadata);
 
-        this.variant = createVariant(variantId, virtualPlatformState, resolveState, metadata.getId());
+        this.variant = createVariant(variantId, virtualPlatformState, metadata.getId());
     }
 
     private static LenientPlatformVariantGraphResolveState createVariant(
         long instanceId,
         VirtualPlatformState virtualPlatformState,
-        ResolveState resolveState,
         ModuleComponentIdentifier platformId
     ) {
         String name = Dependency.DEFAULT_CONFIGURATION;
@@ -84,7 +81,6 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
             instanceId,
             platformId,
             virtualPlatformState,
-            resolveState,
             new LenientPlatformVariantGraphResolveMetadata(variantId, name)
         );
     }
@@ -208,7 +204,6 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
         private final long instanceId;
         private final ModuleComponentIdentifier platformId;
         private final VirtualPlatformState virtualPlatformState;
-        private final ResolveState resolveState;
         private final LenientPlatformVariantGraphResolveMetadata metadata;
 
         private final LenientPlatformVariantArtifactResolveState artifactResolveState;
@@ -217,13 +212,11 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
             long instanceId,
             ModuleComponentIdentifier platformId,
             VirtualPlatformState virtualPlatformState,
-            ResolveState resolveState,
             LenientPlatformVariantGraphResolveMetadata metadata
         ) {
             this.instanceId = instanceId;
             this.platformId = platformId;
             this.virtualPlatformState = virtualPlatformState;
-            this.resolveState = resolveState;
             this.metadata = metadata;
 
             this.artifactResolveState = new LenientPlatformVariantArtifactResolveState(platformId, metadata);
@@ -287,7 +280,7 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
                 // To do this, we either check module has already selected the target version
                 // or we need to resolve the potential target version to see if it exists.
                 if (selectedComponent.getComponentId().equals(targetComponentId) ||
-                    componentVersionExists(targetComponentId)
+                    componentVersionExists(module, targetComponentId)
                 ) {
                     return createConstraint(targetComponentId, forced);
                 }
@@ -299,12 +292,9 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
         /**
          * Determine if the given component version exists, by resolving it.
          */
-        private boolean componentVersionExists(ModuleComponentIdentifier componentId) {
-            ModuleVersionIdentifier moduleVersionId =
-                DefaultModuleVersionIdentifier.newId(componentId.getModuleIdentifier(), componentId.getVersion());
-            return resolveState.getModule(componentId.getModuleIdentifier())
-                .getVersion(moduleVersionId, componentId)
-                .getResolveStateOrNull() != null;
+        private static boolean componentVersionExists(ModuleResolveState module, ModuleComponentIdentifier componentId) {
+            ComponentState component = module.getVersion(componentId, componentId.getVersion());
+            return component.getResolveStateOrNull() != null;
         }
 
         private LenientPlatformDependencyMetadata createConstraint(

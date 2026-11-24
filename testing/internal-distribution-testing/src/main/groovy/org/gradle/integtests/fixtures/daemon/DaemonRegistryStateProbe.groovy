@@ -28,7 +28,7 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import static org.gradle.launcher.daemon.server.api.DaemonState.Stopped
 
 class DaemonRegistryStateProbe implements DaemonStateProbe {
-    private static final byte[] WRONG_TOKEN = "wrong token 1234".bytes
+    private static final byte[] WRONG_TOKEN = "wrong token 1234wrong token 5678".bytes
 
     private final DaemonRegistry registry
     private final DaemonContext context

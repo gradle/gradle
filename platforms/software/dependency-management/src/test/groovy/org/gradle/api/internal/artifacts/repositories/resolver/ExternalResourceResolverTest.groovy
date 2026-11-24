@@ -25,6 +25,9 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactP
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource
 import org.gradle.api.internal.artifacts.repositories.metadata.MutableModuleMetadataFactory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
@@ -44,9 +47,7 @@ class ExternalResourceResolverTest extends Specification {
     ExternalResourceRepository repository = Mock()
     BuildableArtifactFileResolveResult artifactResult = Mock()
     BuildableModuleComponentMetaDataResolveResult metadataResult = Mock()
-    ModuleComponentArtifactIdentifier artifactIdentifier = Stub() {
-        getDisplayName() >> '<some-artifact>'
-    }
+    ModuleComponentArtifactIdentifier artifactIdentifier = new ModuleComponentFileArtifactIdentifier(DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "1.0"), "module-1.0.jar")
     ModuleComponentArtifactMetadata artifact = Stub() {
         getId() >> artifactIdentifier
     }
@@ -84,7 +85,7 @@ class ExternalResourceResolverTest extends Specification {
             throw new RuntimeException("DOWNLOAD FAILURE")
         }
         1 * artifactResult.failed(_) >> { ArtifactResolveException exception ->
-            assert exception.message == "Could not download <some-artifact>"
+            assert exception.message == "Could not download module-1.0.jar (group:module:1.0)"
             assert exception.cause.message == "DOWNLOAD FAILURE"
         }
         0 * artifactResult._

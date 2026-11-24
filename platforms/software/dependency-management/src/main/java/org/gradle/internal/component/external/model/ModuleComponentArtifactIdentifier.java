@@ -22,6 +22,12 @@ import org.gradle.internal.DisplayName;
 
 /**
  * An immutable identifier for an artifact that belongs to some module version.
+ *
+ * <p>
+ * This must remain an interface, as third-party plugins (e.g. the Spring Boot plugin) reference it
+ * and call its methods with {@code invokeinterface}.
+ * Implementations should extend {@link AbstractModuleComponentArtifactIdentifier} so that equality is consistent between them.
+ * </p>
  */
 public interface ModuleComponentArtifactIdentifier extends ComponentArtifactIdentifier, DisplayName {
     /**
@@ -31,8 +37,21 @@ public interface ModuleComponentArtifactIdentifier extends ComponentArtifactIden
     ModuleComponentIdentifier getComponentIdentifier();
 
     /**
-     * The base name of the file of the identified artifact.
+     * The name of the file that the identified artifact is stored as locally.
+     *
+     * @implNote This is used as part of equality and hashing because downstream consumers may only use this name to identify the artifact.
+     * We need to ensure that the same file stored in two different locations is treated as two different artifacts.
      */
-    String getFileName();
+    String getDestinationFileName();
 
+    /**
+     * The path of the identified artifact, relative to the directory that the module would use.
+     *
+     * <p>
+     * Note that this may be assumed in some cases and not perfectly match the actual path used during resolution.
+     * For example, Ivy repositories may use layouts that differ from the default layout, which must be used here
+     * because identifiers are not aware of the owning repository.
+     * </p>
+     */
+    String getFilePath();
 }

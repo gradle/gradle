@@ -17,7 +17,6 @@
 package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
@@ -25,7 +24,6 @@ import org.gradle.test.fixtures.file.TestFile
 
 import static org.junit.Assume.assumeFalse
 
-@ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
 class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
     private static final String LIBRARY = ':library'
@@ -49,17 +47,15 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
     def setup() {
         assumeFalse(toolChain.family == AvailableToolChains.ToolFamily.CYGWIN_GCC) // [test setup issue] fails with - greet.cpp:2:22: fatal error: app.hpp: No such file or directory
-        buildFile << """
-            project(':library') {
-                apply plugin: 'cpp-library'
+        buildFile("library/build.gradle", """
+            apply plugin: 'cpp-library'
+        """)
+        buildFile("app/build.gradle", """
+            apply plugin: 'cpp-application'
+            dependencies {
+                implementation project(':library')
             }
-            project(':app') {
-                apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':library')
-                }
-            }
-        """
+        """)
         createDirs("library", "app")
         settingsFile << """
             rootProject.name = 'test'
@@ -573,13 +569,11 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
             }
         """
 
-        buildFile << """
-            project(':app') {
-                tasks.withType(CppCompile) {
-                    macros.put('MACRO','${macro}')
-                }
+        buildFile("app/build.gradle", """
+            tasks.withType(CppCompile) {
+                macros.put('MACRO','${macro}')
             }
-        """
+        """)
 
         then:
         succeeds installApp
@@ -1440,11 +1434,9 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         install.exec().out == "hello world"
 
         when:
-        buildFile << """
-            project(':app') {
-                application.privateHeaders.from = ['src/main/include']
-            }
-        """
+        buildFile("app/build.gradle", """
+            application.privateHeaders.from = ['src/main/include']
+        """)
 
         then:
         succeeds installApp
@@ -1485,11 +1477,9 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         libObjects.noneRecompiled()
 
         when:
-        buildFile << """
-            project(':app') {
-                application.privateHeaders.from = ['src/main/headers']
-            }
-        """
+        buildFile("app/build.gradle", """
+            application.privateHeaders.from = ['src/main/headers']
+        """)
 
         and:
         appObjects.snapshot()
@@ -1519,13 +1509,11 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
             #define TARGET "world"
         """
 
-        buildFile << """
-            project(':app') {
-                tasks.withType(CppCompile) {
-                    systemIncludes.from("src/main/system")
-                }
+        buildFile("app/build.gradle", """
+            tasks.withType(CppCompile) {
+                systemIncludes.from("src/main/system")
             }
-        """
+        """)
 
         then:
         succeeds installApp

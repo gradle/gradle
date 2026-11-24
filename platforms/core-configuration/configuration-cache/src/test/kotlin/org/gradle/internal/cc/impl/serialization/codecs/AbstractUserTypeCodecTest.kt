@@ -37,10 +37,11 @@ import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.FlushableEncoder
 import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
 import org.gradle.internal.serialize.beans.services.test.beanStateReaderLookupForTesting
-import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
+import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.MutableIsolateContext
 import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.runWriteOperation
@@ -85,10 +86,11 @@ abstract class AbstractUserTypeCodecTest {
     fun <T : Any> configurationCacheRoundtripOf(
         graph: T,
         codec: Codec<Any?> = userTypesCodec(),
-        integrityCheck: Boolean = false
+        integrityCheck: Boolean = false,
+        readIsolateOwner: IsolateOwner = IsolateOwners.OwnerGradle(mock())
     ): T =
         writeToByteArray(graph, codec, integrityCheck)
-            .let { readFromByteArray(it, codec, integrityCheck)!! }
+            .let { readFromByteArray(it, codec, integrityCheck, readIsolateOwner)!! }
             .uncheckedCast()
 
     internal
@@ -126,18 +128,24 @@ abstract class AbstractUserTypeCodecTest {
     }
 
     internal
-    fun readFromByteArray(bytes: ByteArray, codec: Codec<Any?>, integrityCheck: Boolean = false) =
-        readFrom(ByteArrayInputStream(bytes), codec, loggingProblemsListener(), integrityCheck)
+    fun readFromByteArray(
+        bytes: ByteArray,
+        codec: Codec<Any?>,
+        integrityCheck: Boolean = false,
+        isolateOwner: IsolateOwner = IsolateOwners.OwnerGradle(mock())
+    ) =
+        readFrom(ByteArrayInputStream(bytes), codec, loggingProblemsListener(), integrityCheck, isolateOwner)
 
     private
     fun readFrom(
         inputStream: ByteArrayInputStream,
         codec: Codec<Any?>,
         problemsListener: ProblemsListener,
-        integrityCheck: Boolean = false
+        integrityCheck: Boolean,
+        isolateOwner: IsolateOwner
     ) =
         readContextFor(inputStream, codec, problemsListener, integrityCheck).run {
-            withIsolateMock(codec) {
+            withIsolate(isolateOwner, codec) {
                 runReadOperation {
                     read()
                 }
@@ -232,7 +240,7 @@ abstract class AbstractUserTypeCodecTest {
         fileFactory = mock(),
         buildStateRegistry = mock(),
         documentationRegistry = mock(),
-        javaSerializationEncodingLookup = JavaSerializationEncodingLookup(ObjectOpener.agentless()),
+        javaObjectSerializationCodec = JavaObjectSerializationCodec(ObjectOpener.agentless()),
         transformStepNodeFactory = mock(),
         problems = mock(),
         taskDependencyFactory = mock(),

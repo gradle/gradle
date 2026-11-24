@@ -25,14 +25,14 @@ jobs:
           role-to-assume: arn:aws:iam::992382829881:role/GHASecrets_gradle_all
           aws-region: "eu-central-1"
       - name: get secrets
-        uses: aws-actions/aws-secretsmanager-get-secrets@v3
+        uses: aws-actions/aws-secretsmanager-get-secrets@v4
         with:
           secret-ids: |
             PERFORMANCE_DB_URL, gha/gradle/_all/PERFORMANCE_DB_URL
             PERFORMANCE_DB_USERNAME, gha/gradle/_all/PERFORMANCE_DB_USERNAME
             PERFORMANCE_DB_PASSWORD_TCAGENT, gha/gradle/_all/PERFORMANCE_DB_PASSWORD
       - name: Setup java
-        uses: actions/setup-java@v6.1.0
+        uses: actions/setup-java@v6.3.0
         with:
           distribution: temurin
           java-version: 25
@@ -45,7 +45,7 @@ jobs:
         uses: peter-evans/create-pull-request@v8
         with:
           commit-message: Update performance test durations
-          branch: bot-update-performance-test-durations
+          branch: devprod/update-performance-test-durations
           branch-suffix: timestamp
           delete-branch: true
           title: 'Update performance test durations'

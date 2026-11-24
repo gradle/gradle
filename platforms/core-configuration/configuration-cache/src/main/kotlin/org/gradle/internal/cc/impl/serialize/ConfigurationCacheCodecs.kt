@@ -41,6 +41,8 @@ import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.tasks.util.internal.PatternSetFactory
+import org.gradle.execution.plan.ActionNode
+import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.execution.InputFingerprinter
@@ -53,6 +55,7 @@ import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.BaseSerializerFactory.HASHCODE_SERIALIZER
+import org.gradle.internal.serialize.codecs.core.ActionNodeCodec
 import org.gradle.internal.serialize.codecs.core.BooleanValueSnapshotCodec
 import org.gradle.internal.serialize.codecs.core.BuildServiceParameterCodec
 import org.gradle.internal.serialize.codecs.core.BuildServiceProviderCodec
@@ -112,10 +115,10 @@ import org.gradle.internal.serialize.codecs.core.defaultCodecForProviderWithChan
 import org.gradle.internal.serialize.codecs.core.groovyCodecs
 import org.gradle.internal.serialize.codecs.core.jos.ExternalizableCodec
 import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec
-import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.dm.ArtifactCollectionCodec
 import org.gradle.internal.serialize.codecs.dm.AttributeContainerCodec
+import org.gradle.internal.serialize.codecs.dm.ComponentArtifactIdentifierCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultComponentArtifactsResultCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultGraphStructureCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultResolvableArtifactCodec
@@ -147,12 +150,14 @@ import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
 import org.gradle.internal.serialize.graph.codecs.BeanSpecCodec
-import org.gradle.internal.serialize.graph.codecs.Bindings
+import org.gradle.internal.serialize.graph.codecs.BindingsBackedCodec
+import org.gradle.internal.serialize.graph.codecs.BindingsBlueprint
 import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 import org.gradle.internal.serialize.graph.codecs.DelegatingCodec
 import org.gradle.internal.serialize.graph.codecs.NotImplementedCodec
 import org.gradle.internal.serialize.graph.codecs.ServicesCodec
 import org.gradle.internal.serialize.graph.codecs.ValueObjectCodec
+import org.gradle.internal.serialize.graph.codecs.bindingSlot
 import org.gradle.internal.serialize.graph.reentrant
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
@@ -207,7 +212,7 @@ class DefaultConfigurationCacheCodecs(
     documentationRegistry: DocumentationRegistry,
     taskDependencyFactory: TaskDependencyFactory,
     moduleIdentifierFactory: ImmutableModuleIdentifierFactory,
-    val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
+    val javaObjectSerializationCodec: JavaObjectSerializationCodec,
     transformStepNodeFactory: TransformStepNodeFactory,
     problems: ProblemsInternal,
     private val objectOpener: ObjectOpener,
@@ -224,14 +229,27 @@ class DefaultConfigurationCacheCodecs(
     private
     val parallelLoad: Boolean = modelParameters.isConfigurationCacheParallelLoad
 
+    // Slots for codecs that cannot be shared between codec instances, filled anew for every codec.
     private
-    val userTypesBindings: Bindings
+    val beanCodecSlot = bindingSlot<Any>()
 
     private
-    val fingerprintUserTypesBindings: Bindings
+    val taskNodeSlot = bindingSlot<LocalTaskNode>()
+
+    private
+    val transformStepNodeSlot = bindingSlot<TransformStepNode>()
+
+    private
+    val actionNodeSlot = bindingSlot<ActionNode>()
+
+    private
+    val userTypesBindings: BindingsBlueprint
+
+    private
+    val fingerprintUserTypesBindings: BindingsBlueprint
 
     init {
-        fun makeUserTypeBindings(providersBlock: BindingsBuilder.() -> Unit) = Bindings.of {
+        fun makeUserTypeBindings(providersBlock: BindingsBuilder.() -> Unit) = BindingsBlueprint.of {
             unsupportedTypes()
 
             baseTypes(objectOpener)
@@ -269,6 +287,7 @@ class DefaultConfigurationCacheCodecs(
             bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
             bind(TransformStepSpecCodec)
             bind(PublishArtifactLocalArtifactMetadataCodec)
+            bind(ComponentArtifactIdentifierCodec)
             bind(TransformedProjectArtifactSetCodec())
             bind(TransformedExternalArtifactSetCodec())
             bind(CalculateArtifactsCodec(calculatedValueContainerFactory, buildOperationExecutor))
@@ -326,6 +345,13 @@ class DefaultConfigurationCacheCodecs(
             bind(RegisteredFlowActionCodec)
 
             bind(NamedCodec(managedFactoryRegistry))
+
+            bind(KotlinObjectCodec)
+            bind(ExternalizableCodec)
+            bind(javaObjectSerializationCodec)
+            bind(ValueObjectCodec)
+
+            bind(beanCodecSlot)
         }
 
         userTypesBindings = makeUserTypeBindings {
@@ -349,26 +375,26 @@ class DefaultConfigurationCacheCodecs(
         }
     }
 
+    /**
+     * Builds a fresh `BindingsBackedCodec` instance, filling the slots with stateful codecs.
+     *
+     * Stateful codecs maintain state that cannot be shared across different reading/writing contexts.
+     */
     private
-    fun Bindings.completeWithStatefulCodecs() = append {
-        bind(KotlinObjectCodec)
-        bind(ExternalizableCodec)
-        bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup, objectOpener))
-        bind(ValueObjectCodec)
-
+    fun BindingsBlueprint.buildWithStatefulCodecs(): BindingsBackedCodec = build {
         // This protects the BeanCodec against StackOverflowErrors, but
         // we can still get them for the other codecs, for instance,
         // with deeply nested Lists, deeply nested Maps, etc.
         // The reentrant codec is stateful, and cannot be cached because of it.
-        bind(reentrant(BeanCodec))
-    }.build()
+        fill(beanCodecSlot, reentrant(BeanCodec))
+    }
 
-    override fun userTypesCodec(): Codec<Any?> = userTypesBindings.completeWithStatefulCodecs()
+    override fun userTypesCodec(): Codec<Any?> = userTypesBindings.buildWithStatefulCodecs()
 
-    override fun fingerprintTypesCodec(): Codec<Any?> = fingerprintUserTypesBindings.completeWithStatefulCodecs()
+    override fun fingerprintTypesCodec(): Codec<Any?> = fingerprintUserTypesBindings.buildWithStatefulCodecs()
 
     private
-    val internalTypesBindings = Bindings.of {
+    val internalTypesBindings = BindingsBlueprint.of {
         baseTypes(objectOpener)
 
         providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(buildStateRegistry))
@@ -376,19 +402,22 @@ class DefaultConfigurationCacheCodecs(
 
         bind(TaskInAnotherBuildCodec(PathSerializer()))
 
-        bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
-    }
-
-    override fun internalTypesCodec(): Codec<Any?> = internalTypesBindings.append {
-        val userTypesCodec = userTypesCodec()
-
-        bind(TaskNodeCodec(userTypesCodec, serializeTaskLoggingListeners))
-        bind(DelegatingCodec<TransformStepNode>(userTypesCodec))
-        bind(org.gradle.internal.serialize.codecs.core.ActionNodeCodec(userTypesCodec))
+        // These codecs share a fresh user types codec, which is stateful.
+        bind(taskNodeSlot)
+        bind(transformStepNodeSlot)
+        bind(actionNodeSlot)
         bind(OrdinalNodeCodec)
 
         bind(NotImplementedCodec)
-    }.build()
+    }
+
+    override fun internalTypesCodec(): Codec<Any?> = internalTypesBindings.build {
+        val userTypesCodec = userTypesCodec()
+
+        fill(taskNodeSlot, TaskNodeCodec(userTypesCodec, serializeTaskLoggingListeners))
+        fill(transformStepNodeSlot, DelegatingCodec(userTypesCodec))
+        fill(actionNodeSlot, ActionNodeCodec(userTypesCodec))
+    }
 
     private
     fun BindingsBuilder.providerTypes(

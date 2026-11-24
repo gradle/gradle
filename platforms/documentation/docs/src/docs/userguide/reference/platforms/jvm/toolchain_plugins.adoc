@@ -38,6 +38,20 @@ include::{snippetsPath}/reference/platforms/jvm/toolchain-management/groovy/buil
 <1> This class is `abstract` because `JavaToolchainResolver` is a <<build_services.adoc#build_services,build service>>. Gradle provides dynamic implementations for certain abstract methods at runtime.
 <2> The mapping method returns a download response wrapped in an `Optional`. If the resolver implementation can't provide a matching toolchain, the enclosing `Optional` contains an empty value.
 
+[[sec:download_archive_naming]]
+=== How Gradle names and reuses downloaded archives
+
+Gradle names the downloaded archive after the file name the server provides in the `Content-Disposition` header.
+Without that header, Gradle uses everything after the last `/` of the URL, after any redirects, including any query.
+If the header is present but has no file name, Gradle names the archive after a hash of the full URL instead.
+If an archive with that name is already in the cache, Gradle reuses it instead of downloading it again.
+
+If the server provides no file name in the `Content-Disposition` header, the archive name depends on the URL.
+A URL that changes between requests, such as one with an expiring access token (`https://example.com/jdks/temurin-21?token=a1b2c3`), makes Gradle download the archive again each time it provisions a toolchain.
+To avoid repeated downloads, return a stable URL, or have the server send a file name in the `Content-Disposition` header.
+
+NOTE: Gradle detects whether the archive is a zip or a tar.gz file from its content, not from its file name.
+
 [[sec:register_the_resolver_in_a_plugin]]
 == Register the resolver in a plugin
 
