@@ -103,7 +103,7 @@ public class UriTextResource implements TextResource {
         if (sourceFile != null) {
             return Describables.quoted(description, sourceFile.getAbsolutePath());
         } else {
-            return Describables.quoted(description, sourceUri);
+            return Describables.quoted(description, UriDisplay.withoutUserInfo(sourceUri));
         }
     }
 
@@ -112,7 +112,7 @@ public class UriTextResource implements TextResource {
         if (sourceFile != null) {
             return Describables.quoted(description, resolver.resolveForDisplay(sourceFile));
         } else {
-            return Describables.quoted(description, sourceUri);
+            return Describables.quoted(description, UriDisplay.withoutUserInfo(sourceUri));
         }
     }
 

@@ -18,6 +18,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
@@ -159,6 +160,38 @@ assert 'value' == doStuff.someProp
 """
 
         inTestDirectory().run()
+    }
+
+    @Test
+    void doesNotShowCredentialsEmbeddedInTheUrlOfAScript() {
+        executer.requireOwnGradleUserHomeDir() //we need an empty external resource cache
+
+        TestFile script = testFile('external.gradle')
+        server.expectGet('/external.gradle', script)
+        server.start()
+
+        script << """
+            throw new RuntimeException('broken')
+"""
+
+        def uri = server.uri
+        def uriWithCredentials = new URI(uri.scheme, "someuser:s3cret", uri.host, uri.port, "/external.gradle", null, null)
+        testFile('build.gradle') << """
+            apply from: '${uriWithCredentials}'
+"""
+
+        new BuildOperationsFixture(executer, testDirectoryProvider)
+        def failure = inTestDirectory().withArguments("--info", "--stacktrace").runWithFailure()
+
+        failure.assertHasFileName("Script '${server.uri}/external.gradle'")
+        failure.assertHasDescription("A problem occurred evaluating script.")
+        failure.assertNotOutput("s3cret")
+        failure.assertNotOutput("someuser")
+
+        def trace = testFile("operations-log.txt").text
+        assert trace.contains("${server.uri}/external.gradle")
+        assert !trace.contains("s3cret")
+        assert !trace.contains("someuser")
     }
 
     @Test
