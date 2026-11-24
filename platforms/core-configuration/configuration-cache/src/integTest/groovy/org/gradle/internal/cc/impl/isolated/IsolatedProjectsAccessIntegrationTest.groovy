@@ -59,6 +59,24 @@ class IsolatedProjectsAccessIntegrationTest extends AbstractIsolatedProjectsInte
         mode << ALL_MODES
     }
 
+    def "suggesting close project paths for unknown project does not cause isolated projects violation"() {
+        createDirs("other", "bb")
+        settingsFile """
+            include(":other", ":bb")
+        """
+
+        buildFile """
+            project(":b")
+        """
+
+        when:
+        isolatedProjectsFails("help")
+
+        then:
+        failureCauseContains("Project with path ':b' could not be found in root project '${testDirectory.name}'. Some candidates are: ':bb'.")
+        outputDoesNotContain("cannot access")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/29154")
     def "exclude task option does not cause isolated projects violation"() {
         settingsFile """

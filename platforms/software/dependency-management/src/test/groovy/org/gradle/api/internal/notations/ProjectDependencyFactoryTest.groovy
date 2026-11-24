@@ -48,7 +48,8 @@ class ProjectDependencyFactoryTest extends Specification {
         TestUtil.objectFactory(),
         AttributeTestUtil.attributesFactory(),
         projectStateLookup,
-        projectFinder
+        projectFinder,
+        TestUtil.problemsService()
     )
     def factory = new ProjectDependencyFactory(depFactory)
 

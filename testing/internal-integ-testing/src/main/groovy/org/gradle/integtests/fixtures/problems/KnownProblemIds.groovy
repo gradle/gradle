@@ -170,6 +170,7 @@ class KnownProblemIds {
         'Gradle:Isolated Projects:Isolated Projects problems are dangerously ignored': ['Isolated Projects problems are dangerously ignored'],
         'Packaging:Signing:No configured signatory': ['No configured signatory'],
         'Gradle:Build Definition:Plugin applied to the wrong target': ['Plugin applied to the wrong target'],
+        'Gradle:Build Definition:Project not found': ['Project not found'],
         'Gradle:Invocation:Ambiguous task name': ['Ambiguous task name'],
         'Gradle:Invocation:Ambiguous project name': ['Ambiguous project name'],
         'Gradle:Invocation:Empty task path': ['Empty task path'],

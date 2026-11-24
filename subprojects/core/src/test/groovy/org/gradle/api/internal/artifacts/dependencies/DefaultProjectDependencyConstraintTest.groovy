@@ -89,7 +89,8 @@ class DefaultProjectDependencyConstraintTest extends Specification {
             TestUtil.objectFactory(),
             AttributeTestUtil.attributesFactory(),
             projectStateLookup,
-            new UnknownProjectFinder("")
+            new UnknownProjectFinder(""),
+            TestUtil.problemsService()
         )
 
         def projectDependency = dependencyFactory.create(Path.ROOT)

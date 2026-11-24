@@ -93,6 +93,17 @@ public class DefaultProblemReporter implements ProblemReporterInternal {
     }
 
     @Override
+    public RuntimeException throwingWithoutReporting(Throwable exception, ProblemId problemId, Action<? super ProblemSpec> spec) {
+        DefaultProblemBuilder problemBuilder = createProblemBuilder();
+        problemBuilder.id(problemId);
+        spec.execute(problemBuilder);
+        problemBuilder.withException(exception);
+        ProblemInternal problem = withCanonicalId(addExceptionToProblem(exception, problemBuilder.build()));
+        exceptionProblemRegistry.onProblem(transform(exception), problem);
+        throw runtimeException(exception);
+    }
+
+    @Override
     public RuntimeException throwing(Throwable exception, Problem problem) {
         problem = addExceptionToProblem(exception, problem);
         report(problem);

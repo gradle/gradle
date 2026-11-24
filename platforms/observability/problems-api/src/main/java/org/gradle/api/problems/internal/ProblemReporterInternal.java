@@ -18,7 +18,9 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemReporter;
+import org.gradle.api.problems.ProblemSpec;
 import org.gradle.internal.operations.OperationIdentifier;
 
 import java.util.Collection;
@@ -52,4 +54,17 @@ public interface ProblemReporterInternal extends ProblemReporter {
     void reportError(Collection<? extends Problem> problems);
 
     ProblemInternal internalCreate(Action<? super ProblemSpecInternal> action);
+
+    /**
+     * Associates a problem with the exception, without reporting it, and throws the exception.
+     * <p>
+     * Unlike {@link #throwing(Throwable, ProblemId, Action)}, the problem is only visible if the exception fails the build.
+     * Use it for exceptions that callers may catch and recover from, so that a recovered failure leaves no problem behind.
+     *
+     * @param exception the exception to throw
+     * @param problemId the problem id
+     * @param spec the problem configuration
+     * @return never returns by throwing the exception, but using {@code throw} statement at the call site is encouraged to indicate the intent and benefit from local control flow.
+     */
+    RuntimeException throwingWithoutReporting(Throwable exception, ProblemId problemId, Action<? super ProblemSpec> spec);
 }

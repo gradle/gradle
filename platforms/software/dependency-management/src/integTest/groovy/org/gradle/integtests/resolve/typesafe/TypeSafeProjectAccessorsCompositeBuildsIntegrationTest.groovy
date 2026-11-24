@@ -42,7 +42,7 @@ class TypeSafeProjectAccessorsCompositeBuildsIntegrationTest extends AbstractTyp
         fails 'help'
 
         then:
-        failureCauseContains("Could not get unknown property 'other' for extension 'projects' of type org.gradle.accessors.dm.RootProjectAccessor")
+        failureCauseContains("Project accessor 'other' could not be found.")
         // Desired behavior:
 //        outputContains 'Dependency path: ":other"'
     }

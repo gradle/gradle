@@ -38,4 +38,9 @@ public class DefaultProjectFinder implements ProjectFinder {
         return ProjectIdentity.computeProjectIdentityPath(buildPath, resolvedProjectPath);
     }
 
+    @Override
+    public Path getBuildPath() {
+        return baseProjectId.getBuildPath();
+    }
+
 }

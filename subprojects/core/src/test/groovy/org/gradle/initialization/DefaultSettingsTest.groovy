@@ -125,6 +125,19 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         thrown(UnknownProjectException)
     }
 
+    def 'suggests close project paths on unknown project path'() {
+        createTestDescriptor()
+
+        when:
+        settings.project(path)
+
+        then:
+        def e = thrown(UnknownProjectException)
+        e.message == "Project with path '$path' could not be found. Some candidates are: ':testname'."
+
+        where:
+        path << [":testnam", "testname"]
+    }
 
     def 'fails on unknown project directory'() {
         when:
