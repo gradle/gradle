@@ -346,7 +346,7 @@ fun configureTests() {
         // build invocation, so tasks that disagree fail with "Client was already created for a
         // different server".
         // Don't move this line into the lambda as it may cause config cache problems
-        val ptsServerUrl = project.predictiveTestSelectionServerUrl.getOrElse("https://ge.gradle.org")
+        val ptsServerUrl = project.predictiveTestSelectionServerUrl.getOrElse("https://develocity.gradle.org")
         extensions.findByType<DevelocityTestConfiguration>()?.predictiveTestSelection {
             (this as PredictiveTestSelectionConfigurationInternal).server = uri(ptsServerUrl)
         }
