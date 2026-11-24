@@ -92,6 +92,28 @@ Aggregate test results: file:///path/to/project/build/reports/aggregate-test-res
 
 See the [Build-wide test summary](userguide/java_testing.html#sec:aggregate_test_summary) section in the Gradle User Manual for more details.
 
+#### Builds continue after failing tests
+
+In this release, Gradle keeps executing tasks after a [verification failure](userguide/custom_tasks.html#sec:verification_failures), such as failing tests or code quality violations.
+Previously, the first failing test task stopped the build, unless you ran it with `--continue`.
+Tasks that consume the outputs of the failed task, such as reports, still run.
+Tasks that depend on the outcome of the failed task through `dependsOn` do not run.
+The build still fails, and reports every failure at the end:
+
+```text
+$ ./gradlew :test :integrationTest
+
+> Task :test FAILED
+> Task :integrationTest FAILED
+
+FAILURE: Build completed with 2 failures.
+```
+
+Any other failure, such as a compilation error, still stops the build.
+To stop at the first failing test, run the build with `--no-continue`.
+
+See [Continue the build after a task failure](userguide/command_line_interface.html#sec:continue_build_on_failure) and [Task failures](userguide/controlling_task_execution.html#sec:task_failures) for more details.
+
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 

@@ -52,13 +52,25 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
         assertFatalTestExecutionError()
     }
 
-    def 'task does not execute when it has a test task output dependency with failing test(s)'() {
+    def 'task executes when it has a test task output dependency with failing test(s)'() {
         given:
         withTestVerificationFailure()
         withCustomTaskInputFromTestTaskOutput()
 
         expect:
         fails('customTask')
+        result.assertTaskScheduled(':test')
+        result.assertTaskScheduled(':customTask')
+        failure.assertTestsFailed()
+    }
+
+    def 'task does not execute when it has a test task output dependency with failing test(s) and --no-continue'() {
+        given:
+        withTestVerificationFailure()
+        withCustomTaskInputFromTestTaskOutput()
+
+        expect:
+        fails('customTask', '--no-continue')
         result.assertTaskScheduled(':test')
         result.assertTasksNotScheduled(':customTask')
         failure.assertTestsFailed()

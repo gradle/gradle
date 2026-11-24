@@ -224,10 +224,45 @@ $ ./gradlew -q taskX
 include::{snippetsPath}/reference/task-development/shouldRunAfterWithCycle/tests/shouldRunAfterWithCycle.out[]
 ----
 
-Note that `taskY.mustRunAfter(taskX)` or `taskY.shouldRunAfter(taskX)` does not imply any execution dependency between the tasks:
+Note that `taskY.mustRunAfter(taskX)` or `taskY.shouldRunAfter(taskX)` does not imply any execution dependency between the tasks.
+It is possible to execute `taskX` and `taskY` independently. The ordering rule only has an effect when both tasks are scheduled for execution.
 
-* It is possible to execute `taskX` and `taskY` independently. The ordering rule only has an effect when both tasks are scheduled for execution.
-* When run with `--continue`, it is possible for `taskY` to execute if `taskX` fails.
+[[sec:task_failures]]
+== Task failures
+
+When a task fails, Gradle keeps executing other tasks after a <<custom_tasks.adoc#sec:verification_failures,verification failure>>, such as failing tests, and stops after any other failure.
+See <<command_line_interface.adoc#sec:continue_build_on_failure,Continue the build after a task failure>> to change this.
+
+Whether a task runs after another task has failed depends on how the two tasks are related.
+`dependsOn` relates tasks by their outcome.
+An input wired from the output of another task relates them by data.
+Ordering rules like `mustRunAfter` and `shouldRunAfter` do not relate them at all.
+
+[cols="1,1,1,1",options="header"]
+|===
+| `taskY` is related to `taskX` by
+| Running `taskY` also runs `taskX`
+| `taskY` runs after a verification failure of `taskX`
+| `taskY` runs after a non-verification failure of `taskX`
+
+| `taskY.dependsOn(taskX)`
+| Yes
+| No
+| No
+
+| An input of `taskY` wired from an output of `taskX`
+| Yes
+| Yes
+| No
+
+| `taskY.mustRunAfter(taskX)`, `taskY.shouldRunAfter(taskX)`, or no relation
+| No
+| Yes
+| Only with `--continue`
+|===
+
+Use `dependsOn` when `taskY` needs `taskX` to run and to succeed, such as a lifecycle task that requires all checks to pass.
+Wire an input from an output of `taskX` when `taskY` consumes the files that `taskX` produces, such as a report of test results, so that `taskY` can still use them after a verification failure.
 
 [[sec:finalizer_tasks]]
 == Finalizer tasks

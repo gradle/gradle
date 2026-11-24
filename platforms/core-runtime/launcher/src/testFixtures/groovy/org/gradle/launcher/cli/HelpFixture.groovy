@@ -59,8 +59,8 @@ Configuration:
   --system-prop, -D                  Sets a JVM system property (for example, -Dmyprop=myvalue).
 
 Execution:
-  --continue                         Continues task execution after a task failure.
-  --no-continue                      Stops task execution after a task failure.
+  --continue                         Continues task execution after any task failure.
+  --no-continue                      Stops task execution after any task failure, including failing tests.
   --continuous, -t                   Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.
   --dry-run, -m                      Runs the build with all task actions disabled.
   --exclude-task, -x                 Specifies a task to exclude from execution.

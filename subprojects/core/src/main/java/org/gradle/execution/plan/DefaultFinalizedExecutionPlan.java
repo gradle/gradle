@@ -78,6 +78,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
 
     private boolean invalidNodeRunning;
     private final boolean continueOnFailure;
+    private final boolean continueOnVerificationFailure;
     private final QueryableExecutionPlan contents;
 
     private final Set<Node> runningNodes = newIdentityHashSet();
@@ -107,6 +108,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         ResourceLockCoordinationService lockCoordinator,
         List<Node> scheduledNodes,
         boolean continueOnFailure,
+        boolean continueOnVerificationFailure,
         QueryableExecutionPlan contents,
         Consumer<LocalTaskNode> completionHandler
     ) {
@@ -116,6 +118,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         this.lockCoordinator = lockCoordinator;
         this.ordinalNodeAccess = ordinalNodeAccess;
         this.continueOnFailure = continueOnFailure;
+        this.continueOnVerificationFailure = continueOnVerificationFailure;
         this.contents = contents;
         this.completionHandler = completionHandler;
 
@@ -582,12 +585,11 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
     private void recordNodeCompleted(Node node) {
         LOGGER.debug("Node {} completed, executed: {}", node, node.isExecuted());
         waitingToStartNodes.remove(node);
-        if (continueOnFailure && !node.allDependenciesComplete()) {
-            // Wait for any dependencies of this node that have not started yet
-            for (Node successor : node.getDependencySuccessors()) {
-                if (successor.isRequired()) {
-                    waitingForNode(successor, "other node completed", node);
-                }
+        // A node with a failed dependency completes before its other dependencies start, and
+        // nothing else would start them. Wait for them so they still run if the build continues.
+        for (Node successor : node.getDependencySuccessors()) {
+            if (successor.isRequired()) {
+                waitingForNode(successor, "other node completed", node);
             }
         }
 
@@ -695,7 +697,8 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         Throwable nodeFailure = node.getNodeFailure();
         if (nodeFailure != null) {
             failures.add(node.getNodeFailure());
-            if (!continueOnFailure) {
+            boolean shouldContinue = continueOnFailure || (continueOnVerificationFailure && node.isVerificationFailure());
+            if (!shouldContinue) {
                 abortExecution();
             }
         }

@@ -197,6 +197,27 @@ Previously, Gradle relied on the file extension: it unpacked a `.zip` file as a 
 An archive whose extension does not match its content now unpacks correctly.
 An archive that is neither a zip nor a tar.gz file fails with `Unsupported JDK archive format`.
 
+[[continue_after_verification_failures]]
+==== Builds continue after verification failures
+
+Gradle now keeps executing tasks after a <<custom_tasks.adoc#sec:verification_failures,verification failure>>, such as failing tests or code quality violations, as if `--continue` was used for these failures only.
+Before, the first failure of any kind stopped the build.
+The build still fails, and reports every failure at the end.
+The <<controlling_task_execution.adoc#sec:task_failures,Task failures>> section describes how tasks behave after failures.
+
+A failing build may now take longer and report more failures than before.
+A task that is requested with a test task and has no relation to it, as in `gradle test publish`, now runs after failing tests.
+To prevent it, make the task depend on the test task, for example with `tasks.publish { dependsOn(tasks.test) }`, or run the build with `--no-continue`.
+Ordering rules such as `mustRunAfter` do not prevent this.
+With the Configuration Cache, or with `--parallel` when the tasks are in different projects, `publish` could already run concurrently with `test` and publish before the tests failed.
+
+A `Test` task with <<java_testing.adoc#sec:test_execution,`failFast`>> enabled, or run with `--fail-fast`, still stops the build at the first failing test.
+Its failure is not a verification failure anymore, so with `--continue`, tasks that consume the outputs of the test task no longer run after it.
+
+To stop at the first failure as before, run the build with `--no-continue`, or set `org.gradle.continue=false` in `gradle.properties`.
+Before, these were the same as the default.
+Now they also stop the build at the first verification failure.
+
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier
 

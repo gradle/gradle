@@ -249,10 +249,10 @@ Alternatively, you can tell Gradle to rerun a specific task using the `--rerun` 
 [[sec:continue_build_on_failure]]
 === Continue the build after a task failure
 
-By default, Gradle aborts execution and fails the build when any task fails.
+By default, Gradle aborts execution and fails the build when any task fails with an exception other than a <<custom_tasks.adoc#sec:verification_failures,verification failure>>, like a failing test or code quality violation.
 This allows the build to complete sooner and prevents cascading failures from obfuscating the root cause of an error.
 
-You can use the `--continue` option to force Gradle to execute every task when a failure occurs:
+You can use the `--continue` option to force Gradle to execute every task when any failure occurs:
 
 [source,bash]
 ----
@@ -264,8 +264,15 @@ When executed with `--continue`, Gradle executes _every_ task in the build if al
 For example, tests do not run if there is a compilation error in the code under test because the `test` task depends on the `compilation` task.
 Gradle outputs each of the encountered failures at the end of the build.
 
-NOTE: If any tests fail, many test suites fail the entire `test` task.
-Code coverage and reporting tools frequently run after the test task, so "fail fast" behavior may halt execution before those tools run.
+You can use the `--no-continue` option to abort execution at the first failure, including a verification failure:
+
+[source,bash]
+----
+$ ./gradlew test --no-continue
+----
+
+Whether a task runs after another task has failed depends on how the two tasks are related.
+See <<controlling_task_execution.adoc#sec:task_failures,Task failures>> for details.
 
 [[sec:name_abbreviation]]
 === Name abbreviation
@@ -847,7 +854,10 @@ Specifies that the build should operate <<dependency_caching.adoc#sec:controllin
 Refresh the <<dependency_caching.adoc#sec:controlling-dependency-caching-command-line,state of dependencies>>.
 
 `--continue`::
-<<command_line_interface.adoc#sec:continue_build_on_failure,Continue task execution>> after a task failure.
+<<command_line_interface.adoc#sec:continue_build_on_failure,Continue task execution>> after any task failure.
+
+`--no-continue`::
+<<command_line_interface.adoc#sec:continue_build_on_failure,Stop task execution>> after any task failure, including a verification failure such as failing tests.
 
 `-m`, `--dry-run`::
 Run Gradle with all task actions disabled. Use this to show which task would have executed.

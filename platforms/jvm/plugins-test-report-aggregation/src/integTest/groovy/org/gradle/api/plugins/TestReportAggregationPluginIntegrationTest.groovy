@@ -446,7 +446,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
     }
 
     @ToBeFixedForIsolatedProjects(because = "aggregation plugin resolves subproject artifacts at config time")
-    def 'test verification failure prevents creation of aggregated report'() {
+    def 'test verification failure prevents creation of aggregated report with --no-continue flag'() {
         given:file("application/build.gradle") << """
             apply plugin: 'org.gradle.test-report-aggregation'
         """
@@ -465,7 +465,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
             """
 
         when:
-        fails(":application:testAggregateTestReport")
+        fails(":application:testAggregateTestReport", "--no-continue")
 
         then:
         failure.assertHasDescription("Execution failed for task ':direct:test'.")
@@ -476,7 +476,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
     }
 
     @ToBeFixedForIsolatedProjects(because = "aggregation plugin resolves subproject artifacts at config time")
-    def 'test verification failure creates aggregated report with --continue flag'() {
+    def 'test verification failure creates aggregated report #description'() {
         given:file("application/build.gradle") << """
             apply plugin: 'org.gradle.test-report-aggregation'
         """
@@ -495,7 +495,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
             """
 
         when:
-        fails(":application:testAggregateTestReport", "--continue")
+        fails(*([":application:testAggregateTestReport"] + options))
 
         then:
         result.assertTaskScheduled(":application:test")
@@ -514,6 +514,11 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
 
         def aggregatedResults = aggregateResults(testDirectory.file("application"), "tests/test", "aggregated-results")
         aggregatedResults.assertAtLeastTestPathsExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
+
+        where:
+        options        | description
+        []             | 'by default'
+        ['--continue'] | 'with --continue flag'
     }
 
     @ToBeFixedForIsolatedProjects(because = "aggregation plugin resolves subproject artifacts at config time")

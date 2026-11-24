@@ -18,6 +18,7 @@ package org.gradle.execution.plan;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -38,7 +39,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import static com.google.common.collect.Sets.newIdentityHashSet;
 
 /**
@@ -56,7 +56,6 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     private final ResourceLockCoordinationService lockCoordinator;
     private Spec<? super Task> filter = Specs.satisfyAll();
     private int order = 0;
-    private boolean continueOnFailure;
 
     private final Set<Node> filteredNodes = newIdentityHashSet();
     private final Set<Node> finalizers = new LinkedHashSet<>();
@@ -294,14 +293,17 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     }
 
     @Override
-    public FinalizedExecutionPlan finalizePlan() {
+    public FinalizedExecutionPlan finalizePlan(
+        boolean continueOnFailure,
+        boolean continueOnVerificationFailure
+    ) {
         if (scheduledNodes == null) {
             throw new IllegalStateException("Nodes have not been scheduled yet.");
         }
         if (finalizedPlan == null) {
             dependencyResolver.clear();
             // Should make an immutable copy of the contents to pass to the finalized plan and also to use in this instance
-            finalizedPlan = new DefaultFinalizedExecutionPlan(displayName, ordinalNodeAccess, outputHierarchy, destroyableHierarchy, lockCoordinator, scheduledNodes, continueOnFailure, this, completionHandler);
+            finalizedPlan = new DefaultFinalizedExecutionPlan(displayName, ordinalNodeAccess, outputHierarchy, destroyableHierarchy, lockCoordinator, scheduledNodes, continueOnFailure, continueOnVerificationFailure, this, completionHandler);
         }
         return finalizedPlan;
     }
@@ -385,11 +387,6 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     @Override
     public void addFilter(Spec<? super Task> filter) {
         this.filter = Specs.intersect(this.filter, filter);
-    }
-
-    @Override
-    public void setContinueOnFailure(boolean continueOnFailure) {
-        this.continueOnFailure = continueOnFailure;
     }
 
     @Override

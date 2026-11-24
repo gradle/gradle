@@ -448,7 +448,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         @Override
         void finalizeWorkGraph(BuildWorkPlan workPlan) {
             plan.determineExecutionPlan()
-            finalizedPlan = plan.finalizePlan()
+            finalizedPlan = plan.finalizePlan(false, true)
         }
 
         @Override

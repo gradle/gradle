@@ -354,10 +354,10 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task finalizer = task("finalizer", dependsOn: [finalizerDependency])
         Task finalizedDependency = task("finalizedDependency", failure: new RuntimeException("failure"))
         Task finalized = task("finalized", dependsOn: [finalizedDependency], finalizedBy: [finalizer])
-        executionPlan.setContinueOnFailure(true)
 
         when:
-        addToGraphAndPopulate([finalizer, finalized])
+        addToGraph([finalizer, finalized])
+        populateGraph(true)
 
         then:
         executionPlan.tasks as List == [finalizedDependency, finalized, finalizerDependency, finalizer]
@@ -776,8 +776,8 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task b = task("b")
 
         when:
-        executionPlan.setContinueOnFailure(true)
-        addToGraphAndPopulate([a, b])
+        addToGraph([a, b])
+        populateGraph(true)
 
         then:
         executedTasks == [a, b]
@@ -796,8 +796,8 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task b = task("b", (orderingRule): [a])
 
         when:
-        executionPlan.setContinueOnFailure(true)
-        addToGraphAndPopulate([a, b])
+        addToGraph([a, b])
+        populateGraph(true)
 
         then:
         executedTasks == [a, b]
@@ -821,8 +821,8 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         final Task d = task("d", dependsOn: [b, c])
 
         when:
-        executionPlan.setContinueOnFailure(true)
-        addToGraphAndPopulate([d])
+        addToGraph([d])
+        populateGraph(true)
 
         then:
         executedTasks == [a, c]
@@ -847,7 +847,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         when:
         executionPlan = newExecutionPlan()
         addToGraphAndPopulate([d])
-        executionPlan.setContinueOnFailure(true)
 
         then:
         executionPlan.tasks as List == [b, c, d]
@@ -950,9 +949,9 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         filter.isSatisfiedBy(_) >> { Task t -> t != b }
 
         when:
-        executionPlan.setContinueOnFailure(true)
         executionPlan.addFilter(filter)
-        addToGraphAndPopulate([a, c])
+        addToGraph([a, c])
+        populateGraph(true)
 
         then:
         executes(a, c)
@@ -1039,12 +1038,12 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task b = task("b")
         Task c = task("c", dependsOn: [a], finalizedBy: [b])
         addToGraphAndPopulate([c])
-        executionPlan.setContinueOnFailure(continueOnFailure)
         assert executedTasks == [a]
 
         when:
         executionPlan = newExecutionPlan()
-        addToGraphAndPopulate([b])
+        addToGraph([b])
+        populateGraph(continueOnFailure)
 
         then:
         executes(b)
@@ -1238,9 +1237,9 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         populateGraph()
     }
 
-    private void populateGraph() {
+    private void populateGraph(boolean continueOnFailure = false) {
         executionPlan.determineExecutionPlan()
-        finalizedPlan = executionPlan.finalizePlan()
+        finalizedPlan = executionPlan.finalizePlan(continueOnFailure, true)
     }
 
     void executes(Task... expectedTasks) {

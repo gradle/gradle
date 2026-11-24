@@ -425,9 +425,10 @@ Specifies whether the progress bar of the rich console is drawn with Unicode cha
 _Default is `auto`._
 
 `org.gradle.continue=(true,false)`::
-If enabled, continue task execution after a task failure, else stop task execution after a task failure.
+If `true`, continue task execution after any task failure, as with <<command_line_interface.adoc#sec:continue_build_on_failure,`--continue`>>.
+If `false`, stop task execution after any task failure, including a verification failure such as failing tests, as with `--no-continue`.
 +
-_Default is `false`._
+_Not set by default. Task execution continues after verification failures and stops after other failures._
 
 `org.gradle.daemon=(true,false)`::
 When set to `true` the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> is used to run the build.
