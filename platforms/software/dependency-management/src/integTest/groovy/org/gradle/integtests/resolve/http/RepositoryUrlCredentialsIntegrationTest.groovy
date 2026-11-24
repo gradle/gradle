@@ -16,7 +16,10 @@
 
 package org.gradle.integtests.resolve.http
 
+import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.resource.ExternalResourceReadBuildOperationType
 import org.gradle.test.fixtures.server.http.AuthScheme
 
 class RepositoryUrlCredentialsIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -129,6 +132,39 @@ class RepositoryUrlCredentialsIntegrationTest extends AbstractHttpDependencyReso
         repoType << ["maven", "ivy"]
     }
 
+    def "does not expose credentials embedded in the URL of a #repoType repository in build operations"() {
+        given:
+        def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+        def repo = repoType == "maven" ? mavenHttpRepo : ivyHttpRepo
+        def module = repo.module('group', 'projectA', '1.2').publish()
+        def extraLocation = repoType == "maven" ? "artifactUrls" : "artifactPattern"
+        declareRepositoryWithUrlCredentials(repoType, repo.uri, "group:projectA:1.2", "${extraLocation} \"\${url}/extra\"")
+
+        when:
+        module.allowAll()
+        if (repoType == "maven") {
+            executer.expectDocumentedDeprecationWarning("The MavenArtifactRepository.artifactUrls(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_maven_artifact_urls")
+        }
+        succeeds('resolve')
+
+        then:
+        def downloads = buildOperations.all(ExternalResourceReadBuildOperationType)
+        downloads*.details.location.contains(masked(module.artifact.uri))
+        downloads*.displayName.contains("Download ${masked(module.artifact.uri)}".toString())
+        def repositories = buildOperations.first(ResolveConfigurationDependenciesBuildOperationType).details.repositories
+        repositories*.properties.URL == [masked(repo.uri)]
+        repositories*.properties[repoType == "maven" ? "ARTIFACT_URLS" : "ARTIFACT_PATTERNS"].flatten().contains("${masked(repo.uri)}/extra".toString())
+
+        and:
+        def trace = file("operations-log.txt").text
+        trace.contains(masked(module.artifact.uri))
+        !trace.contains("s3cret")
+        !trace.contains("someuser")
+
+        where:
+        repoType << ["maven", "ivy"]
+    }
+
     private static String masked(URI uri) {
         withUserInfo(uri, "***").toString()
     }
@@ -137,12 +173,13 @@ class RepositoryUrlCredentialsIntegrationTest extends AbstractHttpDependencyReso
         new URI(uri.scheme, userInfo, uri.host, uri.port, uri.path, null, null)
     }
 
-    private void declareRepositoryWithUrlCredentials(String repoType, URI uri, String dependency = "group:projectA:1.2") {
+    private void declareRepositoryWithUrlCredentials(String repoType, URI uri, String dependency = "group:projectA:1.2", String extraConfiguration = "") {
         def urlWithCredentials = withUserInfo(uri, "someuser:s3cret")
         buildFile << """
             repositories {
                 ${repoType} {
                     url = "${urlWithCredentials}"
+                    ${extraConfiguration}
                 }
             }
             configurations { compile }

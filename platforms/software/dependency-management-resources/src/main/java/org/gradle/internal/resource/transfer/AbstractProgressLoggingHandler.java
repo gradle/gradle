@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transfer;
 
 import org.gradle.internal.logging.progress.ResourceOperation;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.uri.UriDisplay;
 
 import java.net.URI;
 
@@ -34,7 +35,7 @@ public class AbstractProgressLoggingHandler {
         }
 
         public String getLocation() {
-            return location.toASCIIString();
+            return UriDisplay.maskUserInfo(location).toASCIIString();
         }
     }
 }

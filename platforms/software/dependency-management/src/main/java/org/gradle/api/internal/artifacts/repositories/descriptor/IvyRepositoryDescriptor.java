@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.M2ResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
+import org.gradle.internal.uri.UriDisplay;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -98,8 +99,8 @@ public final class IvyRepositoryDescriptor extends UrlRepositoryDescriptor {
     @Override
     protected void addProperties(ImmutableSortedMap.Builder<String, Object> builder) {
         super.addProperties(builder);
-        builder.put(Property.IVY_PATTERNS.name(), ivyPatterns);
-        builder.put(Property.ARTIFACT_PATTERNS.name(), artifactPatterns);
+        builder.put(Property.IVY_PATTERNS.name(), maskUserInfo(ivyPatterns));
+        builder.put(Property.ARTIFACT_PATTERNS.name(), maskUserInfo(artifactPatterns));
         builder.put(Property.LAYOUT_TYPE.name(), layoutType);
         builder.put(Property.M2_COMPATIBLE.name(), m2Compatible);
     }
@@ -113,6 +114,10 @@ public final class IvyRepositoryDescriptor extends UrlRepositoryDescriptor {
             this.baseUri = baseUri;
             this.pattern = pattern;
         }
+    }
+
+    private static ImmutableList<String> maskUserInfo(List<String> patterns) {
+        return patterns.stream().map(UriDisplay::maskUserInfo).collect(ImmutableList.toImmutableList());
     }
 
     public static class Builder extends UrlRepositoryDescriptor.Builder<Builder> {

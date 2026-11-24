@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.uri.UriDisplay;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.net.URI;
@@ -66,7 +67,7 @@ public abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
     @Override
     protected void addProperties(ImmutableSortedMap.Builder<String, Object> builder) {
         if (url != null) {
-            builder.put(Property.URL.name(), url);
+            builder.put(Property.URL.name(), UriDisplay.maskUserInfo(url));
         }
         builder.put(Property.METADATA_SOURCES.name(), metadataSources);
         builder.put(Property.AUTHENTICATED.name(), authenticated);

@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.M2ResourcePattern
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenPattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
+import org.gradle.internal.uri.UriDisplay;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.net.URI;
@@ -74,7 +75,7 @@ public class MavenRepositoryDescriptor extends UrlRepositoryDescriptor {
     @Override
     protected void addProperties(ImmutableSortedMap.Builder<String, Object> builder) {
         super.addProperties(builder);
-        builder.put(Property.ARTIFACT_URLS.name(), artifactUrls);
+        builder.put(Property.ARTIFACT_URLS.name(), artifactUrls.stream().map(UriDisplay::maskUserInfo).collect(ImmutableList.toImmutableList()));
     }
 
     public static class Builder extends UrlRepositoryDescriptor.Builder<Builder> {

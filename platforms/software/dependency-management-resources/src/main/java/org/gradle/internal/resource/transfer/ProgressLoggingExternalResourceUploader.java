@@ -25,6 +25,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceWriteBuildOperationType;
 import org.gradle.internal.resource.ReadableContent;
+import org.gradle.internal.uri.UriDisplay;
 
 import java.io.IOException;
 import java.net.URI;
@@ -90,7 +91,7 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor
-                .displayName("Upload " + destination.getUri())
+                .displayName("Upload " + UriDisplay.maskUserInfo(destination.getUri()))
                 .progressDisplayName(destination.getShortDisplayName())
                 .details(new PutOperationDetails(destination.getUri()));
         }
