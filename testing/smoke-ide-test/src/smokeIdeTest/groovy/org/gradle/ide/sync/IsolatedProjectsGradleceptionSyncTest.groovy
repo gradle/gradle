@@ -19,6 +19,7 @@ package org.gradle.ide.sync
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.profiler.mutations.ApplyBuildScriptChangeFileMutator
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 
 class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
@@ -37,6 +38,7 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
         report.htmlReport().assertHasNoProblems()
     }
 
+    @Ignore("https://github.com/gradle/gradle-private/issues/5598")
     def "can sync gradle/gradle incrementally without error"() {
         given:
         gradle()
