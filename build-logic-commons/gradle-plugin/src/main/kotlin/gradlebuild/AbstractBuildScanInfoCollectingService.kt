@@ -27,7 +27,7 @@ import java.io.Serializable
 
 /**
  * A BuildService which monitors a few tasks (in both build-logic and main build) and collects information for Build Scan.
- * It's currently used to collect failed task paths and display a link which points to the corresponding task in the Build Scan, like `https://ge.gradle.org/s/xxx/console-log?task=yyy`.
+ * It's currently used to collect failed task paths and display a link which points to the corresponding task in the Build Scan, like `https://develocity.gradle.org/s/xxx/console-log?task=yyy`.
  */
 abstract class AbstractBuildScanInfoCollectingService : BuildService<AbstractBuildScanInfoCollectingService.Params>, OperationCompletionListener {
     /**
