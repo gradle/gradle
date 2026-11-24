@@ -274,7 +274,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
         return mavenMirrorResolver.mirrorFor(url, getName())
             .map(mirror -> {
                 if (mirror.isBlocked()) {
-                    throw new InvalidUserDataException(String.format("Repository '%s' (%s) is blocked by Maven mirror '%s' declared in the Maven settings.", getName(), url, mirror.getId()));
+                    throw new InvalidUserDataException(String.format("Repository '%s' (%s) is blocked by Maven mirror '%s' declared in the Maven settings.", getName(), UriDisplay.maskUserInfo(url), mirror.getId()));
                 }
                 return mirror.getUrl();
             })

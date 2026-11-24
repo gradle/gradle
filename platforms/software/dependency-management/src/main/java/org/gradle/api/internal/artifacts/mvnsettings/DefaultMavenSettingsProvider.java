@@ -30,6 +30,7 @@ import org.apache.maven.settings.io.SettingsReader;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.uri.UriDisplay;
 import org.gradle.internal.resource.local.FileResourceListener;
 import org.jspecify.annotations.Nullable;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
@@ -156,13 +157,14 @@ public class DefaultMavenSettingsProvider implements MavenSettingsProvider {
                 return new MirroredRepository(mirrorOf, mirrorId, url, true, null, null);
             }
             if (!"https".equalsIgnoreCase(url.getScheme())) {
-                LOGGER.info("Maven mirror '{}' does not use HTTPS: {}", mirrorId, url);
+                LOGGER.info("Maven mirror '{}' does not use HTTPS: {}", mirrorId, UriDisplay.maskUserInfo(url));
             }
             MirrorCredentials credentials = resolveCredentials(mirrorId, settings, secDispatcher);
             MirrorHttpHeader httpHeader = credentials == null ? resolveHttpHeader(mirrorId, settings, secDispatcher) : null;
             return new MirroredRepository(mirrorOf, mirrorId, url, false, credentials, httpHeader);
         } catch (URISyntaxException e) {
-            LOGGER.warn("Maven mirror '{}' has an invalid URL and will be ignored: {}", mirrorId, mirror.getUrl());
+            // The URL is left out, as it may embed credentials that cannot be told apart in a URL that does not parse
+            LOGGER.warn("Maven mirror '{}' has an invalid URL and will be ignored: {}", mirrorId, e.getReason());
             return null;
         }
     }

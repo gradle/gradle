@@ -355,6 +355,96 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         failure.assertHasCause("Repository 'corp-repo' (${originalRepo.uri}) is blocked by Maven mirror 'blocker' declared in the Maven settings.")
     }
 
+    def "blocked mirror failure does not show credentials embedded in the repository url"() {
+        given:
+        def originalRepo = mavenHttpRepo("original")
+        m2.userSettingsFile.text = """
+            <settings>
+                <mirrors>
+                    <mirror>
+                        <id>blocker</id>
+                        <mirrorOf>*</mirrorOf>
+                        <url>http://0.0.0.0/</url>
+                        <blocked>true</blocked>
+                    </mirror>
+                </mirrors>
+            </settings>
+        """
+
+        buildFile << """
+            repositories {
+                maven {
+                    name = 'corp-repo'
+                    url = '${withCredentials(originalRepo.uri)}'
+                }
+            }
+        """
+
+        when:
+        using m2
+        executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
+        fails 'retrieve'
+
+        then:
+        failure.assertHasCause("Repository 'corp-repo' (${masked(originalRepo.uri)}) is blocked by Maven mirror 'blocker' declared in the Maven settings.")
+        failure.assertNotOutput("s3cret")
+        failure.assertNotOutput("url-user")
+    }
+
+    def "does not log credentials embedded in the url of a mirror that does not use https"() {
+        given:
+        def mirrorRepo = mavenHttpRepo("mirror")
+        def module = mirrorRepo.module("org.test", "projectA", "1.0").publish()
+        writeMirrorSettings(withCredentials(mirrorRepo.uri).toString())
+
+        buildFile << """
+            repositories {
+                mavenCentral()
+            }
+        """
+
+        and:
+        module.pom.expectGet()
+        module.artifact.expectGet()
+
+        when:
+        using m2
+        executer.withArguments("-Dorg.gradle.mirror.maven.settings=true", "--info")
+        run 'retrieve'
+
+        then:
+        outputContains("Maven mirror 'test-mirror' does not use HTTPS: ${masked(mirrorRepo.uri)}")
+        result.assertNotOutput("s3cret")
+        result.assertNotOutput("url-user")
+    }
+
+    def "does not log the invalid url of a mirror, which may embed credentials"() {
+        given:
+        def originalRepo = mavenHttpRepo("original")
+        def module = originalRepo.module("org.test", "projectA", "1.0").publish()
+        writeMirrorSettings("https://url-user:s3cret with space@mirror.example.com/maven2")
+
+        buildFile << """
+            repositories {
+                maven { url = '${originalRepo.uri}' }
+            }
+        """
+
+        and:
+        module.pom.expectGet()
+        module.artifact.expectGet()
+
+        when:
+        using m2
+        executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
+        run 'retrieve'
+
+        then:
+        outputContains("Maven mirror 'test-mirror' has an invalid URL and will be ignored: Illegal character in authority")
+        result.assertNotOutput("s3cret")
+        result.assertNotOutput("url-user")
+    }
+
     def "maven default http blocker does not block a gradle declared repository"() {
         given:
         def originalRepo = mavenHttpRepo("original")
@@ -992,6 +1082,18 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
                 ${serversXml}
             </settings>
         """
+    }
+
+    private static URI withCredentials(URI uri) {
+        return withUserInfo(uri, "url-user:s3cret")
+    }
+
+    private static URI masked(URI uri) {
+        return withUserInfo(uri, "***")
+    }
+
+    private static URI withUserInfo(URI uri, String userInfo) {
+        return new URI(uri.scheme, userInfo, uri.host, uri.port, uri.path, null, null)
     }
 
     private static String serverXml(String id, String username, String password) {
