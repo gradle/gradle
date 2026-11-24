@@ -54,6 +54,7 @@ public final class OwnerOnlyFiles {
         PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE);
     private static final FileAttribute<Set<PosixFilePermission>> OWNER_ONLY_FILE = PosixFilePermissions.asFileAttribute(OWNER_ONLY_FILE_PERMISSIONS);
     private static final FileAttribute<Set<PosixFilePermission>> OWNER_ONLY_DIRECTORY = PosixFilePermissions.asFileAttribute(OWNER_ONLY_DIRECTORY_PERMISSIONS);
+    private static volatile @Nullable Object lastPosixDevice;
 
     private OwnerOnlyFiles() {
     }
@@ -197,13 +198,26 @@ public final class OwnerOnlyFiles {
         }
     }
 
-    private static boolean isPosix(Path existingDirectory) {
-        try {
-            return Files.getFileStore(existingDirectory).supportsFileAttributeView("posix");
-        } catch (IOException e) {
-            // Workaround for https://bugs.openjdk.org/browse/JDK-8232092
-            return existingDirectory.getFileSystem().supportedFileAttributeViews().contains("posix");
+    private static boolean isPosix(Path existingDirectory) throws IOException {
+        if (!existingDirectory.getFileSystem().supportedFileAttributeViews().contains("posix")) {
+            return false;
         }
+        // "unix" comes with "posix", and this fails only when the caller's next operation would fail too.
+        Object device = Files.getAttribute(existingDirectory, "unix:dev");
+        if (device.equals(lastPosixDevice)) {
+            return true;
+        }
+        try {
+            // Some filesystems, like vfat on Linux, do not support posix, so filestore should be checked
+            if (!Files.getFileStore(existingDirectory).supportsFileAttributeView("posix")) {
+                return false;
+            }
+        } catch (IOException e) {
+            // Workaround for problems similar to https://bugs.openjdk.org/browse/JDK-8232092: Files.getFileStore can fail for an existing directory
+            // The file system supports POSIX, so assume this store does too.
+        }
+        lastPosixDevice = device;
+        return true;
     }
 
     /**
