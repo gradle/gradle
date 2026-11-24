@@ -51,6 +51,7 @@ import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.MessageDigest
 import java.security.PublicKey
+import java.util.concurrent.ConcurrentHashMap
 
 class SFTPServer extends ServerWithExpectations implements RepositoryServer {
 
@@ -63,8 +64,8 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     private SshServer sshd
 
     TestFile baseDir
-    Map<Integer, String> handleCreatedByRequest = [:]
-    Map<String, Integer> openingRequestIdForPath = [:]
+    Map<Integer, String> handleCreatedByRequest = new ConcurrentHashMap<>()
+    Map<String, Integer> openingRequestIdForPath = new ConcurrentHashMap<>()
     List<SftpExpectation> expectations = []
     private boolean passwordAuthenticationEnabled = true
     private final KeyPair hostKeyPair = generateHostKeyPair()
@@ -443,14 +444,16 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         }
 
         boolean matches(Buffer buffer, int type, int id) {
-            if (!run && type == expectedType) {
-                int originalBufferPosition = buffer.rpos()
-                atomicRun.set(bufferMatches(buffer, id))
-                buffer.rpos(originalBufferPosition)
-                return run
-            } else {
+            if (run || type != expectedType) {
                 return false
             }
+            int originalBufferPosition = buffer.rpos()
+            boolean bufferMatched = bufferMatches(buffer, id)
+            buffer.rpos(originalBufferPosition)
+            // Requests from different SFTP channels are processed concurrently.
+            // Only a matching request may claim this expectation, and only once:
+            // a non-matching request must not reset a claim made by another thread.
+            return bufferMatched && atomicRun.compareAndSet(false, true)
         }
 
         protected boolean bufferMatches(Buffer buffer, int id) {

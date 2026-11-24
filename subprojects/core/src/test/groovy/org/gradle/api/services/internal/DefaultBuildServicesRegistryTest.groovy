@@ -39,6 +39,7 @@ import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistrationProvider
@@ -77,7 +78,8 @@ class DefaultBuildServicesRegistryTest extends Specification {
                     leaseRegistry,
                     BuildServiceProvider.Listener.EMPTY,
                     ipProblemsReporter,
-                    buildModelParameters
+                    buildModelParameters,
+                    new TestBuildOperationRunner()
                 )
             }
         })

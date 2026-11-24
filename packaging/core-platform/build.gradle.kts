@@ -25,6 +25,9 @@ dependencies {
     runtime(projects.toolingApiProvider) {
         because("This is the entry point of the tooling API provider, which is the version-specific client part of the tooling API.")
     }
+    runtime(projects.groovyDsl) {
+        because("Adds support for Groovy DSL scripts.")
+    }
     runtime(projects.kotlinDsl) {
         because("Adds support for Kotlin DSL scripts.")
     }

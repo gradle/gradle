@@ -35,7 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     protected static final NATIVE_PLATFORM_BINARIES = 16
-    protected static final THIRD_PARTY_LIB_COUNT = 116
+    protected static final THIRD_PARTY_LIB_COUNT = 143
 
     @Shared
     String baseVersion = GradleVersion.current().baseVersion.version
@@ -113,6 +113,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "functional",
         "gradle-cli",
         "gradle-cli-main",
+        "groovy-dsl",
         "groovy-loader",
         "hashing",
         "hashing-services",
@@ -200,7 +201,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        99
+        100
     }
 
     /**

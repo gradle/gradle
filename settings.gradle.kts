@@ -45,8 +45,6 @@ val core = platform("core") {
         subproject("build-discovery")
         subproject("build-discovery-impl")
         subproject("build-discovery-reporting")
-        subproject("build-operations")
-        subproject("build-operations-trace")
         subproject("build-option")
         subproject("build-process-services")
         subproject("build-profile")
@@ -79,8 +77,6 @@ val core = platform("core") {
         subproject("io")
         subproject("stdlib-java-extensions")
         subproject("launcher")
-        subproject("logging")
-        subproject("logging-api")
         subproject("messaging")
         subproject("native")
         subproject("process-memory-services")
@@ -88,7 +84,6 @@ val core = platform("core") {
         subproject("process-services-base")
         subproject("process-services-api")
         subproject("reflection-services")
-        subproject("report-rendering")
         subproject("serialization")
         subproject("service-lookup")
         subproject("service-provider")
@@ -132,18 +127,12 @@ val core = platform("core") {
         subproject("input-tracking")
         subproject("isolated-action-services")
         subproject("java-api-extractor")
-        subproject("kotlin-dsl")
-        subproject("kotlin-dsl-provider-plugins")
-        subproject("kotlin-dsl-tooling-builders")
-        subproject("kotlin-dsl-tooling-model-impls")
-        subproject("kotlin-dsl-tooling-models")
-        subproject("kotlin-dsl-plugins")
-        subproject("kotlin-dsl-integ-tests")
         subproject("stdlib-kotlin-extensions")
         subproject("stdlib-serialization-codecs")
         subproject("model-core")
         subproject("model-reflect")
         subproject("model-groovy")
+        subproject("plugin-use")
         subproject("project-features")
         subproject("project-features-api")
         subproject("project-features-demos")
@@ -200,16 +189,28 @@ module("ide") {
 
 // Observability Module
 module("observability") {
+    subproject("build-operations")
+    subproject("build-operations-trace")
+    subproject("logging")
+    subproject("logging-api")
     subproject("problems")
     subproject("problems-api")
     subproject("problems-impl")
     subproject("problems-rendering")
     subproject("problems-reporting")
+    subproject("report-rendering")
+}
+
+// Reporting Plugins Platform
+val reportingPlugins = platform("reporting-plugins") {
+    uses(core)
+    subproject("reporting")
 }
 
 // Software Platform
 val software = platform("software") {
     uses(core)
+    uses(reportingPlugins)
     subproject("ant-api")
     subproject("ant")
     subproject("ant-impl")
@@ -236,7 +237,6 @@ val software = platform("software") {
     subproject("resources-gcs")
     subproject("resources-s3")
     subproject("resources-sftp")
-    subproject("reporting")
     subproject("security")
     subproject("signing")
     subproject("software-diagnostics")
@@ -249,6 +249,7 @@ val software = platform("software") {
 // JVM Platform
 val jvm = platform("jvm") {
     uses(core)
+    uses(reportingPlugins)
     uses(software)
     subproject("antlr")
     subproject("code-quality")
@@ -287,14 +288,30 @@ val jvm = platform("jvm") {
     subproject("war")
 }
 
-// Extensibility Platform
-platform("extensibility") {
+// Plugin Development Platform
+val pluginDev = platform("plugin-dev") {
     uses(core)
     uses(jvm)
-    subproject("plugin-use")
     subproject("plugin-development")
     subproject("unit-test-fixtures")
     subproject("test-kit")
+}
+
+// DSL Platform
+platform("dsl") {
+    uses(core)
+    uses(software)
+    uses(jvm)
+    uses(pluginDev)
+    subproject("groovy-dsl")
+    subproject("groovy-dsl-plugins")
+    subproject("kotlin-dsl")
+    subproject("kotlin-dsl-integ-tests")
+    subproject("kotlin-dsl-plugins")
+    subproject("kotlin-dsl-provider-plugins")
+    subproject("kotlin-dsl-tooling-builders")
+    subproject("kotlin-dsl-tooling-model-impls")
+    subproject("kotlin-dsl-tooling-models")
 }
 
 // Native Platform

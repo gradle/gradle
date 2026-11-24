@@ -279,15 +279,14 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         javaClassFile("com/example/Foo.class").assertDoesNotExist()
     }
 
-    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "implementation dependencies should not leak into compile classpath of consumer"() {
         mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
         mavenRepo.module('org.gradle.test', 'other', '1.0').publish()
 
         given:
-        settingsFile << "include 'a', 'b'"
-        buildFile << """
-            allprojects {
+        settingsFile """
+            include 'a', 'b'
+            gradle.lifecycle.beforeProject {
                 apply plugin: 'java-library'
 
                 repositories {
@@ -681,7 +680,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped ':fooJar', ':compileJava'
         outputContains "Could not analyze foo.class for incremental compilation"
-        outputContains "Unsupported class file major version"
+        outputContains "Unsupported class file version"
     }
 
     @Issue("gradle/gradle#1358")

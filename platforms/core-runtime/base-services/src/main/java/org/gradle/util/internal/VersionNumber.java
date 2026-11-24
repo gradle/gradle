@@ -102,9 +102,8 @@ public class VersionNumber implements Comparable<VersionNumber> {
         if (patch != other.patch) {
             return patch - other.patch;
         }
-        @SuppressWarnings("NullAway") // NullAway cannot infer nullability of the comparator type.
-        int result = Ordering.natural().nullsLast().compare(toLowerCase(qualifier), toLowerCase(other.qualifier));
-        return result;
+        Ordering<@Nullable Comparable<String>> comparableOrdering = Ordering.natural().nullsLast();
+        return comparableOrdering.compare(toLowerCase(qualifier), toLowerCase(other.qualifier));
     }
 
     @Override

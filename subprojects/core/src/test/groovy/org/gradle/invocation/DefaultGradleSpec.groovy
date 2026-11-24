@@ -43,10 +43,10 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.SettingsState
 import org.gradle.internal.Describables
+import org.gradle.internal.build.BuildIdentity
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.DefaultPublicBuildPath
 import org.gradle.internal.build.PublicBuildPath
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
@@ -68,6 +68,7 @@ class DefaultGradleSpec extends Specification {
     ListenerManager listenerManager = Spy(TestListenerManager)
 
     BuildState build = Mock(BuildState)
+    BuildIdentity buildIdentity = new BuildIdentity(Path.ROOT)
     StartParameterInternal parameter = new StartParameterInternal()
     CurrentGradleInstallation currentGradleInstallation = Mock(CurrentGradleInstallation)
     BuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
@@ -97,7 +98,6 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(CrossBuildModelAccess) >> Stub(CrossBuildModelAccess)
         _ * serviceRegistry.get(PublicBuildPath) >> new DefaultPublicBuildPath(Path.ROOT)
         _ * serviceRegistry.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
-        _ * serviceRegistry.get(GradleEnterprisePluginManager) >> new GradleEnterprisePluginManager()
         _ * serviceRegistry.get(IsolatedProjectEvaluationListenerProvider) >> Stub(TestIsolatedProjectEvaluationListenerProvider)
         _ * serviceRegistry.get(GradleLifecycleActionExecutor) >> gradleLifecycleActionExecutor
         _ * serviceRegistry.get(Instantiator) >> Stub(Instantiator) {
@@ -107,7 +107,7 @@ class DefaultGradleSpec extends Specification {
             }
         }
 
-        gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, build, parameter, serviceRegistry)
+        gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, buildIdentity, build, parameter, serviceRegistry)
     }
 
     def "uses gradle version"() {
@@ -262,6 +262,54 @@ class DefaultGradleSpec extends Specification {
 
         then:
         1 * action.execute(_)
+    }
+
+    def "notifySettingsEvaluated fires callbacks registered by other settings evaluated callbacks"() {
+        given:
+        def settings = Stub(SettingsInternal)
+        def events = []
+        gradle.settingsEvaluated {
+            events << 'outer1'
+            gradle.settingsEvaluated {
+                events << 'nested1'
+                gradle.settingsEvaluated {
+                    events << 'nested2'
+                }
+            }
+        }
+        gradle.settingsEvaluated {
+            events << 'outer2'
+        }
+
+        when:
+        gradle.notifySettingsEvaluated(settings)
+
+        then:
+        events == ['outer1', 'outer2', 'nested1', 'nested2']
+    }
+
+    def "settings evaluated callbacks are fired exactly once"() {
+        given:
+        def settings = Stub(SettingsInternal)
+        def count = 0
+        gradle.settingsEvaluated {
+            count++
+            gradle.settingsEvaluated {
+                count++
+            }
+        }
+
+        when:
+        gradle.notifySettingsEvaluated(settings)
+
+        then:
+        count == 2
+
+        when:
+        gradle.buildListenerBroadcaster.settingsEvaluated(settings)
+
+        then:
+        count == 3 // only the directly registered callback remains in the broadcast
     }
 
     def "broadcasts before settings events to actions"() {

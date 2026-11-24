@@ -31,7 +31,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 fun <T : AbstractBuildScanInfoCollectingService> Project.registerBuildScanInfoCollectingService(
     /* the implementation class to collect information from task execution result */
     klass: Class<T>,
-    /* which tasks we need to monitor? For example, cache-miss-monitor monitors `AbstractCompile` tasks */
+    /* which tasks we need to monitor? For example, collect-failed-tasks monitors compile and code quality tasks */
     taskFilter: (Task) -> Boolean,
     /* pass the collected information in build-logic and main build to Build Scan */
     buildScanAction: (gradleRootProject: Project, infoCollectedInBuildLogic: Any, infoCollectedInMainBuild: Any) -> Unit

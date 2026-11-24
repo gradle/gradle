@@ -68,6 +68,11 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationOwner;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -110,6 +115,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final AttributesFactory attributesFactory;
     private final CapabilityNotationParser capabilityNotationParser;
     private final Problems problemsService;
+    private final BuildOperationRunner buildOperationRunner;
     private final List<DefaultVersionCatalog> models = new ArrayList<>();
     private final Map<String, Class<? extends ExternalModuleDependencyFactory>> factories = new HashMap<>();
 
@@ -129,7 +135,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         InputFingerprinter inputFingerprinter,
         AttributesFactory attributesFactory,
         CapabilityNotationParser capabilityNotationParser,
-        Problems problemsService
+        Problems problemsService,
+        BuildOperationRunner buildOperationRunner
     ) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");
         this.workspace = workspace;
@@ -141,6 +148,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         this.attributesFactory = attributesFactory;
         this.capabilityNotationParser = capabilityNotationParser;
         this.problemsService = problemsService;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
@@ -148,6 +156,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         try {
             this.classLoaderScope = classLoaderScope;
             this.models.clear(); // this is used in tests only, shouldn't happen in real context
+            BuildOperationOwner owner = ((SettingsInternal) settings).getGradle().getOwner();
             for (VersionCatalogBuilder builder : builders) {
                 DefaultVersionCatalog model = ((VersionCatalogBuilderInternal) builder).build();
                 models.add(model);
@@ -155,29 +164,61 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             if (models.stream().anyMatch(DefaultVersionCatalog::isNotEmpty)) {
                 for (DefaultVersionCatalog model : models) {
                     if (model.isNotEmpty()) {
-                        writeDependenciesAccessors(model);
+                        writeDependenciesAccessors(model, owner);
                     }
                 }
             }
             if (featureFlags.isEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
                 IncubationLogger.incubatingFeatureUsed("Type-safe project accessors");
-                writeProjectAccessors(((SettingsInternal) settings).getProjectRegistry());
+                writeProjectAccessors(((SettingsInternal) settings).getProjectRegistry(), owner);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void writeDependenciesAccessors(DefaultVersionCatalog model) {
-        executeWork(new DependencyAccessorUnitOfWork(model));
+    private void writeDependenciesAccessors(DefaultVersionCatalog model, BuildOperationOwner owner) {
+        buildOperationRunner.run(dependencyAccessorsOperation(owner, model.getName(), () -> executeWork(new DependencyAccessorUnitOfWork(model))));
     }
 
-    private void writeProjectAccessors(ProjectDescriptorRegistry projectRegistry) {
+    static RunnableBuildOperation dependencyAccessorsOperation(BuildOperationOwner owner, String catalogName, Runnable generation) {
+        return new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                generation.run();
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Generate dependency accessors for '" + catalogName + "'")
+                    .progressDisplayName("Generating dependency accessors for '" + catalogName + "'")
+                    .owner(owner);
+            }
+        };
+    }
+
+    private void writeProjectAccessors(ProjectDescriptorRegistry projectRegistry, BuildOperationOwner owner) {
         if (!assertCanGenerateAccessors(projectRegistry)) {
             return;
         }
         warnIfRootProjectNameNotSetExplicitly(projectRegistry.getRootProject());
-        executeWork(new ProjectAccessorUnitOfWork(projectRegistry));
+        buildOperationRunner.run(projectAccessorsOperation(owner, () -> executeWork(new ProjectAccessorUnitOfWork(projectRegistry))));
+    }
+
+    static RunnableBuildOperation projectAccessorsOperation(BuildOperationOwner owner, Runnable generation) {
+        return new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                generation.run();
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Generate project accessors")
+                    .progressDisplayName("Generating project accessors")
+                    .owner(owner);
+            }
+        };
     }
 
     private static void warnIfRootProjectNameNotSetExplicitly(@Nullable ProjectDescriptorInternal project) {

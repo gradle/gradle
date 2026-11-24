@@ -16,6 +16,7 @@
 package org.gradle.internal.remote.internal.inet;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
@@ -29,6 +30,8 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Set;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Provides information on how two processes on this machine can communicate via IP addresses
  */
@@ -36,9 +39,9 @@ import java.util.Set;
 public class InetAddressFactory {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Object lock = new Object();
-    private InetAddress localBindingAddress;
-    private InetAddress wildcardBindingAddress;
-    private InetAddresses inetAddresses;
+    private @Nullable InetAddress localBindingAddress;
+    private @Nullable InetAddress wildcardBindingAddress;
+    private @Nullable InetAddresses inetAddresses;
     private boolean initialized;
 
     public InetAddressFactory() {
@@ -53,7 +56,8 @@ public class InetAddressFactory {
      * Determines if the IP address can be used for communication with this machine
      */
     public boolean isCommunicationAddress(InetAddress address) {
-        return getLocalBindingAddress().equals(address);
+        //TODO IllegalStateException might be a better option here. In the interest of not changing the behavior, we keep this
+        return requireNonNull(getLocalBindingAddress()).equals(address);
     }
 
     /**
@@ -73,14 +77,18 @@ public class InetAddressFactory {
     }
 
     /**
-     * Local communication address for this machine
+     * Local communication address for this machine.
+     * Returns null when a previous call failed to determine the address.
      */
+    @Nullable
     public InetAddress getLocalBindingAddress() {
         try {
             synchronized (lock) {
                 init();
                 return localBindingAddress;
             }
+        } catch (InvalidUserDataException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Could not determine a usable local IP for this machine.", e);
         }
@@ -93,8 +101,10 @@ public class InetAddressFactory {
         try {
             synchronized (lock) {
                 init();
-                return wildcardBindingAddress;
+                return requireNonNull(wildcardBindingAddress);
             }
+        } catch (InvalidUserDataException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Could not determine a usable wildcard IP for this machine.", e);
         }
@@ -160,7 +170,7 @@ public class InetAddressFactory {
             logger.debug("Environment variable {} detected. Using bind address {}.", envVarName, address);
             return InetAddress.getByName(address);
         } catch (UnknownHostException e) {
-            throw new RuntimeException(String.format("Invalid bind address '%s' specified in environment variable '%s'.", address, envVarName), e);
+            throw new InvalidUserDataException(String.format("Invalid bind address '%s' specified in environment variable '%s'.", address, envVarName), e);
         }
     }
 

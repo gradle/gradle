@@ -30,7 +30,7 @@ public interface TestReportGenerator {
      * Generate a report from the test results in the given results directories, if there are any.
      *
      * @param resultsDirectories the directories containing the test results
-     * @return the path to the main file/directory of the generated report
+     * @return the generated report
      */
-    Path generate(List<Path> resultsDirectories);
+    GeneratedTestReport generate(List<Path> resultsDirectories);
 }

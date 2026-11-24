@@ -14,10 +14,12 @@ Before starting, you need these details from the user (ask if not provided):
 1. **Project name** - The kebab-case name (e.g., `build-discovery`, `language-java`)
 2. **Target platform and module** - Where in `settings.gradle.kts` to register it. The hierarchy is:
    - `platform("core")` contains modules: `core-runtime`, `core-configuration`, `core-execution`
+   - `platform("reporting-plugins")` - flat list of subprojects
    - `platform("software")` - flat list of subprojects (no nested modules)
    - `platform("jvm")` - flat list of subprojects
-   - `platform("extensibility")` - flat list of subprojects
+   - `platform("plugin-dev")` - flat list of subprojects
    - `platform("native")` - flat list of subprojects
+   - `platform("dsl")` - flat list of subprojects
    - Top-level modules (not inside a platform): `documentation`, `ide`, `enterprise`
    - Special sections: `packaging`, `testing`
 3. **Whether the project contains public API and what language is used** - Determines the plugin:

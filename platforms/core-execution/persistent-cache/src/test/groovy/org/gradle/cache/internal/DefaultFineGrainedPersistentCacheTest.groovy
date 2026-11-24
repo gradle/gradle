@@ -25,6 +25,7 @@ import org.gradle.cache.FineGrainedCacheCleanupStrategy
 import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.jspecify.annotations.NonNull
 import org.junit.Rule
 import spock.lang.AutoCleanup
 import spock.lang.Specification
@@ -51,7 +52,7 @@ class DefaultFineGrainedPersistentCacheTest extends Specification {
         CacheCleanupStrategy getCleanupStrategy() {
             return new CacheCleanupStrategy() {
                 @Override
-                void clean(CleanableStore store, Instant lastCleanupTime) {
+                void clean(@NonNull CleanableStore store, @NonNull Instant lastCleanupTime) {
                     cleanupAction.clean(store, null)
                 }
 

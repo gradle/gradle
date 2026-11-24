@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.CapabilityResolutionDetails;
 import org.gradle.api.artifacts.ComponentVariantIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
@@ -30,10 +32,11 @@ import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
 import org.gradle.internal.component.external.model.DefaultComponentVariantIdentifier;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.util.internal.VersionNumber;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,12 +47,19 @@ import java.util.stream.Collectors;
 public class CapabilityConflictResolver {
 
     private final ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> rules;
+    private final Comparator<@Nullable Version> versionComparator;
+    private final VersionParser versionParser;
     private final NotationParser<Object, ComponentIdentifier> componentNotationParser;
 
     public CapabilityConflictResolver(
-        ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> rules
+        ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> rules,
+        Comparator<Version> versionComparator,
+        VersionParser versionParser
     ) {
         this.rules = rules;
+        // A capability without a version is lower than any capability with a version
+        this.versionComparator = Comparator.nullsFirst(versionComparator);
+        this.versionParser = versionParser;
         this.componentNotationParser = new ComponentIdentifierParserFactory().create();
     }
 
@@ -166,17 +176,17 @@ public class CapabilityConflictResolver {
                 if (details.useHighest) {
                     ImmutableList<Candidate> highestVersions = findHighestVersions(candidates);
                     if (highestVersions.size() == 1) {
-                        return new SelectedCandidate(
-                            highestVersions.iterator().next().node,
-                            () -> "latest version of capability " + group + ":" + name
-                        );
+                        Describable selectionReason = details.reason != null
+                            ? () -> userProvidedReason(group, name, details.reason)
+                            : () -> "latest version of capability " + group + ":" + name;
+                        return new SelectedCandidate(highestVersions.iterator().next().node, selectionReason);
                     } else {
                         candidates = highestVersions;
                     }
                 } else if (details.selected != null) {
                     NodeState selectedNode = details.selected.node;
                     Describable selectionReason = details.reason != null
-                        ? () -> "On capability " + group + ":" + name + " " + details.reason
+                        ? () -> userProvidedReason(group, name, details.reason)
                         : () -> "Explicit selection of " + selectedNode.getComponent().getComponentId().getDisplayName() + " variant " + selectedNode.getMetadata().getName();
                     return new SelectedCandidate(selectedNode, selectionReason);
                 }
@@ -186,29 +196,38 @@ public class CapabilityConflictResolver {
         return null;
     }
 
+    private static String userProvidedReason(String group, String name, String reason) {
+        return "On capability " + group + ":" + name + " " + reason;
+    }
+
     /**
      * Find all candidates that have the highest version of the capability in conflict.
      * If all candidates have the same version, returns all candidates.
+     * <p>
+     * Versions are ordered the same way as module versions in conflict resolution.
      */
-    private static ImmutableList<Candidate> findHighestVersions(ImmutableList<Candidate> candidates) {
-        String highestVersion = null;
-        ImmutableList.Builder<Candidate> highestVersionCandidates = ImmutableList.builderWithExpectedSize(candidates.size());
-        for (Candidate candidate : candidates) {
-            String version = candidate.capability.getVersion();
-            int comparison = VersionNumber.parse(version).compareTo(VersionNumber.parse(highestVersion));
-            if (highestVersion == null) {
+    private ImmutableList<Candidate> findHighestVersions(ImmutableList<Candidate> candidates) {
+        Candidate first = candidates.get(0);
+        Version highestVersion = parseVersion(first.capability.getVersion());
+        List<Candidate> highestVersionCandidates = new ArrayList<>(candidates.size());
+        highestVersionCandidates.add(first);
+        for (Candidate candidate : candidates.subList(1, candidates.size())) {
+            Version version = parseVersion(candidate.capability.getVersion());
+            int comparison = versionComparator.compare(version, highestVersion);
+            if (comparison > 0) {
                 highestVersion = version;
-                highestVersionCandidates.add(candidate);
-            } else if (comparison > 0) {
-                highestVersion = version;
-                highestVersionCandidates = ImmutableList.builderWithExpectedSize(candidates.size());
+                highestVersionCandidates.clear();
                 highestVersionCandidates.add(candidate);
             } else if (comparison == 0) {
                 highestVersionCandidates.add(candidate);
             }
         }
 
-        return highestVersionCandidates.build();
+        return ImmutableList.copyOf(highestVersionCandidates);
+    }
+
+    private @Nullable Version parseVersion(@Nullable String version) {
+        return version == null ? null : versionParser.transform(version);
     }
 
     private static class DefaultCapabilityResolutionDetails implements CapabilityResolutionDetails {

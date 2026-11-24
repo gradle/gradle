@@ -3,6 +3,7 @@ import gradlebuild.basics.capitalize
 import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.basics.repoRoot
 import gradlebuild.incubation.tasks.IncubatingApiAggregateReportTask
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 
 plugins {
     id("base")
@@ -28,8 +29,8 @@ tasks.register<Zip>("allIncubationReportsZip") {
     group = "verification"
     destinationDirectory = layout.buildDirectory.dir("reports/incubation")
     archiveBaseName = "incubating-apis"
-    from(allIncubationReports.get().htmlReportFile)
-    from(allIncubationReports.get().csvReportFile)
+    from(allIncubationReports.flatMap { it.htmlReportFile })
+    from(allIncubationReports.flatMap { it.csvReportFile })
     from(resolver("html"))
 }
 
@@ -42,4 +43,8 @@ fun resolver(reportType: String) = configurations.create("incubatingReport${repo
         attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("incubation-report-$reportType"))
     }
     extendsFrom(reports)
-}.incoming.artifactView { lenient(true) }.files
+}.incoming.artifactView {
+    lenient(true)
+    // Only projects produce reports. If an external module of the distribution resolves, its jar would be treated as a report.
+    componentFilter { it is ProjectComponentIdentifier }
+}.files

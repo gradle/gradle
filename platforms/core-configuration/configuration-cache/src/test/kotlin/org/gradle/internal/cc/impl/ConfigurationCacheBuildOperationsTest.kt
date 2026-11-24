@@ -16,8 +16,10 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.internal.cc.operations.EntrySearchResult
 import org.gradle.internal.cc.operations.WorkGraphLoadResult
 import org.gradle.internal.cc.operations.WorkGraphStoreResult
+import org.gradle.internal.cc.operations.withFingerprintCheckOperations
 import org.gradle.internal.cc.operations.withWorkGraphLoadOperation
 import org.gradle.internal.cc.operations.withWorkGraphStoreOperation
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
@@ -61,7 +63,7 @@ class ConfigurationCacheBuildOperationsTest {
 
         // and:
         assertThat(
-            runnableBuildOperation.value.description().build().progressDisplayName,
+            runnableBuildOperation.value.description().build().progressDisplayName?.text,
             equalTo("Storing configuration cache state")
         )
     }
@@ -86,8 +88,31 @@ class ConfigurationCacheBuildOperationsTest {
 
         // and:
         assertThat(
-            callableBuildOperation.value.description().build().progressDisplayName,
+            callableBuildOperation.value.description().build().progressDisplayName?.text,
             equalTo("Loading configuration cache state")
+        )
+    }
+
+    @Test
+    fun `sets progress display name on fingerprint check`() {
+        // given:
+        val buildOperationRunner = mock<BuildOperationRunner> {
+            on { call<Any>(any()) } doReturn CheckedFingerprint.NotFound
+        }
+
+        // when:
+        buildOperationRunner.withFingerprintCheckOperations {
+            EntrySearchResult(null, CheckedFingerprint.NotFound)
+        }
+
+        // then:
+        val callableBuildOperation = ArgumentCaptor.forClass(CallableBuildOperation::class.java)
+        verify(buildOperationRunner).call(callableBuildOperation.capture())
+
+        // and:
+        assertThat(
+            callableBuildOperation.value.description().build().progressDisplayName?.text,
+            equalTo("Checking configuration cache fingerprint")
         )
     }
 }

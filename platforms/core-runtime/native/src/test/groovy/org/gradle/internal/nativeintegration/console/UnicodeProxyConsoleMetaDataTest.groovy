@@ -18,6 +18,7 @@ package org.gradle.internal.nativeintegration.console
 
 import org.gradle.api.logging.configuration.ConsoleUnicodeSupport
 import org.gradle.internal.logging.sink.ConsoleConfigureAction
+import spock.lang.Issue
 import spock.lang.Specification
 
 class UnicodeProxyConsoleMetaDataTest extends Specification {
@@ -167,6 +168,38 @@ class UnicodeProxyConsoleMetaDataTest extends Specification {
 
         when:
         def result = proxy.supportsUnicode()
+
+        then:
+        result
+
+        where:
+        delegateValue << [true, false]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39562")
+    def "disable proxy delegates supportsEighthBlocks to wrapped metadata"() {
+        given:
+        delegate.supportsEighthBlocks() >> expectedValue
+        def proxy = ConsoleConfigureAction.createProxyingConsoleMetaData(delegate, ConsoleUnicodeSupport.Disable)
+
+        when:
+        def result = proxy.supportsEighthBlocks()
+
+        then:
+        result == expectedValue
+
+        where:
+        expectedValue << [true, false]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39562")
+    def "enable proxy always returns true for supportsEighthBlocks regardless of delegate value"() {
+        given:
+        delegate.supportsEighthBlocks() >> delegateValue
+        def proxy = ConsoleConfigureAction.createProxyingConsoleMetaData(delegate, ConsoleUnicodeSupport.Enable)
+
+        when:
+        def result = proxy.supportsEighthBlocks()
 
         then:
         result

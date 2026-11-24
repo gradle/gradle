@@ -64,7 +64,7 @@ public class ActionNode extends Node {
     }
 
     @Override
-    public String toString() {
+    public String getDisplayName() {
         return "work action " + action;
     }
 

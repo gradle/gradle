@@ -29,6 +29,10 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 
 class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
+    def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
+    }
+
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     def "can resolve with only gradle metadata"() {
         buildFile << """

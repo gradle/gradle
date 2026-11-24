@@ -17,6 +17,9 @@
 package org.gradle.launcher.daemon.toolchain;
 
 import org.gradle.cache.FileLock;
+import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
+import org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesUtils;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.resource.ExternalResource;
@@ -39,6 +42,7 @@ import java.util.Locale;
 public class DaemonJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
 
     private static final Object PROVISIONING_PROCESS_LOCK = new Object();
+    private static final String DAEMON_PROVISIONING_RESOLUTION = Documentation.userManual("gradle_daemon", "sec:detect_provision").getConsultDocumentationMessage();
     private static final Logger LOGGER = LoggerFactory.getLogger(DaemonJavaToolchainProvisioningService.class);
 
     private final SecureFileDownloader downloader;
@@ -115,10 +119,12 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
             return new URI(stringUri);
         } catch (NullPointerException e) {
             String cause = String.format("No defined toolchain download url for %s on %s architecture.", buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT));
-            throw new ToolchainDownloadException(spec, stringUri, cause);
+            String property = DaemonJvmPropertiesUtils.getToolchainUrlPropertyForPlatform(buildPlatform.toBuildPlatform());
+            String resolution = String.format("Add a download URL for this platform to '%s' as '%s=<SERVER_URL>'.", DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE, property);
+            throw new ToolchainDownloadException(spec, null, cause, resolution, DAEMON_PROVISIONING_RESOLUTION);
         } catch (URISyntaxException e) {
             String cause =  String.format("Invalid toolchain download url %s for %s on %s architecture.", stringUri, buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT));
-            throw new ToolchainDownloadException(spec, stringUri, cause);
+            throw new ToolchainDownloadException(spec, stringUri, cause, DAEMON_PROVISIONING_RESOLUTION);
         }
     }
 }

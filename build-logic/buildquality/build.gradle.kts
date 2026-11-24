@@ -16,6 +16,9 @@ dependencies {
     implementation(projects.binaryCompatibility)
     implementation(projects.dependencyModules)
 
+    implementation(buildLibs.gson) {
+        because("Package-info data is exchanged between projects as JSON")
+    }
     implementation(buildLibs.codenarc) {
         // Groovy comes from the Gradle distribution, so none of CodeNarc's Groovy
         // distribution is wanted. The exclusion is group-wide on purpose: narrowing it
@@ -40,6 +43,8 @@ dependencies {
 }
 
 configurations.testRuntimeClasspath {
+    // Configuration-level on purpose: the plugin is a direct dependency above and also arrives
+    // through most project dependencies, so only the resolved classpath can drop it everywhere.
     // https://youtrack.jetbrains.com/issue/KT-87492/KGP-jar-bundles-a-partial-and-unshaded-copy-of-org.jetbrains.kotlin.com.intellij.-classes-that-collide-with-kotlin-compiler
     exclude(group = "org.jetbrains.kotlin", module = "kotlin-gradle-plugin")
 }

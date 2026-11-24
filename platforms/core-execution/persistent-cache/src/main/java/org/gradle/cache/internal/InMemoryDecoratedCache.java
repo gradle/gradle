@@ -22,6 +22,7 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.cache.FileLock;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +50,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
         return "{in-memory-cache cache: " + delegate + "}";
     }
 
+    @Nullable
     @Override
     public V get(final K key) {
         Object value;
@@ -58,7 +60,8 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
                 return out == null ? NULL : out;
             });
         } catch (UncheckedExecutionException | ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
+            Throwable cause = e.getCause();
+            throw UncheckedException.throwAsUncheckedException(cause != null ? cause : e);
         }
         if (value == NULL) {
             return null;
@@ -92,15 +95,14 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
                 return generatedValue;
             });
         } catch (UncheckedExecutionException | ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
+            Throwable cause = e.getCause();
+            throw UncheckedException.throwAsUncheckedException(cause != null ? cause : e);
         } finally {
             completionRef.get().run();
         }
-        if (value == NULL) {
-            return null;
-        } else {
-            return Cast.uncheckedCast(value);
-        }
+        //TODO Returns null when a concurrent get(key) or removeLater() stores the NULL sentinel
+        // for this key, although callers expect a value. Fixing this changes behavior.
+        return Cast.unsafeStripNullable(Cast.uncheckedCast(value != NULL ? value : null));
     }
 
     @Override

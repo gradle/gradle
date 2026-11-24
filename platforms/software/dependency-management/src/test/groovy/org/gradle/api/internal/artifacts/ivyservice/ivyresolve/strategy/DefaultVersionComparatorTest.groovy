@@ -279,4 +279,17 @@ class DefaultVersionComparatorTest extends Specification {
         compare("1.0-release", "1.0.RELEASE") == 0
         compare("1.0-sp", "1.0.SP") == 0
     }
+
+    def "compares trailing parts after case-insensitive special qualifiers"() {
+        expect:
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+
+        where:
+        smaller          | larger
+        "1.0-RC-1"       | "1.0-rc-2"
+        "1.0-rc2"        | "1.0-RC10"
+        "1.0-SNAPSHOT"   | "1.0-snapshot-1"
+        "1.0-dev-1"      | "1.0-DEV-2"
+    }
 }

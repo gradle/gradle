@@ -99,6 +99,11 @@ enum class License(
         "MIT License",
         "https://opensource.org/licenses/MIT",
         listOf("The MIT License", "MIT License", "MIT"),
+    ),
+    MIT0(
+        "MIT No Attribution",
+        "https://spdx.org/licenses/MIT-0.html",
+        listOf("MIT-0", "MIT No Attribution"),
     );
 
     companion object {

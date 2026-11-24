@@ -338,6 +338,73 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39472")
+    def "strict versions from consistency apply to dependencies of a node upgraded from a cycle"() {
+        repository {
+            // test-ui:1.0 leads into the cycle activity <-> activity-ktx, which upgrades test-ui to 2.0. That evicts
+            // test-ui:1.0, one of the two paths into the cycle. test-ui:2.0 asks for futures-ktx:2.0, which the
+            // consistency source pins to 1.0
+            id("org:test-ui:1.0") {
+                dependsOn("org:test-ui-android:1.0")
+            }
+            id("org:test-ui:2.0") {
+                dependsOn("org:futures-ktx:2.0")
+            }
+            id("org:test-ui-android:1.0") {
+                dependsOn("org:activity:2.0")
+            }
+            id("org:activity:2.0") {
+                dependsOn("org:activity-ktx:2.0")
+                dependsOn("org:test-ui:2.0")
+            }
+            id("org:activity-ktx:2.0") {
+                dependsOn("org:activity:2.0")
+            }
+            id("org:futures-ktx:1.0")
+            id("org:futures-ktx:2.0")
+        }
+
+        buildFile << """
+            configurations {
+                other
+                conf.shouldResolveConsistentlyWith(other)
+            }
+
+            dependencies {
+                other("org:futures-ktx:1.0")
+                conf("org:test-ui:1.0")
+                conf("org:activity-ktx:2.0")
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            allowAll()
+        }
+        succeeds("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:test-ui:1.0", "org:test-ui:2.0") {
+                    byConflictResolution("between versions 2.0 and 1.0")
+                    edge("org:futures-ktx:2.0", "org:futures-ktx:1.0") {
+                        byAncestor()
+                        byConsistentResolution("other")
+                        notRequested()
+                    }
+                }
+                module("org:activity-ktx:2.0") {
+                    module("org:activity:2.0") {
+                        module("org:activity-ktx:2.0")
+                        module("org:test-ui:2.0")
+                    }
+                }
+                constraint("org:futures-ktx:{strictly 1.0}", "org:futures-ktx:1.0")
+            }
+        }
+    }
+
     void withEagerResolutionPrevention() {
         buildFile << """
             def beforeTaskExecutionPhase = true

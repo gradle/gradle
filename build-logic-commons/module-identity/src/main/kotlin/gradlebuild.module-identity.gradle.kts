@@ -34,6 +34,7 @@ plugins {
 
 val gradleModule = extensions.create<GradleModuleExtension>(GradleModuleExtension.NAME).apply {
     published = false
+    publicApiStubs = true
 
     requiredRuntimes {
         client = false

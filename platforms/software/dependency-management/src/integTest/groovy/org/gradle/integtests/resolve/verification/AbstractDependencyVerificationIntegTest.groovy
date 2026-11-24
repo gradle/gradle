@@ -92,7 +92,7 @@ abstract class AbstractDependencyVerificationIntegTest extends AbstractHttpDepen
     }
 
     static String getDocsUrl() {
-        new DocumentationRegistry().getDocumentationRecommendationFor("on how to do this", "dependency_verification", "sec:troubleshooting-verification")
+        new DocumentationRegistry().getDocumentationRecommendationFor("on how to do this", "securing_dependencies", "sec:dealing-verification-failure")
     }
 
     protected void terseConsoleOutput(boolean terse, String gradlePropertiesDir = ".") {

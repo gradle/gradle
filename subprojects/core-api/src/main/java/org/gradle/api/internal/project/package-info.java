@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,20 @@
  * limitations under the License.
  */
 
-@org.jspecify.annotations.NullMarked
+/**
+ * Classes for managing the lifecycle and operational scope of individual projects within a build.
+ *
+ * <p>
+ * The mutable project model is represented internally by
+ * {@link org.gradle.api.internal.project.ProjectState ProjectState} and exposed to build scripts via
+ * {@link org.gradle.api.Project Project}, with
+ * {@link org.gradle.api.internal.project.ProjectInternal ProjectInternal} providing additional internal
+ * capabilities. {@link org.gradle.api.internal.project.ProjectStateRegistry ProjectStateRegistry} coordinates
+ * project lifecycles across the build, while
+ * {@link org.gradle.api.internal.project.CrossProjectModelAccess CrossProjectModelAccess} enforces stricter
+ * cross-project access rules, primarily for Isolated Projects.
+ */
+@NullMarked
 package org.gradle.api.internal.project;
 
+import org.jspecify.annotations.NullMarked;

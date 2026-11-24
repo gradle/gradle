@@ -48,7 +48,7 @@ public class InvalidGpgKeyIdsException extends GradleException {
      */
     public void formatMessage(TreeFormatter formatter) {
         final String documentLink = new DocumentationRegistry()
-            .getDocumentationRecommendationFor("on this", "dependency_verification", "sec:understanding-signature-verification");
+            .getDocumentationRecommendationFor("on this", "securing_dependencies", "sec:understanding-signature-verification");
 
         formatter.node(String.format("The following trusted GPG IDs are not in a minimum 160-bit fingerprint format (%s):", documentLink));
         formatter.startChildren();

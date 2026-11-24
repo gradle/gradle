@@ -31,8 +31,8 @@ val reportTask = tasks.register<IncubatingApiReportTask>("incubationReport") {
     title = project.name
     versionFile = repoRoot().file("version.txt")
     releasedVersionsFile = releasedVersionsFile()
-    sources.from(sourceSets.main.get().java.sourceDirectories)
-    sources.from(sourceSets.main.get().groovy.sourceDirectories)
+    sources.from(sourceSets.main.map { it.java.sourceDirectories })
+    sources.from(sourceSets.main.map { it.groovy.sourceDirectories })
     htmlReportFile = file(layout.buildDirectory.file("reports/incubation/${project.name}.html"))
     textReportFile = file(layout.buildDirectory.file("reports/incubation/${project.name}.txt"))
 }
@@ -56,6 +56,9 @@ fun consumableVariant(reportType: String, artifact: Provider<RegularFile>) = con
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
         attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("incubation-report-$reportType"))
     }
-    extendsFrom(configurations.implementation.get())
+    // TODO(mlopatkin): extending `implementation` mirrors `runtimeElements` incompletely (it misses `runtimeOnly`),
+    //  so consumers do not see projects such as :problems. Drop the extendsFrom and have consumers reselect this
+    //  variant over the runtime graph instead, as gradlebuild.package-info-data.gradle.kts does.
+    extendsFrom(configurations.implementation)
     outgoing.artifact(artifact)
 }

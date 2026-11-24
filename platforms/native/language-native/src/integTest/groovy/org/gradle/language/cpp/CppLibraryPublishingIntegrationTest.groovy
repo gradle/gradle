@@ -35,7 +35,6 @@ import static org.gradle.nativeplatform.MachineArchitecture.X86_64
 import static org.gradle.nativeplatform.OperatingSystemFamily.LINUX
 import static org.gradle.nativeplatform.OperatingSystemFamily.MACOS
 import static org.gradle.nativeplatform.OperatingSystemFamily.WINDOWS
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrationTest implements CppTaskNames {
 
@@ -148,7 +147,6 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         releaseRuntime.files[0].url == withSharedLibrarySuffix("test_release-1.2")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can publish a library and its dependencies to a Maven repository"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 
@@ -156,24 +154,22 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         def repoDir = file("repo")
         createDirs("deck", "card", "shuffle")
         settingsFile << "include 'deck', 'card', 'shuffle'"
-        buildFile << """
-            subprojects {
-                apply plugin: 'cpp-library'
-                apply plugin: 'maven-publish'
-
-                group = 'some.group'
-                version = '1.2'
-                publishing {
-                    repositories { maven { url = '${repoDir.toURI()}' } }
-                }
+        buildFile("deck/build.gradle", """
+            apply plugin: 'cpp-library'
+            ${mavenPublishing(repoDir.toURI())}
+            dependencies {
+                api project(':card')
+                implementation project(':shuffle')
             }
-            project(':deck') {
-                dependencies {
-                    api project(':card')
-                    implementation project(':shuffle')
-                }
-            }
-"""
+""")
+        buildFile("card/build.gradle", """
+            apply plugin: 'cpp-library'
+            ${mavenPublishing(repoDir.toURI())}
+""")
+        buildFile("shuffle/build.gradle", """
+            apply plugin: 'cpp-library'
+            ${mavenPublishing(repoDir.toURI())}
+""")
         app.deck.writeToProject(file('deck'))
         app.card.writeToProject(file('card'))
         app.shuffle.writeToProject(file('shuffle'))
@@ -269,7 +265,6 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can publish a library with external dependencies to a Maven repository"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 
@@ -277,19 +272,15 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         def repoDir = file("repo")
         def producer = file("producer")
         producer.createDirs("card", "shuffle")
-        def producerSettings = producer.file("settings.gradle") << "include 'card', 'shuffle'"
-        producer.file("build.gradle") << """
-            subprojects {
-                apply plugin: 'cpp-library'
-                apply plugin: 'maven-publish'
-
-                group = 'some.group'
-                version = '1.2'
-                publishing {
-                    repositories { maven { url = '${repoDir.toURI()}' } }
-                }
-            }
-"""
+        producer.file("settings.gradle") << "include 'card', 'shuffle'"
+        buildFile(producer.file("card/build.gradle"), """
+            apply plugin: 'cpp-library'
+            ${mavenPublishing(repoDir.toURI())}
+""")
+        buildFile(producer.file("shuffle/build.gradle"), """
+            apply plugin: 'cpp-library'
+            ${mavenPublishing(repoDir.toURI())}
+""")
         app.card.writeToProject(producer.file('card'))
         app.shuffle.writeToProject(producer.file('shuffle'))
         executer.inDirectory(producer)
@@ -384,7 +375,6 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "uses base name of library to calculate coordinates"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 
@@ -392,29 +382,24 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         def repoDir = file("repo")
         createDirs("deck", "card", "shuffle")
         settingsFile << "include 'deck', 'card', 'shuffle'"
-        buildFile << """
-            subprojects {
-                apply plugin: 'cpp-library'
-                apply plugin: 'maven-publish'
-
-                group = 'some.group'
-                version = '1.2'
-
-                publishing {
-                    repositories { maven { url = '${repoDir.toURI()}' } }
-                }
+        buildFile("deck/build.gradle", """
+            apply plugin: 'cpp-library'
+            ${mavenPublishing(repoDir.toURI())}
+            library.baseName = 'card_deck'
+            dependencies {
+                api project(':card')
+                implementation project(':shuffle')
             }
-            project(':deck') {
-                library.baseName = 'card_deck'
-                dependencies {
-                    api project(':card')
-                    implementation project(':shuffle')
-                }
-            }
-            project(':shuffle') {
-                library.baseName = 'card_shuffle'
-            }
-"""
+""")
+        buildFile("card/build.gradle", """
+            apply plugin: 'cpp-library'
+            ${mavenPublishing(repoDir.toURI())}
+""")
+        buildFile("shuffle/build.gradle", """
+            apply plugin: 'cpp-library'
+            ${mavenPublishing(repoDir.toURI())}
+            library.baseName = 'card_shuffle'
+""")
         app.deck.writeToProject(file('deck'))
         app.card.writeToProject(file('card'))
         app.shuffle.writeToProject(file('shuffle'))
@@ -580,7 +565,6 @@ library.publicHeaders.from 'src/main/public', 'src/main/headers'
         succeeds("compileDebugCpp")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "implementation dependencies are not visible to consumer"() {
         def app = new CppAppWithLibraries()
         def repoDir = file("repo")
@@ -588,21 +572,15 @@ library.publicHeaders.from 'src/main/public', 'src/main/headers'
         given:
         createDirs("greeter", "logger")
         settingsFile << "include 'greeter', 'logger'"
-        buildFile << """
-            subprojects {
-                apply plugin: 'cpp-library'
-                apply plugin: 'maven-publish'
-
-                group = 'some.group'
-                version = '1.2'
-                publishing {
-                    repositories { maven { url = '${repoDir.toURI()}' } }
-                }
-            }
-            project(':greeter') {
-                dependencies { implementation project(':logger') }
-            }
-"""
+        buildFile("greeter/build.gradle", """
+            apply plugin: 'cpp-library'
+            ${mavenPublishing(repoDir.toURI())}
+            dependencies { implementation project(':logger') }
+""")
+        buildFile("logger/build.gradle", """
+            apply plugin: 'cpp-library'
+            ${mavenPublishing(repoDir.toURI())}
+""")
         app.greeterLib.writeToProject(file('greeter'))
         app.loggerLib.writeToProject(file('logger'))
 
@@ -627,7 +605,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
         failure.assertThatCause(CoreMatchers.containsString("C++ compiler failed while compiling main.cpp."))
 
         when:
-        buildFile.text = buildFile.text.replace("dependencies { implementation project(':logger')", "dependencies { api project(':logger')")
+        file("greeter/build.gradle").replace("dependencies { implementation project(':logger')", "dependencies { api project(':logger')")
         run('publish')
 
         then:
@@ -698,34 +676,31 @@ dependencies { implementation 'some.group:greeter:1.2' }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6766")
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     void "configuration exclusions are published in generated POM and Gradle metadata"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
         createDirs("deck", "card", "shuffle")
         settingsFile << "include 'deck', 'card', 'shuffle'"
-        buildFile << """
-            subprojects {
-                apply plugin: 'cpp-library'
-                apply plugin: 'maven-publish'
-
-                group = 'some.group'
-                version = '1.2'
-                publishing {
-                    repositories { maven { url = '${mavenRepo.uri}' } }
-                }
+        buildFile("card/build.gradle", """
+            apply plugin: 'cpp-library'
+            ${mavenPublishing()}
+        """)
+        buildFile("shuffle/build.gradle", """
+            apply plugin: 'cpp-library'
+            ${mavenPublishing()}
+        """)
+        buildFile("deck/build.gradle", """
+            apply plugin: 'cpp-library'
+            ${mavenPublishing()}
+            configurations {
+                api.exclude(group: 'api-group', module: 'api-module')
             }
-            project(':deck') {
-                configurations {
-                    api.exclude(group: 'api-group', module: 'api-module')
-                }
-                dependencies {
-                    api project(':card')
-                    implementation project(':shuffle')
-                }
+            dependencies {
+                api project(':card')
+                implementation project(':shuffle')
             }
-        """
+        """)
         app.deck.writeToProject(file('deck'))
         app.card.writeToProject(file('card'))
         app.shuffle.writeToProject(file('shuffle'))
@@ -750,7 +725,6 @@ dependencies { implementation 'some.group:greeter:1.2' }
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can publish a library and its dependencies to a Maven repository when multiple target operating systems are specified"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
         def targetMachines = [machine(WINDOWS, currentArchitecture), machine(LINUX, currentArchitecture), machine(MACOS, currentArchitecture)]
@@ -758,28 +732,22 @@ dependencies { implementation 'some.group:greeter:1.2' }
         given:
         createDirs("deck", "card", "shuffle")
         settingsFile << "include 'deck', 'card', 'shuffle'"
-        buildFile << """
-            subprojects {
-                apply plugin: 'cpp-library'
-                apply plugin: 'maven-publish'
-
-                group = 'some.group'
-                version = '1.2'
-                publishing {
-                    repositories { maven { url = '${mavenRepo.uri}' } }
-                }
-
-                components.withType(CppComponent) {
-                    targetMachines = [machines.windows.architecture('${currentArchitecture}'), machines.linux.architecture('${currentArchitecture}'), machines.macOS.architecture('${currentArchitecture}')]
-                }
-            }
-            project(':deck') {
-                dependencies {
-                    api project(':card')
-                    implementation project(':shuffle')
-                }
+        def libraryConfig = """
+            apply plugin: 'cpp-library'
+            ${mavenPublishing()}
+            library {
+                targetMachines = [machines.windows.architecture('${currentArchitecture}'), machines.linux.architecture('${currentArchitecture}'), machines.macOS.architecture('${currentArchitecture}')]
             }
         """
+        buildFile("card/build.gradle", libraryConfig)
+        buildFile("shuffle/build.gradle", libraryConfig)
+        buildFile("deck/build.gradle", """
+            ${libraryConfig}
+            dependencies {
+                api project(':card')
+                implementation project(':shuffle')
+            }
+        """)
         app.deck.writeToProject(file('deck'))
         app.card.writeToProject(file('card'))
         app.shuffle.writeToProject(file('shuffle'))
@@ -821,7 +789,6 @@ dependencies { implementation 'some.group:greeter:1.2' }
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can publish a library and its dependencies to a Maven repository when multiple target architectures are specified"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
         def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64)]
@@ -829,28 +796,22 @@ dependencies { implementation 'some.group:greeter:1.2' }
         given:
         createDirs("deck", "card", "shuffle")
         settingsFile << "include 'deck', 'card', 'shuffle'"
-        buildFile << """
-            subprojects {
-                apply plugin: 'cpp-library'
-                apply plugin: 'maven-publish'
-
-                group = 'some.group'
-                version = '1.2'
-                publishing {
-                    repositories { maven { url = '${mavenRepo.uri}' } }
-                }
-
-                components.withType(CppComponent) {
-                    targetMachines = [machines.host().x86, machines.host().x86_64]
-                }
-            }
-            project(':deck') {
-                dependencies {
-                    api project(':card')
-                    implementation project(':shuffle')
-                }
+        def libraryConfig = """
+            apply plugin: 'cpp-library'
+            ${mavenPublishing()}
+            library {
+                targetMachines = [machines.host().x86, machines.host().x86_64]
             }
         """
+        buildFile("card/build.gradle", libraryConfig)
+        buildFile("shuffle/build.gradle", libraryConfig)
+        buildFile("deck/build.gradle", """
+            ${libraryConfig}
+            dependencies {
+                api project(':card')
+                implementation project(':shuffle')
+            }
+        """)
         app.deck.writeToProject(file('deck'))
         app.card.writeToProject(file('card'))
         app.shuffle.writeToProject(file('shuffle'))
@@ -892,35 +853,28 @@ dependencies { implementation 'some.group:greeter:1.2' }
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "fails when a dependency is published without a matching target architecture"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
         createDirs("deck", "card", "shuffle")
         settingsFile << "include 'deck', 'card', 'shuffle'"
-        buildFile << """
-            subprojects {
-                apply plugin: 'cpp-library'
-                apply plugin: 'maven-publish'
-
-                group = 'some.group'
-                version = '1.2'
-                publishing {
-                    repositories { maven { url = '${mavenRepo.uri}' } }
-                }
-
-                components.withType(CppComponent) {
-                    targetMachines = [machines.host().x86_64]
-                }
-            }
-            project(':deck') {
-                dependencies {
-                    api project(':card')
-                    implementation project(':shuffle')
-                }
+        def libraryConfig = """
+            apply plugin: 'cpp-library'
+            ${mavenPublishing()}
+            library {
+                targetMachines = [machines.host().x86_64]
             }
         """
+        buildFile("card/build.gradle", libraryConfig)
+        buildFile("shuffle/build.gradle", libraryConfig)
+        buildFile("deck/build.gradle", """
+            ${libraryConfig}
+            dependencies {
+                api project(':card')
+                implementation project(':shuffle')
+            }
+        """)
         app.deck.writeToProject(file('deck'))
         app.card.writeToProject(file('card'))
         app.shuffle.writeToProject(file('shuffle'))

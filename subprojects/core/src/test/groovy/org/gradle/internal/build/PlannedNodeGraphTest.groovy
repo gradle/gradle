@@ -312,7 +312,7 @@ class PlannedNodeGraphTest extends Specification {
         void execute(NodeExecutionContext context) {}
 
         @Override
-        String toString() {
+        String getDisplayName() {
             return "TestNode($name)"
         }
 

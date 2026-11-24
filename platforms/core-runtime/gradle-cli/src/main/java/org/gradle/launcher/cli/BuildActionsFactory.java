@@ -39,6 +39,7 @@ import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -109,6 +110,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
             return Actions.toAction(showDaemonStatus(daemonParameters));
         }
         if (daemonParameters.isForeground()) {
+            UnsupportedJavaRuntimeException.assertCurrentProcessSupportsDaemonJavaVersion();
             // Foreground daemon cannot be 'told' its startup options since the client sits in the same process.
             // So we will infer the jvm options from the inputArguments()
             List<String> jvmOptions = new CurrentProcess(fileCollectionFactory).getJvmOptions().getAllImmutableJvmArgs();
@@ -204,6 +206,8 @@ class BuildActionsFactory implements CommandLineActionCreator {
     }
 
     private Runnable runBuildInProcess(StartParameterInternal startParameter, DaemonParameters daemonParameters) {
+        UnsupportedJavaRuntimeException.assertCurrentProcessSupportsDaemonJavaVersion();
+
         // Set the system properties and use this process
         Properties properties = new Properties();
         properties.putAll(daemonParameters.getEffectiveSystemProperties());

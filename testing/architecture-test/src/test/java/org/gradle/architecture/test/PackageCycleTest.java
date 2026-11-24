@@ -94,6 +94,8 @@ public class PackageCycleTest {
         // Some cycles have been inherited from the time these classes were in :core
         entry("file-collections", List.of("org/gradle/api/internal/file/collections/**")),
         entry("file-operations", List.of("org/gradle/api/internal/**")),
+        // Cycles inherited from the time these classes were in :core
+        entry("groovy-dsl", List.of("org/gradle/**")),
         entry("ide", List.of(
             "org/gradle/plugins/ide/internal/*",
             "org/gradle/plugins/ide/eclipse/internal/*",

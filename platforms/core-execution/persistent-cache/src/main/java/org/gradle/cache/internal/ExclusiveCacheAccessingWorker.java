@@ -79,7 +79,8 @@ public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, Async
         try {
             return futureTask.get();
         } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
+            Throwable cause = e.getCause();
+            throw UncheckedException.throwAsUncheckedException(cause != null ? cause : e);
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

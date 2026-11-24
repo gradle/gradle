@@ -20,8 +20,6 @@ import common.KillProcessMode.KILL_ALL_GRADLE_PROCESSES
 import configurations.CompileAll
 import configurations.FunctionalTest
 import configurations.branchesFilterExcluding
-import configurations.checkCleanDirUnixLike
-import configurations.checkCleanDirWindows
 import configurations.enablePullRequestFeature
 import jetbrains.buildServer.configs.kotlin.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.BuildStep
@@ -203,38 +201,11 @@ fun BuildType.paramsForBuildToolBuild(
     }
 }
 
-fun BuildSteps.checkCleanM2AndAndroidUserHome(
-    os: Os = Os.LINUX,
-    buildType: BuildType? = null,
-) {
-    script {
-        name = "CHECK_CLEAN_M2_ANDROID_USER_HOME"
-        executionMode = BuildStep.ExecutionMode.ALWAYS
-        scriptContent =
-            if (os == Os.WINDOWS) {
-                checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\repository") +
-                    checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\.gradle-enterprise") +
-                    checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\.develocity") +
-                    checkCleanDirWindows(
-                        "%teamcity.agent.jvm.user.home%\\.android",
-                        false,
-                    )
-            } else {
-                checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/repository") +
-                    checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.gradle-enterprise") +
-                    checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.develocity") +
-                    checkCleanDirUnixLike(
-                        "%teamcity.agent.jvm.user.home%/.android",
-                        false,
-                    )
-            }
-        skipConditionally(buildType)
-    }
-}
+const val RETRY_REQUESTED_PARAMETER = "retry.requested"
 
-fun BuildStep.onlyRunOnGitHubMergeQueueBranch() {
+fun BuildStep.onlyRunWhenRetryRequested() {
     conditions {
-        matches("teamcity.build.branch", "gh-readonly-queue/.*")
+        equals(RETRY_REQUESTED_PARAMETER, "true")
     }
 }
 
@@ -366,7 +337,7 @@ fun BuildSteps.killProcessStep(
             }
         skipConditionally(buildType)
         if (mode == KILL_ALL_GRADLE_PROCESSES && buildType is FunctionalTest) {
-            onlyRunOnGitHubMergeQueueBranch()
+            onlyRunWhenRetryRequested()
         }
     }
 }

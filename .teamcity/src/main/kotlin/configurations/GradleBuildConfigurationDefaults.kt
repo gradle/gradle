@@ -1,5 +1,6 @@
 package configurations
 
+import common.AGENT_JAVA_BINARY
 import common.Arch
 import common.BuildToolBuildJvm
 import common.Jvm
@@ -7,17 +8,18 @@ import common.KillProcessMode.KILL_ALL_GRADLE_PROCESSES
 import common.KillProcessMode.KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS
 import common.KillProcessMode.KILL_PROCESSES_STARTED_BY_GRADLE
 import common.Os
+import common.RETRY_REQUESTED_PARAMETER
 import common.VersionedSettingsBranch
 import common.applyDefaultSettings
 import common.buildScanTagParam
 import common.buildToolGradleParameters
-import common.checkCleanM2AndAndroidUserHome
 import common.cleanUpGitUntrackedFilesAndDirectories
 import common.compileAllDependency
 import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
-import common.onlyRunOnGitHubMergeQueueBranch
+import common.onlyRunWhenRetryRequested
+import common.skipConditionally
 import jetbrains.buildServer.configs.kotlin.BuildFeatures
 import jetbrains.buildServer.configs.kotlin.BuildStep.ExecutionMode
 import jetbrains.buildServer.configs.kotlin.BuildSteps
@@ -32,43 +34,6 @@ import model.CIBuildModel
 
 const val GRADLE_RUNNER_STEP_NAME = "GRADLE_RUNNER"
 const val GRADLE_RETRY_RUNNER_STEP_NAME = "GRADLE_RETRY_RUNNER"
-
-fun checkCleanDirUnixLike(
-    dir: String,
-    exitOnFailure: Boolean = true,
-) = """
-    REPO=$dir
-    if [ -e ${'$'}REPO ] ; then
-        if [ -n "${'$'}(ls -A ${'$'}REPO)" ] ; then
-            tree ${'$'}REPO
-            rm -rf ${'$'}REPO
-            echo "${'$'}REPO was polluted during the build"
-            ${if (exitOnFailure) "exit 1" else ""}
-        else
-            rm -rf ${'$'}REPO
-            echo "${'$'}REPO exists but is empty"
-        fi
-    else
-        echo "${'$'}REPO does not exist"
-    fi
-
-    """.trimIndent()
-
-fun checkCleanDirWindows(
-    dir: String,
-    exitOnFailure: Boolean = true,
-) = """
-
-    IF exist $dir (
-        DIR /B /A "$dir" | findstr "^" >nul && (
-            TREE $dir
-            RMDIR /S /Q $dir
-            ${if (exitOnFailure) "EXIT 1" else ""}
-        ) || (
-            RMDIR /S /Q $dir
-        )
-    )
-    """.trimIndent()
 
 fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
     if (model.publishStatusToGitHub) {
@@ -166,7 +131,7 @@ fun BaseGradleBuildType.gradleRunnerStep(
             gradleParams = parameters
             executionMode = stepExecutionMode
             if (isRetry) {
-                onlyRunOnGitHubMergeQueueBranch()
+                onlyRunWhenRetryRequested()
             }
         }
         if (isRetry) {
@@ -185,6 +150,28 @@ fun BaseGradleBuildType.gradleRunnerStep(
                     echo "##teamcity[addBuildTag 'BuildRetrySuccess']"
                     """.trimIndent()
             }
+        }
+    }
+}
+
+private fun BaseGradleBuildType.retryDecisionStep() {
+    params {
+        param(RETRY_REQUESTED_PARAMETER, "false")
+        param("env.GRADLE_BOT_TEAMCITY_WEBHOOK_PASSWORD", "%gradle-bot.teamcity.webhook.password%")
+    }
+    steps {
+        script {
+            name = "RETRY_DECISION"
+            id = name
+            executionMode = ExecutionMode.RUN_ONLY_ON_FAILURE
+            conditions {
+                equals("teamcity.build.step.status.$GRADLE_RUNNER_STEP_NAME", "failure")
+            }
+            skipConditionally()
+            scriptContent =
+                "\"$AGENT_JAVA_BINARY\" .teamcity/scripts/RetryDecision.java " +
+                "\"%teamcity.build.branch%\" \"%ai.retry.mode%\" \"%ai.retry.endpoint%\" %teamcity.build.id% " +
+                "%ai.retry.timeout.seconds%"
         }
     }
 }
@@ -208,7 +195,6 @@ fun applyDefaults(
     buildType.steps {
         extraSteps()
         killProcessStep(buildType, KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, executionMode = ExecutionMode.ALWAYS)
-        checkCleanM2AndAndroidUserHome(os, buildType)
     }
 
     applyDefaultDependencies(model, buildType)
@@ -222,6 +208,7 @@ private fun BaseGradleBuildType.addRetrySteps(
     extraParameters: String = "",
     maxParallelForks: String = "%maxParallelForks%",
 ) {
+    retryDecisionStep()
     killProcessStep(KILL_ALL_GRADLE_PROCESSES, os, arch, executionMode = ExecutionMode.RUN_ONLY_ON_FAILURE)
     cleanUpGitUntrackedFilesAndDirectories()
     gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, maxParallelForks = maxParallelForks, isRetry = true)
@@ -253,7 +240,6 @@ fun applyTestDefaults(
 
     buildType.steps {
         extraSteps()
-        checkCleanM2AndAndroidUserHome(os, buildType)
     }
 
     applyDefaultDependencies(model, buildType)

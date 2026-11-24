@@ -63,6 +63,11 @@ public class DefaultArchitecture implements ArchitectureInternal {
     }
 
     @Override
+    public boolean isE2k() {
+        return Architectures.E2K.isAlias(name);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

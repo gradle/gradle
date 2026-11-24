@@ -32,12 +32,13 @@ import java.util.List;
  */
 public abstract class IncompatibleMultipleNodesValidationFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleMultipleNodesValidationFailure> {
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
-    private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
+    private static final String INCOMPATIBLE_VARIANTS_PAGE = "variant_aware_resolution";
+    private static final String INCOMPATIBLE_VARIANTS_SECTION = "sec:abm-algorithm";
 
     @Override
     public GraphValidationException describeFailure(IncompatibleMultipleNodesValidationFailure failure) {
         String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
-        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION), suggestReviewAlgorithm());
+        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_PAGE, INCOMPATIBLE_VARIANTS_SECTION), suggestReviewAlgorithm());
         return new GraphValidationException(msg, failure, resolutions);
     }
 

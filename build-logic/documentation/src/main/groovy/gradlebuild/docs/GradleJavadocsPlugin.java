@@ -79,7 +79,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
         var groovyPackageListBucket = project.getConfigurations().dependencyScope("groovyPackageListBucket");
         var groovyPackageListConf = project.getConfigurations().resolvable("groovyPackageList", conf -> {
             conf.setTransitive(false);
-            conf.extendsFrom(groovyPackageListBucket.get());
+            conf.extendsFrom(groovyPackageListBucket);
         });
         project.getDependencies().add(groovyPackageListBucket.getName(), javadocs.getGroovyPackageListSrc());
 
@@ -143,6 +143,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
         // TODO: destinationDirectory should be part of Javadoc
         javadocs.getRenderedDocumentation().from(javadocAll.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
 
+        project.getPluginManager().apply("checkstyle");
         CheckstyleExtension checkstyle = project.getExtensions().getByType(CheckstyleExtension.class);
         tasks.register("checkstyleApi", Checkstyle.class, task -> {
             task.source(extension.getDocumentedSource());

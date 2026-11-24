@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.internal.logging.progress.ProgressLoggingInputStream;
 import org.gradle.internal.logging.progress.ResourceOperation;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -28,7 +27,6 @@ import org.gradle.internal.resource.ExternalResourceWriteBuildOperationType;
 import org.gradle.internal.resource.ReadableContent;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 
 public class ProgressLoggingExternalResourceUploader extends AbstractProgressLoggingHandler implements ExternalResourceUploader {
@@ -49,26 +47,6 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
                 throw (IOException) e.getCause();
             }
             throw e;
-        }
-    }
-
-    private static class ProgressLoggingReadableContent implements ReadableContent {
-        private final ReadableContent delegate;
-        private final ResourceOperation uploadOperation;
-
-        private ProgressLoggingReadableContent(ReadableContent delegate, ResourceOperation uploadOperation) {
-            this.delegate = delegate;
-            this.uploadOperation = uploadOperation;
-        }
-
-        @Override
-        public InputStream open() {
-            return new ProgressLoggingInputStream(delegate.open(), uploadOperation::logProcessedBytes);
-        }
-
-        @Override
-        public long getContentLength() {
-            return delegate.getContentLength();
         }
     }
 
@@ -97,7 +75,8 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
             ResourceOperation uploadOperation = createResourceOperation(context, ResourceOperation.Type.upload);
             uploadOperation.setContentLength(resource.getContentLength());
             try {
-                delegate.upload(new ProgressLoggingReadableContent(resource, uploadOperation), destination);
+                // The transport may read the content more than once, so count each byte once
+                delegate.upload(new CountingReadableContent(resource, uploadOperation::logProcessedBytes), destination);
             } finally {
                 context.setResult(new ExternalResourceWriteBuildOperationType.Result() {
                     @Override

@@ -129,7 +129,7 @@ public class ShortCircuitingResolutionExecutor {
         VariantGraphResolveState rootVariant = params.getRootVariant();
 
         GraphStructure structure = GraphStructureBuilder.empty(
-            rootComponent.getModuleVersionId(),
+            rootComponent.getMetadata().getModuleVersionId(),
             rootComponent.getId(),
             rootVariant.getMetadata().getAttributes(),
             rootVariant.getMetadata().getCapabilities(),

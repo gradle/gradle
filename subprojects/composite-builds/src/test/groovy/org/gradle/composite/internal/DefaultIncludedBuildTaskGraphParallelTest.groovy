@@ -134,7 +134,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def result = scheduleAndRun(services) { builder ->
             builder.withWorkGraph(build.state) { graphBuilder ->
                 def task = task(build, node)
-                graphBuilder.addEntryTasks([task])
+                graphBuilder.addEntryNodes([task])
             }
         }
 
@@ -157,11 +157,11 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def result = scheduleAndRun(services) { builder ->
             builder.withWorkGraph(build.state) { graphBuilder ->
                 def task = task(build, node)
-                graphBuilder.addEntryTasks([task])
+                graphBuilder.addEntryNodes([task])
             }
             builder.withWorkGraph(childBuild.state) { graphBuilder ->
                 def task = task(childBuild, childNode)
-                graphBuilder.addEntryTasks([task])
+                graphBuilder.addEntryNodes([task])
             }
         }
 
@@ -185,11 +185,11 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def result = scheduleAndRun(services) { builder ->
             builder.withWorkGraph(build.state) { graphBuilder ->
                 def task = task(build, node)
-                graphBuilder.addEntryTasks([task])
+                graphBuilder.addEntryNodes([task])
             }
             builder.withWorkGraph(childBuild.state) { graphBuilder ->
                 def task = task(childBuild, childNode)
-                graphBuilder.addEntryTasks([task])
+                graphBuilder.addEntryNodes([task])
             }
         }
 
@@ -215,11 +215,11 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def result = scheduleAndRun(services) { builder ->
             builder.withWorkGraph(build.state) { graphBuilder ->
                 def task = task(build, node)
-                graphBuilder.addEntryTasks([task])
+                graphBuilder.addEntryNodes([task])
             }
             builder.withWorkGraph(childBuild.state) { graphBuilder ->
                 def task = task(childBuild, childNode)
-                graphBuilder.addEntryTasks([task])
+                graphBuilder.addEntryNodes([task])
             }
         }
 
@@ -243,11 +243,11 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def result = scheduleAndRun(services) { builder ->
             builder.withWorkGraph(build.state) { graphBuilder ->
                 def task = task(build, node)
-                graphBuilder.addEntryTasks([task])
+                graphBuilder.addEntryNodes([task])
             }
             builder.withWorkGraph(childBuild.state) { graphBuilder ->
                 def task = task(childBuild, childNode)
-                graphBuilder.addEntryTasks([task])
+                graphBuilder.addEntryNodes([task])
             }
         }
 
@@ -273,7 +273,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def result = scheduleAndRun(services) { builder ->
             builder.withWorkGraph(build.state) { graphBuilder ->
                 def task = task(build, node)
-                graphBuilder.addEntryTasks([task])
+                graphBuilder.addEntryNodes([task])
             }
         }
 
@@ -301,11 +301,11 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def result = scheduleAndRun(services) { builder ->
             builder.withWorkGraph(build.state) { graphBuilder ->
                 def task = task(build, node)
-                graphBuilder.addEntryTasks([task])
+                graphBuilder.addEntryNodes([task])
             }
             builder.withWorkGraph(childBuild.state) { graphBuilder ->
                 def task = task(childBuild, childNode)
-                graphBuilder.addEntryTasks([task])
+                graphBuilder.addEntryNodes([task])
             }
         }
 
@@ -343,14 +343,16 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
     }
 
     BuildServices build(TreeServices services, BuildIdentity identifier) {
-        def gradle = Stub(GradleInternal)
+        def gradle = Stub(GradleInternal) {
+            getIdentityPath() >> identifier.buildPath
+        }
         def buildOperation = Stub(BuildOperationRef) {
             getId() >> new OperationIdentifier(identifier.buildPath.asString().hashCode())
         }
         return new BuildServices(services, identifier, gradle, buildOperation)
     }
 
-    TaskInternal task(BuildServices services, Node dependsOn) {
+    Node task(BuildServices services, Node dependsOn) {
         def projectState = Stub(ProjectState)
         def buildId = services.identifier.buildPath
         def projectId = ProjectIdentity.forRootProject(buildId, "root")
@@ -380,12 +382,12 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def lock = Stub(ResourceLock)
         _ * projectState.taskExecutionLock >> lock
         _ * lock.tryLock() >> true
-        return task
+        return services.state.workGraph.locateTaskNode(task)
     }
 
     private BuildWorkGraphController buildWorkGraphController(String displayName, BuildServices services) {
         def builder = Mock(BuildLifecycleController.WorkGraphBuilder)
-        def nodeFactory = new TaskNodeFactory(services.identifier, Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationRunner(), new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_INSENSITIVE, Stub(Stat)), TestUtil.problemsService())
+        def nodeFactory = new TaskNodeFactory(services.identifier, Stub(BuildTreeWorkGraphController), buildStateRegistry, Stub(NodeValidator), new TestBuildOperationRunner(), new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_INSENSITIVE, Stub(Stat)), TestUtil.problemsService())
         def hierarchies = new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_SENSITIVE, TestFiles.fileSystem())
         def dependencyResolver = new TaskDependencyResolver([new DependencyResolver() {
             @Override
@@ -401,8 +403,8 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
         def controller = new TestBuildLifecycleController(plan, workPlan, builder, services.services, services.buildOperation)
 
-        _ * builder.addEntryTasks(_) >> { args ->
-            plan.addEntryTasks(args[0])
+        _ * builder.addEntryNodes(_) >> { args ->
+            plan.addEntryNodes(args[0])
         }
 
         return new DefaultBuildWorkGraphController(
@@ -597,7 +599,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         @Override
-        String toString() {
+        String getDisplayName() {
             return displayName
         }
 

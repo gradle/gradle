@@ -22,10 +22,9 @@ import org.gradle.api.Task
 import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.internal.provider.BuildableBackedProvider
 import org.gradle.api.internal.provider.CollectionProviderInternal
+import org.gradle.api.internal.provider.ProviderAssertions
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSupplier
-import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext
-import org.gradle.api.internal.tasks.WorkDependencyResolver
 import org.gradle.internal.Actions
 import org.gradle.internal.code.DefaultUserCodeApplicationContext
 import org.gradle.internal.code.UserCodeApplicationContext
@@ -44,7 +43,7 @@ import static org.hamcrest.CoreMatchers.startsWith
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assume.assumeTrue
 
-abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
+abstract class AbstractDomainObjectCollectionSpec<T> extends Specification implements ProviderAssertions {
 
     TestBuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
     UserCodeApplicationContext userCodeApplicationContext = new DefaultUserCodeApplicationContext(System::nanoTime).tap { it.startTrackingApplications() }
@@ -163,6 +162,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         containerAllowsExternalProviders()
         def provider = Mock(CollectionProviderInternal)
         _ * provider.size() >> 2
+        _ * provider.calculateValue(_) >> ValueSupplier.Value.of([a, b])
 
         when:
         container.addAllLater(provider)
@@ -176,11 +176,60 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         !container.empty
     }
 
+    def "size uses realized values of provider of iterable without querying it again"() {
+        containerAllowsExternalProviders()
+        def provider = Mock(CollectionProviderInternal)
+        _ * provider.elementType >> type
+        _ * provider.size() >> 2
+
+        given:
+        container.addAllLater(provider)
+
+        when:
+        def result = toList(container)
+
+        then:
+        result == iterationOrder(a, b)
+        1 * provider.calculateValue(_) >> ValueSupplier.Value.of([a, b])
+
+        when:
+        def size = container.size()
+        def empty = container.empty
+
+        then:
+        size == 2
+        !empty
+        0 * provider.calculateValue(_)
+        0 * provider.size()
+    }
+
+    def "isEmpty of filtered collection does not realize providers of iterable of other types in the source collection"() {
+        containerAllowsExternalProviders()
+        def action = Mock(Action)
+        def provider = Mock(CollectionProviderInternal)
+        _ * provider.elementType >> otherType
+        _ * provider.size() >> 1
+
+        given:
+        container.addAllLater(provider)
+        container.configureEach(action)
+        def filtered = container.withType(type)
+
+        when:
+        def empty = filtered.empty
+
+        then:
+        empty
+        0 * provider.calculateValue(_)
+        0 * action._
+    }
+
     def "provider of elements are not queried when another element added"() {
         containerAllowsExternalProviders()
         def provider = Mock(ProviderInternal)
         def providerOfIterable = Mock(CollectionProviderInternal)
         _ * providerOfIterable.size() >> 2
+        _ * providerOfIterable.calculateValue(_) >> ValueSupplier.Value.of([c, d])
 
         given:
         addToContainer(a)
@@ -1997,17 +2046,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         when:
         container.addLater(element)
 
-        CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext([new WorkDependencyResolver<Object>() {
-            @Override
-            boolean resolve(Task task, Object node, Action<? super Object> resolveAction) {
-                resolveAction.execute(node)
-                return true
-            }
-        }])
-        def deps = context.getDependencies(null, ((ProviderInternal) container.getElements()).getProducer())
-
         then:
-        toList(deps) == [dep]
+        def elements = (ProviderInternal<?>) container.getElements()
+        assertHasProducer(elements, dep)
     }
 
     protected Map<String, Closure> getQueryMethods() {

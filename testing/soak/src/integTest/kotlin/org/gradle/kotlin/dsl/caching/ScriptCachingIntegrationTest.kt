@@ -39,6 +39,7 @@ import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.incremental.deleteRecursivelyOrThrow
 import org.junit.Test
+import spock.lang.Issue
 import java.util.UUID
 
 
@@ -61,10 +62,12 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                 }
                 // then: single compilation and classloading
                 compilationCache {
-                    misses(settingsFile, rootBuildFile, leftBuildFile, rightBuildFile)
+                    misses(settingsFile, rootBuildFile, leftBuildFile)
+                    hits(rightBuildFile)
                 }
                 classLoadingCache {
-                    misses(settingsFile, rootBuildFile, leftBuildFile, rightBuildFile)
+                    misses(settingsFile, rootBuildFile, leftBuildFile)
+                    hits(rightBuildFile)
                 }
             }
 
@@ -95,7 +98,8 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                     hits(leftBuildFile, rootBuildFile, rightBuildFile)
                 }
                 classLoadingCache {
-                    misses(rootBuildFile, leftBuildFile, rightBuildFile)
+                    misses(rootBuildFile, leftBuildFile)
+                    hits(rightBuildFile)
                 }
             }
         }
@@ -181,10 +185,14 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
                 // then: compilation and classloading
                 compilationCache {
-                    misses(leftBuildFile, rightBuildFile)
+                    misses(leftBuildFile)
+                    hits(rightBuildFile.stage1)
+                    misses(rightBuildFile.stage2)
                 }
                 classLoadingCache {
-                    misses(leftBuildFile, rightBuildFile)
+                    misses(leftBuildFile)
+                    hits(rightBuildFile.stage1)
+                    misses(rightBuildFile.stage2)
                 }
             }
 
@@ -209,7 +217,9 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                     hits(leftBuildFile, rightBuildFile)
                 }
                 classLoadingCache {
-                    misses(leftBuildFile, rightBuildFile)
+                    misses(leftBuildFile)
+                    hits(rightBuildFile.stage1)
+                    misses(rightBuildFile.stage2)
                 }
             }
         }
@@ -302,10 +312,12 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                 ).apply {
                     buildForCacheInspection("help", "--build-cache", "-Dorg.gradle.internal.kotlin-script-accessors-caching-disabled=false").apply {
                         compilationCache {
-                            misses(rootBuildFile, leftBuildFile, rightBuildFile)
+                            misses(rootBuildFile, leftBuildFile.stage2)
+                            hits(leftBuildFile.stage1, rightBuildFile)
                         }
                         classLoadingCache {
-                            misses(rootBuildFile, leftBuildFile, rightBuildFile)
+                            misses(rootBuildFile, leftBuildFile.stage2)
+                            hits(leftBuildFile.stage1, rightBuildFile)
                         }
                         assertOutputContains("Stored cache entry for Kotlin DSL plugin specs accessors")
                         assertOutputContains("Stored cache entry for Kotlin DSL accessors for root project 'top'")
@@ -337,7 +349,8 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                             hits(rootBuildFile, leftBuildFile, rightBuildFile)
                         }
                         classLoadingCache {
-                            misses(rootBuildFile, leftBuildFile, rightBuildFile)
+                            misses(rootBuildFile, leftBuildFile.stage2)
+                            hits(leftBuildFile.stage1, rightBuildFile)
                         }
                         assertOutputContains("Loaded cache entry for Kotlin DSL plugin specs accessors")
                         assertOutputContains("Loaded cache entry for Kotlin DSL accessors for root project 'bottom'")
@@ -352,6 +365,61 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
             }
         }
     }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/39434")
+    fun `kotlin script compilation is relocatable for included build outside the build-tree root`() {
+        val includedSettings = randomScriptContent()
+        val rootSettings = randomScriptContent()
+        withOwnGradleUserHomeDir("verifying Kotlin DSL script cache reuse") {
+            withProjectRoot(file("checkout-a/app")) {
+                withSiblingIncludedBuild(includedSettings, rootSettings).apply {
+                    buildForCacheInspection("help").apply {
+                        compilationCache {
+                            misses(includedSettingsFile, rootSettingsFile)
+                        }
+                    }
+                }
+            }
+
+            withProjectRoot(file("checkout-b/app")) {
+                withSiblingIncludedBuild(includedSettings, rootSettings).apply {
+                    buildForCacheInspection("help").apply {
+                        compilationCache {
+                            hits(includedSettingsFile, rootSettingsFile)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private
+    fun withSiblingIncludedBuild(includedSettings: String, rootSettings: String) =
+        SiblingIncludedBuildCachedScripts(
+            cachedSettingsFile(
+                withSettingsIn(
+                    "../plugins",
+                    """
+                    $includedSettings
+                    rootProject.name = "plugins"
+                    """
+                )
+            ),
+            cachedSettingsFile(
+                withSettings(
+                    """
+                    pluginManagement {
+                        includeBuild("../plugins")
+                    }
+                    $rootSettings
+                    rootProject.name = "app"
+                    """
+                ),
+                hasBuildscriptBlock = true,
+                hasBody = true
+            )
+        )
 
     private
     fun expectBuildCacheEntriesWritten(
@@ -455,4 +523,11 @@ data class MultiProjectCachedScripts(
     val rootBuildFile: CachedScript.WholeFile,
     val leftBuildFile: CachedScript.WholeFile,
     val rightBuildFile: CachedScript.WholeFile
+)
+
+
+private
+data class SiblingIncludedBuildCachedScripts(
+    val includedSettingsFile: CachedScript.WholeFile,
+    val rootSettingsFile: CachedScript.WholeFile
 )

@@ -53,11 +53,11 @@ public abstract class AbstractResolutionFailureDescriber<FAILURE extends Resolut
     }
 
     protected String suggestReviewAlgorithm() {
-        return DEFAULT_MESSAGE_PREFIX + getDocumentationRegistry().getDocumentationFor("variant_attributes", "sec:abm_algorithm") + ".";
+        return DEFAULT_MESSAGE_PREFIX + getDocumentationRegistry().getDocumentationFor("variant_aware_resolution", "sec:abm-algorithm") + ".";
     }
 
-    protected String suggestSpecificDocumentation(String prefix, String section) {
-        return prefix + getDocumentationRegistry().getDocumentationFor("variant_model", section) + ".";
+    protected String suggestSpecificDocumentation(String prefix, String page, String section) {
+        return prefix + getDocumentationRegistry().getDocumentationFor(page, section) + ".";
     }
 
     protected void formatAttributeSection(TreeFormatter formatter, String section, List<String> values) {

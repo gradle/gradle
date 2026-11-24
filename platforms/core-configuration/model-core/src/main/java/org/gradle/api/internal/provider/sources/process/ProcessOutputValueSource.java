@@ -32,7 +32,6 @@ import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public abstract class ProcessOutputValueSource implements ValueSource<ProcessOutputValueSource.ExecOutputData, ProcessOutputValueSource.Parameters>, Describable {
     public interface Parameters extends ValueSourceParameters {
@@ -181,7 +180,7 @@ public abstract class ProcessOutputValueSource implements ValueSource<ProcessOut
 
         @Override
         public int hashCode() {
-            int hash = Objects.hash(result);
+            int hash = Integer.hashCode(result.getExitValue());
             hash = 31 * hash + Arrays.hashCode(output);
             hash = 31 * hash + Arrays.hashCode(error);
             return hash;

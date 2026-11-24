@@ -36,6 +36,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec implements 
     def tmpdir = buildContext.getTmpDir().createDir()
 
     def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
         // This is doing some strange things to avoid the testing infrastructure from making these tests even more complicated.
         // We want to start the launcher JVM with a controlled set of JVM args
         // and we want the daemon to have a reasonable set of JVM args

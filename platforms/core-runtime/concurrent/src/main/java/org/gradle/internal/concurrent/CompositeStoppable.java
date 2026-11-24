@@ -22,15 +22,14 @@ import org.jspecify.annotations.Nullable;
 
 import javax.annotation.CheckReturnValue;
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * A {@link org.gradle.internal.concurrent.Stoppable} that stops a collection of things. If an element implements
- * {@link java.io.Closeable} or {@link org.gradle.internal.concurrent.Stoppable} then the appropriate close/stop
- * method is called on that object; otherwise the element is ignored. Elements may be {@code null}, in which case they
- * are ignored.
+ * {@link AutoCloseable} or {@link org.gradle.internal.concurrent.Stoppable} then the appropriate close/stop
+ * method is called on that object; otherwise the element is ignored. An element that implements both is stopped,
+ * not closed. Elements may be {@code null}, in which case they are ignored.
  *
  * <p>Attempts to stop as many elements as possible in the presence of failures.</p>
  */
@@ -41,7 +40,7 @@ public class CompositeStoppable implements Stoppable {
     }
 
     @CheckReturnValue
-    public static CompositeStoppable stoppable(Object... elements) {
+    public static CompositeStoppable stoppable(@Nullable Object... elements) {
         return new CompositeStoppable().add(elements);
     }
 
@@ -64,14 +63,14 @@ public class CompositeStoppable implements Stoppable {
         return this;
     }
 
-    public CompositeStoppable add(Object... elements) {
+    public CompositeStoppable add(@Nullable Object... elements) {
         for (Object closeable : elements) {
             add(closeable);
         }
         return this;
     }
 
-    public CompositeStoppable add(Object closeable) {
+    public CompositeStoppable add(@Nullable Object closeable) {
         Stoppable stoppable = toStoppable(closeable);
         if (stoppable != null) {
             add(stoppable);
@@ -85,12 +84,12 @@ public class CompositeStoppable implements Stoppable {
     }
 
     @Nullable
-    private static Stoppable toStoppable(final Object object) {
+    private static Stoppable toStoppable(final @Nullable Object object) {
         if (object instanceof Stoppable) {
             return (Stoppable) object;
         }
-        if (object instanceof Closeable) {
-            final Closeable closeable = (Closeable) object;
+        if (object instanceof AutoCloseable) {
+            final AutoCloseable closeable = (AutoCloseable) object;
             return new Stoppable() {
                 @Override
                 public String toString() {
@@ -101,7 +100,7 @@ public class CompositeStoppable implements Stoppable {
                 public void stop() {
                     try {
                         closeable.close();
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }

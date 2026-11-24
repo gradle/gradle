@@ -96,8 +96,6 @@ class CrossBuildConfigurationReportingGradle(
 
     override fun getIdentityPath(): Path = delegate.identityPath
 
-    override fun contextualize(description: String): String = delegate.contextualize(description)
-
     override fun getPublicBuildPath(): PublicBuildPath = delegate.publicBuildPath
 
     override fun getBuildPath(): String = delegate.buildPath
@@ -154,6 +152,10 @@ class CrossBuildConfigurationReportingGradle(
     override fun getBuildListenerBroadcaster(): BuildListener {
         onBuildMutableStateAccess("getBuildListenerBroadcaster")
         return delegate.getBuildListenerBroadcaster()
+    }
+
+    override fun notifySettingsEvaluated(settings: SettingsInternal) {
+        shouldNotBeUsed()
     }
 
     override fun getServices(): ServiceRegistry {

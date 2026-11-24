@@ -1,0 +1,56 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group = "com.example"
+version = "1.0"
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+// tag::avoid-this[]
+enum MyFormat implements Named { // <1>
+    TYPE_A("txt-a"),
+    TYPE_B("txt-b")
+
+    private final String extension
+
+    MyFormat(String extension) {
+        this.extension = extension
+    }
+
+    @Override
+    String getName() { return name() } // <2>
+
+    String getExtension() { return extension }
+}
+
+def MY_FORMAT = Attribute.of("my-format", MyFormat)
+dependencies.attributesSchema.attribute(MY_FORMAT)
+
+configurations.named("apiElements") {
+    attributes {
+        attribute(MY_FORMAT, MyFormat.TYPE_A) // <3>
+    }
+}
+
+def generateMetadata = tasks.named("generateMetadataFileForMavenPublication")
+
+tasks.register("showPublishedFormat") {
+    def moduleFile = generateMetadata.flatMap { it.outputFile }
+    inputs.file(moduleFile)
+    def inBuild = MyFormat.TYPE_A.extension // <4>
+    doLast {
+        logger.lifecycle("in this build:  MyFormat.TYPE_A.extension = $inBuild")
+        moduleFile.get().asFile.readLines()
+            .findAll { it.contains("my-format") }
+            .each { logger.lifecycle("in module.json: ${it.trim().replaceAll(/,$/, '')}") } // <5>
+    }
+}
+// end::avoid-this[]

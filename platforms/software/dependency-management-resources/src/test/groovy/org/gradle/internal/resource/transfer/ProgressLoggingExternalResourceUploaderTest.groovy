@@ -55,6 +55,24 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
         0 * context.progress(_)
     }
 
+    def "logs the progress of each byte once when the transport reads the content again"() {
+        setup:
+        expectPutBuildOperation(1072)
+
+        when:
+        uploader.upload(resource, location)
+
+        then:
+        _ * resource.open() >> { new ByteArrayInputStream(new byte[1072]) }
+        1 * resource.contentLength >> 1072
+        1 * delegate.upload(_, location) >> { resource, destination ->
+            // Like a transport that hashes the content before sending it
+            2.times { resource.open().withStream { it.readAllBytes() } }
+        }
+        1 * context.progress(1072, 1072, "bytes", "1 KiB/1 KiB uploaded")
+        0 * context.progress(*_)
+    }
+
     def "uploads empty file"() {
         setup:
         expectPutBuildOperation(0)
@@ -76,7 +94,7 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
             def descriptor = action.description().build()
             assert descriptor.name == "Upload https://location/thing.jar"
             assert descriptor.displayName == "Upload https://location/thing.jar"
-            assert descriptor.progressDisplayName == "thing.jar"
+            assert descriptor.progressDisplayName.text == "thing.jar"
 
             assert descriptor.details instanceof ExternalResourceWriteBuildOperationType.Details
             assert descriptor.details.location == location.getUri().toASCIIString()

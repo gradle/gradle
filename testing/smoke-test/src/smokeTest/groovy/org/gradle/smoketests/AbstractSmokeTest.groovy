@@ -162,6 +162,7 @@ abstract class AbstractSmokeTest extends Specification {
         def args = tasks.toList() +
             outputParameters() +
             repoMirrorParameters() +
+            extraRepositoriesParameters() +
             configurationCacheParameters() +
             isolatedProjectsParameters() +
             toolchainParameters()
@@ -214,6 +215,11 @@ abstract class AbstractSmokeTest extends Specification {
             '--warning-mode=all',
             "-D${LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME}=false" as String,
         ]
+    }
+
+    private static List<String> extraRepositoriesParameters() {
+        def initScript = RepoScriptBlockUtil.extraRepositoriesInitScriptFile()
+        return initScript == null ? [] : ['--init-script', initScript.absolutePath]
     }
 
     private static List<String> repoMirrorParameters() {

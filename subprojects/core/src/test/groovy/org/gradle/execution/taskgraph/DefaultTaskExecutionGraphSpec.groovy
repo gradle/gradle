@@ -21,13 +21,19 @@ import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionGraphListener
 import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener
+import org.gradle.api.internal.GradleInternal
 import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
 import org.gradle.execution.plan.AbstractExecutionPlanSpec
 import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.QueryableExecutionPlan
+import org.gradle.internal.build.BuildProjectRegistry
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.internal.operations.ProgressDisplayName
 import org.gradle.internal.service.scopes.Scope
+import org.gradle.util.Path
+import spock.lang.Issue
 
 class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
 
@@ -215,6 +221,42 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         then:
         0 * closure._
         0 * action._
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39539")
+    def "shows the task graph ready listeners of the #build on a worker line"() {
+        given:
+        def gradle = Stub(GradleInternal) {
+            getIdentityPath() >> buildPath
+            getOwner() >> Stub(BuildState) {
+                getOwnerToShow() >> ownerToShow
+                getProjects() >> Stub(BuildProjectRegistry) {
+                    withMutableStateOfAllProjects(_ as Runnable) >> { Runnable action -> action.run() }
+                }
+            }
+        }
+        def taskGraph = new DefaultTaskExecutionGraph(
+            buildOperationRunner,
+            listenerBuildOperationDecorator,
+            gradle,
+            graphListeners,
+            internalGraphListeners,
+            taskExecutionListeners,
+            listenerRegistrationListener
+        )
+        taskGraph.whenReady(Mock(Action))
+
+        when:
+        taskGraph.populate(Stub(FinalizedExecutionPlan))
+
+        then:
+        buildOperationRunner.operations[0].displayName == displayName
+        buildOperationRunner.operations[0].progressDisplayName == ProgressDisplayName.of(ownerToShow, "Running task graph ready listeners")
+
+        where:
+        build            | buildPath         | ownerToShow | displayName
+        "root build"     | Path.ROOT         | null        | "Notify task graph whenReady listeners"
+        "included build" | Path.path(":lib") | ":lib"      | "Notify task graph whenReady listeners (:lib)"
     }
 
     def "notifies before task listeners"() {

@@ -19,7 +19,6 @@ package org.gradle.java.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.jvm.Jvm
 
 abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegrationSpec implements IncrementalCompileMultiProjectTestFixture {
@@ -91,24 +90,23 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         failure.assertHasDescription "Execution failed for task ':${language.compileTaskName}' (registered by plugin class '${getLanguageBasePluginClass().getName()}')."
     }
 
-    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "recompiles dependent classes across project boundaries"() {
         given:
         file("lib/src/main/${language.name}/IPerson.${language.name}") << basicInterface
         file("app/src/main/${language.name}/Person.${language.name}") << classImplementingBasicInterface
         settingsFile << 'include "lib", "app"'
-        buildFile << """
-            subprojects {
+        ['lib', 'app'].each {
+            buildFile("$it/build.gradle", """
                 apply plugin: '${language.name}'
                 ${language.compileTaskName}.options.incremental = true
+                ${language.projectGroovyDependencies()}
+            """)
+        }
+        buildFile("app/build.gradle", """
+            dependencies {
+                implementation project(':lib')
             }
-            project(':app') {
-                dependencies {
-                    implementation project(':lib')
-                }
-            }
-            ${language.projectGroovyDependencies("subprojects")}
-        """.stripIndent()
+        """)
 
         expect:
         succeeds 'app:classes'
@@ -121,7 +119,6 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         failure.assertHasDescription "Execution failed for task ':app:${language.compileTaskName}' (registered by plugin class '${getLanguageBasePluginClass().getName()}')."
     }
 
-    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "task outcome is UP-TO-DATE when no recompilation necessary"() {
         given:
         libraryAppProjectWithIncrementalCompilation(language)
@@ -145,17 +142,16 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         executedAndNotSkipped(getLibraryCompileTask(language))
     }
 
-    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "does not recompile when only compileOptions.incremental property changes from #from to #to"() {
         given:
         libraryAppProjectWithIncrementalCompilation(language)
 
         when:
-        buildFile << """
-            subprojects {
+        ['library', 'app'].each {
+            buildFile("$it/build.gradle", """
                 tasks.${language.compileTaskName}.options.incremental = $from
-            }
-        """
+            """)
+        }
         run getAppCompileTask(language)
 
         then:
@@ -163,11 +159,11 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         executedAndNotSkipped getAppCompileTask(language)
 
         when:
-        buildFile << """
-            subprojects {
+        ['library', 'app'].each {
+            buildFile("$it/build.gradle", """
                 tasks.compileJava.options.incremental = $to
-            }
-        """
+            """)
+        }
         run getAppCompileTask(language)
 
         then:

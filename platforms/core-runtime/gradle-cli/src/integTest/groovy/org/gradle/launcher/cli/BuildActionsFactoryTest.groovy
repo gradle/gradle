@@ -24,6 +24,8 @@ import org.gradle.internal.Actions
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.SupportedJavaVersions
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException
 import org.gradle.internal.logging.LoggingManagerFactory
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.console.GlobalUserInputReceiver
@@ -143,6 +145,31 @@ class BuildActionsFactoryTest extends Specification {
 
         then:
         unwrapAction(action) instanceof ForegroundDaemonAction
+    }
+
+    def "fails on unsupported Java version when running the build in the current process"() {
+        given:
+        useCurrentProcess = true
+        System.setProperty("java.version", "11.0.23")
+
+        when:
+        convert('--no-daemon', 'args')
+
+        then:
+        def e = thrown(UnsupportedJavaRuntimeException)
+        e.message == "Gradle requires JVM ${SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION} or later to run. You are currently using JVM 11."
+    }
+
+    def "fails on unsupported Java version when running the daemon in the foreground"() {
+        given:
+        System.setProperty("java.version", "11.0.23")
+
+        when:
+        convert('--foreground')
+
+        then:
+        def e = thrown(UnsupportedJavaRuntimeException)
+        e.message == "Gradle requires JVM ${SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION} or later to run. You are currently using JVM 11."
     }
 
     def "executes with single use daemon if current process cannot be used"() {

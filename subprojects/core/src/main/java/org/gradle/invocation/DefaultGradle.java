@@ -56,10 +56,10 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.MutableActionSet;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.composite.IncludedBuildInternal;
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -80,6 +80,7 @@ import java.util.function.Supplier;
 
 public abstract class DefaultGradle extends AbstractPluginAware implements GradleInternal, Closeable {
 
+    private final BuildIdentity buildIdentity;
     private final BuildState buildState;
     private final StartParameter startParameter;
     private final ServiceRegistry buildScopeServices;
@@ -93,6 +94,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
     private final MutableActionSet<Project> rootProjectActions = new MutableActionSet<>();
     private @Nullable List<IncludedBuildInternal> includedBuilds;
+    private @Nullable ListenerBroadcast<BuildListener> pendingSettingsEvaluated;
     private @Nullable GradleLifecycle lifecycle;
     private @Nullable Supplier<? extends ClassLoaderScope> classLoaderScope;
     private @Nullable ClassLoaderScope baseProjectClassLoaderScope;
@@ -101,7 +103,8 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private boolean projectsLoaded;
 
     @SuppressWarnings("this-escape")
-    public DefaultGradle(BuildState buildState, StartParameter startParameter, ServiceRegistry buildScopeServices) {
+    public DefaultGradle(BuildIdentity buildIdentity, BuildState buildState, StartParameter startParameter, ServiceRegistry buildScopeServices) {
+        this.buildIdentity = buildIdentity;
         this.buildState = buildState;
         this.startParameter = startParameter;
         this.buildScopeServices = buildScopeServices;
@@ -130,10 +133,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
                 projectsLoaded = true;
             }
         });
-
-        if (buildState.getParent() == null) {
-            buildScopeServices.get(GradleEnterprisePluginManager.class).registerMissingPluginWarning(this);
-        }
     }
 
     @Override
@@ -148,16 +147,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public Path getIdentityPath() {
-        return buildState.getIdentityPath();
-    }
-
-    @Override
-    public String contextualize(String description) {
-        if (isRootBuild()) {
-            return description;
-        } else {
-            return description + " (" + getIdentityPath().asString() + ")";
-        }
+        return buildIdentity.getBuildPath();
     }
 
     @Override
@@ -180,7 +170,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public boolean isRootBuild() {
-        return buildState.getParent() == null;
+        return buildIdentity.isRootBuild();
     }
 
     @Override
@@ -373,12 +363,36 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public void settingsEvaluated(@SuppressWarnings("rawtypes") Closure closure) {
-        registerBuildListener("settingsEvaluated", closure);
+        settingsEvaluatedListeners().add(new ClosureBackedMethodInvocationDispatch("settingsEvaluated", closure));
     }
 
     @Override
     public void settingsEvaluated(Action<? super Settings> action) {
-        buildListenerBroadcast.add("settingsEvaluated", action);
+        settingsEvaluatedListeners().add("settingsEvaluated", action);
+    }
+
+    /**
+     * Returns the broadcast that {@code settingsEvaluated} callbacks should currently be registered with. While the
+     * {@code settingsEvaluated} event is being fired, new callbacks are collected in a pending batch that is fired
+     * before {@link #notifySettingsEvaluated(SettingsInternal)} returns, so callbacks can register further callbacks.
+     */
+    private ListenerBroadcast<BuildListener> settingsEvaluatedListeners() {
+        return pendingSettingsEvaluated != null ? pendingSettingsEvaluated : buildListenerBroadcast;
+    }
+
+    @Override
+    public void notifySettingsEvaluated(SettingsInternal settings) {
+        pendingSettingsEvaluated = new ListenerBroadcast<>(BuildListener.class);
+        try {
+            buildListenerBroadcast.getSource().settingsEvaluated(settings);
+            while (!pendingSettingsEvaluated.isEmpty()) {
+                ListenerBroadcast<BuildListener> batch = pendingSettingsEvaluated;
+                pendingSettingsEvaluated = new ListenerBroadcast<>(BuildListener.class);
+                batch.getSource().settingsEvaluated(settings);
+            }
+        } finally {
+            pendingSettingsEvaluated = null;
+        }
     }
 
     @Override

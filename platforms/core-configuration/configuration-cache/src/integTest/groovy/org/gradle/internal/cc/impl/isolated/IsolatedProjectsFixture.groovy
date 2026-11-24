@@ -21,6 +21,7 @@ import groovy.transform.stc.FirstParam
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture.HasBuildActions
@@ -270,13 +271,18 @@ class IsolatedProjectsFixture {
         assert configuredProjects.collect { fullPath(it) }.toSet() == details.projects
 
         // Scripts - one or more for settings, and one for each project build script
-        def scripts = buildOperations.typed(ApplyScriptPluginBuildOperationType)
+        def scripts = buildOperations.typed(ApplyScriptPluginBuildOperationType).findAll { !isExtraRepositoriesInitScript(it.details.file) }
         assert !scripts.empty
         def sortedScripts = scripts.toSorted { it -> it.startTime }
         assert sortedScripts.first().details.targetType == "settings"
         def nonSettingsScripts = scripts.findAll { it.details.targetType != "settings" }
         def nonSettingsScriptTargets = nonSettingsScripts.collect { fullPath(it.details.buildPath, it.details.targetPath) }.toSet()
         assert nonSettingsScriptTargets.size() == projectsWithBuildScripts(details.projects).size()
+    }
+
+    private static boolean isExtraRepositoriesInitScript(Object file) {
+        def initScript = RepoScriptBlockUtil.extraRepositoriesInitScriptFile()
+        return initScript != null && file != null && new File(file.toString()).canonicalPath == initScript.canonicalPath
     }
 
     private void assertNoModelsQueried() {

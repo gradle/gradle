@@ -23,6 +23,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface ExecHandle extends Describable {
 
@@ -70,6 +71,8 @@ public interface ExecHandle extends Describable {
      */
     @Nullable
     ExecResult getExecResult();
+
+    Optional<Integer> getProcessExitValue();
 
     void addListener(ExecHandleListener listener);
 

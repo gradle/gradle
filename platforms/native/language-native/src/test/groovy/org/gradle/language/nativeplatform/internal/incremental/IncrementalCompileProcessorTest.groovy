@@ -27,6 +27,7 @@ import org.gradle.language.nativeplatform.internal.incremental.sourceparser.Test
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
+import org.jspecify.annotations.NonNull
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -420,7 +421,7 @@ class IncrementalCompileProcessorTest extends Specification {
             this.compilationState = newValue
         }
 
-        CompilationState update(ObjectHolder.UpdateAction<CompilationState> updateAction) {
+        CompilationState update(@NonNull ObjectHolder.UpdateAction<CompilationState> updateAction) {
             throw new UnsupportedOperationException()
         }
 

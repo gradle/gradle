@@ -36,7 +36,7 @@ val distribution = configurations.dependencyScope("distribution") {
     description = "Dependencies to extract the public Gradle API from"
 }
 val distributionClasspath = configurations.resolvable("distributionClasspath") {
-    extendsFrom(distribution.get())
+    extendsFrom(distribution)
     configureAsRuntimeJarClasspath(objects)
 }
 

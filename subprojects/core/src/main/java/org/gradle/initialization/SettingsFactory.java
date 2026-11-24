@@ -25,7 +25,7 @@ import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.ManagedServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.scopes.SettingsScopeServices;
@@ -70,7 +70,7 @@ public class SettingsFactory {
     }
 
     private class SettingsServiceRegistryFactory implements ServiceRegistryFactory {
-        private CloseableServiceRegistry services;
+        private ManagedServiceRegistry services;
 
         @Override
         public ServiceRegistry createFor(Object domainObject) {

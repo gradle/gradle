@@ -81,7 +81,7 @@ val executableJar = tasks.register<Jar>("executableJar") {
         attributes("Enable-Native-Access" to "ALL-UNNAMED")
     }
     from(layout.projectDirectory.dir("src/executable/resources"))
-    from(sourceSets.main.get().output)
+    from(sourceSets.main.map { it.output })
 }
 
 // Using Gr8 plugin with ProGuard to minify the wrapper JAR.
@@ -90,9 +90,11 @@ val executableJar = tasks.register<Jar>("executableJar") {
 // Ignore module descriptors as they are not relevant
 gr8.registerFilterTransform(listOf("META-INF/.*", "module-info\\.class"))
 
-val filteredRuntimeClasspath = configurations.runtimeClasspath.get().incoming.artifactView {
-    attributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, FilterTransform.artifactType)
-}.files
+val filteredRuntimeClasspath = files(configurations.runtimeClasspath.map {
+    it.incoming.artifactView {
+        attributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, FilterTransform.artifactType)
+    }.files
+})
 
 val shadowedWrapperJar = gr8.create("gr") {
     addProgramJarsFrom(executableJar.flatMap { it.archiveFile })
@@ -134,9 +136,11 @@ val debuggableJar = tasks.register<Jar>("debuggableJar") {
     description = "Builds an unminified wrapper JAR so the launcher can be debugged."
     archiveFileName = "gradle-wrapper.jar"
     from(executableJar.map { it.source })
-    from(configurations.runtimeClasspath.get().incoming.artifactView {
-        attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.CLASSES))
-    }.files)
+    from(configurations.runtimeClasspath.map {
+        it.incoming.artifactView {
+            attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.CLASSES))
+        }.files
+    })
 }
 
 tasks.jar {

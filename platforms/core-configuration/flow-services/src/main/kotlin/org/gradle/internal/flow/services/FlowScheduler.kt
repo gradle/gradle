@@ -20,6 +20,11 @@ import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.internal.logging.format.JavaClassNameFormatter
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.Scope
@@ -33,6 +38,7 @@ class FlowScheduler(
     instantiatorFactory: InstantiatorFactory,
     serviceRegistry: ServiceRegistry,
     private val buildState: BuildState,
+    private val buildOperationRunner: BuildOperationRunner,
 ) {
     private
     val instantiator by lazy {
@@ -60,9 +66,19 @@ class FlowScheduler(
     private
     fun runActions(scheduled: List<RegisteredFlowAction>) {
         scheduled.forEach { flowAction ->
-            instantiator
-                .newInstance(flowAction.type)
-                .execute(flowAction.parameters)
+            val className = flowAction.type.name
+            buildOperationRunner.run(object : RunnableBuildOperation {
+                override fun run(context: BuildOperationContext) {
+                    instantiator
+                        .newInstance(flowAction.type)
+                        .execute(flowAction.parameters)
+                }
+
+                override fun description(): BuildOperationDescriptor.Builder =
+                    BuildOperationDescriptor.displayName("Run flow action $className")
+                        .progressDisplayName("Flow action ${JavaClassNameFormatter.abbreviateJavaPackage(className)}")
+                        .owner(buildState)
+            })
         }
     }
 

@@ -32,7 +32,7 @@ import java.util.List;
  */
 public abstract class ModuleRejectedFailureDescriber extends AbstractResolutionFailureDescriber<ModuleRejectedFailure> {
     private static final String CAPABILITY_CONFLICT_DOCS_ID = "component_capabilities";
-    private static final String CAPABILITY_CONFLICT_DOCS_SECTION = "sub:capabilities";
+    private static final String CAPABILITY_CONFLICT_DOCS_SECTION = "sec:capabilities";
     private static final String CAPABILITY_CONFLICT_RESOLUTION_DOCS_SECTION = "sec:selecting-between-candidates";
 
     @Inject

@@ -84,6 +84,7 @@ The Gradle community offers a range of forums, documentation, and direct help to
 ### 🌱 **Contributing to Gradle**
 
 - **Contribution Guide**: [Contribute](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md) to Gradle by submitting patches or pull requests for code or documentation improvements.
+- **AI Policy**: If you use AI tools to write code, open issues, or submit pull requests, read our [AI Policy](AI_POLICY.md) first.
 - **Code of Conduct**: Gradle enforces a [Code of Conduct](https://gradle.org/conduct/) to ensure a welcoming and supportive community for all contributors.
 
 ---

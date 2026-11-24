@@ -16,6 +16,11 @@
 
 import gradlebuild.basics.googleApisJs
 
+val kotlinVersion = versionCatalogs.find("libs").flatMap { it.findVersion("kotlin") }.map { it.requiredVersion }.orElse("")
+
+// A Kotlin dev build has a build number at the end, for example 2.5.20-dev-2076 or 2.4.20-RC-197
+val kotlinDevVersionRegExp = Regex(".+-\\d+")
+
 repositories {
     // Serves the jquery and flot JavaScript artifacts bundled into generated reports.
     // The helper applies its own content filter, so this repository is only ever
@@ -55,6 +60,15 @@ repositories {
             // gradlebuild.binary-compatibility. Asking Maven Central for it can only ever 404, and
             // when the mirror answers 503 under load instead, Gradle disables the whole repository.
             excludeModule("gradle", "gradle")
+        }
+    }
+    if (kotlinVersion.matches(kotlinDevVersionRegExp)) {
+        maven {
+            name = "Kotlin dev repository"
+            url = uri("https://packages.jetbrains.team/maven/p/kt/dev")
+            content {
+                includeVersionByRegex("org\\.jetbrains\\.kotlin(\\..+)?", ".*", kotlinDevVersionRegExp.pattern)
+            }
         }
     }
 }

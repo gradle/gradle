@@ -89,6 +89,22 @@ class ConfigurationCacheInstrumentationProcessorTest extends Specification {
         outputFile.text == originalOutput
     }
 
+    def "can process sources that declare records"() {
+        given:
+        withAnnotatedType 'Foo'
+        sourceFile 'my/Bar.java', '''
+            package my;
+
+            record Bar(String name) {}
+        '''
+
+        when:
+        DiagnosticCollector<JavaFileObject> diagnostics = processAnnotationsOf(['my.Foo', 'my.Bar'], '17')
+
+        then:
+        errorsFrom(diagnostics).isEmpty()
+    }
+
     private withAnnotatedType(String typeName) {
         sourceFile "my/${typeName}.java", """
             package my;
@@ -130,9 +146,8 @@ class ConfigurationCacheInstrumentationProcessorTest extends Specification {
         srcDir.file(name).text = source.stripIndent()
     }
 
-    private DiagnosticCollector<JavaFileObject> processAnnotationsOf(Iterable<String> classes) {
+    private DiagnosticCollector<JavaFileObject> processAnnotationsOf(Iterable<String> classes, String targetVersion = '8') {
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>()
-        String targetVersion = '8'
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler()
         try (StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null)) {
             fileManager.tap {

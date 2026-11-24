@@ -38,7 +38,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.ManagedServiceRegistry;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -85,7 +85,7 @@ public class DefaultBuildWorkExecutor implements BuildWorkExecutor {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                BuildOperationDescriptor.Builder builder = BuildOperationDescriptor.displayName(gradle.contextualize("Run tasks"));
+                BuildOperationDescriptor.Builder builder = BuildOperationDescriptor.displayName("Run tasks").owner(gradle.getOwner());
                 if (gradle.isRootBuild()) {
                     long buildStartTime = gradle.getServices().get(BuildRequestMetaData.class).getStartTime();
                     builder.details(new RunRootBuildWorkBuildOperationType.Details(buildStartTime));
@@ -196,8 +196,8 @@ public class DefaultBuildWorkExecutor implements BuildWorkExecutor {
 
         @Override
         public void close() {
-            if (services instanceof CloseableServiceRegistry) {
-                ((CloseableServiceRegistry) services).close();
+            if (services instanceof ManagedServiceRegistry) {
+                ((ManagedServiceRegistry) services).close();
             }
         }
 

@@ -30,7 +30,6 @@ import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.groovy.scripts.internal.InitialPassStatementTransformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.Documentation;
@@ -1611,8 +1610,8 @@ public class BuildScriptBuilder {
     }
 
     private static class TopLevelBlock extends ScriptBlockImpl {
-        final BlockStatement pluginsManagement = new BlockStatement(InitialPassStatementTransformer.PLUGIN_MANAGEMENT);
-        final BlockStatement plugins = new BlockStatement(InitialPassStatementTransformer.PLUGINS);
+        final BlockStatement pluginsManagement = new BlockStatement("pluginManagement");
+        final BlockStatement plugins = new BlockStatement("plugins");
         final BlockStatement dependencyResolutionManagement = new BlockStatement("dependencyResolutionManagement");
         final RepositoriesBlock repositories;
         final DependenciesBlock dependencies;

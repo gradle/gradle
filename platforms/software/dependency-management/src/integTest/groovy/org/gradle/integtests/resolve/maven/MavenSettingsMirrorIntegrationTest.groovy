@@ -32,6 +32,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
     static final String ENCRYPTED_PASSWORD = '{0HkYKhjpO2IH/9BoIL1EsU4QYSX9MtFNu23gH81yTeY=}'
 
     def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
         buildFile << """
             configurations { compile }
             dependencies { compile 'org.test:projectA:1.0' }

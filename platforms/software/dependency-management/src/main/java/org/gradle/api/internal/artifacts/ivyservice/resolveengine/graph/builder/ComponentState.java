@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
@@ -51,17 +52,17 @@ import java.util.stream.StreamSupport;
  * Resolution state for a given component
  */
 public class ComponentState implements ComponentResolutionState, DependencyGraphComponent {
+
     private final ComponentIdentifier componentIdentifier;
-    private final ModuleVersionIdentifier id;
+    private final String version;
     private final ComponentMetaDataResolver resolver;
     private final List<NodeState> nodes = new LinkedList<>();
     private final Long resultId;
     private final ModuleResolveState module;
     private final List<ComponentSelectionDescriptorInternal> selectionCauses = new ArrayList<>();
-    private final int hashCode;
 
-    private volatile ComponentGraphResolveState resolveState;
-    private volatile ComponentGraphSpecificResolveState graphResolveState;
+    private volatile @Nullable ComponentGraphResolveState resolveState;
+    private volatile @Nullable ComponentGraphSpecificResolveState graphResolveState;
 
     /**
      * An evicted component has been evicted and will never (*), ever be chosen starting from the moment it is evicted.
@@ -80,23 +81,22 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private boolean rejected;
     private boolean root;
 
-    ComponentState(long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
+    ComponentState(long resultId, ModuleResolveState module, String version, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
         this.resultId = resultId;
         this.module = module;
-        this.id = id;
+        this.version = version;
         this.componentIdentifier = componentIdentifier;
         this.resolver = resolver;
-        this.hashCode = 31 * id.hashCode() ^ Long.hashCode(resultId);
     }
 
     @Override
     public String toString() {
-        return id.toString();
+        return componentIdentifier.getDisplayName();
     }
 
     @Override
     public String getVersion() {
-        return id.getVersion();
+        return version;
     }
 
     @Override
@@ -104,20 +104,10 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return resultId;
     }
 
-    @Override
-    public ModuleVersionIdentifier getId() {
-        return id;
-    }
-
     @Nullable
     @Override
     public String getRepositoryName() {
         return graphResolveState.getRepositoryName();
-    }
-
-    @Override
-    public ModuleVersionIdentifier getModuleVersion() {
-        return id;
     }
 
     @Nullable
@@ -189,6 +179,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
      *
      * @return true if it has been resolved in a cheap way
      */
+    @Override
     public boolean alreadyResolved() {
         return resolveState != null || metadataResolveFailure != null;
     }
@@ -232,21 +223,22 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
      * Create a new virtual platform state and resolve this component using that state.
      */
     void resolveAsVirtualPlatform() {
-        ResolveState resolveState = module.getResolveState();
-        ComponentIdGenerator idGenerator = resolveState.getIdGenerator();
-        LenientPlatformResolveMetadata metadata = new LenientPlatformResolveMetadata((ModuleComponentIdentifier) componentIdentifier, id);
+        ComponentIdGenerator idGenerator = module.getResolveState().getIdGenerator();
+        ModuleComponentIdentifier mcId = (ModuleComponentIdentifier) componentIdentifier;
+        ModuleVersionIdentifier mvId = DefaultModuleVersionIdentifier.newId(mcId.getModuleIdentifier(), mcId.getVersion());
+        LenientPlatformResolveMetadata metadata = new LenientPlatformResolveMetadata(mcId, mvId);
         LenientPlatformGraphResolveState virtualPlatformState = new LenientPlatformGraphResolveState(
             idGenerator.nextComponentId(),
             idGenerator.nextVariantId(),
             metadata,
-            module.getPlatformState(),
-            resolveState
+            module.getPlatformState()
         );
 
         setState(virtualPlatformState, ComponentGraphSpecificResolveState.EMPTY_STATE);
     }
 
-    public void setState(ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState) {
+    @Override
+    public void setState(@Nullable ComponentGraphResolveState state, @Nullable ComponentGraphSpecificResolveState graphState) {
         this.resolveState = state;
         this.graphResolveState = graphState;
         this.metadataResolveFailure = null;
@@ -382,23 +374,4 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return false;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        ComponentState that = (ComponentState) o;
-
-        return that.resultId.equals(resultId);
-
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
 }

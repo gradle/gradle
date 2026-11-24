@@ -362,6 +362,9 @@ class CrossProjectConfigurationReportingGradle(
     override fun getBuildListenerBroadcaster(): BuildListener =
         delegate.buildListenerBroadcaster
 
+    override fun notifySettingsEvaluated(settings: SettingsInternal) =
+        delegate.notifySettingsEvaluated(settings)
+
     override fun getServices(): ServiceRegistry =
         delegate.services
 
@@ -381,9 +384,6 @@ class CrossProjectConfigurationReportingGradle(
 
     override fun getIdentityPath(): Path =
         delegate.identityPath
-
-    override fun contextualize(description: String): String =
-        delegate.contextualize(description)
 
     override fun getPublicBuildPath(): PublicBuildPath =
         delegate.publicBuildPath

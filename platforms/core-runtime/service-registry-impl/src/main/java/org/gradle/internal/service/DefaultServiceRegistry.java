@@ -19,10 +19,8 @@ import org.gradle.internal.collect.PersistentArray;
 import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.collect.PersistentMap;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.Stoppable;
 import org.jspecify.annotations.Nullable;
 
-import java.io.Closeable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -52,11 +50,6 @@ import static org.gradle.util.internal.CollectionUtils.join;
 /**
  * A hierarchical {@link ServiceRegistry} implementation.
  *
- * <p>Service instances are closed when the registry that created them is closed using {@link #close()}.
- * If a service instance implements {@link java.io.Closeable} or {@link org.gradle.internal.concurrent.Stoppable}
- * then the appropriate {@link Closeable#close()} or {@link Stoppable#stop()} method is called.
- * Instances are closed in reverse dependency order.
- *
  * <p>Service registries are arranged in a hierarchy. If a service of a given type cannot be located, the registry uses its parent registry, if any, to locate the service.</p>
  *
  * <p>Service interfaces should be annotated with {@link org.gradle.internal.service.scopes.ServiceScope} to indicate their intended usage.</p>
@@ -65,7 +58,7 @@ import static org.gradle.util.internal.CollectionUtils.join;
  * be registered as a listener of that type. Alternatively, service implementations can be annotated with {@link org.gradle.internal.service.scopes.ListenerService} to indicate that the should be
  * registered as a listener.</p>
  */
-public class DefaultServiceRegistry extends AbstractServiceRegistry implements CloseableServiceRegistry {
+public class DefaultServiceRegistry extends AbstractServiceRegistry implements ManagedServiceRegistry {
     private enum State {INIT, STARTED, CLOSED}
 
     private final static ServiceRegistry[] NO_PARENTS = new ServiceRegistry[0];
@@ -145,7 +138,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
         }
         throw new IllegalArgumentException(
             String.format("Service registry %s cannot be used as a parent for another service registry."
-                + " Expected an instance of %s but got %s.",
+                    + " Expected an instance of %s but got %s.",
                 serviceRegistry, AbstractServiceRegistry.class.getSimpleName(), serviceRegistry.getClass().getSimpleName()));
     }
 
@@ -264,7 +257,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
     }
 
     /**
-     * Adds a service instance to this registry with the given public type. The given object is closed when this registry is closed.
+     * Adds a service instance to this registry with the given public type.
      */
     public <T> DefaultServiceRegistry add(Class<? extends T> serviceType, T serviceInstance) {
         add(ServiceAccess.getPublicScope(), serviceType, serviceInstance);
@@ -272,7 +265,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
     }
 
     /**
-     * Adds a service instance to this registry. The given object is closed when this registry is closed.
+     * Adds a service instance to this registry.
      */
     public DefaultServiceRegistry add(Object serviceInstance) {
         return add(serviceInstance.getClass(), serviceInstance);
@@ -293,9 +286,6 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
         return this;
     }
 
-    /**
-     * Closes all services for this registry. For each service, if the service has a public void close() or stop() method, that method is called to close the service.
-     */
     @Override
     public void close() {
         noLongerMutable();

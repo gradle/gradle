@@ -13,7 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-@org.jspecify.annotations.NullMarked
+/**
+ * Internal API for loading and accessing {@link org.gradle.api.internal.properties.GradleProperties properties}
+ * from different {@link org.gradle.api.internal.properties.GradlePropertyScope scopes}.
+ * <p>
+ * Entry point is {@link org.gradle.api.internal.properties.GradlePropertiesController}.
+ * </p>
+ */
+@NullMarked
 package org.gradle.api.internal.properties;
 
+import org.jspecify.annotations.NullMarked;

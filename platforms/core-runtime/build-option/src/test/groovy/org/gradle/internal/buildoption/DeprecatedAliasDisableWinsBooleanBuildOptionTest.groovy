@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildoption
 
+import org.jspecify.annotations.NullMarked
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -75,6 +76,7 @@ class DeprecatedAliasDisableWinsBooleanBuildOptionTest extends Specification {
         'banana'    | 'true'          | false         | PROPERTY
     }
 
+    @NullMarked
     static class TestOption extends DeprecatedAliasDisableWinsBooleanBuildOption<TestSettings> {
 
         TestOption(String property, String deprecatedProperty) {

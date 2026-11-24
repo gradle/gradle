@@ -33,7 +33,7 @@ import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.remote.ObjectConnection;
-import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.ManagedServiceRegistry;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
@@ -94,7 +94,7 @@ public class TestWorker<D extends TestDefinition> implements Action<WorkerProces
 
         System.setProperty(WORKER_ID_SYS_PROPERTY, workerProcessContext.getWorkerId().toString());
 
-        CloseableServiceRegistry testServices = TestFrameworkServiceRegistry.create(workerProcessContext);
+        ManagedServiceRegistry testServices = TestFrameworkServiceRegistry.create(workerProcessContext);
         startReceivingTests(workerProcessContext, testServices);
 
         try {
@@ -215,7 +215,7 @@ public class TestWorker<D extends TestDefinition> implements Action<WorkerProces
 
     private static class TestFrameworkServiceRegistry implements ServiceRegistrationProvider {
 
-        public static CloseableServiceRegistry create(WorkerProcessContext workerProcessContext) {
+        public static ManagedServiceRegistry create(WorkerProcessContext workerProcessContext) {
             return ServiceRegistryBuilder.builder()
                 .displayName("test framework services")
                 .provider(new TestFrameworkServiceRegistry(workerProcessContext))

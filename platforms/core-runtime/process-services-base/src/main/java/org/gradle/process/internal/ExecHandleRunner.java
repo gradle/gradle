@@ -26,14 +26,17 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.jvm.JvmProcessSupport;
 import org.gradle.process.internal.streams.FinishNotifyingStreamsHandler;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStreamReader;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Objects.requireNonNull;
 
 public class ExecHandleRunner implements Runnable {
     private static final Logger LOGGER = Logging.getLogger(ExecHandleRunner.class);
@@ -45,14 +48,14 @@ public class ExecHandleRunner implements Runnable {
     private final ProcessLauncher processLauncher;
     private final Executor executor;
 
-    private volatile Process process;
+    private volatile @Nullable Process process;
     private volatile boolean aborted;
     private final FinishNotifyingStreamsHandler streamsHandler;
-    private volatile BuildOperationRef associatedBuildOperation;
+    private volatile @Nullable BuildOperationRef associatedBuildOperation;
 
     public ExecHandleRunner(
         DefaultExecHandle execHandle, FinishNotifyingStreamsHandler streamsHandler, ProcessLauncher processLauncher, Executor executor,
-        BuildOperationRef associatedBuildOperation
+        @Nullable BuildOperationRef associatedBuildOperation
     ) {
         if (execHandle == null) {
             throw new IllegalArgumentException("execHandle == null!");
@@ -96,6 +99,14 @@ public class ExecHandleRunner implements Runnable {
         }
     }
 
+    Optional<Integer> getProcessExitValue() {
+        Process process = this.process;
+        if (process == null || process.isAlive()) {
+            return Optional.empty();
+        }
+        return Optional.of(process.exitValue());
+    }
+
     public void abortProcess() {
         lock.lock();
         try {
@@ -103,10 +114,11 @@ public class ExecHandleRunner implements Runnable {
                 return;
             }
             aborted = true;
+            Process process = this.process;
             if (process != null) {
                 streamsHandler.disconnect();
                 LOGGER.debug("Abort requested. Destroying process: {}.", execHandle.getDisplayName());
-                destroyProcessTree();
+                destroyProcessTree(process);
             }
         } finally {
             lock.unlock();
@@ -117,7 +129,7 @@ public class ExecHandleRunner implements Runnable {
      * Destroys the process of this runner and its known (grand)children.
      * Falls back to only destroying the main process if the code runs on Java 8 or lower, which is the Gradle 8 or lower behavior.
      */
-    private void destroyProcessTree() {
+    private static void destroyProcessTree(Process process) {
         JvmProcessSupport.destroyDescendants(process);
         process.destroy();
     }
@@ -147,7 +159,7 @@ public class ExecHandleRunner implements Runnable {
 
     private void completeProcess() {
         try {
-            int exitValue = process.waitFor();
+            int exitValue = requireNonNull(process, "Process has not been started").waitFor();
             CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
                 streamsHandler.stop();
                 completed(exitValue);
@@ -178,7 +190,7 @@ public class ExecHandleRunner implements Runnable {
                 streamsHandler.connectStreams(process, execHandle.getDisplayName(), executor);
             } catch (Throwable t) {
                 try {
-                    destroyProcessTree();
+                    destroyProcessTree(process);
                     if (!process.waitFor(DESTROY_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
                         process.destroyForcibly().waitFor(DESTROY_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
                     }

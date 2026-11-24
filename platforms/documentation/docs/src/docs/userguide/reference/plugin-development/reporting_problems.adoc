@@ -44,7 +44,7 @@ Report a problem once, through the Problems API only.
 Do not log it again with the task's logger: with `--warning-mode=all` and in IDEs, the user would see it twice.
 
 The <<sec:problems_api_usage,example below>> shows the console output for each case.
-Repeated instances of the same problem are summarized, see <<sec:problem_summarization,Problem Summarization>>.
+Gradle limits repeated problems, see <<sec:problem_summarization,Problem Summarization>>.
 
 [[sec:problems_api_usage]]
 == Problems API Usage
@@ -325,8 +325,11 @@ Use the predefined group instead, here `problems.groups.compilation.java`.
 
 Gradle avoids spamming users with duplicate problem messages:
 
-- The first few instances of a problem are reported individually as link:{javaDocPath}/org/gradle/tooling/events/problems/Problem.html[`Problem`] events.
-- Subsequent duplicates are summarized at the end of the build as a link:{javaDocPath}/org/gradle/tooling/events/problems/ProblemSummary.html[`ProblemSummary`], delivered with a link:{javaDocPath}/org/gradle/tooling/events/problems/ProblemSummariesEvent.html[`ProblemSummariesEvent`].
+- Each task reports a problem once, however many times it encounters it.
+- Each task reports its first few problems with the same ID individually as link:{javaDocPath}/org/gradle/tooling/events/problems/Problem.html[`Problem`] events.
+Problems reported outside a task share one such limit.
+- Problems over that limit appear only in a count at the end of the build, in a link:{javaDocPath}/org/gradle/tooling/events/problems/ProblemSummary.html[`ProblemSummary`] delivered with a link:{javaDocPath}/org/gradle/tooling/events/problems/ProblemSummariesEvent.html[`ProblemSummariesEvent`].
+The count adds up all tasks.
 
 [[sec:build_failures]]
 == Build Failures

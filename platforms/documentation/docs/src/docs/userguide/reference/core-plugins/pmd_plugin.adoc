@@ -35,7 +35,7 @@ You can also run PMD with a specific JDK using a <<#sec:pmd_configuration_toolch
 [[sec:pmd_supported_versions]]
 === Supported PMD versions
 
-Gradle supports PMD versions from 5.1.0 through 7.24.0.
+Gradle supports PMD versions from 5.1.0 through 7.29.0.
 
 Older PMD releases may work but are not tested against.
 Use link:{groovyDslPath}/org.gradle.api.plugins.quality.PmdExtension.html#org.gradle.api.plugins.quality.PmdExtension:toolVersion[`pmd.toolVersion`] to select a specific PMD version.

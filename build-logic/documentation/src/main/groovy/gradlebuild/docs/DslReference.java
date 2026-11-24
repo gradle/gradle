@@ -23,36 +23,36 @@ import org.gradle.api.file.RegularFileProperty;
 /**
  * The DSL reference for this documentation.  These are higher-level than Javadoc.
  */
-public abstract class DslReference {
+public interface DslReference {
     /**
      * The root of the DSL documentation.  This is the source of the DSL XML currently.
      */
-    public abstract DirectoryProperty getRoot();
+    DirectoryProperty getRoot();
 
     /**
      * The stylesheet directory used by the DSL reference documentation.
      */
-    public abstract DirectoryProperty getStylesheetDirectory();
+    DirectoryProperty getStylesheetDirectory();
 
     /**
      * The stylesheet used by the DSL reference to highlight code snippets.
      */
-    public abstract RegularFileProperty getHighlightStylesheet();
+    RegularFileProperty getHighlightStylesheet();
 
     /**
      * Resources to include with the generated documentation.
      */
-    public abstract ConfigurableFileCollection getResources();
+    ConfigurableFileCollection getResources();
 
     /**
      * Location to stage the intermediate documentation. This is like a working directory.
      */
-    public abstract DirectoryProperty getStagingRoot();
+    DirectoryProperty getStagingRoot();
 
-    public abstract RegularFileProperty getGeneratedMetaDataFile();
+    RegularFileProperty getGeneratedMetaDataFile();
 
     /**
      * The fully rendered documentation with all of its necessary resources.
      */
-    public abstract ConfigurableFileCollection getRenderedDocumentation();
+    ConfigurableFileCollection getRenderedDocumentation();
 }

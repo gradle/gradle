@@ -515,7 +515,7 @@ class DefaultTaskNodeExecutorTest extends Specification {
         and:
         buildOperationRunner.operations[0].name == ":name"
         buildOperationRunner.operations[0].displayName == "Task :name"
-        buildOperationRunner.operations[0].progressDisplayName == ":name"
+        buildOperationRunner.operations[0].progressDisplayName.text == ":name"
         buildOperationRunner.operations[0].metadata == BuildOperationCategory.TASK
     }
 

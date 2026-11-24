@@ -129,7 +129,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName(gradle.contextualize("Load build"))
+                return BuildOperationDescriptor.displayName("Load build").owner(gradle.getOwner())
                     .details(new LoadBuildBuildOperationType.Details() {
                         @Override
                         public String getBuildPath() {

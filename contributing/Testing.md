@@ -64,6 +64,53 @@ For example:
     def "can use exec in settings"() { ... }
 ``` 
 
+## Add a repository for dependencies that are not on public repositories
+
+Some versions under test are not on Maven Central or the Plugin Portal. A Kotlin dev build is an example.
+Do not declare the repository of such a version in the tests themselves.
+Register the repository in `EXTRA_REPOSITORIES` in [RepoScriptBlockUtil](../testing/internal-distribution-testing/src/main/groovy/org/gradle/integtests/fixtures/RepoScriptBlockUtil.groovy).
+Add it to `MirroredRepository` in the same file, so that CI can replace its URL with a mirror.
+
+Each entry in the list has a condition. The tests check the condition when they start.
+If the condition is false, the entry is `null` and the list drops it. Then the builds of that test run do not get the repository.
+Thus, write a condition that is true only while a version under test needs the repository.
+For example, the list has the Kotlin dev repository only when a tested Kotlin version is a dev build:
+
+```groovy
+kotlinDevVersionTested()                         // (1) condition
+    ? new ExtraRepository(
+        MirroredRepository.KOTLIN_DEV.name,      // (2) name
+        MirroredRepository.KOTLIN_DEV.mirrorUrl, // (3) URL
+        [/org\.jetbrains\.kotlin(\..+)?/]        // (4) group regexes
+    )
+    : null
+```
+
+1. The condition decides if the test run uses the repository.
+2. The name identifies the repository in the repository blocks and in the init script.
+3. The URL is the location of the repository.
+4. Gradle searches the repository only for the groups that match the group regexes.
+
+Builds under test get the extra repositories in two ways.
+
+**From an init script.** Every build that a `GradleExecuter`, a smoke test or a performance test runs gets an init script that declares the extra repositories.
+Most tests need no change for this.
+
+**From the repositories blocks.** Tooling API builds do not get the init script.
+They get the extra repositories only from the repositories blocks of `RepoScriptBlockUtil`, for example `mavenCentralRepository()`, and from the `repositoriesBlock` of the Kotlin DSL fixtures.
+Thus, in a Tooling API test, declare the repositories with these blocks.
+The `...RepositoryDefinition()` methods, for example `mavenCentralRepositoryDefinition()`, declare one repository without the extra repositories. See the javadoc of `RepoScriptBlockUtil.extraRepositoriesDefinition()`.
+
+The init script changes what a test can see in a build under test:
+
+- The build has one more init script. Tests can see it in the applied scripts and in the build operations.
+- The init script registers listeners, for example `beforeSettings` and `beforeProject`. Tests that record callbacks see them.
+- Projects and settings that declare repositories get the extra repositories too. The plugin repositories also get the Gradle Plugin Portal.
+- If a plugin or a dependency cannot be resolved, the error message also lists the extra repositories.
+
+If a test asserts on one of these, call `executer.withoutExtraRepositories()`. Then the builds of that test do not get the init script.
+When you add a repository to the list, such tests can start to fail. Then add the call to them.
+
 # Cross Version Tests
 
 Some tests in the Gradle codebase are executed with a wide range of supported Gradle versions.

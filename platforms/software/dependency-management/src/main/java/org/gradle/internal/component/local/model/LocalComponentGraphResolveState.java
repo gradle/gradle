@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.VariantGraphResolveState;
@@ -32,8 +31,6 @@ import java.util.List;
  */
 @ThreadSafe
 public interface LocalComponentGraphResolveState extends ComponentGraphResolveState {
-
-    ModuleVersionIdentifier getModuleVersionId();
 
     @Override
     LocalComponentGraphResolveMetadata getMetadata();

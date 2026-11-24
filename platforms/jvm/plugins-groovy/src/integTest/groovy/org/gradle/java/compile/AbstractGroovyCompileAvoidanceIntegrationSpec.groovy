@@ -18,7 +18,6 @@ package org.gradle.java.compile
 
 import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJavaGroovyCompileAvoidanceIntegrationSpec {
     CompiledLanguage language = CompiledLanguage.GROOVY
@@ -78,15 +77,13 @@ abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJav
 
     private String astTransformationDeclaration() {
         """
-            project(':b') {
-                configurations { astTransformation }
-                dependencies {
-                    astTransformation project(':a')
-                }
+            configurations { astTransformation }
+            dependencies {
+                astTransformation project(':a')
+            }
 
-                tasks.withType(GroovyCompile) {
-                    astTransformationClasspath.from(configurations.astTransformation)
-                }
+            tasks.withType(GroovyCompile) {
+                astTransformationClasspath.from(configurations.astTransformation)
             }
         """
     }
@@ -101,17 +98,14 @@ abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJav
         """
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project Groovy compilation")
     def 'always recompile if compilation avoidance is not enabled'() {
         given:
         settingsFile.text = settingsFile.text.readLines().findAll { !it.contains("enableFeaturePreview") }.join('\n')
-        buildFile << """
-            project(':b') {
-                dependencies {
-                    implementation project(':a')
-                }
+        buildFile("b/build.gradle", """
+            dependencies {
+                implementation project(':a')
             }
-        """
+        """)
         def sourceFile = file("a/src/main/groovy/ToolImpl.groovy")
         sourceFile << """
             public class ToolImpl {
@@ -143,13 +137,12 @@ abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJav
         executedAndNotSkipped ":b:compileGroovy"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project Groovy compilation")
     def "recompile with change of local ast transformation"() {
         given:
         executer.beforeExecute {
             executer.withArgument('--info')
         }
-        buildFile << astTransformationDeclaration()
+        buildFile("b/build.gradle", astTransformationDeclaration())
         file("a/src/main/groovy/MyAnnotation.groovy") << astTransformationAnnotation()
         def astTransformationSourceFile = file("a/src/main/groovy/MyASTTransformation.groovy")
         file("b/src/main/groovy/Main.groovy") << """
@@ -185,13 +178,12 @@ abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJav
         failure.assertHasCause('Bad AST transformation!')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "recompile with change of global ast transformation"() {
         given:
         executer.beforeExecute {
             executer.withArgument('--info')
         }
-        buildFile << astTransformationDeclaration()
+        buildFile("b/build.gradle", astTransformationDeclaration())
         file("a/src/main/resources/META-INF/services/org.codehaus.groovy.transform.ASTTransformation") << "MyASTTransformation"
         def astTransformationSourceFile = file("a/src/main/groovy/MyASTTransformation.groovy")
         file("b/src/main/groovy/Main.groovy") << """

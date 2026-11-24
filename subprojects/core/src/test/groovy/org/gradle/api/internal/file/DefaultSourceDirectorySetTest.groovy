@@ -34,7 +34,9 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Timeout
 
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Function
 
 import static org.apache.commons.io.FileUtils.touch
@@ -375,6 +377,29 @@ class DefaultSourceDirectorySetTest extends Specification {
         then:
         InvalidUserDataException e = thrown()
         e.message == "Source directory '$srcDir' is not a directory."
+    }
+
+    @Timeout(30)
+    void doesNotFailWhenSourceDirectoryIsConcurrentlyDeletedAndRecreated() {
+        File srcDir = new File(testDir, 'dir1')
+        set.srcDir 'dir1'
+        AtomicBoolean recreating = new AtomicBoolean(true)
+        Thread recreator = Thread.startDaemon {
+            while (recreating.get()) {
+                srcDir.mkdir()
+                srcDir.delete()
+            }
+        }
+
+        when:
+        100_000.times { set.srcDirs }
+
+        then:
+        noExceptionThrown()
+
+        cleanup:
+        recreating.set(false)
+        recreator?.join()
     }
 
     void hasNoDependenciesWhenNoSourceDirectoriesSpecified() {

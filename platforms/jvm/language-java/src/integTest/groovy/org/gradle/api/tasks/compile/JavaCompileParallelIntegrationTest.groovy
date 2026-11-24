@@ -25,13 +25,11 @@ import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Assume
 import spock.lang.Issue
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 @Requires([TestExecutionPreconditions.NotParallelExecutor])
 class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3029")
-    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "system property java.home is not modified across compile task boundaries"() {
         def projectNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
 
@@ -39,16 +37,10 @@ class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         Assume.assumeTrue(java8CompatibleJdks.size() >= 2)
         def jdks = Iterables.cycle(java8CompatibleJdks).iterator()
 
-        settingsFile << "include ${projectNames.collect { "'$it'" }.join(', ')}"
-        buildFile << """
-            subprojects {
-                apply plugin: 'java'
-
+        settingsFile """
+            include ${projectNames.collect { "'$it'" }.join(', ')}
+            dependencyResolutionManagement {
                 ${mavenCentralRepository()}
-
-                dependencies {
-                    implementation 'commons-lang:commons-lang:2.5'
-                }
             }
         """
 
@@ -56,19 +48,24 @@ class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
             def jdk = jdks.next()
             def javaHome = TextUtil.escapeString(jdk.javaHome.absolutePath)
             def version = jdk.javaVersion
-            buildFile << """
-project(':$projectName') {
-    tasks.withType(JavaCompile) {
-        sourceCompatibility = '${version}'
-        targetCompatibility = '${version}'
+            buildFile("${projectName}/build.gradle", """
 
-        options.with {
-            fork = true
-            forkOptions.javaHome = file("${javaHome}")
-        }
+apply plugin: 'java'
+
+tasks.withType(JavaCompile) {
+    sourceCompatibility = '${version}'
+    targetCompatibility = '${version}'
+
+    options.with {
+        fork = true
+        forkOptions.javaHome = file("${javaHome}")
     }
 }
-"""
+
+dependencies {
+    implementation 'commons-lang:commons-lang:2.5'
+}
+""")
             file("${projectName}/src/main/java/Foo.java") << """
 import org.apache.commons.lang.StringUtils;
 

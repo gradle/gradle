@@ -41,7 +41,6 @@ import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.tasks.util.internal.PatternSetFactory
-import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.execution.plan.ActionNode
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.internal.build.BuildStateRegistry
@@ -119,6 +118,7 @@ import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCode
 import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.dm.ArtifactCollectionCodec
 import org.gradle.internal.serialize.codecs.dm.AttributeContainerCodec
+import org.gradle.internal.serialize.codecs.dm.ComponentArtifactIdentifierCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultComponentArtifactsResultCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultGraphStructureCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultResolvableArtifactCodec
@@ -162,6 +162,7 @@ import org.gradle.internal.serialize.graph.reentrant
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.state.ManagedFactoryRegistry
+import org.gradle.internal.util.PathSerializer
 
 
 @ServiceScope(Scope.Build::class)
@@ -207,7 +208,6 @@ class DefaultConfigurationCacheCodecs(
     patternSetFactory: PatternSetFactory,
     fileOperations: FileOperations,
     fileFactory: FileFactory,
-    includedTaskGraph: BuildTreeWorkGraphController,
     buildStateRegistry: BuildStateRegistry,
     documentationRegistry: DocumentationRegistry,
     taskDependencyFactory: TaskDependencyFactory,
@@ -287,6 +287,7 @@ class DefaultConfigurationCacheCodecs(
             bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
             bind(TransformStepSpecCodec)
             bind(PublishArtifactLocalArtifactMetadataCodec)
+            bind(ComponentArtifactIdentifierCodec)
             bind(TransformedProjectArtifactSetCodec())
             bind(TransformedExternalArtifactSetCodec())
             bind(CalculateArtifactsCodec(calculatedValueContainerFactory, buildOperationExecutor))
@@ -399,9 +400,7 @@ class DefaultConfigurationCacheCodecs(
         providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(buildStateRegistry))
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)
 
-        bind(TaskInAnotherBuildCodec(includedTaskGraph))
-
-        bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
+        bind(TaskInAnotherBuildCodec(PathSerializer()))
 
         // These codecs share a fresh user types codec, which is stateful.
         bind(taskNodeSlot)

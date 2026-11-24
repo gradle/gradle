@@ -39,6 +39,164 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle :wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_9.10.0]]
+== Upgrading from 9.9.0 and earlier
+
+=== Potential breaking changes
+
+[[architecture_e2k]]
+==== New `E2K` constant in the incubating `Architecture` enum
+
+The incubating link:{javadocPath}/org/gradle/platform/Architecture.html[`Architecture`] enum has a new constant, `E2K`, for MCST Elbrus processors.
+Gradle recognizes the architecture but doesn't support it yet.
+
+This affects builds that add `E2K` to the `toolchainPlatforms` of the `updateDaemonJvm` task:
+
+* A `JavaToolchainResolver` that handles every `Architecture` value explicitly, for example with an exhaustive Kotlin `when` without an `else` branch, fails when it receives `E2K`. Resolvers should return `Optional.empty()` for architectures they don't support.
+* Gradle versions earlier than 9.10.0 can't read a `gradle-daemon-jvm.properties` file that contains `toolchainUrl.<OS>.E2K` entries, and fail at startup.
+
+[[aws_sdk_v2_for_s3_repositories]]
+==== S3 repositories use the AWS SDK for Java 2.x
+
+Gradle now uses version 2 of the AWS SDK for Java to access <<supported_repository_protocols.adoc#sec:s3-repositories,S3-backed repositories>>.
+Version 1 is no longer part of the Gradle distribution.
+
+Repositories that use `AwsImAuthentication` get their credentials from the default credential lookup of the AWS SDK.
+Until now, that lookup also read the following names, through version 1 of the SDK.
+Version 2 doesn't read them, so builds that provide credentials through them must switch to the names that version 2 reads:
+
+* The `aws.secretKey` system property: use `aws.secretAccessKey`.
+* The `AWS_ACCESS_KEY` environment variable: use `AWS_ACCESS_KEY_ID`.
+* The `AWS_SECRET_KEY` environment variable: use `AWS_SECRET_ACCESS_KEY`.
+* The `AWS_CREDENTIAL_PROFILES_FILE` environment variable: use `AWS_SHARED_CREDENTIALS_FILE`.
+
+When Gradle requests the metadata of a resource that doesn't exist, it now makes two requests instead of one.
+Version 2 of the SDK reads metadata with a `HEAD` request, and S3's `404` response to it doesn't say whether the resource or the whole bucket is missing, so Gradle follows up with a `GET` request to find out.
+Build results don't change: a missing resource is still reported as missing, and a misspelled or deleted bucket still fails the build with S3's "The specified bucket does not exist" error, as with version 1 of the SDK.
+The follow-up request needs the same `s3:GetObject` permission as downloads, so builds that resolve from S3 need no new permissions.
+The only difference is the extra request for each missing resource, which S3 counts like any other `GET` request.
+
+Gradle keeps ignoring the endpoint settings of the AWS SDK, such as the `AWS_ENDPOINT_URL` environment variable and the `endpoint_url` profile property.
+Use the <<supported_repository_protocols.adoc#sec:s3-configuration-properties,`org.gradle.s3.endpoint` system property>> to change the endpoint.
+
+The `aws.java.v1.disableDeprecationAnnouncement` system property no longer has any effect and can be removed.
+
+[[derived_task_output_providers_execution_time]]
+==== Transformations after `asFile`, `dir`, `file` and `zip` on task outputs are deferred
+
+This change affects builds that use the <<configuration_cache.adoc#config_cache,Configuration Cache>>.
+
+A `map` or `filter` on a task output property may read the files the task produces, so Gradle evaluates it after the task runs.
+Before this change, this did not apply when the task output location was first derived with link:{javadocPath}/org/gradle/api/file/FileSystemLocationProperty.html#getAsFile()[`asFile`], link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#dir(java.lang.String)[`dir(...)`] or link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#file(java.lang.String)[`file(...)`].
+The function passed to link:{javadocPath}/org/gradle/api/provider/Provider.html#zip(org.gradle.api.provider.Provider,java.util.function.BiFunction)[`zip(...)`] was not deferred either.
+Gradle evaluated them when storing the Configuration Cache entry, before the task ran, so they could see a missing or outdated file.
+Gradle now evaluates them after the task runs as well:
+
+[source,kotlin]
+.build.gradle.kts
+----
+// Already evaluated after `producer` ran
+inputFiles.add(producer.flatMap { it.outputFile }.map { it.asFile }.filter { it.exists() })
+
+// Previously evaluated before `producer` ran, so the result reflected stale build state; now the same as above
+inputFiles.add(producer.flatMap { it.outputFile.asFile }.filter { it.exists() })
+----
+
+Only the transformations are deferred.
+Locations derived from a task output, such as the `File` returned by `asFile`, are still computed when the Configuration Cache entry is stored.
+
+Because these transformations now run at execution time, the Configuration Cache stores the transformation and everything it references instead of its result.
+A transformation that references objects the Configuration Cache cannot store, such as the `Project` or an extension, now fails with a Configuration Cache problem.
+To fix it, follow the guidance for <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types,types that must not be referenced>> and for <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution,using the `Project` object at execution time>>.
+
+[[named_attribute_value_desugared_by_name]]
+==== Attribute values are reported by name rather than `toString()`
+
+When Gradle reduces a non-`String` attribute value to a String (to report it in a resolution result, or to cache one), it now derives that String from the value's name.
+A value implementing link:{javadocPath}/org/gradle/api/Named.html[`Named`] contributes `getName()`, and a plain `Enum` contributes `name()`.
+Both previously contributed `toString()`.
+
+`getName()` is the representation the rest of Gradle already derived: attribute matching compares it, <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>> publishes it, and build operations report it.
+Reporting `toString()` meant a resolution result could describe a value differently from both the match that selected it and the metadata published for it.
+
+This changes behavior in two cases.
+
+The first is a handwritten `Named` implementation whose `toString()` returns something other than its `getName()`.
+A value created through link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#named(java.lang.Class,java.lang.String)[`ObjectFactory.named`] is unaffected, because the instance Gradle generates returns the name from both methods.
+The most likely affected shape is an `enum` implementing `Named` that overrides `getName()` while leaving `toString()` at `Enum`'s default of returning `name()`:
+
+[source,groovy]
+----
+enum MyType implements Named {
+    TYPE_A
+
+    @Override
+    String getName() { return name().toLowerCase() }   // "type_a"
+    // toString() is still "TYPE_A"
+}
+----
+
+Such a value was reported as `TYPE_A` and published as `type_a`; both are now `type_a`.
+
+The second is a plain `Enum` that does not implement `Named` and overrides `toString()`.
+Such a value is now reduced by `name()`.
+This also repairs a value that could not be read back at all: coercing a desugared String back to a plain enum goes through `Enum.valueOf`, which accepts only `name()`.
+That type remains deprecated as an attribute value type; see <<#unsupported_attribute_value_type, unsupported attribute value types>>.
+
+If your build asserts on an attribute value read from a `ResolutionResult` or from `ResolvedVariantResult.getAttributes()`, update the expected value to the name form.
+Build operations and published Gradle Module Metadata already reported the name, so assertions against those are unaffected.
+Do not reintroduce the old string by overriding `getName()` to return `toString()`; see <<variant_attributes.adoc#sec:creating-attributes, Creating attributes>> for why the two must agree.
+
+[[v9_upgrade_to_asm_9_11_1]]
+==== Upgrade to ASM 9.11.1
+
+ASM was upgraded from 9.10.1 to https://asm.ow2.io/versions.html[9.11.1], which is not affected by CVE-2026-110260.
+
+[[v9_upgrade_to_jacoco_0_8_16]]
+==== Upgrade to JaCoCo 0.8.16
+
+The default version of JaCoCo has been updated from 0.8.15 to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.16].
+
+[[v9_upgrade_to_pmd_7_29_0]]
+==== Upgrade to PMD 7.29.0
+
+The default version of PMD has been updated from 7.24.0 to link:https://github.com/pmd/pmd/releases/tag/pmd_releases%2F7.29.0[7.29.0].
+
+[[v9_upgrade_to_checkstyle_10_26_1]]
+==== Upgrade to Checkstyle 10.26.1
+
+The default version of Checkstyle has been updated from 10.24.0 to link:https://checkstyle.org/releasenotes.html[10.26.1].
+
+[[v9_upgrade_to_zinc_1_13_0]]
+==== Upgrade to Zinc 1.13.0
+
+The default version of Zinc used by the <<scala_plugin.adoc#scala_plugin,Scala plugin>> has been updated from 1.12.0 to https://github.com/sbt/zinc/releases/tag/v1.13.0[1.13.0].
+
+[[v9_upgraded_default_versions_of_testing_frameworks]]
+==== Upgraded default versions of testing frameworks
+
+When a <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,test suite>> uses a testing framework without specifying its version, Gradle provides a default version.
+The following default versions have changed:
+
+* JUnit Jupiter has been updated from 5.12.2 to link:https://docs.junit.org/5.14.4/release-notes/[5.14.4].
+* TestNG has been updated from 7.11.0 to link:https://github.com/testng-team/testng/releases/tag/7.12.0[7.12.0].
+
+[[toolchain_archive_name_and_format]]
+==== Toolchain archives without a file name are named from the download URL
+
+When Gradle downloads a toolchain, it names the archive after the file name in the `Content-Disposition` header or, if there is no such header, after the last segment of the URL.
+Previously, provisioning failed with `Can't determine filename for resource located at: <url>` when the server sent a `Content-Disposition` header without a file name.
+Gradle now names such an archive after a hash of the full download URL, including its query.
+
+Gradle reuses a downloaded archive only if it finds one with the same name.
+For archives named from a hash of the URL, a resolver that returns a different URL for each request, for example one with an expiring access token, makes Gradle download the archive again each time it provisions a toolchain.
+See <<toolchain_plugins.adoc#sec:download_archive_naming,How Gradle names and reuses downloaded archives>>.
+
+Gradle also detects whether a toolchain archive is a zip or a tar.gz file from its content.
+Previously, Gradle relied on the file extension: it unpacked a `.zip` file as a zip archive and any other file as a tar.gz archive.
+An archive whose extension does not match its content now unpacks correctly.
+An archive that is neither a zip nor a tar.gz file fails with `Unsupported JDK archive format`.
+
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier
 
@@ -1644,7 +1802,8 @@ The most common case is a plain Java `Enum` that does not implement `Named`.
 Such types often work at first but fail later during dependency resolution, publishing, or Configuration Cache serialization — where the machinery assumes an attribute value can be reconstructed by name.
 
 To fix a build affected by this deprecation, change the attribute value type to one of the supported types.
-For enums, the simplest fix is to make the enum implement `Named` and return the constant's name from `getName()`.
+For enums, the smallest change is to make the enum implement `Named` and return the constant's name from `getName()`.
+Prefer `String` where you can: see <<best_practices_dependencies.adoc#favor_string_attribute_values,Favor `String` Values for Custom Attributes>> for why a `Named` type — including a `Named` enum — usually costs more than it returns.
 
 See the <<variant_attributes.adoc#sec:creating-attributes, variant attributes documentation>> for the full set of supported attribute value types.
 

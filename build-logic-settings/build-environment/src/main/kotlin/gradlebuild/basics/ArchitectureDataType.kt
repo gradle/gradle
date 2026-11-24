@@ -24,9 +24,4 @@ object ArchitectureDataType {
      * JSON containing platforms data. See root settings file for more information.
      */
     val PLATFORMS = "platforms"
-
-    /**
-     * JSON containing package-info data. See root settings file for more information.
-     */
-    val PACKAGE_INFO = "package-info"
 }

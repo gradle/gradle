@@ -32,6 +32,7 @@ import spock.lang.Timeout
 class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
         executer.requireDaemon().requireIsolatedDaemons()  // otherwise exception gets thrown in testing infrastructure
     }
 

@@ -10,71 +10,18 @@
 <meta name="twitter:description" content="We are excited to announce Gradle @version@.">
 <meta name="twitter:image" content="https://gradle.org/assets/images/releases/gradle-default.png">
 
-Gradle @version@ is the third patch release for Gradle 9.9.0 (released [@releaseDate@](https://gradle.org/releases/)).
+We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-The following issues were resolved:
-
-* TODO
-
-Issues fixed in the second patch release:
-
-This release addresses four security vulnerabilities:
-- [SFTP repositories do not verify host keys](https://github.com/gradle/gradle/security/advisories/GHSA-4mf6-7pm2-6wm8) - 8.9 High
-- [Transitive snapshot dependencies skip dependency verification](https://github.com/gradle/gradle/security/advisories/GHSA-7f7r-77ff-fr6f) - 8.8 High
-- [TestKit uses a predictable directory in the system temporary directory](https://github.com/gradle/gradle/security/advisories/GHSA-99wf-vhq9-wm2x) - 7.0 High
-- [Daemon registry is briefly readable by other local users when it is created](https://github.com/gradle/gradle/security/advisories/GHSA-35pj-rg5r-8rpv) - 7.0 High
-
-The following issues were resolved:
-
-- [`GenerateModuleMetadata` / `GenerateMavenPom` triggers slow graph traversal during configuration cache serialisation with `fromResolutionResult()`](https://github.com/gradle/gradle/issues/36332)
-- [Missing-dependency check is slow for producers in included builds (regression since 9.8.0)](https://github.com/gradle/gradle/issues/39729)
-- [Plugin resolution fails since 9.9.0 when the repository answers the request for the plugin marker jar with 401 (GitLab group-level registry)](https://github.com/gradle/gradle/issues/39756)
-
-Issues fixed in the first patch release:
-
-This release addresses three security vulnerabilities:
-- [Version catalog values run as code in generated accessors](https://github.com/gradle/gradle/security/advisories/GHSA-3cfg-jpcr-gfp3) - 9.3 Critical
-- [Gradle client trusts the content of the daemon registry](https://github.com/gradle/gradle/security/advisories/GHSA-gqrr-4j89-5267) - 8.6 High
-- [Daemon client trusts stale registry entries (port squatting)](https://github.com/gradle/gradle/security/advisories/GHSA-pcp8-98xm-c6pr) - 7.0 High
-
-The following issues were resolved:
-
-- [KotlinNativeBundleArtifactsTypes deprecation says upgrade to KGP 2.1.0, but KGP 2.4.21 still triggers it (fixed only in 2.5.0, KT-89265)](https://github.com/gradle/gradle/issues/39685)
-
-We recommend upgrading to Gradle @version@.
-
----
-
-In this release, Kotlin DSL scripts benefit from [incremental compilation](#performance-improvements), making script recompilation after a change in `buildSrc` or an included build up to 65% faster in large multi-project builds.
-
-[Test filters](#test-reporting-and-execution) now also apply to JUnit Platform tests that are not declared as methods, such as ArchUnit rules and Spek scopes, so `--tests` runs only the tests you select.
-
-The [wrapper task](#general-improvements) now keeps your customized properties when you upgrade Gradle.
-
-In [CLI, logging, and problem reporting](#cli-logging-and-problem-reporting), the Problems API groups problems by area, such as `Compilation > Java`, so you can see where each one comes from, and Windows Terminal now shows build progress on the taskbar. [Isolated Projects](#isolated-projects) now also works with Eclipse, so you can sync builds that have it enabled in Buildship as well as in IntelliJ IDEA and Android Studio.
-
-[Build authors](#build-authoring-improvements) get new `ProviderFactory` methods for values that are already known, and [plugin authors](#core-plugin-and-plugin-authoring-enhancements) can now make the `Sync` task empty its destination when its source is empty.
-
-Finally, the [User Manual](#documentation-and-training) is now available as Markdown, so AI agents and other tools can read it directly, and includes a new chapter on securing Gradle builds.
+This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-[Aurimas](https://github.com/liutikas),
-[devareddy05](https://github.com/devareddy05),
-[DragonFSKY](https://github.com/DragonFSKY),
-[fru1tworld](https://github.com/fru1tworld),
-[Ivan Khanas](https://github.com/ikxeno),
-[Jeremy Schoemaker](https://github.com/shoemoney),
-[John Burns](https://github.com/wakingrufus),
-[Labh R Jethe](https://github.com/itsCodeTide),
-[Marcin Mycek](https://github.com/Herudaio),
-[monkey](https://github.com/Develop-KIM),
-[Nelson Osacky](https://github.com/runningcode),
-[Roberto Perez Alcolea](https://github.com/rpalcolea),
-[Róbert Papp](https://github.com/TWiStErRob),
-[SeungTaek Lim](https://github.com/namest504),
-[Stefan Oehme](https://github.com/oehme),
-[万彬宇](https://github.com/Wanbinyu),
-[한의준](https://github.com/exijn).
+
+<!-- 
+Include only their name, impactful features should be called out separately below.
+ [Some person](https://github.com/some-person)
+
+THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+-->
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
@@ -92,160 +39,152 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
-### Performance improvements
-Gradle continuously improves [build performance](userguide/performance.html) through caching, parallelism, and reduced overhead across all phases of the build.
+<!-- ================== TEMPLATE =============================
 
-#### Incremental compilation of Kotlin DSL scripts
-[Kotlin DSL](userguide/kotlin_dsl.html) scripts are now compiled using the [Kotlin Build Tools API](https://kotlinlang.org/docs/build-tools-api.html), making incremental compilation available for build scripts.
+Do not add breaking changes or deprecations here! Add them to the upgrade guide instead.
 
-![Kotlin DSL script recompilation time, Gradle 9.8.0 vs 9.9.0](release-notes-assets/kotlin-dsl-incremental-compilation.png)
+Find the best fitting section for your feature below, then, fill it in.
 
-When a script has to be recompiled, for example, after a signature change in `buildSrc` or an included build, only the affected parts are compiled again. In one of our performance tests on a large multi-project build, this makes recompiling scripts 65% faster.
+### SECTION TITLE
 
-Builds that rarely recompile scripts see no change.
+#### FILL-IN-FEATURE
+> HIGHLIGHT the use case or existing problem the feature solves.
+> EXPLAIN how the new release addresses that problem or use case.
+> PROVIDE a screenshot or snippet illustrating the new feature, if applicable.
+> LINK to the full documentation for more details.
 
-### Test reporting and execution
-Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
+To embed images, add the image to the `release-notes-assets` folder, then add the line below.
+![image.png](release-notes-assets/image.png)
 
-#### Test filters apply to JUnit Platform tests that are not declared as methods
-[Test filters](userguide/java_testing.html#test_filtering) now apply to JUnit Platform tests that are not declared as methods, such as [ArchUnit](https://www.archunit.org/) rules declared on fields with `@ArchTest`, or [Spek](https://www.spekframework.org/) scopes.  
-Previously, Gradle ran these tests under any filter unless their whole class was excluded, so they ran even when you filtered for something else:
+To embed videos, use the macros below. 
+You can extract the URL from YouTube by clicking the "Share" button.
+@youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
 
-```bash
-# Previously also ran every ArchUnit rule in the source set; now runs only SomeUnrelatedTest
-./gradlew test --tests "SomeUnrelatedTest"
-```
+================== END TEMPLATE ========================== -->
 
-Gradle now matches these tests by their enclosing class and the name they are reported with, the same way it matches test methods by class and method name.  
-Rules grouped with `ArchTests.in(...)` are matched by the grouped class instead of the field that holds them:
 
-```bash
-# Runs only the rule declared in the `firstRule` field of ArchRulesTest
-./gradlew test --tests "ArchRulesTest.firstRule"
-
-# Runs a rule grouped with ArchTests.in(NestedRules.class)
-./gradlew test --tests "ArchRulesTest.NestedRules > nestedRule"
-```
-
-Tests that an engine registers only during execution, as [Kotest](https://kotest.io/) does, can still only be selected by their spec class.
-
-This also improves the [Test Retry plugin](https://github.com/gradle/test-retry-gradle-plugin), which uses test filters to select tests to rerun.  
-Previously, it reran every non-method-based test whenever any test in the task was retried, even ones that had passed. Now it reruns only the failed ones.
-
-See the [Upgrade Guide](userguide/upgrading_version_9.html#filters_apply_to_non_method_tests) for breaking changes, and the [Filtering Non-Method Tests](userguide/java_testing.html#filtering_non_method_tests) section in the Gradle User Manual for more details.
-
-### General improvements
-Gradle provides various incremental updates to ensure the continued reliability of the build ecosystem.
-
-#### The `wrapper` task preserves customized properties
-The [`wrapper`](userguide/gradle_wrapper.html#gradle_wrapper) task now preserves values from an existing `gradle-wrapper.properties` file when you regenerate the wrapper, for example, with `./gradlew wrapper --gradle-version @version@`.  
-Previously, the task overwrote them with defaults.
-
-Gradle preserves the distribution type (`bin` or `all`), the network timeout, retries, and retry backoff, URL validation, and the distribution and archive paths and bases.  
-Values configured on the task or passed on the command line still take precedence.  
-The `distributionUrl` is regenerated for the new Gradle version, so a custom host is not preserved.
-
-URL validation is preserved like any other value, so a single `--no-validate-url` run disables validation until you run the task again with `--validate-url`.
-
-User-declared `Wrapper` tasks now also write the default network timeout, retry count, and retry backoff when those properties are not otherwise configured.
-
-See the [Preserving Existing Wrapper Properties](userguide/gradle_wrapper.html#sec:preserving_wrapper_properties) section in the Gradle User Manual for more details.
-
-### CLI, logging, and problem reporting
-Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
-
-#### Predefined groups in the Problems API
-The incubating [Problems API](userguide/reporting_problems.html#header) now provides a predefined hierarchy of problem groups, available from the `Problems` service as `problems.groups`.
-
-Eleven root groups cover the areas a problem can come from, each with predefined subgroups: `Compilation > Java`, `Dependencies > Declaration`, `Packaging > Signing`, `Provisioning > Tools and Toolchains`, `Gradle > Plugin Validation`, and so on. Plugins report into the matching predefined group or add a subgroup below it. The types of hierarchy enforce placement:
-
-```kotlin
-problems.reporter.report(problems.groups.compilation.java.problemId("Unused import")) {}
-problems.reporter.report(problems.groups.transformation.group("KMP").problemId("Bundle failed")) {}
-```
-
-Each predefined group carries a description of what belongs in it, so consumers of problem reports have a documented set of group names to navigate, filter, and aggregate by.
-
-On the console, problems now show the chain of groups they belong to, for example, `Unused import (in Compilation > Java)`. The Groups tab of the HTML problems report lists the root groups in the order of the predefined hierarchy and shows the description of each predefined group.
-
-The existing `ProblemGroup.create()` and `ProblemId.create()` methods continue to work, and a group created with them whose name matches a predefined group is now reported as that predefined group; migrating to predefined groups is recommended.
-
-![Problems report Groups tab showing the predefined problem group hierarchy](release-notes-assets/problems-report-groups.png)
-
-The legacy problem groups are gone, and both the groups and the names of Gradle's own problem IDs have changed, so Tooling API clients, Build Scans, and any tooling that matches problems by ID need to update.
-
-See the upgrade guide for the complete list of changed problem IDs:
-
-* [Deprecation](userguide/upgrading_version_9.html#deprecation_problem_ids_moved_to_predefined_groups)
-* [Compilation](userguide/upgrading_version_9.html#compilation_problem_ids_moved_to_predefined_groups)
-* [Dependency](userguide/upgrading_version_9.html#dependency_problem_ids_moved_to_predefined_groups)
-* [Validation](userguide/upgrading_version_9.html#validation_problem_ids_moved_to_predefined_groups)
-* [Runtime](userguide/upgrading_version_9.html#runtime_problem_ids_moved_to_predefined_groups)
-
-See the [Predefined Problem Groups](userguide/reporting_problems.html#sec:predefined_problem_groups) section in the Gradle User Manual for more details.
-
-#### Taskbar progress in Windows Terminal
-When Gradle runs in [Windows Terminal](https://learn.microsoft.com/en-us/windows/terminal/) 1.6 or later, the build progress shown in the console now also appears on the Windows taskbar icon, including in WSL shells hosted by Windows Terminal. This shows how far a long-running build has progressed while the terminal is in the background.
-
-![Taskbar progress in Windows Terminal with 9.9.0](release-notes-assets/windows-taskbar.gif)
-
-Gradle already reports progress this way to ConEmu, Ghostty, kitty, and iTerm2.
-
-See the [Rich console](userguide/command_line_interface.html#sec:rich_console) section in the Gradle User Manual for more details.
+<!-- =========================================================
+ADD RELEASE FEATURES BELOW
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 ### Isolated Projects
 [Isolated Projects](userguide/isolated_projects.html) is an incubating performance feature that safely runs project configuration in parallel, significantly reducing configuration time in many scenarios, including IDE sync and CI builds.
 
-#### Eclipse sync works with Isolated Projects
-[Buildship](https://projects.eclipse.org/projects/tools.buildship), the Gradle integration for Eclipse, can now synchronize builds that have [Isolated Projects](userguide/isolated_projects.html) enabled.
+### Configuration Cache improvements
+Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
-Previously, synchronizing such a build in Eclipse failed because the Eclipse tooling models read the state of other projects in a way that Isolated Projects reports as a [constraint violation](userguide/isolated_projects.html#sec:constraints). Gradle now builds these models without breaking project isolation, so Eclipse users can adopt Isolated Projects alongside users of IntelliJ IDEA and Android Studio.
+### Test reporting and execution
+Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 
-Builds that do not enable Isolated Projects see no change.
+#### Build-wide test summary
 
-See the [Isolated Projects](userguide/isolated_projects.html) section in the Gradle User Manual for more details.
+Gradle now writes a [summary report for all test executions](userguide/java_testing.html#sec:aggregate_test_summary) of a build to `reports/aggregate-test-results/index.html` in the build directory of the root project.
+When a build runs several test tasks, each writes its own test report, and you no longer have to open them one by one to find failures.
+
+The summary report lists every test execution, including custom test tasks that use the [Test Event Reporting API](userguide/test_reporting_api.html), with test counts and a link to its HTML test report.
+When a test execution fails, Gradle prints the link to this summary report at the end of the build:
+
+```text
+Aggregate test results: file:///path/to/project/build/reports/aggregate-test-results/index.html
+```
+
+![Build-wide test summary with failed test executions](release-notes-assets/aggregate-test-summary.png)
+
+See the [Build-wide test summary](userguide/java_testing.html#sec:aggregate_test_summary) section in the Gradle User Manual for more details.
+
+### CLI, logging, and problem reporting
+Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
+
+#### Rich console improvements
+
+In the [rich console](userguide/command_line_interface.html#sec:rich_console), the work in progress is shown on worker lines, below the progress bar.
+In this release, worker lines cover more of the build and tell you more about each piece of work.
+
+![Rich console of a build with a slow test class, Worker API work actions and a flow action](release-notes-assets/rich-console-improvements.gif)
+
+Before, some work had no worker line of its own.
+This work is now shown on worker lines:
+
+* Before the tasks: the check of the configuration cache fingerprint, the `projectsLoaded`, `projectsEvaluated` and `taskGraph.whenReady` listeners, and the generation of [version catalog](userguide/version_catalogs.html) and project accessors.
+* After the last task: [flow actions](userguide/dataflow_actions.html), the `close()` method of [build services](userguide/build_services.html), and the write operations for dependency locks and dependency verification metadata.
+* During a task: the work actions of the task, such as the ones submitted with the [Worker API](userguide/worker_api.html). When a task has more than one work action, each work action in progress is shown on its own line. The number of completed work actions is shown on the line of the task, as for test tasks.
+
+On most lines of an included build or of a `buildSrc` build, the path of the build is put before the work, as in `> :lib > Evaluating settings`.
+Before, no build was shown for the settings, the loading of the projects and the init scripts of an included build or of a `buildSrc` build.
+
+More information is also shown on each worker line:
+
+* After 10 seconds of work on a line, the time since the start of this work is shown at the end of the line. For a test task, the time of the current test class is shown. With this time, you can see the difference between a blocked task and a new task.
+* When a line is too long for the console, the middle of the line is cut. The task path at the start and the end of the line are kept. Before, the end of the line was cut, and the name of a test class was often lost:
+
+```text
+Before  > :services:payments:test > Executing test com.example.payments.retry.SlowNetwo
+After   > :services:payments:test > ...retry.SlowNetworkRetryIntegrationTest  25s
+```
+
+On the Linux text console, the progress bar is now drawn with ASCII characters.
+The fonts of this console do not have the partial block characters of the Unicode bar, so a replacement character was shown at the edge of the filled part.
+With [`--console-unicode=enable`](userguide/command_line_interface.html#sec:command_line_customizing_log_format), the Unicode bar is still used.
+
+See the [Rich console](userguide/command_line_interface.html#sec:rich_console) section in the Gradle User Manual for more details.
 
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
-#### Providers for values that are already known
-Build logic often has a value at hand and needs to pass it to an API that accepts a [`Provider`](javadoc/org/gradle/api/provider/Provider.html). Previously, this required wrapping the value in a `Callable` with `providers.provider { value }`, or `providers.provider { null }` for a provider that has no value.
+### Dependency management enhancements
+Gradle provides a flexible [dependency management](userguide/getting_started_dep_man.html) engine for declaring, resolving, and verifying the dependencies your build needs.
 
-[`ProviderFactory`](javadoc/org/gradle/api/provider/ProviderFactory.html) now has three incubating methods for these cases:
+#### Nested `Gradle.settingsEvaluated` callbacks are honored
 
-* [`absent()`](javadoc/org/gradle/api/provider/ProviderFactory.html#absent()) returns a provider that never has a value.
-* [`present(value)`](javadoc/org/gradle/api/provider/ProviderFactory.html#present(T)) returns a provider that always has the given value.
-* [`presentIfNotNull(value)`](javadoc/org/gradle/api/provider/ProviderFactory.html#presentIfNotNull(T)) returns a provider that has the given value when it is not `null`, and has no value otherwise.
+Gradle now honors nested [`Gradle.settingsEvaluated`](javadoc/org/gradle/api/invocation/Gradle.html#settingsEvaluated(org.gradle.api.Action)) callbacks.
+Previously, a `settingsEvaluated` callback registered from within another `settingsEvaluated` callback was silently ignored.
+
+Nested callbacks now run after all previously registered callbacks finish, within the same lifecycle phase, matching the behavior of nested [`Project.afterEvaluate`](javadoc/org/gradle/api/Project.html#afterEvaluate(org.gradle.api.Action)):
 
 ```kotlin
-val missing: Provider<String> = providers.absent()
-val name: PresentProvider<String> = providers.present("my-lib")
-val value: Provider<String> = providers.presentIfNotNull(nullableValue)
+gradle.settingsEvaluated {
+    // runs first
+    gradle.settingsEvaluated {
+        // runs after all outer callbacks finish, in the same phase
+    }
+}
 ```
 
-Unlike `provider(Callable)`, these methods do not compute the value on demand, so prefer them when the value is already known.
+See the [`settingsEvaluated`](userguide/build_lifecycle.html#settings_evaluated) section in the Gradle User Manual for more details.
 
-`present(value)` returns the new [`PresentProvider`](javadoc/org/gradle/api/provider/PresentProvider.html) type, a `Provider` that is guaranteed to have a value: its `get()` never fails, and its `getOrNull()` never returns `null`.
-
-See the [Lazy Objects API Reference](userguide/lazy_configuration.html#lazy_objects_api_reference) section in the Gradle User Manual for more details.
+### Platform and toolchain management
+Gradle provides comprehensive support for [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
 
 ### Core plugin and plugin authoring enhancements
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
 
-#### `Sync` can empty its destination when its source is empty
-A [`Sync`](dsl/org.gradle.api.tasks.Sync.html) task works like `Copy`, but its destination directory contains only the files it copied; anything else in the destination is deleted. `Sync` now has an incubating `skipWhenSourceIsEmpty` property. Set it to `false` to make the task run when its source is empty, so the destination directory ends up empty too:
+### Security and infrastructure
+Gradle provides robust [security features and underlying infrastructure](userguide/security.html) to ensure that builds are secure, reproducible, and easy to maintain.
 
-```kotlin
-tasks.named<Sync>("mySync") {
-    skipWhenSourceIsEmpty = false
-}
-```
+#### S3 repositories use the AWS SDK for Java 2.x
 
-By default, `Sync` still skips the task when its source has no files or directories. Gradle then cleans up the destination only if the build owns it, such as a directory under `build/`. Any other destination keeps files that the source no longer contains.
+Gradle accesses [S3-backed repositories](userguide/supported_repository_protocols.html#sec:s3-repositories) with the AWS SDK for Java.
+AWS has ended support for version 1 of the SDK, so it no longer receives security fixes.
 
-`Sync` always deletes the entire contents of its destination, not only the files it copied there. With `skipWhenSourceIsEmpty` disabled, an empty source also deletes everything, even when the source is empty by mistake. Disable it only for destinations that no other task or tool writes to, and use `preserve { ... }` to keep files the task does not manage.
+Gradle now uses version 2 of the SDK.
+Most builds need no changes.
+If your build relies on the SDK's default credential lookup through the older system property or environment variable names, see the [upgrade guide](userguide/upgrading_version_9.html#aws_sdk_v2_for_s3_repositories).
 
-See [Synchronizing from an empty source](userguide/working_with_files.html#sec:sync_task_empty_source) in the Gradle User Manual for more details.
+Repositories that use `AwsImAuthentication` can now also get credentials from an AWS IAM Identity Center (AWS SSO) profile, after you sign in with `aws sso login`.
+See [S3 credentials from the AWS default credential chain](userguide/supported_repository_protocols.html#sec:s3-default-credentials).
+
+### Tooling and IDE integration
+Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
+
+### Performance improvements
+Gradle continuously improves [build performance](userguide/performance.html) through caching, parallelism, and reduced overhead across all phases of the build.
+
+### General improvements
+Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
+
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ADD RELEASE FEATURES ABOVE
+========================================================== -->
 
 ## Promoted features
 
@@ -254,38 +193,15 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 
 The following are the features that have been promoted in this Gradle release.
 
-### Custom `dependencies` block API
-The remaining incubating parts of the API for [custom `dependencies` blocks](userguide/implementing_gradle_plugins_binary.html#custom_dependencies_blocks) have been promoted:
-
-* [`add(ProviderConvertible)`](javadoc/org/gradle/api/artifacts/dsl/DependencyCollector.html#add(org.gradle.api.provider.ProviderConvertible)) and the `bundle(...)` methods in `DependencyCollector`
-* [`constraint(Provider)`](javadoc/org/gradle/api/artifacts/dsl/Dependencies.html#constraint(org.gradle.api.provider.Provider)) and [`constraint(ProviderConvertible)`](javadoc/org/gradle/api/artifacts/dsl/Dependencies.html#constraint(org.gradle.api.provider.ProviderConvertible)) in `Dependencies`
-* [`modify(ProviderConvertible)`](javadoc/org/gradle/api/artifacts/dsl/DependencyModifier.html#modify(org.gradle.api.provider.ProviderConvertible)) in `DependencyModifier`
-* [`DependencyConstraintFactory`](javadoc/org/gradle/api/artifacts/dsl/DependencyConstraintFactory.html)
-* [`PlatformDependencyModifiers`](javadoc/org/gradle/api/plugins/jvm/PlatformDependencyModifiers.html) and [`TestFixturesDependencyModifiers`](javadoc/org/gradle/api/plugins/jvm/TestFixturesDependencyModifiers.html)
-
-### `AndSpec.findUnsatisfiedSpec`
-[`AndSpec.findUnsatisfiedSpec(T)`](javadoc/org/gradle/api/specs/AndSpec.html#findUnsatisfiedSpec(T)) has been promoted.
-Use it to find the first member spec that an object does not satisfy.
+<!--
+### Example promoted
+-->
 
 ## Documentation and training
 
-### User Manual
-Every page of the User Manual is now also available as Markdown, so AI agents and other tools can read the documentation directly. Replace `.html` with `.md` in a page's URL, for example, [userguide/gradle_wrapper.md](userguide/gradle_wrapper.md).
-
-A new chapter, [Securing Gradle Builds](userguide/security.html), covers securing the [build tool](userguide/securing_build_tool.html), [repositories](userguide/securing_repositories.html), and [dependencies](userguide/securing_dependencies.html).
-
-The rewrite of the core plugin reference pages continues with the [Java](userguide/java_plugin.html), [Java Library](userguide/java_library_plugin.html), [Java Platform](userguide/java_platform_plugin.html), [Java Test Fixtures](userguide/java_test_fixtures_plugin.html), [JVM Test Suite](userguide/jvm_test_suite_plugin.html), [JaCoCo](userguide/jacoco_plugin.html), [War](userguide/war_plugin.html), [Distribution](userguide/distribution_plugin.html), and [Version Catalog](userguide/version_catalog_plugin.html) plugins. The [Build Init plugin](userguide/build_init_plugin.html) page now documents the test frameworks it supports.
-
-Other notable additions:
-
-- The [Compatibility Matrix](userguide/compatibility.html) now includes a new [Groovy](userguide/compatibility.html#groovy_compatibility) section, and its tables can be sorted.
-- The [Validating Plugins](userguide/validation_problems.html) page is back in the User Manual.
-- The [Worker API](userguide/worker_api.html#work_parameter_types) page lists the supported `WorkParameters` property types.
-
-### Best Practices
-A new entry has been added to the [Best Practices](userguide/best_practices.html):
-
-- [Favor `String` values for custom attributes](userguide/best_practices_dependencies.html#favor_string_attribute_values) over `Named` types, since attribute values are published as plain strings.
+<!--
+Add new docs, training, and best practices here
+-->
 
 ## Fixed issues
 

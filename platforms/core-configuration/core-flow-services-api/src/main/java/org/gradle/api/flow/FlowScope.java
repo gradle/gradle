@@ -25,6 +25,8 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * Augments the cached work graph with {@link FlowAction dataflow actions}, anonymous, parameterized and
  * isolated pieces of work that are triggered solely based on the availability of their input parameters.
  *
+ * <p>An instance of this type can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}.</p>
+ *
  * @since 8.1
  */
 @Incubating

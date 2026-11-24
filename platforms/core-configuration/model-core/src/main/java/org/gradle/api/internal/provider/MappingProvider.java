@@ -59,7 +59,12 @@ public class MappingProvider<OUT, IN> extends TransformBackedProvider<OUT, IN> {
                 return ExecutionTimeValue.changingValue(new MappingProvider<OUT, IN>(type, value.getChangingValue(), transformer));
             }
 
-            return ExecutionTimeValue.value(mapValue(context, value.toValue()));
+            ExecutionTimeValue<OUT> mappedValue = ExecutionTimeValue.value(mapValue(context, value.toValue()));
+            if (value.hasChangingContent()) {
+                return mappedValue.withChangingContent();
+            } else {
+                return mappedValue;
+            }
         }
     }
 

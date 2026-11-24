@@ -140,7 +140,7 @@ class AccessTrackingSet<E> extends ForwardingSet<E> implements Serializable {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T[] toArray(T[] array) {
+    public <T extends @Nullable Object> T[] toArray(T[] array) {
         reportAggregatingAccess();
         T[] result = delegate().toArray(array);
         for (int i = 0; i < result.length; ++i) {

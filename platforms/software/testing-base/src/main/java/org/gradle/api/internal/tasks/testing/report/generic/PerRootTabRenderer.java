@@ -141,12 +141,9 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             List<ChildEntry> children,
             ImmutableList.Builder<Pair<String, ChildTableRenderer>> childListRenderers
         ) {
+            // Match the status shown for each child, so containers are matched by the results of their children.
             List<ChildEntry> matchedChildren = children.stream()
-                .filter(e ->
-                    e.perRootInfo.getResults().stream().anyMatch(
-                        it -> it.getResultType() == resultType
-                    )
-                )
+                .filter(e -> getResultType(e.perRootInfo) == resultType)
                 .collect(Collectors.toList());
             if (!matchedChildren.isEmpty()) {
                 childListRenderers.add(Pair.of(name, new ChildTableRenderer(shrink, matchedChildren)));
@@ -400,10 +397,12 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 }
                 return info.getResults().get(0).getResultType();
             }
-            // For container nodes, we use the worst result type of its children
-            // This ignores the container's result because containers made out of all skipped tests
+            // For container nodes, we use failure if any of its own results failed, so its failure isn't hidden if all
+            // its children passed, and otherwise the worst result type of its children.
+            //
+            // This ignores the container's other results because containers made out of all skipped tests
             // may be marked as successful in the result, but we want to show them as skipped if all their children are skipped.
-            if (info.getFailedLeafCount() > 0) {
+            if (info.getFailedLeafCount() > 0 || info.getResults().stream().anyMatch(r -> r.getResultType() == TestResult.ResultType.FAILURE)) {
                 return TestResult.ResultType.FAILURE;
             }
             if (info.getSkippedLeafCount() > 0) {

@@ -66,6 +66,7 @@ public class InPlaceClasspathBuilder implements ClasspathBuilder {
         }
 
         @Override
+        @SuppressWarnings("PreferCharsetOverload") // false positive: https://github.com/google/error-prone/issues/6394
         public void put(String name, byte[] content, CompressionMethod compressionMethod) throws IOException {
             maybeAddParent(name);
             ZipArchiveEntry zipEntry = newZipEntryWithFixedTime(name);

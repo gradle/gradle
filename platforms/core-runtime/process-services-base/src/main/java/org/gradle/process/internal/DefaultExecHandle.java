@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -49,6 +50,7 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasCommandLineExceedMaxLength;
 import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasCommandLineExceedMaxLengthException;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Default implementation for the ExecHandle interface.
@@ -117,9 +119,9 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     /**
      * When not null, the runnable that is waiting
      */
-    private ExecHandleRunner execHandleRunner;
+    private @Nullable ExecHandleRunner execHandleRunner;
 
-    private ExecResultImpl execResult;
+    private @Nullable ExecResultImpl execResult;
 
     private final ListenerBroadcast<ExecHandleListener> broadcast;
 
@@ -131,9 +133,6 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                       Map<String, String> environment, StreamsHandler outputHandler, StreamsHandler inputHandler,
                       List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon,
                       Executor executor, BuildCancellationToken buildCancellationToken) {
-        if (command == null) {
-            throw new IllegalArgumentException("Cannot start a process with a null command.");
-        }
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
@@ -215,7 +214,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         }
     }
 
-    private void setEndStateInfo(ExecHandleState newState, int exitValue, Throwable failureCause) {
+    private void setEndStateInfo(ExecHandleState newState, int exitValue, @Nullable Throwable failureCause) {
         ExecHandleState currentState = getState();
         ExecResultImpl newResult = null;
         try {
@@ -255,7 +254,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     }
 
     @Nullable
-    private ProcessExecutionException execExceptionFor(Throwable failureCause, ExecHandleState currentState) {
+    private ProcessExecutionException execExceptionFor(@Nullable Throwable failureCause, ExecHandleState currentState) {
         return failureCause != null
             ? new ProcessExecutionException(failureMessageFor(failureCause, currentState), failureCause)
             : null;
@@ -285,7 +284,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     @Override
     public ExecHandle start() {
         LOGGER.info("Starting process '{}'. Working directory: {} Command: {} {}",
-                displayName, directory, command, ARGUMENT_JOINER.join(arguments));
+                displayName, String.valueOf(directory), command, ARGUMENT_JOINER.join(arguments));
         lock.lock();
         try {
             if (!stateIn(ExecHandleState.INIT)) {
@@ -329,7 +328,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     @Override
     public void sendSignal(int signal) {
-        execHandleRunner.sendSignal(signal);
+        runner().sendSignal(signal);
     }
 
     @Override
@@ -340,7 +339,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                 throw new IllegalStateException(
                     format("Cannot remove start context of process '%s' because it is not in started state", displayName));
             }
-            execHandleRunner.removeStartupContext();
+            runner().removeStartupContext();
         } finally {
             lock.unlock();
         }
@@ -357,7 +356,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                 throw new IllegalStateException(
                     format("Cannot abort process '%s' because it is not in started or detached state", displayName));
             }
-            this.execHandleRunner.abortProcess();
+            runner().abortProcess();
             this.waitForFinish();
         } finally {
             lock.unlock();
@@ -372,7 +371,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                 try {
                     stateChanged.await();
                 } catch (InterruptedException e) {
-                    execHandleRunner.abortProcess();
+                    runner().abortProcess();
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
@@ -388,6 +387,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         return result();
     }
 
+    @Nullable
     @Override
     public ExecResult getExecResult() {
         lock.lock();
@@ -398,13 +398,28 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         }
     }
 
-    private ExecResult result() {
+    @Override
+    public Optional<Integer> getProcessExitValue() {
         lock.lock();
         try {
-            return execResult.rethrowFailure();
+            return execHandleRunner == null ? Optional.empty() : execHandleRunner.getProcessExitValue();
         } finally {
             lock.unlock();
         }
+    }
+
+    private ExecResult result() {
+        lock.lock();
+        try {
+            //TODO IllegalStateException might be the better option here. In the interest of not changing the behavior, we keep this
+            return requireNonNull(execResult, "Process has not finished").rethrowFailure();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private ExecHandleRunner runner() {
+        return requireNonNull(execHandleRunner, "Process has not been started");
     }
 
     void detached() {
@@ -464,10 +479,10 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     private static class ExecResultImpl implements ExecResult {
         private final int exitValue;
-        private final ProcessExecutionException failure;
+        private final @Nullable ProcessExecutionException failure;
         private final String displayName;
 
-        ExecResultImpl(int exitValue, ProcessExecutionException failure, String displayName) {
+        ExecResultImpl(int exitValue, @Nullable ProcessExecutionException failure, String displayName) {
             this.exitValue = exitValue;
             this.failure = failure;
             this.displayName = displayName;

@@ -130,6 +130,7 @@ fun BuildOperationRunner.withFingerprintCheckOperations(block: () -> EntrySearch
     return call(object : CallableBuildOperation<CheckedFingerprint> {
         override fun description() = BuildOperationDescriptor
             .displayName("Check configuration cache fingerprint")
+            .progressDisplayName("Checking configuration cache fingerprint")
             .details(FingerprintCheckDetails)
 
         override fun call(context: BuildOperationContext): CheckedFingerprint {

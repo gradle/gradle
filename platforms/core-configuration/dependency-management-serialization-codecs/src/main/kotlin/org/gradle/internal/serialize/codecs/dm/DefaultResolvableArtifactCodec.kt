@@ -16,40 +16,36 @@
 
 package org.gradle.internal.serialize.codecs.dm
 
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolvableArtifact
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.IvyArtifactNameSerializer
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readFile
+import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.writeFile
 import org.gradle.internal.Describables
-import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.model.CalculatedValueContainerFactory
 
 
 class DefaultResolvableArtifactCodec(
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory
 ) : Codec<DefaultResolvableArtifact> {
-    private
-    val componentIdSerializer = ComponentIdentifierSerializer()
 
     override suspend fun WriteContext.encode(value: DefaultResolvableArtifact) {
         // Write the source artifact
         writeFile(value.file)
         IvyArtifactNameSerializer.INSTANCE.write(this, value.artifactName)
-        // TODO - preserve the artifact id implementation instead of unpacking the component id
-        componentIdSerializer.write(this, value.id.componentIdentifier)
+        write(value.id)
         // TODO - preserve the artifact's owner id (or get rid of it as it's not used for transforms)
     }
 
     override suspend fun ReadContext.decode(): DefaultResolvableArtifact {
         val file = readFile()
         val artifactName = IvyArtifactNameSerializer.INSTANCE.read(this)
-        val componentId = componentIdSerializer.read(this)
-        val artifactId = ComponentFileArtifactIdentifier(componentId, file.name)
+        val artifactId = readNonNull<ComponentArtifactIdentifier>()
         return DefaultResolvableArtifact(null, artifactName, artifactId, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory.create(Describables.of(artifactId), file), calculatedValueContainerFactory)
     }
 }

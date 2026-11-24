@@ -48,13 +48,18 @@ public class PomProjectInitDescriptor implements BuildConverter {
     private final static String MAVEN_RESOLVER_VERSION = "1.9.16";
 
     private final MavenSettingsProvider settingsProvider;
+    private final boolean reuseMavenMirrorSettings;
     private final DocumentationRegistry documentationRegistry;
     private final WorkerExecutor executor;
 
     private FileCollection mavenClasspath;
 
-    public PomProjectInitDescriptor(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, WorkerExecutor executor) {
+    /**
+     * @param reuseMavenMirrorSettings whether this build resolves through the mirrors declared in the Maven settings.xml
+     */
+    public PomProjectInitDescriptor(MavenSettingsProvider mavenSettingsProvider, boolean reuseMavenMirrorSettings, DocumentationRegistry documentationRegistry, WorkerExecutor executor) {
         this.settingsProvider = mavenSettingsProvider;
+        this.reuseMavenMirrorSettings = reuseMavenMirrorSettings;
         this.documentationRegistry = documentationRegistry;
         this.executor = executor;
     }
@@ -114,7 +119,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
                         params.getMavenSettings().set(settings);
                         params.getInsecureProtocolOption().set(initSettings.getInsecureProtocolOption());
                     });
-            GradlePropertiesGenerator.generate(initSettings);
+            GradlePropertiesGenerator.generate(initSettings, reuseMavenMirrorSettings);
         } catch (SettingsBuildingException exception) {
             throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.", initSettings.getTarget().file("pom.xml").getAsFile()), exception);
         }

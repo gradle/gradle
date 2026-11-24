@@ -19,7 +19,13 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.artifacts.transform.TransformNodeDependency;
+import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.Set;
+
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static org.gradle.api.internal.tasks.WorkDependencyResolver.TASK_AS_TASK;
 
@@ -46,6 +52,37 @@ public class TaskDependencyUtil {
         return new CachingTaskDependencyResolveContext<>(
             asList(TASK_AS_TASK, IGNORE_ARTIFACT_TRANSFORM_RESOLVER)
         );
+    }
+
+    /**
+     * Resolves the given {@link TaskDependencyContainer} to the set of Task objects it contains.
+     * All other types of work are ignored.
+     * <p>
+     * This method should only be used to support existing public APIs which incorrectly
+     * assume that {@link TaskDependencyContainer}s only contain tasks. To resolve a
+     * task dependency container to the full set of work it contains, use a
+     * {@link org.gradle.execution.plan.TaskDependencyResolver}.
+     */
+    public static Set<Task> getDependencies(@Nullable Task task, TaskDependencyContainer dependencies) {
+        if (dependencies == TaskDependencyContainer.EMPTY) {
+            return Collections.emptySet();
+        }
+
+        RecordingTaskDependencyResolveContext recording = new RecordingTaskDependencyResolveContext(task);
+        try {
+            dependencies.visitDependencies(recording);
+        } catch (Exception e) {
+            if (task != null) {
+                throw new TaskDependencyResolveException(format("Could not determine the dependencies of %s.", task), e);
+            } else {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+        if (recording.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        return newTaskResolver().getDependencies(task, recording);
     }
 
 }

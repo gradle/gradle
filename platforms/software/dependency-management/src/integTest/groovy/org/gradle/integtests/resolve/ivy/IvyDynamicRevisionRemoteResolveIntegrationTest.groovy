@@ -28,6 +28,7 @@ class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractHttpDepende
     ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
         settingsFile << """
             rootProject.name = 'test'
         """

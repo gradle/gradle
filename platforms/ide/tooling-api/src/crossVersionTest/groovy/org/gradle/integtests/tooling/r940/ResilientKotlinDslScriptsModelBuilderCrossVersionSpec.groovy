@@ -111,16 +111,10 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
             pluginManagement {
-                repositories {
-                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
+                ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
             }
             dependencyResolutionManagement {
-                repositories {
-                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
+                ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
             }
             rootProject.name = "root"
         """
@@ -224,16 +218,10 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
             pluginManagement {
-                repositories {
-                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
+                ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
             }
             dependencyResolutionManagement {
-                repositories {
-                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
+                ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
             }
             rootProject.name = "root"
         """
@@ -305,16 +293,10 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         def included = file("included")
         included.file("settings.gradle.kts") << """
             pluginManagement {
-                repositories {
-                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
+                ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
             }
             dependencyResolutionManagement {
-                repositories {
-                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
+                ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
             }
             rootProject.name = "included"
         """
@@ -400,19 +382,14 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         def buildLogic = file("build-logic")
         buildLogic.file("settings.gradle.kts") << """
             pluginManagement {
-                repositories {
-                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
+                ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
             }
             rootProject.name = "build-logic"
         """
         buildLogic.file("build.gradle.kts") << """
             plugins { `kotlin-dsl` }
 
-            repositories {
-                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-            }
+            ${RepoScriptBlockUtil.mavenCentralRepository(GradleDsl.KOTLIN)}
 
             blow up !!!
         """
@@ -468,19 +445,14 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         def buildLogic = file("build-logic")
         buildLogic.file("settings.gradle.kts") << """
             pluginManagement {
-                repositories {
-                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
+                ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
             }
             rootProject.name = "build-logic"
         """
         buildLogic.file("build.gradle.kts") << """
             plugins { `kotlin-dsl` }
 
-            repositories {
-                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-            }
+            ${RepoScriptBlockUtil.mavenCentralRepository(GradleDsl.KOTLIN)}
 
             blow up !!!
         """
@@ -542,10 +514,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         def buildLogic = file("build-logic")
         buildLogic.file("settings.gradle.kts") << """
             pluginManagement {
-                repositories {
-                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
+                ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
             }
             rootProject.name = "build-logic"
         """
@@ -591,10 +560,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         given:
         settingsKotlinFile << """
             pluginManagement {
-                repositories {
-                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
+                ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
             }
             rootProject.name = "root"
             include("plugins")
@@ -733,10 +699,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
             rootProject.name = "build-logic"
 
             pluginManagement {
-                repositories {
-                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
+                ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
             }
         """
         included.file("build.gradle.kts") << """
@@ -744,10 +707,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
                 `kotlin-dsl`
             }
 
-            repositories {
-                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-            }
+            ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
         """
         def projectPlugin = included.file("src/main/kotlin/build-logic.gradle.kts") << """"""
         file("a/build.gradle.kts") << """
@@ -833,10 +793,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
             rootProject.name = "build-logic"
 
             pluginManagement {
-                repositories {
-                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
+                ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
             }
         """
         included.file("build.gradle.kts") << """
@@ -844,10 +801,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
                 `kotlin-dsl`
             }
 
-            repositories {
-                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-            }
+            ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
         """
         def projectPlugin = included.file("src/main/kotlin/build-logic.gradle.kts") << """"""
         file("a/build.gradle.kts") << """
@@ -1009,10 +963,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
             rootProject.name = "build-logic"
 
             pluginManagement {
-                repositories {
-                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
+                ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
             }
         """
         included.file("build.gradle.kts") << """
@@ -1020,10 +971,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
                 `kotlin-dsl`
             }
 
-            repositories {
-                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-            }
+            ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
         """
         def settingsPlugin = included.file("src/main/kotlin/build-logic.settings.gradle.kts") << ""
 

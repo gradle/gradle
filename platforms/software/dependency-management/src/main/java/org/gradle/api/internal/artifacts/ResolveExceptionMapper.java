@@ -100,7 +100,7 @@ public class ResolveExceptionMapper {
         ImmutableList<String> resolutions = ImmutableList.of(
             "The project declares repositories, effectively ignoring the repositories you have declared in the settings.\n" +
                 "To determine how project repositories are declared, configure your build to fail on project repositories.\n" +
-                documentationRegistry.getDocumentationRecommendationFor("information", "declaring_repositories", "sub:fail_build_on_project_repositories")
+                documentationRegistry.getDocumentationRecommendationFor("information", "centralizing_repositories", "sec:fail-build-on-project-repositories")
         );
 
         return new TypedResolveException(

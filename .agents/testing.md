@@ -56,6 +56,14 @@ Use them where appropriate but don't over-abstract.
 Assertions in Gradle build scripts under test can be silently skipped and give poor error messages.
 Instead, print data via stdout and verify output in the test, or test via build operations.
 
+### Repositories for dependencies that are not on public repositories
+Some versions under test are not on Maven Central or the Plugin Portal, for example a Kotlin dev build.
+Do not declare the repository of such a version in a test.
+Register the repository one time in `EXTRA_REPOSITORIES` in `testing/internal-distribution-testing/src/main/groovy/org/gradle/integtests/fixtures/RepoScriptBlockUtil.groovy`.
+Builds get the repository from the repository blocks that `RepoScriptBlockUtil` produces, and from an init script.
+If a test asserts on the applied scripts, the repositories or the callbacks of a build, call `executer.withoutExtraRepositories()`.
+See the [Testing guide](../contributing/Testing.md).
+
 ### Link tests to GitHub issues
 Use `@spock.lang.Issue` to link tests to bugs:
 ```groovy
