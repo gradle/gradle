@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.logging
 
-import org.gradle.api.internal.tasks.testing.TestWorkerFailureException
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
 import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestFailure
@@ -152,12 +151,12 @@ class TestCountLoggerTest extends Specification {
 
         then:
         logger.hadFailures()
-        logger.hasWorkerFailures()
 
         when:
-        logger.handleWorkerFailures()
+        def e = logger.handleWorkerFailures()
+
         then:
-        def e = thrown(TestWorkerFailureException)
+        e != null
         e.getCauses().size() == 5
     }
 

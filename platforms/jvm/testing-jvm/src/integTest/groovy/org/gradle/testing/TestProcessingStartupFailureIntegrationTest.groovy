@@ -170,7 +170,7 @@ class TestProcessingStartupFailureIntegrationTest extends AbstractIntegrationSpe
         fails('test')
 
         then: "Task failure is reported"
-        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasDescription("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
         failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.")
 
         and: "No test class results are created"

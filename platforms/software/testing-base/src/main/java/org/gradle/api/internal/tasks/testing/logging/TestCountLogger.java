@@ -26,6 +26,7 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -163,13 +164,13 @@ public class TestCountLogger implements TestListener {
     }
 
     /**
-     * Checks if any test failures were reported during test worker startup and throws an exception if so.
+     * Returns an exception if any test failures were reported during test worker startup.
      */
-    public boolean hasWorkerFailures() {
-        return !workerFailures.isEmpty();
-    }
+    public @Nullable TestWorkerFailureException handleWorkerFailures() {
+        if (workerFailures.isEmpty()) {
+            return null;
+        }
 
-    public String handleWorkerFailures() {
         // TODO: We should expand this into different kinds of failures based on the situation we've detected.
         // e.g., test workers can fail to start due to command-line misconfiguration
         // or test workers can start, but fail to run any tests due to a bad classpath
@@ -178,7 +179,7 @@ public class TestCountLogger implements TestListener {
         // We currently treat all of these as the same kind of failure.
         //
         // It would be better to emit these as problems instead of packing everything into the exception.
-        throw new TestWorkerFailureException("Test process encountered an unexpected problem.",
+        return new TestWorkerFailureException("Test process encountered an unexpected problem.",
             workerFailures.stream().map(TestFailure::getRawFailure).collect(Collectors.toList()),
             Collections.singletonList("Check common problems " + new DocumentationRegistry().getDocumentationFor("java_testing", "sec:java_testing_troubleshooting") + "."));
     }

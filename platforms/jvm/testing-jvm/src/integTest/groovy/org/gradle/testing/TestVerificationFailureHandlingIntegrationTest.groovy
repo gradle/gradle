@@ -64,6 +64,23 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
         failure.assertTestsFailed()
     }
 
+    def 'task does not execute when it has a test task output dependency with failing test(s) and --fail-fast #description'() {
+        given:
+        withTestVerificationFailure()
+        withCustomTaskInputFromTestTaskOutput()
+
+        expect:
+        fails(['test', '--fail-fast', 'customTask'] + options)
+        result.assertTaskScheduled(':test')
+        result.assertTasksNotScheduled(':customTask')
+        failure.assertTestsFailed()
+
+        where:
+        options        | description
+        []             | 'by default'
+        ['--continue'] | 'with --continue'
+    }
+
     def 'task executes when it has a test task output dependency with failing test(s) and --continue'() {
         given:
         withTestVerificationFailure()
@@ -98,6 +115,39 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
         result.assertTaskScheduled(':test')
         result.assertTasksNotScheduled(':customTask')
         failure.assertTestsFailed()
+    }
+
+    def 'task does not execute when it has a test task output dependency and no tests are discovered and --continue'() {
+        given:
+        file('src/test/java/example/NotATest.java').java '''
+            package example;
+
+            public class NotATest {
+            }
+        '''
+        withCustomTaskInputFromTestTaskOutput()
+
+        when:
+        fails('customTask', '--continue')
+
+        then:
+        result.assertTaskScheduled(':test')
+        result.assertTasksNotScheduled(':customTask')
+        failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute.")
+    }
+
+    def 'task does not execute when it has a test task output dependency and no tests match the filter and --continue'() {
+        given:
+        withPassingTest()
+        withCustomTaskInputFromTestTaskOutput()
+
+        when:
+        fails('test', '--tests', 'DoesNotMatch', 'customTask', '--continue')
+
+        then:
+        result.assertTaskScheduled(':test')
+        result.assertTasksNotScheduled(':customTask')
+        failure.assertHasCause("No tests found for given includes: [DoesNotMatch](--tests filter)")
     }
 
     // helpers
