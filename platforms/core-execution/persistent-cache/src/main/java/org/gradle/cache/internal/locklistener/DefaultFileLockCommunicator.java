@@ -17,6 +17,7 @@
 package org.gradle.cache.internal.locklistener;
 
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +50,7 @@ public class DefaultFileLockCommunicator implements FileLockCommunicator {
     }
 
     @Override
-    public boolean pingOwner(InetAddress address, int ownerPort, long lockId, String displayName) {
+    public boolean pingOwner(@Nullable InetAddress address, int ownerPort, long lockId, String displayName) {
         boolean pingSentSuccessfully = false;
         byte[] bytesToSend = FileLockPacketPayload.encode(lockId, UNLOCK_REQUEST);
         try {

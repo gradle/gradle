@@ -23,6 +23,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * A build option that takes a list value e.g. {@code "-Iinit1.gradle -Iinit2.gradle"}.
  *
@@ -44,7 +46,7 @@ public abstract class ListBuildOption<T> extends AbstractBuildOption<T, CommandL
 
         if (value != null) {
             String[] splitValues = value.split("\\s*,\\s*");
-            applyTo(Arrays.asList(splitValues), settings, Origin.forGradleProperty(property));
+            applyTo(Arrays.asList(splitValues), settings, Origin.forGradleProperty(requireNonNull(property)));
         }
     }
 

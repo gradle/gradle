@@ -20,9 +20,9 @@ import com.google.common.base.Objects;
 import org.jspecify.annotations.Nullable;
 
 public class DefaultPropertyTraceData implements PropertyTraceData {
-    private final String trace;
+    private final @Nullable String trace;
 
-    public DefaultPropertyTraceData(String trace) {
+    public DefaultPropertyTraceData(@Nullable String trace) {
         this.trace = trace;
     }
 
@@ -52,12 +52,13 @@ public class DefaultPropertyTraceData implements PropertyTraceData {
     }
 
     @Override
+    @Nullable
     public String getTrace() {
         return trace;
     }
 
     private static class DefaultPropertyTraceDataBuilder implements PropertyTraceDataSpec, AdditionalDataBuilder<PropertyTraceData> {
-        private String trace;
+        private @Nullable String trace;
 
         public DefaultPropertyTraceDataBuilder(PropertyTraceData from) {
             this.trace = from.getTrace();

@@ -16,6 +16,7 @@
 package org.gradle.cache.internal.btree;
 
 import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -24,14 +25,17 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+import static java.util.Objects.requireNonNull;
+
 public class FileBackedBlockStore implements BlockStore {
     static final long FILE_GROWTH_CHUNK_SIZE = 64 * 1024;
     private final File cacheFile;
-    private RandomAccessFile file;
-    private ByteOutput output;
-    private ByteInput input;
+    // The following fields are set by open()
+    private @Nullable RandomAccessFile file;
+    private @Nullable ByteOutput output;
+    private @Nullable ByteInput input;
     private long nextBlock;
-    private Factory factory;
+    private @Nullable Factory factory;
     private long currentFileSize;
 
     public FileBackedBlockStore(File cacheFile) {
@@ -80,7 +84,7 @@ public class FileBackedBlockStore implements BlockStore {
             // Trim chunk-growth padding so the next open() starts allocating right after the last block,
             // and we don't waste disk space. If a daemon is killed before close is called, we still may waste max FILE_GROWTH_CHUNK_SIZE.
             if (nextBlock < currentFileSize) {
-                file.setLength(nextBlock);
+                getFile().setLength(nextBlock);
             }
         } catch (IOException e) {
             failure = e;
@@ -88,7 +92,7 @@ public class FileBackedBlockStore implements BlockStore {
             try {
                 // We try really hard to close the file even if setLength fails, since
                 // on Windows leaking the handle can prevent a new daemon from reopening the cache.
-                file.close();
+                getFile().close();
             } catch (IOException e) {
                 if (failure != null) {
                     failure.addSuppressed(e);
@@ -105,7 +109,7 @@ public class FileBackedBlockStore implements BlockStore {
     @Override
     public void clear() {
         try {
-            file.setLength(0);
+            getFile().setLength(0);
             currentFileSize = 0;
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
@@ -115,7 +119,7 @@ public class FileBackedBlockStore implements BlockStore {
 
     @Override
     public void attach(BlockPayload block) {
-        if (block.getBlock() == null) {
+        if (!block.isAttached()) {
             block.setBlock(new BlockImpl(block));
         }
     }
@@ -139,7 +143,7 @@ public class FileBackedBlockStore implements BlockStore {
     public <T extends BlockPayload> T read(BlockPointer pos, Class<T> payloadType) {
         assert !pos.isNull();
         try {
-            T payload = payloadType.cast(factory.create(payloadType));
+            T payload = payloadType.cast(getFactory().create(payloadType));
             BlockImpl block = new BlockImpl(payload, pos);
             block.read();
             return payload;
@@ -172,7 +176,7 @@ public class FileBackedBlockStore implements BlockStore {
         private static final int HEADER_SIZE = 1 + INT_SIZE; // type, payload size
         private static final int TAIL_SIZE = INT_SIZE;
 
-        private BlockPointer pos;
+        private @Nullable BlockPointer pos;
         private int payloadSize;
 
         private BlockImpl(BlockPayload payload, BlockPointer pos) {
@@ -223,7 +227,7 @@ public class FileBackedBlockStore implements BlockStore {
         public void write() throws Exception {
             long pos = getPos().getPos();
 
-            DataOutputStream outputStream = output.start(pos);
+            DataOutputStream outputStream = getOutput().start(pos);
 
             BlockPayload payload = getPayload();
 
@@ -235,12 +239,12 @@ public class FileBackedBlockStore implements BlockStore {
             payload.write(outputStream);
 
             // Write count
-            long bytesWritten = output.getBytesWritten();
+            long bytesWritten = getOutput().getBytesWritten();
             if (bytesWritten > Integer.MAX_VALUE) {
                 throw new IllegalArgumentException("Block payload exceeds maximum size");
             }
             outputStream.writeInt((int) bytesWritten);
-            output.done();
+            getOutput().done();
 
             // Grow the file in FILE_GROWTH_CHUNK_SIZE chunks instead of exact sizes to reduce ftruncate syscalls.
             // On cloud block storage (e.g. EBS), ftruncate triggers expensive metadata journal commits.
@@ -248,7 +252,7 @@ public class FileBackedBlockStore implements BlockStore {
             long blockEnd = pos + getSize();
             if (blockEnd > currentFileSize) {
                 long nextFileSize = (blockEnd + FILE_GROWTH_CHUNK_SIZE - 1) / FILE_GROWTH_CHUNK_SIZE * FILE_GROWTH_CHUNK_SIZE;
-                file.setLength(nextFileSize);
+                getFile().setLength(nextFileSize);
                 currentFileSize = nextFileSize;
             }
         }
@@ -260,7 +264,7 @@ public class FileBackedBlockStore implements BlockStore {
                 throw blockCorruptedException();
             }
 
-            DataInputStream inputStream = input.start(pos);
+            DataInputStream inputStream = getInput().start(pos);
 
             BlockPayload payload = getPayload();
 
@@ -278,12 +282,12 @@ public class FileBackedBlockStore implements BlockStore {
             payload.read(inputStream);
 
             // Read and verify count
-            long actualCount = input.getBytesRead();
+            long actualCount = getInput().getBytesRead();
             long count = inputStream.readInt();
             if (actualCount != count) {
                 throw blockCorruptedException();
             }
-            input.done();
+            getInput().done();
         }
 
         @Override
@@ -293,4 +297,23 @@ public class FileBackedBlockStore implements BlockStore {
         }
     }
 
+    private Factory getFactory() {
+        //TODO IllegalStateException might be the better option here. In the interest of not changing the behavior, we keep this
+        return requireNonNull(factory, "Block store has not been opened");
+    }
+
+    private ByteInput getInput() {
+        //TODO IllegalStateException might be the better option here. In the interest of not changing the behavior, we keep this
+        return requireNonNull(input, "Block store has not been opened");
+    }
+
+    private RandomAccessFile getFile() {
+        //TODO IllegalStateException might be the better option here. In the interest of not changing the behavior, we keep this
+        return requireNonNull(file, "Block store has not been opened");
+    }
+
+    private ByteOutput getOutput() {
+        //TODO IllegalStateException might be the better option here. In the interest of not changing the behavior, we keep this
+        return requireNonNull(output, "Block store has not been opened");
+    }
 }

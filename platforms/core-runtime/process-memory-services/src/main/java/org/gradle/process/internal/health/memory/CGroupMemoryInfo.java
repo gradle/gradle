@@ -18,6 +18,7 @@ package org.gradle.process.internal.health.memory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Files;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,6 +46,7 @@ public class CGroupMemoryInfo implements OsMemoryInfo {
         );
     }
 
+    @Nullable
     private static String readStringFromFile(File file) {
         try {
             return Files.asCharSource(file, Charset.defaultCharset()).readFirstLine();
@@ -54,7 +56,7 @@ public class CGroupMemoryInfo implements OsMemoryInfo {
     }
 
     @VisibleForTesting
-    OsMemoryStatusSnapshot getOsSnapshotFromCgroup(String memUsageString, String memTotalString) {
+    OsMemoryStatusSnapshot getOsSnapshotFromCgroup(@Nullable String memUsageString, @Nullable String memTotalString) {
         long memUsage;
         long memTotal;
         long memAvailable;

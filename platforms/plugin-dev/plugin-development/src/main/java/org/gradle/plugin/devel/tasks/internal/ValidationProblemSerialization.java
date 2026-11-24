@@ -360,6 +360,9 @@ public class ValidationProblemSerialization {
                     in.skipValue();
                 }
             }
+            if (pluginId == null) {
+                throw new JsonParseException("pluginId must not be null");
+            }
             return new DefaultPluginIdLocation(pluginId);
         }
     }

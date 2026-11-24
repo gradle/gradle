@@ -24,6 +24,7 @@ import org.gradle.cache.FileLockManager
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.jspecify.annotations.NonNull
 import org.junit.Rule
 import spock.lang.AutoCleanup
 import spock.lang.Specification
@@ -46,7 +47,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     def cleanupAction = Mock(CleanupAction)
     def cacheCleanup = new CacheCleanupStrategy() {
         @Override
-        void clean(CleanableStore store, Instant lastCleanupTime) {
+        void clean(@NonNull CleanableStore store, @NonNull Instant lastCleanupTime) {
             cleanupAction.clean(store, null)
         }
 
