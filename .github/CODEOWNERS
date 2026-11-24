@@ -81,13 +81,13 @@ build-logic/kotlin-dsl/                                     @gradle/bt-tide
 build-logic/kotlin-dsl-shared-runtime/                      @gradle/bt-tide
 platforms/dsl/                                              @gradle/bt-tide
 
-# Core automation platform (Declarative DSL)
+# Declarative DSL
 platforms/core-configuration/declarative-dsl-api/                   @gradle/bt-declarative-gradle-project
-platforms/core-configuration/declarative-dsl-core/                  @gradle/bt-declarative-gradle-project
-platforms/core-configuration/declarative-dsl-evaluator/             @gradle/bt-declarative-gradle-project
-platforms/core-configuration/declarative-dsl-provider/              @gradle/bt-declarative-gradle-project
-platforms/core-configuration/declarative-dsl-tooling-builders/      @gradle/bt-declarative-gradle-project
-platforms/core-configuration/declarative-dsl-tooling-models/        @gradle/bt-declarative-gradle-project
+platforms/dsl/declarative-dsl-core/                                 @gradle/bt-declarative-gradle-project
+platforms/dsl/declarative-dsl-evaluator/                            @gradle/bt-declarative-gradle-project
+platforms/dsl/declarative-dsl-provider/                             @gradle/bt-declarative-gradle-project
+platforms/dsl/declarative-dsl-tooling-builders/                     @gradle/bt-declarative-gradle-project
+platforms/dsl/declarative-dsl-tooling-models/                       @gradle/bt-declarative-gradle-project
 
 # Core automation platform (core/runtime)
 platforms/core-runtime/                                     @gradle/bt-cortex

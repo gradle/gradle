@@ -127,7 +127,7 @@ This platform provides specific support for Swift, C++ and C.
 
 ### DSL platform
 
-This is a platform that builds on the core, software, JVM and plugin development platforms. It provides the Groovy DSL and the Kotlin DSL. This covers the Groovy script compiler, the base classes of Groovy build scripts, Groovy precompiled script plugins, the Kotlin DSL plugins, Kotlin precompiled script plugins and the tooling models that IDEs use for Kotlin build scripts. Core keeps the DSL-agnostic parts, such as script sources and the selection of a DSL by file extension.
+This is a platform that builds on the core, software, JVM and plugin development platforms. It provides the Groovy DSL, the Kotlin DSL and the Declarative DSL. This covers the Groovy script compiler, the base classes of Groovy build scripts, Groovy precompiled script plugins, the Kotlin DSL plugins, Kotlin precompiled script plugins, the Declarative DSL schema, evaluator and script plugin factory, and the tooling models that IDEs use for Kotlin and Declarative build scripts. Core keeps the DSL-agnostic parts, such as script sources and the selection of a DSL by file extension.
 
 ## Cross-cutting architecture modules
 
