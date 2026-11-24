@@ -155,8 +155,8 @@ Scala 3.8 and higher require Java 17.
 Without a configured Java toolchain, Gradle passed `-Xtarget:8` to these Scala versions, which they reject, and compilation failed.
 Gradle now passes `-Xtarget:17`.
 
-With a toolchain older than Java 17, the Scala 3.8 compiler cannot run.
-Gradle now fails the compile task with a message that names the required Java version, instead of a class version error from the compiler.
+With a toolchain older than Java 17, the Scala 3.8 compiler and Scaladoc tool cannot run.
+Gradle now fails the compile and Scaladoc tasks with a message that names the required Java version, instead of a class version error from the tool.
 
 ### Core plugin and plugin authoring enhancements
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.

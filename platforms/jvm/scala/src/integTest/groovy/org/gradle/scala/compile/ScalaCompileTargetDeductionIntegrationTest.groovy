@@ -148,4 +148,28 @@ class ScalaCompileTargetDeductionIntegrationTest extends AbstractIntegrationSpec
         where:
         java << [8, 11]
     }
+
+    def "scaladoc fails for Scala 3.8 with Java #java launcher"() {
+        def jdk = AvailableJavaHomes.getJdk(JavaVersion.toVersion(java))
+        Assume.assumeNotNull(jdk)
+
+        scalaBuild("3.8.4")
+        buildFile << """
+            tasks.withType(ScalaDoc).configureEach {
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of($java)
+                }
+            }
+        """
+
+        when:
+        withInstallations(jdk).fails(":scaladoc")
+
+        then:
+        executedAndNotSkipped(":compileScala")
+        failure.assertHasCause("Scala 3.8.4 requires Java 17 or later, but the Java toolchain is Java $java. Use a Java toolchain of version 17 or later, or a Scala version before 3.8.")
+
+        where:
+        java << [8, 11]
+    }
 }

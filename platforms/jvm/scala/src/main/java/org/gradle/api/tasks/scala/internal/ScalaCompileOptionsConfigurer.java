@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.scala.internal;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
@@ -42,6 +41,7 @@ import java.util.Set;
 public class ScalaCompileOptionsConfigurer {
 
     private static final int FALLBACK_JVM_TARGET = 8;
+    private static final int JAVA_17_FALLBACK_JVM_TARGET = 17;
     private static final int MAX_LEGACY_JVM_TARGET = 8;
 
     /**
@@ -61,8 +61,6 @@ public class ScalaCompileOptionsConfigurer {
 
     private static final VersionNumber RELEASE_SUPPORTED_SINCE_VERSION = VersionNumber.parse("2.12.5");
     private static final VersionNumber SCALA_3_FIRST_VERSION = VersionNumber.parse("3.0.0");
-    private static final VersionNumber SCALA_3_8_FIRST_VERSION = VersionNumber.parse("3.8.0");
-    private static final int SCALA_3_8_MIN_JAVA_VERSION = 17;
 
     private static final VersionNumber SCALA_2_13_FIRST_VERSION = VersionNumber.parse("2.13.0");
     private static final VersionNumber PLAIN_TARGET_FORMAT_IN_2_13_SINCE_VERSION = VersionNumber.parse("2.13.1");
@@ -76,22 +74,13 @@ public class ScalaCompileOptionsConfigurer {
             return;
         }
 
-        // When Scala 3 is used it appears on the classpath together with Scala 2
-        File scalaJar = ScalaRuntimeHelper.findScalaJar(scalaClasspath, "library_3");
-        if (scalaJar == null) {
-            scalaJar = ScalaRuntimeHelper.findScalaJar(scalaClasspath, "library");
-            if (scalaJar == null) {
-                return;
-            }
-        }
-
-        VersionNumber scalaVersion = VersionNumber.parse(ScalaRuntimeHelper.getScalaVersion(scalaJar));
+        VersionNumber scalaVersion = ScalaJavaCompatibility.findScalaVersion(scalaClasspath);
         if (VersionNumber.UNKNOWN.equals(scalaVersion)) {
             return;
         }
 
         JavaToolchain javaToolchain = (JavaToolchain) toolchain;
-        assertToolchainCanRunCompiler(scalaVersion, javaToolchain);
+        ScalaJavaCompatibility.assertCanRunOn(scalaVersion, javaToolchain.getLanguageVersion().asInt());
 
         if (hasTargetDefiningParameter(scalaCompileOptions.getAdditionalParameters())) {
             return;
@@ -99,18 +88,6 @@ public class ScalaCompileOptionsConfigurer {
 
         List<String> targetParameters = determineTargetParameters(scalaVersion.getBaseVersion(), javaToolchain);
         scalaCompileOptions.getAdditionalParameters().addAll(targetParameters);
-    }
-
-    /**
-     * Fails early for toolchains the Scala compiler cannot run on, as no compiler parameter can fix that.
-     */
-    private static void assertToolchainCanRunCompiler(VersionNumber scalaVersion, JavaToolchain javaToolchain) {
-        int javaVersion = javaToolchain.getLanguageVersion().asInt();
-        if (scalaVersion.getBaseVersion().compareTo(SCALA_3_8_FIRST_VERSION) >= 0 && javaVersion < SCALA_3_8_MIN_JAVA_VERSION) {
-            throw new InvalidUserDataException(String.format(
-                "Scala %s requires Java %d or later, but the Java toolchain is Java %d. Use a Java toolchain of version %d or later, or a Scala version before 3.8.",
-                scalaVersion, SCALA_3_8_MIN_JAVA_VERSION, javaVersion, SCALA_3_8_MIN_JAVA_VERSION));
-        }
     }
 
     private static boolean hasTargetDefiningParameter(List<String> additionalParameters) {
@@ -131,7 +108,7 @@ public class ScalaCompileOptionsConfigurer {
      */
     private static List<String> determineTargetParameters(VersionNumber scalaVersion, JavaToolchain javaToolchain) {
         boolean explicitToolchain = !javaToolchain.isFallbackToolchain();
-        int fallbackTarget = scalaVersion.compareTo(SCALA_3_8_FIRST_VERSION) >= 0 ? SCALA_3_8_MIN_JAVA_VERSION : FALLBACK_JVM_TARGET;
+        int fallbackTarget = ScalaJavaCompatibility.requiresJava17(scalaVersion) ? JAVA_17_FALLBACK_JVM_TARGET : FALLBACK_JVM_TARGET;
         int effectiveTarget = !explicitToolchain ? fallbackTarget : javaToolchain.getLanguageVersion().asInt();
         switch (getTargetParameterFormat(scalaVersion)) {
             case RELEASE_OR_XTARGET:

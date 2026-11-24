@@ -274,7 +274,7 @@ The following table explains the values computed by Gradle:
 |===
 
 Scala 3.8 and later require Java 17.
-With these Scala versions, the compile task fails if the toolchain is older than Java 17.
+With these Scala versions, the compile and Scaladoc tasks fail if their toolchain is older than Java 17.
 
 Setting any of these flags explicitly, or using flags containing `java-output-version`, on link:{groovyDslPath}/org.gradle.language.scala.tasks.BaseScalaCompileOptions.html#org.gradle.language.scala.tasks.BaseScalaCompileOptions:additionalParameters[`ScalaCompile.scalaCompileOptions.additionalParameters`] disables that logic in favor of the explicit flag.
 
