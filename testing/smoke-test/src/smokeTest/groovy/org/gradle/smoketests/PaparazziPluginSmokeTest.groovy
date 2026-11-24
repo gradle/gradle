@@ -72,6 +72,7 @@ class PaparazziPluginSmokeTest extends AbstractSmokeTest implements RunnerFactor
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
                 expectSetVisibleDeprecation()
+                expectArtifactlessPrimaryVariantDeprecation("root project '${testProjectDir.name}'", "configuration ':debugRuntimeElements'", ["org.gradle.libraryelements=jar"])
             }
             .build()
     }

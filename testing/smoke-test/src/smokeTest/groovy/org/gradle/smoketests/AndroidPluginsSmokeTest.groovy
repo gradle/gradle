@@ -46,6 +46,12 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
      */
     private static final List<String> LIBRARY_CONFIGURATIONS_WITHOUT_ARTIFACTS = ['debugRuntimeElements', 'debugApiElements']
 
+    /**
+     * The configurations of the library whose primary variant without artifacts the app ignores in a way that changes the result.
+     * The app's request for the API elements is lenient and nothing else matches it, so it resolves to no artifacts either way.
+     */
+    private static final List<String> LIBRARY_CONFIGURATIONS_WITH_DEPRECATION = ['debugRuntimeElements']
+
     private static final String APP_ACTIVITY_CLASS = 'Lorg/gradle/android/example/app/AppActivity;'
     private static final String LIBRARY_ACTIVITY_CLASS = 'Lorg/gradle/android/example/library/LibraryActivity;'
 
@@ -72,7 +78,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
                 expectSetVisibleDeprecationIf(expectSetVisible)
-                expectArtifactlessPrimaryVariantDeprecations(':library', LIBRARY_CONFIGURATIONS_WITHOUT_ARTIFACTS)
+                expectArtifactlessPrimaryVariantDeprecations(':library', LIBRARY_CONFIGURATIONS_WITH_DEPRECATION)
             }
             .build()
 
@@ -97,7 +103,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
                 expectSetVisibleDeprecationIf(expectSetVisible && GradleContextualExecuter.isNotConfigCache())
-                expectArtifactlessPrimaryVariantDeprecationsIf(GradleContextualExecuter.isNotConfigCache(), ':library', LIBRARY_CONFIGURATIONS_WITHOUT_ARTIFACTS)
+                expectArtifactlessPrimaryVariantDeprecationsIf(GradleContextualExecuter.isNotConfigCache(), ':library', LIBRARY_CONFIGURATIONS_WITH_DEPRECATION)
             }
             .build()
 
@@ -118,7 +124,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
                 expectSetVisibleDeprecationIf(expectSetVisible && GradleContextualExecuter.isNotConfigCache())
-                expectArtifactlessPrimaryVariantDeprecationsIf(GradleContextualExecuter.isNotConfigCache(), ':library', LIBRARY_CONFIGURATIONS_WITHOUT_ARTIFACTS)
+                expectArtifactlessPrimaryVariantDeprecationsIf(GradleContextualExecuter.isNotConfigCache(), ':library', LIBRARY_CONFIGURATIONS_WITH_DEPRECATION)
             }
             .build()
 
@@ -144,7 +150,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
                 expectSetVisibleDeprecationIf(expectSetVisible && GradleContextualExecuter.isNotConfigCache())
-                expectArtifactlessPrimaryVariantDeprecationsIf(GradleContextualExecuter.isNotConfigCache(), ':library', LIBRARY_CONFIGURATIONS_WITHOUT_ARTIFACTS)
+                expectArtifactlessPrimaryVariantDeprecationsIf(GradleContextualExecuter.isNotConfigCache(), ':library', LIBRARY_CONFIGURATIONS_WITH_DEPRECATION)
             }.build()
 
         then:

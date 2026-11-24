@@ -126,7 +126,6 @@ class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements Runne
          * with the {@code CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS} feature preview.
          */
         private static final Map<String, List<String>> CONFIGURATIONS_WITHOUT_ARTIFACTS_FOR_LINT = [
-            ':app': DEMO_DEBUG_ELEMENTS,
             ':core:data-test': DEMO_DEBUG_ELEMENTS,
             ':core:datastore-test': DEMO_DEBUG_ELEMENTS,
             ':core:domain': ['demoDebugApiElements'],
@@ -157,12 +156,15 @@ class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements Runne
 
         /**
          * Expect the deprecations for the library projects' primary variants without artifacts that building the app ignores.
-         * Two requests ignore each of them: one that a single secondary variant matches, so the deprecation suggests an attribute, and one that it does not.
+         * <p>
+         * Two requests ignore each of them: one that a single secondary variant matches, so the deprecation suggests an attribute,
+         * and one that it does not. For the API elements, the latter is lenient and nothing else matches it, so it resolves to
+         * no artifacts either way, and emits no deprecation.
          */
         void expectNowInAndroidArtifactlessPrimaryVariantDeprecationsIf(boolean condition) {
             if (condition) {
                 CONFIGURATIONS_WITHOUT_ARTIFACTS.each { project, configurations ->
-                    expectArtifactlessPrimaryVariantDeprecations(project, configurations)
+                    expectArtifactlessPrimaryVariantDeprecations(project, configurations.findAll { !it.endsWith('ApiElements') })
                     expectArtifactlessPrimaryVariantDeprecations(project, configurations, ['org.gradle.libraryelements=jar'])
                 }
             }

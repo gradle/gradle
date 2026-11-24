@@ -60,21 +60,32 @@ trait WithAndroidDeprecations {
      * @param attributesNotOnPrimary the attributes the deprecation suggests requesting, as {@code name=value}, in the order listed
      */
     void expectArtifactlessPrimaryVariantDeprecations(String project, List<String> configurations, List<String> attributesNotOnPrimary = []) {
+        configurations.each { configuration ->
+            expectArtifactlessPrimaryVariantDeprecation("project '${project}'", "configuration '${project}:${configuration}'", attributesNotOnPrimary)
+        }
+    }
+
+    /**
+     * Expect the deprecation emitted when selecting artifacts from the producer ignores its primary variant, which has no artifacts.
+     *
+     * @param producer display name of the producer, e.g. "project ':library'"
+     * @param variant display name of the ignored variant, e.g. "configuration ':library:debugRuntimeElements'"
+     * @param attributesNotOnPrimary the attributes the deprecation suggests requesting, as {@code name=value}, in the order listed
+     */
+    void expectArtifactlessPrimaryVariantDeprecation(String producer, String variant, List<String> attributesNotOnPrimary = []) {
         def moreAttributesInRequest = attributesNotOnPrimary.empty
             ? "Request attributes that only the intended variant matches"
             : "Request one of these attributes: ${attributesNotOnPrimary.join(', ')}"
-        configurations.each { configuration ->
-            runner.expectDeprecationWarning(
-                "Selecting artifacts from project '${project}' ignored variant 'configuration '${project}:${configuration}'' because it has no artifacts. " +
-                    "This behavior has been deprecated. " +
-                    "Starting with Gradle 11, primary variants without artifacts will be selected when they are the best match. " +
-                    "${moreAttributesInRequest}; " +
-                    "add attributes to that variant so that it no longer matches; " +
-                    "or enable the 'CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS' feature preview. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#variants_with_no_artifacts",
-                "https://github.com/gradle/gradle/issues/29630"
-            )
-        }
+        runner.expectDeprecationWarning(
+            "Selecting artifacts from ${producer} ignored variant '${variant}' because it has no artifacts. " +
+                "This behavior has been deprecated. " +
+                "Starting with Gradle 11, primary variants without artifacts will be selected when they are the best match. " +
+                "${moreAttributesInRequest}; " +
+                "add attributes to that variant so that it no longer matches; " +
+                "or enable the 'CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS' feature preview. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#variants_with_no_artifacts",
+            "https://github.com/gradle/gradle/issues/29630"
+        )
     }
 
 }
