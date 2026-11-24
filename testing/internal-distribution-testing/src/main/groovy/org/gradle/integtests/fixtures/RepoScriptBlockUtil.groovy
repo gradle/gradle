@@ -145,7 +145,7 @@ class RepoScriptBlockUtil {
         // The published Kotlin DSL plugins are built with an older Kotlin than the Kotlin under test.
         // Thus builds that apply them use the plugins built from this source, which the local test repository has at their own version.
         // The tests make Gradle expect that version (see locallyBuiltKotlinDslPluginsArguments).
-        // Only that version: other Gradle versions expect other versions, which the repository can have from an earlier build.
+        // Only that version: other Gradle versions expect other versions, which come from the Plugin Portal.
         // Only the projects that publish these plugins to their local test repository have this entry.
         locallyBuiltKotlinDslPluginsVersion() ?
             new ExtraRepository("LOCALLY_BUILT_KOTLIN_DSL_PLUGINS", locallyBuiltKotlinDslPluginsRepository().toURI().toString(), [/org\.gradle\.kotlin(\..+)?/], Pattern.quote(locallyBuiltKotlinDslPluginsVersion()))
@@ -192,7 +192,6 @@ class RepoScriptBlockUtil {
 
     /**
      * The version of the Kotlin DSL plugins in the local test repository, or {@code null} when no local test repository has them.
-     * A repository from an earlier build can have older versions too, so the metadata decides.
      */
     static String locallyBuiltKotlinDslPluginsVersion() {
         File repository = locallyBuiltKotlinDslPluginsRepository()
