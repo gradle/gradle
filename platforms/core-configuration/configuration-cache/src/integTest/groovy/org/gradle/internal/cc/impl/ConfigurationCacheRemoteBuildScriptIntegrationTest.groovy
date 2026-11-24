@@ -72,6 +72,35 @@ class ConfigurationCacheRemoteBuildScriptIntegrationTest extends AbstractConfigu
         configurationCache.assertStateStored()
     }
 
+    def "does not show credentials embedded in the URL of a changed remote script"() {
+        given:
+        buildFile.text = """
+            apply from: '${scriptUrl.replace("http://", "http://someuser:s3cret@")}'
+            task ok
+        """
+
+        when:
+        configurationCacheRun 'ok'
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        scriptFile << """
+            print 'update remote script'
+        """
+        server.expectHead "/$scriptName", scriptFile
+        server.expectGet "/$scriptName", scriptFile
+
+        and:
+        configurationCacheRun 'ok'
+
+        then:
+        output.contains "Calculating task graph as configuration cache cannot be reused because remote script http://***@${server.uri.host}:${server.port}/${scriptName} has changed."
+        !output.contains("s3cret")
+        !output.contains("someuser")
+    }
+
     def "reuse cache if remote script is up to date"() {
         when:
         configurationCacheRun 'ok'

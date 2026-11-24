@@ -37,6 +37,7 @@ import org.gradle.internal.extensions.stdlib.filterKeysByPrefix
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.uri.UriDisplay
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.util.NumberUtil.ordinal
 import org.gradle.util.Path
@@ -290,7 +291,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
             is ConfigurationCacheFingerprint.RemoteScript -> input.run {
                 ifOrNull(!host.isRemoteScriptUpToDate(uri)) {
-                    text("remote script $uri has changed")
+                    text("remote script ${UriDisplay.maskUserInfo(uri)} has changed")
                 }
             }
 

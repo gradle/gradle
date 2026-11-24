@@ -270,6 +270,19 @@ class UriTextResourceTest extends Specification {
         resource.shortDisplayName.displayName == '<file-type> \'https://www.gradle.org/unknown.txt\''
     }
 
+    def doesNotIncludeUserInfoOfUriInDisplayName() {
+        when:
+        def uri = new URI("https://user:secret@www.gradle.org/unknown.txt")
+        UriTextResource resource = new UriTextResource("<file-type>", uri, resolver)
+
+        then:
+        resource.displayName == '<file-type> \'https://***@www.gradle.org/unknown.txt\''
+        resource.longDisplayName.displayName == '<file-type> \'https://***@www.gradle.org/unknown.txt\''
+        resource.shortDisplayName.displayName == '<file-type> \'https://***@www.gradle.org/unknown.txt\''
+        resource.location.displayName == '<file-type> \'https://***@www.gradle.org/unknown.txt\''
+        resource.location.URI == uri
+    }
+
     def extractsCharacterEncodingFromContentType() {
         expect:
         extractCharacterEncoding('content/unknown', null) == null

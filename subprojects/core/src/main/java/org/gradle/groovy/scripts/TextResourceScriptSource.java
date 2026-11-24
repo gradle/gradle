@@ -18,6 +18,7 @@ package org.gradle.groovy.scripts;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.internal.resource.TextResource;
+import org.gradle.internal.uri.UriDisplay;
 
 import java.net.URI;
 
@@ -50,7 +51,7 @@ public class TextResourceScriptSource implements ScriptSource {
             return location.getFile().getPath();
         }
         if (location.getURI() != null) {
-            return location.getURI().toString();
+            return UriDisplay.maskUserInfo(location.getURI()).toString();
         }
         return getClassName();
     }
