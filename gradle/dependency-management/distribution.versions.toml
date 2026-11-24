@@ -55,7 +55,8 @@ tomlj = "1.0.0!!"
 # The version of the kotlin-dsl plugins that the built distribution requests, for example in plugins { `kotlin-dsl` }.
 # It must be a published version that uses the kotlin version above.
 # It is not the version that this checkout publishes (see platforms/dsl/kotlin-dsl-plugins), nor the one that this build uses (see the wrapper).
-# Most tests use the locally built plugins instead, see platforms/dsl/kotlin-dsl-plugins/README.md.
+# Most tests use the locally built plugins instead. Gradleception uses this version, and fails while it is not published.
+# See platforms/dsl/kotlin-dsl-plugins/README.md.
 kotlinDslPlugins = "6.7.13!!"
 
 [libraries]

@@ -73,7 +73,7 @@ dependencies {
     // These will make the bin and src distribution available through `IntegrationTestBuildContext`
     smokeTestBinDistribution(projects.distributionsFull)
     smokeTestSrcDistribution(projects.distributionsFull)
-    // The nested Gradle build uses the Kotlin DSL plugins built from this checkout (see AbstractGradleceptionSmokeTest)
+    // Smoke test builds that apply the Kotlin DSL plugins use the ones built from this checkout. The Gradleception smoke tests do not, see AbstractGradleceptionSmokeTest.
     smokeTestLocalRepository(projects.kotlinDslPlugins)
 }
 

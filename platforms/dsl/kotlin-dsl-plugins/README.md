@@ -23,3 +23,9 @@ Gradle expects the published version of the plugins. The tests make the builds u
 Tooling API tests must give it to their builds, see `RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsArguments()`. The Kotlin DSL model specs that extend `AbstractKotlinScriptModelCrossVersionTest` do this.
 The specs that extend `KotlinDslPluginRelatedToolingApiSpecification` put it in the `gradle.properties` file of the build.
 The `docsTest` task of `:docs` is not an integration test task, so its build script gives it the local repository.
+
+## Gradleception uses the published plugins
+
+Gradleception builds the Gradle build with the Gradle built from this source: the `Gradleception` CI configurations and the smoke tests that extend `AbstractGradleceptionSmokeTest` do this.
+These builds get no local repository and no version override. Thus they apply the published plugins at the version that Gradle expects, `kotlinDslPlugins` in `gradle/dependency-management/distribution.versions.toml`.
+While that version is not published, for example after a bump of the embedded Kotlin version, these builds fail. They pass again when the plugins are published at that version.

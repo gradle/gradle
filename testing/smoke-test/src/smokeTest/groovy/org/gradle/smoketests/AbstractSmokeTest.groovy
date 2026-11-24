@@ -217,7 +217,7 @@ abstract class AbstractSmokeTest extends Specification {
         ]
     }
 
-    private static List<String> extraRepositoriesParameters() {
+    protected List<String> extraRepositoriesParameters() {
         def initScript = RepoScriptBlockUtil.extraRepositoriesInitScriptFile()
         def initScriptParameters = initScript == null ? [] : ['--init-script', initScript.absolutePath]
         return initScriptParameters + RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsArguments()
