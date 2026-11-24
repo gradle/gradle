@@ -28,6 +28,7 @@ import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadBuildOperationType;
 import org.gradle.internal.resource.ExternalResourceReadMetadataBuildOperationType;
 import org.gradle.internal.resource.ResourceExceptions;
+import org.gradle.internal.resource.UriDisplay;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.jspecify.annotations.Nullable;
 
@@ -58,7 +59,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
     private BuildOperationDescriptor.Builder createBuildOperationDetails(ExternalResourceName resourceName) {
         ExternalResourceReadBuildOperationType.Details operationDetails = new ReadOperationDetails(resourceName.getUri());
         return BuildOperationDescriptor
-            .displayName("Download " + resourceName.getUri())
+            .displayName("Download " + UriDisplay.withoutUserInfo(resourceName.getUri()))
             .progressDisplayName(resourceName.getShortDisplayName())
             .details(operationDetails);
     }
