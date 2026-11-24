@@ -18,6 +18,7 @@ package org.gradle.internal.authentication;
 
 import org.gradle.api.credentials.Credentials;
 import org.gradle.authentication.Authentication;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -26,10 +27,10 @@ import java.util.Set;
 
 public abstract class AbstractAuthentication implements AuthenticationInternal {
     private final String name;
-    private final Class<? extends Credentials> supportedCredentialType;
+    private final @Nullable Class<? extends Credentials> supportedCredentialType;
     private final Class<? extends Authentication> type;
 
-    private Credentials credentials;
+    private @Nullable Credentials credentials;
 
     private final Set<HostAndPort> hosts;
 
@@ -37,7 +38,7 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
         this(name, type, null);
     }
 
-    public AbstractAuthentication(String name, Class<? extends Authentication> type, Class<? extends Credentials> supportedCredential) {
+    public AbstractAuthentication(String name, Class<? extends Authentication> type, @Nullable Class<? extends Credentials> supportedCredential) {
         this.name = name;
         this.supportedCredentialType = supportedCredential;
         this.type = type;
@@ -45,12 +46,12 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
     }
 
     @Override
-    public Credentials getCredentials() {
+    public @Nullable Credentials getCredentials() {
         return credentials;
     }
 
     @Override
-    public void setCredentials(Credentials credentials) {
+    public void setCredentials(@Nullable Credentials credentials) {
         this.credentials = credentials;
     }
 
@@ -61,7 +62,7 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
 
     @Override
     public boolean supports(final Credentials credentials) {
-        return supportedCredentialType.isAssignableFrom(credentials.getClass());
+        return supportedCredentialType != null && supportedCredentialType.isAssignableFrom(credentials.getClass());
     }
 
     @Override
@@ -82,21 +83,21 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
 
 
     @Override
-    public void addHost(String host, int port) {
+    public void addHost(@Nullable String host, int port) {
         hosts.add(new DefaultHostAndPort(host, port));
     }
 
     private static class DefaultHostAndPort implements HostAndPort {
-        private final String host;
+        private final @Nullable String host;
         private final int port;
 
-        DefaultHostAndPort(String host, int port) {
+        DefaultHostAndPort(@Nullable String host, int port) {
             this.host = host;
             this.port = port;
         }
 
         @Override
-        public String getHost() {
+        public @Nullable String getHost() {
             return host;
         }
 

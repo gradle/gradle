@@ -1803,7 +1803,6 @@ Class <org.gradle.internal.resource.transport.http.HttpClientHttpHeaderCredentia
 Class <org.gradle.internal.resource.transport.http.HttpConnectorFactory> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (HttpConnectorFactory.java:0)
 Class <org.gradle.internal.resource.transport.http.HttpHeaderAuthScheme> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (HttpHeaderAuthScheme.java:0)
 Class <org.gradle.internal.resource.transport.http.HttpHeaderSchemeFactory> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (HttpHeaderSchemeFactory.java:0)
-Class <org.gradle.internal.resource.transport.http.HttpProxySettings$HttpProxy> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (HttpProxySettings.java:0)
 Class <org.gradle.internal.resource.transport.http.HttpProxySettings> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (HttpProxySettings.java:0)
 Class <org.gradle.internal.resource.transport.http.HttpRequestException> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (HttpRequestException.java:0)
 Class <org.gradle.internal.resource.transport.http.HttpResourceAccessor> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (HttpResourceAccessor.java:0)

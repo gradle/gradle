@@ -38,7 +38,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
     def setup() {
         connectorFactory1.getSupportedProtocols() >> (["protocol1"] as Set)
-        connectorFactory1.getSupportedAuthentication() >> ([GoodCredentialsAuthentication, BadCredentialsAuthentication, AuthenticationWithoutCredentials] as Set)
+        connectorFactory1.getSupportedAuthentication() >> ([GoodCredentialsAuthentication, BadCredentialsAuthentication, AuthenticationWithoutCredentials, AuthenticationWithoutCredentialsType] as Set)
         connectorFactory2.getSupportedProtocols() >> (["protocol2a", "protocol2b"] as Set)
         connectorFactory2.getSupportedAuthentication() >> ([] as Set)
         List<ResourceConnectorFactory> resourceConnectorFactories = Lists.newArrayList(connectorFactory1, connectorFactory2)
@@ -122,6 +122,26 @@ class RepositoryTransportFactoryTest extends Specification {
         Mock(GoodCredentials) | [new GoodCredentialsAuthentication('good'), new BadCredentialsAuthentication('bad')] | "'bad'(Authentication)"
     }
 
+    def "should throw when providing credentials to authentication scheme that supports no credentials type"() {
+        def authentication = new AuthenticationWithoutCredentialsType('none')
+        authentication.credentials = Mock(GoodCredentials)
+
+        when:
+        createTransport(['protocol1'] as Set, null, [authentication])
+
+        then:
+        def ex = thrown(InvalidUserDataException)
+        ex.message == "Credentials type of '${authentication.credentials.class.simpleName}' is not supported by authentication scheme 'none'(Authentication)"
+    }
+
+    def "should accept authentication scheme that supports no credentials type when no credentials are provided"() {
+        when:
+        def transport = createTransport(['protocol1'] as Set, null, [new AuthenticationWithoutCredentialsType('none')])
+
+        then:
+        transport.class == ResourceConnectorRepositoryTransport
+    }
+
     def "should throw when specifying authentication types with null credentials"() {
         when:
         createTransport(['protocol1'] as Set, null, [new GoodCredentialsAuthentication('good')])
@@ -194,6 +214,19 @@ class RepositoryTransportFactoryTest extends Specification {
         }
 
 
+    }
+
+    /**
+     * Like {@code DefaultAwsImAuthentication}: declares no supported credentials type at all.
+     */
+    private class AuthenticationWithoutCredentialsType extends AbstractAuthentication {
+        AuthenticationWithoutCredentialsType(String name) {
+            super(name, Authentication)
+        }
+
+        boolean requiresCredentials() {
+            return false;
+        }
     }
 
     private interface GoodCredentials extends Credentials {}

@@ -8,6 +8,8 @@ dependencies {
     api(projects.baseServices)
     api(projects.credentialsApi)
     api(projects.stdlibJavaExtensions)
+
+    api(libs.jspecify)
 }
 
 gradleModule {
@@ -16,4 +18,8 @@ gradleModule {
         client = true
         daemon = true
     }
+}
+
+errorprone {
+    nullawayEnabled = true
 }
