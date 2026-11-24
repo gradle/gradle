@@ -86,6 +86,19 @@ class ResourceVersionListerTest extends Specification {
         !result.hasResult()
     }
 
+    def "does not report credentials embedded in the listed location"() {
+        setup:
+        def resource = Stub(ExternalResource)
+        _ * repo.resource(_) >> resource
+        _ * resource.list() >> []
+
+        when:
+        lister.listVersions(module, artifact, [new IvyResourcePattern(new URI("http://user:secret@host/repo"), "[module]/[revision]/ivy.xml")], result)
+
+        then:
+        result.attempted == ["http://***@host/repo/proj1/"]
+    }
+
     def "resolves versions from pattern with '#testPattern'"() {
         def resource = Mock(ExternalResource)
 

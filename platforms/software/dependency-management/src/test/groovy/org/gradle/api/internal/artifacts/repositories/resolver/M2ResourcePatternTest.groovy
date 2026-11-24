@@ -25,6 +25,14 @@ import spock.lang.Specification
 import static org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId
 
 class M2ResourcePatternTest extends Specification {
+    def "description does not include the user info of the URI"() {
+        def pattern = new M2ResourcePattern(new URI("http://user:secret@host/repo"), "[organisation]/[module]/[revision]")
+
+        expect:
+        pattern.toString() == "M2 pattern 'http://***@host/repo/[organisation]/[module]/[revision]'"
+        pattern.pattern == "http://user:secret@host/repo/[organisation]/[module]/[revision]"
+    }
+
     def "can construct from URI and pattern"() {
         expect:
         new M2ResourcePattern(new URI(uri), pattern).pattern == expectedPattern

@@ -52,4 +52,19 @@ class ResourceExceptionsTest extends Specification {
         def e = ResourceExceptions.failure(location, "broken", failure)
         e.is(failure)
     }
+
+    def "does not include the user info of the location in the message"() {
+        def location = URI.create("http://user:secret@host/a/b")
+        def failure = new RuntimeException()
+
+        expect:
+        ResourceExceptions.getFailed(location, failure).message == "Could not get resource 'http://***@host/a/b'."
+        ResourceExceptions.getFailed(location, 401, failure).message == "Could not get resource 'http://***@host/a/b'."
+        ResourceExceptions.putFailed(location, failure).message == "Could not write to resource 'http://***@host/a/b'."
+        ResourceExceptions.getMissing(location).message == "Could not read 'http://***@host/a/b' as it does not exist."
+        ResourceExceptions.getMissing(location, failure).message == "Could not read 'http://***@host/a/b' as it does not exist."
+
+        and:
+        ResourceExceptions.getFailed(location, failure).location == location
+    }
 }

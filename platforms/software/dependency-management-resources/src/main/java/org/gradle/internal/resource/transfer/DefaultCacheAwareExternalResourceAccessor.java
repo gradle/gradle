@@ -79,7 +79,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     public LocallyAvailableExternalResource getResource(final ExternalResourceName location, @Nullable String baseName, final ResourceFileStore fileStore, @Nullable final LocallyAvailableResourceCandidates additionalCandidates) {
         return producerGuard.guardByKey(location, () -> {
             LOGGER.debug("Constructing external resource: {}", location);
-            CachedExternalResource cached = cachedExternalResourceIndex.lookup(location.toString());
+            CachedExternalResource cached = cachedExternalResourceIndex.lookup(location.getCacheKey());
 
             // If we have no caching options, just get the thing directly
             if (cached == null && (additionalCandidates == null || additionalCandidates.isNone())) {
@@ -108,9 +108,9 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                 );
 
                 if (isUnchanged) {
-                    LOGGER.info("Cached resource {} is up-to-date (lastModified: {}).", location, cached.getExternalLastModified());
+                    LOGGER.info("Cached resource {} is up-to-date (lastModified: {}).", location.getDisplayName(), cached.getExternalLastModified());
                     // Update the cache entry in the index: this resets the age of the cached entry to zero
-                    cachedExternalResourceIndex.store(location.toString(), cached.getCachedFile(), cached.getExternalResourceMetaData());
+                    cachedExternalResourceIndex.store(location.getCacheKey(), cached.getCachedFile(), cached.getExternalResourceMetaData());
                     return fileResourceRepository.resource(cached.getCachedFile(), location.getUri(), cached.getExternalResourceMetaData());
                 }
             }
@@ -128,7 +128,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                 if (remoteChecksum != null) {
                     LocallyAvailableResource local = additionalCandidates.findByHashValue(remoteChecksum);
                     if (local != null) {
-                        LOGGER.info("Found locally available resource with matching checksum: [{}, {}]", location, local.getFile());
+                        LOGGER.info("Found locally available resource with matching checksum: [{}, {}]", location.getDisplayName(), local.getFile());
                         // TODO - should iterate over each candidate until we successfully copy into the cache
                         LocallyAvailableExternalResource resource;
                         try {
@@ -202,7 +202,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         return cacheAccessCoordinator.useCache(() -> {
             LocallyAvailableResource cachedResource = fileStore.moveIntoCache(destination);
             File fileInFileStore = cachedResource.getFile();
-            cachedExternalResourceIndex.store(source.toString(), fileInFileStore, metaData);
+            cachedExternalResourceIndex.store(source.getCacheKey(), fileInFileStore, metaData);
             return fileResourceRepository.resource(fileInFileStore, source.getUri(), metaData);
         });
     }

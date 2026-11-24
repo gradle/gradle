@@ -22,6 +22,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceWriteResult;
 import org.gradle.internal.resource.ReadableContent;
+import org.gradle.internal.uri.UriDisplay;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.jspecify.annotations.Nullable;
 
@@ -47,7 +48,7 @@ public class DefaultLocallyAvailableExternalResource implements LocallyAvailable
 
     @Override
     public String getDisplayName() {
-        return source.toString();
+        return UriDisplay.maskUserInfo(source).toString();
     }
 
     @Override

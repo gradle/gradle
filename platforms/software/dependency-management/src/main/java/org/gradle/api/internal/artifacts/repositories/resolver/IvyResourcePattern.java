@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.uri.UriDisplay;
 
 import java.net.URI;
 import java.util.Map;
@@ -38,7 +39,7 @@ public class IvyResourcePattern extends AbstractResourcePattern implements Resou
 
     @Override
     public String toString() {
-        return "Ivy pattern '" + getPattern() + "'";
+        return "Ivy pattern '" + UriDisplay.maskUserInfo(getPattern()) + "'";
     }
 
     @Override

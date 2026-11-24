@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transport.http;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.utils.DateUtils;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.uri.UriDisplay;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
@@ -54,7 +55,7 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
 
     @Override
     public String toString() {
-        return "Http " + method + " Resource: " + source;
+        return "Http " + method + " Resource: " + UriDisplay.maskUserInfo(source);
     }
 
     @Override
@@ -138,7 +139,7 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         if (wasOpened) {
             throw new IOException("Unable to open Stream as it was opened before.");
         }
-        LOGGER.debug("Attempting to download resource {}.", source);
+        LOGGER.debug("Attempting to download resource {}.", UriDisplay.maskUserInfo(source));
         this.wasOpened = true;
         return response.getContent();
     }

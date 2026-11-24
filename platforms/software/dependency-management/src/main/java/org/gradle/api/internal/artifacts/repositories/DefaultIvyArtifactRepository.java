@@ -61,6 +61,7 @@ import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.uri.UriDisplay;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -150,7 +151,7 @@ public abstract class DefaultIvyArtifactRepository extends AbstractAuthenticatio
         if (url == null) {
             return super.getDisplayName();
         }
-        return super.getDisplayName() + '(' + url + ')';
+        return super.getDisplayName() + '(' + UriDisplay.maskUserInfo(url) + ')';
     }
 
     public IvyResolver createPublisher() {

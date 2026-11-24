@@ -76,6 +76,7 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
+import org.gradle.internal.uri.UriDisplay;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -472,7 +473,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
             if (url == null) {
                 return repository.getName();
             }
-            return repository.getName() + '(' + url + ')';
+            return repository.getName() + '(' + UriDisplay.maskUserInfo(url) + ')';
         }
     }
 

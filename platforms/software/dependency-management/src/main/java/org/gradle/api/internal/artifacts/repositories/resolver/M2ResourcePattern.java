@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.repositories.PatternHelper;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.uri.UriDisplay;
 
 import java.net.URI;
 import java.util.Map;
@@ -37,7 +38,7 @@ public class M2ResourcePattern extends AbstractResourcePattern {
 
     @Override
     public String toString() {
-        return "M2 pattern '" + getPattern() + "'";
+        return "M2 pattern '" + UriDisplay.maskUserInfo(getPattern()) + "'";
     }
 
     @Override
