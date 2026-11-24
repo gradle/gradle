@@ -35,6 +35,8 @@ import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.nullability.EnsuresNonNull;
+import org.gradle.internal.nullability.RequiresNonNull;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.ExponentialBackoff;
 import org.jspecify.annotations.Nullable;
@@ -263,31 +265,30 @@ public class DefaultFileLockManager implements FileLockManager {
             doWriteAction(action);
         }
 
+        @RequiresNonNull("lockFileAccess")
         private void doWriteAction(Runnable action) {
+            assert lockFileAccess != null; // TODO(IDEA-396334): this suppresses the IDE false positive until the bug is fixed upstream
             if (mode != LockMode.Exclusive) {
                 throw new InsufficientLockModeException("An exclusive lock is required for this operation");
             }
 
             try {
-                lockState = lockFileAccess().markDirty(lockState);
+                lockState = lockFileAccess.markDirty(lockState);
                 action.run();
-                lockState = lockFileAccess().markClean(lockState);
+                lockState = lockFileAccess.markClean(lockState);
             } catch (Throwable t) {
                 throw throwAsUncheckedException(t);
             }
         }
 
+        @EnsuresNonNull("lockFileAccess")
         private void assertOpen() {
-            if (lock == null) {
+            if (lock == null || lockFileAccess == null) {
                 throw new IllegalStateException("This lock has been closed.");
             }
         }
 
-        //TODO Use NullAway's @EnsuresNonNull/@RequiresNonNull for lockFileAccess in this class instead of this check
-        private LockFileAccess lockFileAccess() {
-            return requireNonNull(lockFileAccess, "This lock has been closed.");
-        }
-
+        @EnsuresNonNull("lockFileAccess")
         private void assertOpenAndIntegral() {
             assertOpen();
             if (lockState.isDirty()) {
@@ -309,7 +310,7 @@ public class DefaultFileLockManager implements FileLockManager {
                             // Discard information region
                             FileLockOutcome lockOutcome;
                             try {
-                                lockOutcome = lockInformationRegion(LockMode.Exclusive, newExponentialBackoff(shortTimeoutMs));
+                                lockOutcome = lockInformationRegion(lockFileAccess, LockMode.Exclusive, newExponentialBackoff(shortTimeoutMs));
                             } catch (InterruptedException e) {
                                 throw throwAsUncheckedException(e);
                             }
@@ -399,13 +400,15 @@ public class DefaultFileLockManager implements FileLockManager {
          *
          * Note: In the implementation we use {@link java.nio.channels.FileLock} that is tight to a JVM process, not a thread.
          */
+        @RequiresNonNull("lockFileAccess")
         private LockState lock(LockMode lockMode) throws Throwable {
+            assert lockFileAccess != null; // TODO(IDEA-396334): this suppresses the IDE false positive until the bug is fixed upstream
             LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode.toString().toLowerCase(Locale.ROOT), displayName);
 
             // Lock the state region, with the requested mode
             FileLockOutcome lockOutcome = lockStateRegion(lockMode);
             if (!lockOutcome.isLockWasAcquired()) {
-                LockInfo lockInfo = readInformationRegion(newExponentialBackoff(shortTimeoutMs));
+                LockInfo lockInfo = readInformationRegion(lockFileAccess, newExponentialBackoff(shortTimeoutMs));
                 throw timeoutException(displayName, operationDisplayName, lockFile, metaDataProvider.getProcessIdentifier(), lockOutcome, lockInfo);
             }
 
@@ -416,22 +419,22 @@ public class DefaultFileLockManager implements FileLockManager {
                     // We have an exclusive lock (whether we asked for it or not).
 
                     // Update the state region
-                    lockState = lockFileAccess().ensureLockState();
+                    lockState = lockFileAccess.ensureLockState();
 
                     // Acquire an exclusive lock on the information region and write our details there
-                    FileLockOutcome informationRegionLockOutcome = lockInformationRegion(LockMode.Exclusive, newExponentialBackoff(shortTimeoutMs));
+                    FileLockOutcome informationRegionLockOutcome = lockInformationRegion(lockFileAccess, LockMode.Exclusive, newExponentialBackoff(shortTimeoutMs));
                     if (!informationRegionLockOutcome.isLockWasAcquired()) {
                         throw new IllegalStateException(String.format("Unable to lock the information region for %s", displayName));
                     }
                     // check that the length of the reserved region is enough for storing our content
                     try {
-                        lockFileAccess().writeLockInfo(port, lockId, metaDataProvider.getProcessIdentifier(), operationDisplayName);
+                        lockFileAccess.writeLockInfo(port, lockId, metaDataProvider.getProcessIdentifier(), operationDisplayName);
                     } finally {
                         informationRegionLockOutcome.getFileLock().release();
                     }
                 } else {
                     // Just read the state region
-                    lockState = lockFileAccess().readLockState();
+                    lockState = lockFileAccess.readLockState();
                 }
                 LOGGER.debug("Lock acquired on {}.", displayName);
                 lock = stateRegionLock;
@@ -454,15 +457,15 @@ public class DefaultFileLockManager implements FileLockManager {
             }
         }
 
-        private LockInfo readInformationRegion(ExponentialBackoff<AwaitableFileLockReleasedSignal> backoff) throws IOException, InterruptedException {
+        private LockInfo readInformationRegion(LockFileAccess lockFileAccess, ExponentialBackoff<AwaitableFileLockReleasedSignal> backoff) throws IOException, InterruptedException {
             // Can't acquire lock, get details of owner to include in the error message
             LockInfo out = new LockInfo();
-            FileLockOutcome lockOutcome = lockInformationRegion(LockMode.Shared, backoff);
+            FileLockOutcome lockOutcome = lockInformationRegion(lockFileAccess, LockMode.Shared, backoff);
             if (!lockOutcome.isLockWasAcquired()) {
                 LOGGER.debug("Could not lock information region for {}. Ignoring.", displayName);
             } else {
                 try {
-                    out = lockFileAccess().readLockInfo();
+                    out = lockFileAccess.readLockInfo();
                 } finally {
                     lockOutcome.getFileLock().release();
                 }
@@ -478,7 +481,12 @@ public class DefaultFileLockManager implements FileLockManager {
          * (see {@link FileLockContentionHandler#maybePingOwner(int, long, String, long, FileLockReleasedSignal)} how ping algorithm is done).
          * We then repeat the process with exponential backoff, till we finally acquire the lock or timeout (by default in {@link DefaultFileLockManager#DEFAULT_LOCK_TIMEOUT}).
          */
+        @RequiresNonNull("lockFileAccess")
         private FileLockOutcome lockStateRegion(final LockMode lockMode) throws IOException, InterruptedException {
+            assert lockFileAccess != null; // TODO(IDEA-396334): this suppresses the IDE false positive until the bug is fixed upstream
+
+            // NullAway doesn't propagate field nullness into anonymous classes, so capture the field
+            LockFileAccess lockFileAccess = this.lockFileAccess;
             final ExponentialBackoff<AwaitableFileLockReleasedSignal> backoff = newExponentialBackoff(lockTimeoutMs);
             return backoff.retryUntil(new ExponentialBackoff.Query<FileLockOutcome>() {
                 private long lastPingTime;
@@ -486,12 +494,12 @@ public class DefaultFileLockManager implements FileLockManager {
 
                 @Override
                 public ExponentialBackoff.Result<FileLockOutcome> run() throws IOException, InterruptedException {
-                    FileLockOutcome lockOutcome = lockFileAccess().tryLockState(lockMode == LockMode.Shared);
+                    FileLockOutcome lockOutcome = lockFileAccess.tryLockState(lockMode == LockMode.Shared);
                     if (lockOutcome.isLockWasAcquired()) {
                         return ExponentialBackoff.Result.successful(lockOutcome);
                     }
                     if (port != FileLockContentionHandler.INVALID_PORT) { //we don't like the assumption about the port very much
-                        LockInfo lockInfo = readInformationRegion(backoff);
+                        LockInfo lockInfo = readInformationRegion(lockFileAccess, backoff);
                         if (lockInfo.port != FileLockContentionHandler.INVALID_PORT) {
                             if (lockInfo.port != lastLockHolderPort) {
                                 backoff.restartTimer();
@@ -511,9 +519,9 @@ public class DefaultFileLockManager implements FileLockManager {
             });
         }
 
-        private FileLockOutcome lockInformationRegion(final LockMode lockMode, ExponentialBackoff<AwaitableFileLockReleasedSignal> backoff) throws IOException, InterruptedException {
+        private FileLockOutcome lockInformationRegion(LockFileAccess lockFileAccess, final LockMode lockMode, ExponentialBackoff<AwaitableFileLockReleasedSignal> backoff) throws IOException, InterruptedException {
             return backoff.retryUntil(() -> {
-                FileLockOutcome lockOutcome = lockFileAccess().tryLockInfo(lockMode == LockMode.Shared);
+                FileLockOutcome lockOutcome = lockFileAccess.tryLockInfo(lockMode == LockMode.Shared);
                 if (lockOutcome.isLockWasAcquired()) {
                     return ExponentialBackoff.Result.successful(lockOutcome);
                 } else {
