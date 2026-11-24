@@ -14,7 +14,7 @@ Gradle @version@ is the third patch release for Gradle 9.9.0 (released [@release
 
 The following issues were resolved:
 
-* TODO
+- [Gradle 9.9.2 fails to start when `GRADLE_USER_HOME` is on an ImDisk RAM disk (works with 9.9.1)](https://github.com/gradle/gradle/issues/39909)
 
 Issues fixed in the second patch release:
 
