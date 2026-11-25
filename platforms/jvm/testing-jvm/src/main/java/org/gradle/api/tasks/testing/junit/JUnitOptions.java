@@ -16,12 +16,16 @@
 
 package org.gradle.api.tasks.testing.junit;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.internal.provider.EagerPropertySupport;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -29,22 +33,25 @@ import java.util.Set;
  * @since 0.7
  */
 public abstract class JUnitOptions extends TestFrameworkOptions {
-    private Set<String> includeCategories = new LinkedHashSet<String>();
 
-    private Set<String> excludeCategories = new LinkedHashSet<String>();
+    /**
+     * The lazy properties behind the eager getters and setters of these options.
+     *
+     * @since 10.0.0
+     */
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract JUnitOptionsInputs getLazyProperties();
 
     /**
      * Copies the options from the source options into the current one.
      * @since 8.0
      */
     public void copyFrom(JUnitOptions other) {
-        replace(this.includeCategories, other.includeCategories);
-        replace(this.excludeCategories, other.excludeCategories);
-    }
-
-    private static void replace(Set<String> target, Set<String> source) {
-        target.clear();
-        target.addAll(source);
+        JUnitOptionsInputs source = other.getLazyProperties();
+        getLazyProperties().getIncludeCategories().set(source.getIncludeCategories());
+        getLazyProperties().getExcludeCategories().set(source.getExcludeCategories());
     }
 
     /**
@@ -53,7 +60,7 @@ public abstract class JUnitOptions extends TestFrameworkOptions {
      * @since 1.6
      */
     public JUnitOptions includeCategories(String... includeCategories) {
-        this.includeCategories.addAll(Arrays.asList(includeCategories));
+        EagerPropertySupport.appendAll(getLazyProperties().getIncludeCategories(), Arrays.asList(includeCategories));
         return this;
     }
 
@@ -63,7 +70,7 @@ public abstract class JUnitOptions extends TestFrameworkOptions {
      * @since 1.6
      */
     public JUnitOptions excludeCategories(String... excludeCategories) {
-        this.excludeCategories.addAll(Arrays.asList(excludeCategories));
+        EagerPropertySupport.appendAll(getLazyProperties().getExcludeCategories(), Arrays.asList(excludeCategories));
         return this;
     }
 
@@ -73,8 +80,9 @@ public abstract class JUnitOptions extends TestFrameworkOptions {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.includeCategories")
     public Set<String> getIncludeCategories() {
-        return includeCategories;
+        return EagerPropertySupport.conventionKeepingViewOrNull(getLazyProperties().getIncludeCategories());
     }
 
     /**
@@ -82,7 +90,7 @@ public abstract class JUnitOptions extends TestFrameworkOptions {
      * @since 1.6
      */
     public void setIncludeCategories(Set<String> includeCategories) {
-        this.includeCategories = includeCategories;
+        EagerPropertySupport.setEager(getLazyProperties().getIncludeCategories(), includeCategories);
     }
 
     /**
@@ -91,8 +99,9 @@ public abstract class JUnitOptions extends TestFrameworkOptions {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.excludeCategories")
     public Set<String> getExcludeCategories() {
-        return excludeCategories;
+        return EagerPropertySupport.conventionKeepingViewOrNull(getLazyProperties().getExcludeCategories());
     }
 
     /**
@@ -100,8 +109,6 @@ public abstract class JUnitOptions extends TestFrameworkOptions {
      * @since 1.6
      */
     public void setExcludeCategories(Set<String> excludeCategories) {
-        this.excludeCategories = excludeCategories;
+        EagerPropertySupport.setEager(getLazyProperties().getExcludeCategories(), excludeCategories);
     }
-
-
 }

@@ -20,8 +20,11 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.xml.MarkupBuilder;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.provider.EagerPropertySupport;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestRunner;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -33,6 +36,8 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.jspecify.annotations.Nullable;
@@ -43,8 +48,6 @@ import java.io.File;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -60,37 +63,8 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 2.3
      */
     public static final String DEFAULT_CONFIG_FAILURE_POLICY = TestNGTestRunner.DEFAULT_CONFIG_FAILURE_POLICY;
-    private static final String DEFAULT_PARALLEL_MODE = null;
     private static final int DEFAULT_THREAD_COUNT = -1;
     private static final int DEFAULT_SUITE_THREAD_POOL_SIZE_DEFAULT = 1;
-
-    private File outputDirectory;
-
-    private Set<String> includeGroups = new LinkedHashSet<String>();
-
-    private Set<String> excludeGroups = new LinkedHashSet<String>();
-
-    private String configFailurePolicy = DEFAULT_CONFIG_FAILURE_POLICY;
-
-    private Set<String> listeners = new LinkedHashSet<String>();
-
-    private String parallel = DEFAULT_PARALLEL_MODE;
-
-    private int threadCount = DEFAULT_THREAD_COUNT;
-
-    private boolean useDefaultListeners;
-
-    private String threadPoolFactoryClass;
-
-    private String suiteName = "Gradle suite";
-
-    private String testName = "Gradle test";
-
-    private List<File> suiteXmlFiles = new ArrayList<File>();
-
-    private boolean preserveOrder;
-
-    private boolean groupByInstances;
 
     private transient StringWriter suiteXmlWriter;
 
@@ -110,35 +84,50 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     public TestNGOptions(ProjectLayout projectLayout) {
         this.projectDir = projectLayout.getProjectDirectory().getAsFile();
         this.getSuiteThreadPoolSize().convention(DEFAULT_SUITE_THREAD_POOL_SIZE_DEFAULT);
+        TestNGOptionsInputs lazy = getLazyProperties();
+        lazy.getConfigFailurePolicy().convention(DEFAULT_CONFIG_FAILURE_POLICY);
+        lazy.getThreadCount().convention(DEFAULT_THREAD_COUNT);
+        lazy.getUseDefaultListeners().convention(false);
+        lazy.getSuiteName().convention("Gradle suite");
+        lazy.getTestName().convention("Gradle test");
+        lazy.getPreserveOrder().convention(false);
+        lazy.getGroupByInstances().convention(false);
     }
+
+    /**
+     * The lazy properties behind the eager getters and setters of these options.
+     *
+     * @since 10.0.0
+     */
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract TestNGOptionsInputs getLazyProperties();
 
     /**
      * Copies the options from the source options into the current one.
      * @since 8.0
      */
     public void copyFrom(TestNGOptions other) {
-        this.outputDirectory = other.outputDirectory;
-        replace(this.includeGroups, other.includeGroups);
-        replace(this.excludeGroups, other.excludeGroups);
-        this.configFailurePolicy = other.configFailurePolicy;
-        replace(this.listeners, other.listeners);
-        this.parallel = other.parallel;
-        this.threadCount = other.threadCount;
-        this.getSuiteThreadPoolSize().set(other.getSuiteThreadPoolSize());
-        this.useDefaultListeners = other.useDefaultListeners;
-        this.threadPoolFactoryClass = other.threadPoolFactoryClass;
-        this.suiteName = other.suiteName;
-        this.testName = other.testName;
-        replace(this.suiteXmlFiles, other.suiteXmlFiles);
-        this.preserveOrder = other.preserveOrder;
-        this.groupByInstances = other.groupByInstances;
+        TestNGOptionsInputs source = other.getLazyProperties();
+        TestNGOptionsInputs target = getLazyProperties();
+        target.getOutputDirectory().set(source.getOutputDirectory());
+        target.getIncludeGroups().set(source.getIncludeGroups());
+        target.getExcludeGroups().set(source.getExcludeGroups());
+        target.getConfigFailurePolicy().set(source.getConfigFailurePolicy());
+        target.getListeners().set(source.getListeners());
+        target.getParallel().set(source.getParallel());
+        target.getThreadCount().set(source.getThreadCount());
+        getSuiteThreadPoolSize().set(other.getSuiteThreadPoolSize());
+        target.getUseDefaultListeners().set(source.getUseDefaultListeners());
+        target.getThreadPoolFactoryClass().set(source.getThreadPoolFactoryClass());
+        target.getSuiteName().set(source.getSuiteName());
+        target.getTestName().set(source.getTestName());
+        target.getSuiteXmlFiles().set(source.getSuiteXmlFiles());
+        target.getPreserveOrder().set(source.getPreserveOrder());
+        target.getGroupByInstances().set(source.getGroupByInstances());
         // not copying suiteXmlWriter as it is transient
         // not copying suiteXmlBuilder as it is transient
-    }
-
-    private static <T> void replace(Collection<T> target, Collection<T> source) {
-        target.clear();
-        target.addAll(source);
     }
 
     /**
@@ -158,7 +147,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     public void suites(String... suiteFiles) {
         for (String suiteFile : suiteFiles) {
-            suiteXmlFiles.add(new File(TestNGOptions.this.getProjectDir(), suiteFile));
+            EagerPropertySupport.conventionKeepingView(getLazyProperties().getSuiteXmlFiles()).add(new File(TestNGOptions.this.getProjectDir(), suiteFile));
         }
     }
 
@@ -177,7 +166,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public void suites(File... suiteFiles) {
-        suiteXmlFiles.addAll(Arrays.asList(suiteFiles));
+        EagerPropertySupport.conventionKeepingView(getLazyProperties().getSuiteXmlFiles()).addAll(Arrays.asList(suiteFiles));
     }
 
     /**
@@ -189,7 +178,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     public List<File> getSuites(File testSuitesDir) {
         List<File> suites = new ArrayList<File>();
 
-        suites.addAll(suiteXmlFiles);
+        suites.addAll(getLazyProperties().getSuiteXmlFiles().get());
 
         String suiteXmlMarkup = getSuiteXml();
         if (suiteXmlMarkup != null) {
@@ -222,7 +211,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public TestNGOptions includeGroups(String... includeGroups) {
-        this.includeGroups.addAll(Arrays.asList(includeGroups));
+        EagerPropertySupport.appendAll(getLazyProperties().getIncludeGroups(), Arrays.asList(includeGroups));
         return this;
     }
 
@@ -232,7 +221,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public TestNGOptions excludeGroups(String... excludeGroups) {
-        this.excludeGroups.addAll(Arrays.asList(excludeGroups));
+        EagerPropertySupport.appendAll(getLazyProperties().getExcludeGroups(), Arrays.asList(excludeGroups));
         return this;
     }
 
@@ -242,8 +231,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.8
      */
     public TestNGOptions useDefaultListeners() {
-        useDefaultListeners = true;
-        return this;
+        return useDefaultListeners(true);
     }
 
     /**
@@ -252,7 +240,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.8
      */
     public TestNGOptions useDefaultListeners(boolean useDefaultListeners) {
-        this.useDefaultListeners = useDefaultListeners;
+        getLazyProperties().getUseDefaultListeners().set(useDefaultListeners);
         return this;
     }
 
@@ -289,8 +277,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @OutputDirectory
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.outputDirectory")
     public File getOutputDirectory() {
-        return outputDirectory;
+        return getLazyProperties().getOutputDirectory().getAsFile().getOrNull();
     }
 
     /**
@@ -299,7 +288,12 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 1.11
      */
     public void setOutputDirectory(File outputDirectory) {
-        this.outputDirectory = outputDirectory;
+        DirectoryProperty property = getLazyProperties().getOutputDirectory();
+        if (outputDirectory == null) {
+            EagerPropertySupport.setEager(property, null);
+        } else {
+            property.set(outputDirectory);
+        }
     }
 
     /**
@@ -308,8 +302,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.includeGroups")
     public Set<String> getIncludeGroups() {
-        return includeGroups;
+        return EagerPropertySupport.conventionKeepingViewOrNull(getLazyProperties().getIncludeGroups());
     }
 
     /**
@@ -318,7 +313,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.9
      */
     public void setIncludeGroups(Set<String> includeGroups) {
-        this.includeGroups = includeGroups;
+        EagerPropertySupport.setEager(getLazyProperties().getIncludeGroups(), includeGroups);
     }
 
     /**
@@ -327,8 +322,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.excludeGroups")
     public Set<String> getExcludeGroups() {
-        return excludeGroups;
+        return EagerPropertySupport.conventionKeepingViewOrNull(getLazyProperties().getExcludeGroups());
     }
 
     /**
@@ -337,7 +333,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.9
      */
     public void setExcludeGroups(Set<String> excludeGroups) {
-        this.excludeGroups = excludeGroups;
+        EagerPropertySupport.setEager(getLazyProperties().getExcludeGroups(), excludeGroups);
     }
 
     /**
@@ -346,8 +342,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @Internal
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.configFailurePolicy")
     public String getConfigFailurePolicy() {
-        return configFailurePolicy;
+        return getLazyProperties().getConfigFailurePolicy().getOrNull();
     }
 
     /**
@@ -356,7 +353,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 2.3
      */
     public void setConfigFailurePolicy(String configFailurePolicy) {
-        this.configFailurePolicy = configFailurePolicy;
+        EagerPropertySupport.setEager(getLazyProperties().getConfigFailurePolicy(), configFailurePolicy);
     }
 
     /**
@@ -380,8 +377,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @Internal
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.listeners")
     public Set<String> getListeners() {
-        return listeners;
+        return EagerPropertySupport.conventionKeepingViewOrNull(getLazyProperties().getListeners());
     }
 
     /**
@@ -390,7 +388,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.9
      */
     public void setListeners(Set<String> listeners) {
-        this.listeners = listeners;
+        EagerPropertySupport.setEager(getLazyProperties().getListeners(), listeners);
     }
 
     /**
@@ -404,8 +402,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @Nullable
     @Internal
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.parallel")
     public String getParallel() {
-        return parallel;
+        return getLazyProperties().getParallel().getOrNull();
     }
 
     /**
@@ -414,7 +413,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public void setParallel(@Nullable String parallel) {
-        this.parallel = parallel;
+        EagerPropertySupport.setEager(getLazyProperties().getParallel(), parallel);
     }
 
     /**
@@ -423,8 +422,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @Internal
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.threadCount")
     public int getThreadCount() {
-        return threadCount;
+        return getLazyProperties().getThreadCount().get();
     }
 
     /**
@@ -433,7 +433,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public void setThreadCount(int threadCount) {
-        this.threadCount = threadCount;
+        getLazyProperties().getThreadCount().set(threadCount);
     }
 
     /**
@@ -451,8 +451,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @Internal
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.useDefaultListeners")
     public boolean getUseDefaultListeners() {
-        return useDefaultListeners;
+        return getLazyProperties().getUseDefaultListeners().get();
     }
 
     /**
@@ -462,13 +463,14 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @Internal
     @Incubating
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.threadPoolFactoryClass")
     public String getThreadPoolFactoryClass() {
-        return threadPoolFactoryClass;
+        return getLazyProperties().getThreadPoolFactoryClass().getOrNull();
     }
 
     /**
      * Whether the default listeners and reporters should be used. Since Gradle 1.4 it defaults to 'false' so that Gradle can own the reports generation and provide various improvements. This option
-     * might be useful for advanced TestNG users who prefer the reports generated by the TestNG library. If you cannot live without some specific TestNG reporter please use {@link #listeners}
+     * might be useful for advanced TestNG users who prefer the reports generated by the TestNG library. If you cannot live without some specific TestNG reporter please use {@link #getListeners() listeners}
      * property. If you really want to use all default TestNG reporters (e.g. generate the old reports):
      *
      * <pre class='autoTested'>
@@ -494,8 +496,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @Internal
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.useDefaultListeners")
     public boolean isUseDefaultListeners() {
-        return useDefaultListeners;
+        return getLazyProperties().getUseDefaultListeners().get();
     }
 
     /**
@@ -504,7 +507,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.8
      */
     public void setUseDefaultListeners(boolean useDefaultListeners) {
-        this.useDefaultListeners = useDefaultListeners;
+        getLazyProperties().getUseDefaultListeners().set(useDefaultListeners);
     }
 
     /**
@@ -519,7 +522,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @Incubating
     public void setThreadPoolFactoryClass(String threadPoolFactoryClass) {
-        this.threadPoolFactoryClass = threadPoolFactoryClass;
+        EagerPropertySupport.setEager(getLazyProperties().getThreadPoolFactoryClass(), threadPoolFactoryClass);
     }
 
     /**
@@ -528,8 +531,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @Internal
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.suiteName")
     public String getSuiteName() {
-        return suiteName;
+        return getLazyProperties().getSuiteName().getOrNull();
     }
 
     /**
@@ -538,7 +542,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public void setSuiteName(String suiteName) {
-        this.suiteName = suiteName;
+        EagerPropertySupport.setEager(getLazyProperties().getSuiteName(), suiteName);
     }
 
     /**
@@ -547,8 +551,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @Internal
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.testName")
     public String getTestName() {
-        return testName;
+        return getLazyProperties().getTestName().getOrNull();
     }
 
     /**
@@ -557,7 +562,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public void setTestName(String testName) {
-        this.testName = testName;
+        EagerPropertySupport.setEager(getLazyProperties().getTestName(), testName);
     }
 
     /**
@@ -569,8 +574,10 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.suiteXmlFiles")
     public List<File> getSuiteXmlFiles() {
-        return suiteXmlFiles;
+        ListProperty<File> suiteXmlFiles = getLazyProperties().getSuiteXmlFiles();
+        return suiteXmlFiles.isPresent() ? EagerPropertySupport.conventionKeepingView(suiteXmlFiles) : null;
     }
 
     /**
@@ -579,7 +586,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public void setSuiteXmlFiles(List<File> suiteXmlFiles) {
-        this.suiteXmlFiles = suiteXmlFiles;
+        EagerPropertySupport.setEager(getLazyProperties().getSuiteXmlFiles(), suiteXmlFiles);
     }
 
     /**
@@ -589,8 +596,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @Internal
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.preserveOrder")
     public boolean getPreserveOrder() {
-        return preserveOrder;
+        return getLazyProperties().getPreserveOrder().get();
     }
 
     /**
@@ -604,8 +612,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @Internal
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.preserveOrder")
     public boolean isPreserveOrder() {
-        return preserveOrder;
+        return getLazyProperties().getPreserveOrder().get();
     }
 
     /**
@@ -614,7 +623,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 2.11
      */
     public void setPreserveOrder(boolean preserveOrder) {
-        this.preserveOrder = preserveOrder;
+        getLazyProperties().getPreserveOrder().set(preserveOrder);
     }
 
     /**
@@ -624,8 +633,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @Internal
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.groupByInstances")
     public boolean getGroupByInstances() {
-        return groupByInstances;
+        return getLazyProperties().getGroupByInstances().get();
     }
 
     /**
@@ -639,8 +649,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @Internal
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.groupByInstances")
     public boolean isGroupByInstances() {
-        return groupByInstances;
+        return getLazyProperties().getGroupByInstances().get();
     }
 
     /**
@@ -649,7 +660,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 2.11
      */
     public void setGroupByInstances(boolean groupByInstances) {
-        this.groupByInstances = groupByInstances;
+        getLazyProperties().getGroupByInstances().set(groupByInstances);
     }
 
     /**
