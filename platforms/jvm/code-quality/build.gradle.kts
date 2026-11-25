@@ -29,7 +29,6 @@ dependencies {
     api(projects.platformJvm)
     api(projects.pluginsJavaBase)
     api(projects.reporting)
-    api(projects.stdlibJavaExtensions)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)
     api(projects.workers)
@@ -44,21 +43,12 @@ dependencies {
     implementation(projects.pluginsGroovy)
     implementation(projects.serviceLookup)
 
-    compileOnly(projects.internalInstrumentationApi)
-
     implementation(libs.guava)
 
-    runtimeOnly(projects.languageJvm)
-
-    testImplementation(projects.fileCollections)
     testImplementation(projects.pluginsJava)
-    testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.modelCore))
 
-    testFixturesImplementation(projects.core)
     testFixturesImplementation(testFixtures(projects.core))
-    testFixturesImplementation(projects.coreApi)
-    testFixturesImplementation(projects.baseServices)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

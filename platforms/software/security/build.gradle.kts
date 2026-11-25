@@ -10,7 +10,6 @@ dependencies {
     api(libs.bouncycastlePgp)
     api(libs.jspecify)
 
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.time)
     implementation(projects.loggingApi)
 

@@ -12,7 +12,6 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.serviceRegistryBuilder)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.inject)
     api(libs.jspecify)

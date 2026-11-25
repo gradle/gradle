@@ -16,7 +16,6 @@ dependencies {
     api(projects.persistentCache)
     api(projects.scopedPersistentCache)
     api(projects.serviceProvider)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.jgit)
     api(libs.inject)
@@ -35,21 +34,13 @@ dependencies {
 
     runtimeOnly(libs.jgitSshAgent)
 
-    testImplementation(projects.native)
-    testImplementation(projects.snapshots)
-    testImplementation(projects.processServices)
     testImplementation(testFixtures(projects.core))
 
-    testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.internalIntegTesting)
 
-    testFixturesImplementation(libs.jgit)
     testFixturesImplementation(libs.jgitSsh)
-    testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.commonsHttpclient)
-    testFixturesImplementation(libs.guava)
 
-    integTestImplementation(projects.enterpriseOperations)
     integTestImplementation(projects.launcher)
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }

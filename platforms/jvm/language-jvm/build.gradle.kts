@@ -15,7 +15,6 @@ dependencies {
     api(projects.files)
     api(projects.platformJvm)
     api(projects.serviceProvider)
-    api(projects.stdlibJavaExtensions)
     api(projects.workers)
 
     api(libs.groovy)
@@ -30,16 +29,11 @@ dependencies {
 
     implementation(libs.guava)
 
-    testImplementation(projects.native)
-    testImplementation(projects.resources)
-    testImplementation(projects.snapshots)
     testImplementation(testFixtures(projects.core))
 
     integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.resourcesHttp))
 
-    testFixturesImplementation(libs.commonsLang)
-    testFixturesImplementation(libs.guava)
     testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(testFixtures(projects.core))
 

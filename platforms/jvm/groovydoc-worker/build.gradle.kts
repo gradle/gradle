@@ -12,8 +12,6 @@ dependencies {
     implementation(projects.baseServices)
     implementation(projects.daemonServerWorker)
     implementation(libs.guava)
-
-    compileOnly(libs.jspecify)
 }
 
 gradleModule {

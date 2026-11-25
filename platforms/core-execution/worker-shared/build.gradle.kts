@@ -26,7 +26,6 @@ dependencies {
     api(projects.persistentCache)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
-    api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(libs.jspecify)
 
@@ -37,7 +36,6 @@ dependencies {
     implementation(projects.processServices)
     implementation(projects.scopedPersistentCache)
     implementation(projects.snapshots)
-    implementation(libs.asm)
     implementation(libs.commonsLang)
     implementation(libs.groovy)
     implementation(libs.jsr305)

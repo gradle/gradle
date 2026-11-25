@@ -10,7 +10,6 @@ dependencies {
     api(projects.core)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
-    api(projects.stdlibJavaExtensions)
     api(projects.logging)
     api(projects.messaging)
     api(projects.modelCore)
@@ -35,9 +34,7 @@ dependencies {
     testImplementation(testFixtures(projects.resourcesHttp))
     testImplementation(testFixtures(projects.core))
 
-    integTestImplementation(projects.baseServicesGroovy)
     integTestImplementation(projects.groovyDsl)
-    integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(testLibs.groovyTest)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics) {

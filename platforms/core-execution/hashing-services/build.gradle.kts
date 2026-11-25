@@ -26,11 +26,7 @@ dependencies {
 
     implementation(libs.guava)
 
-    compileOnly(libs.jspecify)
-
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.hashing))
-    testImplementation(projects.internalTesting)
 }
 
 errorprone {

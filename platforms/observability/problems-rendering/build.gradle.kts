@@ -23,12 +23,9 @@ description = "Problems API rendering infrastructure"
 dependencies {
     api(projects.problemsApi)
 
-    compileOnly(libs.jspecify)
-
     implementation(libs.guava)
     implementation(projects.baseServices)
 
-    integTestImplementation(projects.internalTesting)
     integTestImplementation(testFixtures(projects.logging))
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

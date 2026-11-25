@@ -49,15 +49,9 @@ dependencies {
     add(rootProjectDependency.name, projects.gradle)
 
     currentClasspath(projects.distributionsFull)
-    testImplementation(projects.baseServices)
-    testImplementation(projects.modelCore)
-    testImplementation(projects.fileTemp)
     testImplementation(projects.core)
-    testImplementation(libs.kotlinStdlib)
-    testImplementation(libs.inject)
 
     testImplementation(testLibs.archunitJunit5)
-    testImplementation(libs.guava)
     testImplementation(libs.gson)
     testImplementation(testLibs.junitJupiter)
     testImplementation(testLibs.assertj)

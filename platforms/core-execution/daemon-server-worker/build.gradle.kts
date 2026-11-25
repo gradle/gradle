@@ -60,7 +60,6 @@ dependencies {
     implementation(libs.guava)
 
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.hashing))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 

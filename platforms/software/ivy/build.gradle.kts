@@ -6,7 +6,6 @@ plugins {
 description = "Publishing plugin for Ivy repositories"
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.core)
@@ -31,24 +30,12 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.ivy)
 
-    testImplementation(projects.native)
-    testImplementation(projects.processServices)
-    testImplementation(projects.snapshots)
-
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
-    testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.modelCore))
     testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.dependencyManagement))
-
-    integTestImplementation(libs.slf4jApi)
-
-    integTestRuntimeOnly(projects.resourcesS3)
-    integTestRuntimeOnly(projects.resourcesSftp)
-    integTestRuntimeOnly(projects.apiMetadata)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("SamplesIvyPublishIntegrationTest test applies the java-library plugin.")
@@ -60,11 +47,7 @@ dependencies {
     testFixturesApi(projects.coreApi) {
         because("Test fixtures export the RepositoryHandler class")
     }
-    testFixturesImplementation(projects.logging)
-    testFixturesImplementation(projects.dependencyManagement)
     testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(libs.slf4jApi)
-    testFixturesImplementation(libs.sshdCore)
     testFixturesImplementation(libs.sshdScp)
     testFixturesImplementation(libs.sshdSftp)
 

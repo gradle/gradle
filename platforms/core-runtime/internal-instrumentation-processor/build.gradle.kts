@@ -33,13 +33,9 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.baseAsm)
 
-    testCompileOnly(libs.jetbrainsAnnotations)
-
     testImplementation(testLibs.compileTesting)
-    testImplementation(projects.core)
     testImplementation(testFixtures(projects.core))
     // TODO remove this
-    testImplementation(libs.jetbrainsAnnotations)
     testRuntimeOnly(projects.distributionsCore) {
         because("Because we use TestUtil")
     }

@@ -77,9 +77,6 @@ dependencies {
     implementation(testLibs.ansiControlSequenceUtil)
     implementation(testLibs.junit5JupiterApi)
 
-    compileOnly(libs.jetbrainsAnnotations)
-    compileOnly(libs.jspecify)
-
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 
     // Javadoc-only: for {@link} references to types in internal-integ-testing and tooling-api test fixtures

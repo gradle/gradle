@@ -94,13 +94,9 @@ dependencies {
 
     runtimeOnly(projects.beanSerializationServices)
     runtimeOnly(projects.compositeBuilds)
-    runtimeOnly(projects.resourcesHttp)
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     runtimeOnly(projects.workers)
 
-    runtimeOnly(libs.kotlinReflect)
-
-    testImplementation(projects.beanSerializationServices)
     testImplementation(testFixtures(projects.beanSerializationServices))
     testImplementation(projects.io)
     testImplementation(testFixtures(projects.core))
@@ -111,19 +107,11 @@ dependencies {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
 
-    integTestImplementation(projects.cli)
     integTestImplementation(projects.groovyDsl)
     integTestImplementation(projects.ide)
-    integTestImplementation(projects.jvmServices)
     integTestImplementation(projects.launcher)
-    integTestImplementation(projects.platformJvm)
     integTestImplementation(projects.testKit)
-    integTestImplementation(projects.toolingApi)
-    integTestImplementation(projects.workers)
 
-    integTestImplementation(libs.ant)
-    integTestImplementation(libs.guava)
-    integTestImplementation(libs.inject)
     integTestImplementation(testLibs.playwright)
 
     integTestImplementation(testFixtures(projects.toolingApi))
@@ -137,7 +125,6 @@ dependencies {
         because("Includes tests for builds with the enterprise plugin and TestKit involved; ConfigurationCacheJacocoIntegrationTest requires JVM distribution")
     }
 
-    crossVersionTestImplementation(projects.cli)
     crossVersionTestImplementation(projects.internalIntegTesting)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)

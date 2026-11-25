@@ -36,8 +36,6 @@ app {
 dependencies {
     implementation(projects.buildProcessServices)
 
-    compileOnly(libs.jspecify)
-
     agentsClasspath(projects.instrumentationAgent)
 }
 

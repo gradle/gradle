@@ -6,8 +6,6 @@ description = "Public API interfaces for input normalization"
 
 dependencies {
     api(projects.baseServices)
-    implementation(projects.stdlibJavaExtensions)
-    compileOnly(libs.jspecify)
 }
 
 gradleModule {

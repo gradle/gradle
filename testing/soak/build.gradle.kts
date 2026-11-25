@@ -4,11 +4,7 @@ plugins {
 }
 
 dependencies {
-    testFixturesImplementation(projects.baseServices)
-    testFixturesImplementation(projects.core)
-    testFixturesImplementation(projects.logging)
     testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(projects.jvmServices)
 
     testImplementation(testFixtures(projects.kotlinDsl))
     testImplementation(testFixtures(projects.core))
@@ -16,14 +12,8 @@ dependencies {
     testImplementation(testFixtures(projects.toolchainsJvm))
     testImplementation(testFixtures(projects.toolchainsJvmShared))
 
-    integTestImplementation(projects.fileWatching)
-    integTestImplementation(projects.jvmServices)
     integTestImplementation(projects.launcher)
-    integTestImplementation(projects.logging)
-    integTestImplementation(projects.persistentCache)
     integTestImplementation(testFixtures(projects.workers))
-    integTestImplementation(libs.commonsCompress)
-    integTestImplementation(libs.slf4jApi)
     integTestImplementation(testLibs.assertj) {
         because("Kotlin soak tests use AssertJ")
     }

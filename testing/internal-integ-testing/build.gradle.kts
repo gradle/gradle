@@ -65,12 +65,10 @@ dependencies {
     implementation(projects.buildDiscovery)
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildOption)
-    implementation(projects.buildProcessServices)
     implementation(projects.buildState)
     implementation(projects.classloaders)
     implementation(projects.cli)
     implementation(projects.clientServices)
-    implementation(projects.core)
     implementation(projects.coreFlowServicesApi)
     implementation(projects.daemonMessaging)
     implementation(projects.daemonProtocol)
@@ -151,8 +149,6 @@ dependencies {
     runtimeOnly(testLibs.nettyCodecHaproxy) {
         because("LittleProxy loads HAProxy classes at runtime but does not declare the dependency")
     }
-    runtimeOnly(testLibs.nettyCommon)
-    runtimeOnly(testLibs.nettyHandler)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

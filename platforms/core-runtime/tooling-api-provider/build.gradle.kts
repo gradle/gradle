@@ -39,8 +39,6 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
 
     implementation(libs.slf4jApi)
-
-    compileOnly(libs.jspecify)
 }
 
 gradleModule {

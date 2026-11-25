@@ -22,7 +22,6 @@ dependencies {
     api(projects.modelCore)
     api(projects.reportRendering)
     api(projects.serviceProvider)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.guava)
     api(libs.inject)
@@ -38,13 +37,8 @@ dependencies {
     testFixturesApi(testFixtures(projects.platformNative))
     testFixturesApi(testFixtures(projects.logging))
 
-    testFixturesImplementation(projects.baseServices)
-    testFixturesImplementation(projects.core)
     testFixturesImplementation(projects.internalIntegTesting)
 
-    testFixturesImplementation(libs.guava)
-
-    testImplementation(projects.processServices)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
 

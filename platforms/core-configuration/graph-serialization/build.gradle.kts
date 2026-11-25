@@ -28,8 +28,6 @@ dependencies {
     api(projects.loggingApi)
     api(projects.serialization)
 
-    api(libs.kotlinStdlib)
-
     implementation(projects.baseServices)
     implementation(projects.logging)
     implementation(projects.problemsApi)

@@ -26,7 +26,6 @@ dependencies {
     api(projects.baseServices)
     api(projects.internalDistributionTesting)
 
-    runtimeOnly(projects.coreApi)
     api(projects.internalTesting)
     api(projects.stdlibJavaExtensions)
     api(projects.reportRendering)
@@ -62,7 +61,6 @@ dependencies {
     implementation(testLibs.joptSimple)
     implementation(testLibs.junit5JupiterApi)
 
-    runtimeOnly(libs.jclToSlf4j)
     runtimeOnly(testLibs.mySqlConnector)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull) {

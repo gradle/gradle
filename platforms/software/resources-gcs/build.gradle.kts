@@ -13,7 +13,6 @@ dependencies {
     api(libs.googleApiServicesStorage)
     api(libs.jspecify)
 
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.hashing)
     implementation(projects.loggingApi)
 
@@ -29,13 +28,6 @@ dependencies {
     testImplementation(testFixtures(projects.dependencyManagement))
     testImplementation(testFixtures(projects.ivy))
     testImplementation(testFixtures(projects.maven))
-
-    testImplementation(libs.groovy)
-
-    integTestImplementation(projects.coreApi)
-    integTestImplementation(projects.modelCore)
-
-    integTestImplementation(libs.commonsIo)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }

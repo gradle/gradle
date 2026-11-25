@@ -14,7 +14,6 @@ dependencies {
 
     implementation(projects.groovyLoader)
     implementation(projects.loggingApi)
-    implementation(projects.stdlibJavaExtensions)
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 

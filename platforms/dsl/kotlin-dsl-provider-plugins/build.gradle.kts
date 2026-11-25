@@ -17,7 +17,6 @@ dependencies {
     api(projects.projectFeatures)
 
     api(libs.inject)
-    api(libs.kotlinStdlib)
 
     implementation(projects.baseServices)
     implementation(projects.buildDiscovery)
@@ -28,7 +27,6 @@ dependencies {
     implementation(projects.fileCollections)
     implementation(projects.functional)
     implementation(projects.hashing)
-    implementation(projects.loggingApi)
     implementation(projects.platformJvm)
     implementation(projects.pluginDevelopment)
     implementation(projects.projectFeaturesApi)

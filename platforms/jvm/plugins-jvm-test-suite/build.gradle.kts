@@ -22,7 +22,6 @@ description = "Contains the JVM Test Suite plugin"
 
 dependencies {
     api(projects.serviceLookup)
-    api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.coreApi)
     api(projects.languageJvm)
@@ -38,8 +37,6 @@ dependencies {
     implementation(projects.reporting)
 
     implementation(libs.guava)
-
-    compileOnly(libs.jspecify)
 
     integTestImplementation(testFixtures(projects.testingBase))
 

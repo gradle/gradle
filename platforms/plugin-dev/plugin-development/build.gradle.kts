@@ -14,7 +14,6 @@ dependencies {
     api(projects.modelReflect)
     api(projects.platformJvm)
     api(projects.problemsApi)
-    api(projects.stdlibJavaExtensions)
     api(projects.toolchainsJvmShared)
     api(projects.workers)
 
@@ -52,11 +51,8 @@ dependencies {
     implementation(projects.toolchainsJvm)
     implementation(projects.workerShared)
 
-    implementation(libs.asm)
     implementation(libs.guava)
 
-    testImplementation(projects.fileCollections)
-    testImplementation(projects.enterpriseOperations)
     testImplementation(projects.problemsReporting)
 
     testImplementation(testFixtures(projects.core))
@@ -66,14 +62,11 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
-    integTestImplementation(projects.baseServicesGroovy)
-
     integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.testingBase))
     integTestImplementation(testFixtures(projects.toolingApi))
 
     integTestImplementation(testLibs.groovyTest)
-    integTestImplementation(libs.jetbrainsAnnotations)
 
     integTestLocalRepository(projects.toolingApi) {
         because("Required by GradleImplDepsCompatibilityIntegrationTest")
@@ -81,10 +74,7 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 
-    testFixturesImplementation(projects.modelCore)
-    testFixturesImplementation(projects.logging)
     testFixturesImplementation(libs.gson)
-    testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(testFixtures(projects.core))
 }
 

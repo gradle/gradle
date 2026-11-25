@@ -25,15 +25,10 @@ dependencies {
     implementation(projects.pluginsJavaBase)
     implementation(projects.serviceLookup)
     implementation(projects.softwareDiagnostics)
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.testSuitesBase)
     implementation(projects.testingJvm)
 
     runtimeOnly(projects.dependencyManagement)
-    runtimeOnly(projects.testingBase)
-    runtimeOnly(projects.toolchainsJvm)
-
-    runtimeOnly(libs.groovy)
 
     testImplementation(testFixtures(projects.core))
 
@@ -42,7 +37,6 @@ dependencies {
     integTestImplementation(testFixtures(projects.messaging))
     integTestImplementation(testFixtures(projects.enterpriseOperations))
     integTestImplementation(testFixtures(projects.languageJava))
-    integTestImplementation(testFixtures(projects.languageJvm))
     integTestImplementation(testFixtures(projects.pluginsJavaBase))
     integTestImplementation(testFixtures(projects.pluginsJvmTestFixtures))
     integTestImplementation(testFixtures(projects.workers))

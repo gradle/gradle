@@ -30,16 +30,12 @@ dependencies {
     api(projects.reporting)
     api(projects.projectFeaturesApi)
 
-    api(libs.kotlinStdlib)
     api(libs.inject)
     api(libs.jspecify)
     api(libs.jsr305)
 
-    runtimeOnly(libs.groovy)
-
     implementation(projects.languageJava)
     implementation(projects.languageGroovy)
-    implementation(projects.modelCore)
     implementation(projects.platformBase)
     implementation(projects.platformJvm)
 

@@ -34,7 +34,6 @@ dependencies {
     api(projects.enterpriseOperations)
     api(projects.serialization)
     api(projects.snapshots)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.inject)
     api(libs.jspecify)
@@ -45,7 +44,6 @@ dependencies {
     testImplementation(projects.logging)
     testImplementation(testFixtures(projects.time))
 
-    integTestImplementation(projects.internalTesting)
     integTestImplementation(testFixtures(projects.logging))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)

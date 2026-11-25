@@ -20,7 +20,6 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.asm)
     api(libs.jspecify)
@@ -29,7 +28,6 @@ dependencies {
     api(libs.guava)
 
     implementation(projects.baseServicesGroovy)
-    implementation(projects.baseAsm)
     implementation(projects.classloaders)
     implementation(projects.logging)
     implementation(projects.serviceRegistryBuilder)
@@ -44,23 +42,15 @@ dependencies {
     testFixturesApi(testFixtures(projects.baseDiagnostics))
     testFixturesApi(testFixtures(projects.core))
     testFixturesApi(projects.internalIntegTesting)
-    testFixturesImplementation(projects.baseAsm)
-    testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.groovyDatetime)
     testFixturesImplementation(libs.groovyDateUtil)
 
     api(projects.processServicesApi)
 
-    testImplementation(projects.processServices)
-    testImplementation(projects.fileCollections)
-    testImplementation(projects.native)
-    testImplementation(projects.resources)
     testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.languageGroovy))
-    testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.modelReflect))
 
-    integTestImplementation(projects.platformBase)
     integTestImplementation(testFixtures(projects.processServices))
 
     testRuntimeOnly(projects.distributionsCore) {

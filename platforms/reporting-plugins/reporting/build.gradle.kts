@@ -12,7 +12,6 @@ dependencies {
     api(projects.modelCore)
     api(projects.reportRendering)
     api(projects.serviceLookup)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
     api(libs.inject)
@@ -23,8 +22,6 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.jatl)
 
-    testImplementation(projects.processServices)
-    testImplementation(projects.baseServicesGroovy)
     testImplementation(libs.jsoup)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.jacoco))

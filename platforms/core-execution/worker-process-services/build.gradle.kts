@@ -9,7 +9,6 @@ dependencies {
     api(projects.buildOperations)
     api(projects.buildProcessServices)
     api(projects.classloaders)
-    api(projects.stdlibJavaExtensions)
     api(projects.fileTemp)
     api(projects.logging)
     api(projects.loggingApi)
@@ -28,7 +27,6 @@ dependencies {
 
     api(libs.jspecify)
 
-    implementation(projects.baseAsm)
     implementation(projects.concurrent)
     implementation(projects.coreApi)
     implementation(projects.io)

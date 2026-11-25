@@ -29,13 +29,10 @@ dependencies {
     implementation(projects.core)
     implementation(projects.dependencyManagement)
     implementation(projects.ivy)
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.maven)
     implementation(projects.platformBase)
     implementation(projects.platformJvm)
     implementation(projects.publish)
-
-    runtimeOnly(libs.groovy)
 
     integTestImplementation(testFixtures(projects.dependencyManagement))
     integTestImplementation(testFixtures(projects.resourcesHttp))

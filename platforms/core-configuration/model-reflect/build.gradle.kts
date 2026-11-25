@@ -10,7 +10,6 @@ dependencies {
     api(projects.logging)
     api(projects.persistentCache)
     api(projects.problemsApi)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.guava)
     api(libs.jspecify)
@@ -19,11 +18,9 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.inject)
 
-    testImplementation(testFixtures(projects.persistentCache))
     testImplementation(testFixtures(projects.core))
 
     testFixturesApi(projects.internalIntegTesting)
-    testFixturesImplementation(libs.guava)
 }
 
 gradleModule {

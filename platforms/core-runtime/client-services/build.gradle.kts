@@ -46,7 +46,6 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.startParameter)
-    api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(projects.toolchainsJvmShared)
     api(projects.toolingApi)
@@ -60,7 +59,6 @@ dependencies {
     api(libs.jspecify)
     api(libs.nativePlatform)
 
-    implementation(projects.baseAsm)
     implementation(projects.buildConfiguration)
     implementation(projects.processServices)
     implementation(projects.buildProcessServices)

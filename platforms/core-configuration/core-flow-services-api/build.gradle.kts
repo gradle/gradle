@@ -23,9 +23,6 @@ description = "Public API of Flow Actions"
 dependencies {
     api(projects.baseServices)
     api(projects.coreApi)
-    api(projects.stdlibJavaExtensions)
-
-    compileOnly(libs.jspecify)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

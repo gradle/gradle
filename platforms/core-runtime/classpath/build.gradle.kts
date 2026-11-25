@@ -78,17 +78,11 @@ dependencies {
     annotationProcessor(platform(projects.distributionsDependencies))
 
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.snapshots))
-    testImplementation(testFixtures(projects.hashing))
     testImplementation(testFixtures(projects.baseServices))
 
     testImplementation(libs.asmCommons)
 
-    testFixturesApi(projects.internalInstrumentationApi)
-
     testFixturesCompileOnly(libs.jetbrainsAnnotations)
-
-    testFixturesImplementation(libs.asm)
 
     integTestImplementation(projects.dependencyManagement)
     integTestImplementation(testFixtures(projects.launcher))

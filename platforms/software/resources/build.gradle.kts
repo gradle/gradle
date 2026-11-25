@@ -6,7 +6,6 @@ description = "A set of general-purpose resource abstractions"
 
 dependencies {
     api(projects.credentialsApi)
-    api(projects.stdlibJavaExtensions)
     api(projects.buildOperations)
     api(projects.hashing)
     api(projects.baseServices)
@@ -18,11 +17,6 @@ dependencies {
 
     implementation(libs.guava)
     implementation(libs.commonsIo)
-
-    testImplementation(projects.processServices)
-    testImplementation(projects.coreApi)
-    testImplementation(projects.fileCollections)
-    testImplementation(projects.snapshots)
 
     testImplementation(testFixtures(projects.core))
 

@@ -83,12 +83,9 @@ dependencies {
     implementation(libs.plexusUtils)
     implementation(libs.slf4jApi)
 
-    testImplementation(projects.buildCachePackaging)
     testImplementation(projects.softwareDiagnostics)
 
-    testImplementation(projects.processServices)
     testImplementation(testLibs.asmUtil)
-    testImplementation(libs.commonsHttpclient)
     testImplementation(libs.groovyXml)
     testImplementation(libs.jsoup)
 
@@ -101,7 +98,6 @@ dependencies {
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.resourcesHttp))
-    testImplementation(testFixtures(projects.snapshots))
     testImplementation(testFixtures(projects.toolingApi))
     testImplementation(testFixtures(projects.versionControl))
 
@@ -109,8 +105,6 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
-    integTestImplementation(projects.buildOption)
-    integTestImplementation(libs.jansi)
     integTestImplementation(testLibs.ansiControlSequenceUtil)
     integTestImplementation(libs.groovyJson)
     integTestImplementation(testLibs.socksProxy) {
@@ -127,19 +121,13 @@ dependencies {
         because("Test fixtures export the CacheAccess class")
     }
 
-    testFixturesImplementation(projects.core)
     testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(testFixtures(projects.resourcesHttp))
-    testFixturesImplementation(projects.coreApi)
-    testFixturesImplementation(projects.messaging)
     testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(libs.slf4jApi)
-    testFixturesImplementation(libs.inject)
     testFixturesImplementation(libs.groovyJson)
     testFixturesImplementation(libs.guava) {
         because("Groovy compiler reflects on private field on TextUtil")
     }
-    testFixturesImplementation(libs.bouncycastlePgp)
     testFixturesApi(testLibs.testcontainersSpock) {
         because("API because of Groovy compiler bug leaking internals")
     }

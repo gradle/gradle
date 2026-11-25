@@ -33,7 +33,6 @@ dependencies {
     api(projects.modelCore)
     api(projects.platformJvm)
     api(projects.serviceProvider)
-    api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 
     api(libs.groovy)
@@ -59,9 +58,6 @@ dependencies {
     implementation(projects.war)
 
     implementation(libs.commonsLang)
-
-    runtimeOnly(projects.languageJvm)
-    runtimeOnly(projects.testingBase)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.dependencyManagement))

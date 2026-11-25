@@ -27,7 +27,6 @@ dependencies {
     api(projects.hashing)
     api(projects.hashingServices)
     api(projects.instrumentationAgentServices)
-    api(projects.stdlibJavaExtensions)
     api(projects.jvmServices)
     api(projects.logging)
     api(projects.loggingApi)
@@ -71,9 +70,6 @@ dependencies {
     runtimeOnly(projects.declarativeDslProvider)
     runtimeOnly(projects.problems)
 
-    runtimeOnly(libs.commonsIo)
-    runtimeOnly(libs.commonsLang)
-
     runtimeOnly(projects.groovyDsl) {
         because("GroovyScriptPluginFactory is loaded dynamically at runtime by ScriptPluginFactorySelector")
     }
@@ -93,12 +89,7 @@ dependencies {
     testImplementation(testFixtures(projects.toolingApi))
     testImplementation(testFixtures(projects.daemonProtocol))
 
-    integTestImplementation(projects.persistentCache)
     integTestImplementation(projects.workerProcessServices)
-    integTestImplementation(libs.slf4jApi)
-    integTestImplementation(libs.guava)
-    integTestImplementation(libs.commonsLang)
-    integTestImplementation(libs.commonsIo)
     integTestImplementation(testFixtures(projects.buildConfiguration))
     integTestImplementation(testFixtures(projects.buildProcessServices))
     integTestImplementation(testFixtures(projects.toolchainsJvmShared))

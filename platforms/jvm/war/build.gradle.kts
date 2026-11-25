@@ -26,7 +26,6 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.dependencyManagement)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
     api(libs.inject)
@@ -40,8 +39,6 @@ dependencies {
     implementation(projects.platformJvm)
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJvmTestSuite)
-
-    runtimeOnly(projects.testingBase)
 
 
     testImplementation(projects.pluginsJavaBase)

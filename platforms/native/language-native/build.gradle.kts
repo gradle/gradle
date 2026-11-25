@@ -16,7 +16,6 @@ dependencies {
     api(projects.fileCollections)
     api(projects.fileOperations)
     api(projects.hashing)
-    api(projects.stdlibJavaExtensions)
     api(projects.modelCore)
     api(projects.persistentCache)
     api(projects.platformBase)
@@ -51,24 +50,10 @@ dependencies {
     testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(testFixtures(projects.platformNative))
 
-    testImplementation(projects.native)
-    testImplementation(projects.resources)
-    testImplementation(projects.baseServicesGroovy)
-    testImplementation(libs.commonsIo)
     testImplementation(testFixtures(projects.serialization))
-    testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.versionControl))
-    testImplementation(testFixtures(projects.platformNative))
     testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.messaging))
-    testImplementation(testFixtures(projects.snapshots))
-
-    integTestImplementation(projects.native)
-    integTestImplementation(projects.enterpriseOperations)
-    integTestImplementation(projects.resources)
-    integTestImplementation(libs.nativePlatform)
-    integTestImplementation(libs.ant)
-    integTestImplementation(libs.jgit)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

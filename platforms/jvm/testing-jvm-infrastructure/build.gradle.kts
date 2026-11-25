@@ -25,15 +25,12 @@ various implementations of WorkerTestDefinitionProcessorFactory.
 """
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(projects.baseServices)
     api(projects.messaging)
     api(projects.testingBaseInfrastructure)
 
     api(libs.jspecify)
-
-    implementation(projects.concurrent)
 
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
@@ -75,7 +72,6 @@ dependencies {
     }
 
     testFixturesImplementation(projects.testingBase)
-    testFixturesImplementation(testLibs.junit)
     testFixturesImplementation(providedLibs.testng)
 }
 

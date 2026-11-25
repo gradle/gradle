@@ -18,7 +18,6 @@ dependencies {
     api(projects.pluginUse)
     api(projects.serviceProvider)
     api(projects.startParameter)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.inject)
     api(libs.jspecify)
@@ -34,13 +33,9 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.guava)
 
-    testImplementation(projects.fileWatching)
-    testImplementation(projects.buildOption)
-    testImplementation(testFixtures(projects.buildOperations))
     testImplementation(testFixtures(projects.dependencyManagement))
     testImplementation(testFixtures(projects.core))
 
-    integTestImplementation(projects.buildOption)
     integTestImplementation(projects.launcher)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull) {

@@ -31,7 +31,6 @@ dependencies {
     api(projects.modelCore)
     api(projects.platformJvm)
     api(projects.serviceProvider)
-    api(projects.stdlibJavaExtensions)
     api(projects.toolchainsJvmShared)
 
     api(libs.groovy)
@@ -58,7 +57,6 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 
     testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(projects.logging)
 
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
     javadocReferences(projects.pluginsJava)

@@ -27,14 +27,10 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.languageJava)
-    implementation(projects.languageJvm)
     implementation(projects.platformJvm)
     implementation(projects.pluginsDistribution)
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJvmTestSuite)
-
-    runtimeOnly(projects.core)
-    runtimeOnly(projects.platformBase)
 
     testImplementation(projects.pluginsJavaBase)
 

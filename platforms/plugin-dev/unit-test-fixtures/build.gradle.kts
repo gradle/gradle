@@ -50,7 +50,6 @@ dependencies {
     implementation(projects.problemsApi)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.startParameter)
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.workerShared)
 
     testImplementation(testFixtures(projects.core))
@@ -62,7 +61,6 @@ dependencies {
 
     integTestImplementation(testFixtures(projects.buildProcessServices))
     integTestImplementation(testFixtures(projects.testingBase))
-    integTestCompileOnly(libs.jetbrainsAnnotations)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

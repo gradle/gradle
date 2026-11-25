@@ -27,12 +27,10 @@ dependencies {
     api(projects.domainObjectCollections)
     api(projects.enterpriseLogging)
     api(projects.fileCollections)
-    api(projects.internalInstrumentationApi)
     api(projects.jvmServices)
     api(projects.logging)
     api(projects.reporting)
     api(projects.reportRendering)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
     api(libs.jspecify)
@@ -52,12 +50,8 @@ dependencies {
 
     testFixturesApi(testFixtures(projects.platformNative))
     testFixturesApi(testFixtures(projects.logging))
-    testFixturesImplementation(projects.baseServices)
-    testFixturesImplementation(projects.core)
     testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(libs.guava)
 
-    testImplementation(projects.processServices)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.dependencyManagement))
     testImplementation(testFixtures(projects.logging))
@@ -67,7 +61,6 @@ dependencies {
     }
 
     integTestImplementation(testFixtures(projects.baseDiagnostics))
-    integTestImplementation(testFixtures(projects.platformNative))
 
     integTestImplementation(libs.jsoup)
 

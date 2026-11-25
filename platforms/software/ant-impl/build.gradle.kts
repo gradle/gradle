@@ -25,10 +25,6 @@ dependencies {
 
     implementation(projects.concurrent)
     implementation(projects.logging)
-    implementation(projects.stdlibJavaExtensions)
-
-    compileOnly(libs.jetbrainsAnnotations)
-    compileOnly(projects.internalInstrumentationApi)
 
     testImplementation(testFixtures(projects.core))   // AbstractProjectBuilderSpec, TestUtil
     testImplementation(projects.internalTesting)       // TestNameTestDirectoryProvider

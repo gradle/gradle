@@ -6,7 +6,6 @@ description = "Implementation for interacting with repositories over sftp"
 
 dependencies {
     api(projects.concurrent)
-    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
     api(projects.credentialsApi)
     api(projects.resources)
@@ -29,8 +28,6 @@ dependencies {
     testImplementation(testFixtures(projects.ivy))
     testImplementation(testFixtures(projects.maven))
 
-    integTestImplementation(projects.logging)
-    integTestImplementation(libs.sshdCore)
     integTestImplementation(libs.sshdScp)
     integTestImplementation(libs.sshdSftp)
 

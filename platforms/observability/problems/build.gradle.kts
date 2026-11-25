@@ -34,10 +34,8 @@ dependencies {
     api(projects.problemsApi)
     api(projects.serviceProvider)
     api(projects.startParameter)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.jspecify)
-    api(libs.kotlinStdlib)
 
     implementation(projects.baseServices)
     implementation(projects.configurationProblemsBase)
@@ -59,13 +57,9 @@ dependencies {
     testImplementation(projects.stdlibKotlinExtensions)
     testImplementation(testFixtures(projects.core))
 
-    testImplementation(testLibs.junit)
-
     testImplementation(testLibs.mockitoKotlin)
     testImplementation(libs.kotlinReflect)
-    testImplementation(testLibs.mockitoCore)
 
-    integTestImplementation(projects.internalTesting)
     integTestImplementation(testFixtures(projects.logging))
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

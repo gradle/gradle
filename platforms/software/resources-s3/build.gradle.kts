@@ -16,7 +16,6 @@ dependencies {
     api(libs.awsSdkRegions)
     api(libs.jspecify)
 
-    implementation(projects.baseServices)
     implementation(projects.hashing)
 
     implementation(libs.awsApacheHttpClient)
@@ -29,9 +28,6 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.guava)
     implementation(libs.slf4jApi)
-
-    runtimeOnly(projects.core)
-    runtimeOnly(projects.coreApi)
 
     runtimeOnly(libs.awsS3Sso) {
         because("Loaded by the AWS libraries with reflection when present, for AWS SSO profiles: https://github.com/gradle/gradle/issues/34049")
@@ -48,9 +44,6 @@ dependencies {
     testImplementation(testFixtures(projects.ivy))
     testImplementation(testFixtures(projects.maven))
 
-    integTestImplementation(projects.logging)
-    integTestImplementation(libs.commonsIo)
-    integTestImplementation(libs.groovyXml)
     integTestImplementation(testLibs.littleproxy)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)

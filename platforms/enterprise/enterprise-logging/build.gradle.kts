@@ -7,7 +7,6 @@ description = "Logging API consumed by the Develocity plugin"
 dependencies {
     api(projects.buildOperations)
     api(projects.loggingApi)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.jspecify)
 }

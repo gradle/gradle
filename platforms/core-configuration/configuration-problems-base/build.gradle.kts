@@ -33,7 +33,6 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     api(libs.configurationCacheReport)
-    api(libs.kotlinStdlib)
 
     implementation(projects.hashing)
     implementation(projects.stdlibKotlinExtensions)

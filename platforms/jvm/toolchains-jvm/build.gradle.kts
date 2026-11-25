@@ -24,7 +24,6 @@ description = "Adds support for using JVM toolchains in projects"
 
 dependencies {
     api(projects.baseCompilerWorker)
-    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.buildOperations)
@@ -47,7 +46,6 @@ dependencies {
 
     api(libs.inject)
     api(libs.jspecify)
-    api(libs.kotlinStdlib)
 
     implementation(projects.baseDiagnostics)
     implementation(projects.credentialsImpl)
@@ -64,13 +62,9 @@ dependencies {
     testImplementation(testFixtures(projects.toolchainsJvmShared))
     testImplementation(testFixtures(projects.languageJava))
 
-    testFixturesImplementation(projects.native)
-
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-
-    integTestImplementation(libs.slf4jApi)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 

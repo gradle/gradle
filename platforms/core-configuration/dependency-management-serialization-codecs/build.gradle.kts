@@ -39,8 +39,6 @@ dependencies {
     api(projects.problemsApi)
     api(projects.snapshots)
 
-    api(libs.kotlinStdlib)
-
     implementation(projects.configurationCacheBase)
     implementation(projects.serviceLookup)
     implementation(projects.serialization)

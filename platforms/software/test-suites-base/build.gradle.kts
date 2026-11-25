@@ -10,17 +10,12 @@ This project is separate from testing-base to avoid needing to be Java 6 compati
 """
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.coreApi)
 
     implementation(libs.commonsLang)
 
-    compileOnly(libs.jspecify)
-
     testImplementation(testFixtures(projects.baseServices))
-    testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.platformBase))
 

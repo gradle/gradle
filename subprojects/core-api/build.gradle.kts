@@ -20,7 +20,6 @@ dependencies {
     api(projects.processServicesApi)
     api(projects.resources)
     api(projects.startParameter)
-    api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 
     api(libs.jspecify)
@@ -38,12 +37,9 @@ dependencies {
 
     runtimeOnly(libs.kotlinReflect)
 
-    testImplementation(libs.asm)
     testImplementation(libs.asmCommons)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
-
-    testFixturesImplementation(projects.baseServices)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 

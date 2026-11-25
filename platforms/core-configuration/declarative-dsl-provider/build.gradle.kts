@@ -29,7 +29,6 @@ dependencies {
     api(projects.projectFeatures)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.kotlinStdlib)
     api(libs.inject)
 
     implementation(projects.concurrent)
@@ -50,12 +49,9 @@ dependencies {
     testImplementation(projects.internalIntegTesting)
     testImplementation(testFixtures(projects.declarativeDslProvider))
 
-    integTestImplementation(projects.internalTesting)
-    integTestImplementation(projects.logging)
     integTestImplementation(testFixtures(projects.declarativeDslProvider))
     integTestImplementation(testFixtures(projects.toolingApi))
 
-    testFixturesImplementation(projects.internalTesting)
     testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(testFixtures(projects.declarativeDslCore))
 

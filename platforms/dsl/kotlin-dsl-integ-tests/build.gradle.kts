@@ -9,29 +9,17 @@ description = "Kotlin DSL Integration Tests"
 dependencies {
     testImplementation(testFixtures(projects.kotlinDsl))
 
-    integTestImplementation(projects.messaging)
-    integTestImplementation(projects.baseServices)
-    integTestImplementation(projects.coreApi)
-    integTestImplementation(projects.core)
-    integTestImplementation(projects.modelCore)
-    integTestImplementation(projects.internalTesting)
-    integTestImplementation(projects.logging)
     integTestImplementation(projects.languageJvm)
-    integTestImplementation(projects.platformJvm)
     integTestImplementation(testFixtures(projects.jacoco))
     integTestImplementation(testFixtures(projects.testingBase))
     integTestImplementation(testLibs.mockwebserver)
-    integTestImplementation(libs.kotlinCompilerEmbeddable)
     integTestImplementation(testLibs.mockitoKotlin)
-    integTestImplementation(libs.kotlinStdlib)
     integTestImplementation(libs.kotlinReflect) {
         because("mockito-kotlin 1.6 requires kotlin-reflect in 1.0.7, we want to overrule that")
     }
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 
-    crossVersionTestImplementation(projects.coreApi)
-    crossVersionTestImplementation(projects.logging)
     crossVersionTestImplementation(projects.internalIntegTesting)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)

@@ -21,7 +21,6 @@ dependencies {
     api(projects.platformJvm)
     api(projects.processServices)
     api(projects.scalaCompilerWorker)
-    api(projects.stdlibJavaExtensions)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)
     api(projects.classpath)
@@ -48,19 +47,10 @@ dependencies {
 
     implementation(libs.guava)
 
-    runtimeOnly(libs.groovy)
-
-    testImplementation(projects.baseServicesGroovy)
-    testImplementation(projects.files)
-    testImplementation(projects.resources)
-    testImplementation(libs.slf4jApi)
-    testImplementation(libs.commonsIo)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.pluginsJava))
-    testImplementation(testFixtures(projects.languageJvm))
     testImplementation(testFixtures(projects.languageJava))
 
-    integTestImplementation(projects.jvmServices)
     integTestImplementation(testFixtures(projects.testingBase))
 
     testFixturesImplementation(testFixtures(projects.core))

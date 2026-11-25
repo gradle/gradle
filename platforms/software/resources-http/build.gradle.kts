@@ -5,7 +5,6 @@ plugins {
 description = "Implementation for interacting with repositories over HTTP"
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
     api(projects.credentials)
     api(projects.credentialsApi)
@@ -28,18 +27,12 @@ dependencies {
     implementation(libs.slf4jApi)
 
     runtimeOnly(projects.core)
-    runtimeOnly(projects.coreApi)
-
-    runtimeOnly(libs.jacksonCore)
 
     testImplementation(projects.internalIntegTesting)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
 
-    testFixturesImplementation(projects.baseServices)
-    testFixturesImplementation(projects.logging)
     testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(libs.slf4jApi)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

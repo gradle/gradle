@@ -12,7 +12,6 @@ dependencies {
     api(projects.modelCore)
     api(projects.workerProcessServices)
     api(projects.requestHandlerWorker)
-    api(projects.stdlibJavaExtensions)
 
     api(libs.inject)
     api(libs.jspecify)
@@ -34,12 +33,7 @@ dependencies {
         because("this dependency is downloaded by the antlr plugin")
     }
 
-    runtimeOnly(projects.languageJvm)
-    runtimeOnly(projects.workers)
-
-    testImplementation(projects.baseServicesGroovy)
     testImplementation(testFixtures(projects.core))
-    testImplementation(projects.fileCollections)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
