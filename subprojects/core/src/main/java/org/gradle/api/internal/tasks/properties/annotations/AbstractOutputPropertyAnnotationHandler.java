@@ -28,6 +28,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.lang.annotation.Annotation;
 
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.BACKED_BY_LAZY_PROPERTY;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
 
@@ -36,7 +37,7 @@ public abstract class AbstractOutputPropertyAnnotationHandler extends AbstractPr
     private final OutputFilePropertyType filePropertyType;
 
     public AbstractOutputPropertyAnnotationHandler(Class<? extends Annotation> annotationType, OutputFilePropertyType filePropertyType) {
-        super(annotationType, Kind.OUTPUT, ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY));
+        super(annotationType, Kind.OUTPUT, ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY, BACKED_BY_LAZY_PROPERTY));
         this.filePropertyType = filePropertyType;
     }
 

@@ -211,6 +211,11 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             ) {
                 FileCollection actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
                 context.add(actualValue);
+                // A getter backed by a lazy property can return a plain File, which has no dependencies of its own
+                TaskDependencyContainer lazyBackingDependencies = value.getLazyBackingDependencies();
+                if (lazyBackingDependencies != TaskDependencyContainer.EMPTY) {
+                    context.add(lazyBackingDependencies);
+                }
             }
         });
     }

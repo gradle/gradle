@@ -18,6 +18,7 @@ package org.gradle.internal.execution.model.annotations;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.internal.properties.InputFilePropertyType;
 
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.BACKED_BY_LAZY_PROPERTY;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.INCREMENTAL;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZE_LINE_ENDINGS;
@@ -29,7 +30,7 @@ public class InputFilePropertyAnnotationHandler extends AbstractInputFilePropert
         super(
             InputFile.class,
             InputFilePropertyType.FILE,
-            ModifierAnnotationCategory.annotationsOf(INCREMENTAL, NORMALIZATION, OPTIONAL, NORMALIZE_LINE_ENDINGS, REPLACES_EAGER_PROPERTY)
+            ModifierAnnotationCategory.annotationsOf(INCREMENTAL, NORMALIZATION, OPTIONAL, NORMALIZE_LINE_ENDINGS, REPLACES_EAGER_PROPERTY, BACKED_BY_LAZY_PROPERTY)
         );
     }
 }
