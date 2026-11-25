@@ -15,11 +15,14 @@
  */
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -60,9 +63,21 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @SuppressWarnings("this-escape")
     public AbstractExecTask(Class<T> taskType) {
         execSpec = getObjectFactory().newInstance(DefaultExecSpec.class);
+        AbstractExecTaskInputs lazy = getLazyProperties();
+        execSpec.attach(lazy.getExecutable(), lazy.getEnvironment(), lazy.getArgs(), lazy.getIgnoreExitValue());
         execResult = getObjectFactory().property(ExecResult.class);
         this.taskType = taskType;
     }
+
+    /**
+     * The lazy properties behind the eager getters and setters of this task.
+     *
+     * @since 10.0.0
+     */
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract AbstractExecTaskInputs getLazyProperties();
 
     @Inject
     protected abstract ObjectFactory getObjectFactory();
@@ -143,6 +158,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Input
     @Override
     @ToBeReplacedByLazyProperty(unreported = true, comment = "Unreported since setter is using generics")
+    @BackedByLazyProperty("lazyProperties.args")
     public List<String> getArgs() {
         return execSpec.getArgs();
     }
@@ -199,6 +215,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Input
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.executable")
     public String getExecutable() {
         return execSpec.getExecutable();
     }
@@ -279,6 +296,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Internal
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.environment")
     public Map<String, Object> getEnvironment() {
         return execSpec.getEnvironment();
     }
@@ -390,6 +408,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Input
     @Override
     @ToBeReplacedByLazyProperty(unreported = true, comment = "Unreported since setter is using generics")
+    @BackedByLazyProperty("lazyProperties.ignoreExitValue")
     public boolean isIgnoreExitValue() {
         return execSpec.isIgnoreExitValue();
     }

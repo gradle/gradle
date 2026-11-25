@@ -35,6 +35,7 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 @UsedByScanPlugin("test-retry")
@@ -83,7 +84,7 @@ public abstract class TestNGTestFramework implements TestFramework {
         return new TestNGSpec(filter.toSpec(),
             options.getSuiteName(), options.getTestName(), options.getParallel(), options.getThreadCount(), options.getSuiteThreadPoolSize().get(),
             options.getUseDefaultListeners(), options.getThreadPoolFactoryClass(),
-            options.getIncludeGroups(), options.getExcludeGroups(), options.getListeners(),
+            new LinkedHashSet<>(options.getIncludeGroups()), new LinkedHashSet<>(options.getExcludeGroups()), new LinkedHashSet<>(options.getListeners()),
             options.getConfigFailurePolicy(), options.getPreserveOrder(), options.getGroupByInstances(), dryRun.get()
         );
     }

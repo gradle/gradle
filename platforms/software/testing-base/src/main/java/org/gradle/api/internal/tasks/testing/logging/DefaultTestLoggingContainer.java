@@ -20,11 +20,15 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
+import org.gradle.api.tasks.testing.logging.TestLoggingContainerInputs;
+import org.gradle.api.tasks.testing.logging.TestLoggingInputs;
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
 
 import javax.inject.Inject;
 import java.util.EnumSet;
@@ -34,22 +38,54 @@ import java.util.Set;
 public class DefaultTestLoggingContainer implements TestLoggingContainer {
     private final Map<LogLevel, TestLogging> perLevelTestLogging = Maps.newEnumMap(LogLevel.class);
 
-    @SuppressWarnings("this-escape")
+    private final TestLoggingContainerInputs lazyProperties;
+
     @Inject
-    public DefaultTestLoggingContainer(ObjectFactory objectFactory) {
+    public DefaultTestLoggingContainer(TestLoggingContainerInputs lazyProperties, ObjectFactory objectFactory) {
+        this.lazyProperties = lazyProperties;
         for (LogLevel level: LogLevel.values()) {
-            perLevelTestLogging.put(level, objectFactory.newInstance(DefaultTestLogging.class));
+            perLevelTestLogging.put(level, objectFactory.newInstance(DefaultTestLogging.class, lazyPropertiesOf(level)));
         }
 
-        setEvents(EnumSet.of(TestLogEvent.FAILED));
-        setExceptionFormat(TestExceptionFormat.SHORT);
+        DefaultTestLogging.setDefault(lazyProperties.getEvents(), EnumSet.of(TestLogEvent.FAILED));
+        lazyProperties.getExceptionFormat().convention(TestExceptionFormat.SHORT);
 
-        getInfo().setEvents(EnumSet.of(TestLogEvent.FAILED, TestLogEvent.SKIPPED, TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
-        getInfo().setStackTraceFilters(EnumSet.of(TestStackTraceFilter.TRUNCATE));
+        TestLoggingInputs info = lazyProperties.getInfo();
+        DefaultTestLogging.setDefault(info.getEvents(), EnumSet.of(TestLogEvent.FAILED, TestLogEvent.SKIPPED, TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
+        DefaultTestLogging.setDefault(info.getStackTraceFilters(), EnumSet.of(TestStackTraceFilter.TRUNCATE));
 
-        getDebug().setEvents(EnumSet.allOf(TestLogEvent.class));
-        getDebug().setMinGranularity(0);
-        getDebug().setStackTraceFilters(EnumSet.noneOf(TestStackTraceFilter.class));
+        TestLoggingInputs debug = lazyProperties.getDebug();
+        DefaultTestLogging.setDefault(debug.getEvents(), EnumSet.allOf(TestLogEvent.class));
+        debug.getMinGranularity().convention(0);
+        DefaultTestLogging.setDefault(debug.getStackTraceFilters(), EnumSet.noneOf(TestStackTraceFilter.class));
+    }
+
+    private TestLoggingInputs lazyPropertiesOf(LogLevel level) {
+        switch (level) {
+            case DEBUG:
+                return lazyProperties.getDebug();
+            case INFO:
+                return lazyProperties.getInfo();
+            case LIFECYCLE:
+                return lazyProperties.getLifecycle();
+            case WARN:
+                return lazyProperties.getWarn();
+            case QUIET:
+                return lazyProperties.getQuiet();
+            case ERROR:
+                return lazyProperties.getError();
+            default:
+                throw new IllegalArgumentException("Unknown log level: " + level);
+        }
+    }
+
+    /**
+     * The lazy properties of the log levels. The delegating getters of this container read those of {@code LIFECYCLE}, which are on this object itself.
+     * A log level whose {@link TestLogging} was replaced with a setter such as {@link #setInfo(TestLogging)} no longer uses its lazy properties.
+     */
+    @Internal
+    public TestLoggingContainerInputs getLazyProperties() {
+        return lazyProperties;
     }
 
     @Override
@@ -143,6 +179,7 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.events")
     public Set<TestLogEvent> getEvents() {
         return getDefaultTestLogging().getEvents();
     }
@@ -163,6 +200,7 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.minGranularity")
     public int getMinGranularity() {
         return getDefaultTestLogging().getMinGranularity();
     }
@@ -173,6 +211,7 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.maxGranularity")
     public int getMaxGranularity() {
         return getDefaultTestLogging().getMaxGranularity();
     }
@@ -183,6 +222,7 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.displayGranularity")
     public int getDisplayGranularity() {
         return getDefaultTestLogging().getDisplayGranularity();
     }
@@ -193,6 +233,7 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.showExceptions")
     public boolean getShowExceptions() {
         return getDefaultTestLogging().getShowExceptions();
     }
@@ -203,6 +244,7 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.showCauses")
     public boolean getShowCauses() {
         return getDefaultTestLogging().getShowCauses();
     }
@@ -213,6 +255,7 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.showStackTraces")
     public boolean getShowStackTraces() {
         return getDefaultTestLogging().getShowStackTraces();
     }
@@ -223,6 +266,7 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.exceptionFormat")
     public TestExceptionFormat getExceptionFormat() {
         return getDefaultTestLogging().getExceptionFormat();
     }
@@ -238,6 +282,7 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.stackTraceFilters")
     public Set<TestStackTraceFilter> getStackTraceFilters() {
         return getDefaultTestLogging().getStackTraceFilters();
     }

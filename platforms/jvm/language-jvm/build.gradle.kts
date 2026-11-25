@@ -20,11 +20,13 @@ dependencies {
 
     api(libs.groovy)
     api(libs.inject)
+    api(libs.jspecify)
 
     api(projects.processServices)
 
     implementation(projects.dependencyManagement)
     implementation(projects.logging)
+    implementation(projects.modelCore)
     implementation(projects.platformBase)
     implementation(projects.testSuitesBase)
 

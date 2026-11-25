@@ -106,6 +106,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+import org.gradle.api.internal.provider.EagerPropertySupport;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
+import org.gradle.process.internal.DefaultJavaForkOptions;
 
 import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 
@@ -181,15 +185,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
 
-    private FileCollection testClassesDirs;
     private final PatternFilterable patternSet;
-    private FileCollection classpath;
     private final ConfigurableFileCollection stableClasspath;
     private final Property<TestFramework> testFramework;
-    private boolean scanForTestClasses = true;
-    private long forkEvery;
-    private int maxParallelForks = 1;
-
     @Nullable
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
@@ -202,20 +200,41 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public Test() {
         ObjectFactory objectFactory = getObjectFactory();
         patternSet = getPatternSetFactory().createPatternSet();
-        testClassesDirs = objectFactory.fileCollection();
-        classpath = objectFactory.fileCollection();
+        TestInputs lazy = getLazyProperties();
+        // Empty collections, as the fields had, so the eager getters return them and not null
+        lazy.getTestClassesDirs().convention(objectFactory.fileCollection());
+        lazy.getClasspath().convention(objectFactory.fileCollection());
+        lazy.getScanForTestClasses().convention(true);
+        lazy.getForkEvery().convention(0L);
+        lazy.getMaxParallelForks().convention(1);
         // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to the property
         stableClasspath = objectFactory.fileCollection();
         stableClasspath.from((Callable<Object>) this::getClasspath);
         forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.setEnableAssertions(true);
         forkOptions.setExecutable(null);
+        ((DefaultJavaForkOptions) forkOptions).attach(
+            lazy.getJvmArgs(), lazy.getSystemProperties(), lazy.getMinHeapSize(), lazy.getMaxHeapSize(),
+            lazy.getEnableAssertions(), lazy.getDefaultCharacterEncoding(), lazy.getBootstrapClasspath()
+        );
+        ((DefaultJavaForkOptions) forkOptions).attach(lazy.getExecutable(), lazy.getEnvironment());
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         getJavaLauncher().convention(createJavaLauncherConvention());
         getJavaLauncher().finalizeValueOnRead();
         getDryRun().convention(false);
         testFramework = objectFactory.property(TestFramework.class).convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 10.0.0
+     */
+    @Override
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract TestInputs getLazyProperties();
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
         final JavaToolchainService javaToolchainService = getJavaToolchainService();
@@ -289,6 +308,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     @Internal
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.executable")
     public String getExecutable() {
         return forkOptions.getExecutable();
     }
@@ -323,6 +343,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.systemProperties")
     public Map<String, @Nullable Object> getSystemProperties() {
         return forkOptions.getSystemProperties();
     }
@@ -358,6 +379,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.bootstrapClasspath")
     public FileCollection getBootstrapClasspath() {
         return forkOptions.getBootstrapClasspath();
     }
@@ -385,6 +407,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     @ToBeReplacedByLazyProperty
     @Nullable
+    @BackedByLazyProperty("lazyProperties.minHeapSize")
     public String getMinHeapSize() {
         return forkOptions.getMinHeapSize();
     }
@@ -395,6 +418,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     @ToBeReplacedByLazyProperty
     @Nullable
+    @BackedByLazyProperty("lazyProperties.defaultCharacterEncoding")
     public String getDefaultCharacterEncoding() {
         return forkOptions.getDefaultCharacterEncoding();
     }
@@ -421,6 +445,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     @ToBeReplacedByLazyProperty
     @Nullable
+    @BackedByLazyProperty("lazyProperties.maxHeapSize")
     public String getMaxHeapSize() {
         return forkOptions.getMaxHeapSize();
     }
@@ -438,6 +463,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.jvmArgs")
     public List<String> getJvmArgs() {
         return forkOptions.getJvmArgs();
     }
@@ -490,6 +516,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.enableAssertions")
     public boolean getEnableAssertions() {
         return forkOptions.getEnableAssertions();
     }
@@ -507,6 +534,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("debugOptions.enabled")
     public boolean getDebug() {
         return forkOptions.getDebug();
     }
@@ -553,6 +581,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.failFast")
     public boolean getFailFast() {
         return super.getFailFast();
     }
@@ -608,6 +637,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     @Internal
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.environment")
     public Map<String, Object> getEnvironment() {
         return forkOptions.getEnvironment();
     }
@@ -910,8 +940,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Internal
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.testClassesDirs")
     public FileCollection getTestClassesDirs() {
-        return testClassesDirs;
+        return EagerPropertySupport.getEager(getLazyProperties().getTestClassesDirs());
     }
 
     /**
@@ -954,7 +985,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 4.0
      */
     public void setTestClassesDirs(FileCollection testClassesDirs) {
-        this.testClassesDirs = testClassesDirs;
+        getLazyProperties().getTestClassesDirs().setFrom(testClassesDirs);
     }
 
     /**
@@ -1221,8 +1252,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Internal("captured by stableClasspath")
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.classpath")
     public FileCollection getClasspath() {
-        return classpath;
+        return EagerPropertySupport.getEager(getLazyProperties().getClasspath());
     }
 
     /**
@@ -1231,7 +1263,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 0.8
      */
     public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
+        getLazyProperties().getClasspath().setFrom(classpath);
     }
 
     /**
@@ -1241,8 +1273,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.scanForTestClasses")
     public boolean isScanForTestClasses() {
-        return scanForTestClasses;
+        return getLazyProperties().getScanForTestClasses().get();
     }
 
     /**
@@ -1251,7 +1284,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 0.7
      */
     public void setScanForTestClasses(boolean scanForTestClasses) {
-        this.scanForTestClasses = scanForTestClasses;
+        getLazyProperties().getScanForTestClasses().set(scanForTestClasses);
     }
 
     /**
@@ -1271,8 +1304,18 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Internal
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.forkEvery")
     public long getForkEvery() {
+        long forkEvery = getLazyProperties().getForkEvery().get();
+        // A value bound lazily bypasses the validation of the setter
+        validateForkEvery(forkEvery);
         return getDebug() ? 0 : forkEvery;
+    }
+
+    private static void validateForkEvery(long forkEvery) {
+        if (forkEvery < 0) {
+            throw new IllegalArgumentException("Cannot set forkEvery to a value less than 0.");
+        }
     }
 
     /**
@@ -1285,10 +1328,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 8.1
      */
     public void setForkEvery(long forkEvery) {
-        if (forkEvery < 0) {
-            throw new IllegalArgumentException("Cannot set forkEvery to a value less than 0.");
-        }
-        this.forkEvery = forkEvery;
+        validateForkEvery(forkEvery);
+        getLazyProperties().getForkEvery().set(forkEvery);
     }
 
     /**
@@ -1308,8 +1349,18 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Internal
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.maxParallelForks")
     public int getMaxParallelForks() {
+        int maxParallelForks = getLazyProperties().getMaxParallelForks().get();
+        // A value bound lazily bypasses the validation of the setter
+        validateMaxParallelForks(maxParallelForks);
         return getDebug() ? 1 : maxParallelForks;
+    }
+
+    private static void validateMaxParallelForks(int maxParallelForks) {
+        if (maxParallelForks < 1) {
+            throw new IllegalArgumentException("Cannot set maxParallelForks to a value less than 1.");
+        }
     }
 
     /**
@@ -1322,10 +1373,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 0.9
      */
     public void setMaxParallelForks(int maxParallelForks) {
-        if (maxParallelForks < 1) {
-            throw new IllegalArgumentException("Cannot set maxParallelForks to a value less than 1.");
-        }
-        this.maxParallelForks = maxParallelForks;
+        validateMaxParallelForks(maxParallelForks);
+        getLazyProperties().getMaxParallelForks().set(maxParallelForks);
     }
 
     /**

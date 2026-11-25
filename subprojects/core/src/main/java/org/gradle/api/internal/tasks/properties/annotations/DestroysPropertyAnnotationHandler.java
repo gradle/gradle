@@ -23,12 +23,13 @@ import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.BACKED_BY_LAZY_PROPERTY;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
 
 public class DestroysPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     public DestroysPropertyAnnotationHandler() {
-        super(Destroys.class, Kind.OTHER, ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY));
+        super(Destroys.class, Kind.OTHER, ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY, BACKED_BY_LAZY_PROPERTY));
     }
 
     @Override

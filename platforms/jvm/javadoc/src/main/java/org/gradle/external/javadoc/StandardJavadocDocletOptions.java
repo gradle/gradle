@@ -16,26 +16,27 @@
 
 package org.gradle.external.javadoc;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
-import org.gradle.external.javadoc.internal.GroupsJavadocOptionFileOption;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
-import org.gradle.external.javadoc.internal.LinksOfflineJavadocOptionFileOption;
+import org.gradle.external.javadoc.internal.LazyJavadocOptionFileOption;
+import org.gradle.external.javadoc.internal.LazyJavadocOptionFileOption.Kind;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,7 +47,7 @@ import static org.gradle.api.tasks.PathSensitivity.NAME_ONLY;
  * Provides the options for the standard Javadoc doclet.
  * @since 0.7
  */
-public class StandardJavadocDocletOptions extends CoreJavadocOptions implements MinimalJavadocOptions {
+public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions implements MinimalJavadocOptions {
     private static final String OPTION_D = "d";
     private static final String OPTION_USE = "use";
     private static final String OPTION_VERSION = "version";
@@ -137,157 +138,93 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      *
      * @since 0.7
      */
-    public StandardJavadocDocletOptions() {
-        this(new JavadocOptionFile());
-    }
-
-    /**
-     * Creates a new {@code StandardJavadocDocletOptions}.
-     *
-     * @since 0.7
-     */
+    @Inject
     @SuppressWarnings("this-escape")
-    public StandardJavadocDocletOptions(JavadocOptionFile javadocOptionFile) {
-        super(javadocOptionFile);
+    public StandardJavadocDocletOptions() {
+        super(new JavadocOptionFile());
 
-        destinationDirectory = addFileOption(OPTION_D);
-        use = addBooleanOption(OPTION_USE);
-        version = addBooleanOption(OPTION_VERSION);
-        author = addBooleanOption(OPTION_AUTHOR);
-        splitIndex = addBooleanOption(OPTION_SPLITINDEX);
-        header = addStringOption(OPTION_HEADER);
-        windowTitle = addStringOption(OPTION_WINDOWTITLE);
-        docTitle = addStringOption(OPTION_DOCTITLE);
-        footer = addStringOption(OPTION_FOOTER);
-        bottom = addStringOption(OPTION_BOTTOM);
-        links = addMultilineStringsOption(OPTION_LINK);
-        linksOffline = addOption(new LinksOfflineJavadocOptionFileOption(OPTION_LINKOFFLINE, new ArrayList<>()));
-        linkSource = addBooleanOption(OPTION_LINKSOURCE);
-        groups = addOption(new GroupsJavadocOptionFileOption(OPTION_GROUP, new LinkedHashMap<>()));
-        noDeprecated = addBooleanOption(OPTION_NODEPRECATED);
-        noDeprecatedList = addBooleanOption(OPTION_NODEPRECATEDLIST);
-        noSince = addBooleanOption(OPTION_NOSINCE);
-        noTree = addBooleanOption(OPTION_NOTREE);
-        noIndex = addBooleanOption(OPTION_NOINDEX);
-        noHelp = addBooleanOption(OPTION_NOHELP);
-        noNavBar = addBooleanOption(OPTION_NONAVBAR);
-        helpFile = addFileOption(OPTION_HELPFILE);
-        stylesheetFile = addFileOption(OPTION_STYLESHEETFILE);
-        serialWarn = addBooleanOption(OPTION_SERIALWARN);
-        charSet = addStringOption(OPTION_CHARSET);
-        docEncoding = addStringOption(OPTION_DOENCODING);
-        keyWords = addBooleanOption(OPTION_KEYWORDS);
-        tags = addMultilineStringsOption(OPTION_TAG);
-        taglets = addMultilineStringsOption(OPTION_TAGLET);
-        tagletPath = addPathOption(OPTION_TAGLETPATH);
-        docFilesSubDirs = addBooleanOption(OPTION_DOCFILESSUBDIRS);
-        excludeDocFilesSubDir = addStringsOption(OPTION_EXCLUDEDOCFILESSUBDIR, ":");
-        noQualifiers = addStringsOption(OPTION_NOQUALIFIER, ":");
-        noTimestamp = addBooleanOption(OPTION_NOTIMESTAMP, true);
-        noComment = addBooleanOption(OPTION_NOCOMMENT);
+        StandardJavadocDocletOptionsInputs lazy = getLazyProperties();
+        lazy.getUse().convention(false);
+        lazy.getVersion().convention(false);
+        lazy.getAuthor().convention(false);
+        lazy.getSplitIndex().convention(false);
+        lazy.getLinkSource().convention(false);
+        lazy.getNoDeprecated().convention(false);
+        lazy.getNoDeprecatedList().convention(false);
+        lazy.getNoSince().convention(false);
+        lazy.getNoTree().convention(false);
+        lazy.getNoIndex().convention(false);
+        lazy.getNoHelp().convention(false);
+        lazy.getNoNavBar().convention(false);
+        lazy.getSerialWarn().convention(false);
+        lazy.getKeyWords().convention(false);
+        lazy.getDocFilesSubDirs().convention(false);
+        lazy.getNoTimestamp().convention(true);
+        lazy.getNoComment().convention(false);
+
+        destinationDirectory = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_D, Kind.FILE, this, o -> o.getLazyProperties().getDestinationDirectory()));
+        use = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_USE, Kind.BOOLEAN, this, o -> o.getLazyProperties().getUse()));
+        version = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_VERSION, Kind.BOOLEAN, this, o -> o.getLazyProperties().getVersion()));
+        author = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_AUTHOR, Kind.BOOLEAN, this, o -> o.getLazyProperties().getAuthor()));
+        splitIndex = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_SPLITINDEX, Kind.BOOLEAN, this, o -> o.getLazyProperties().getSplitIndex()));
+        header = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_HEADER, Kind.STRING, this, o -> o.getLazyProperties().getHeader()));
+        windowTitle = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_WINDOWTITLE, Kind.STRING, this, o -> o.getLazyProperties().getWindowTitle()));
+        docTitle = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_DOCTITLE, Kind.STRING, this, o -> o.getLazyProperties().getDocTitle()));
+        footer = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_FOOTER, Kind.STRING, this, o -> o.getLazyProperties().getFooter()));
+        bottom = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_BOTTOM, Kind.STRING, this, o -> o.getLazyProperties().getBottom()));
+        links = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_LINK, Kind.MULTILINE_STRINGS, this, o -> o.getLazyProperties().getLinks()));
+        linksOffline = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_LINKOFFLINE, Kind.LINKS_OFFLINE, this, o -> o.getLazyProperties().getLinksOffline()));
+        linkSource = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_LINKSOURCE, Kind.BOOLEAN, this, o -> o.getLazyProperties().getLinkSource()));
+        groups = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_GROUP, Kind.GROUPS, this, o -> o.getLazyProperties().getGroups()));
+        noDeprecated = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_NODEPRECATED, Kind.BOOLEAN, this, o -> o.getLazyProperties().getNoDeprecated()));
+        noDeprecatedList = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_NODEPRECATEDLIST, Kind.BOOLEAN, this, o -> o.getLazyProperties().getNoDeprecatedList()));
+        noSince = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_NOSINCE, Kind.BOOLEAN, this, o -> o.getLazyProperties().getNoSince()));
+        noTree = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_NOTREE, Kind.BOOLEAN, this, o -> o.getLazyProperties().getNoTree()));
+        noIndex = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_NOINDEX, Kind.BOOLEAN, this, o -> o.getLazyProperties().getNoIndex()));
+        noHelp = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_NOHELP, Kind.BOOLEAN, this, o -> o.getLazyProperties().getNoHelp()));
+        noNavBar = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_NONAVBAR, Kind.BOOLEAN, this, o -> o.getLazyProperties().getNoNavBar()));
+        helpFile = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_HELPFILE, Kind.FILE, this, o -> o.getLazyProperties().getHelpFile()));
+        stylesheetFile = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_STYLESHEETFILE, Kind.FILE, this, o -> o.getLazyProperties().getStylesheetFile()));
+        serialWarn = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_SERIALWARN, Kind.BOOLEAN, this, o -> o.getLazyProperties().getSerialWarn()));
+        charSet = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_CHARSET, Kind.STRING, this, o -> o.getLazyProperties().getCharSet()));
+        docEncoding = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_DOENCODING, Kind.STRING, this, o -> o.getLazyProperties().getDocEncoding()));
+        keyWords = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_KEYWORDS, Kind.BOOLEAN, this, o -> o.getLazyProperties().getKeyWords()));
+        tags = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_TAG, Kind.MULTILINE_STRINGS, this, o -> o.getLazyProperties().getTags()));
+        taglets = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_TAGLET, Kind.MULTILINE_STRINGS, this, o -> o.getLazyProperties().getTaglets()));
+        tagletPath = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_TAGLETPATH, Kind.PATH, System.getProperty("path.separator"), this, o -> o.getLazyProperties().getTagletPath()));
+        docFilesSubDirs = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_DOCFILESSUBDIRS, Kind.BOOLEAN, this, o -> o.getLazyProperties().getDocFilesSubDirs()));
+        excludeDocFilesSubDir = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_EXCLUDEDOCFILESSUBDIR, Kind.STRINGS, ":", this, o -> o.getLazyProperties().getExcludeDocFilesSubDir()));
+        noQualifiers = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_NOQUALIFIER, Kind.STRINGS, ":", this, o -> o.getLazyProperties().getNoQualifiers()));
+        noTimestamp = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_NOTIMESTAMP, Kind.BOOLEAN, this, o -> o.getLazyProperties().getNoTimestamp()));
+        noComment = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_NOCOMMENT, Kind.BOOLEAN, this, o -> o.getLazyProperties().getNoComment()));
 
         knownStandardOptionNames = Collections.unmodifiableSet(new HashSet<>(Sets.difference(optionFile.getOptions().keySet(), knownCoreOptionNames)));
     }
 
     /**
-     * Creates a new {@code StandardJavadocDocletOptions}.
+     * {@inheritDoc}
      *
-     * @since 3.4
+     * @since 10.0.0
      */
-    public StandardJavadocDocletOptions(StandardJavadocDocletOptions original) {
-        this(original, new JavadocOptionFile(original.optionFile));
-    }
+    @Override
+    @Internal
+    @Incubating
+    @LazyProperties
+    public abstract StandardJavadocDocletOptionsInputs getLazyProperties();
 
     /**
-     * Creates a new {@code StandardJavadocDocletOptions}.
+     * Copies the values of all options from {@code original}, including the options added with {@code addXxxOption}.
+     * Lists and maps are copied, so later changes of either object do not affect the other.
      *
-     * @since 3.4
+     * @return this object
+     * @since 10.0.0
      */
-    public StandardJavadocDocletOptions(StandardJavadocDocletOptions original, JavadocOptionFile optionFile) {
-        super(original, optionFile);
-
-        destinationDirectory = optionFile.getOption(OPTION_D);
-        use = optionFile.getOption(OPTION_USE);
-        version = optionFile.getOption(OPTION_VERSION);
-        author = optionFile.getOption(OPTION_AUTHOR);
-        splitIndex = optionFile.getOption(OPTION_SPLITINDEX);
-        header = optionFile.getOption(OPTION_HEADER);
-        windowTitle = optionFile.getOption(OPTION_WINDOWTITLE);
-        docTitle = optionFile.getOption(OPTION_DOCTITLE);
-        footer = optionFile.getOption(OPTION_FOOTER);
-        bottom = optionFile.getOption(OPTION_BOTTOM);
-        links = optionFile.getOption(OPTION_LINK);
-        linksOffline = optionFile.getOption(OPTION_LINKOFFLINE);
-        linkSource = optionFile.getOption(OPTION_LINKSOURCE);
-        groups = optionFile.getOption(OPTION_GROUP);
-        noDeprecated = optionFile.getOption(OPTION_NODEPRECATED);
-        noDeprecatedList = optionFile.getOption(OPTION_NODEPRECATEDLIST);
-        noSince = optionFile.getOption(OPTION_NOSINCE);
-        noTree = optionFile.getOption(OPTION_NOTREE);
-        noIndex = optionFile.getOption(OPTION_NOINDEX);
-        noHelp = optionFile.getOption(OPTION_NOHELP);
-        noNavBar = optionFile.getOption(OPTION_NONAVBAR);
-        helpFile = optionFile.getOption(OPTION_HELPFILE);
-        stylesheetFile = optionFile.getOption(OPTION_STYLESHEETFILE);
-        serialWarn = optionFile.getOption(OPTION_SERIALWARN);
-        charSet = optionFile.getOption(OPTION_CHARSET);
-        docEncoding = optionFile.getOption(OPTION_DOENCODING);
-        keyWords = optionFile.getOption(OPTION_KEYWORDS);
-        tags = optionFile.getOption(OPTION_TAG);
-        taglets = optionFile.getOption(OPTION_TAGLET);
-        tagletPath = optionFile.getOption(OPTION_TAGLETPATH);
-        docFilesSubDirs = optionFile.getOption(OPTION_DOCFILESSUBDIRS);
-        excludeDocFilesSubDir = optionFile.getOption(OPTION_EXCLUDEDOCFILESSUBDIR);
-        noQualifiers = optionFile.getOption(OPTION_NOQUALIFIER);
-        noTimestamp = optionFile.getOption(OPTION_NOTIMESTAMP);
-        noComment = optionFile.getOption(OPTION_NOCOMMENT);
-
-        knownStandardOptionNames = original.knownStandardOptionNames;
+    @Incubating
+    public StandardJavadocDocletOptions copy(StandardJavadocDocletOptions original) {
+        super.copy(original);
+        return this;
     }
 
-    /**
-     * Creates a new {@code StandardJavadocDocletOptions}.
-     *
-     * @since 3.4
-     */
-    @SuppressWarnings("this-escape")
-    public StandardJavadocDocletOptions(MinimalJavadocOptions original) {
-        this();
-
-        setOverview(original.getOverview());
-        setMemberLevel(original.getMemberLevel());
-        setDoclet(original.getDoclet());
-        setDocletpath(copyOrNull(original.getDocletpath()));
-        setSource(original.getSource());
-        setClasspath(copyOrNull(original.getClasspath()));
-        setBootClasspath(copyOrNull(original.getBootClasspath()));
-        setExtDirs(copyOrNull(original.getExtDirs()));
-        setOutputLevel(original.getOutputLevel());
-        setBreakIterator(original.isBreakIterator());
-        setLocale(original.getLocale());
-        setEncoding(original.getEncoding());
-        setJFlags(copyOrNull(original.getJFlags()));
-        setOptionFiles(copyOrNull(original.getOptionFiles()));
-        setDestinationDirectory(original.getDestinationDirectory());
-        setWindowTitle(original.getWindowTitle());
-        setHeader(original.getHeader());
-        setSourceNames(copyOrNull(original.getSourceNames()));
-    }
-
-    private static <T> List<T> copyOrNull(List<T> items) {
-        if (items == null) {
-            return null;
-        } else {
-            return Lists.newArrayList(items);
-        }
-    }
-
-    /**
-     * Gets a set of all the options that are known to this class and its super class and have separate properties.
-     *
-     * @return set of property names
-     * @since 7.5
-     */
     @Incubating
     @Override
     public Set<String> knownOptionNames() {
@@ -308,6 +245,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.destinationDirectory")
     public File getDestinationDirectory() {
         return destinationDirectory.getValue();
     }
@@ -344,6 +282,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.use")
     public boolean isUse() {
         return use.getValue();
     }
@@ -385,6 +324,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.version")
     public boolean isVersion() {
         return version.getValue();
     }
@@ -425,6 +365,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.author")
     public boolean isAuthor() {
         return author.getValue();
     }
@@ -466,6 +407,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.splitIndex")
     public boolean isSplitIndex() {
         return splitIndex.getValue();
     }
@@ -510,6 +452,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.windowTitle")
     public String getWindowTitle() {
         return windowTitle.getValue();
     }
@@ -535,6 +478,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.header")
     public String getHeader() {
         return header.getValue();
     }
@@ -562,6 +506,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
+    @BackedByLazyProperty("lazyProperties.docTitle")
     public String getDocTitle() {
         return docTitle.getValue();
     }
@@ -595,6 +540,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
+    @BackedByLazyProperty("lazyProperties.footer")
     public String getFooter() {
         return footer.getValue();
     }
@@ -629,6 +575,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
+    @BackedByLazyProperty("lazyProperties.bottom")
     public String getBottom() {
         return bottom.getValue();
     }
@@ -674,6 +621,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
+    @BackedByLazyProperty("lazyProperties.links")
     public List<String> getLinks() {
         return links.getValue();
     }
@@ -734,6 +682,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
+    @BackedByLazyProperty("lazyProperties.linksOffline")
     public List<JavadocOfflineLink> getLinksOffline() {
         return linksOffline.getValue();
     }
@@ -783,6 +732,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.linkSource")
     public boolean isLinkSource() {
         return linkSource.getValue();
     }
@@ -860,6 +810,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
+    @BackedByLazyProperty("lazyProperties.groups")
     public Map<String, List<String>> getGroups() {
         return groups.getValue();
     }
@@ -921,6 +872,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.noDeprecated")
     public boolean isNoDeprecated() {
         return noDeprecated.getValue();
     }
@@ -964,6 +916,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.noDeprecatedList")
     public boolean isNoDeprecatedList() {
         return noDeprecatedList.getValue();
     }
@@ -1005,6 +958,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.noSince")
     public boolean isNoSince() {
         return noSince.getValue();
     }
@@ -1047,6 +1001,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.noTree")
     public boolean isNoTree() {
         return noTree.getValue();
     }
@@ -1087,6 +1042,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.noIndex")
     public boolean isNoIndex() {
         return noIndex.getValue();
     }
@@ -1127,6 +1083,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.noHelp")
     public boolean isNoHelp() {
         return noHelp.getValue();
     }
@@ -1170,6 +1127,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.noNavBar")
     public boolean isNoNavBar() {
         return noNavBar.getValue();
     }
@@ -1212,6 +1170,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @PathSensitive(NAME_ONLY) @InputFile
+    @BackedByLazyProperty("lazyProperties.helpFile")
     public File getHelpFile() {
         return helpFile.getValue();
     }
@@ -1245,6 +1204,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @PathSensitive(NAME_ONLY) @InputFile
+    @BackedByLazyProperty("lazyProperties.stylesheetFile")
     public File getStylesheetFile() {
         return stylesheetFile.getValue();
     }
@@ -1279,6 +1239,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.serialWarn")
     public boolean isSerialWarn() {
         return serialWarn.getValue();
     }
@@ -1328,6 +1289,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
+    @BackedByLazyProperty("lazyProperties.charSet")
     public String getCharSet() {
         return charSet.getValue();
     }
@@ -1363,6 +1325,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
+    @BackedByLazyProperty("lazyProperties.docEncoding")
     public String getDocEncoding() {
         return docEncoding.getValue();
     }
@@ -1392,6 +1355,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.keyWords")
     public boolean isKeyWords() {
         return keyWords.getValue();
     }
@@ -1430,6 +1394,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
+    @BackedByLazyProperty("lazyProperties.tags")
     public List<String> getTags() {
         return tags.getValue();
     }
@@ -1477,6 +1442,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
+    @BackedByLazyProperty("lazyProperties.taglets")
     public List<String> getTaglets() {
         return taglets.getValue();
     }
@@ -1515,6 +1481,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Classpath
+    @BackedByLazyProperty("lazyProperties.tagletPath")
     public List<File> getTagletPath() {
         return tagletPath.getValue();
     }
@@ -1553,6 +1520,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.docFilesSubDirs")
     public boolean isDocFilesSubDirs() {
         return docFilesSubDirs.getValue();
     }
@@ -1591,6 +1559,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
+    @BackedByLazyProperty("lazyProperties.excludeDocFilesSubDir")
     public List<String> getExcludeDocFilesSubDir() {
         return excludeDocFilesSubDir.getValue();
     }
@@ -1629,6 +1598,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
+    @BackedByLazyProperty("lazyProperties.noQualifiers")
     public List<String> getNoQualifiers() {
         return noQualifiers.getValue();
     }
@@ -1668,6 +1638,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.noTimestamp")
     public boolean isNoTimestamp() {
         return noTimestamp.getValue();
     }
@@ -1706,6 +1677,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.noComment")
     public boolean isNoComment() {
         return noComment.getValue();
     }

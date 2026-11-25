@@ -17,23 +17,34 @@
 package org.gradle.external.javadoc;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.provider.EagerPropertySupport;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Input;
+import org.gradle.external.javadoc.internal.FileListView;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternal;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternalAdapter;
+import org.gradle.external.javadoc.internal.LazyJavadocOptionFileOption;
+import org.gradle.external.javadoc.internal.LazyJavadocOptionFileOption.Kind;
 import org.gradle.internal.Cast;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.ExecSpec;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -77,8 +88,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     private final JavadocOptionFileOption<String> locale;
     private final JavadocOptionFileOption<String> encoding;
     private final OptionLessJavadocOptionFileOption<List<String>> sourceNames;
-    private List<String> jFlags = new ArrayList<>();
-    private List<File> optionFiles = new ArrayList<>();
 
     /**
      * Core options which are known, and have corresponding fields in this class.
@@ -93,32 +102,28 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      *
      * @since 0.7
      */
-    public CoreJavadocOptions() {
-        this(new JavadocOptionFile());
-    }
-
-    /**
-     * Creates a new {@code CoreJavadocOptions}.
-     *
-     * @since 0.7
-     */
     @SuppressWarnings("this-escape")
     protected CoreJavadocOptions(JavadocOptionFile optionFile) {
         this.optionFile = optionFile;
 
-        overview = addStringOption(OPTION_OVERVIEW);
-        memberLevel = addEnumOption(OPTION_MEMBERLEVEL);
-        doclet = addStringOption(OPTION_DOCLET);
-        docletpath = addPathOption(OPTION_DOCLETPATH);
-        source = addStringOption(OPTION_SOURCE);
-        classpath = addPathOption(OPTION_CLASSPATH);
-        modulePath = addPathOption(OPTION_MODULE_PATH);
-        bootClasspath = addPathOption(OPTION_BOOTCLASSPATH);
-        extDirs = addPathOption(OPTION_EXTDIRS);
-        outputLevel = addEnumOption(OPTION_OUTPUTLEVEL, JavadocOutputLevel.QUIET);
-        breakIterator = addBooleanOption(OPTION_BREAKITERATOR);
-        locale = addStringOption(OPTION_LOCALE);
-        encoding = addStringOption(OPTION_ENCODING);
+        CoreJavadocOptionsInputs lazy = getLazyProperties();
+        lazy.getOutputLevel().convention(JavadocOutputLevel.QUIET);
+        lazy.getBreakIterator().convention(false);
+        String pathSeparator = System.getProperty("path.separator");
+
+        overview = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_OVERVIEW, Kind.STRING, this, o -> o.getLazyProperties().getOverview()));
+        memberLevel = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_MEMBERLEVEL, Kind.ENUM, this, o -> o.getLazyProperties().getMemberLevel()));
+        doclet = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_DOCLET, Kind.STRING, this, o -> o.getLazyProperties().getDoclet()));
+        docletpath = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_DOCLETPATH, Kind.PATH, pathSeparator, this, o -> o.getLazyProperties().getDocletpath()));
+        source = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_SOURCE, Kind.STRING, this, o -> o.getLazyProperties().getSource()));
+        classpath = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_CLASSPATH, Kind.PATH, pathSeparator, this, o -> o.getLazyProperties().getClasspath()));
+        modulePath = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_MODULE_PATH, Kind.PATH, pathSeparator, this, o -> o.getLazyProperties().getModulePath()));
+        bootClasspath = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_BOOTCLASSPATH, Kind.PATH, pathSeparator, this, o -> o.getLazyProperties().getBootClasspath()));
+        extDirs = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_EXTDIRS, Kind.PATH, pathSeparator, this, o -> o.getLazyProperties().getExtDirs()));
+        outputLevel = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_OUTPUTLEVEL, Kind.ENUM, this, o -> o.getLazyProperties().getOutputLevel()));
+        breakIterator = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_BREAKITERATOR, Kind.BOOLEAN, this, o -> o.getLazyProperties().getBreakIterator()));
+        locale = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_LOCALE, Kind.STRING, this, o -> o.getLazyProperties().getLocale()));
+        encoding = optionFile.addOption(LazyJavadocOptionFileOption.of(OPTION_ENCODING, Kind.STRING, this, o -> o.getLazyProperties().getEncoding()));
 
         sourceNames = optionFile.getSourceNames();
 
@@ -126,32 +131,51 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     }
 
     /**
-     * Creates a new {@code CoreJavadocOptions}.
+     * The lazy properties behind the eager getters and setters of these options.
      *
-     * @since 3.4
+     * @since 10.0.0
      */
-    protected CoreJavadocOptions(CoreJavadocOptions original, JavadocOptionFile optionFile) {
-        this.optionFile = optionFile;
+    @Internal
+    @Incubating
+    @LazyProperties
+    public abstract CoreJavadocOptionsInputs getLazyProperties();
 
-        overview = optionFile.getOption(OPTION_OVERVIEW);
-        memberLevel = optionFile.getOption(OPTION_MEMBERLEVEL);
-        doclet = optionFile.getOption(OPTION_DOCLET);
-        docletpath = optionFile.getOption(OPTION_DOCLETPATH);
-        source = optionFile.getOption(OPTION_SOURCE);
-        classpath = optionFile.getOption(OPTION_CLASSPATH);
-        modulePath = optionFile.getOption(OPTION_MODULE_PATH);
-        bootClasspath = optionFile.getOption(OPTION_BOOTCLASSPATH);
-        extDirs = optionFile.getOption(OPTION_EXTDIRS);
-        outputLevel = optionFile.getOption(OPTION_OUTPUTLEVEL);
-        breakIterator = optionFile.getOption(OPTION_BREAKITERATOR);
-        locale = optionFile.getOption(OPTION_LOCALE);
-        encoding = optionFile.getOption(OPTION_ENCODING);
+    /**
+     * Copies the values of all options from {@code original}, including the options added with {@code addXxxOption}.
+     * Lists and maps are copied, so later changes of either object do not affect the other.
+     *
+     * @return this object
+     * @since 10.0.0
+     */
+    @Incubating
+    protected CoreJavadocOptions copy(CoreJavadocOptions original) {
+        for (Map.Entry<String, JavadocOptionFileOptionInternal<?>> entry : original.optionFile.getOptions().entrySet()) {
+            JavadocOptionFileOptionInternal<?> own = optionFile.getOptions().get(entry.getKey());
+            if (own instanceof LazyJavadocOptionFileOption && entry.getValue() instanceof LazyJavadocOptionFileOption) {
+                own.setValue(Cast.uncheckedCast(copyOf(entry.getValue().getValue())));
+            } else {
+                optionFile.addOption(entry.getValue().duplicate());
+            }
+        }
+        setSourceNames(copyOf(original.getSourceNames()));
+        setJFlags(copyOf(original.getJFlags()));
+        setOptionFiles(copyOf(original.getOptionFiles()));
+        return this;
+    }
 
-        sourceNames = optionFile.getSourceNames();
-        jFlags = original.jFlags;
-        optionFiles = original.optionFiles;
-
-        knownCoreOptionNames = original.knownCoreOptionNames;
+    @Nullable
+    private static <T> T copyOf(@Nullable T value) {
+        if (value instanceof List) {
+            return Cast.uncheckedCast(new ArrayList<>((List<?>) value));
+        }
+        if (value instanceof Map) {
+            Map<Object, Object> copy = new LinkedHashMap<>();
+            for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+                copy.put(entry.getKey(), copyOf(entry.getValue()));
+            }
+            return Cast.uncheckedCast(copy);
+        }
+        return value;
     }
 
     /**
@@ -187,6 +211,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.overview")
     public String getOverview() {
         return overview.getValue();
     }
@@ -212,6 +237,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.memberLevel")
     public JavadocMemberLevel getMemberLevel() {
         return memberLevel.getValue();
     }
@@ -267,6 +293,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.doclet")
     public String getDoclet() {
         return doclet.getValue();
     }
@@ -303,6 +330,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.docletpath")
     public List<File> getDocletpath() {
         return docletpath.getValue();
     }
@@ -332,6 +360,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.source")
     public String getSource() {
         return source.getValue();
     }
@@ -373,6 +402,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.classpath")
     public List<File> getClasspath() {
         return classpath.getValue();
     }
@@ -384,6 +414,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.modulePath")
     public List<File> getModulePath() {
         return modulePath.getValue();
     }
@@ -419,6 +450,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.bootClasspath")
     public List<File> getBootClasspath() {
         return bootClasspath.getValue();
     }
@@ -444,6 +476,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.extDirs")
     public List<File> getExtDirs() {
         return extDirs.getValue();
     }
@@ -464,6 +497,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.outputLevel")
     public JavadocOutputLevel getOutputLevel() {
         return outputLevel.getValue();
     }
@@ -522,6 +556,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.breakIterator")
     public boolean isBreakIterator() {
         return breakIterator.getValue();
     }
@@ -563,6 +598,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.locale")
     public String getLocale() {
         return locale.getValue();
     }
@@ -587,6 +623,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.encoding")
     public String getEncoding() {
         return encoding.getValue();
     }
@@ -640,42 +677,45 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.jFlags")
     public List<String> getJFlags() {
-        return jFlags;
+        ListProperty<String> jFlags = getLazyProperties().getJFlags();
+        return jFlags.isPresent() ? EagerPropertySupport.conventionKeepingView(jFlags) : null;
     }
 
     @Override
     public void setJFlags(List<String> jFlags) {
-        this.jFlags = jFlags;
+        EagerPropertySupport.setEager(getLazyProperties().getJFlags(), jFlags);
     }
 
     @Override
     public MinimalJavadocOptions jFlags(String... jFlags) {
-        this.jFlags.addAll(Arrays.asList(jFlags));
+        getJFlags().addAll(Arrays.asList(jFlags));
         return this;
     }
 
     @Override
     public void contributeCommandLineOptions(ExecSpec execHandleBuilder) {
         execHandleBuilder
-            .args(GUtil.prefix("-J", jFlags)) // J flags can not be set in the option file
-            .args(GUtil.prefix("@", GFileUtils.toPaths(optionFiles))); // add additional option files
+            .args(GUtil.prefix("-J", getJFlags())) // J flags can not be set in the option file
+            .args(GUtil.prefix("@", GFileUtils.toPaths(getOptionFiles()))); // add additional option files
     }
 
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.optionFiles")
     public List<File> getOptionFiles() {
-        return optionFiles;
+        return new FileListView(getLazyProperties().getOptionFiles());
     }
 
     @Override
     public void setOptionFiles(List<File> optionFiles) {
-        this.optionFiles = optionFiles;
+        FileListView.setFiles(getLazyProperties().getOptionFiles(), optionFiles);
     }
 
     @Override
     public MinimalJavadocOptions optionFiles(File... argumentFiles) {
-        this.optionFiles.addAll(Arrays.asList(argumentFiles));
+        getOptionFiles().addAll(Arrays.asList(argumentFiles));
         return this;
     }
 

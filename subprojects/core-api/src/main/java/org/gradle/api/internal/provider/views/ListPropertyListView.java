@@ -50,8 +50,12 @@ public class ListPropertyListView<E> extends AbstractList<E> {
 
     @Override
     public boolean add(E element) {
-        delegate.add(element);
+        addElement(element);
         return true;
+    }
+
+    protected void addElement(E element) {
+        delegate.add(element);
     }
 
     @Override

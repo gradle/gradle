@@ -192,6 +192,7 @@ class KnownProblemIds {
         'Gradle:Plugin Validation:Incorrect use of @Input annotation': ['Incorrect use of @Input annotation'],
         'Gradle:Plugin Validation:Incorrect use of type annotation': ['Incorrect use of type annotation'],
         'Gradle:Plugin Validation:Invalid annotation in context': ['Invalid annotation in context'],
+        'Gradle:Plugin Validation:Invalid lazy property path': ['Invalid lazy property path'],
         'Gradle:Plugin Validation:Missing annotation': ['Missing annotation'],
         'Gradle:Plugin Validation:Missing normalization': ['Missing normalization'],
         'Gradle:Plugin Validation:Mutable type with setter': ['Mutable type with setter'],

@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -26,6 +27,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.RenamingCopyAction;
+import org.gradle.api.internal.provider.EagerPropertySupport;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.Classpath;
@@ -35,6 +37,8 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ConfigureUtil;
@@ -43,7 +47,6 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.Callable;
 
@@ -62,7 +65,6 @@ public abstract class War extends Jar {
      */
     public static final String WAR_EXTENSION = "war";
 
-    private FileCollection classpath;
     private final DefaultCopySpec webInf;
 
     /**
@@ -73,7 +75,6 @@ public abstract class War extends Jar {
     @SuppressWarnings("this-escape")
     public War() {
         getArchiveExtension().set(WAR_EXTENSION);
-        setMetadataCharset("UTF-8");
         // Add these as separate specs, so they are not affected by the changes to the main spec
 
         webInf = (DefaultCopySpec) getRootSpec().addChildBeforeSpec(getMainSpec()).into("WEB-INF");
@@ -95,6 +96,17 @@ public abstract class War extends Jar {
     @Inject
     @Override
     public abstract ObjectFactory getObjectFactory();
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 10.0.0
+     */
+    @Override
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract WarInputs getLazyProperties();
 
     /**
      * Returns the web inf.
@@ -146,8 +158,12 @@ public abstract class War extends Jar {
     @Optional
     @Classpath
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.classpath")
     public FileCollection getClasspath() {
-        return classpath;
+        ConfigurableFileCollection classpath = getLazyProperties().getClasspath();
+        // Null while nothing is declared. Otherwise the lazy collection and not the declared value,
+        // because the setters always wrapped their value in a new configurable collection.
+        return EagerPropertySupport.getEager(classpath) == null ? null : classpath;
     }
 
     /**
@@ -167,7 +183,7 @@ public abstract class War extends Jar {
      * @since 0.9
      */
     public void setClasspath(Object classpath) {
-        this.classpath = getObjectFactory().fileCollection().from(classpath);
+        getLazyProperties().getClasspath().setFrom(declared(classpath));
     }
 
     /**
@@ -176,10 +192,17 @@ public abstract class War extends Jar {
      * @param classpath The files to add. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
      * @since 0.9
      */
-    @SuppressWarnings("rawtypes")
     public void classpath(@Nullable Object... classpath) {
-        FileCollection oldClasspath = getClasspath();
-        this.classpath = getObjectFactory().fileCollection().from(oldClasspath != null ? oldClasspath : new ArrayList(), classpath);
+        if (classpath == null || classpath.length == 0) {
+            getLazyProperties().getClasspath().from(declared(null));
+        } else {
+            getLazyProperties().getClasspath().from(classpath);
+        }
+    }
+
+    // A null or empty value still declares a classpath, so the getter returns an empty collection and not null
+    private static Object declared(@Nullable Object classpath) {
+        return classpath != null ? classpath : Collections.emptyList();
     }
 
     /**
@@ -201,6 +224,7 @@ public abstract class War extends Jar {
      * @since 0.7
      */
     @ReplacedBy("webXmlFile")
+    @BackedByLazyProperty("webXmlFile")
     @Nullable
     @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getWebXmlFile() instead", willBeDeprecated = true)
     public File getWebXml() {

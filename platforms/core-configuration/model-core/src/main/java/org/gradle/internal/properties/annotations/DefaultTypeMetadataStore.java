@@ -23,6 +23,7 @@ import com.google.common.reflect.TypeToken;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.cache.Cache;
 import org.gradle.cache.internal.ClassCacheFactory;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.annotations.FunctionAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
@@ -111,13 +112,13 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             }
         }
 
-        ImmutableSet<PropertyMetadata> effectiveProperties = getEffectiveProperties(annotationMetadata, validationContext);
+        ImmutableSet<PropertyMetadata> effectiveProperties = getEffectiveProperties(publicType, annotationMetadata, validationContext);
         ImmutableSet<FunctionMetadata> effectiveFunctions = getEffectiveFunctions(annotationMetadata, validationContext);
         return new DefaultTypeMetadata(publicType, effectiveProperties, effectiveFunctions, validationContext, propertyAnnotationHandlers, functionAnnotationHandlers, annotationMetadata);
     }
 
     @NonNull
-    private ImmutableSet<PropertyMetadata> getEffectiveProperties(TypeAnnotationMetadata annotationMetadata, ReplayingTypeValidationContext validationContext) {
+    private ImmutableSet<PropertyMetadata> getEffectiveProperties(Class<?> publicType, TypeAnnotationMetadata annotationMetadata, ReplayingTypeValidationContext validationContext) {
         ImmutableSet.Builder<PropertyMetadata> effectiveProperties = ImmutableSet.builderWithExpectedSize(annotationMetadata.getPropertiesAnnotationMetadata().size());
         for (PropertyAnnotationMetadata propertyAnnotationMetadata : annotationMetadata.getPropertiesAnnotationMetadata()) {
             Map<AnnotationCategory, Annotation> propertyAnnotations = propertyAnnotationMetadata.getAnnotationsByCategory();
@@ -174,12 +175,30 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
             PropertyMetadata property = new DefaultPropertyMetadata(propertyType, propertyAnnotationMetadata);
             annotationHandler.validatePropertyMetadata(property, validationContext);
+            property.getAnnotation(BackedByLazyProperty.class)
+                .ifPresent(backedBy -> validateLazyPropertyPath(publicType, property.getPropertyName(), backedBy.value(), validationContext));
 
             if (annotationHandler.isPropertyRelevant()) {
                 effectiveProperties.add(property);
             }
         }
         return effectiveProperties.build();
+    }
+
+    private static void validateLazyPropertyPath(Class<?> publicType, String propertyName, String path, TypeValidationContext validationContext) {
+        String problem = LazyPropertyPathResolver.findStaticProblem(publicType, path);
+        if (problem == null) {
+            return;
+        }
+        String annotation = "@" + BackedByLazyProperty.class.getSimpleName();
+        validationContext.visitPropertyError(builder ->
+            builder
+                .forProperty(propertyName)
+                .id(builder.getGradleGroup().getPluginValidation().problemId("Invalid lazy property path"))
+                .contextualLabel(String.format("is annotated with %s(\"%s\") but %s", annotation, path, problem))
+                .details("The path of " + annotation + " must lead through getters to a Provider or a configurable value")
+                .solution("Fix the path in " + annotation)
+        );
     }
 
     @NonNull

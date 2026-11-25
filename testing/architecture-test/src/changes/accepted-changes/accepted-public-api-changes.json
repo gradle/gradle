@@ -1,3 +1,60 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.external.javadoc.CoreJavadocOptions",
+            "member": "Constructor org.gradle.external.javadoc.CoreJavadocOptions()",
+            "acceptation": "The Javadoc options are managed objects created by ObjectFactory, so their lazy properties can back the eager API",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.external.javadoc.CoreJavadocOptions",
+            "member": "Constructor org.gradle.external.javadoc.CoreJavadocOptions(org.gradle.external.javadoc.CoreJavadocOptions,org.gradle.external.javadoc.internal.JavadocOptionFile)",
+            "acceptation": "The Javadoc options are managed objects created by ObjectFactory, so their lazy properties can back the eager API",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.external.javadoc.StandardJavadocDocletOptions",
+            "member": "Class org.gradle.external.javadoc.StandardJavadocDocletOptions",
+            "acceptation": "The Javadoc options are managed objects created by ObjectFactory, so their lazy properties can back the eager API",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.external.javadoc.StandardJavadocDocletOptions",
+            "member": "Constructor org.gradle.external.javadoc.StandardJavadocDocletOptions(org.gradle.external.javadoc.MinimalJavadocOptions)",
+            "acceptation": "The Javadoc options are managed objects created by ObjectFactory, so their lazy properties can back the eager API",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.external.javadoc.StandardJavadocDocletOptions",
+            "member": "Constructor org.gradle.external.javadoc.StandardJavadocDocletOptions(org.gradle.external.javadoc.StandardJavadocDocletOptions)",
+            "acceptation": "The Javadoc options are managed objects created by ObjectFactory, so their lazy properties can back the eager API",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.external.javadoc.StandardJavadocDocletOptions",
+            "member": "Constructor org.gradle.external.javadoc.StandardJavadocDocletOptions(org.gradle.external.javadoc.StandardJavadocDocletOptions,org.gradle.external.javadoc.internal.JavadocOptionFile)",
+            "acceptation": "The Javadoc options are managed objects created by ObjectFactory, so their lazy properties can back the eager API",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.external.javadoc.StandardJavadocDocletOptions",
+            "member": "Constructor org.gradle.external.javadoc.StandardJavadocDocletOptions(org.gradle.external.javadoc.internal.JavadocOptionFile)",
+            "acceptation": "The Javadoc options are managed objects created by ObjectFactory, so their lazy properties can back the eager API",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        }
+    ]
 }
