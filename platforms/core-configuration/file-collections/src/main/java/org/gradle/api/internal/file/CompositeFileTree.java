@@ -79,14 +79,14 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
 
     @Override
     public FileTreeInternal matching(final PatternFilterable patterns) {
-        return newFilteredFileTree(() -> {
+        return new FilteredFileTree(this, taskDependencyFactory, patternSetFactory, () -> {
             if (patterns instanceof PatternSet) {
                 return (PatternSet) patterns;
             }
             PatternSet patternSet = patternSetFactory.createPatternSet();
             patternSet.copyFrom(patterns);
             return patternSet;
-        });
+        }, patterns);
     }
 
     @Override

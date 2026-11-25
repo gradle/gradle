@@ -33,6 +33,7 @@ import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.FilteredMinimalFileTree
 import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree
 import org.gradle.api.internal.file.collections.MinimalFileTree
+import org.gradle.api.internal.provider.LazyBackedPatternSet
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.serialize.graph.Codec
@@ -125,7 +126,13 @@ class FileTreeCodec(
                 false
             }
             fileCollection is FilteredFileTree -> {
+                val declaredPatterns = fileCollection.declaredPatterns
                 when {
+                    // Keep the link to the property: its value may be the output of a task that has not run yet,
+                    // and a change at execution time must reach the tree, as it does without the configuration cache
+                    declaredPatterns is LazyBackedPatternSet -> {
+                        roots.add(FilteredFileTreeSpec(fileCollection.tree, declaredPatterns))
+                    }
                     // Optimize a common case, where fileCollection.asFileTree.matching(emptyPatterns) is used,
                     // e.g. in SourceTask and in CopySpec.
                     // Skip applying the filters to the tree

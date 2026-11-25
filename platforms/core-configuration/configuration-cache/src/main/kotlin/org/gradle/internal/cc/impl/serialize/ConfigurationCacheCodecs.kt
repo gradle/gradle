@@ -74,7 +74,9 @@ import org.gradle.internal.serialize.codecs.core.FixedValueReplacingProviderCode
 import org.gradle.internal.serialize.codecs.core.FlowProvidersCodec
 import org.gradle.internal.serialize.codecs.core.GradlePropertiesCodec
 import org.gradle.internal.serialize.codecs.core.IntegerValueSnapshotCodec
+import org.gradle.internal.serialize.codecs.core.FilePatternsCodec
 import org.gradle.internal.serialize.codecs.core.IntersectionPatternSetCodec
+import org.gradle.internal.serialize.codecs.core.LazyBackedPatternSetCodec
 import org.gradle.internal.serialize.codecs.core.IsolateContextSource
 import org.gradle.internal.serialize.codecs.core.IsolatedArrayCodec
 import org.gradle.internal.serialize.codecs.core.IsolatedEnumValueSnapshotCodec
@@ -480,7 +482,9 @@ class DefaultConfigurationCacheCodecs(
         bind(ConfigurableFileCollectionCodec(fileCollectionCodec, fileCollectionFactory))
         bind(fileCollectionCodec)
         bind(IntersectionPatternSetCodec)
+        bind(LazyBackedPatternSetCodec(patternSetFactory))
         bind(PatternSetCodec(patternSetFactory))
+        bind(FilePatternsCodec)
     }
 
     override fun workNodeCodecFor(gradle: GradleInternal, contextSource: IsolateContextSource) =

@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.internal.provider.LazyBackedPatternSet;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -29,11 +31,27 @@ import java.util.function.Supplier;
 public class FilteredFileTree extends CompositeFileTree implements FileCollectionInternal.Source {
     private final FileTreeInternal tree;
     private final Supplier<? extends PatternSet> patternSupplier;
+    @Nullable
+    private final PatternFilterable declaredPatterns;
 
     public FilteredFileTree(FileTreeInternal tree, TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory, Supplier<? extends PatternSet> patternSupplier) {
+        this(tree, taskDependencyFactory, patternSetFactory, patternSupplier, null);
+    }
+
+    /**
+     * @param declaredPatterns the patterns passed to {@code matching()}, when the supplier derives its patterns from them
+     */
+    public FilteredFileTree(
+        FileTreeInternal tree,
+        TaskDependencyFactory taskDependencyFactory,
+        PatternSetFactory patternSetFactory,
+        Supplier<? extends PatternSet> patternSupplier,
+        @Nullable PatternFilterable declaredPatterns
+    ) {
         super(taskDependencyFactory, patternSetFactory);
         this.tree = tree;
         this.patternSupplier = patternSupplier;
+        this.declaredPatterns = declaredPatterns;
     }
 
     @Override
@@ -54,6 +72,14 @@ public class FilteredFileTree extends CompositeFileTree implements FileCollectio
     }
 
     /**
+     * The patterns passed to {@code matching()}, if known. Unlike {@link #getPatterns()}, reading this does not calculate the patterns.
+     */
+    @Nullable
+    public PatternFilterable getDeclaredPatterns() {
+        return declaredPatterns;
+    }
+
+    /**
      * The current set of patterns. Both the instance and the patterns it contains can change over time.
      */
     public PatternSet getPatterns() {
@@ -70,7 +96,7 @@ public class FilteredFileTree extends CompositeFileTree implements FileCollectio
             return this;
         }
         FileTreeInternal newFileTree = newTree instanceof FileTreeInternal ? (FileTreeInternal) newTree : newTree.getAsFileTree();
-        return new FilteredFileTree(newFileTree, taskDependencyFactory, patternSetFactory, patternSupplier);
+        return new FilteredFileTree(newFileTree, taskDependencyFactory, patternSetFactory, patternSupplier, declaredPatterns);
     }
 
     @Override
@@ -83,5 +109,9 @@ public class FilteredFileTree extends CompositeFileTree implements FileCollectio
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         tree.visitDependencies(context);
+        if (declaredPatterns instanceof LazyBackedPatternSet) {
+            // Visits only the producers of the bound value, without calculating it
+            ((LazyBackedPatternSet) declaredPatterns).visitDependencies(context);
+        }
     }
 }

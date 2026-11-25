@@ -90,41 +90,26 @@ public class PatternSet implements org.gradle.api.tasks.AntBuilderAware, Pattern
 
         PatternSet that = (PatternSet) o;
 
-        if (caseSensitive != that.caseSensitive) {
-            return false;
-        }
-        if (!nullToEmpty(excludeSpecs).equals(nullToEmpty(that.excludeSpecs))) {
-            return false;
-        }
-        if (!nullToEmpty(excludes).equals(nullToEmpty(that.excludes))) {
-            return false;
-        }
-        if (!nullToEmpty(includeSpecs).equals(nullToEmpty(that.includeSpecs))) {
-            return false;
-        }
-        if (!nullToEmpty(includes).equals(nullToEmpty(that.includes))) {
-            return false;
-        }
-
-        return true;
+        // Read through the view getters, so subclasses that keep the patterns elsewhere compare correctly
+        return isCaseSensitive() == that.isCaseSensitive()
+            && getExcludeSpecsView().equals(that.getExcludeSpecsView())
+            && getExcludesView().equals(that.getExcludesView())
+            && getIncludeSpecsView().equals(that.getIncludeSpecsView())
+            && getIncludesView().equals(that.getIncludesView());
     }
 
     @Override
     public int hashCode() {
-        int result = nullToEmpty(includes).hashCode();
-        result = 31 * result + nullToEmpty(excludes).hashCode();
-        result = 31 * result + nullToEmpty(includeSpecs).hashCode();
-        result = 31 * result + nullToEmpty(excludeSpecs).hashCode();
-        result = 31 * result + (caseSensitive ? 1 : 0);
+        int result = getIncludesView().hashCode();
+        result = 31 * result + getExcludesView().hashCode();
+        result = 31 * result + getIncludeSpecsView().hashCode();
+        result = 31 * result + getExcludeSpecsView().hashCode();
+        result = 31 * result + (isCaseSensitive() ? 1 : 0);
         return result;
     }
 
     private static <T> Set<T> nullToEmptyAndUnmodifiableSet(@Nullable Set<T> set) {
         return set == null ? Collections.emptySet() : Collections.unmodifiableSet(set);
-    }
-
-    private static Set<?> nullToEmpty(@Nullable Set<?> set) {
-        return set == null ? Collections.emptySet() : set;
     }
 
     /**
@@ -142,7 +127,7 @@ public class PatternSet implements org.gradle.api.tasks.AntBuilderAware, Pattern
      * @since 2.5
      */
     protected PatternSet doCopyFrom(PatternSet from) {
-        caseSensitive = from.caseSensitive;
+        caseSensitive = from.isCaseSensitive();
 
         if (from instanceof IntersectionPatternSet) {
             PatternSet other = ((IntersectionPatternSet) from).getOther();
@@ -163,10 +148,15 @@ public class PatternSet implements org.gradle.api.tasks.AntBuilderAware, Pattern
     }
 
     private void copyIncludesAndExcludes(PatternSet target, PatternSet from) {
-        target.includes = from.includes == null ? null : Sets.newLinkedHashSet(from.includes);
-        target.excludes = from.excludes == null ? null : Sets.newLinkedHashSet(from.excludes);
-        target.includeSpecs = from.includeSpecs == null ? null : Sets.newLinkedHashSet(from.includeSpecs);
-        target.excludeSpecs = from.excludeSpecs == null ? null : Sets.newLinkedHashSet(from.excludeSpecs);
+        target.includes = copyOrNull(from.getIncludesView());
+        target.excludes = copyOrNull(from.getExcludesView());
+        target.includeSpecs = copyOrNull(from.getIncludeSpecsView());
+        target.excludeSpecs = copyOrNull(from.getExcludeSpecsView());
+    }
+
+    @Nullable
+    private static <T> Set<T> copyOrNull(Set<T> view) {
+        return view.isEmpty() ? null : Sets.newLinkedHashSet(view);
     }
 
     /**
@@ -192,10 +182,10 @@ public class PatternSet implements org.gradle.api.tasks.AntBuilderAware, Pattern
      * @since 2.13
      */
     public boolean isEmpty() {
-        return (includes == null || includes.isEmpty())
-            && (excludes == null || excludes.isEmpty())
-            && (includeSpecs == null || includeSpecs.isEmpty())
-            && (excludeSpecs == null || excludeSpecs.isEmpty());
+        return getIncludesView().isEmpty()
+            && getExcludesView().isEmpty()
+            && getIncludeSpecsView().isEmpty()
+            && getExcludeSpecsView().isEmpty();
     }
 
     /**
@@ -431,7 +421,7 @@ public class PatternSet implements org.gradle.api.tasks.AntBuilderAware, Pattern
             .withUpgradeGuideSection(9, "deprecated_ant_builder")
             .nagUser();
 
-        if (!nullToEmpty(includeSpecs).isEmpty() || !nullToEmpty(excludeSpecs).isEmpty()) {
+        if (!getIncludeSpecsView().isEmpty() || !getExcludeSpecsView().isEmpty()) {
             throw new UnsupportedOperationException("Cannot add include/exclude specs to Ant node. Only include/exclude patterns are currently supported.");
         }
 

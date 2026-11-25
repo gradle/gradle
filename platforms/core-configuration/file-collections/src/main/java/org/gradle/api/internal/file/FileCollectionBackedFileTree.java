@@ -73,7 +73,7 @@ public class FileCollectionBackedFileTree extends AbstractFileTree {
             PatternSet patternSet = patternSetFactory.createPatternSet();
             patternSet.copyFrom(patterns);
             return patternSet;
-        });
+        }, patterns);
     }
 
     @Override
