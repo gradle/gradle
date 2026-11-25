@@ -373,9 +373,9 @@ When this doesn't help and suppression is necessary:
 ### IDEA
 - IDEA may emit false positives in non-`@NullMarked` code, because unlike NullAway it relies on these annotations.
 
-- IDEA does not understand the [field contract annotations](#describing-field-invariants) (`@EnsuresNonNull`, `@RequiresNonNull`).
+- [[IDEA-396334](https://youtrack.jetbrains.com/issue/IDEA-396334)] IDEA does not understand the [field contract annotations](#describing-field-invariants) (`@EnsuresNonNull`, `@RequiresNonNull`).
   It may warn about possible `NullPointerException` where NullAway, which verifies the contract, accepts the code.
-  If the warning gets in the way, suppress it with `@SuppressWarnings("DataFlowIssue")` on the smallest possible scope.
+  If the warning gets in the way, suppress it with `@SuppressWarnings("DataFlowIssue")` or an `assert` on the smallest possible scope.
 
 - [[IDEA-383015](https://youtrack.jetbrains.com/issue/IDEA-383015)] IDEA considers `Optional.ofNullable` to return `Optional<@Nullable T>`, and complains about converting it to `Optional<T>`.
   For example, IDEA emits a warning for:
