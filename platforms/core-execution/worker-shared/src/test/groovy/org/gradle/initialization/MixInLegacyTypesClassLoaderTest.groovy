@@ -16,10 +16,12 @@
 
 package org.gradle.initialization
 
+import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -143,6 +145,47 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         then:
         thrown java.lang.NoSuchMethodException
     }
+
+    def "add getters for booleans backed by lazy properties"() {
+        given:
+        def className = "org.gradle.api.plugins.JavaLibraryDistributionPlugin"
+
+        def original = compileJavaToDir(className, """
+            package org.gradle.api.plugins;
+            import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+            class JavaLibraryDistributionPlugin {
+                @BackedByLazyProperty("lazyProperties.lazyBoolean")
+                public boolean isLazyBoolean() { return true; }
+                @BackedByLazyProperty("lazyProperties.lazyBooleanWithGetter")
+                public boolean isLazyBooleanWithGetter() { return true; }
+                public boolean getLazyBooleanWithGetter() { return false; }
+                public boolean isWithoutField() { return true; }
+            }
+        """, [BackedByLazyProperty])
+
+        when:
+        original.getMethod("getLazyBoolean")
+
+        then:
+        thrown java.lang.NoSuchMethodException
+
+        expect:
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, DefaultClassPath.of(classesDir), new DefaultLegacyTypesSupport())
+
+        def cl = loader.loadClass(className)
+        def obj = JavaReflectionUtil.newInstance(cl)
+        obj.getLazyBoolean() == true
+        obj.lazyBoolean == true
+
+        obj.getLazyBooleanWithGetter() == false
+
+        when:
+        cl.getMethod("getWithoutField")
+
+        then:
+        thrown java.lang.NoSuchMethodException
+    }
+
     def "does not mix GroovyObject into other types"() {
         given:
         def className = "org.gradle.api.plugins.Thing"
@@ -191,7 +234,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         return new FilteringClassLoader(getClass().classLoader, spec)
     }
 
-    def compileJavaToDir(String className, String text) {
+    def compileJavaToDir(String className, String text, List<Class<?>> compileClasspath = []) {
         srcDir.createDir()
         def srcFile = srcDir.file(className + ".java")
         srcFile.text = text
@@ -200,7 +243,11 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         classesDir.createDir()
 
         def fileManager = compiler.getStandardFileManager(null, null, null)
-        def task = compiler.getTask(null, fileManager, null, ["-d", classesDir.path], null, fileManager.getJavaFileObjects(srcFile))
+        def options = ["-d", classesDir.path]
+        if (!compileClasspath.empty) {
+            options += ["-classpath", compileClasspath.collect { ClasspathUtil.getClasspathForClass(it).path }.join(File.pathSeparator)]
+        }
+        def task = compiler.getTask(null, fileManager, null, options, null, fileManager.getJavaFileObjects(srcFile))
         task.call()
         def cl = VisitableURLClassLoader.fromClassPath("groovy-loader", groovyClassLoader, DefaultClassPath.of(classesDir))
         cl.loadClass(className)
