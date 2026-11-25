@@ -221,14 +221,9 @@ Gradle properties not mapped directly to a `Project` property are available here
 Values added explicitly to the extra properties extension take precedence over Gradle properties with the same name.
 . An extension with the requested name.
 . A task with the requested name.
-. Extra properties and extensions on ancestor projects, starting with the parent project and continuing to the root project.
 
-[WARNING]
-====
-Implicit lookup of properties and methods in parent projects (step 5) is deprecated in Gradle 9.6 and will be removed in Gradle 10.
-See <<upgrading_version_9.adoc#deprecated_implicit_lookup_in_parent_projects,the upgrade guide entry>> and <<isolated_projects.adoc#sec:no_implicit_parents_lookup,No implicit lookup of properties and methods in parent projects>>.
-Declare the property in the current project instead, or use `rootProject.ext.foo` or `parent.ext.foo` to make the cross-project reference explicit.
-====
+The lookup stops at the current project.
+To read a value from another project, reference it explicitly, for example with `rootProject.ext.foo` or `parent.ext.foo`.
 
 Explicit `set()` calls on the extra properties extension always take precedence over any Gradle-property source.
 Among the Gradle-property sources that feed extra properties, precedence is as follows (highest to lowest):
@@ -245,7 +240,7 @@ The three dynamic lookup methods use the same search order but handle a missing 
 `findProperty()` returns `null`, `property()` throws a `MissingPropertyException`, and `hasProperty()` returns `false`.
 
 The `project.extra` Kotlin DSL accessor and the `project.extensions.extraProperties` API expose only the current project's extra properties (step 2).
-They do not search the project's own properties, extensions, tasks, or ancestor projects.
+They do not search the project's own properties, extensions, or tasks.
 
 It is possible to change the behavior of a task based on project properties specified at invocation time.
 Suppose you’d like to ensure release builds are only triggered by CI.
