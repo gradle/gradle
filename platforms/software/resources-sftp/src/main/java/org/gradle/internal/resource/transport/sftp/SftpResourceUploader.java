@@ -23,6 +23,7 @@ import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.ReadableContent;
+import org.gradle.internal.uri.UriDisplay;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 
 import java.io.IOException;
@@ -71,14 +72,14 @@ public class SftpResourceUploader implements ExternalResourceUploader {
             return;
         } catch (com.jcraft.jsch.SftpException e) {
             if (e.id != ChannelSftp.SSH_FX_NO_SUCH_FILE) {
-                throw new ResourceException(parent, String.format("Could not lstat resource '%s'.", parent), e);
+                throw new ResourceException(parent, String.format("Could not lstat resource '%s'.", UriDisplay.maskUserInfo(parent)), e);
             }
         }
         ensureParentDirectoryExists(channel, parent);
         try {
             channel.mkdir(parentPath);
         } catch (com.jcraft.jsch.SftpException e) {
-            throw new ResourceException(parent, String.format("Could not create resource '%s'.", parent), e);
+            throw new ResourceException(parent, String.format("Could not create resource '%s'.", UriDisplay.maskUserInfo(parent)), e);
         }
     }
 }

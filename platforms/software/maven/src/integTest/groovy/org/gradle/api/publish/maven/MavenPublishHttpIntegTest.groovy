@@ -186,6 +186,22 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
     }
 
+    def "does not show credentials embedded in the repository URL when publishing fails"() {
+        given:
+        def uri = mavenRemoteRepo.uri
+        buildFile << publicationBuildWithoutCredentials(version, group, new URI(uri.scheme, "someuser:s3cret", uri.host, uri.port, uri.path, null, null))
+        module.artifact.expectPut(401)
+
+        when:
+        fails 'publish', '--info', '--stacktrace'
+
+        then:
+        failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
+        failure.assertHasCause("Could not PUT '${new URI(uri.scheme, "***", uri.host, uri.port, module.artifact.uri.path, null, null)}'.")
+        failure.assertNotOutput("s3cret")
+        failure.assertNotOutput("someuser")
+    }
+
     @Issue("GRADLE-3312")
     def "can publish to a http repo via redirects"() {
         given:

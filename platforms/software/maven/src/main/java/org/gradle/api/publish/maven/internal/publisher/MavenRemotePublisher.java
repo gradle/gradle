@@ -27,6 +27,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceRepository;
+import org.gradle.internal.uri.UriDisplay;
 import org.gradle.internal.resource.transport.RepositoryTransport;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.jspecify.annotations.NullMarked;
@@ -56,7 +57,7 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
     public void publish(MavenNormalizedPublication publication, @Nullable MavenArtifactRepository artifactRepository) {
         assert artifactRepository != null;
         URI repositoryUrl = artifactRepository.getUrl();
-        LOGGER.info("Publishing to repository '{}' ({})", artifactRepository.getName(), repositoryUrl);
+        LOGGER.info("Publishing to repository '{}' ({})", artifactRepository.getName(), UriDisplay.maskUserInfo(repositoryUrl));
 
         String protocol = repositoryUrl.getScheme().toLowerCase(Locale.ROOT);
         DefaultMavenArtifactRepository realRepository = (DefaultMavenArtifactRepository) artifactRepository;

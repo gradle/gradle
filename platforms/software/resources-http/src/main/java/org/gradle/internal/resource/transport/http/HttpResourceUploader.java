@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.HttpErrorStatusCodeException;
 import org.gradle.internal.resource.ReadableContent;
+import org.gradle.internal.uri.UriDisplay;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 
 import java.io.IOException;
@@ -39,7 +40,7 @@ public class HttpResourceUploader implements ExternalResourceUploader {
             if (!response.isSuccessful()) {
                 URI effectiveUri = response.getEffectiveUri();
                 HttpErrorStatusCodeException statusCause = new HttpErrorStatusCodeException(response.getStatusCode(), response.getStatusReason());
-                throw new HttpRequestException(String.format("Could not %s '%s'.", response.getMethod(), effectiveUri), statusCause);
+                throw new HttpRequestException(String.format("Could not %s '%s'.", response.getMethod(), UriDisplay.maskUserInfo(effectiveUri)), statusCause);
             }
         }
     }

@@ -15,6 +15,7 @@ dependencies {
 
     runtimeOnly(projects.core)
 
+    implementation(projects.baseServices)
     implementation(projects.coreApi)
     implementation(projects.credentials)
     implementation(projects.logging)
