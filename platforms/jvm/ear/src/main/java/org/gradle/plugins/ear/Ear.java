@@ -18,6 +18,7 @@ package org.gradle.plugins.ear;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
@@ -25,6 +26,7 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
+import org.gradle.api.internal.provider.EagerPropertySupport;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
@@ -32,6 +34,8 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.EarModule;
@@ -66,7 +70,6 @@ public abstract class Ear extends Jar {
      */
     public static final String EAR_EXTENSION = "ear";
 
-    private String libDirName;
     private DeploymentDescriptor deploymentDescriptor;
     private CopySpec lib;
 
@@ -78,7 +81,6 @@ public abstract class Ear extends Jar {
     @SuppressWarnings({"this-escape", "DefaultCharset"}) //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public Ear() {
         getArchiveExtension().set(EAR_EXTENSION);
-        setMetadataCharset("UTF-8");
         getGenerateDeploymentDescriptor().convention(true);
         lib = getRootSpec().addChildBeforeSpec(getMainSpec()).into(
             callable(() -> GUtil.elvis(getLibDirName(), DEFAULT_LIB_DIR_NAME))
@@ -167,6 +169,17 @@ public abstract class Ear extends Jar {
     protected abstract ObjectFactory getObjectFactory();
 
     /**
+     * {@inheritDoc}
+     *
+     * @since 10.0.0
+     */
+    @Override
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract EarInputs getLazyProperties();
+
+    /**
      * Configures the deployment descriptor for this EAR archive.
      *
      * <p>The given closure is executed to configure the deployment descriptor. The {@link DeploymentDescriptor} is passed to the closure as its delegate.</p>
@@ -247,8 +260,9 @@ public abstract class Ear extends Jar {
     @Optional
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.libDirName")
     public String getLibDirName() {
-        return libDirName;
+        return getLazyProperties().getLibDirName().getOrNull();
     }
 
     /**
@@ -257,7 +271,7 @@ public abstract class Ear extends Jar {
      * @since 1.0
      */
     public void setLibDirName(@Nullable String libDirName) {
-        this.libDirName = libDirName;
+        EagerPropertySupport.setEager(getLazyProperties().getLibDirName(), libDirName);
     }
 
     /**

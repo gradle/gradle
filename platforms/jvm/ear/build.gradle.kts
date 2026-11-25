@@ -10,13 +10,13 @@ dependencies {
     api(libs.jspecify)
 
     api(projects.baseServices)
+    api(projects.core)
     api(projects.coreApi)
     api(projects.languageJvm)
     api(projects.platformJvm)
+    api(projects.stdlibJavaExtensions)
 
     implementation(projects.serviceLookup)
-    implementation(projects.stdlibJavaExtensions)
-    implementation(projects.core)
     implementation(projects.fileOperations)
     implementation(projects.execution)
     implementation(projects.fileCollections)
