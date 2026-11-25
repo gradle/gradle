@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.tooling.r910
+package org.gradle.plugins.ide.tooling.r1000
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -26,7 +26,7 @@ import org.gradle.integtests.tooling.r56.TellGradleToRunBuildDependencyTask
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Issue
 
-@TargetGradleVersion(">=9.10")
+@TargetGradleVersion(">=10.0")
 @Issue("https://github.com/gradle/gradle/issues/32284")
 class ToolingApiEclipseModelProjectDependenciesCrossVersionSpec extends ToolingApiSpecification {
 

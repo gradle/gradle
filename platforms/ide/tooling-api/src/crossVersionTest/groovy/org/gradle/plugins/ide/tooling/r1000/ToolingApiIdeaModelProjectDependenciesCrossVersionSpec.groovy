@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.tooling.r910
+package org.gradle.plugins.ide.tooling.r1000
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 
-@TargetGradleVersion(">=9.10")
+@TargetGradleVersion(">=10.0")
 class ToolingApiIdeaModelProjectDependenciesCrossVersionSpec extends ToolingApiSpecification {
 
     def "subtracting the runtime classpath from the provided scope leaves a project dependency out of compile scope"() {
