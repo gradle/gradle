@@ -15,12 +15,17 @@
  */
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.provider.EagerPropertySupport;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
@@ -38,9 +43,6 @@ import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccess
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractCompile extends SourceTask {
     private final DirectoryProperty destinationDirectory;
-    private FileCollection classpath;
-    private String sourceCompatibility;
-    private String targetCompatibility;
 
     /**
      * Creates a new {@code AbstractCompile}.
@@ -53,6 +55,17 @@ public abstract class AbstractCompile extends SourceTask {
     }
 
     /**
+     * {@inheritDoc}
+     *
+     * @since 10.0.0
+     */
+    @Override
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract AbstractCompileInputs getLazyProperties();
+
+    /**
      * Returns the classpath to use to compile the source files.
      *
      * @return The classpath.
@@ -60,8 +73,9 @@ public abstract class AbstractCompile extends SourceTask {
      */
     @Classpath
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.classpath")
     public FileCollection getClasspath() {
-        return classpath;
+        return EagerPropertySupport.getEager(getLazyProperties().getClasspath());
     }
 
     /**
@@ -71,7 +85,7 @@ public abstract class AbstractCompile extends SourceTask {
      * @since 0.9
      */
     public void setClasspath(FileCollection configuration) {
-        this.classpath = configuration;
+        getLazyProperties().getClasspath().setFrom(configuration);
     }
 
     /**
@@ -100,8 +114,9 @@ public abstract class AbstractCompile extends SourceTask {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.sourceCompatibility")
     public String getSourceCompatibility() {
-        return sourceCompatibility;
+        return getLazyProperties().getSourceCompatibility().getOrNull();
     }
 
     /**
@@ -111,7 +126,7 @@ public abstract class AbstractCompile extends SourceTask {
      * @since 0.9
      */
     public void setSourceCompatibility(String sourceCompatibility) {
-        this.sourceCompatibility = sourceCompatibility;
+        EagerPropertySupport.setEager(getLazyProperties().getSourceCompatibility(), sourceCompatibility);
     }
 
     /**
@@ -122,8 +137,9 @@ public abstract class AbstractCompile extends SourceTask {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.targetCompatibility")
     public String getTargetCompatibility() {
-        return targetCompatibility;
+        return getLazyProperties().getTargetCompatibility().getOrNull();
     }
 
     /**
@@ -133,6 +149,6 @@ public abstract class AbstractCompile extends SourceTask {
      * @since 0.9
      */
     public void setTargetCompatibility(String targetCompatibility) {
-        this.targetCompatibility = targetCompatibility;
+        EagerPropertySupport.setEager(getLazyProperties().getTargetCompatibility(), targetCompatibility);
     }
 }

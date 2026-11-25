@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -57,6 +58,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -123,6 +125,17 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         getOptions().getIncrementalAfterFailure().convention(true);
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(getOptions(), getOutputs());
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 10.0.0
+     */
+    @Override
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract JavaCompileInputs getLazyProperties();
 
     /**
      * {@inheritDoc}
@@ -248,11 +261,12 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         spec.setCompileClasspath(ImmutableList.copyOf(javaModuleDetector.inferClasspath(isModule, getClasspath())));
         spec.setModulePath(ImmutableList.copyOf(javaModuleDetector.inferModulePath(isModule, getClasspath())));
 
-        if (isModule && !isSourcepathUserDefined) {
-            getOptions().setSourcepath(getProjectLayout().files(sourcesRoots));
-        }
         spec.setAnnotationProcessorPath(getOptions().getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(getOptions().getAnnotationProcessorPath()));
         configureCompileOptions(spec);
+        if (isModule && !isSourcepathUserDefined) {
+            // Set on the spec only: the options of the task are upgraded lazy properties, which warn when changed during execution
+            spec.getCompileOptions().setSourcepath(ImmutableList.copyOf(getProjectLayout().files(sourcesRoots).getFiles()));
+        }
         spec.setSourcesRoots(sourcesRoots);
 
         if (!isToolchainCompatibleWithJava8()) {

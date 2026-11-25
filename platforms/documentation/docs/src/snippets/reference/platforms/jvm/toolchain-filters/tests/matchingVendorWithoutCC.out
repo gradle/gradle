@@ -1,4 +1,6 @@
 Could not determine the dependencies of task ':compileJava'.
 > Could not resolve all dependencies for configuration ':compileClasspath'.
-   > Failed to calculate the value of task ':compileJava' property 'javaCompiler'.
-      > Cannot find a Java installation on your machine (%OS_ARCH%) matching: {languageVersion=11, vendor=vendor matching('customString'), implementation=vendor-specific, nativeImageCapable=false}. Toolchain auto-provisioning is not enabled.
+   > Failed to query the value of task ':compileJava' property 'lazyProperties.targetCompatibility'.
+      > Failed to query the value of task ':compileJava' property 'lazyProperties.sourceCompatibility'.
+         > Failed to calculate the value of task ':compileJava' property 'javaCompiler'.
+            > Cannot find a Java installation on your machine (%OS_ARCH%) matching: {languageVersion=11, vendor=vendor matching('customString'), implementation=vendor-specific, nativeImageCapable=false}. Toolchain auto-provisioning is not enabled.
