@@ -16,15 +16,19 @@
 package org.gradle.api.tasks.bundling;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.DefaultZipCompressor;
 import org.gradle.api.internal.file.copy.ZipCompressor;
+import org.gradle.api.internal.provider.EagerPropertySupport;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
@@ -45,9 +49,6 @@ public abstract class Zip extends AbstractArchiveTask {
      * @since 0.7
      */
     public static final String ZIP_EXTENSION = "zip";
-    private ZipEntryCompression entryCompression = ZipEntryCompression.DEFLATED;
-    private boolean allowZip64;
-    private String metadataCharset;
 
     /**
      * Creates a new {@code Zip}.
@@ -57,8 +58,20 @@ public abstract class Zip extends AbstractArchiveTask {
     @SuppressWarnings("this-escape")
     public Zip() {
         getArchiveExtension().set(ZIP_EXTENSION);
-        allowZip64 = false;
+        getLazyProperties().getEntryCompression().convention(ZipEntryCompression.DEFLATED);
+        getLazyProperties().getZip64().convention(false);
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 10.0.0
+     */
+    @Override
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract ZipInputs getLazyProperties();
 
     /**
      * Returns the compressor.
@@ -67,6 +80,8 @@ public abstract class Zip extends AbstractArchiveTask {
      */
     @Internal
     protected ZipCompressor getCompressor() {
+        ZipEntryCompression entryCompression = getLazyProperties().getEntryCompression().getOrNull();
+        boolean allowZip64 = getLazyProperties().getZip64().get();
         switch (entryCompression) {
             case DEFLATED:
                 return new DefaultZipCompressor(allowZip64, ZipArchiveOutputStream.DEFLATED);
@@ -80,7 +95,18 @@ public abstract class Zip extends AbstractArchiveTask {
     @Override
     protected CopyAction createCopyAction() {
         DocumentationRegistry documentationRegistry = getServices().get(DocumentationRegistry.class);
+        String metadataCharset = getLazyProperties().getMetadataCharset().getOrNull();
+        if (metadataCharset != null) {
+            // A value bound lazily did not go through the setter
+            checkMetadataCharsetSupported(metadataCharset);
+        }
         return new ZipCopyAction(getArchiveFile().get().getAsFile(), getCompressor(), documentationRegistry, metadataCharset, isPreserveFileTimestamps(), getReproducibleFileTimestamp());
+    }
+
+    private static void checkMetadataCharsetSupported(String metadataCharset) {
+        if (!Charset.isSupported(metadataCharset)) {
+            throw new InvalidUserDataException(String.format("Charset for metadataCharset '%s' is not supported by your JVM", metadataCharset));
+        }
     }
 
     /**
@@ -92,8 +118,9 @@ public abstract class Zip extends AbstractArchiveTask {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.entryCompression")
     public ZipEntryCompression getEntryCompression() {
-        return entryCompression;
+        return getLazyProperties().getEntryCompression().getOrNull();
     }
 
     /**
@@ -104,7 +131,7 @@ public abstract class Zip extends AbstractArchiveTask {
      * @since 1.5
      */
     public void setEntryCompression(ZipEntryCompression entryCompression) {
-        this.entryCompression = entryCompression;
+        EagerPropertySupport.setEager(getLazyProperties().getEntryCompression(), entryCompression);
     }
 
     /**
@@ -114,7 +141,7 @@ public abstract class Zip extends AbstractArchiveTask {
      * @since 1.12
      */
     public void setZip64(boolean allowZip64) {
-        this.allowZip64 = allowZip64;
+        getLazyProperties().getZip64().set(allowZip64);
     }
 
     /**
@@ -131,8 +158,9 @@ public abstract class Zip extends AbstractArchiveTask {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.zip64")
     public boolean isZip64() {
-        return allowZip64;
+        return getLazyProperties().getZip64().get();
     }
 
     /**
@@ -144,8 +172,9 @@ public abstract class Zip extends AbstractArchiveTask {
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
+    @BackedByLazyProperty("lazyProperties.metadataCharset")
     public String getMetadataCharset() {
-        return this.metadataCharset;
+        return getLazyProperties().getMetadataCharset().getOrNull();
     }
 
     /**
@@ -159,10 +188,8 @@ public abstract class Zip extends AbstractArchiveTask {
         if (metadataCharset == null) {
             throw new InvalidUserDataException("metadataCharset must not be null");
         }
-        if (!Charset.isSupported(metadataCharset)) {
-            throw new InvalidUserDataException(String.format("Charset for metadataCharset '%s' is not supported by your JVM", metadataCharset));
-        }
-        this.metadataCharset = metadataCharset;
+        checkMetadataCharsetSupported(metadataCharset);
+        getLazyProperties().getMetadataCharset().set(metadataCharset);
     }
 
 }

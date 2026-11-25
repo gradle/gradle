@@ -33,6 +33,8 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -57,8 +59,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     // Groovy will try to set the private fields if given the opportunity.
     // This makes it much more difficult for this to happen accidentally.
     private final RegularFileProperty archiveFile;
-    private final Property<Boolean> archivePreserveFileTimestamps;
-    private final Property<Boolean> archiveReproducibleFileOrder;
 
     /**
      * Creates a new {@code AbstractArchiveTask}.
@@ -86,8 +86,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         archiveFile = objectFactory.fileProperty();
         archiveFile.convention(getDestinationDirectory().file(getArchiveFileName()));
 
-        archivePreserveFileTimestamps = objectFactory.property(Boolean.class).convention(false);
-        archiveReproducibleFileOrder = objectFactory.property(Boolean.class).convention(true);
+        getLazyProperties().getPreserveFileTimestamps().convention(false);
+        getLazyProperties().getReproducibleFileOrder().convention(true);
         configureDefaultPermissions();
     }
 
@@ -108,6 +108,16 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
     @Inject
     protected abstract FileSystemOperations getFileSystemOperations();
+
+    /**
+     * The lazy properties behind the eager getters and setters of this task.
+     *
+     * @since 10.0.0
+     */
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract AbstractArchiveTaskInputs getLazyProperties();
 
     private static String maybe(@Nullable String prefix, @Nullable String value) {
         if (GUtil.isTrue(value)) {
@@ -280,8 +290,9 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.preserveFileTimestamps")
     public boolean isPreserveFileTimestamps() {
-        return archivePreserveFileTimestamps.get();
+        return getLazyProperties().getPreserveFileTimestamps().get();
     }
 
     /**
@@ -297,7 +308,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 3.4
      */
     public void setPreserveFileTimestamps(boolean preserveFileTimestamps) {
-        archivePreserveFileTimestamps.set(preserveFileTimestamps);
+        getLazyProperties().getPreserveFileTimestamps().set(preserveFileTimestamps);
     }
 
     /**
@@ -316,8 +327,9 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.reproducibleFileOrder")
     public boolean isReproducibleFileOrder() {
-        return archiveReproducibleFileOrder.get();
+        return getLazyProperties().getReproducibleFileOrder().get();
     }
 
     /**
@@ -335,7 +347,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 3.4
      */
     public void setReproducibleFileOrder(boolean reproducibleFileOrder) {
-        archiveReproducibleFileOrder.set(reproducibleFileOrder);
+        getLazyProperties().getReproducibleFileOrder().set(reproducibleFileOrder);
     }
 
     /**

@@ -16,13 +16,18 @@
 
 package org.gradle.api.tasks.bundling;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.internal.file.archive.TarCopyAction;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
 import org.gradle.api.internal.file.copy.CopyAction;
+import org.gradle.api.internal.provider.EagerPropertySupport;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -32,7 +37,6 @@ import org.gradle.work.DisableCachingByDefault;
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class Tar extends AbstractArchiveTask {
-    private Compression compression = Compression.NONE;
 
     /**
      * Creates a new {@code Tar}.
@@ -41,8 +45,20 @@ public abstract class Tar extends AbstractArchiveTask {
      */
     @SuppressWarnings("this-escape")
     public Tar() {
+        getLazyProperties().getCompression().convention(Compression.NONE);
         getArchiveExtension().set(getProject().provider(() -> getCompression().getDefaultExtension()));
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 10.0.0
+     */
+    @Override
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract TarInputs getLazyProperties();
 
     @Override
     protected CopyAction createCopyAction() {
@@ -50,7 +66,7 @@ public abstract class Tar extends AbstractArchiveTask {
     }
 
     private ArchiveOutputStreamFactory getCompressor() {
-        switch(compression) {
+        switch(getLazyProperties().getCompression().getOrNull()) {
             case BZIP2: return Bzip2Archiver.getCompressor();
             case GZIP:  return GzipArchiver.getCompressor();
             default:    return new SimpleCompressor();
@@ -65,8 +81,9 @@ public abstract class Tar extends AbstractArchiveTask {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.compression")
     public Compression getCompression() {
-        return compression;
+        return getLazyProperties().getCompression().getOrNull();
     }
 
     /**
@@ -76,7 +93,7 @@ public abstract class Tar extends AbstractArchiveTask {
      * @since 0.7
      */
     public void setCompression(Compression compression) {
-        this.compression = compression;
+        EagerPropertySupport.setEager(getLazyProperties().getCompression(), compression);
     }
 
 }
