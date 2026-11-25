@@ -22,6 +22,7 @@ description = "Adds support for assembling JVM web application WAR files"
 
 dependencies {
     api(projects.languageJvm)
+    api(projects.platformJvm)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
@@ -37,7 +38,6 @@ dependencies {
     implementation(projects.languageJava)
     implementation(projects.modelCore)
     implementation(projects.platformBase)
-    implementation(projects.platformJvm)
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJvmTestSuite)
 
