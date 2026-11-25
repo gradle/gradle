@@ -37,11 +37,18 @@ public class ProcessArgumentsSpec {
     }
 
     private final HasExecutable hasExecutable;
-    private final List<Object> arguments = new ArrayList<>();
+    private List<Object> arguments = new ArrayList<>();
     private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<>();
 
     public ProcessArgumentsSpec(HasExecutable hasExecutable) {
         this.hasExecutable = hasExecutable;
+    }
+
+    /**
+     * Stores the arguments in the given list from now on. The list must already hold the current arguments.
+     */
+    public void attach(List<Object> arguments) {
+        this.arguments = arguments;
     }
 
     public List<String> getCommandLine() {

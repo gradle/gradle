@@ -17,6 +17,9 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -30,7 +33,7 @@ import java.util.List;
 
 public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSpec, ProcessArgumentsSpec.HasExecutable {
 
-    private boolean ignoreExitValue;
+    private OptionStorage<Boolean> ignoreExitValue = OptionStorage.inField(false);
     private final ProcessStreamsSpec streamsSpec = new ProcessStreamsSpec();
     private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
 
@@ -38,6 +41,17 @@ public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSp
     @SuppressWarnings("this-escape")
     public DefaultExecSpec(ObjectFactory objectFactory, PathToFileResolver resolver) {
         super(objectFactory, resolver);
+    }
+
+    /**
+     * Stores the spec in the given lazy properties from now on. Their current values become conventions.
+     * The argument providers and the streams stay plain values.
+     */
+    public void attach(Property<String> executable, MapProperty<String, Object> environment, ListProperty<String> args, Property<Boolean> ignoreExitValue) {
+        attach(executable, environment);
+        args.convention(getArgs());
+        argumentsSpec.attach(new LazyArgumentList(args));
+        this.ignoreExitValue = this.ignoreExitValue.movedTo(ignoreExitValue);
     }
 
     public void copyTo(ExecSpec targetSpec) {
@@ -131,13 +145,13 @@ public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSp
 
     @Override
     public ExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
-        this.ignoreExitValue = ignoreExitValue;
+        this.ignoreExitValue.set(ignoreExitValue);
         return this;
     }
 
     @Override
     public boolean isIgnoreExitValue() {
-        return ignoreExitValue;
+        return ignoreExitValue.required();
     }
 
     @Override
