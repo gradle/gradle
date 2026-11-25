@@ -33,6 +33,7 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class FileCollectionBackedFileTree extends AbstractFileTree {
     private final AbstractFileCollection collection;
@@ -52,6 +53,18 @@ public class FileCollectionBackedFileTree extends AbstractFileTree {
 
     public AbstractFileCollection getCollection() {
         return collection;
+    }
+
+    @Override
+    public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
+        if (original == this) {
+            return supplier.get();
+        }
+        FileCollectionInternal newCollection = collection.replace(original, supplier);
+        if (newCollection == collection) {
+            return this;
+        }
+        return newCollection.getAsFileTree();
     }
 
     @Override

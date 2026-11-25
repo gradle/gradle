@@ -61,6 +61,19 @@ public class FilteredFileTree extends CompositeFileTree implements FileCollectio
     }
 
     @Override
+    public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
+        if (original == this) {
+            return supplier.get();
+        }
+        FileCollectionInternal newTree = tree.replace(original, supplier);
+        if (newTree == tree) {
+            return this;
+        }
+        FileTreeInternal newFileTree = newTree instanceof FileTreeInternal ? (FileTreeInternal) newTree : newTree.getAsFileTree();
+        return new FilteredFileTree(newFileTree, taskDependencyFactory, patternSetFactory, patternSupplier);
+    }
+
+    @Override
     protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
         // For backwards compatibility, need to calculate the patterns on each query
         PatternFilterable patterns = getPatterns();

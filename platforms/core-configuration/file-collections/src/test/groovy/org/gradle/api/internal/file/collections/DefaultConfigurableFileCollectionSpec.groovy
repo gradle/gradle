@@ -385,6 +385,22 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         files as List == [file1, file2]
     }
 
+    def "can remove contents from collection using minus operator"() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def src = containing(file2)
+
+        when:
+        collection.from("src1", src)
+        collection.setFrom(collection - src)
+        def files = collection.files
+
+        then:
+        _ * fileResolver.resolve("src1") >> file1
+        files as List == [file1]
+    }
+
     def "can append contents to collection defined via convention using plus operator"() {
         given:
         def file1 = new File("1")
@@ -2050,7 +2066,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/8755#issuecomment-2075260802")
-    def "self-referencing using minus operator leads to StackOverflowError"() {
+    def "self-referencing using minus operator uses the previous contents"() {
         given:
         def file1 = new File("1")
         def file2 = new File("2")
@@ -2061,16 +2077,15 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         when:
         collection.setFrom(child1 - collection)
-        collection.files
 
         then:
-        thrown StackOverflowError
+        collection.files.empty
 
         when:
+        collection.setFrom(file1, file2)
         collection.setFrom(collection - child1)
-        collection.files
 
         then:
-        thrown StackOverflowError
+        collection.files as List == [file2]
     }
 }
