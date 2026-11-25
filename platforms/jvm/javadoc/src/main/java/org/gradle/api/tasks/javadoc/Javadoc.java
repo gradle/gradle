@@ -25,6 +25,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.provider.EagerPropertySupport;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.jvm.ModularitySpec;
@@ -51,6 +52,8 @@ import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
@@ -113,21 +116,8 @@ import static org.gradle.util.internal.GUtil.isTrue;
 @CacheableTask
 public abstract class Javadoc extends SourceTask {
 
-    private boolean failOnError = true;
-
-    @Nullable
-    private String title;
-
-    @Nullable
-    private String maxMemory;
-
-    private final StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
-
-    private FileCollection classpath = getObjectFactory().fileCollection();
+    private final StandardJavadocDocletOptions options;
     private final ModularitySpec modularity;
-
-    @Nullable
-    private String executable;
 
     /**
      * Creates a new {@code Javadoc}.
@@ -138,6 +128,11 @@ public abstract class Javadoc extends SourceTask {
     public Javadoc() {
         ObjectFactory objectFactory = getObjectFactory();
         PropertyFactory propertyFactory = getPropertyFactory();
+        JavadocInputs lazy = getLazyProperties();
+        lazy.getFailOnError().convention(true);
+        // An empty collection, as the field had, so the eager getter returns it and not null
+        lazy.getClasspath().convention(objectFactory.fileCollection());
+        this.options = objectFactory.newInstance(StandardJavadocDocletOptions.class);
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         Provider<JavadocTool> javadocToolConvention = getProviderFactory()
@@ -147,6 +142,17 @@ public abstract class Javadoc extends SourceTask {
         getJavadocTool().convention(javadocToolConvention);
         getJavadocTool().finalizeValueOnRead();
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 10.0.0
+     */
+    @Override
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract JavadocInputs getLazyProperties();
 
     /**
      * Generate.
@@ -162,7 +168,7 @@ public abstract class Javadoc extends SourceTask {
             throw UncheckedException.throwAsUncheckedException(ex);
         }
 
-        StandardJavadocDocletOptions options = new StandardJavadocDocletOptions((StandardJavadocDocletOptions) getOptions());
+        StandardJavadocDocletOptions options = getObjectFactory().newInstance(StandardJavadocDocletOptions.class).copy((StandardJavadocDocletOptions) getOptions());
 
         if (options.getDestinationDirectory() == null) {
             options.destinationDirectory(destinationDir);
@@ -306,8 +312,9 @@ public abstract class Javadoc extends SourceTask {
     @Internal
     @Nullable
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.maxMemory")
     public String getMaxMemory() {
-        return maxMemory;
+        return getLazyProperties().getMaxMemory().getOrNull();
     }
 
     /**
@@ -317,7 +324,7 @@ public abstract class Javadoc extends SourceTask {
      * @since 0.7
      */
     public void setMaxMemory(@Nullable String maxMemory) {
-        this.maxMemory = maxMemory;
+        EagerPropertySupport.setEager(getLazyProperties().getMaxMemory(), maxMemory);
     }
 
     /**
@@ -330,8 +337,9 @@ public abstract class Javadoc extends SourceTask {
     @Optional
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.title")
     public String getTitle() {
-        return title;
+        return getLazyProperties().getTitle().getOrNull();
     }
 
     /**
@@ -339,7 +347,7 @@ public abstract class Javadoc extends SourceTask {
      * @since 0.7
      */
     public void setTitle(@Nullable String title) {
-        this.title = title;
+        EagerPropertySupport.setEager(getLazyProperties().getTitle(), title);
     }
 
     /**
@@ -350,8 +358,9 @@ public abstract class Javadoc extends SourceTask {
      */
     @Classpath
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.classpath")
     public FileCollection getClasspath() {
-        return classpath;
+        return EagerPropertySupport.getEager(getLazyProperties().getClasspath());
     }
 
     /**
@@ -361,7 +370,7 @@ public abstract class Javadoc extends SourceTask {
      * @since 0.8
      */
     public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
+        getLazyProperties().getClasspath().setFrom(classpath);
     }
 
     /**
@@ -412,8 +421,9 @@ public abstract class Javadoc extends SourceTask {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.failOnError")
     public boolean isFailOnError() {
-        return failOnError;
+        return getLazyProperties().getFailOnError().get();
     }
 
     /**
@@ -422,7 +432,7 @@ public abstract class Javadoc extends SourceTask {
      * @since 0.7
      */
     public void setFailOnError(boolean failOnError) {
-        this.failOnError = failOnError;
+        getLazyProperties().getFailOnError().set(failOnError);
     }
 
     /**
@@ -448,8 +458,9 @@ public abstract class Javadoc extends SourceTask {
     @Optional
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.executable")
     public String getExecutable() {
-        return executable;
+        return getLazyProperties().getExecutable().getOrNull();
     }
 
     /**
@@ -458,7 +469,7 @@ public abstract class Javadoc extends SourceTask {
      * @since 0.9
      */
     public void setExecutable(@Nullable String executable) {
-        this.executable = executable;
+        EagerPropertySupport.setEager(getLazyProperties().getExecutable(), executable);
     }
 
     @Inject
