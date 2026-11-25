@@ -24,6 +24,7 @@ import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.work.Incremental;
@@ -55,6 +56,9 @@ public enum ModifierAnnotationCategory implements AnnotationCategory {
     ),
     REPLACES_EAGER_PROPERTY("replaces eager property",
         ReplacesEagerProperty.class
+    ),
+    BACKED_BY_LAZY_PROPERTY("backed by lazy property",
+        BackedByLazyProperty.class
     );
 
     private final String displayName;

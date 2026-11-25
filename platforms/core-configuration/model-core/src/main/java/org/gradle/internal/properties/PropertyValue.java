@@ -38,6 +38,14 @@ public interface PropertyValue extends Callable<Object> {
     TaskDependencyContainer getTaskDependencies();
 
     /**
+     * Returns only the dependencies of the lazy property behind an eager getter annotated with {@code @BackedByLazyProperty}.
+     * Returns {@link TaskDependencyContainer#EMPTY} for any other value.
+     */
+    default TaskDependencyContainer getLazyBackingDependencies() {
+        return TaskDependencyContainer.EMPTY;
+    }
+
+    /**
      * Finalizes the property value, if possible. This makes the value final, so that it no longer changes, but not necessarily immutable.
      */
     void maybeFinalizeValue();

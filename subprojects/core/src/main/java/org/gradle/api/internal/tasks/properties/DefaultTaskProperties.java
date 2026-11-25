@@ -279,6 +279,11 @@ public class DefaultTaskProperties implements TaskProperties {
         }
 
         @Override
+        public TaskDependencyContainer getLazyBackingDependencies() {
+            return delegate.getLazyBackingDependencies();
+        }
+
+        @Override
         public void maybeFinalizeValue() {
             delegate.maybeFinalizeValue();
         }

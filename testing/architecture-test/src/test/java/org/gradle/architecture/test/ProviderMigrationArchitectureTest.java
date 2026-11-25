@@ -48,6 +48,7 @@ import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.options.OptionValues;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
@@ -86,7 +87,12 @@ public class ProviderMigrationArchitectureTest {
         }
     };
 
-    private static final DescribedPredicate<JavaMethod> mutable_public_API_properties = ArchPredicates.<JavaMethod>are(public_api_methods)
+    // A lazy-properties accessor returns the object behind eager getters, it is no eager property itself.
+    // The descriptions below stay unchanged, so the frozen stores keep matching.
+    private static final DescribedPredicate<JavaMethod> public_api_methods_except_lazy_properties = ArchPredicates.<JavaMethod>are(public_api_methods)
+        .and(not(annotatedWith(LazyProperties.class)));
+
+    private static final DescribedPredicate<JavaMethod> mutable_public_API_properties = ArchPredicates.<JavaMethod>are(public_api_methods_except_lazy_properties)
         .and(not(declaredIn(assignableTo(Task.class))))
         .and(not(declaredIn(StartParameter.class)))
         .and(not(declaredIn(WelcomeMessageConfiguration.class))) // used in StartParameter
@@ -105,7 +111,7 @@ public class ProviderMigrationArchitectureTest {
         .as("mutable public API properties");
 
     @SuppressWarnings({"deprecation", "UnnecessaryFullyQualifiedName"})
-    private static final DescribedPredicate<JavaMethod> task_properties = ArchPredicates.<JavaMethod>are(public_api_methods)
+    private static final DescribedPredicate<JavaMethod> task_properties = ArchPredicates.<JavaMethod>are(public_api_methods_except_lazy_properties)
         .and(declaredIn(assignableTo(Task.class)))
         .and(are(ArchUnitFixture.getters))
         .and(not(annotatedWith(Inject.class)))

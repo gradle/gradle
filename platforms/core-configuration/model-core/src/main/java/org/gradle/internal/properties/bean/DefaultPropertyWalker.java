@@ -20,15 +20,18 @@ import com.google.common.base.Suppliers;
 import org.gradle.api.Buildable;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.annotations.LazyPropertyPathResolver;
 import org.gradle.internal.properties.annotations.NestedValidationUtil;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
@@ -88,11 +91,17 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
             @Override
             public void visitLeaf(Object parent, String qualifiedName, PropertyMetadata propertyMetadata) {
-                PropertyValue cachedValue = new CachedPropertyValue(
+                CachedPropertyValue eagerValue = new CachedPropertyValue(
                     () -> propertyMetadata.getPropertyValue(parent),
                     propertyMetadata.getDeclaredType().getRawType(),
                     propertyMetadata.isAnnotationPresent(ReplacesEagerProperty.class)
                 );
+                PropertyValue cachedValue = propertyMetadata.getAnnotation(BackedByLazyProperty.class)
+                    .<PropertyValue>map(backedBy -> new LazyBackedPropertyValue(
+                        eagerValue,
+                        () -> LazyPropertyPathResolver.resolve(parent, propertyMetadata.getPropertyName(), backedBy.value())
+                    ))
+                    .orElse(eagerValue);
                 PropertyAnnotationHandler handler = handlers.get(propertyMetadata.getPropertyType());
                 if (handler == null) {
                     throw new IllegalStateException("Property handler should not be null for: " + propertyMetadata.getPropertyType());
@@ -140,9 +149,15 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
         @Override
         public void maybeFinalizeValue() {
+            maybeFinalizeValueUnless(() -> null);
+        }
+
+        void maybeFinalizeValueUnless(Supplier<? extends @Nullable Object> excluded) {
             if (isConfigurable()) {
                 Object value = cachedInvoker.get();
-                ((HasConfigurableValueInternal) value).implicitFinalizeValue();
+                if (value != excluded.get()) {
+                    ((HasConfigurableValueInternal) value).implicitFinalizeValue();
+                }
             }
         }
 
@@ -162,6 +177,60 @@ public class DefaultPropertyWalker implements PropertyWalker {
         @Override
         public Object call() {
             return cachedInvoker.get();
+        }
+    }
+
+    private static class LazyBackedPropertyValue implements PropertyValue {
+
+        private final CachedPropertyValue eagerValue;
+        private final Supplier<@Nullable Object> lazyProperty;
+
+        public LazyBackedPropertyValue(CachedPropertyValue eagerValue, Supplier<@Nullable Object> lazyPropertyResolver) {
+            this.eagerValue = eagerValue;
+            this.lazyProperty = Suppliers.memoize(() -> DeprecationLogger.whileDisabled(lazyPropertyResolver::get));
+        }
+
+        @Nullable
+        @Override
+        public Object call() {
+            return eagerValue.call();
+        }
+
+        @Override
+        public TaskDependencyContainer getTaskDependencies() {
+            // Keep the dependencies of the eager value: an override of the getter can return another buildable value
+            TaskDependencyContainer eagerDependencies = eagerValue.getTaskDependencies();
+            return context -> {
+                // Null for a Provider-typed getter that returns null
+                if (eagerDependencies != null) {
+                    eagerDependencies.visitDependencies(context);
+                }
+                visitLazyDependencies(context);
+            };
+        }
+
+        @Override
+        public TaskDependencyContainer getLazyBackingDependencies() {
+            return this::visitLazyDependencies;
+        }
+
+        private void visitLazyDependencies(TaskDependencyResolveContext context) {
+            Object lazy;
+            try {
+                lazy = lazyProperty.get();
+            } catch (Exception e) {
+                context.visitFailure(e);
+                return;
+            }
+            if (lazy instanceof TaskDependencyContainer || lazy instanceof Buildable) {
+                context.add(lazy);
+            }
+        }
+
+        // The lazy property stays changeable at execution time, as the eager field was
+        @Override
+        public void maybeFinalizeValue() {
+            eagerValue.maybeFinalizeValueUnless(lazyProperty);
         }
     }
 

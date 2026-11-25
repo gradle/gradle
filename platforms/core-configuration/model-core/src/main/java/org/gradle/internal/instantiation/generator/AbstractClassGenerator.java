@@ -55,6 +55,7 @@ import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
@@ -106,8 +107,10 @@ import static org.gradle.api.internal.GeneratedSubclasses.unpack;
  */
 abstract class AbstractClassGenerator implements ClassGenerator {
 
+    // LazyProperties only gives creation semantics: the property walker does not see it, so the getter is no nested input
     private static final ImmutableSet<Class<? extends Annotation>> NESTED_ANNOTATION_TYPES = ImmutableSet.of(
-        Nested.class
+        Nested.class,
+        LazyProperties.class
     );
 
     private static final Object[] NO_PARAMS = new Object[0];

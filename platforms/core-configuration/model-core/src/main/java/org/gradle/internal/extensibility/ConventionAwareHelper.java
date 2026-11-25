@@ -22,15 +22,18 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.file.FileSystemLocationPropertyInternal;
 import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.provider.FileCollectionConventionMapping;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DocumentedFailure;
+import org.gradle.internal.properties.annotations.LazyPropertyPathResolver;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.jspecify.annotations.Nullable;
 
@@ -78,6 +81,18 @@ public class ConventionAwareHelper implements ConventionMapping {
             propertyName = renamedProperty;
         }
 
+        String backingPath = LazyPropertyPathResolver.findBackingPath(sourceType, propertyName);
+        Object lazyProperty = backingPath == null ? null : LazyPropertyPathResolver.resolve(_source, propertyName, backingPath);
+        if (lazyProperty != null) {
+            // The eager getter reads the lazy property, so the mapping becomes its convention and is not kept in _mappings
+            if (!(lazyProperty instanceof SupportsConvention) || !mapConventionOn((SupportsConvention) lazyProperty, mapping)) {
+                throw new IllegalStateException(String.format(
+                    "Cannot map property %s.%s: the lazy property of type %s at '%s' does not support conventions.",
+                    GeneratedSubclasses.unpack(sourceType).getName(), propertyName, GeneratedSubclasses.unpack(lazyProperty.getClass()).getName(), backingPath));
+            }
+            return mapping;
+        }
+
         if (_ineligiblePropertyNames.contains(propertyName)) {
             Method getter = JavaPropertyReflectionUtil.findGetterMethod(sourceType, propertyName);
             // When there's a convention-supporting object, use its `.convention()` method instead
@@ -122,7 +137,7 @@ public class ConventionAwareHelper implements ConventionMapping {
             asCollectionProperty.convention(new DefaultProvider<>(() -> Cast.uncheckedNonnullCast(mapping.getValue())));
         } else if (target instanceof ConfigurableFileCollection) {
             ConfigurableFileCollection asFileCollection = Cast.uncheckedNonnullCast(target);
-            asFileCollection.convention((Callable) () -> mapping.getValue());
+            asFileCollection.convention(new FileCollectionConventionMapping(mapping::getValue));
         } else {
             return false;
         }

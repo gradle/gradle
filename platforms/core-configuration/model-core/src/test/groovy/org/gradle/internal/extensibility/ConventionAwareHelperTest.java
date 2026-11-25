@@ -16,12 +16,21 @@
 
 package org.gradle.internal.extensibility;
 
+import org.gradle.api.DefaultTask;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.provider.EagerPropertySupport;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Internal;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestTask;
 import org.gradle.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
+import org.jspecify.annotations.Nullable;
 import org.junit.Test;
 
 import java.util.List;
@@ -34,9 +43,11 @@ import static org.gradle.util.internal.WrapUtil.toMap;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 
 public class ConventionAwareHelperTest {
     ConventionAwareHelper conventionAware;
@@ -124,5 +135,96 @@ public class ConventionAwareHelperTest {
     public void usesConventionValueForEmptyMap() {
         conventionAware.map("map1", () -> toMap("a", "b"));
         assertThat(conventionAware.getConventionValue(emptyMap(), "map1", false), equalTo((Object) toMap("a", "b")));
+    }
+
+    @Test
+    public void mapsPropertyBackedByLazyPropertyToItsConvention() {
+        LazyBackedTask task = TestUtil.create(temporaryFolder).task(LazyBackedTask.class);
+        ConventionAwareHelper helper = new ConventionAwareHelper((IConventionAware) task);
+        String[] value = {"first"};
+
+        helper.map("message", () -> value[0]);
+        value[0] = "second";
+
+        assertEquals("second", task.getMessageProperty().get());
+        assertEquals("second", task.getMessage());
+        // The mapping is not kept by the helper, so the generated getter returns the actual value
+        assertEquals("actual", helper.getConventionValue("actual", "message", false));
+    }
+
+    @Test
+    public void explicitValueWinsOverMappedConvention() {
+        LazyBackedTask task = TestUtil.create(temporaryFolder).task(LazyBackedTask.class);
+        ConventionAwareHelper helper = new ConventionAwareHelper((IConventionAware) task);
+
+        helper.map("message", () -> "convention");
+        task.getMessageProperty().set("explicit");
+        assertEquals("explicit", task.getMessage());
+
+        task.setMessage(null);
+        assertEquals(null, task.getMessage());
+
+        task.getMessageProperty().unset();
+        assertEquals("convention", task.getMessage());
+    }
+
+    @Test
+    public void mappingOfPropertyBackedByReadOnlyProviderFails() {
+        LazyBackedTask task = TestUtil.create(temporaryFolder).task(LazyBackedTask.class);
+        ConventionAwareHelper helper = new ConventionAwareHelper((IConventionAware) task);
+
+        IllegalStateException e = assertThrows(IllegalStateException.class, () -> helper.map("readOnly", () -> "value"));
+        assertThat(e.getMessage(), startsWith("Cannot map property " + LazyBackedTask.class.getName() + ".readOnly: the lazy property of type "));
+    }
+
+    @Test
+    public void mappingOfPropertyWithWrongPathFails() {
+        LazyBackedTask task = TestUtil.create(temporaryFolder).task(LazyBackedTask.class);
+        ConventionAwareHelper helper = new ConventionAwareHelper((IConventionAware) task);
+
+        InvalidUserCodeException e = assertThrows(InvalidUserCodeException.class, () -> helper.map("broken", () -> "value"));
+        assertThat(e.getMessage(), startsWith("Cannot resolve @BackedByLazyProperty(\"missing\") of " + LazyBackedTask.class.getName() + ".getBroken(): "));
+    }
+
+    public static abstract class LazyBackedTask extends DefaultTask {
+        private final Property<String> message = getProject().getObjects().property(String.class);
+
+        @Internal
+        public Property<String> getMessageProperty() {
+            return message;
+        }
+
+        @Internal
+        @BackedByLazyProperty("messageProperty")
+        public String getMessage() {
+            return message.getOrNull();
+        }
+
+        public void setMessage(@Nullable String value) {
+            EagerPropertySupport.setEager(message, value);
+        }
+
+        @Internal
+        public Provider<String> getReadOnlyProvider() {
+            return message.map(value -> value);
+        }
+
+        @Internal
+        @BackedByLazyProperty("readOnlyProvider")
+        public String getReadOnly() {
+            return message.getOrNull();
+        }
+
+        public void setReadOnly(String value) {
+        }
+
+        @Internal
+        @BackedByLazyProperty("missing")
+        public String getBroken() {
+            return null;
+        }
+
+        public void setBroken(String value) {
+        }
     }
 }

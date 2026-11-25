@@ -18,13 +18,17 @@ package org.gradle.internal.properties.bean
 
 import groovy.transform.EqualsAndHashCode
 import org.gradle.api.DefaultTask
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Named
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.tasks.TaskDependencyContainer
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.bean.TestImplementationResolver
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
@@ -39,6 +43,8 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty
+import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.InputFilePropertyType
 import org.gradle.internal.properties.OutputFilePropertyType
 import org.gradle.internal.properties.PropertyVisitor
@@ -247,6 +253,276 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         @Nested Object right
     }
 
+    def "lazy-backed value property reads the getter and takes dependencies from the lazy property"() {
+        def task = project.tasks.create("myTask", LazyBackedTask)
+        task.messageProperty.set("value")
+        def context = Mock(TaskDependencyResolveContext)
+        PropertyValue value = null
+
+        when:
+        visitProperties(task)
+
+        then:
+        _ * visitor.visitOutputFilePropertiesOnly() >> false
+        1 * visitor.visitInputProperty("message", _, false) >> { args -> value = args[1] }
+
+        when:
+        value.taskDependencies.visitDependencies(context)
+
+        then:
+        task.getterCalls == 0
+        1 * context.add(task.messageProperty)
+        0 * context._
+
+        when:
+        def result = value.call()
+
+        then:
+        result == "value"
+        task.getterCalls == 1
+    }
+
+    def "lazy-backed property leaves the lazy property changeable after finalizing"() {
+        def task = project.tasks.create("myTask", LazyBackedTask)
+        task.messageProperty.set("value")
+        PropertyValue value = null
+
+        when:
+        visitProperties(task)
+
+        then:
+        _ * visitor.visitOutputFilePropertiesOnly() >> false
+        1 * visitor.visitInputProperty("message", _, false) >> { args -> value = args[1] }
+
+        when:
+        value.maybeFinalizeValue()
+        task.messageProperty.set("changed")
+
+        then:
+        task.messageProperty.get() == "changed"
+    }
+
+    def "lazy-backed property whose getter returns the lazy property itself is not finalized"() {
+        def task = project.tasks.create("myTask", SelfBackedTask)
+        task.lazyMessage.set("value")
+        PropertyValue value = null
+
+        when:
+        visitProperties(task)
+
+        then:
+        _ * visitor.visitOutputFilePropertiesOnly() >> false
+        1 * visitor.visitInputProperty("message", _, false) >> { args -> value = args[1] }
+
+        when:
+        value.maybeFinalizeValue()
+        task.lazyMessage.set("changed")
+
+        then:
+        task.lazyMessage.get() == "changed"
+    }
+
+    def "lazy-backed property still finalizes a configurable value that is not the lazy property"() {
+        def task = project.tasks.create("myTask", OtherConfigurableTask)
+        task.other.set("value")
+        PropertyValue value = null
+
+        when:
+        visitProperties(task)
+
+        then:
+        _ * visitor.visitOutputFilePropertiesOnly() >> false
+        1 * visitor.visitInputProperty("message", _, false) >> { args -> value = args[1] }
+
+        when:
+        value.maybeFinalizeValue()
+        task.other.set("changed")
+
+        then:
+        thrown(IllegalStateException)
+        task.lazyMessage.isPresent() == false
+    }
+
+    def "lazy-backed file property keeps the dependencies of an overridden getter"() {
+        def task = project.tasks.create("myTask", LazyBackedTask)
+        def otherFiles = project.files("other")
+        task.otherFiles = otherFiles
+        def context = Mock(TaskDependencyResolveContext)
+        PropertyValue value = null
+
+        when:
+        visitProperties(task)
+
+        then:
+        _ * visitor.visitOutputFilePropertiesOnly() >> false
+        1 * visitor.visitInputFileProperty("files", _, _, _, _, _, _, InputFilePropertyType.FILES) >> { args -> value = args[6] }
+
+        when:
+        value.taskDependencies.visitDependencies(context)
+
+        then:
+        1 * context.add(otherFiles)
+        1 * context.add(task.filesProperty)
+        0 * context._
+
+        when:
+        value.lazyBackingDependencies.visitDependencies(context)
+
+        then:
+        1 * context.add(task.filesProperty)
+        0 * context._
+    }
+
+    def "only lazy-backed values have lazy backing dependencies"() {
+        def task = project.tasks.create("myTask", MyTask)
+        PropertyValue value = null
+
+        when:
+        visitProperties(task)
+
+        then:
+        _ * visitor.visitOutputFilePropertiesOnly() >> false
+        1 * visitor.visitInputProperty('myProperty', _, false) >> { args -> value = args[1] }
+
+        and:
+        value.lazyBackingDependencies.is(TaskDependencyContainer.EMPTY)
+    }
+
+    def "lazy-backed property with a Provider getter that returns null still visits the lazy property"() {
+        def task = project.tasks.create("myTask", NullProviderLazyBackedTask)
+        def context = Mock(TaskDependencyResolveContext)
+        PropertyValue value = null
+
+        when:
+        visitProperties(task)
+
+        then:
+        _ * visitor.visitOutputFilePropertiesOnly() >> false
+        1 * visitor.visitInputProperty("message", _, true) >> { args -> value = args[1] }
+
+        when:
+        value.taskDependencies.visitDependencies(context)
+
+        then:
+        1 * context.add(task.messageProperty)
+        0 * context._
+    }
+
+    static abstract class NullProviderLazyBackedTask extends DefaultTask {
+        private final Property<String> message = project.objects.property(String)
+
+        @Internal
+        Property<String> getMessageProperty() {
+            return message
+        }
+
+        @Input
+        @org.gradle.api.tasks.Optional
+        @BackedByLazyProperty("messageProperty")
+        Provider<String> getMessage() {
+            return null
+        }
+    }
+
+    def "lazy-backed property with a wrong path reports a dependency failure"() {
+        def task = project.tasks.create("myTask", BrokenLazyBackedTask)
+        def context = Mock(TaskDependencyResolveContext)
+        PropertyValue value = null
+
+        when:
+        visitProperties(task)
+
+        then:
+        _ * visitor.visitOutputFilePropertiesOnly() >> false
+        1 * visitor.visitInputProperty("message", _, false) >> { args -> value = args[1] }
+
+        when:
+        value.taskDependencies.visitDependencies(context)
+
+        then:
+        1 * context.visitFailure({ it instanceof InvalidUserCodeException && it.message.contains("segment 'missing' has no getter getMissing()") })
+        0 * context._
+    }
+
+    static abstract class LazyBackedTask extends DefaultTask {
+        @Internal
+        int getterCalls
+
+        @Internal
+        FileCollection otherFiles
+
+        private final Property<String> message = project.objects.property(String)
+        private final ConfigurableFileCollection files = project.objects.fileCollection()
+
+        @Internal
+        Property<String> getMessageProperty() {
+            return message
+        }
+
+        @Input
+        @BackedByLazyProperty("messageProperty")
+        String getMessage() {
+            getterCalls++
+            return message.getOrNull()
+        }
+
+        @Internal
+        ConfigurableFileCollection getFilesProperty() {
+            return files
+        }
+
+        @InputFiles
+        @PathSensitive(PathSensitivity.NONE)
+        @BackedByLazyProperty("filesProperty")
+        FileCollection getFiles() {
+            return otherFiles
+        }
+    }
+
+    static abstract class SelfBackedTask extends DefaultTask {
+        private final Property<String> message = project.objects.property(String)
+
+        @Internal
+        Property<String> getLazyMessage() {
+            return message
+        }
+
+        @Input
+        @BackedByLazyProperty("lazyMessage")
+        Property<String> getMessage() {
+            return message
+        }
+    }
+
+    static abstract class OtherConfigurableTask extends DefaultTask {
+        private final Property<String> message = project.objects.property(String)
+        private final Property<String> other = project.objects.property(String)
+
+        @Internal
+        Property<String> getLazyMessage() {
+            return message
+        }
+
+        @Internal
+        Property<String> getOther() {
+            return other
+        }
+
+        @Input
+        @BackedByLazyProperty("lazyMessage")
+        Property<String> getMessage() {
+            return other
+        }
+    }
+
+    static abstract class BrokenLazyBackedTask extends DefaultTask {
+        @Input
+        @BackedByLazyProperty("missing")
+        String getMessage() {
+            return "value"
+        }
+    }
+
     private visitProperties(TaskInternal task) {
         def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
         def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
@@ -263,7 +539,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
             cacheFactory
         )
         def propertyHandlers = services.getAll(PropertyAnnotationHandler)
-        def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [PathSensitive], [], [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory, MissingPropertyAnnotationHandler.DO_NOTHING)
+        def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [PathSensitive, BackedByLazyProperty], [], [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory, MissingPropertyAnnotationHandler.DO_NOTHING)
         new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver(), propertyHandlers).visitProperties(task, validationContext, visitor)
     }
 }

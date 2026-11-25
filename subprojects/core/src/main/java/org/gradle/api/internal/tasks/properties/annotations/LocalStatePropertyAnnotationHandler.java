@@ -22,12 +22,13 @@ import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.BACKED_BY_LAZY_PROPERTY;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
 
 public class LocalStatePropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     public LocalStatePropertyAnnotationHandler() {
-        super(LocalState.class, Kind.OTHER, ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY));
+        super(LocalState.class, Kind.OTHER, ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY, BACKED_BY_LAZY_PROPERTY));
     }
 
     @Override

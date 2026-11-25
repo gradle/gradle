@@ -47,6 +47,7 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.annotations.AnnotationCategory
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
@@ -509,6 +510,41 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         then:
         metadata.propertiesMetadata.propertyName == ["useful"]
         collectProblems(metadata) == []
+    }
+
+    interface BackingInputs {
+        Property<String> getMessage()
+    }
+
+    static abstract class TaskWithLazyBackedProperties extends DefaultTask {
+        @Internal
+        abstract BackingInputs getLazyProperties()
+
+        @Input
+        @BackedByLazyProperty("lazyProperties.message")
+        String getValid() { null }
+
+        @Input
+        @BackedByLazyProperty("lazyProperties.missing")
+        String getMissingSegment() { null }
+
+        @Input
+        @BackedByLazyProperty("lazyProperties")
+        String getNotLazy() { null }
+    }
+
+    def "reports wrong @BackedByLazyProperty paths"() {
+        def metadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [BackedByLazyProperty], [], [], typeAnnotationMetadataStore, propertyTypeResolver, cacheFactory, MissingPropertyAnnotationHandler.DO_NOTHING)
+
+        when:
+        def metadata = metadataStore.getTypeMetadata(TaskWithLazyBackedProperties)
+        def problems = collectProblems(metadata)
+
+        then:
+        metadata.propertiesMetadata.propertyName.sort() == ["missingSegment", "notLazy", "valid"]
+        problems.size() == 2
+        problems.any { it.contains("Property 'missingSegment' is annotated with @BackedByLazyProperty(\"lazyProperties.missing\") but segment 'missing' has no getter getMissing() or isMissing() on type '${BackingInputs.name}'") }
+        problems.any { it.contains("Property 'notLazy' is annotated with @BackedByLazyProperty(\"lazyProperties\") but the path ends at type '${BackingInputs.name}', which is not a Provider or a configurable value") }
     }
 
     @SuppressWarnings("GroovyUnusedDeclaration")

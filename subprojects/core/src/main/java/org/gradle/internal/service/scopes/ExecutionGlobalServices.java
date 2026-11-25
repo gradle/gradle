@@ -84,6 +84,7 @@ import org.gradle.internal.execution.model.annotations.ServiceReferencePropertyA
 import org.gradle.internal.execution.model.annotations.TaskActionAnnotationHandler;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
@@ -108,6 +109,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.BACKED_BY_LAZY_PROPERTY;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
 
@@ -144,7 +146,8 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
 
     @VisibleForTesting
     public static final ImmutableSet<Class<? extends Annotation>> IGNORED_METHOD_ANNOTATIONS_ALLOWED_MODIFIERS = ImmutableSet.of(
-        ReplacesEagerProperty.class
+        ReplacesEagerProperty.class,
+        BackedByLazyProperty.class
     );
 
     @Provides
@@ -249,7 +252,8 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
                 SkipWhenEmpty.class,
                 IgnoreEmptyDirectories.class,
                 NormalizeLineEndings.class,
-                ReplacesEagerProperty.class
+                ReplacesEagerProperty.class,
+                BackedByLazyProperty.class
             ),
             ImmutableSet.of(),
             instantiationScheme);
@@ -363,7 +367,7 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
 
     @Provides
     PropertyAnnotationHandler createNestedBeanPropertyAnnotationHandler() {
-        return new NestedBeanAnnotationHandler(ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY));
+        return new NestedBeanAnnotationHandler(ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY, BACKED_BY_LAZY_PROPERTY));
     }
 
     @Provides

@@ -65,13 +65,21 @@ public class MapPropertyMapView<K, V> extends AbstractMap<K, V> {
     @Nullable
     public V put(K key, V value) {
         V oldValue = get(key);
-        delegate.put(key, value);
+        putEntry(key, value);
         return oldValue;
     }
 
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
-        delegate.putAll(m);
+        putEntries(m);
+    }
+
+    protected void putEntry(K key, V value) {
+        delegate.put(key, value);
+    }
+
+    protected void putEntries(Map<? extends K, ? extends V> entries) {
+        delegate.putAll(entries);
     }
 
     @Override
