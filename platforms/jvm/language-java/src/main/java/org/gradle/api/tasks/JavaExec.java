@@ -18,6 +18,7 @@ package org.gradle.api.tasks;
 
 import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -32,6 +33,8 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
@@ -137,6 +140,13 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         execResult = objectFactory.property(ExecResult.class);
         javaExecSpec = objectFactory.newInstance(DefaultJavaExecSpec.class);
+        JavaExecInputs lazy = getLazyProperties();
+        javaExecSpec.attach(lazy.getExecutable(), lazy.getEnvironment(), lazy.getArgs(), lazy.getIgnoreExitValue(), lazy.getClasspath());
+        // The JVM arguments are stored in getJvmArguments()
+        javaExecSpec.attach(
+            null, lazy.getSystemProperties(), lazy.getMinHeapSize(), lazy.getMaxHeapSize(),
+            lazy.getEnableAssertions(), lazy.getDefaultCharacterEncoding(), lazy.getBootstrapClasspath()
+        );
 
         Provider<Iterable<String>> jvmArgumentsConvention = getProviderFactory().provider(this::jvmArgsConventionValue);
         javaExecSpec.getJvmArguments().convention(jvmArgumentsConvention);
@@ -159,6 +169,16 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         doNotTrackStateIf("Java launcher cannot be probed",
             task -> getJavaLauncher().map(launcher -> launcher.getMetadata().getLanguageVersion()).get() == DefaultJavaLanguageVersion.UNKNOWN);
     }
+
+    /**
+     * The lazy properties behind the eager getters and setters of this task.
+     *
+     * @since 10.0.0
+     */
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract JavaExecInputs getLazyProperties();
 
     /**
      * Exec.
@@ -220,6 +240,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("jvmArguments")
     public List<String> getJvmArgs() {
         return javaExecSpec.getJvmArguments().get();
     }
@@ -272,6 +293,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.systemProperties")
     public Map<String, @Nullable Object> getSystemProperties() {
         return javaExecSpec.getSystemProperties();
     }
@@ -307,6 +329,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.bootstrapClasspath")
     public FileCollection getBootstrapClasspath() {
         return javaExecSpec.getBootstrapClasspath();
     }
@@ -334,6 +357,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @ToBeReplacedByLazyProperty
     @Nullable
+    @BackedByLazyProperty("lazyProperties.minHeapSize")
     public String getMinHeapSize() {
         return javaExecSpec.getMinHeapSize();
     }
@@ -352,6 +376,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @ToBeReplacedByLazyProperty
     @Nullable
+    @BackedByLazyProperty("lazyProperties.defaultCharacterEncoding")
     public String getDefaultCharacterEncoding() {
         return javaExecSpec.getDefaultCharacterEncoding();
     }
@@ -370,6 +395,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @ToBeReplacedByLazyProperty
     @Nullable
+    @BackedByLazyProperty("lazyProperties.maxHeapSize")
     public String getMaxHeapSize() {
         return javaExecSpec.getMaxHeapSize();
     }
@@ -387,6 +413,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.enableAssertions")
     public boolean getEnableAssertions() {
         return javaExecSpec.getEnableAssertions();
     }
@@ -404,6 +431,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("debugOptions.enabled")
     public boolean getDebug() {
         return javaExecSpec.getDebug();
     }
@@ -451,6 +479,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.args")
     public List<String> getArgs() {
         return javaExecSpec.getArgs();
     }
@@ -549,6 +578,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.classpath")
     public FileCollection getClasspath() {
         return javaExecSpec.getClasspath();
     }
@@ -588,6 +618,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Nullable
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.executable")
     public String getExecutable() {
         return javaExecSpec.getExecutable();
     }
@@ -667,6 +698,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @Internal
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.environment")
     public Map<String, Object> getEnvironment() {
         return javaExecSpec.getEnvironment();
     }
@@ -778,6 +810,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.ignoreExitValue")
     public boolean isIgnoreExitValue() {
         return javaExecSpec.isIgnoreExitValue();
     }
