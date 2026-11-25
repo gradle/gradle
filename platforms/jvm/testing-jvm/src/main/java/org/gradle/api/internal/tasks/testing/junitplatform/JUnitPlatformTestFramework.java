@@ -35,6 +35,7 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -72,8 +73,8 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
     public WorkerTestDefinitionProcessorFactory<?> getProcessorFactory() {
         validateOptions();
         return new JUnitPlatformTestDefinitionProcessorFactory(new JUnitPlatformSpec(
-            filter.toSpec(), getOptions().getIncludeEngines(), getOptions().getExcludeEngines(),
-            getOptions().getIncludeTags(), getOptions().getExcludeTags(), dryRun.get()));
+            filter.toSpec(), new LinkedHashSet<>(getOptions().getIncludeEngines()), new LinkedHashSet<>(getOptions().getExcludeEngines()),
+            new LinkedHashSet<>(getOptions().getIncludeTags()), new LinkedHashSet<>(getOptions().getExcludeTags()), dryRun.get()));
     }
 
     @Override
