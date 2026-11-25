@@ -16,9 +16,10 @@
 
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
@@ -27,13 +28,10 @@ import java.io.Serializable;
  * Debug options for Java compilation.
  * @since 0.7
  */
-public class DebugOptions implements Serializable {
+public abstract class DebugOptions implements Serializable {
     private static final long serialVersionUID = 0;
-
-    private String debugLevel;
-
     /**
-     * Get a comma-separated list of debug information to be generated during compilation.
+     * A comma-separated list of debug information to be generated during compilation.
      * The list may contain any of the following keywords (without spaces in between):
      *
      * <dl>
@@ -50,13 +48,10 @@ public class DebugOptions implements Serializable {
      * <p>When the value is null, only source and line debugging information will be generated.</p>
      * @since 0.7
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getDebugLevel() {
-        return debugLevel;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getDebugLevel();
 
     /**
      * Sets which debug information is to be generated during compilation. The value must be a
@@ -80,6 +75,6 @@ public class DebugOptions implements Serializable {
      * @since 0.7
      */
     public void setDebugLevel(@Nullable String debugLevel) {
-        this.debugLevel = debugLevel;
+        getDebugLevel().set(debugLevel);
     }
 }

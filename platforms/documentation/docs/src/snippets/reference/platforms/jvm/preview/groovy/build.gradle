@@ -8,10 +8,10 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.withType(Test).configureEach {
-    jvmArgs += "--enable-preview"
+    jvmArgs("--enable-preview")
 }
 
 tasks.withType(JavaExec).configureEach {
-    jvmArgs += "--enable-preview"
+    jvmArgs("--enable-preview")
 }
 // end::enabling-feature-preview[]

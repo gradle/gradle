@@ -46,8 +46,8 @@ import javax.inject.Inject;
 abstract public class AbstractCodeQualityTask extends SourceTask implements VerificationTask {
     private static final String OPEN_MODULES_ARG = "java.prefs/java.util.prefs=ALL-UNNAMED";
 
-    @SuppressWarnings("this-escape")
     @Inject
+    @SuppressWarnings("this-escape")
     public AbstractCodeQualityTask() {
         getIgnoreFailuresProperty().convention(false);
         getJavaLauncher().convention(getToolchainService().launcherFor(getObjectFactory().newInstance(CurrentJvmToolchainSpec.class)));
@@ -93,9 +93,9 @@ abstract public class AbstractCodeQualityTask extends SourceTask implements Veri
      * @since 8.4
      */
     protected void configureForkOptions(JavaForkOptions forkOptions) {
-        forkOptions.setMinHeapSize(getMinHeapSize().getOrNull());
-        forkOptions.setMaxHeapSize(getMaxHeapSize().getOrNull());
-        forkOptions.setExecutable(getJavaLauncher().get().getExecutablePath().getAsFile().getAbsolutePath());
+        forkOptions.getMinHeapSize().set(getMinHeapSize());
+        forkOptions.getMaxHeapSize().set(getMaxHeapSize());
+        forkOptions.getExecutable().set(getJavaLauncher().map(launcher -> launcher.getExecutablePath().getAsFile().getAbsolutePath()));
         maybeAddOpensJvmArgs(getJavaLauncher().get(), forkOptions);
     }
 

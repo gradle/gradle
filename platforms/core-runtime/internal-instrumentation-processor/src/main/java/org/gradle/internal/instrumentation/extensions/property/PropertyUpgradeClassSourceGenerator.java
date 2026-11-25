@@ -274,8 +274,11 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
                 return CodeBlock.of("return $N.$N().getOrElse($L)", SELF_PARAMETER_NAME, propertyGetterName, TypeUtils.getDefaultValue(returnType.getType()));
             case PROVIDER: {
                 Optional<TypeName> providerParameter = TypeUtils.getTypeParameter(implementationExtra.getNewPropertyType(), 0);
+                // Read the location directly rather than through Provider.map(): a mapped provider refuses to be
+                // queried before its producer task has run, but the location of a task output is known during
+                // configuration, and callers of the eager getter, such as signing plugins, read it then.
                 return providerParameter.map(GradleReferencedType::isAssignableToFileSystemLocation).orElse(false)
-                    ? CodeBlock.of("return $N.$N().map($T::getAsFile).getOrNull()", SELF_PARAMETER_NAME, propertyGetterName, FILE_SYSTEM_LOCATION.asClassName())
+                    ? CodeBlock.of("return $T.ofNullable($N.$N().getOrNull()).map($T::getAsFile).orElse(null)", Optional.class, SELF_PARAMETER_NAME, propertyGetterName, FILE_SYSTEM_LOCATION.asClassName())
                     : CodeBlock.of("return $N.$N().getOrElse($L)", SELF_PARAMETER_NAME, propertyGetterName, TypeUtils.getDefaultValue(returnType.getType()));
             }
             default:

@@ -75,7 +75,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
             // installed. We still try to run the Gradle build with Java 6/7, but we skip those tests
             // when Java 6/7 are not installed.
             tasks.withType(JavaCompile).configureEach {
-                options.compilerArgs.addAll('-target', '6', '-source', 6)
+                options.compilerArgs.addAll('-target', '6', '-source', '6')
             }
 
             dependencies {

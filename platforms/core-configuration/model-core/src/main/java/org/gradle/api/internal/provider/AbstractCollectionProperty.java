@@ -249,7 +249,15 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    public void setFromAnyValue(Object object) {
+    public void setFromAnyValue(@Nullable Object object) {
+        if (object instanceof CollectionPropertyCompoundAssignmentResult<?>) {
+            CollectionPropertyCompoundAssignmentResult<?> compoundAssignmentResult = (CollectionPropertyCompoundAssignmentResult<?>) object;
+            if (compoundAssignmentResult.isOwnedBy(this)) {
+                compoundAssignmentResult.assignToOwner();
+                return;
+            }
+        }
+
         if (object instanceof Provider) {
             set(Cast.<Provider<C>>uncheckedCast(object));
         } else if (object == null || object instanceof Iterable) {
@@ -282,7 +290,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             throw new NullPointerException(String.format("Cannot set the %s of a property using a null provider.", valueKind));
         }
         ProviderInternal<? extends Iterable<? extends T>> p = Providers.internal(provider);
-        if (p.getType() != null && !Iterable.class.isAssignableFrom(p.getType())) {
+        if (!canBeProviderOfIterable(p)) {
             throw new IllegalArgumentException(String.format("Cannot set the %s of a property of type %s using a provider of type %s.", valueKind, getCollectionType().getName(), p.getType().getName()));
         }
         if (p instanceof CollectionPropertyInternal) {
@@ -624,5 +632,19 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         } else {
             set((Iterable<? extends T>) null);
         }
+    }
+
+    private static boolean canBeProviderOfIterable(ProviderInternal<?> internal) {
+        Class<?> type = internal.getType();
+        return type == null || Iterable.class.isAssignableFrom(type);
+    }
+
+    /**
+     * Returns a stand-in that defines {@code +} operations for Groovy's {code +=} expression.
+     *
+     * @return the stand-in to call {@code plus()} on
+     */
+    public CollectionPropertyCompoundAssignmentStandIn<T> forCompoundAssignment() {
+        return new CollectionPropertyCompoundAssignmentStandIn<>(this);
     }
 }

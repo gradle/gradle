@@ -65,7 +65,7 @@ class JavadocTest extends AbstractProjectBuilderSpec {
 
     def "execution with additional options uses the tool"() {
         task.getJavadocTool().set(tool)
-        task.setMaxMemory("max-memory")
+        task.maxMemory = "max-memory"
         task.options.verbose()
 
         when:
@@ -76,7 +76,7 @@ class JavadocTest extends AbstractProjectBuilderSpec {
     }
 
     def "fails if custom executable does not exist"() {
-        def invalidExecutable = temporaryFolder.file("invalidExecutable")
+        def invalidExecutable = temporaryFolder.file("invalidExecutable").absolutePath
 
         when:
         task.executable = invalidExecutable
@@ -86,6 +86,6 @@ class JavadocTest extends AbstractProjectBuilderSpec {
         def e = thrown(TaskExecutionException)
         def cause = TestUtil.getRootCause(e) as InvalidUserDataException
         cause.message.contains("The configured executable does not exist")
-        cause.message.contains(invalidExecutable.absolutePath)
+        cause.message.contains(invalidExecutable)
     }
 }

@@ -1,0 +1,13 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.plusAssign(org.gradle.api.provider.HasMultipleValues,java.lang.Object[])",
+            "acceptation": "New += API",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        }
+    ]
+}

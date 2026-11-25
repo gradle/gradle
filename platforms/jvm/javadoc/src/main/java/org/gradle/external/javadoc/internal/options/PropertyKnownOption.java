@@ -1,0 +1,57 @@
+/*
+ * Copyright 2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.external.javadoc.internal.options;
+
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.external.javadoc.CoreJavadocOptions;
+import org.gradle.external.javadoc.internal.JavadocOptionFile;
+
+import java.util.function.Function;
+
+public class PropertyKnownOption<T extends CoreJavadocOptions> implements KnownOption<T> {
+
+    private final String option;
+    private final Function<T, Property<?>> propertyGetter;
+
+    public PropertyKnownOption(String option, Function<T, Property<?>> propertyGetter) {
+        this.option = option;
+        this.propertyGetter = propertyGetter;
+    }
+
+    @Override
+    public String getOption() {
+        return option;
+    }
+
+    @Override
+    public void addToOptionFile(T options, JavadocOptionFile optionFile) {
+        optionFile.addPropertyOption(option, propertyGetter.apply(options));
+    }
+
+    @Override
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public void copyValueFromOptionFile(T options, JavadocOptionFile optionFile) {
+        Property<Object> property = (Property<Object>) propertyGetter.apply(options);
+        Object value = optionFile.getOption(option).getValue();
+        if (value instanceof Provider) {
+            property.set((Provider) value);
+        } else {
+            property.set(value);
+        }
+    }
+}

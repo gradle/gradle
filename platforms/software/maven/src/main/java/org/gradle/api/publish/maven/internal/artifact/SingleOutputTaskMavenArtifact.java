@@ -17,11 +17,12 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
-
-import java.io.File;
+import org.gradle.api.provider.ProviderFactory;
 
 public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
     private final Provider<RegularFile> file;
@@ -30,14 +31,17 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
     private final String classifier;
     private final TaskDependencyInternal buildDependencies;
 
+    @SuppressWarnings("this-escape")
     public SingleOutputTaskMavenArtifact(
         Provider<RegularFile> file,
         Provider<Boolean> enabled,
         String extension,
         String classifier,
-        TaskDependencyFactory taskDependencyFactory
+        TaskDependencyFactory taskDependencyFactory,
+        ObjectFactory objectFactory,
+        ProviderFactory providerFactory
     ) {
-        super(taskDependencyFactory);
+        super(taskDependencyFactory, objectFactory, providerFactory);
         this.file = file;
         this.enabled = enabled;
         this.extension = extension;
@@ -46,18 +50,18 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
     }
 
     @Override
-    public File getFile() {
-        return file.get().getAsFile();
+    public Provider<RegularFile> getFile() {
+        return file;
     }
 
     @Override
-    protected String getDefaultExtension() {
-        return extension;
+    protected Provider<String> getDefaultExtension() {
+        return Providers.of(extension);
     }
 
     @Override
-    protected String getDefaultClassifier() {
-        return classifier;
+    protected Provider<String> getDefaultClassifier() {
+        return Providers.ofNullable(classifier);
     }
 
     @Override

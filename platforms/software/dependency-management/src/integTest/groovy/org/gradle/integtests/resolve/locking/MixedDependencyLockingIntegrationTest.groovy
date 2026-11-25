@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class MixedDependencyLockingIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -55,9 +54,9 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
-        // Without CC, DependencyInsightReportTask's getter resolves the configuration while DefaultPropertyWalker
-        // has deprecation warnings disabled. With the configuration cache, resolution happens while storing the task.
-        if (!unique && GradleContextualExecuter.isConfigCache()) {
+        // The root component is a lazy convention, so the configuration resolves outside of DefaultPropertyWalker,
+        // which has deprecation warnings disabled. The warning shows with and without the configuration cache.
+        if (!unique) {
             executer.expectDocumentedDeprecationWarning(lockfileFixture.legacyLockfileDeprecation("configuration ':lockedConf'", 'lockedConf'))
         }
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
@@ -142,9 +141,9 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
-        // Without CC, DependencyInsightReportTask's getter resolves the configuration while DefaultPropertyWalker
-        // has deprecation warnings disabled. With the configuration cache, resolution happens while storing the task.
-        if (!unique && GradleContextualExecuter.isConfigCache()) {
+        // The root component is a lazy convention, so the configuration resolves outside of DefaultPropertyWalker,
+        // which has deprecation warnings disabled. The warning shows with and without the configuration cache.
+        if (!unique) {
             executer.expectDocumentedDeprecationWarning(lockfileFixture.legacyLockfileDeprecation("configuration ':lockedConf'", 'lockedConf'))
         }
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'

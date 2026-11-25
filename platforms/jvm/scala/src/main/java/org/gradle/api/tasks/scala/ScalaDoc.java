@@ -40,11 +40,11 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.scala.internal.GenerateScaladoc;
 import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.util.internal.GUtil;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
 import org.jspecify.annotations.Nullable;
@@ -59,10 +59,6 @@ import java.util.List;
  */
 @CacheableTask
 public abstract class ScalaDoc extends SourceTask {
-
-    private FileCollection classpath;
-    private FileCollection scalaClasspath;
-    private String title;
 
     /**
      * Creates a new {@code ScalaDoc}.
@@ -103,6 +99,7 @@ public abstract class ScalaDoc extends SourceTask {
         getDestinationDirectory().set(destinationDir);
         getDestinationDirectory().convention(getObjectFactory().directoryProperty().fileValue(destinationDir));
     }
+
 
     /**
      * Returns the source for this task, after the include and exclude patterns have been applied. Ignores source files which do not exist.
@@ -151,10 +148,8 @@ public abstract class ScalaDoc extends SourceTask {
      * @since 0.8
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getClasspath() {
-        return classpath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * Sets the classpath.
@@ -162,7 +157,7 @@ public abstract class ScalaDoc extends SourceTask {
      * @since 0.8
      */
     public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
+        getClasspath().setFrom(classpath);
     }
 
     /**
@@ -170,10 +165,8 @@ public abstract class ScalaDoc extends SourceTask {
      * @since 0.9
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getScalaClasspath() {
-        return scalaClasspath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getScalaClasspath();
 
     /**
      * Sets the scala classpath.
@@ -181,7 +174,7 @@ public abstract class ScalaDoc extends SourceTask {
      * @since 0.9
      */
     public void setScalaClasspath(FileCollection scalaClasspath) {
-        this.scalaClasspath = scalaClasspath;
+        getScalaClasspath().setFrom(scalaClasspath);
     }
 
     /**
@@ -204,13 +197,10 @@ public abstract class ScalaDoc extends SourceTask {
      * Returns the documentation title.
      * @since 0.8
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getTitle() {
-        return title;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getTitle();
 
     /**
      * Sets the title.
@@ -218,7 +208,7 @@ public abstract class ScalaDoc extends SourceTask {
      * @since 0.8
      */
     public void setTitle(@Nullable String title) {
-        this.title = title;
+        getTitle().set(title);
     }
 
     /**
@@ -245,18 +235,18 @@ public abstract class ScalaDoc extends SourceTask {
     @TaskAction
     protected void generate() {
         ScalaDocOptions options = getScalaDocOptions();
-        if (!GUtil.isTrue(options.getDocTitle())) {
-            options.setDocTitle(getTitle());
-        }
+        String docTitle = options.getDocTitle()
+            .orElse(getTitle())
+            .getOrNull();
 
         WorkQueue queue = getWorkerExecutor().processIsolation(worker -> {
             worker.getClasspath().from(getScalaClasspath());
             JavaForkOptions forkOptions = worker.getForkOptions();
             if (getMaxMemory().isPresent()) {
-                forkOptions.setMaxHeapSize(getMaxMemory().get());
+                forkOptions.getMaxHeapSize().set(getMaxMemory());
             }
 
-            forkOptions.setExecutable(getJavaLauncher().get().getExecutablePath().getAsFile().getAbsolutePath());
+            forkOptions.getExecutable().set(getJavaLauncher().map(launcher -> launcher.getExecutablePath().getAsFile().getAbsolutePath()));
         });
         queue.submit(GenerateScaladoc.class, parameters -> {
             @Nullable
@@ -271,22 +261,21 @@ public abstract class ScalaDoc extends SourceTask {
             } else {
                 parameters.getSources().from(getSource());
 
-                if (options.isDeprecation()) {
+                if (options.getDeprecation().get()) {
                     parameters.getOptions().add("-deprecation");
                 }
 
-                if (options.isUnchecked()) {
+                if (options.getUnchecked().get()) {
                     parameters.getOptions().add("-unchecked");
                 }
             }
 
-            String footer = options.getFooter();
+            String footer = options.getFooter().getOrNull();
             if (footer != null) {
                 parameters.getOptions().add("-doc-footer");
                 parameters.getOptions().add(footer);
             }
 
-            String docTitle = options.getDocTitle();
             if (docTitle != null) {
                 parameters.getOptions().add("-doc-title");
                 parameters.getOptions().add(docTitle);
@@ -298,10 +287,8 @@ public abstract class ScalaDoc extends SourceTask {
             // options.getHeader();
             // options.getWindowTitle();
 
-            List<String> additionalParameters = options.getAdditionalParameters();
-            if (additionalParameters != null) {
-                parameters.getOptions().addAll(additionalParameters);
-            }
+            List<String> additionalParameters = options.getAdditionalParameters().get();
+            parameters.getOptions().addAll(additionalParameters);
         });
     }
 

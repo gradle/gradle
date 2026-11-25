@@ -35,6 +35,7 @@ dependencies {
     implementation(projects.enterpriseOperations)
     implementation(projects.fileOperations)
     implementation(projects.functional)
+    implementation(projects.groovySupport)
     implementation(projects.modelGroovy)
     implementation(projects.resources)
     implementation(projects.serviceRegistryBuilder)

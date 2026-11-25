@@ -100,9 +100,9 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         def execAction = factory.newExecAction()
 
         then:
-        execAction.standardOutput != null
-        execAction.errorOutput != null
-        execAction.standardInput != null
+        execAction.standardOutput.get() != null
+        execAction.errorOutput.get() != null
+        execAction.standardInput.get() != null
     }
 
     @Issue("https://github.com/gradle/gradle/issues/38787")
@@ -119,9 +119,9 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         execAction.standardInput = standardInput
 
         then:
-        execAction.standardOutput.is(standardOutput)
-        execAction.errorOutput.is(errorOutput)
-        execAction.standardInput.is(standardInput)
+        execAction.standardOutput.get().is(standardOutput)
+        execAction.errorOutput.get().is(errorOutput)
+        execAction.standardInput.get().is(standardInput)
     }
 
     @Requires(OsTestPreconditions.NotWindows)

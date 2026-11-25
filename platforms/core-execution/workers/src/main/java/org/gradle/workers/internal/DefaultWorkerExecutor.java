@@ -219,7 +219,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             ProcessWorkerSpec processConfiguration = (ProcessWorkerSpec) configuration;
             JavaForkOptions forkOptions = forkOptionsFactory.newJavaForkOptions();
             processConfiguration.getForkOptions().copyTo(forkOptions);
-            forkOptions.setWorkingDir(workerDirectoryProvider.getWorkingDirectory());
+            forkOptions.getWorkingDirectory().set(workerDirectoryProvider.getWorkingDirectory());
 
             ClassPath isolatedFromChanges = classpathTransformer.copyingTransform(DefaultClassPath.of(processConfiguration.getClasspath()));
             builder.javaForkOptions(forkOptions)

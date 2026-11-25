@@ -39,10 +39,10 @@ class JUnitPlatformOptionsTest extends Specification {
 
         then:
         with(target) {
-            includeEngines =~ ["sourceIncludedCategory"]
-            excludeEngines =~ ["sourceExcludedCategory"]
-            includeTags =~ ["sourceIncludedTag"]
-            excludeTags =~ ["sourceExcludedTag"]
+            assert includeEngines.get() =~ ["sourceIncludedCategory"]
+            assert excludeEngines.get() =~ ["sourceExcludedCategory"]
+            assert includeTags.get() =~ ["sourceIncludedTag"]
+            assert excludeTags.get() =~ ["sourceExcludedTag"]
         }
     }
 
