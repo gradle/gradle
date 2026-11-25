@@ -17,6 +17,7 @@ dependencies {
 
     implementation(projects.classloaders)
     implementation(projects.logging)
+    implementation(projects.modelCore)
     implementation(libs.guava)
     implementation(libs.commonsLang)
 

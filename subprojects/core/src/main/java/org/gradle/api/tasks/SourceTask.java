@@ -17,14 +17,19 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.provider.EagerPropertySupport;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.NullMarked;
@@ -40,8 +45,10 @@ import java.util.Set;
 @NullMarked
 @DisableCachingByDefault(because = "Super-class, not to be instantiated directly")
 public abstract class SourceTask extends ConventionTask implements PatternFilterable {
-    private ConfigurableFileCollection sourceFiles = getProject().getObjects().fileCollection();
     private final PatternFilterable patternSet;
+    // The collection the eager API writes to. Each setSource() creates a new one, as on master, so a value
+    // that refers to the previous source never refers to itself.
+    private ConfigurableFileCollection eagerSource;
 
     /**
      * Creates a new {@code SourceTask}.
@@ -51,10 +58,22 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
     @SuppressWarnings("this-escape")
     public SourceTask() {
         patternSet = getPatternSetFactory().createPatternSet();
+        eagerSource = getProject().getObjects().fileCollection();
+        getLazyProperties().getSource().convention(eagerSource);
     }
 
     @Inject
     protected abstract PatternSetFactory getPatternSetFactory();
+
+    /**
+     * The lazy properties behind the eager getters and setters of this task.
+     *
+     * @since 10.0.0
+     */
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract SourceTaskInputs getLazyProperties();
 
     /**
      * Returns the pattern set.
@@ -82,8 +101,11 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
     @IgnoreEmptyDirectories
     @ToBeReplacedByLazyProperty
     @PathSensitive(PathSensitivity.ABSOLUTE)
+    @BackedByLazyProperty("lazyProperties.source")
     public FileTree getSource() {
-        return sourceFiles.getAsFileTree().matching(patternSet);
+        ConfigurableFileCollection lazySource = getLazyProperties().getSource();
+        FileCollection source = EagerPropertySupport.getEager(lazySource);
+        return (source != null ? source : lazySource).getAsFileTree().matching(patternSet);
     }
 
     /**
@@ -103,7 +125,8 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
      * @since 0.8
      */
     public void setSource(Object source) {
-        sourceFiles = getProject().getObjects().fileCollection().from(source);
+        eagerSource = getProject().getObjects().fileCollection().from(source);
+        getLazyProperties().getSource().setFrom(eagerSource);
     }
 
     /**
@@ -114,7 +137,13 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
      * @since 0.8
      */
     public SourceTask source(@Nullable Object... sources) {
-        sourceFiles.from(sources);
+        ConfigurableFileCollection lazySource = getLazyProperties().getSource();
+        Set<Object> declared = lazySource.getFrom();
+        if (declared.size() == 1 && declared.iterator().next() == eagerSource) {
+            eagerSource.from(sources);
+        } else {
+            lazySource.from(sources);
+        }
         return this;
     }
 
