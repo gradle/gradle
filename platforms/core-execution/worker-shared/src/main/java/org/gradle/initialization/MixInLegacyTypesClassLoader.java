@@ -24,9 +24,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.model.internal.asm.AsmConstants;
 import org.jspecify.annotations.Nullable;
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -72,6 +74,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
     private static final String RETURN_META_CLASS_FROM_CLASS = Type.getMethodDescriptor(META_CLASS_TYPE, CLASS_TYPE);
     private static final String RETURN_META_CLASS = Type.getMethodDescriptor(META_CLASS_TYPE);
     private static final String RETURN_CLASS = Type.getMethodDescriptor(CLASS_TYPE);
+    private static final String BACKED_BY_LAZY_PROPERTY_DESCRIPTOR = Type.getDescriptor(BackedByLazyProperty.class);
 
     private static final String META_CLASS_FIELD = "__meta_class__";
     private static final String LEGACY_MIXIN_LOADER_NAME = "legacy-mixin-loader";
@@ -132,6 +135,10 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
         private Set<String> booleanGetGetters = new HashSet<String>();
         private Set<String> booleanFields = new HashSet<String>();
         private Set<String> booleanIsGetters = new HashSet<String>();
+        /**
+         * Maps the property name to the name of its is-getter.
+         */
+        private Map<String, String> lazyBackedBooleanIsGetters = new HashMap<String, String>();
 
         TransformingAdapter(ClassVisitor cv) {
             super(AsmConstants.ASM_LEVEL, cv);
@@ -168,6 +175,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
                     String propertyName = accessorType.propertyNameFor(name);
                     if (accessorType == PropertyAccessorType.IS_GETTER) {
                         booleanIsGetters.add(propertyName);
+                        return new LazyBackedIsGetterDetector(super.visitMethod(access, name, desc, signature, exceptions), propertyName, name);
                     } else if (accessorType == PropertyAccessorType.GET_GETTER) {
                         booleanGetGetters.add(propertyName);
                     }
@@ -330,6 +338,43 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
 
             for (String booleanField : accessibleBooleanFieldsWithoutGetGetters) {
                 addBooleanGetGetter(booleanField);
+            }
+
+            Collection<String> lazyBackedPropertiesWithoutGetGetters = new HashSet<String>(lazyBackedBooleanIsGetters.keySet());
+            lazyBackedPropertiesWithoutGetGetters.removeAll(booleanFields);
+            lazyBackedPropertiesWithoutGetGetters.removeAll(booleanGetGetters);
+            for (String propertyName : lazyBackedPropertiesWithoutGetGetters) {
+                addDelegatingBooleanGetGetter(propertyName, lazyBackedBooleanIsGetters.get(propertyName));
+            }
+        }
+
+        // The converted class stores the value in a lazy property, so the get-getter calls the is-getter to honour overrides and conventions.
+        private void addDelegatingBooleanGetGetter(String propertyName, String isGetterName) {
+            MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC, "get" + StringUtils.capitalize(propertyName), "()Z", null, null);
+            mv.visitCode();
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, isGetterName, "()Z", false);
+            mv.visitInsn(Opcodes.IRETURN);
+            mv.visitMaxs(1, 1);
+            mv.visitEnd();
+        }
+
+        private class LazyBackedIsGetterDetector extends MethodVisitor {
+            private final String propertyName;
+            private final String isGetterName;
+
+            LazyBackedIsGetterDetector(MethodVisitor delegate, String propertyName, String isGetterName) {
+                super(AsmConstants.ASM_LEVEL, delegate);
+                this.propertyName = propertyName;
+                this.isGetterName = isGetterName;
+            }
+
+            @Override
+            public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+                if (BACKED_BY_LAZY_PROPERTY_DESCRIPTOR.equals(descriptor)) {
+                    lazyBackedBooleanIsGetters.put(propertyName, isGetterName);
+                }
+                return super.visitAnnotation(descriptor, visible);
             }
         }
 

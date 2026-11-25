@@ -33,6 +33,7 @@ dependencies {
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.classpath)
     implementation(projects.functional)
+    implementation(projects.internalInstrumentationApi)
     implementation(projects.modelReflect)
     implementation(projects.processServices)
     implementation(projects.scopedPersistentCache)
