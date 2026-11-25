@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.DefaultModularitySpec;
@@ -40,7 +41,7 @@ import static org.gradle.process.internal.DefaultExecSpec.copyBaseExecSpecTo;
 
 public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaExecSpec, ProcessArgumentsSpec.HasExecutable {
 
-    private boolean ignoreExitValue;
+    private OptionStorage<Boolean> ignoreExitValue = OptionStorage.inField(false);
     private final ProcessStreamsSpec streamsSpec = new ProcessStreamsSpec();
     private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
 
@@ -49,8 +50,7 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
     private final ModularitySpec modularity;
     private final ListProperty<String> jvmArguments;
 
-    private final FileCollectionFactory fileCollectionFactory;
-    private ConfigurableFileCollection classpath;
+    private FileCollectionStorage classpath;
 
     @Inject
     @SuppressWarnings("this-escape")
@@ -64,8 +64,29 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
         this.mainClass = objectFactory.property(String.class);
         this.mainModule = objectFactory.property(String.class);
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
-        this.fileCollectionFactory = fileCollectionFactory;
-        this.classpath = fileCollectionFactory.configurableFiles("classpath");
+        this.classpath = FileCollectionStorage.createdOnUse(fileCollectionFactory, "classpath");
+    }
+
+    /**
+     * Stores the spec in the given lazy properties from now on. Their current values become conventions.
+     * The argument providers and the streams stay plain values, and the JVM options are attached separately.
+     */
+    public void attach(
+        Property<String> executable,
+        MapProperty<String, Object> environment,
+        ListProperty<String> args,
+        Property<Boolean> ignoreExitValue,
+        ConfigurableFileCollection classpath
+    ) {
+        attach(executable, environment);
+        args.convention(getArgs());
+        argumentsSpec.attach(new LazyArgumentList(args));
+        this.ignoreExitValue = this.ignoreExitValue.movedTo(ignoreExitValue);
+        ConfigurableFileCollection currentClasspath = this.classpath.get();
+        if (!currentClasspath.getFrom().isEmpty()) {
+            classpath.convention(currentClasspath);
+        }
+        this.classpath = FileCollectionStorage.in(classpath);
     }
 
     public void copyTo(JavaExecSpec targetSpec) {
@@ -123,30 +144,29 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
 
     @Override
     public JavaExecSpec classpath(Object... paths) {
-        this.classpath.from(paths);
+        this.classpath.get().from(paths);
         return this;
     }
 
     @Override
     public FileCollection getClasspath() {
-        return classpath;
+        return classpath.get();
     }
 
     @Override
     public JavaExecSpec setClasspath(FileCollection classpath) {
-        this.classpath = fileCollectionFactory.configurableFiles("classpath");
-        this.classpath.setFrom(classpath);
+        this.classpath.replace(classpath);
         return this;
     }
 
     @Override
     public boolean isIgnoreExitValue() {
-        return ignoreExitValue;
+        return ignoreExitValue.required();
     }
 
     @Override
     public JavaExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
-        this.ignoreExitValue = ignoreExitValue;
+        this.ignoreExitValue.set(ignoreExitValue);
         return this;
     }
 

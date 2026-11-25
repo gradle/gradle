@@ -17,9 +17,13 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.Jvm;
@@ -231,6 +235,21 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     protected Map<String, ?> getInheritableEnvironment() {
         // Filter out any environment variables that should not be inherited.
         return Jvm.getInheritableEnvironmentVariables(super.getInheritableEnvironment());
+    }
+
+    /**
+     * Stores the JVM options in the given lazy properties from now on, see {@link JvmOptions#attach}.
+     */
+    public void attach(
+        @Nullable ListProperty<String> jvmArgs,
+        MapProperty<String, Object> systemProperties,
+        Property<String> minHeapSize,
+        Property<String> maxHeapSize,
+        Property<Boolean> enableAssertions,
+        Property<String> defaultCharacterEncoding,
+        ConfigurableFileCollection bootstrapClasspath
+    ) {
+        options.attach(jvmArgs, systemProperties, minHeapSize, maxHeapSize, enableAssertions, defaultCharacterEncoding, bootstrapClasspath);
     }
 
     @Override

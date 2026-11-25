@@ -20,12 +20,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.provider.EagerPropertySupport;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.cache.internal.HeapProportionalCacheSizer;
+import org.gradle.internal.Cast;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JvmDebugSpec.DefaultJvmDebugSpec;
 import org.gradle.process.internal.JvmDebugSpec.JavaDebugOptionsBackedSpec;
 import org.gradle.util.internal.ArgumentsSplitter;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,18 +81,17 @@ public class JvmOptions {
     // We are assuming this class will be initialized before any code has a chance to change the default
     private static final Locale DEFAULT_LOCALE = Locale.getDefault();
 
-    private final List<Object> extraJvmArgs = new ArrayList<Object>();
-    private final Map<String, Object> mutableSystemProperties = new TreeMap<String, Object>();
-    private final FileCollectionFactory fileCollectionFactory;
+    private List<Object> extraJvmArgs = new ArrayList<Object>();
 
-    private ConfigurableFileCollection bootstrapClasspath;
-    private String minHeapSize;
-    private String maxHeapSize;
-    private boolean assertionsEnabled;
+    private FileCollectionStorage bootstrapClasspath;
+    private OptionStorage<String> minHeapSize = OptionStorage.inField(null);
+    private OptionStorage<String> maxHeapSize = OptionStorage.inField(null);
+    private OptionStorage<Boolean> assertionsEnabled = OptionStorage.inField(false);
 
     private final JvmDebugSpec debugSpec;
 
     protected final Map<String, Object> immutableSystemProperties = new TreeMap<>();
+    private SystemPropertiesStorage systemProperties = SystemPropertiesStorage.inFields(immutableSystemProperties);
 
     public JvmOptions(FileCollectionFactory fileCollectionFactory) {
         this(fileCollectionFactory, new DefaultJvmDebugSpec());
@@ -94,7 +99,7 @@ public class JvmOptions {
 
     public JvmOptions(FileCollectionFactory fileCollectionFactory, JvmDebugSpec debugSpec) {
         this.debugSpec = debugSpec;
-        this.fileCollectionFactory = fileCollectionFactory;
+        this.bootstrapClasspath = FileCollectionStorage.createdOnUse(fileCollectionFactory, "bootstrap classpath");
         immutableSystemProperties.put(FILE_ENCODING_KEY, Charset.defaultCharset().name());
         immutableSystemProperties.put(USER_LANGUAGE_KEY, DEFAULT_LOCALE.getLanguage());
         immutableSystemProperties.put(USER_COUNTRY_KEY, DEFAULT_LOCALE.getCountry());
@@ -106,7 +111,7 @@ public class JvmOptions {
      */
     public List<String> getAllJvmArgs() {
         List<String> args = new ArrayList<>();
-        formatSystemProperties(getMutableSystemProperties(), args);
+        formatSystemProperties(sorted(getMutableSystemProperties()), args);
 
         // We have to add these after the system properties so they can override any system properties
         // (identical properties later in the command line override earlier ones)
@@ -142,21 +147,24 @@ public class JvmOptions {
      */
     protected List<String> getManagedJvmArgs() {
         List<String> args = new ArrayList<>();
+        String minHeapSize = getMinHeapSize();
         if (minHeapSize != null) {
             args.add(XMS_PREFIX + minHeapSize);
         }
+        String maxHeapSize = getMaxHeapSize();
         if (maxHeapSize != null) {
             args.add(XMX_PREFIX + maxHeapSize);
         }
+        ConfigurableFileCollection bootstrapClasspath = this.bootstrapClasspath.getIfCreated();
         if (bootstrapClasspath != null && !bootstrapClasspath.isEmpty()) {
             args.add(BOOTCLASSPATH_PREFIX + bootstrapClasspath.getAsPath());
         }
 
         // These are implemented as a system property, but don't really function like one
         // So we include it in this "no system property" set.
-        formatSystemProperties(immutableSystemProperties, args);
+        formatSystemProperties(getImmutableSystemProperties(), args);
 
-        if (assertionsEnabled) {
+        if (getEnableAssertions()) {
             args.add("-ea");
         }
 
@@ -187,11 +195,11 @@ public class JvmOptions {
     }
 
     public void setAllJvmArgs(Iterable<?> arguments) {
-        mutableSystemProperties.clear();
-        minHeapSize = null;
-        maxHeapSize = null;
+        getMutableSystemProperties().clear();
+        setMinHeapSize(null);
+        setMaxHeapSize(null);
         extraJvmArgs.clear();
-        assertionsEnabled = false;
+        setEnableAssertions(false);
         debugSpec.setEnabled(false);
         jvmArgs(arguments);
     }
@@ -256,13 +264,13 @@ public class JvmOptions {
             String argStr = argument.toString();
 
             if (argStr.equals("-ea") || argStr.equals("-enableassertions")) {
-                assertionsEnabled = true;
+                setEnableAssertions(true);
             } else if (argStr.equals("-da") || argStr.equals("-disableassertions")) {
-                assertionsEnabled = false;
+                setEnableAssertions(false);
             } else if (argStr.startsWith(XMS_PREFIX)) {
-                minHeapSize = argStr.substring(XMS_PREFIX.length());
+                setMinHeapSize(argStr.substring(XMS_PREFIX.length()));
             } else if (argStr.startsWith(XMX_PREFIX)) {
-                maxHeapSize = argStr.substring(XMX_PREFIX.length());
+                setMaxHeapSize(argStr.substring(XMX_PREFIX.length()));
             } else if (argStr.startsWith(BOOTCLASSPATH_PREFIX)) {
                 String[] bootClasspath = StringUtils.split(argStr.substring(BOOTCLASSPATH_PREFIX.length()), File.pathSeparatorChar);
                 setBootstrapClasspath((Object[]) bootClasspath);
@@ -281,15 +289,19 @@ public class JvmOptions {
     }
 
     public Map<String, Object> getMutableSystemProperties() {
-        return mutableSystemProperties;
+        return systemProperties.getMutable();
     }
 
     public Map<String, Object> getImmutableSystemProperties() {
-        return immutableSystemProperties;
+        return systemProperties.getImmutable();
+    }
+
+    private static Map<String, Object> sorted(Map<String, Object> properties) {
+        return properties instanceof TreeMap ? properties : new TreeMap<>(properties);
     }
 
     public void setSystemProperties(Map<String, ?> properties) {
-        mutableSystemProperties.clear();
+        getMutableSystemProperties().clear();
         systemProperties(properties);
     }
 
@@ -301,9 +313,9 @@ public class JvmOptions {
 
     public void systemProperty(String name, Object value) {
         if (IMMUTABLE_SYSTEM_PROPERTIES.contains(name)) {
-            immutableSystemProperties.put(name, value);
+            systemProperties.putImmutable(name, value);
         } else {
-            mutableSystemProperties.put(name, value);
+            systemProperties.putMutable(name, value);
         }
     }
 
@@ -312,10 +324,7 @@ public class JvmOptions {
     }
 
     private ConfigurableFileCollection internalGetBootstrapClasspath() {
-        if (bootstrapClasspath == null) {
-            bootstrapClasspath = fileCollectionFactory.configurableFiles("bootstrap classpath");
-        }
-        return bootstrapClasspath;
+        return bootstrapClasspath.get();
     }
 
     public void setBootstrapClasspath(FileCollection classpath) {
@@ -331,35 +340,36 @@ public class JvmOptions {
     }
 
     public String getMinHeapSize() {
-        return minHeapSize;
+        return minHeapSize.get();
     }
 
     public void setMinHeapSize(String heapSize) {
-        this.minHeapSize = heapSize;
+        minHeapSize.set(heapSize);
     }
 
     public String getMaxHeapSize() {
-        return maxHeapSize;
+        return maxHeapSize.get();
     }
 
     public void setMaxHeapSize(String heapSize) {
-        this.maxHeapSize = heapSize;
+        maxHeapSize.set(heapSize);
     }
 
     public String getDefaultCharacterEncoding() {
-        return immutableSystemProperties.get(FILE_ENCODING_KEY).toString();
+        return systemProperties.getEncoding();
     }
 
     public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
-        immutableSystemProperties.put(FILE_ENCODING_KEY, GUtil.isTrue(defaultCharacterEncoding) ? defaultCharacterEncoding : Charset.defaultCharset().name());
+        String encoding = GUtil.isTrue(defaultCharacterEncoding) ? defaultCharacterEncoding : Charset.defaultCharset().name();
+        systemProperties.putImmutable(FILE_ENCODING_KEY, encoding);
     }
 
     public boolean getEnableAssertions() {
-        return assertionsEnabled;
+        return assertionsEnabled.required();
     }
 
     public void setEnableAssertions(boolean enabled) {
-        assertionsEnabled = enabled;
+        assertionsEnabled.set(enabled);
     }
 
     public boolean getDebug() {
@@ -374,29 +384,31 @@ public class JvmOptions {
         return debugSpec;
     }
 
+    // The JVM arguments are copied after the values they can contain, so that arguments bound lazily,
+    // which are not parsed when set, are parsed by the target and win, as with a later call to jvmArgs()
     public void copyTo(JavaForkOptions target) {
-        target.setJvmArgs(extraJvmArgs);
-        target.setSystemProperties(mutableSystemProperties);
-        target.setMinHeapSize(minHeapSize);
-        target.setMaxHeapSize(maxHeapSize);
+        target.setSystemProperties(getMutableSystemProperties());
+        target.setMinHeapSize(getMinHeapSize());
+        target.setMaxHeapSize(getMaxHeapSize());
         target.bootstrapClasspath(getBootstrapClasspath().getFiles());
-        target.setEnableAssertions(assertionsEnabled);
+        target.setEnableAssertions(getEnableAssertions());
+        target.setJvmArgs(extraJvmArgs);
         copyDebugOptionsTo(new JavaDebugOptionsBackedSpec(target.getDebugOptions()));
-        target.systemProperties(immutableSystemProperties);
+        target.systemProperties(getImmutableSystemProperties());
     }
 
     public JvmOptions createCopy(FileCollectionFactory fileCollectionFactory) {
         JvmOptions target = new JvmOptions(fileCollectionFactory);
-        target.setJvmArgs(extraJvmArgs);
-        target.setSystemProperties(mutableSystemProperties);
-        target.setMinHeapSize(minHeapSize);
-        target.setMaxHeapSize(maxHeapSize);
-        if (bootstrapClasspath != null) {
+        target.setSystemProperties(getMutableSystemProperties());
+        target.setMinHeapSize(getMinHeapSize());
+        target.setMaxHeapSize(getMaxHeapSize());
+        if (bootstrapClasspath.getIfCreated() != null) {
             target.setBootstrapClasspath(getBootstrapClasspath().getFiles());
         }
-        target.setEnableAssertions(assertionsEnabled);
+        target.setEnableAssertions(getEnableAssertions());
+        target.setJvmArgs(extraJvmArgs);
         copyDebugOptionsTo(target.getDebugSpec());
-        target.systemProperties(immutableSystemProperties);
+        target.systemProperties(getImmutableSystemProperties());
         return target;
     }
 
@@ -411,6 +423,34 @@ public class JvmOptions {
         to.setPort(from.getPort());
         to.setServer(from.isServer());
         to.setSuspend(from.isSuspend());
+    }
+
+    /**
+     * Stores the options in the given lazy properties from now on. Their current values become conventions.
+     * Without {@code jvmArgs}, the extra JVM arguments stay in a plain list.
+     */
+    public void attach(
+        @Nullable ListProperty<String> jvmArgs,
+        MapProperty<String, Object> systemProperties,
+        Property<String> minHeapSize,
+        Property<String> maxHeapSize,
+        Property<Boolean> enableAssertions,
+        Property<String> defaultCharacterEncoding,
+        ConfigurableFileCollection bootstrapClasspath
+    ) {
+        if (jvmArgs != null) {
+            jvmArgs.convention(getJvmArgs());
+            this.extraJvmArgs = Cast.uncheckedNonnullCast(EagerPropertySupport.conventionKeepingView(jvmArgs));
+        }
+        this.systemProperties = this.systemProperties.movedTo(systemProperties, defaultCharacterEncoding);
+        this.minHeapSize = this.minHeapSize.movedTo(minHeapSize);
+        this.maxHeapSize = this.maxHeapSize.movedTo(maxHeapSize);
+        this.assertionsEnabled = this.assertionsEnabled.movedTo(enableAssertions);
+        ConfigurableFileCollection currentBootstrapClasspath = this.bootstrapClasspath.getIfCreated();
+        if (currentBootstrapClasspath != null) {
+            bootstrapClasspath.convention(currentBootstrapClasspath);
+        }
+        this.bootstrapClasspath = FileCollectionStorage.in(bootstrapClasspath);
     }
 
     public static List<String> fromString(String input) {
