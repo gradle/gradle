@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.provider.EagerPropertySupport;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableTransformer;
 import org.gradle.api.provider.Property;
@@ -39,6 +40,8 @@ import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
 import org.gradle.api.tasks.wrapper.internal.WrapperGenerator;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.WrapperDistributionUrlConverter;
@@ -118,21 +121,6 @@ public abstract class Wrapper extends DefaultTask {
 
     private final GradleVersionResolver gradleVersionResolver;
 
-    private Object scriptFile = WrapperDefaults.SCRIPT_PATH;
-    private Object jarFile = WrapperDefaults.JAR_FILE_PATH;
-    private String distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
-    private PathBase distributionBase = WrapperDefaults.DISTRIBUTION_BASE;
-    private String distributionUrl;
-    private String distributionSha256Sum;
-    private DistributionType distributionType = WrapperDefaults.DISTRIBUTION_TYPE;
-    private String archivePath = WrapperDefaults.ARCHIVE_PATH;
-    private PathBase archiveBase = WrapperDefaults.ARCHIVE_BASE;
-    private boolean distributionUrlConfigured = false;
-    private boolean distributionTypeConfigured = false;
-    private boolean distributionPathConfigured = false;
-    private boolean distributionBaseConfigured = false;
-    private boolean archivePathConfigured = false;
-    private boolean archiveBaseConfigured = false;
     private final boolean isOffline = getProject().getGradle().getStartParameter().isOffline();
     private final Provider<Properties> existingProperties;
 
@@ -147,6 +135,21 @@ public abstract class Wrapper extends DefaultTask {
         existingProperties = getProviders().of(ExistingWrapperProperties.class, spec ->
             spec.getParameters().getPropertiesFile().fileProvider(propertiesFile)
         );
+        WrapperInputs lazy = getLazyProperties();
+        lazy.getScriptFile().convention(getProject().getLayout().getProjectDirectory().file(WrapperDefaults.SCRIPT_PATH));
+        lazy.getJarFile().convention(getProject().getLayout().getProjectDirectory().file(WrapperDefaults.JAR_FILE_PATH));
+        lazy.getDistributionPath().convention(existingProperty(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY, value -> value)
+            .orElse(DEFAULT_DISTRIBUTION_PARENT_NAME));
+        lazy.getDistributionBase().convention(existingProperty(WrapperExecutor.DISTRIBUTION_BASE_PROPERTY, Wrapper::parsePathBase)
+            .orElse(WrapperDefaults.DISTRIBUTION_BASE));
+        lazy.getArchivePath().convention(existingProperty(WrapperExecutor.ZIP_STORE_PATH_PROPERTY, value -> value)
+            .orElse(WrapperDefaults.ARCHIVE_PATH));
+        lazy.getArchiveBase().convention(existingProperty(WrapperExecutor.ZIP_STORE_BASE_PROPERTY, Wrapper::parsePathBase)
+            .orElse(WrapperDefaults.ARCHIVE_BASE));
+        // An explicit distribution URL makes the type fall back to the default, not to the existing properties
+        lazy.getDistributionType().convention(lazy.getDistributionUrl().map(SerializableLambdas.transformer(url -> WrapperDefaults.DISTRIBUTION_TYPE))
+            .orElse(existingProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, WrapperGenerator::getDistributionType))
+            .orElse(WrapperDefaults.DISTRIBUTION_TYPE));
         getNetworkTimeout().convention(existingProperty(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, Integer::valueOf)
             .orElse(WrapperDefaults.NETWORK_TIMEOUT));
         getValidateDistributionUrl().convention(existingProperty(WrapperExecutor.VALIDATE_DISTRIBUTION_URL, Wrapper::parseBoolean)
@@ -158,6 +161,16 @@ public abstract class Wrapper extends DefaultTask {
 
         gradleVersionResolver = new GradleVersionResolver(getProject().getResources().getText());
     }
+
+    /**
+     * The lazy properties behind the eager getters and setters of this task.
+     *
+     * @since 10.0.0
+     */
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract WrapperInputs getLazyProperties();
 
     @TaskAction
     void generate() {
@@ -211,40 +224,8 @@ public abstract class Wrapper extends DefaultTask {
         throw new IllegalArgumentException("Expected 'true' or 'false'.");
     }
 
-    private PathBase resolveDistributionBase(@Nullable Properties properties) {
-        return properties == null
-            ? distributionBase
-            : resolvePathBase(properties, WrapperExecutor.DISTRIBUTION_BASE_PROPERTY, distributionBase);
-    }
-
-    private String resolveDistributionPath(@Nullable Properties properties) {
-        return properties == null
-            ? distributionPath
-            : properties.getProperty(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY, distributionPath);
-    }
-
-    private PathBase resolveArchiveBase(@Nullable Properties properties) {
-        return properties == null
-            ? archiveBase
-            : resolvePathBase(properties, WrapperExecutor.ZIP_STORE_BASE_PROPERTY, archiveBase);
-    }
-
-    private String resolveArchivePath(@Nullable Properties properties) {
-        return properties == null
-            ? archivePath
-            : properties.getProperty(WrapperExecutor.ZIP_STORE_PATH_PROPERTY, archivePath);
-    }
-
-    private PathBase resolvePathBase(Properties properties, String propertyName, PathBase defaultValue) {
-        String value = properties.getProperty(propertyName);
-        if (value == null) {
-            return defaultValue;
-        }
-        try {
-            return PathBase.valueOf(value.toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException e) {
-            throw new GradleException(String.format(Locale.ROOT, "Invalid value '%s' for property '%s' in '%s'.", value, propertyName, getPropertiesFile()), e);
-        }
+    private static PathBase parsePathBase(String value) {
+        return PathBase.valueOf(value.toUpperCase(Locale.ROOT));
     }
 
     private void checkProperties(@Nullable Properties properties) {
@@ -253,7 +234,7 @@ public abstract class Wrapper extends DefaultTask {
             : null;
 
         if (!isCurrentVersion() &&
-            distributionSha256Sum == null &&
+            getLazyProperties().getDistributionSha256Sum().getOrNull() == null &&
             checksumProperty != null) {
             throw new GradleException("gradle-wrapper.properties contains distributionSha256Sum property, but the wrapper configuration does not have one. Specify one in the wrapper task configuration or with the --gradle-distribution-sha256-sum task option. You can find checksums for all Gradle releases at https://gradle.org/release-checksums");
         }
@@ -262,7 +243,7 @@ public abstract class Wrapper extends DefaultTask {
     private static final String DISTRIBUTION_URL_EXCEPTION_MESSAGE = "Test of distribution url %s failed. Please check the values set with --gradle-distribution-url and --gradle-version.";
 
     private void validateDistributionUrl(File uriRoot) {
-        if (distributionUrlConfigured && getValidateDistributionUrl().get()) {
+        if (isDistributionUrlConfigured() && getValidateDistributionUrl().get()) {
             URI uri = getDistributionUri(uriRoot, getDistributionUrl());
             if (uri.getScheme().equals("file")) {
                 if (!Files.exists(Paths.get(uri).toAbsolutePath())) {
@@ -286,7 +267,12 @@ public abstract class Wrapper extends DefaultTask {
         }
     }
 
+    private boolean isDistributionUrlConfigured() {
+        return getLazyProperties().getGradleVersion().isPresent() || getLazyProperties().getDistributionUrl().isPresent();
+    }
+
     private String getDistributionSha256Sum(Properties properties) {
+        String distributionSha256Sum = getLazyProperties().getDistributionSha256Sum().getOrNull();
         if (distributionSha256Sum != null) {
             return distributionSha256Sum;
         } else if (isCurrentVersion() && properties != null) {
@@ -302,8 +288,9 @@ public abstract class Wrapper extends DefaultTask {
      */
     @OutputFile
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.scriptFile")
     public File getScriptFile() {
-        return getServices().get(FileOperations.class).file(scriptFile);
+        return getLazyProperties().getScriptFile().get().getAsFile();
     }
 
     /**
@@ -312,7 +299,7 @@ public abstract class Wrapper extends DefaultTask {
      * @since 4.0
      */
     public void setScriptFile(File scriptFile) {
-        this.scriptFile = scriptFile;
+        setScriptFile((Object) scriptFile);
     }
 
     /**
@@ -320,7 +307,7 @@ public abstract class Wrapper extends DefaultTask {
      * @since 0.9
      */
     public void setScriptFile(Object scriptFile) {
-        this.scriptFile = scriptFile;
+        getLazyProperties().getScriptFile().fileProvider(resolvedOnRead(scriptFile));
     }
 
     /**
@@ -339,8 +326,9 @@ public abstract class Wrapper extends DefaultTask {
      */
     @OutputFile
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.jarFile")
     public File getJarFile() {
-        return getServices().get(FileOperations.class).file(jarFile);
+        return getLazyProperties().getJarFile().get().getAsFile();
     }
 
     /**
@@ -349,7 +337,7 @@ public abstract class Wrapper extends DefaultTask {
      * @since 4.0
      */
     public void setJarFile(File jarFile) {
-        this.jarFile = jarFile;
+        setJarFile((Object) jarFile);
     }
 
     /**
@@ -357,7 +345,13 @@ public abstract class Wrapper extends DefaultTask {
      * @since 0.9
      */
     public void setJarFile(Object jarFile) {
-        this.jarFile = jarFile;
+        getLazyProperties().getJarFile().fileProvider(resolvedOnRead(jarFile));
+    }
+
+    // Resolves the path on every read, as the eager setter did, so a value that changes later is still seen
+    private Provider<File> resolvedOnRead(Object path) {
+        FileOperations fileOperations = getServices().get(FileOperations.class);
+        return getProviders().provider(SerializableLambdas.callable(() -> fileOperations.file(path)));
     }
 
     /**
@@ -381,8 +375,9 @@ public abstract class Wrapper extends DefaultTask {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.distributionPath")
     public String getDistributionPath() {
-        return distributionPathConfigured ? distributionPath : resolveDistributionPath(existingProperties.getOrNull());
+        return getLazyProperties().getDistributionPath().get();
     }
 
     /**
@@ -393,8 +388,7 @@ public abstract class Wrapper extends DefaultTask {
      * @since 0.7
      */
     public void setDistributionPath(String distributionPath) {
-        this.distributionPathConfigured = true;
-        this.distributionPath = distributionPath;
+        getLazyProperties().getDistributionPath().set(distributionPath);
     }
 
     /**
@@ -406,6 +400,7 @@ public abstract class Wrapper extends DefaultTask {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.gradleVersion")
     public String getGradleVersion() {
         return getResolvedGradleVersion().getVersion();
     }
@@ -422,8 +417,9 @@ public abstract class Wrapper extends DefaultTask {
     @Option(option = "gradle-version", description = "The version of the Gradle distribution required by the wrapper. " +
         "The following labels are allowed: latest, release-candidate, release-milestone, release-nightly, and nightly.")
     public void setGradleVersion(String gradleVersion) {
-        distributionUrlConfigured = true;
-        setUnresolvedGradleVersion(gradleVersion);
+        // Validates eagerly, as before. A value bound lazily is validated when the version is resolved.
+        gradleVersionResolver.setGradleVersionRequest(gradleVersion);
+        getLazyProperties().getGradleVersion().set(gradleVersion);
     }
 
     /**
@@ -435,18 +431,9 @@ public abstract class Wrapper extends DefaultTask {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.distributionType")
     public DistributionType getDistributionType() {
-        if (distributionTypeConfigured || distributionUrl != null) {
-            return distributionType;
-        }
-        Properties properties = existingProperties.getOrNull();
-        if (properties != null) {
-            DistributionType existingDistributionType = WrapperGenerator.getDistributionType(properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY));
-            if (existingDistributionType != null) {
-                return existingDistributionType;
-            }
-        }
-        return distributionType;
+        return getLazyProperties().getDistributionType().get();
     }
 
     /**
@@ -459,8 +446,7 @@ public abstract class Wrapper extends DefaultTask {
      */
     @Option(option = "distribution-type", description = "The type of the Gradle distribution to be used by the wrapper.")
     public void setDistributionType(DistributionType distributionType) {
-        this.distributionTypeConfigured = true;
-        this.distributionType = distributionType;
+        getLazyProperties().getDistributionType().set(distributionType);
     }
 
     /**
@@ -494,7 +480,9 @@ public abstract class Wrapper extends DefaultTask {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.distributionUrl")
     public String getDistributionUrl() {
+        String distributionUrl = getLazyProperties().getDistributionUrl().getOrNull();
         if (distributionUrl != null) {
             return distributionUrl;
         }
@@ -507,11 +495,9 @@ public abstract class Wrapper extends DefaultTask {
     }
 
     private GradleVersion getResolvedGradleVersion() {
+        String request = getLazyProperties().getGradleVersion().getOrNull();
+        gradleVersionResolver.setGradleVersionRequest(request != null ? request : GradleVersion.current().getVersion());
         return gradleVersionResolver.getGradleVersion();
-    }
-
-    private void setUnresolvedGradleVersion(String gradleVersion) {
-        this.gradleVersionResolver.setGradleVersionRequest(gradleVersion);
     }
 
     /**
@@ -532,8 +518,7 @@ public abstract class Wrapper extends DefaultTask {
      */
     @Option(option = "gradle-distribution-url", description = "The URL to download the Gradle distribution from.")
     public void setDistributionUrl(String url) {
-        distributionUrlConfigured = true;
-        this.distributionUrl = url;
+        EagerPropertySupport.setEager(getLazyProperties().getDistributionUrl(), url);
     }
 
     /**
@@ -551,8 +536,9 @@ public abstract class Wrapper extends DefaultTask {
     @Optional
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.distributionSha256Sum")
     public String getDistributionSha256Sum() {
-        return distributionSha256Sum;
+        return getLazyProperties().getDistributionSha256Sum().getOrNull();
     }
 
     /**
@@ -568,7 +554,7 @@ public abstract class Wrapper extends DefaultTask {
      */
     @Option(option = "gradle-distribution-sha256-sum", description = "The SHA-256 hash sum of the gradle distribution.")
     public void setDistributionSha256Sum(@Nullable String distributionSha256Sum) {
-        this.distributionSha256Sum = distributionSha256Sum;
+        EagerPropertySupport.setEager(getLazyProperties().getDistributionSha256Sum(), distributionSha256Sum);
     }
 
     /**
@@ -579,8 +565,9 @@ public abstract class Wrapper extends DefaultTask {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.distributionBase")
     public PathBase getDistributionBase() {
-        return distributionBaseConfigured ? distributionBase : resolveDistributionBase(existingProperties.getOrNull());
+        return getLazyProperties().getDistributionBase().get();
     }
 
     /**
@@ -589,8 +576,7 @@ public abstract class Wrapper extends DefaultTask {
      * @since 0.7
      */
     public void setDistributionBase(PathBase distributionBase) {
-        this.distributionBaseConfigured = true;
-        this.distributionBase = distributionBase;
+        getLazyProperties().getDistributionBase().set(distributionBase);
     }
 
     /**
@@ -601,8 +587,9 @@ public abstract class Wrapper extends DefaultTask {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.archivePath")
     public String getArchivePath() {
-        return archivePathConfigured ? archivePath : resolveArchivePath(existingProperties.getOrNull());
+        return getLazyProperties().getArchivePath().get();
     }
 
     /**
@@ -611,8 +598,7 @@ public abstract class Wrapper extends DefaultTask {
      * @since 0.7
      */
     public void setArchivePath(String archivePath) {
-        this.archivePathConfigured = true;
-        this.archivePath = archivePath;
+        getLazyProperties().getArchivePath().set(archivePath);
     }
 
     /**
@@ -623,8 +609,9 @@ public abstract class Wrapper extends DefaultTask {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.archiveBase")
     public PathBase getArchiveBase() {
-        return archiveBaseConfigured ? archiveBase : resolveArchiveBase(existingProperties.getOrNull());
+        return getLazyProperties().getArchiveBase().get();
     }
 
     /**
@@ -633,8 +620,7 @@ public abstract class Wrapper extends DefaultTask {
      * @since 0.7
      */
     public void setArchiveBase(PathBase archiveBase) {
-        this.archiveBaseConfigured = true;
-        this.archiveBase = archiveBase;
+        getLazyProperties().getArchiveBase().set(archiveBase);
     }
 
     /**
