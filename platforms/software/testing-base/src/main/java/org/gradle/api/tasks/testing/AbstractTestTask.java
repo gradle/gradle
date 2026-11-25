@@ -76,6 +76,7 @@ import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -183,8 +184,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private final TestLoggingContainer testLogging;
     private TestReporter testReporter;
     private boolean ignoreFailures;
-    private boolean failFast;
-
     /**
      * Creates a new {@code AbstractTestTask}.
      *
@@ -204,7 +203,18 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         filter = objectFactory.newInstance(DefaultTestFilter.class);
         getFailOnNoDiscoveredTests().convention(true);
+        getLazyProperties().getFailFast().convention(false);
     }
+
+    /**
+     * The lazy properties behind the eager getters and setters of this task.
+     *
+     * @since 10.0.0
+     */
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract AbstractTestTaskInputs getLazyProperties();
 
     @Inject
     protected abstract ProgressLoggerFactory getProgressLoggerFactory();
@@ -616,7 +626,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             // This wrapper does not guarantee correctness from other parts of the system, but it restores previous behavior.
             // It is recommended that plugins handle synchronization themselves and migrate to the new TestEventReporter APIs.
             TestListenerInternal resultProcessorDelegate = new SynchronizedTestListenerInternal(reporterAsListener);
-            if (failFast) {
+            if (getFailFast()) {
                 resultProcessorDelegate = new FailFastTestListenerInternal(testExecuter, resultProcessorDelegate);
             }
 
@@ -764,11 +774,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @Internal
     boolean getFailFast() {
-        return failFast;
+        return getLazyProperties().getFailFast().get();
     }
 
     void setFailFast(boolean failFast) {
-        this.failFast = failFast;
+        getLazyProperties().getFailFast().set(failFast);
     }
 
     /**
