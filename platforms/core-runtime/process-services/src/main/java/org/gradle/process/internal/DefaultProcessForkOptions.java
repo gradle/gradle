@@ -15,7 +15,6 @@
  */
 package org.gradle.process.internal;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemLocation;
@@ -29,6 +28,8 @@ import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.file.PathToFileResolver;
@@ -43,9 +44,10 @@ import java.util.Map;
 
 public class DefaultProcessForkOptions implements ProcessForkOptions {
     protected final PathToFileResolver resolver;
-    private Object executable;
+    private OptionStorage<Object> executable = OptionStorage.inField(null);
     private final DirectoryProperty workingDir;
-    private Map<String, Object> environment;
+    @SuppressWarnings("this-escape") // The storage calls back only after construction
+    private EnvironmentStorage environment = EnvironmentStorage.inField(this);
 
     /**
      * Kept for backward compatibility with some external plugins (e.g. KGP). Use {@link #DefaultProcessForkOptions(ObjectFactory, PathToFileResolver)} instead.
@@ -69,17 +71,18 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
 
     @Override
     public String getExecutable() {
-        return executable == null ? null : executable.toString();
+        Object value = executable.get();
+        return value == null ? null : value.toString();
     }
 
     @Override
     public void setExecutable(String executable) {
-        this.executable = executable;
+        this.executable.set(executable);
     }
 
     @Override
     public void setExecutable(Object executable) {
-        this.executable = executable;
+        this.executable.set(executable);
     }
 
     @Override
@@ -131,10 +134,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
 
     @Override
     public Map<String, Object> getEnvironment() {
-        if (environment == null) {
-            setEnvironment(getInheritableEnvironment());
-        }
-        return environment;
+        return environment.get();
     }
 
     protected Map<String, ?> getInheritableEnvironment() {
@@ -155,24 +155,34 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
 
     @Override
     public void setEnvironment(Map<String, ?> environmentVariables) {
-        environment = Maps.newHashMap(environmentVariables);
+        environment.set(environmentVariables);
     }
 
     @Override
     public ProcessForkOptions environment(String name, Object value) {
-        getEnvironment().put(name, value);
+        environment.put(name, value);
         return this;
     }
 
     @Override
     public ProcessForkOptions environment(Map<String, ?> environmentVariables) {
-        getEnvironment().putAll(environmentVariables);
+        environment.putAll(environmentVariables);
         return this;
+    }
+
+    /**
+     * Stores the executable and the environment in the given lazy properties from now on.
+     * The current executable becomes the convention.
+     * The current environment, or else the inherited environment read when the property is read, becomes both the convention and the value.
+     */
+    public void attach(Property<String> executable, MapProperty<String, Object> environment) {
+        this.executable = OptionStorage.movedToText(this.executable, executable);
+        this.environment = this.environment.movedTo(environment);
     }
 
     @Override
     public ProcessForkOptions copyTo(ProcessForkOptions target) {
-        target.setExecutable(executable);
+        target.setExecutable(executable.get());
         target.getWorkingDirectory().set(getWorkingDirectory());
         target.setEnvironment(getEnvironment());
         return this;
