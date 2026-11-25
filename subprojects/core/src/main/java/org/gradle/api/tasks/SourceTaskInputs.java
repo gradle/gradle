@@ -18,6 +18,8 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.util.FilePatterns;
 
 /**
  * The lazy properties behind the eager getters and setters of {@link SourceTask}.
@@ -34,4 +36,15 @@ public interface SourceTaskInputs {
      * @since 10.0.0
      */
     ConfigurableFileCollection getSource();
+
+    /**
+     * The include and exclude patterns that are applied to the source.
+     *
+     * <p>The eager pattern methods of the task, such as {@link SourceTask#include(String...)}, change this value.</p>
+     *
+     * @see SourceTask#getIncludes()
+     * @see SourceTask#getExcludes()
+     * @since 10.0.0
+     */
+    Property<FilePatterns> getSourcePatterns();
 }

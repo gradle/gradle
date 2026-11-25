@@ -25,7 +25,9 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.provider.EagerPropertySupport;
+import org.gradle.api.internal.provider.LazyBackedPatternSet;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.FilePatterns;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
@@ -57,7 +59,8 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
      */
     @SuppressWarnings("this-escape")
     public SourceTask() {
-        patternSet = getPatternSetFactory().createPatternSet();
+        getLazyProperties().getSourcePatterns().convention(FilePatterns.empty());
+        patternSet = new LazyBackedPatternSet(getPatternSetFactory().createPatternSet(), getLazyProperties().getSourcePatterns());
         eagerSource = getProject().getObjects().fileCollection();
         getLazyProperties().getSource().convention(eagerSource);
     }
