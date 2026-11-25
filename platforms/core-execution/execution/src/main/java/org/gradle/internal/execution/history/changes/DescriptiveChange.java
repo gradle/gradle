@@ -52,6 +52,6 @@ public class DescriptiveChange implements Change {
 
     @Override
     public int hashCode() {
-        return Objects.hash(message);
+        return Objects.hashCode(message);
     }
 }

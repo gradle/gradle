@@ -16,12 +16,14 @@
 
 package org.gradle.launcher.daemon.registry;
 
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.file.nio.OwnerOnlyFiles;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
+import java.io.IOException;
 
 @ServiceScope(Scope.Global.class)
 public class DaemonDir {
@@ -33,7 +35,11 @@ public class DaemonDir {
         this.baseDir = baseDir;
         this.versionedDir = new File(baseDir, GradleVersion.current().getVersion());
         this.registryFile = new File(versionedDir, "registry.bin");
-        GFileUtils.mkdirs(this.versionedDir);
+        try {
+            OwnerOnlyFiles.createDirectory(versionedDir);
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e, true);
+        }
     }
 
     public File getBaseDir() {

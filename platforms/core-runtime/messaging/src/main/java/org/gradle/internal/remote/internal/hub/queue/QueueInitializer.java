@@ -19,8 +19,10 @@ package org.gradle.internal.remote.internal.hub.queue;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.remote.internal.hub.protocol.EndOfStream;
 import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage;
+import org.jspecify.annotations.Nullable;
 
 public class QueueInitializer {
+    @Nullable
     private EndOfStream endOfStream;
 
     void onStatefulMessage(InterHubMessage message) {

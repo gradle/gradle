@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins.internal.services;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
 import org.gradle.buildinit.plugins.internal.action.InitBuiltInCommand;
@@ -39,8 +40,8 @@ public class BuildInitServices extends AbstractGradleModuleServices {
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ServiceRegistrationProvider() {
             @Provides
-            ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, WorkerExecutor workerExecutor) {
-                return new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider, documentationRegistry, workerExecutor).createProjectLayoutSetupRegistry();
+            ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry(MavenSettingsProvider mavenSettingsProvider, StartParameterInternal startParameter, DocumentationRegistry documentationRegistry, WorkerExecutor workerExecutor) {
+                return new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider, startParameter.isSharedMavenMirrorSettings(), documentationRegistry, workerExecutor).createProjectLayoutSetupRegistry();
             }
         });
     }

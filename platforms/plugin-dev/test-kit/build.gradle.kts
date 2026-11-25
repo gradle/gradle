@@ -16,6 +16,7 @@ dependencies {
     api(libs.guava)
 
     implementation(projects.fileTemp)
+    implementation(projects.files)
     implementation(projects.logging)
     implementation(projects.startParameter)
     implementation(projects.wrapperShared)

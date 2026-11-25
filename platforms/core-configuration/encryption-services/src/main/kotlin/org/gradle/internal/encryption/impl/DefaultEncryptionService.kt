@@ -21,7 +21,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.encryption.EncryptionService
-import org.gradle.internal.file.FileSystem
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.util.internal.EncryptionAlgorithm
@@ -36,8 +35,7 @@ import javax.crypto.SecretKey
 internal
 class DefaultEncryptionService(
     internalOptions: InternalOptions,
-    private val cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
-    private val fileSystem: FileSystem
+    private val cacheBuilderFactory: GlobalScopedCacheBuilderFactory
 ) : EncryptionService {
 
     private
@@ -119,8 +117,7 @@ class DefaultEncryptionService(
                     encryptionAlgorithm = encryptionAlgorithm.algorithm,
                     customKeyStoreDir = keystoreDirOption?.let { File(it) },
                     keyAlias = "gradle-secret",
-                    cacheBuilderFactory = cacheBuilderFactory,
-                    fileSystem = fileSystem
+                    cacheBuilderFactory = cacheBuilderFactory
                 )
 
             EncryptionKind.ENV_VAR ->

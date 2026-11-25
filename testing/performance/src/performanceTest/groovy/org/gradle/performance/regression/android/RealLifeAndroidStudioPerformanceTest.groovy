@@ -22,6 +22,7 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
+import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -29,6 +30,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 @RunFor(
     @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "nowInAndroidBuild"])
 )
+@Ignore("https://github.com/gradle/gradle-private/issues/5598")
 class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerformanceTest  {
 
     // See requirements and options at `AndroidSyncPerformanceTestFixture.configureStudio`

@@ -29,11 +29,12 @@ object PrecompiledScriptsEnvironment {
     }
 
     internal
-    fun implicitImportsForScript(scriptText: CharSequence, environment: Environment?) =
-        implicitImportsFrom(environment) + precompiledScriptPluginImportsFrom(environment, scriptText)
+    fun implicitImportsForScript(scriptText: CharSequence, scriptFileName: String?, environment: Environment?) =
+        implicitImportsFrom(environment) + precompiledScriptPluginImportsFrom(environment, scriptText, scriptFileName)
 
     private
-    fun precompiledScriptPluginImportsFrom(environment: Environment?, scriptText: CharSequence): List<String> =
-        // Normalised hash: the light tree parser hands over raw script text, which may contain CRLF separators.
-        environment.stringList(KotlinScriptHashing.hashOf(scriptText))
+    fun precompiledScriptPluginImportsFrom(environment: Environment?, scriptText: CharSequence, scriptFileName: String?): List<String> =
+        // Keyed by package and file name, not by the script text, so a body-only edit leaves the compiler arguments unchanged.
+        if (scriptFileName == null) emptyList()
+        else environment.stringList(KotlinScriptHashing.precompiledScriptKeyOfText(scriptText, scriptFileName))
 }

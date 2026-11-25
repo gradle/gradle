@@ -100,6 +100,7 @@
          <trusted-key id="07E20F0103D9DFC697C490D0368557390486F2C5" group="org.awaitility"/>
          <trusted-key id="09939C73246B4BA7444CAA453D002DBC5EA9615F" group="dev.drewhamilton.poko" name="poko-annotations-jvm"/>
          <trusted-key id="0A123C1ED3F13A6A0140E166C71FB765CD9DE313" group="org.apache.ant"/>
+         <trusted-key id="0C435808EE750CC72A8BA847136EA64D9C8C7A0F" group="com.uber.nullaway"/>
          <trusted-key id="0CB5871FB7BF3B351614BBF6CA85FFE638D4407A">
             <trusting group="it.unimi.dsi" name="fastutil"/>
             <trusting group="it.unimi.dsi" name="fastutil-core"/>
@@ -229,6 +230,7 @@
             <trusting group="org.slf4j" name="slf4j-api"/>
          </trusted-key>
          <trusted-key id="47EB6836245D2D40E89DFB4136D4E9618F3ADAB5" group="io.github.microutils" name="kotlin-logging-jvm"/>
+         <trusted-key id="47FF105DF431FF5416B821FEAECDB81D38EA9C89" group="org.commonmark"/>
          <trusted-key id="4857D1CE04E78FAB2A172E8F39B48E1BADDB933F">
             <trusting group="com.gradleup" name="gr8-plugin"/>
             <trusting group="^com[.]gradleup($|([.].*))" regex="true"/>
@@ -430,7 +432,6 @@
          </trusted-key>
          <trusted-key id="C8D37E9675158FF5B29B6D6452FC3551DA8DC57E" group="com.mysql" name="mysql-connector-j"/>
          <trusted-key id="C9A503282182EC4ECDB914EA102E05D8DA6C286D" group="com.sun.xml.bind"/>
-         <trusted-key id="C9F5BB47FCF51250930BD8E22F73DAE490984549" group="com.uber.nullaway"/>
          <trusted-key id="CACFBD4755A2FC78709BDD92BE096E29EDB8D141">
             <trusting group="com.guardsquare"/>
             <trusting group="net.sf.proguard"/>
@@ -872,14 +873,14 @@
             <sha256 value="be5805392060c71474bf6c9a67a099471274d30b83eef84bfc4e0889a4f1dcc0" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="net.ltgt.gradle" name="gradle-errorprone-plugin" version="5.1.0">
-         <artifact name="gradle-errorprone-plugin-5.1.0.jar">
-            <sha256 value="98524cc51670cd51deb0074535bf5ea373b7298ea08669def952bc3d2cbb7b2a" origin="Verified" reason="Artifact is not signed"/>
+      <component group="net.ltgt.gradle" name="gradle-errorprone-plugin" version="5.2.0">
+         <artifact name="gradle-errorprone-plugin-5.2.0.jar">
+            <sha256 value="89124c70fe8ee74724c4b84bc66b02f93196d10b75b34f2730036f696444dada" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="net.ltgt.gradle" name="gradle-nullaway-plugin" version="2.2.0">
-         <artifact name="gradle-nullaway-plugin-2.2.0.jar">
-            <sha256 value="7caa4552e349f29dec42e219d136f7029d57e990460c209c9c6d307983556b4d" origin="Verified" reason="Artifact is not signed"/>
+      <component group="net.ltgt.gradle" name="gradle-nullaway-plugin" version="3.3.0">
+         <artifact name="gradle-nullaway-plugin-3.3.0.jar">
+            <sha256 value="6863fff24e84f4a6fab94af86199350cc9379ad6d3ee224a41f8bdf213edfa76" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="net.sf.docbook" name="docbook-xsl" version="1.75.2">
@@ -1080,6 +1081,11 @@
       <component group="org.reactivestreams" name="reactive-streams" version="1.0.4">
          <artifact name="reactive-streams-1.0.4.jar">
             <pgp value="50A628FFAF58480736B1079FD1031D14464180E0"/>
+         </artifact>
+      </component>
+      <component group="org.safere" name="safere" version="1.1.0">
+         <artifact name="safere-1.1.0.jar">
+            <pgp value="57213D99467517CD0B95BB32383470C6AC46CE51"/>
          </artifact>
       </component>
       <component group="org.simpleframework" name="simple" version="4.1.21">

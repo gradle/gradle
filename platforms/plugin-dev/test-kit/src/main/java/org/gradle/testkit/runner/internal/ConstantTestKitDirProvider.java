@@ -16,6 +16,8 @@
 
 package org.gradle.testkit.runner.internal;
 
+import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
+
 import java.io.File;
 
 class ConstantTestKitDirProvider implements TestKitDirProvider {
@@ -28,5 +30,22 @@ class ConstantTestKitDirProvider implements TestKitDirProvider {
     @Override
     public File getDir() {
         return testKitDir;
+    }
+
+    @Override
+    public File ensureDirExists() {
+        File dir = testKitDir;
+        if (dir.isDirectory()) {
+            if (!dir.canWrite()) {
+                throw new InvalidRunnerConfigurationException("Unable to write to test kit directory: " + dir.getAbsolutePath());
+            }
+            return dir;
+        } else if (dir.exists() && !dir.isDirectory()) {
+            throw new InvalidRunnerConfigurationException("Unable to use non-directory as test kit directory: " + dir.getAbsolutePath());
+        } else if (dir.mkdirs() || dir.isDirectory()) {
+            return dir;
+        } else {
+            throw new InvalidRunnerConfigurationException("Unable to create test kit directory: " + dir.getAbsolutePath());
+        }
     }
 }

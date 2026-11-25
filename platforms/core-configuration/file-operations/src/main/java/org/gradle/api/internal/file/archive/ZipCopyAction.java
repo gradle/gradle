@@ -105,6 +105,7 @@ public class ZipCopyAction implements CopyAction {
     private class StreamAction implements CopyActionProcessingStreamAction {
         private final ZipArchiveOutputStream zipOutStr;
 
+        @SuppressWarnings("PreferCharsetOverload") // false positive: https://github.com/google/error-prone/issues/6394
         public StreamAction(ZipArchiveOutputStream zipOutStr, String encoding) {
             this.zipOutStr = zipOutStr;
             if (encoding != null) {

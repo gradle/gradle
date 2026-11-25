@@ -363,7 +363,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         }
     }
 
-    def "doesn't generate checksums for changing dependencies"() {
+    def "generates checksums for changing dependencies"() {
 
         given:
         javaLibrary()
@@ -384,7 +384,46 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         run ":help"
 
         then:
-        hasModules([])
+        hasModules(["org:foo", "org:bar"])
+    }
+
+    def "generates checksums for changing dependencies brought in transitively"() {
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            dependsOn("org", "bar", "1.0-SNAPSHOT")
+        }
+        def bar = uncheckedModule("org", "bar", "1.0-SNAPSHOT") {
+            withNonUniqueSnapshots()
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        writeVerificationMetadata()
+
+        run ":help"
+
+        then:
+        hasModules(["org:foo", "org:bar"])
+        module("org:bar:1.0-SNAPSHOT") {
+            artifact("bar-1.0-SNAPSHOT.jar") {
+                declaresChecksums(
+                    sha1: getChecksum(bar, "sha1"),
+                    sha512: getChecksum(bar, "sha512")
+                )
+            }
+            artifact("bar-1.0-SNAPSHOT.pom") {
+                declaresChecksums(
+                    sha1: getChecksum(bar, "sha1", "pom"),
+                    sha512: getChecksum(bar, "sha512", "pom")
+                )
+            }
+        }
     }
 
     def "writes checksums of plugins using plugins block"() {

@@ -25,7 +25,7 @@ public interface CacheCleanupStrategy {
     CacheCleanupStrategy NO_CLEANUP = new CacheCleanupStrategy() {
         @Override
         public void clean(CleanableStore store, Instant lastCleanupTime) {
-            CleanupAction.NO_OP.clean(store, null);
+            CleanupAction.NO_OP.clean(store, CleanupProgressMonitor.NO_OP);
         }
 
         @Override

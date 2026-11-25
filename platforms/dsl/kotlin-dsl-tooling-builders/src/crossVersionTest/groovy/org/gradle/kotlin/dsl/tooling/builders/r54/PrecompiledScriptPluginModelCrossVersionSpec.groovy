@@ -128,6 +128,32 @@ class PrecompiledScriptPluginModelCrossVersionSpec extends AbstractKotlinScriptM
         )
     }
 
+    def "implicit imports include type-safe accessors packages for a packaged script with CRLF line separators and a license header"() {
+
+        given:
+        withDefaultSettings()
+        withBuildScript("""
+            plugins {
+                `kotlin-dsl`
+            }
+
+            $repositoriesBlock
+        """)
+
+        and:
+        def pluginFile = withPrecompiledKotlinScript("my/conv/plugin.gradle.kts", "")
+        pluginFile.text = "/*\r\n * License header\r\n */\r\n\r\npackage my.conv\r\n\r\nplugins { java }\r\n"
+
+        expect:
+        assertThat(
+            kotlinBuildScriptModelFor(projectDir, pluginFile).implicitImports,
+            hasItems(
+                startsWith("gradle.kotlin.dsl.accessors._"),
+                startsWith("gradle.kotlin.dsl.plugins._")
+            )
+        )
+    }
+
     private TestFile withPrecompiledKotlinScript(String fileName, String code) {
         return withFile("src/main/kotlin/$fileName", code)
     }

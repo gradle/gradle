@@ -17,16 +17,27 @@ package org.gradle.cache.internal.btree;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import org.jspecify.annotations.Nullable;
+
+import static java.util.Objects.requireNonNull;
 
 public abstract class BlockPayload {
-    private Block block;
+    private @Nullable Block block;
 
     public Block getBlock() {
-        return block;
+        return requireNonNull(block, "Payload is not attached to a block");
+    }
+
+    public boolean isAttached() {
+        return block != null;
     }
 
     public void setBlock(Block block) {
         this.block = block;
+    }
+
+    void clearBlock() {
+        this.block = null;
     }
 
     public BlockPointer getPos() {

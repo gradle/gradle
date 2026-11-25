@@ -18,6 +18,7 @@ package org.gradle.cache.internal;
 import org.gradle.cache.FileAccess;
 import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.LockTimeoutException;
+import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
@@ -26,7 +27,7 @@ import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 public abstract class AbstractFileAccess implements FileAccess {
     @Override
-    public <T> T readFile(final Callable<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
+    public <T extends @Nullable Object> T readFile(final Callable<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
         return readFile((Supplier<? extends T>) () -> uncheckedCall(action));
     }
 }

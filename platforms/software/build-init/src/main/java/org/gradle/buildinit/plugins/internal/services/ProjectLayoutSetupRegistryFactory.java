@@ -54,12 +54,14 @@ import java.util.List;
 public class ProjectLayoutSetupRegistryFactory {
     private final DocumentationRegistry documentationRegistry;
     private final MavenSettingsProvider mavenSettingsProvider;
+    private final boolean reuseMavenMirrorSettings;
     private final BuildScriptBuilderFactory scriptBuilderFactory;
     private final TemplateOperationFactory templateOperationBuilder;
     private final WorkerExecutor workerExecutor;
 
-    public ProjectLayoutSetupRegistryFactory(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, WorkerExecutor workerExecutor) {
+    public ProjectLayoutSetupRegistryFactory(MavenSettingsProvider mavenSettingsProvider, boolean reuseMavenMirrorSettings, DocumentationRegistry documentationRegistry, WorkerExecutor workerExecutor) {
         this.mavenSettingsProvider = mavenSettingsProvider;
+        this.reuseMavenMirrorSettings = reuseMavenMirrorSettings;
         this.documentationRegistry = documentationRegistry;
         this.workerExecutor = workerExecutor;
         this.scriptBuilderFactory = new BuildScriptBuilderFactory(documentationRegistry);
@@ -77,7 +79,7 @@ public class ProjectLayoutSetupRegistryFactory {
         List<BuildContentGenerator> jvmProjectGenerators = ImmutableList.of(settingsDescriptor, gitIgnoreGenerator, gitAttributesGenerator, gradlePropertiesGenerator, resourcesGenerator);
         List<BuildContentGenerator> commonGenerators = ImmutableList.of(settingsDescriptor, gitIgnoreGenerator, gitAttributesGenerator, gradlePropertiesGenerator);
         BuildGenerator basicType = new BasicBuildGenerator(scriptBuilderFactory, documentationRegistry, commonGenerators);
-        PomProjectInitDescriptor mavenBuildConverter = new PomProjectInitDescriptor(mavenSettingsProvider, documentationRegistry, workerExecutor);
+        PomProjectInitDescriptor mavenBuildConverter = new PomProjectInitDescriptor(mavenSettingsProvider, reuseMavenMirrorSettings, documentationRegistry, workerExecutor);
         ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry(basicType, mavenBuildConverter, templateOperationBuilder);
         registry.add(of(new JvmApplicationProjectInitDescriptor(Description.JAVA, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
         registry.add(of(new JvmLibraryProjectInitDescriptor(Description.JAVA, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));

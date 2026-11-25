@@ -103,7 +103,6 @@ class AggregateTestReportIntegrationTest extends AbstractIntegrationSpec {
         def appReportUrl = new ConsoleRenderer().asClickableFileUrl(file("app/build/reports/tests/test/index.html"))
         // Not outputContains, which only looks at the output before the build failure
         result.normalizedOutput.contains("""
-> Task :lib:test
 Aggregate test results: ${aggregateReportUrl}
 
 FAILURE: Build failed with an exception.
