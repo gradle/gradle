@@ -18,14 +18,17 @@ package org.gradle.api.plugins.quality;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.provider.EagerPropertySupport;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.io.File;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -39,10 +42,6 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     private final Project project;
 
     private TextResource config;
-    private Map<String, Object> configProperties = new LinkedHashMap<>();
-    private int maxErrors;
-    private int maxWarnings = Integer.MAX_VALUE;
-    private boolean showViolations = true;
 
     /**
      * Creates a new {@code CheckstyleExtension}.
@@ -53,7 +52,20 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     public CheckstyleExtension(Project project) {
         this.project = project;
         getEnableExternalDtdLoad().convention(false);
+        getLazyProperties().getMaxErrors().convention(0);
+        getLazyProperties().getMaxWarnings().convention(Integer.MAX_VALUE);
+        getLazyProperties().getShowViolations().convention(true);
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 10.0.0
+     */
+    @Override
+    @Incubating
+    @LazyProperties
+    public abstract CheckstyleExtensionLazyProperties getLazyProperties();
 
     /**
      * The Checkstyle configuration file to use.
@@ -96,8 +108,10 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * @since 1.0
      */
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.configProperties")
     public Map<String, Object> getConfigProperties() {
-        return configProperties;
+        MapProperty<String, Object> configProperties = getLazyProperties().getConfigProperties();
+        return configProperties.isPresent() ? EagerPropertySupport.conventionKeepingView(configProperties) : null;
     }
 
     /**
@@ -105,7 +119,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * @since 1.0
      */
     public void setConfigProperties(Map<String, Object> configProperties) {
-        this.configProperties = configProperties;
+        EagerPropertySupport.setEager(getLazyProperties().getConfigProperties(), configProperties);
     }
 
     /**
@@ -129,8 +143,9 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * @since 3.4
      */
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.maxErrors")
     public int getMaxErrors() {
-        return maxErrors;
+        return getLazyProperties().getMaxErrors().get();
     }
 
     /**
@@ -140,7 +155,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * @since 3.4
      */
     public void setMaxErrors(int maxErrors) {
-        this.maxErrors = maxErrors;
+        getLazyProperties().getMaxErrors().set(maxErrors);
     }
 
     /**
@@ -153,8 +168,9 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * @since 3.4
      */
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.maxWarnings")
     public int getMaxWarnings() {
-        return maxWarnings;
+        return getLazyProperties().getMaxWarnings().get();
     }
 
     /**
@@ -164,7 +180,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * @since 3.4
      */
     public void setMaxWarnings(int maxWarnings) {
-        this.maxWarnings = maxWarnings;
+        getLazyProperties().getMaxWarnings().set(maxWarnings);
     }
 
     /**
@@ -174,8 +190,9 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * @since 1.4
      */
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.showViolations")
     public boolean isShowViolations() {
-        return showViolations;
+        return getLazyProperties().getShowViolations().get();
     }
 
     /**
@@ -185,7 +202,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * @since 1.4
      */
     public void setShowViolations(boolean showViolations) {
-        this.showViolations = showViolations;
+        getLazyProperties().getShowViolations().set(showViolations);
     }
 
     /**

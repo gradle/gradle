@@ -17,9 +17,13 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.provider.EagerPropertySupport;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
@@ -33,17 +37,31 @@ import java.util.Collection;
  */
 public abstract class CodeQualityExtension {
 
-    private String toolVersion;
-    private Collection<SourceSet> sourceSets;
-    private boolean ignoreFailures;
+    /**
+     * Creates a new {@code CodeQualityExtension}.
+     */
+    @SuppressWarnings("this-escape")
+    public CodeQualityExtension() {
+        getLazyProperties().getIgnoreFailures().convention(false);
+    }
+
+    /**
+     * The lazy properties behind the eager getters and setters of this extension.
+     *
+     * @since 10.0.0
+     */
+    @Incubating
+    @LazyProperties
+    public abstract CodeQualityExtensionLazyProperties getLazyProperties();
 
     /**
      * The version of the code quality tool to be used.
      * @since 1.0
      */
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.toolVersion")
     public String getToolVersion() {
-        return toolVersion;
+        return getLazyProperties().getToolVersion().getOrNull();
     }
 
     /**
@@ -51,7 +69,7 @@ public abstract class CodeQualityExtension {
      * @since 1.0
      */
     public void setToolVersion(String toolVersion) {
-        this.toolVersion = toolVersion;
+        EagerPropertySupport.setEager(getLazyProperties().getToolVersion(), toolVersion);
     }
 
     /**
@@ -59,8 +77,10 @@ public abstract class CodeQualityExtension {
      * @since 1.0
      */
     @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
+    @BackedByLazyProperty("lazyProperties.sourceSets")
     public Collection<SourceSet> getSourceSets() {
-        return sourceSets;
+        ListProperty<SourceSet> sourceSets = getLazyProperties().getSourceSets();
+        return sourceSets.isPresent() ? EagerPropertySupport.conventionKeepingView(sourceSets) : null;
     }
 
     /**
@@ -68,7 +88,7 @@ public abstract class CodeQualityExtension {
      * @since 1.0
      */
     public void setSourceSets(Collection<SourceSet> sourceSets) {
-        this.sourceSets = sourceSets;
+        EagerPropertySupport.setEager(getLazyProperties().getSourceSets(), sourceSets);
     }
 
     /**
@@ -78,8 +98,9 @@ public abstract class CodeQualityExtension {
      * @since 1.0
      */
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.ignoreFailures")
     public boolean isIgnoreFailures() {
-        return ignoreFailures;
+        return getLazyProperties().getIgnoreFailures().get();
     }
 
     /**
@@ -89,7 +110,7 @@ public abstract class CodeQualityExtension {
      * @since 1.0
      */
     public void setIgnoreFailures(boolean ignoreFailures) {
-        this.ignoreFailures = ignoreFailures;
+        getLazyProperties().getIgnoreFailures().set(ignoreFailures);
     }
 
     /**
