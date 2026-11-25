@@ -158,6 +158,25 @@ Gradle provides comprehensive support for [JVM languages](userguide/building_jav
 ### Core plugin and plugin authoring enhancements
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
 
+#### Converted Maven builds keep using the mirrors from `settings.xml`
+
+The [Build Init plugin](userguide/build_init_plugin.html) converts a Maven build to a Gradle build with the `init` task.
+On a network that only allows downloads through an internal repository manager, you can re-use the mirrors of your Maven `settings.xml`, with the incubating [`org.gradle.mirror.maven.settings`](userguide/centralizing_repositories.html#sec:reusing-maven-mirror-settings) property:
+
+```text
+gradle init -Dorg.gradle.mirror.maven.settings=true
+```
+
+When you run the conversion with the property set, the `init` task now adds it to the generated `gradle.properties` file:
+
+```properties
+org.gradle.mirror.maven.settings=true
+```
+
+The converted build then resolves its dependencies through the same mirrors, so its first run works on the same network.
+
+See [Converting without access to Maven Central](userguide/migrating_from_maven.html#migmvn:conversion_mirror) in the Gradle User Manual for more details.
+
 ### Security and infrastructure
 Gradle provides robust [security features and underlying infrastructure](userguide/security.html) to ensure that builds are secure, reproducible, and easy to maintain.
 
