@@ -71,6 +71,7 @@ The project is organized into **platforms** under `platforms/`:
 - `core-configuration/` - Configuration handling (includes `configuration-cache`, `model-core`)
 - `dsl/` - Groovy and Kotlin DSLs (`groovy-dsl`, `kotlin-dsl`, `kotlin-dsl-plugins`, `kotlin-dsl-tooling-builders`)
 - `core-execution/` - Execution and caching
+- `essential-plugins/` - Plugins applied to every build (`wrapper-plugin`)
 - `software/` - Software platform (`dependency-management`, `testing-base`, `maven`, `ivy`)
 - `jvm/` - JVM platform (`java`, `groovy`, `scala`, `jacoco`)
 - `native/` - Native platform support

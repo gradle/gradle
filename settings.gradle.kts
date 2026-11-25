@@ -207,10 +207,17 @@ val reportingPlugins = platform("reporting-plugins") {
     subproject("reporting")
 }
 
+// Essential Plugins Platform
+val essentialPlugins = platform("essential-plugins") {
+    uses(core)
+    subproject("wrapper-plugin")
+}
+
 // Software Platform
 val software = platform("software") {
     uses(core)
     uses(reportingPlugins)
+    uses(essentialPlugins)
     subproject("ant-api")
     subproject("ant")
     subproject("ant-impl")
