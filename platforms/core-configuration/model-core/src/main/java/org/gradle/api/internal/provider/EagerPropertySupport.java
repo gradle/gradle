@@ -20,6 +20,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.provider.views.ListPropertyListView;
 import org.gradle.api.internal.provider.views.MapPropertyMapView;
+import org.gradle.api.internal.provider.views.SetPropertySetView;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
@@ -29,6 +30,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,9 +69,19 @@ public final class EagerPropertySupport {
     public static <T> void setEager(SetProperty<T> property, @Nullable Iterable<? extends T> value) {
         if (value == null) {
             property.set(Providers.<Set<T>>notDefined());
+        } else if (value instanceof ConventionKeepingSetView && ((ConventionKeepingSetView<?>) value).isViewOf(property)) {
+            // The property keeps a live reference to the value, so its own view must be copied
+            property.set(new LinkedHashSet<T>(Cast.<ConventionKeepingSetView<T>>uncheckedNonnullCast(value)));
         } else {
             property.set(value);
         }
+    }
+
+    /**
+     * Adds the elements without reading the property, and keeps the elements that come from the convention.
+     */
+    public static <T> void appendAll(SetProperty<T> property, Iterable<? extends T> elements) {
+        Cast.<CollectionPropertyInternal<T, Set<T>>>uncheckedNonnullCast(property).appendAll(elements);
     }
 
     public static <K, V> void setEager(MapProperty<K, V> property, @Nullable Map<? extends K, ? extends V> value) {
@@ -121,6 +133,40 @@ public final class EagerPropertySupport {
      */
     public static <T> List<T> conventionKeepingView(ListProperty<T> property) {
         return new ConventionKeepingListView<>(property);
+    }
+
+    /**
+     * A write-through view whose additions keep the elements that come from the convention.
+     */
+    public static <T> Set<T> conventionKeepingView(SetProperty<T> property) {
+        return new ConventionKeepingSetView<>(property);
+    }
+
+    /**
+     * The view of {@link #conventionKeepingView(SetProperty)}, or null when the property has no value,
+     * which an eager {@code setX(null)} leaves behind.
+     */
+    @Nullable
+    public static <T> Set<T> conventionKeepingViewOrNull(SetProperty<T> property) {
+        return property.isPresent() ? conventionKeepingView(property) : null;
+    }
+
+    private static class ConventionKeepingSetView<T> extends SetPropertySetView<T> {
+        private final CollectionPropertyInternal<T, Set<T>> property;
+
+        ConventionKeepingSetView(SetProperty<T> property) {
+            super(property);
+            this.property = Cast.uncheckedNonnullCast(property);
+        }
+
+        boolean isViewOf(Object other) {
+            return property == other;
+        }
+
+        @Override
+        protected void addElement(T element) {
+            property.append(element);
+        }
     }
 
     private static class ConventionKeepingMapView<K, V> extends MapPropertyMapView<K, V> {

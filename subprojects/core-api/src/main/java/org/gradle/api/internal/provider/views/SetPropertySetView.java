@@ -40,8 +40,12 @@ public class SetPropertySetView<E> extends AbstractSet<E> {
     @Override
     public boolean add(E e) {
         boolean added = !contains(e);
-        delegate.add(e);
+        addElement(e);
         return added;
+    }
+
+    protected void addElement(E element) {
+        delegate.add(element);
     }
 
     @Override
