@@ -210,6 +210,7 @@ val reportingPlugins = platform("reporting-plugins") {
 // Essential Plugins Platform
 val essentialPlugins = platform("essential-plugins") {
     uses(core)
+    subproject("help-plugin")
     subproject("wrapper-plugin")
 }
 

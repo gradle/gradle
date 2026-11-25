@@ -17,10 +17,9 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.plugins.HelpTasksPlugin;
 
 /**
- * The names of the diagnostic tasks added by the {@link HelpTasksPlugin} and the
+ * The names of the diagnostic tasks added by the {@code HelpTasksPlugin} and the
  * {@code SoftwareReportingTasksPlugin}.
  *
  * @since 8.13

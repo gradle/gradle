@@ -39,6 +39,7 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.functional)
+    implementation(projects.helpPlugin)
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
     implementation(projects.startParameter)

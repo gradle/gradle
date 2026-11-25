@@ -17,7 +17,7 @@
 package org.gradle.jvm.toolchain.internal.task;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.HelpTasksPlugin;
+import org.gradle.api.tasks.diagnostics.internal.DiagnosticsTaskNames;
 import org.gradle.configuration.project.ProjectConfigureAction;
 
 public class ShowToolchainsTaskConfigurator implements ProjectConfigureAction {
@@ -26,7 +26,7 @@ public class ShowToolchainsTaskConfigurator implements ProjectConfigureAction {
     public void execute(ProjectInternal project) {
         project.getTasks().register("javaToolchains", ShowToolchainsTask.class, task -> {
             task.setDescription("Displays the detected java toolchains.");
-            task.setGroup(HelpTasksPlugin.HELP_GROUP);
+            task.setGroup(DiagnosticsTaskNames.HELP_GROUP);
             task.setImpliesSubProjects(true);
         });
     }

@@ -94,11 +94,11 @@
               files=".*[/\\]platforms[/\\]jvm[/\\]war[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]bundling[/\\][^/\\]+"/>
 
     <suppress checks="JavadocPackage"
-              files=".*[/\\]platforms[/\\]core-configuration[/\\]base-diagnostics[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
-    <suppress checks="JavadocPackage"
               files=".*[/\\]platforms[/\\]core-configuration[/\\]base-diagnostics[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]diagnostics[/\\][^/\\]+"/>
 
-    <!-- These packages are duplicated in build-init and wrapper-plugin, don't require a package-info.java in each place -->
+    <!-- These packages are duplicated in core-api and help-plugin, and in build-init and wrapper-plugin, don't require a package-info.java in each place -->
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]essential-plugins[/\\]help-plugin[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]platforms[/\\]essential-plugins[/\\]wrapper-plugin[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]buildinit[/\\]plugins[/\\][^/\\]+"/>
 
