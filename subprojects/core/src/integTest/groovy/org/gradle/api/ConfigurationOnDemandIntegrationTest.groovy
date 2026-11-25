@@ -613,40 +613,6 @@ allprojects {
         fixture.assertProjectsConfigured(":", ":a", ":b", ":b:child")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "reaches out to a property of the parent project")
-    def "extra properties defined in parent project are accessible to child"() {
-        createDirs("a", "a/child")
-        settingsFile << "include 'a', 'a:child'"
-        buildFile('a/build.gradle', """
-            ext.foo = "Moo!!!"
-        """)
-        buildFile('a/child/build.gradle', """
-            task printExt {
-                def foo = foo
-                doLast {
-                    println "The Foo says " + foo
-                }
-            }
-        """)
-        executer.expectDocumentedDeprecationWarning("Implicit lookup of properties in parent projects has been deprecated. " +
-            "This will fail with an error in Gradle 10. " +
-            "Property 'foo' was not declared in project ':a:child' and was resolved from project ':a'. " +
-            "This lookup was initiated by a dynamic invocation in the build script. " +
-            "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
-
-        when:
-        run(":a:child:printExt")
-
-        then:
-        outputContains("The Foo says Moo!!!")
-        receivedProblems.size().times { i ->
-            verifyAll(receivedProblem(i)) {
-                fqid == 'Gradle:Deprecation:Implicit lookup of properties in parent projects'
-            }
-        }
-    }
-
     @ToBeFixedForConfigurationCache(because = "test expects configuration phase on second run")
     @Issue("https://github.com/gradle/gradle/issues/18460")
     @IntegrationTestTimeout(value = 60, onlyIf = { IntegrationTestBuildContext.embedded })

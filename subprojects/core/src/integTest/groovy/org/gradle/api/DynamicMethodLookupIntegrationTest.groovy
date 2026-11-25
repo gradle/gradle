@@ -17,8 +17,6 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 class DynamicMethodLookupIntegrationTest extends AbstractIntegrationSpec {
@@ -75,27 +73,6 @@ assert extensions.contacts.prop == "value"
 
 assert contacts() == null
 assert contacts("a") == "a"
-"""
-
-        expect:
-        succeeds()
-    }
-
-    @Requires(
-        value = TestExecutionPreconditions.NotIsolatedProjects,
-        reason = "Exercises IP incompatible behavior: Groovy method inheritance"
-    )
-    def "property with closure value is preferred over inherited property with closure value"() {
-        given:
-        createDirs("child")
-        settingsFile << "include 'child'"
-        buildFile """
-ext.contacts = { throw new RuntimeException() }
-
-subprojects {
-    ext.contacts = { it }
-    assert contacts("a") == "a"
-}
 """
 
         expect:

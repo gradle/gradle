@@ -21,12 +21,9 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.internal.Factory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
-import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
 
@@ -184,42 +181,6 @@ public class ExtensibleDynamicObjectTest {
     }
 
     @Test
-    public void hasPropertyDefinedByParent() {
-        Bean parent = new Bean();
-        parent.defineProperty("parentProperty", "value");
-
-        Bean bean = new Bean();
-        assertFalse(bean.hasProperty("parentProperty"));
-
-        bean.setParent(parent.getInheritable());
-        // Resolving from the parent is deprecated, but remains the behavior under test here.
-        assertTrue(DeprecationLogger.whileDisabled((Factory<Boolean>) () -> bean.hasProperty("parentProperty")));
-    }
-
-    @Test
-    public void canGetPropertyDefinedByParent() {
-        Bean parent = new Bean();
-        parent.defineProperty("parentProperty", "value");
-
-        Bean bean = new Bean();
-        bean.setParent(parent.getInheritable());
-
-        // Resolving from the parent is deprecated, but remains the behavior under test here.
-        assertThat(DeprecationLogger.whileDisabled((Factory<Object>) () -> bean.getProperty("parentProperty")), equalTo((Object) "value"));
-    }
-
-    @Test
-    public void extraPropertyIsNotVisibleToParent() {
-        Bean parent = new Bean();
-
-        Bean bean = new Bean();
-        bean.setParent(parent.getInheritable());
-        bean.defineProperty("parentProperty", "value");
-
-        assertFalse(parent.hasProperty("parentProperty"));
-    }
-
-    @Test
     public void hasAdditionalProperty() {
         Bean bean = new Bean();
 
@@ -275,11 +236,6 @@ public class ExtensibleDynamicObjectTest {
 
     @Test
     public void canGetAllProperties() {
-        Bean parent = new Bean();
-        parent.defineProperty("parentProperty", "parentProperty");
-        parent.setReadWriteProperty("ignore me");
-        parent.doSetReadOnlyProperty("ignore me");
-
         GroovyBean bean = new GroovyBean();
         bean.defineProperty("additional", "additional");
         bean.setReadWriteProperty("readWriteProperty");
@@ -287,13 +243,11 @@ public class ExtensibleDynamicObjectTest {
         bean.setGroovyProperty("groovyProperty");
         ConventionBean conventionBean = new ConventionBean();
         conventionBean.setConventionProperty("conventionProperty");
-        bean.setParent(parent.getInheritable());
 
         Map<String, Object> properties = bean.getProperties();
         assertThat(properties.get("properties"), sameInstance((Object) properties));
         assertThat(properties.get("readWriteProperty"), equalTo((Object) "readWriteProperty"));
         assertThat(properties.get("readOnlyProperty"), equalTo((Object) "readOnlyProperty"));
-        assertThat(properties.get("parentProperty"), equalTo((Object) "parentProperty"));
         assertThat(properties.get("additional"), equalTo((Object) "additional"));
         assertThat(properties.get("groovyProperty"), equalTo((Object) "groovyProperty"));
         assertThat(properties.get("groovyDynamicProperty"), equalTo(null));
@@ -309,20 +263,6 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void getPropertyFailsForUnknownProperty() {
         Bean bean = new Bean();
-
-        try {
-            bean.getProperty("unknown");
-            fail();
-        } catch (MissingPropertyException e) {
-            assertThat(e.getMessage(), equalTo("Could not get unknown property 'unknown' for <bean> of type " + Bean.class.getName() + "."));
-        }
-
-        bean.setParent(new Bean() {
-            @Override
-            public String toString() {
-                return "<parent>";
-            }
-        }.getInheritable());
 
         try {
             bean.getProperty("unknown");
@@ -402,24 +342,6 @@ public class ExtensibleDynamicObjectTest {
 
         assertTrue(bean.hasMethod("scriptMethod", "a", "b"));
         assertThat(bean.getAsDynamicObject().invokeMethod("scriptMethod", "a", "b").toString(), equalTo((Object) "script:a.b"));
-    }
-
-    @Test
-    public void canInvokeMethodDefinedByParent() {
-        Bean parent = new Bean() {
-            public String parentMethod(String a, String b) {
-                return String.format("parent:%s.%s", a, b);
-            }
-        };
-        Bean bean = new Bean();
-
-        assertFalse(bean.hasMethod("parentMethod", "a", "b"));
-
-        bean.setParent(parent.asHierarchicalDynamicObject());
-
-        // Resolving from the parent is deprecated, but remains the behavior under test here.
-        assertTrue(DeprecationLogger.whileDisabled((Factory<Boolean>) () -> bean.hasMethod("parentMethod", "a", "b")));
-        assertThat(DeprecationLogger.whileDisabled((Factory<Object>) () -> bean.getAsDynamicObject().invokeMethod("parentMethod", "a", "b")), equalTo((Object) "parent:a.b"));
     }
 
     @Test
@@ -503,108 +425,6 @@ public class ExtensibleDynamicObjectTest {
     }
 
     @Test
-    public void extraPropertiesAreInherited() {
-        Bean bean = new Bean();
-        bean.defineProperty("additional", "value");
-
-        DynamicObject inherited = bean.getInheritable();
-        assertTrue(inherited.hasProperty("additional"));
-        assertThat(inherited.getProperty("additional"), equalTo((Object) "value"));
-        assertThat(inherited.getProperties().get("additional"), equalTo((Object) "value"));
-    }
-
-    @Test
-    public void inheritedAdditionalPropertiesTrackChanges() {
-        Bean bean = new Bean();
-
-        DynamicObject inherited = bean.getInheritable();
-        assertFalse(inherited.hasProperty("additional"));
-
-        bean.defineProperty("additional", "value");
-        assertTrue(inherited.hasProperty("additional"));
-        assertThat(inherited.getProperty("additional"), equalTo((Object) "value"));
-    }
-
-    @Test
-    public void additionalObjectPropertiesAreInherited() {
-        Bean other = new Bean();
-        other.defineProperty("other", "value");
-        Bean bean = new Bean();
-        bean.extensibleDynamicObject.addObject(other.getAsDynamicObject(), ExtensibleDynamicObject.Location.BeforeConvention);
-
-        DynamicObject inherited = bean.getInheritable();
-        assertTrue(inherited.hasProperty("other"));
-        assertThat(inherited.getProperty("other"), equalTo((Object) "value"));
-        assertThat(inherited.getProperties().get("other"), equalTo((Object) "value"));
-    }
-
-    @Test
-    public void inheritedAdditionalObjectPropertiesTrackChanges() {
-        Bean other = new Bean();
-        other.defineProperty("other", "value");
-        Bean bean = new Bean();
-
-        DynamicObject inherited = bean.getInheritable();
-        assertFalse(inherited.hasProperty("other"));
-
-        bean.extensibleDynamicObject.addObject(other.getAsDynamicObject(), ExtensibleDynamicObject.Location.BeforeConvention);
-
-        assertTrue(inherited.hasProperty("other"));
-        assertThat(inherited.getProperty("other"), equalTo((Object) "value"));
-    }
-
-    @Test
-    public void parentPropertiesAreInherited() {
-        Bean parent = new Bean();
-        parent.defineProperty("parentProperty", "value");
-        Bean bean = new Bean();
-        bean.setParent(parent.getInheritable());
-
-        // The inherited view exposes only the object's own inheritable members;
-        // ancestors are reached by walking getParent() one level at a time.
-        HierarchicalDynamicObject inherited = bean.getInheritable();
-        assertFalse(inherited.hasProperty("parentProperty"));
-
-        HierarchicalDynamicObject parentLevel = inherited.getParent();
-        assertTrue(parentLevel.hasProperty("parentProperty"));
-        assertThat(parentLevel.getProperty("parentProperty"), equalTo((Object) "value"));
-        assertThat(parentLevel.getProperties().get("parentProperty"), equalTo((Object) "value"));
-    }
-
-    @Test
-    public void otherPropertiesAreNotInherited() {
-        Bean bean = new Bean();
-        assertTrue(bean.hasProperty("readWriteProperty"));
-
-        DynamicObject inherited = bean.getInheritable();
-        assertFalse(inherited.hasProperty("readWriteProperty"));
-        assertFalse(inherited.getProperties().containsKey("readWriteProperty"));
-    }
-
-    @Test
-    public void cannotSetInheritedProperties() {
-        Bean bean = new Bean();
-        bean.defineProperty("additional", "value");
-
-        DynamicObject inherited = bean.getInheritable();
-        try {
-            inherited.setProperty("additional", "new value");
-            fail();
-        } catch (MissingPropertyException e) {
-            assertThat(e.getMessage(), equalTo("Could not find property 'additional' inherited from <bean>."));
-        }
-    }
-
-    @Test
-    public void otherMethodsAreNotInherited() {
-        Bean bean = new Bean();
-        assertTrue(bean.hasMethod("javaMethod", "a", "b"));
-
-        DynamicObject inherited = bean.getInheritable();
-        assertFalse(inherited.hasMethod("javaMethod", "a", "b"));
-    }
-
-    @Test
     public void canGetObjectAsDynamicObject() {
         Bean bean = new Bean();
         assertThat(DynamicObjectUtil.asDynamicObject(bean), sameInstance(bean.getAsDynamicObject()));
@@ -642,21 +462,9 @@ public class ExtensibleDynamicObjectTest {
             return extensibleDynamicObject;
         }
 
-        public HierarchicalDynamicObject getInheritable() {
-            return extensibleDynamicObject.getInheritable();
-        }
-
         @Override
         public String toString() {
             return "<bean>";
-        }
-
-        public void setParent(HierarchicalDynamicObject parent) {
-            extensibleDynamicObject.setParent(parent);
-        }
-
-        public HierarchicalDynamicObject asHierarchicalDynamicObject() {
-            return extensibleDynamicObject;
         }
 
         public String getReadOnlyProperty() {
