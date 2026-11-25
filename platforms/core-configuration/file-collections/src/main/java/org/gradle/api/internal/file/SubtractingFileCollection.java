@@ -23,6 +23,7 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class SubtractingFileCollection extends AbstractOpaqueFileCollection {
     private final AbstractFileCollection left;
@@ -45,6 +46,21 @@ public class SubtractingFileCollection extends AbstractOpaqueFileCollection {
     @Override
     public String getDisplayName() {
         return "file collection";
+    }
+
+    @Override
+    public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
+        if (original == this) {
+            return supplier.get();
+        }
+        FileCollectionInternal newLeft = left.replace(original, supplier);
+        FileCollection newRight = right instanceof FileCollectionInternal
+            ? ((FileCollectionInternal) right).replace(original, supplier)
+            : right;
+        if (newLeft == left && newRight == right) {
+            return this;
+        }
+        return (FileCollectionInternal) newLeft.minus(newRight);
     }
 
     @Override
