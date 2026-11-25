@@ -36,6 +36,8 @@ class ConfigurableFileCollectionCodec(
         require(value is DefaultConfigurableFileCollection)
         encodePreservingIdentityOf(value) {
             write(value.resolver)
+            // Eager getters backed by a collection tell "never set" from "set to an empty collection" by its declared sources
+            writeBoolean(value.from.isNotEmpty())
             codec.run {
                 encodeContents(value)
             }
@@ -46,9 +48,12 @@ class ConfigurableFileCollectionCodec(
     override suspend fun ReadContext.decode(): ConfigurableFileCollection {
         return decodePreservingIdentity { id ->
             val resolver = readNonNull<PathToFileResolver>()
+            val hasSources = readBoolean()
             val contents = codec.run { decodeContents() }
             val fileCollection = fileCollectionFactory.withResolver(resolver).configurableFiles()
-            fileCollection.from(contents)
+            if (hasSources) {
+                fileCollection.from(contents)
+            }
             if (readBoolean()) {
                 fileCollection.finalizeValue()
             }
