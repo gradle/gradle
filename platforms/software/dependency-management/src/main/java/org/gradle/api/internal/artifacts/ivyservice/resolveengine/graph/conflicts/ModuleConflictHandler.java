@@ -15,9 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
-
 public interface ModuleConflictHandler {
 
     /**
@@ -39,7 +36,5 @@ public interface ModuleConflictHandler {
      * Must be called only if {@link #hasConflicts()} returns true.
      */
     void resolveNextConflict();
-
-    ModuleConflictResolver<ComponentState> getResolver();
 
 }
