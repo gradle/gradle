@@ -28,14 +28,4 @@ class SpotlessPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             'com.diffplug.spotless': TestedVersions.spotless,
         ]
     }
-
-    @Override
-    String getSubprojectExtensionAccess(String testedPluginId, String version) {
-        "spotless {}"
-    }
-
-    @Override
-    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
-        [parentMethodInvocationDeprecation('spotless')]
-    }
 }

@@ -31,16 +31,6 @@ class JenkinsJpiPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     }
 
     @Override
-    String getSubprojectExtensionAccess(String testedPluginId, String version) {
-        "jenkinsPlugin {}"
-    }
-
-    @Override
-    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
-        [parentMethodInvocationDeprecation('jenkinsPlugin')]
-    }
-
-    @Override
     SmokeTestGradleRunner runner(String... tasks) {
         // The jpi plugin calls the deprecated Configuration.setVisible(boolean) method
         return super.runner(tasks)

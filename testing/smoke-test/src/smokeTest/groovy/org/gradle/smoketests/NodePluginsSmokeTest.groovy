@@ -31,16 +31,6 @@ class NodePluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements 
     }
 
     @Override
-    String getSubprojectExtensionAccess(String testedPluginId, String version) {
-        "node {}"
-    }
-
-    @Override
-    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
-        [parentMethodInvocationDeprecation('node')]
-    }
-
-    @Override
     void configureValidation(String testedPluginId, String version) {
         validatePlugins {
             if (testedPluginId == 'com.moowork.node') {

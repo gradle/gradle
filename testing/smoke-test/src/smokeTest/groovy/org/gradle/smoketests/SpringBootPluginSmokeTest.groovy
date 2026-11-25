@@ -106,14 +106,4 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
             'org.springframework.boot': Versions.of(TestedVersions.springBoot)
         ]
     }
-
-    @Override
-    String getSubprojectExtensionAccess(String testedPluginId, String version) {
-        "springBoot {}"
-    }
-
-    @Override
-    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
-        [parentMethodInvocationDeprecation('springBoot')]
-    }
 }
