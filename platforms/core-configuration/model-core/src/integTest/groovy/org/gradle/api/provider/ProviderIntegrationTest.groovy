@@ -433,6 +433,34 @@ The value of this provider is derived from:
         result.assertTasksScheduled(":consumer")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/29852")
+    def "finalizing property with mapped #description evaluates provider once"() {
+        buildFile """
+            def evaluations = 0
+            def p = provider {
+                evaluations++
+                'foo'
+            }
+            def prop = objects.property(Object)
+            prop.value(${expression}.map { it })
+            prop.finalizeValue()
+            println("evaluations = \$evaluations")
+            println("value = \${prop.get()}")
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("evaluations = 1")
+        outputContains("value = foo")
+
+        where:
+        description              | expression
+        "orElse fixed value"     | "p.orElse([])"
+        "orElse provider"        | "p.orElse(provider { [] })"
+    }
+
     def "circular evaluation of mapped provider is detected"() {
         buildFile """
             abstract class MyTask extends DefaultTask {

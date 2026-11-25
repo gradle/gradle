@@ -57,6 +57,9 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
+        if (!isKnown()) {
+            return;
+        }
         try (EvaluationScopeContext ignored = EvaluationContext.current().open(owner)) {
             if (mayHaveValue(left)) {
                 if (leftProducer.isKnown()) {
@@ -72,6 +75,9 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
 
     @Override
     public void visitGuardedDependencies(TaskDependencyResolveContext context) {
+        if (!isKnown()) {
+            return;
+        }
         try (EvaluationScopeContext ignored = EvaluationContext.current().open(owner)) {
             if (mayHaveValue(left)) {
                 if (leftProducer.isKnown()) {
