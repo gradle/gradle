@@ -192,7 +192,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     @SuppressWarnings("this-escape")
     public AbstractTestTask() {
         ObjectFactory objectFactory = getObjectFactory();
-        testLogging = objectFactory.newInstance(DefaultTestLoggingContainer.class);
+        testLogging = objectFactory.newInstance(DefaultTestLoggingContainer.class, getLazyProperties().getTestLogging());
         testListenerSubscriptions = new BroadcastSubscriptions<>(TestListener.class);
         testOutputListenerSubscriptions = new BroadcastSubscriptions<>(TestOutputListener.class);
         testMetadataListenerSubscriptions = new BroadcastSubscriptions<>(TestMetadataListener.class);
@@ -202,6 +202,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         reports.getHtml().getRequired().set(true);
 
         filter = objectFactory.newInstance(DefaultTestFilter.class);
+        filter.attach(getLazyProperties().getFilter());
         getFailOnNoDiscoveredTests().convention(true);
         getLazyProperties().getFailFast().convention(false);
     }

@@ -16,111 +16,148 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
+import org.gradle.api.internal.provider.EagerPropertySupport;
+import org.gradle.api.provider.SetProperty;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLogging;
+import org.gradle.api.tasks.testing.logging.TestLoggingInputs;
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
 import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import static org.gradle.util.internal.GUtil.toEnum;
 import static org.gradle.util.internal.GUtil.toEnumSet;
 
 public class DefaultTestLogging implements TestLogging {
-    private Set<TestLogEvent> events = EnumSet.noneOf(TestLogEvent.class);
-    private int minGranularity = -1;
-    private int maxGranularity = -1;
-    private int displayGranularity = 2;
-    private boolean showExceptions = true;
-    private boolean showCauses = true;
-    private boolean showStackTraces = true;
-    private TestExceptionFormat exceptionFormat = TestExceptionFormat.FULL;
-    private Set<TestStackTraceFilter> stackTraceFilters = EnumSet.of(TestStackTraceFilter.TRUNCATE);
+    private static final Set<TestLogEvent> STANDARD_STREAMS = EnumSet.of(TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR);
+
+    private final TestLoggingInputs lazyProperties;
+
+    @Inject
+    public DefaultTestLogging(TestLoggingInputs lazyProperties) {
+        this.lazyProperties = lazyProperties;
+        setDefault(lazyProperties.getEvents(), EnumSet.noneOf(TestLogEvent.class));
+        lazyProperties.getMinGranularity().convention(-1);
+        lazyProperties.getMaxGranularity().convention(-1);
+        lazyProperties.getDisplayGranularity().convention(2);
+        lazyProperties.getShowExceptions().convention(true);
+        lazyProperties.getShowCauses().convention(true);
+        lazyProperties.getShowStackTraces().convention(true);
+        lazyProperties.getExceptionFormat().convention(TestExceptionFormat.FULL);
+        setDefault(lazyProperties.getStackTraceFilters(), EnumSet.of(TestStackTraceFilter.TRUNCATE));
+    }
+
+    /**
+     * Sets the default as convention and as value: {@code add()} on a property that has only a convention drops the convention.
+     */
+    static <T> void setDefault(SetProperty<T> property, Set<T> value) {
+        property.convention(value);
+        property.set(value);
+    }
+
+    @Internal
+    public TestLoggingInputs getLazyProperties() {
+        return lazyProperties;
+    }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.events")
     public Set<TestLogEvent> getEvents() {
-        return events;
+        return EagerPropertySupport.conventionKeepingViewOrNull(lazyProperties.getEvents());
     }
 
     @Override
     public void setEvents(Set<TestLogEvent> events) {
-        this.events = events.isEmpty() ? EnumSet.noneOf(TestLogEvent.class) : EnumSet.copyOf(events);
+        EagerPropertySupport.setEager(lazyProperties.getEvents(), copyOf(events));
     }
 
     @Override
     public void setEvents(Iterable<?> events) {
-        this.events = toEnumSet(TestLogEvent.class, events);
+        lazyProperties.getEvents().set(toEnumSet(TestLogEvent.class, events));
     }
 
     @Override
     public void events(Object... events) {
-        this.events.addAll(toEnumSet(TestLogEvent.class, events));
+        EagerPropertySupport.appendAll(lazyProperties.getEvents(), toEnumSet(TestLogEvent.class, events));
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.minGranularity")
     public int getMinGranularity() {
-        return minGranularity;
+        return lazyProperties.getMinGranularity().get();
     }
 
     @Override
     public void setMinGranularity(int granularity) {
-        minGranularity = granularity;
+        lazyProperties.getMinGranularity().set(granularity);
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.maxGranularity")
     public int getMaxGranularity() {
-        return maxGranularity;
+        return lazyProperties.getMaxGranularity().get();
     }
 
     @Override
     public void setMaxGranularity(int granularity) {
-        maxGranularity = granularity;
+        lazyProperties.getMaxGranularity().set(granularity);
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.displayGranularity")
     public int getDisplayGranularity() {
-        return displayGranularity;
+        return lazyProperties.getDisplayGranularity().get();
     }
 
     @Override
     public void setDisplayGranularity(int granularity) {
-        displayGranularity = granularity;
+        lazyProperties.getDisplayGranularity().set(granularity);
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.showExceptions")
     public boolean getShowExceptions() {
-        return showExceptions;
+        return lazyProperties.getShowExceptions().get();
     }
 
     @Override
     public void setShowExceptions(boolean flag) {
-        showExceptions = flag;
+        lazyProperties.getShowExceptions().set(flag);
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.showCauses")
     public boolean getShowCauses() {
-        return showCauses;
+        return lazyProperties.getShowCauses().get();
     }
 
     @Override
     public void setShowCauses(boolean flag) {
-        showCauses = flag;
+        lazyProperties.getShowCauses().set(flag);
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.showStackTraces")
     public boolean getShowStackTraces() {
-        return showStackTraces;
+        return lazyProperties.getShowStackTraces().get();
     }
 
     @Override
     public void setShowStackTraces(boolean flag) {
-        showStackTraces = flag;
+        lazyProperties.getShowStackTraces().set(flag);
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.exceptionFormat")
     public TestExceptionFormat getExceptionFormat() {
-        return exceptionFormat;
+        return lazyProperties.getExceptionFormat().getOrNull();
     }
 
     @Override
@@ -130,42 +167,50 @@ public class DefaultTestLogging implements TestLogging {
 
     @Override
     public void setExceptionFormat(Object exceptionFormat) {
-        this.exceptionFormat = toEnum(TestExceptionFormat.class, exceptionFormat);
+        EagerPropertySupport.setEager(lazyProperties.getExceptionFormat(), toEnum(TestExceptionFormat.class, exceptionFormat));
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.stackTraceFilters")
     public Set<TestStackTraceFilter> getStackTraceFilters() {
-        return stackTraceFilters;
+        return EagerPropertySupport.conventionKeepingViewOrNull(lazyProperties.getStackTraceFilters());
     }
 
     @Override
     public void setStackTraceFilters(Set<TestStackTraceFilter> stackTraceFilters) {
-        this.stackTraceFilters = EnumSet.copyOf(stackTraceFilters);
+        EagerPropertySupport.setEager(lazyProperties.getStackTraceFilters(), copyOf(stackTraceFilters));
     }
 
     @Override
     public void setStackTraceFilters(Iterable<?> filters) {
-        stackTraceFilters = toEnumSet(TestStackTraceFilter.class, filters);
+        lazyProperties.getStackTraceFilters().set(toEnumSet(TestStackTraceFilter.class, filters));
     }
 
     @Override
     public void stackTraceFilters(Object... filters) {
-        stackTraceFilters.addAll(toEnumSet(TestStackTraceFilter.class, filters));
+        EagerPropertySupport.appendAll(lazyProperties.getStackTraceFilters(), toEnumSet(TestStackTraceFilter.class, filters));
     }
 
+    // Derived from the events, as before, so it has no lazy property of its own
     @Override
     public boolean getShowStandardStreams() {
-        return events.contains(TestLogEvent.STANDARD_OUT) && events.contains(TestLogEvent.STANDARD_ERROR);
+        Set<TestLogEvent> events = getEvents();
+        return events != null && events.containsAll(STANDARD_STREAMS);
     }
 
     @Override
     public TestLogging setShowStandardStreams(boolean flag) {
         if (flag) {
-            events.addAll(EnumSet.of(TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
+            EagerPropertySupport.appendAll(lazyProperties.getEvents(), STANDARD_STREAMS);
         } else {
-            events.removeAll(EnumSet.of(TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
+            getEvents().removeAll(STANDARD_STREAMS);
         }
         return this;
     }
 
+    // The setters copied the set before, so later changes to the argument do not reach the property
+    @Nullable
+    private static <T> Set<T> copyOf(@Nullable Set<T> values) {
+        return values == null ? null : new LinkedHashSet<>(values);
+    }
 }

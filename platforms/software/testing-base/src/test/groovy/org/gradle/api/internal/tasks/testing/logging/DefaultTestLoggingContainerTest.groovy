@@ -21,12 +21,13 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.api.tasks.testing.logging.TestLogging
+import org.gradle.api.tasks.testing.logging.TestLoggingContainerInputs
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultTestLoggingContainerTest extends Specification {
-    DefaultTestLoggingContainer container = new DefaultTestLoggingContainer(TestUtil.objectFactory())
+    DefaultTestLoggingContainer container = TestUtil.objectFactory().newInstance(DefaultTestLoggingContainer, TestUtil.objectFactory().newInstance(TestLoggingContainerInputs))
 
     def "sets defaults for level ERROR"() {
         def logging = container.get(LogLevel.ERROR)
