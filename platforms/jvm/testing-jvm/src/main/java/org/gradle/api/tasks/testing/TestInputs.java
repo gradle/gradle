@@ -21,6 +21,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.util.FilePatterns;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -143,4 +144,15 @@ public interface TestInputs extends AbstractTestTaskInputs {
      * @since 10.0.0
      */
     MapProperty<String, Object> getEnvironment();
+
+    /**
+     * The include and exclude patterns that select the test class files in the test classes directories.
+     *
+     * <p>The eager pattern methods of the task, such as {@link Test#include(String...)}, change this value.</p>
+     *
+     * @see Test#getIncludes()
+     * @see Test#getExcludes()
+     * @since 10.0.0
+     */
+    Property<FilePatterns> getClassFilePatterns();
 }

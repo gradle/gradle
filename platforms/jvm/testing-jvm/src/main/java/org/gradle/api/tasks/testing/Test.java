@@ -31,6 +31,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.provider.LazyBackedPatternSet;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
@@ -64,6 +65,7 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
+import org.gradle.api.tasks.util.FilePatterns;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.Actions;
@@ -199,8 +201,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @SuppressWarnings("this-escape")
     public Test() {
         ObjectFactory objectFactory = getObjectFactory();
-        patternSet = getPatternSetFactory().createPatternSet();
         TestInputs lazy = getLazyProperties();
+        lazy.getClassFilePatterns().convention(FilePatterns.empty());
+        patternSet = new LazyBackedPatternSet(getPatternSetFactory().createPatternSet(), lazy.getClassFilePatterns());
         // Empty collections, as the fields had, so the eager getters return them and not null
         lazy.getTestClassesDirs().convention(objectFactory.fileCollection());
         lazy.getClasspath().convention(objectFactory.fileCollection());
