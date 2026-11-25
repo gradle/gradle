@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
@@ -30,11 +31,13 @@ import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.java.archives.internal.ManifestInternal;
 import org.gradle.api.java.archives.internal.CustomManifestInternalWrapper;
-import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.util.internal.ConfigureUtil;
@@ -60,16 +63,15 @@ public abstract class Jar extends Zip {
     public static final String DEFAULT_EXTENSION = "jar";
     private Manifest manifest;
     private final CopySpecInternal metaInf;
-    private final Property<String> manifestContentCharset;
 
     @SuppressWarnings("this-escape")
     @Inject
     public Jar() {
         getArchiveExtension().set(DEFAULT_EXTENSION);
-        setMetadataCharset("UTF-8");
+        getLazyProperties().getMetadataCharset().convention("UTF-8");
 
-        this.manifestContentCharset = getObjectFactory().property(String.class).convention(ManifestInternal.DEFAULT_CONTENT_CHARSET);
-        manifest = new DefaultManifest(getFileResolver(), manifestContentCharset);
+        getLazyProperties().getManifestContentCharset().convention(ManifestInternal.DEFAULT_CONTENT_CHARSET);
+        manifest = new DefaultManifest(getFileResolver(), getLazyProperties().getManifestContentCharset());
         // Add these as separate specs, so they are not affected by the changes to the main spec
         metaInf = (CopySpecInternal) getRootSpec().addFirst().into("META-INF");
         metaInf.addChild().from(manifestFileTree());
@@ -78,19 +80,35 @@ public abstract class Jar extends Zip {
 
     private FileTreeInternal manifestFileTree() {
         final Cached<ManifestInternal> manifest = Cached.of(this::computeManifest);
+        final Provider<String> contentCharset = getLazyProperties().getManifestContentCharset();
         final OutputChangeListener outputChangeListener = outputChangeListener();
         return fileCollectionFactory().generated(
             getTemporaryDirFactory(),
             "MANIFEST.MF",
             action(file -> outputChangeListener.invalidateCachesFor(ImmutableList.of(file.getAbsolutePath()))),
-            action(outputStream -> manifest.get().writeTo(outputStream))
+            action(outputStream -> {
+                // A value bound lazily did not go through the setter
+                checkManifestContentCharsetSupported(contentCharset.get());
+                manifest.get().writeTo(outputStream);
+            })
         );
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 10.0.0
+     */
+    @Override
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract JarInputs getLazyProperties();
 
     private ManifestInternal computeManifest() {
         Manifest manifest = getManifest();
         if (manifest == null) {
-            manifest = new DefaultManifest(getFileResolver(), manifestContentCharset);
+            manifest = new DefaultManifest(getFileResolver(), getLazyProperties().getManifestContentCharset());
         }
         ManifestInternal manifestInternal;
         if (manifest instanceof ManifestInternal) {
@@ -98,7 +116,7 @@ public abstract class Jar extends Zip {
             manifestInternal = (ManifestInternal) manifest;
         } else {
             // If the manifest is not charset-aware, wrap it in a charset-aware wrapper
-            manifestInternal = new CustomManifestInternalWrapper(manifest, manifestContentCharset);
+            manifestInternal = new CustomManifestInternalWrapper(manifest, getLazyProperties().getManifestContentCharset());
         }
         return manifestInternal;
     }
@@ -121,6 +139,7 @@ public abstract class Jar extends Zip {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.metadataCharset")
     public String getMetadataCharset() {
         return super.getMetadataCharset();
     }
@@ -148,8 +167,9 @@ public abstract class Jar extends Zip {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.manifestContentCharset")
     public String getManifestContentCharset() {
-        return manifestContentCharset.get();
+        return getLazyProperties().getManifestContentCharset().get();
     }
 
     /**
@@ -163,10 +183,14 @@ public abstract class Jar extends Zip {
         if (manifestContentCharset == null) {
             throw new InvalidUserDataException("manifestContentCharset must not be null");
         }
+        checkManifestContentCharsetSupported(manifestContentCharset);
+        getLazyProperties().getManifestContentCharset().set(manifestContentCharset);
+    }
+
+    private static void checkManifestContentCharsetSupported(String manifestContentCharset) {
         if (!Charset.isSupported(manifestContentCharset)) {
             throw new InvalidUserDataException(String.format("Charset for manifestContentCharset '%s' is not supported by your JVM", manifestContentCharset));
         }
-        this.manifestContentCharset.set(manifestContentCharset);
     }
 
     /**
@@ -236,7 +260,7 @@ public abstract class Jar extends Zip {
 
     private Manifest forceManifest() {
         if (manifest == null) {
-            manifest = new DefaultManifest(getFileResolver(), manifestContentCharset);
+            manifest = new DefaultManifest(getFileResolver(), getLazyProperties().getManifestContentCharset());
         }
         return manifest;
     }
