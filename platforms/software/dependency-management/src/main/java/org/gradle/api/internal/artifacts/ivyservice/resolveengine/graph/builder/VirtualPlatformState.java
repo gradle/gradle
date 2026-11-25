@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.jspecify.annotations.Nullable;
@@ -72,25 +72,47 @@ public class VirtualPlatformState {
         }
     }
 
+    /**
+     * Returns the selector if it forces the platform version, or null otherwise.
+     */
+    @Nullable
+    private static ModuleComponentSelector getForcingSelector(SelectorState selector) {
+        if (selector.hasStrongOpinion() && selector.getComponentSelector() instanceof ModuleComponentSelector mcs) {
+            return mcs;
+        } else {
+            return null;
+        }
+    }
+
     @Nullable
     private String getForcedVersion() {
         String version = null;
         for (SelectorState selector : platformModule.getSelectors()) {
-            if (selector.hasStrongOpinion()) {
-                ComponentSelector componentSelector = selector.getComponentSelector();
-                if (componentSelector instanceof ModuleComponentSelector mcs) {
-                    String nv = mcs.getVersion();
-                    if (version == null || vC.compare(nv, version) < 0) {
-                        version = nv;
-                    }
+            ModuleComponentSelector mcs = getForcingSelector(selector);
+            if (mcs != null) {
+                String nv = mcs.getVersion();
+                if (version == null || vC.compare(nv, version) < 0) {
+                    version = nv;
                 }
             }
         }
         return version;
     }
 
+    private boolean isForcedVersion(String version) {
+        for (SelectorState selector : platformModule.getSelectors()) {
+            if (getForcingSelector(selector) != null) {
+                // Never null for a module selector
+                ResolvedVersionConstraint versionConstraint = selector.getVersionConstraint();
+                if (versionConstraint != null && versionConstraint.accepts(version)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     List<String> getCandidateVersions() {
-        String forcedVersion = getForcedVersion();
         ComponentState selectedPlatformComponent = platformModule.getSelected();
         List<String> sorted = new ArrayList<>(participatingModules.size() + 1);
         sorted.add(selectedPlatformComponent.getVersion());
@@ -101,11 +123,14 @@ public class VirtualPlatformState {
             }
         }
         sorted.sort(vC);
-        if (forcedVersion != null) {
-            return sorted.subList(sorted.indexOf(forcedVersion), sorted.size());
-        } else {
-            return sorted;
+        // Drop candidates above the highest version a forcing selector accepts; lower ones stay as fallbacks
+        for (int i = 0; i < sorted.size(); i++) {
+            if (isForcedVersion(sorted.get(i))) {
+                return sorted.subList(i, sorted.size());
+            }
         }
+        // Nothing forces the platform, or no candidate satisfies the forcing selectors, in which case selecting the platform itself fails on them
+        return sorted;
     }
 
     Set<ModuleResolveState> getParticipatingModules() {
