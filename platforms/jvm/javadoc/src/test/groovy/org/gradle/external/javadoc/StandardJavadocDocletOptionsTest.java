@@ -16,8 +16,11 @@
 
 package org.gradle.external.javadoc;
 
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -45,11 +48,13 @@ public class StandardJavadocDocletOptionsTest {
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
 
+    private final FileResolver fileResolver = TestFiles.resolver(temporaryFolder.getTestDirectory());
+
     private StandardJavadocDocletOptions options;
 
     @Before
     public void setUp() {
-        options = new StandardJavadocDocletOptions();
+        options = TestUtil.objectFactory(temporaryFolder.getTestDirectory()).newInstance(StandardJavadocDocletOptions.class);
     }
 
     @Test
@@ -155,7 +160,7 @@ public class StandardJavadocDocletOptionsTest {
     public void testFluentDocletClasspath() {
         final File[] docletClasspathValue = new File[]{new File("doclet.jar"), new File("doclet-dep.jar")};
         assertEquals(options, options.docletpath(docletClasspathValue));
-        assertArrayEquals(docletClasspathValue, options.getDocletpath().toArray());
+        assertArrayEquals(Arrays.stream(docletClasspathValue).map(fileResolver::resolve).toArray(), options.getDocletpath().toArray());
     }
 
     @Test
@@ -169,21 +174,21 @@ public class StandardJavadocDocletOptionsTest {
     public void testFluentClasspath() {
         final File[] classpathValue = new File[]{new File("classpath.jar"), new File("classpath-dir")};
         assertEquals(options, options.classpath(classpathValue));
-        assertArrayEquals(classpathValue, options.getClasspath().toArray());
+        assertArrayEquals(Arrays.stream(classpathValue).map(fileResolver::resolve).toArray(), options.getClasspath().toArray());
     }
 
     @Test
     public void testFluentBootclasspath() {
         final File[] bootClasspathValue = new File[]{new File("bootclasspath.jar"), new File("bootclasspath2.jar")};
         assertEquals(options, options.bootClasspath(bootClasspathValue));
-        assertArrayEquals(bootClasspathValue, options.getBootClasspath().toArray());
+        assertArrayEquals(Arrays.stream(bootClasspathValue).map(fileResolver::resolve).toArray(), options.getBootClasspath().toArray());
     }
 
     @Test
     public void testFluentExtDirs() {
         final File[] extDirsValue = new File[]{new File("extDirOne"), new File("extDirTwo")};
         assertEquals(options, options.extDirs(extDirsValue));
-        assertArrayEquals(extDirsValue, options.getExtDirs().toArray());
+        assertArrayEquals(Arrays.stream(extDirsValue).map(fileResolver::resolve).toArray(), options.getExtDirs().toArray());
     }
 
     @Test
@@ -223,7 +228,7 @@ public class StandardJavadocDocletOptionsTest {
     public void testFluentDirectory() {
         final File directoryValue = new File("testOutput");
         assertEquals(options, options.destinationDirectory(directoryValue));
-        assertEquals(directoryValue, options.getDestinationDirectory());
+        assertEquals(fileResolver.resolve(directoryValue), options.getDestinationDirectory());
     }
 
     @Test
@@ -355,14 +360,14 @@ public class StandardJavadocDocletOptionsTest {
     public void testFluentHelpFile() {
         final File helpFileValue = new File("help-file.txt");
         assertEquals(options, options.helpFile(helpFileValue));
-        assertEquals(helpFileValue, options.getHelpFile());
+        assertEquals(fileResolver.resolve(helpFileValue), options.getHelpFile());
     }
 
     @Test
     public void testFluentStylesheetFile() {
         final File stylesheetFileValue = new File("stylesheet.css");
         assertEquals(options, options.stylesheetFile(stylesheetFileValue));
-        assertEquals(stylesheetFileValue, options.getStylesheetFile());
+        assertEquals(fileResolver.resolve(stylesheetFileValue), options.getStylesheetFile());
     }
 
     @Test
@@ -419,7 +424,7 @@ public class StandardJavadocDocletOptionsTest {
     public void testFluentTagletPath() {
         final File[] tagletPathValue = new File[]{new File("tagletOne.jar"), new File("tagletTwo.jar")};
         assertEquals(options, options.tagletPath(tagletPathValue));
-        assertArrayEquals(tagletPathValue, options.getTagletPath().toArray());
+        assertArrayEquals(Arrays.stream(tagletPathValue).map(fileResolver::resolve).toArray(), options.getTagletPath().toArray());
     }
 
     @Test
