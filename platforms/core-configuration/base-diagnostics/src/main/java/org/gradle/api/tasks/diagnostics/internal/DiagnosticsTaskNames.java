@@ -100,4 +100,11 @@ public interface DiagnosticsTaskNames {
      * @since 8.13
      */
     String DEPENDENT_COMPONENTS_TASK = "dependentComponents";
+
+    /**
+     * The name of the SBOM generation task.
+     *
+     * @since 9.10.0
+     */
+    String SBOM_TASK = "sbom";
 }

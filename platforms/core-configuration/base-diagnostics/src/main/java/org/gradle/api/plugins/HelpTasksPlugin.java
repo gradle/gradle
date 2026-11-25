@@ -61,6 +61,14 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
     public static final String DEPENDENCY_INSIGHT_TASK = DiagnosticsTaskNames.DEPENDENCY_INSIGHT_TASK;
 
     /**
+     * The sbom task.
+     *
+     * @since 9.10.0
+     */
+    @Incubating
+    public static final String SBOM_TASK = DiagnosticsTaskNames.SBOM_TASK;
+
+    /**
      * The name of the outgoing variants report task.
      *
      * @since 6.0
