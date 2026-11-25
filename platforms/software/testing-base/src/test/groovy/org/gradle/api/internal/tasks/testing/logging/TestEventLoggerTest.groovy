@@ -21,14 +21,16 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.gradle.api.tasks.testing.logging.TestLoggingInputs
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
+import org.gradle.util.TestUtil
 import spock.lang.Shared
 import spock.lang.Specification
 
 class TestEventLoggerTest extends Specification {
     def textOutputFactory = new TestStyledTextOutputFactory()
 
-    def testLogging = new DefaultTestLogging()
+    def testLogging = new DefaultTestLogging(TestUtil.objectFactory().newInstance(TestLoggingInputs))
     def exceptionFormatter = Mock(TestExceptionFormatter)
     def eventLogger = new TestEventLogger(textOutputFactory, LogLevel.INFO, testLogging, exceptionFormatter)
 

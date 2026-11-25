@@ -19,11 +19,12 @@
 package org.gradle.api.internal.tasks.testing.filter
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultTestFilterTest extends Specification {
 
-    def spec = new DefaultTestFilter()
+    def spec = TestUtil.objectFactory().newInstance(DefaultTestFilter)
 
     def "allows configuring test names"() {
         expect: spec.includePatterns.isEmpty()

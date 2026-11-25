@@ -18,6 +18,8 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.testing.logging.TestLoggingContainerInputs;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -36,4 +38,20 @@ public interface AbstractTestTaskInputs {
      * @since 10.0.0
      */
     Property<Boolean> getFailFast();
+
+    /**
+     * The lazy properties behind the {@link AbstractTestTask#getFilter() filter} of the task.
+     *
+     * @since 10.0.0
+     */
+    @LazyProperties
+    TestFilterInputs getFilter();
+
+    /**
+     * The lazy properties behind the {@link AbstractTestTask#getTestLogging() test logging} of the task.
+     *
+     * @since 10.0.0
+     */
+    @LazyProperties
+    TestLoggingContainerInputs getTestLogging();
 }
