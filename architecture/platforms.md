@@ -106,7 +106,7 @@ This is a platform that builds on the core platform to provide the `reporting-ba
 ### Essential plugins platform
 
 This is a platform that builds on the core automation platform to provide the plugins that are applied to every build, regardless of what it builds.
-This includes the wrapper plugin.
+This includes the help and wrapper plugins.
 
 ### Software development platform
 

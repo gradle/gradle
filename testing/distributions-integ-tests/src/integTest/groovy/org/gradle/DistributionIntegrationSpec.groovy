@@ -117,6 +117,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "groovy-loader",
         "hashing",
         "hashing-services",
+        "help-plugin",
         "input-tracking",
         "installation-beacon",
         "instrumentation-agent-services",

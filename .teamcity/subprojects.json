@@ -784,6 +784,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "help-plugin",
+    "path": "platforms/essential-plugins/help-plugin",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "ide",
     "path": "platforms/ide/ide",
     "unitTests": true,
