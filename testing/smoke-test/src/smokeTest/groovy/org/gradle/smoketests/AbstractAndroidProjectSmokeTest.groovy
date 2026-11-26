@@ -106,7 +106,7 @@ class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements Runne
             // These projects apply the Develocity plugin and use the remote build cache, so a Develocity outage makes
             // the Develocity agent log connection stack traces to the build output. Those are infrastructure noise
             // unrelated to what these smoke tests verify. See https://github.com/gradle/gradle-private/issues/5290
-            .ignoreStackTraces("Develocity agent may log stack traces when develocity.gradle.org / the remote build cache is unavailable")
+            .ignoreStackTraces("Develocity agent may log stack traces when the Develocity Server or Edge is unavailable")
 
         if (JavaVersion.current().isJava9Compatible()) {
             runner.withJvmArguments(

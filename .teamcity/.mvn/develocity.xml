@@ -18,7 +18,7 @@
     <!-- Keep caches and Build Scan data in the checkout instead of ~/.m2/.develocity, which is shared by all builds on the agent -->
     <storageDirectory>${maven.multiModuleProjectDirectory}/.mvn/.develocity/storage</storageDirectory>
     <server>
-        <url>https://develocity.gradle.org</url>
+        <url>${env.DEVELOCITY_SERVER_URL}</url>
     </server>
     <buildScan>
         <publishing>
