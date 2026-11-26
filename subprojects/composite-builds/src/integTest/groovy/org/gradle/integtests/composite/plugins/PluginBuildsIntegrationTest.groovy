@@ -351,7 +351,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         build.assertProjectPluginApplied()
     }
 
-    @UnsupportedWithIsolatedProjects(because = "Plugin build include cycles are rejected with Isolated Projects")
+    @UnsupportedWithIsolatedProjects(because = "Plugin build include cycles are rejected with Isolated Projects", issue = "https://github.com/gradle/gradle/issues/38843")
     def "Including a build as both plugin build and regular build does not lead to an error in the presence of include cycles"() {
         given:
         def commonsPluginBuild = pluginBuild("commons-plugin-build", dsl == 'Kotlin')
@@ -575,7 +575,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         projectPluginBuild.assertProjectPluginApplied()
     }
 
-    @UnsupportedWithIsolatedProjects(because = "Plugin build include cycles are rejected with Isolated Projects")
+    @UnsupportedWithIsolatedProjects(because = "Plugin build include cycles are rejected with Isolated Projects", issue = "https://github.com/gradle/gradle/issues/38843")
     def "plugin builds can include each other without consequences"() {
         given:
         def settingsPluginBuild = pluginBuild("settings-plugin", dsl == 'Kotlin')
