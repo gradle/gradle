@@ -32,7 +32,6 @@ dependencies {
     implementation(projects.processServicesApi)
     implementation(projects.serviceLookup)
 
-    runtimeOnly(projects.baseDiagnostics)
     runtimeOnly(projects.softwareDiagnostics)
     runtimeOnly(projects.workers)
 

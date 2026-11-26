@@ -49,7 +49,7 @@ dependencies {
     api(libs.jspecify)
     api(libs.kotlinStdlib)
 
-    implementation(projects.baseDiagnostics)
+    implementation(projects.helpPlugin)
     implementation(projects.softwareDiagnostics)
     implementation(projects.credentialsImpl)
     implementation(projects.domainObjectCollections)

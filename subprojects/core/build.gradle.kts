@@ -228,7 +228,6 @@ dependencies {
     testImplementation(testFixtures(projects.modelReflect))
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.baseServices))
-    testImplementation(testFixtures(projects.baseDiagnostics))
     testImplementation(projects.helpPlugin)
     testImplementation(testFixtures(projects.processServices))
     testImplementation(testFixtures(projects.snapshots))

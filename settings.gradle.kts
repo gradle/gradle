@@ -100,7 +100,6 @@ val core = platform("core") {
     // Core Configuration Module
     module("core-configuration") {
         subproject("api-metadata")
-        subproject("base-diagnostics")
         subproject("base-services-groovy")
         subproject("bean-serialization-services")
         subproject("configuration-cache")
@@ -251,6 +250,7 @@ val software = platform("software") {
 // JVM Platform
 val jvm = platform("jvm") {
     uses(core)
+    uses(essentialPlugins)
     uses(reportingPlugins)
     uses(software)
     subproject("antlr")
@@ -325,6 +325,7 @@ platform("dsl") {
 // Native Platform
 platform("native") {
     uses(core)
+    uses(essentialPlugins)
     uses(software)
     subproject("distributions-native")
     subproject("platform-native")
