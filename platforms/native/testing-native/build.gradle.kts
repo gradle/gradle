@@ -27,7 +27,6 @@ dependencies {
     implementation(projects.platformBase)
     implementation(projects.processServicesApi)
 
-    runtimeOnly(projects.baseDiagnostics)
     runtimeOnly(projects.softwareDiagnostics)
 
     implementation(libs.commonsIo)

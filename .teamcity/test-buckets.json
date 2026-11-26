@@ -216,7 +216,6 @@
         "subprojects": [
           "ant-impl",
           "antlr",
-          "base-diagnostics",
           "build-cache",
           "build-cache-core",
           "build-cache-http",
@@ -695,7 +694,6 @@
       },
       {
         "subprojects": [
-          "base-diagnostics",
           "domain-object-collections",
           "ivy",
           "plugins-java-library",
@@ -998,7 +996,6 @@
         "subprojects": [
           "ant-impl",
           "antlr",
-          "base-diagnostics",
           "build-cache-core",
           "build-cache-http",
           "build-cache-local",
@@ -1511,7 +1508,6 @@
       {
         "subprojects": [
           "antlr",
-          "base-diagnostics",
           "integ-test",
           "plugins-java-library",
           "testing-native"
@@ -1642,7 +1638,6 @@
       },
       {
         "subprojects": [
-          "base-diagnostics",
           "build-cache-local",
           "classpath",
           "ide-native",
@@ -1928,7 +1923,6 @@
       },
       {
         "subprojects": [
-          "base-diagnostics",
           "build-cache-local",
           "ide-native",
           "normalization",
@@ -2131,7 +2125,6 @@
       {
         "subprojects": [
           "antlr",
-          "base-diagnostics",
           "build-cache-local",
           "composite-builds",
           "ide-native",
@@ -2394,7 +2387,6 @@
       {
         "subprojects": [
           "antlr",
-          "base-diagnostics",
           "classpath",
           "core-api",
           "language-native",
@@ -2724,7 +2716,6 @@
       },
       {
         "subprojects": [
-          "base-diagnostics",
           "core-api",
           "integ-test",
           "plugins-application"
@@ -3036,7 +3027,6 @@
       {
         "subprojects": [
           "ant-impl",
-          "base-diagnostics",
           "declarative-dsl-core",
           "file-watching",
           "ide-native",
@@ -3223,7 +3213,6 @@
         "subprojects": [
           "ant-impl",
           "antlr",
-          "base-diagnostics",
           "base-services",
           "build-cache",
           "build-cache-core",
@@ -3413,7 +3402,6 @@
         "subprojects": [
           "ant-impl",
           "antlr",
-          "base-diagnostics",
           "base-services",
           "build-cache",
           "build-cache-core",
@@ -3793,7 +3781,6 @@
       {
         "subprojects": [
           "antlr",
-          "base-diagnostics",
           "build-cache-local",
           "build-configuration",
           "classpath",
@@ -3935,7 +3922,6 @@
       },
       {
         "subprojects": [
-          "base-diagnostics",
           "build-cache-local",
           "core-api",
           "ide",
@@ -4425,7 +4411,6 @@
       {
         "subprojects": [
           "antlr",
-          "base-diagnostics",
           "testing-native",
           "version-control"
         ],
@@ -4589,7 +4574,6 @@
         "subprojects": [
           "ant-impl",
           "antlr",
-          "base-diagnostics",
           "base-services",
           "build-cache"
         ],
@@ -4851,7 +4835,6 @@
       },
       {
         "subprojects": [
-          "base-diagnostics",
           "core-api",
           "ear",
           "instrumentation-agent-services",
@@ -5139,7 +5122,6 @@
         "subprojects": [
           "ant-impl",
           "antlr",
-          "base-diagnostics",
           "base-services",
           "build-cache"
         ],
@@ -5387,7 +5369,6 @@
       },
       {
         "subprojects": [
-          "base-diagnostics",
           "build-cache-core",
           "build-configuration",
           "classpath",
@@ -5517,7 +5498,6 @@
         "subprojects": [
           "ant-impl",
           "antlr",
-          "base-diagnostics",
           "base-ide-plugins",
           "base-services",
           "base-services-groovy",

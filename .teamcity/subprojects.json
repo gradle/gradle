@@ -63,13 +63,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "base-diagnostics",
-    "path": "platforms/core-configuration/base-diagnostics",
-    "unitTests": true,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
     "name": "base-ide-plugins",
     "path": "platforms/ide/base-ide-plugins",
     "unitTests": true,

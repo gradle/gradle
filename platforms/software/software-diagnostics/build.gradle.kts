@@ -19,7 +19,6 @@ val implementationResourcesPath = configurations.resolvable("implementationResou
 }
 
 dependencies {
-    api(projects.baseDiagnostics)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
@@ -27,6 +26,7 @@ dependencies {
     api(projects.domainObjectCollections)
     api(projects.enterpriseLogging)
     api(projects.fileCollections)
+    api(projects.helpPlugin)
     api(projects.internalInstrumentationApi)
     api(projects.jvmServices)
     api(projects.logging)
@@ -39,7 +39,6 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.functional)
-    implementation(projects.helpPlugin)
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
     implementation(projects.startParameter)

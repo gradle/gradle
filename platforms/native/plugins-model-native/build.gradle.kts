@@ -30,7 +30,7 @@ dependencies {
 
     api(projects.logging)
 
-    implementation(projects.baseDiagnostics)
+    implementation(projects.helpPlugin)
     implementation(projects.daemonServerWorker)
     implementation(projects.modelReflect)
     implementation(projects.publish)
@@ -42,6 +42,7 @@ dependencies {
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.coreApi))
+    testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.modelCore))
     testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.platformNative))

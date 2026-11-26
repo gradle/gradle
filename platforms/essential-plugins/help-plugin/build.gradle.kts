@@ -5,28 +5,35 @@ plugins {
 description = "Contains the Help plugin, which is automatically applied to every project and provides the help, projects, tasks and properties tasks."
 
 dependencies {
+    api(libs.guava)
     api(libs.inject)
     api(libs.jspecify)
 
+    api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
     api(projects.enterpriseLogging)
     api(projects.logging)
+    api(projects.reportRendering)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 
-    implementation(projects.baseDiagnostics)
-    implementation(projects.baseServices)
+    implementation(projects.functional)
+    implementation(projects.loggingApi)
     implementation(projects.modelCore)
+    implementation(projects.projectFeatures)
 
     implementation(libs.commonsLang)
-    implementation(libs.guava)
 
+    testImplementation(projects.processServices)
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.logging))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
+
+    integTestImplementation(testFixtures(projects.declarativeDslProvider))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

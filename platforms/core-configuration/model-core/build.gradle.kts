@@ -41,7 +41,6 @@ dependencies {
 
     compileOnly(libs.errorProneAnnotations)
 
-    testFixturesApi(testFixtures(projects.baseDiagnostics))
     testFixturesApi(testFixtures(projects.core))
     testFixturesApi(projects.internalIntegTesting)
     testFixturesImplementation(projects.baseAsm)

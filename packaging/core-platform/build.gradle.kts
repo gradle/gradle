@@ -9,7 +9,6 @@ javaPlatform.allowDependencies()
 dependencies {
     runtime(projects.installationBeacon)
     runtime(projects.apiMetadata)
-    runtime(projects.baseDiagnostics)
     runtime(projects.helpPlugin)
     runtime(projects.daemonServer) {
         because("This is the Gradle daemon implementation, which transitively depends on all other core projects.")
