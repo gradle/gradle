@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
 
@@ -30,7 +31,22 @@ import java.io.Serializable;
 public class DebugOptions implements Serializable {
     private static final long serialVersionUID = 0;
 
-    private String debugLevel;
+    private CompileOptionStorage<String> debugLevel = CompileOptionStorage.inField(null);
+
+    @Nullable
+    private DebugOptionsInputs lazyProperties;
+
+    void attach(DebugOptionsInputs lazyProperties) {
+        this.lazyProperties = lazyProperties;
+        debugLevel = debugLevel.movedTo(lazyProperties.getDebugLevel());
+    }
+
+    // Read through @BackedByLazyProperty. Null when the options are not attached, then a getter has no lazy property.
+    @Nullable
+    @SuppressWarnings("unused")
+    private DebugOptionsInputs getLazyProperties() {
+        return lazyProperties;
+    }
 
     /**
      * Get a comma-separated list of debug information to be generated during compilation.
@@ -54,8 +70,9 @@ public class DebugOptions implements Serializable {
     @Optional
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.debugLevel")
     public String getDebugLevel() {
-        return debugLevel;
+        return debugLevel.get();
     }
 
     /**
@@ -80,6 +97,6 @@ public class DebugOptions implements Serializable {
      * @since 0.7
      */
     public void setDebugLevel(@Nullable String debugLevel) {
-        this.debugLevel = debugLevel;
+        this.debugLevel.set(debugLevel);
     }
 }

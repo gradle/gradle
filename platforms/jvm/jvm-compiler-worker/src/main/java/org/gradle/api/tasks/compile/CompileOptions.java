@@ -77,6 +77,8 @@ public abstract class CompileOptions implements Serializable {
         lazy.getDebug().convention(true);
         lazy.getFork().convention(false);
         lazy.getIncremental().convention(true);
+        getForkOptions().attach(lazy.getForkOptions());
+        getDebugOptions().attach(lazy.getDebugOptions());
     }
 
     /**

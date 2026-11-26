@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -142,4 +143,20 @@ public interface CompileOptionsInputs {
      * @since 10.0.0
      */
     ConfigurableFileCollection getAnnotationProcessorPath();
+
+    /**
+     * The lazy properties behind the {@link CompileOptions#getForkOptions() fork options}.
+     *
+     * @since 10.0.0
+     */
+    @LazyProperties
+    ForkOptionsInputs getForkOptions();
+
+    /**
+     * The lazy properties behind the {@link CompileOptions#getDebugOptions() debug options}.
+     *
+     * @since 10.0.0
+     */
+    @LazyProperties
+    DebugOptionsInputs getDebugOptions();
 }

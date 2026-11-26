@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
 
@@ -31,11 +32,29 @@ import java.io.File;
 public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions {
     private static final long serialVersionUID = 0;
 
-    private String executable;
+    private CompileOptionStorage<String> executable = CompileOptionStorage.inField(null);
 
-    private String tempDir;
+    private CompileOptionStorage<String> tempDir = CompileOptionStorage.inField(null);
 
-    private File javaHome;
+    private CompileOptionStorage<File> javaHome = CompileOptionStorage.inField(null);
+
+    @Nullable
+    private ForkOptionsInputs lazyProperties;
+
+    void attach(ForkOptionsInputs lazyProperties) {
+        super.attach(lazyProperties);
+        this.lazyProperties = lazyProperties;
+        executable = executable.movedTo(lazyProperties.getExecutable());
+        tempDir = tempDir.movedTo(lazyProperties.getTempDir());
+        javaHome = javaHome.movedTo(lazyProperties.getJavaHome());
+    }
+
+    // Read through @BackedByLazyProperty, see BaseForkOptions
+    @Nullable
+    @SuppressWarnings("unused")
+    private ForkOptionsInputs getLazyProperties() {
+        return lazyProperties;
+    }
 
     /**
      * Returns the compiler executable to be used.
@@ -49,8 +68,9 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
     @Optional
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.executable")
     public String getExecutable() {
-        return executable;
+        return executable.get();
     }
 
     /**
@@ -62,7 +82,7 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
      * @since 0.7
      */
     public void setExecutable(@Nullable String executable) {
-        this.executable = executable;
+        this.executable.set(executable);
     }
 
     /**
@@ -75,8 +95,9 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
     @Internal
     @Nullable
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.javaHome")
     public File getJavaHome() {
-        return javaHome;
+        return javaHome.get();
     }
 
     /**
@@ -87,7 +108,7 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
      * @since 3.5
      */
     public void setJavaHome(@Nullable File javaHome) {
-        this.javaHome = javaHome;
+        this.javaHome.set(javaHome);
     }
 
     /**
@@ -99,8 +120,9 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
     @Internal
     @Nullable
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.tempDir")
     public String getTempDir() {
-        return tempDir;
+        return tempDir.get();
     }
 
     /**
@@ -110,6 +132,6 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
      * @since 0.7
      */
     public void setTempDir(@Nullable String tempDir) {
-        this.tempDir = tempDir;
+        this.tempDir.set(tempDir);
     }
 }
