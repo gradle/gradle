@@ -17,9 +17,10 @@
 package org.gradle.plugin.devel;
 
 import org.gradle.api.Named;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 /**
  * Describes a Gradle plugin under development.
@@ -28,11 +29,8 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
  * @since 2.14
  */
 public abstract class PluginDeclaration implements Named {
+
     private final String name;
-    private String id;
-    private String implementationClass;
-    private String displayName;
-    private String description;
 
     /**
      * Creates a new {@code PluginDeclaration}.
@@ -54,10 +52,8 @@ public abstract class PluginDeclaration implements Named {
      *
      * @since 2.14
      */
-    @ToBeReplacedByLazyProperty
-    public String getId() {
-        return id;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getId();
 
     /**
      * Sets the id.
@@ -65,7 +61,7 @@ public abstract class PluginDeclaration implements Named {
      * @since 2.14
      */
     public void setId(String id) {
-        this.id = id;
+        getId().set(id);
     }
 
     /**
@@ -73,10 +69,8 @@ public abstract class PluginDeclaration implements Named {
      *
      * @since 2.14
      */
-    @ToBeReplacedByLazyProperty
-    public String getImplementationClass() {
-        return implementationClass;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getImplementationClass();
 
     /**
      * Sets the implementation class.
@@ -84,7 +78,7 @@ public abstract class PluginDeclaration implements Named {
      * @since 2.14
      */
     public void setImplementationClass(String implementationClass) {
-        this.implementationClass = implementationClass;
+        getImplementationClass().set(implementationClass);
     }
 
     /**
@@ -95,10 +89,8 @@ public abstract class PluginDeclaration implements Named {
      *
      * @since 4.10
      */
-    @ToBeReplacedByLazyProperty
-    public String getDisplayName() {
-        return displayName;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getDisplayName();
 
     /**
      * Sets the display name for this plugin declaration.
@@ -109,7 +101,7 @@ public abstract class PluginDeclaration implements Named {
      * @since 4.10
      */
     public void setDisplayName(String displayName) {
-        this.displayName = displayName;
+        getDisplayName().set(displayName);
     }
 
     /**
@@ -120,10 +112,8 @@ public abstract class PluginDeclaration implements Named {
      *
      * @since 4.10
      */
-    @ToBeReplacedByLazyProperty
-    public String getDescription() {
-        return description;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getDescription();
 
     /**
      * Sets the description for this plugin declaration.
@@ -134,7 +124,7 @@ public abstract class PluginDeclaration implements Named {
      * @since 4.10
      */
     public void setDescription(String description) {
-        this.description = description;
+        getDescription().set(description);
     }
 
     /**

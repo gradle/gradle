@@ -12,19 +12,18 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.fileCollections)
+    api(projects.fileOperations)
     api(projects.internalInstrumentationApi)
     api(projects.stdlibJavaExtensions)
 
     implementation(libs.gson)
     implementation(libs.guava)
 
-    implementation(projects.fileOperations)
     implementation(projects.logging)
     implementation(projects.pluginsApplication) {
         because("Needs access to StartScriptGenerator.")
     }
     implementation(projects.resources)
-    implementation(projects.serviceLookup)
     implementation(projects.startParameter)
     implementation(projects.wrapperShared)
 

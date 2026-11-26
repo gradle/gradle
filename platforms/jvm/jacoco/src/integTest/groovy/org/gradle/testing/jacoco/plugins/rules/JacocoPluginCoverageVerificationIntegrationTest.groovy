@@ -354,7 +354,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
 
         when:
         buildFile << """
-            jacocoTestCoverageVerification.violationRules.rules[0].limits[0].maximum = 0.5
+            jacocoTestCoverageVerification.violationRules.rules.get()[0].limits.get()[0].maximum = 0.5
         """
 
         fails TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS

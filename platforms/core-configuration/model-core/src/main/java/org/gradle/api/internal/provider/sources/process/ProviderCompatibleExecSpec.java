@@ -18,15 +18,12 @@ package org.gradle.api.internal.provider.sources.process;
 
 import org.gradle.process.ExecSpec;
 
-class ProviderCompatibleExecSpec extends ProviderCompatibleBaseExecSpec implements DelegatingExecSpec {
-    private final ExecSpec execSpec;
+import javax.inject.Inject;
 
+class ProviderCompatibleExecSpec extends ProviderCompatibleBaseExecSpec<ExecSpec> implements DelegatingExecSpec {
+    @Inject
+    @SuppressWarnings("this-escape")
     public ProviderCompatibleExecSpec(ExecSpec execSpec) {
-        this.execSpec = execSpec;
-    }
-
-    @Override
-    public ExecSpec getDelegate() {
-        return execSpec;
+        super(execSpec);
     }
 }

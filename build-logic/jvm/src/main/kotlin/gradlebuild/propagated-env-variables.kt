@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
+@file:Suppress("UnusedImport", "UnusedImports")
+
 package gradlebuild
 
+/**
+ * TODO: Remove Suppress("UnusedImport") with Gradle 9.0
+ */
+import org.gradle.kotlin.dsl.assign
 import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.os.OperatingSystem
 
@@ -112,13 +118,10 @@ val credentialsKeywords = listOf(
 
 fun Test.filterEnvironmentVariables(inheritedEnvVars: List<String>) {
     environment = makePropagatedEnvironment()
-    environment.forEach { (key, _) ->
-        require(credentialsKeywords.none { key.contains(it, true) }) { "Found sensitive data in filtered environment variables: $key" }
-    }
 
     inheritedEnvVars.forEach { envVar ->
         System.getenv(envVar)?.let {
-            environment[envVar] = it
+            environment(envVar, it)
         }
     }
 }
@@ -133,5 +136,10 @@ fun makePropagatedEnvironment(): MutableMap<String, String> {
             result[key] = value
         }
     }
+
+    result.forEach { (key, _) ->
+        require(credentialsKeywords.none { key.contains(it, true) }) { "Found sensitive data in filtered environment variables: $key" }
+    }
+
     return result
 }

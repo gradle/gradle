@@ -62,7 +62,6 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.file.RegularFile
-import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.ClasspathNormalizer
@@ -319,7 +318,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         // extension.baselines -> determineBaselines.configuredBaselines
         // determineBaselines.determinedBaselines -> performanceTest.baselines
         // determineBaselines.determinedBaselines -> buildCommitDistribution.baselines
-        val commandExecutor = objects.newInstance<DefaultCommandExecutor>()
+        val commandExecutor = objects.newInstance<DefaultCommandExecutor>(layout.settingsDirectory.asFile)
         val determineBaselines = tasks.register("determineBaselines", DetermineBaselines::class, false, commandExecutor)
         val buildCommitDistribution = tasks.register("buildCommitDistribution", BuildCommitDistribution::class)
         val buildCommitDistributionsDir = project.getBuildEnvironmentExtension().rootProjectBuildDir.dir("commit-distributions")
@@ -455,7 +454,13 @@ class PerformanceTestExtension(
                         setTestNameIncludePatterns(scenariosFromFile)
                     }
                     doFirst {
-                        assert((filter as DefaultTestFilter).includePatterns.isNotEmpty()) { "Running $name requires to add a test filter" }
+                        // TODO: Remove this workaround with Gradle 9.0
+                        @Suppress("UNCHECKED_CAST")
+                        val includePatterns = when (filter.includePatterns) {
+                            is Provider<*> -> (filter.includePatterns as Provider<Set<String>>).get()
+                            else -> filter.includePatterns as Set<String>
+                        }
+                        assert(includePatterns.isNotEmpty()) { "Running $name requires to add a test filter" }
                     }
                 }
                 mustRunAfter(currentlyRegisteredTestProjects)

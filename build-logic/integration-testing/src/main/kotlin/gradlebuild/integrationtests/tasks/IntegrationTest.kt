@@ -16,7 +16,6 @@
 
 package gradlebuild.integrationtests.tasks
 
-import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.PathSensitive

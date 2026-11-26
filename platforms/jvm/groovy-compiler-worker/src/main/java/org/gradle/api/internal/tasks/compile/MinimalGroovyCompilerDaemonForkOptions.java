@@ -24,6 +24,6 @@ public class MinimalGroovyCompilerDaemonForkOptions extends MinimalCompilerDaemo
     @SuppressWarnings("this-escape")
     public MinimalGroovyCompilerDaemonForkOptions(GroovyForkOptions forkOptions) {
         super(forkOptions);
-        setJvmArgs(forkOptions.getAllJvmArgs());
+        setJvmArgs(forkOptions.getAllJvmArgs().get());
     }
 }

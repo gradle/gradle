@@ -9,6 +9,7 @@ description = "Implementation of Gradle's Ant integration"
 
 strictCompile {
     ignoreRawTypes() // raw types in Groovy-based APIs
+    ignoreDeprecations() // generated property-upgrade interceptors reference the deprecated AntTarget
 }
 
 dependencies {

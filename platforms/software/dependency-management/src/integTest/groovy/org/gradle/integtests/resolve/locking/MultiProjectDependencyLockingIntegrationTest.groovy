@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyResolutionTest {
 
@@ -65,9 +64,9 @@ class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyRe
         firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'], unique)
 
         when:
-        // Without CC, DependencyInsightReportTask's getter resolves the configuration while DefaultPropertyWalker
-        // has deprecation warnings disabled. With the configuration cache, resolution happens while storing the task.
-        if (!unique && GradleContextualExecuter.isConfigCache()) {
+        // The root component is a lazy convention, so the configuration resolves outside of DefaultPropertyWalker,
+        // which has deprecation warnings disabled. The warning shows with and without the configuration cache.
+        if (!unique) {
             executer.expectDocumentedDeprecationWarning(firstLockFileFixture.legacyLockfileDeprecation("configuration ':first:compileClasspath'", 'compileClasspath'))
         }
         succeeds ':first:dependencyInsight', '--configuration', 'compileClasspath', '--dependency', 'foo'
@@ -120,9 +119,9 @@ class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyRe
         firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'], unique)
 
         when:
-        // Without CC, DependencyInsightReportTask's getter resolves the configuration while DefaultPropertyWalker
-        // has deprecation warnings disabled. With the configuration cache, resolution happens while storing the task.
-        if (!unique && GradleContextualExecuter.isConfigCache()) {
+        // The root component is a lazy convention, so the configuration resolves outside of DefaultPropertyWalker,
+        // which has deprecation warnings disabled. The warning shows with and without the configuration cache.
+        if (!unique) {
             executer.expectDocumentedDeprecationWarning(firstLockFileFixture.legacyLockfileDeprecation("configuration ':first:compileClasspath'", 'compileClasspath'))
         }
         succeeds ':first:dependencyInsight', '--configuration', 'compileClasspath', '--dependency', 'foo'

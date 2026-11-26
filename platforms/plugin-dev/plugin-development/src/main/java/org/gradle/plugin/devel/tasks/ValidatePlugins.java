@@ -139,7 +139,7 @@ public abstract class ValidatePlugins extends DefaultTask {
                         );
 
                     }
-                    spec.getForkOptions().setExecutable(launcher.getExecutablePath());
+                    spec.getForkOptions().getExecutable().set(launcher.getExecutablePath().getAsFile().getAbsolutePath());
                 } else {
                     Problems problems = getServices().get(Problems.class);
                     ProblemId problemId = problems.getGroups().getGradle().getBuildDefinition().problemId("Using task ValidatePlugins without applying the Java Toolchain plugin");

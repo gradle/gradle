@@ -1831,4 +1831,15 @@ The value of this property is derived from: <source>""")
         property.get().size() == 100000
         property.getProducer().visitDependencies(context)
     }
+
+    def "can chain left shift"() {
+        when:
+        property << one << two
+
+        then:
+        assertValueIs(["foo": "42", "bar": "42"])
+
+        where:
+        [one, two] << [[["foo": "42"], Providers.of(["foo": "42"])], [["bar": "42"], Providers.of(["bar": "42"])]].combinations()
+    }
 }

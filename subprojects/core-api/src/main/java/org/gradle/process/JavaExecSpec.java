@@ -16,6 +16,7 @@
 package org.gradle.process;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.provider.ListProperty;
@@ -30,7 +31,6 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.Acce
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -81,29 +81,10 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * Returns the arguments passed to the main class to be executed.
      * @since 0.9
      */
-    @ToBeReplacedByLazyProperty
-    @Optional @Input
-    List<String> getArgs();
-
-    /**
-     * Adds args for the main class to be executed.
-     *
-     * @param args Args for the main class.
-     *
-     * @return this
-     * @since 0.9
-     */
-    JavaExecSpec args(Object... args);
-
-    /**
-     * Adds args for the main class to be executed.
-     *
-     * @param args Args for the main class.
-     *
-     * @return this
-     * @since 0.9
-     */
-    JavaExecSpec args(Iterable<?> args);
+    @Optional
+    @Input
+    @ReplacesEagerProperty(adapter = JavaExecSpecAdapters.ArgsAdapter.class)
+    ListProperty<String> getArgs();
 
     /**
      * Sets the args for the main class to be executed.
@@ -126,13 +107,35 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     JavaExecSpec setArgs(Iterable<?> args);
 
     /**
+     * Adds args for the main class to be executed.
+     *
+     * @param args Args for the main class.
+     *
+     * @return this
+     * @since 0.9
+     */
+    JavaExecSpec args(Object... args);
+
+    /**
+     * Adds args for the main class to be executed.
+     *
+     * @param args Args for the main class.
+     *
+     * @return this
+     * @since 0.9
+     */
+    JavaExecSpec args(Iterable<?> args);
+
+    /**
      * Argument providers for the application.
      *
      * @since 4.6
      */
     @Nested
-    @ToBeReplacedByLazyProperty
-    List<CommandLineArgumentProvider> getArgumentProviders();
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(value = AccessorType.GETTER, name = "getArgumentProviders")
+    })
+    ListProperty<CommandLineArgumentProvider> getArgumentProviders();
 
     /**
      * Adds elements to the classpath for executing the main class.
@@ -149,8 +152,8 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * @since 0.9
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    FileCollection getClasspath();
+    @ReplacesEagerProperty(fluentSetter = true)
+    ConfigurableFileCollection getClasspath();
 
     /**
      * Sets the classpath for executing the main class.

@@ -316,7 +316,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         given:
         expectFirstTestSuiteContainsTestButSecondIsEmpty()
         task.filter {
-            it.includePatterns = "Foo"
+            it.includePatterns = ["Foo"]
         }
 
         def testDir = temporaryFolder.createDir("testClasses")

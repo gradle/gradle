@@ -17,11 +17,13 @@ package org.gradle.api.plugins.quality;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.plugins.quality.internal.CodeNarcActionParameters;
 import org.gradle.api.plugins.quality.internal.CodeNarcInvoker;
 import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -33,6 +35,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Describables;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
@@ -47,19 +50,9 @@ import java.util.stream.Collectors;
 @CacheableTask
 public abstract class CodeNarc extends AbstractCodeQualityTask implements Reporting<CodeNarcReports> {
 
-    private FileCollection codenarcClasspath;
-
-    private FileCollection compilationClasspath;
+    private final CodeNarcReports reports;
 
     private TextResource config;
-
-    private int maxPriority1Violations;
-
-    private int maxPriority2Violations;
-
-    private int maxPriority3Violations;
-
-    private final CodeNarcReports reports;
 
     /**
      * Creates a new {@code CodeNarc}.
@@ -70,7 +63,9 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
     public CodeNarc() {
         super();
         reports = getObjectFactory().newInstance(CodeNarcReportsImpl.class, Describables.quoted("Task", getIdentityPath()));
-        compilationClasspath = getProject().files();
+        getMaxPriority1Violations().convention(0);
+        getMaxPriority2Violations().convention(0);
+        getMaxPriority3Violations().convention(0);
         // Set default JavaLauncher to current JVM in case
         // CodeNarcPlugin that sets Java launcher convention is not applied
     }
@@ -153,17 +148,15 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      * @since 1.0
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getCodenarcClasspath() {
-        return codenarcClasspath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getCodenarcClasspath();
 
     /**
      * The class path containing the CodeNarc library to be used.
      * @since 1.0
      */
     public void setCodenarcClasspath(FileCollection codenarcClasspath) {
-        this.codenarcClasspath = codenarcClasspath;
+        getCodenarcClasspath().setFrom(codenarcClasspath);
     }
 
     /**
@@ -172,10 +165,8 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      * @since 4.2
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getCompilationClasspath() {
-        return compilationClasspath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getCompilationClasspath();
 
     /**
      * The class path to be used by CodeNarc when compiling classes during analysis.
@@ -183,7 +174,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      * @since 4.2
      */
     public void setCompilationClasspath(FileCollection compilationClasspath) {
-        this.compilationClasspath = compilationClasspath;
+        getCompilationClasspath().setFrom(compilationClasspath);
     }
 
     /**
@@ -210,17 +201,15 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      * @since 1.7
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public int getMaxPriority1Violations() {
-        return maxPriority1Violations;
-    }
+    @ReplacesEagerProperty(originalType = int.class)
+    public abstract Property<Integer> getMaxPriority1Violations();
 
     /**
      * The maximum number of priority 1 violations allowed before failing the build.
      * @since 1.7
      */
     public void setMaxPriority1Violations(int maxPriority1Violations) {
-        this.maxPriority1Violations = maxPriority1Violations;
+        getMaxPriority1Violations().set(maxPriority1Violations);
     }
 
     /**
@@ -228,17 +217,15 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      * @since 1.7
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public int getMaxPriority2Violations() {
-        return maxPriority2Violations;
-    }
+    @ReplacesEagerProperty(originalType = int.class)
+    public abstract Property<Integer> getMaxPriority2Violations();
 
     /**
      * The maximum number of priority 2 violations allowed before failing the build.
      * @since 1.7
      */
     public void setMaxPriority2Violations(int maxPriority2Violations) {
-        this.maxPriority2Violations = maxPriority2Violations;
+        getMaxPriority2Violations().set(maxPriority2Violations);
     }
 
     /**
@@ -246,17 +233,15 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      * @since 1.7
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public int getMaxPriority3Violations() {
-        return maxPriority3Violations;
-    }
+    @ReplacesEagerProperty(originalType = int.class)
+    public abstract Property<Integer> getMaxPriority3Violations();
 
     /**
      * The maximum number of priority 3 violations allowed before failing the build.
      * @since 1.7
      */
     public void setMaxPriority3Violations(int maxPriority3Violations) {
-        this.maxPriority3Violations = maxPriority3Violations;
+        getMaxPriority3Violations().set(maxPriority3Violations);
     }
 
     /**
@@ -267,5 +252,4 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
     public CodeNarcReports getReports() {
         return reports;
     }
-
 }

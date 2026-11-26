@@ -16,8 +16,11 @@
 
 package org.gradle.external.javadoc;
 
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -46,243 +49,244 @@ public class StandardJavadocDocletOptionsTest {
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
 
     private StandardJavadocDocletOptions options;
+    private final FileResolver fileResolver = TestFiles.resolver(temporaryFolder.getTestDirectory());
 
     @Before
     public void setUp() {
-        options = new StandardJavadocDocletOptions();
+        options = TestUtil.objectFactory(temporaryFolder.getTestDirectory()).newInstance(StandardJavadocDocletOptions.class);
     }
 
     @Test
     public void testDefaults() {
         // core javadoc options
-        assertNull(options.getOverview());
-        assertNull(options.getMemberLevel());
-        assertNull(options.getDoclet());
-        assertEmpty(options.getDocletpath());
-        assertNull(options.getSource());
-        assertEmpty(options.getClasspath());
-        assertEmpty(options.getBootClasspath());
-        assertEmpty(options.getExtDirs());
-        assertEquals(options.getOutputLevel(), JavadocOutputLevel.QUIET);
-        assertFalse(options.isBreakIterator());
-        assertNull(options.getLocale());
-        assertNull(options.getEncoding());
-        assertEmpty(options.getJFlags());
-        assertEmpty(options.getSourceNames());
-        assertEmpty(options.getOptionFiles());
+        assertNull(options.getOverview().getOrNull());
+        assertNull(options.getMemberLevel().getOrNull());
+        assertNull(options.getDoclet().getOrNull());
+        assertEmpty(options.getDocletpath().getFiles());
+        assertNull(options.getSource().getOrNull());
+        assertEmpty(options.getClasspath().getFiles());
+        assertEmpty(options.getBootClasspath().getFiles());
+        assertEmpty(options.getExtDirs().getFiles());
+        assertEquals(JavadocOutputLevel.QUIET, options.getOutputLevel().get());
+        assertFalse(options.getBreakIterator().get());
+        assertNull(options.getLocale().getOrNull());
+        assertNull(options.getEncoding().getOrNull());
+        assertEmpty(options.getJFlags().get());
+        assertEmpty(options.getSourceNames().get());
+        assertEmpty(options.getOptionFiles().getFiles());
         // standard doclet options
-        assertNull(options.getDestinationDirectory());
-        assertFalse(options.isUse());
-        assertFalse(options.isVersion());
-        assertFalse(options.isAuthor());
-        assertFalse(options.isSplitIndex());
-        assertNull(options.getWindowTitle());
-        assertNull(options.getDocTitle());
-        assertNull(options.getFooter());
-        assertNull(options.getBottom());
-        assertEmpty(options.getLinks());
-        assertEmpty(options.getLinksOffline());
-        assertFalse(options.isLinkSource());
-        assertEmpty(options.getGroups());
-        assertFalse(options.isNoDeprecated());
-        assertFalse(options.isNoDeprecatedList());
-        assertFalse(options.isNoSince());
-        assertFalse(options.isNoTree());
-        assertFalse(options.isNoIndex());
-        assertFalse(options.isNoHelp());
-        assertFalse(options.isNoNavBar());
-        assertNull(options.getHelpFile());
-        assertNull(options.getStylesheetFile());
-        assertFalse(options.isSerialWarn());
-        assertNull(options.getCharSet());
-        assertNull(options.getDocEncoding());
-        assertFalse(options.isKeyWords());
-        assertEmpty(options.getTags());
-        assertEmpty(options.getTaglets());
-        assertEmpty(options.getTagletPath());
-        assertFalse(options.isDocFilesSubDirs());
-        assertEmpty(options.getExcludeDocFilesSubDir());
-        assertEmpty(options.getNoQualifiers());
-        assertTrue(options.isNoTimestamp());
-        assertFalse(options.isNoComment());
+        assertNull(options.getDestinationDirectory().getOrNull());
+        assertFalse(options.getUse().get());
+        assertFalse(options.getVersion().get());
+        assertFalse(options.getAuthor().get());
+        assertFalse(options.getSplitIndex().get());
+        assertNull(options.getWindowTitle().getOrNull());
+        assertNull(options.getDocTitle().getOrNull());
+        assertNull(options.getFooter().getOrNull());
+        assertNull(options.getBottom().getOrNull());
+        assertEmpty(options.getLinks().get());
+        assertEmpty(options.getLinksOffline().get());
+        assertFalse(options.getLinkSource().get());
+        assertEmpty(options.getGroups().get());
+        assertFalse(options.getNoDeprecated().get());
+        assertFalse(options.getNoDeprecatedList().get());
+        assertFalse(options.getNoSince().get());
+        assertFalse(options.getNoTree().get());
+        assertFalse(options.getNoIndex().get());
+        assertFalse(options.getNoHelp().get());
+        assertFalse(options.getNoNavBar().get());
+        assertNull(options.getHelpFile().getOrNull());
+        assertNull(options.getStylesheetFile().getOrNull());
+        assertFalse(options.getSerialWarn().get());
+        assertNull(options.getCharSet().getOrNull());
+        assertNull(options.getDocEncoding().getOrNull());
+        assertFalse(options.getKeyWords().get());
+        assertEmpty(options.getTags().get());
+        assertEmpty(options.getTaglets().get());
+        assertEmpty(options.getTagletPath().getFiles());
+        assertFalse(options.getDocFilesSubDirs().get());
+        assertEmpty(options.getExcludeDocFilesSubDir().get());
+        assertEmpty(options.getNoQualifiers().get());
+        assertTrue(options.getNoTimestamp().get());
+        assertFalse(options.getNoComment().get());
     }
 
     @Test
     public void testFluentOverview() {
         final String overviewValue = "overview";
         assertEquals(options, options.overview(overviewValue));
-        assertEquals(overviewValue, options.getOverview());
+        assertEquals(overviewValue, options.getOverview().get());
     }
 
     @Test
     public void testShowAll() {
         assertEquals(options, options.showAll());
-        assertEquals(JavadocMemberLevel.PRIVATE, options.getMemberLevel());
+        assertEquals(JavadocMemberLevel.PRIVATE, options.getMemberLevel().get());
     }
 
     @Test
     public void testShowFromPublic() {
         assertEquals(options, options.showFromPublic());
-        assertEquals(JavadocMemberLevel.PUBLIC, options.getMemberLevel());
+        assertEquals(JavadocMemberLevel.PUBLIC, options.getMemberLevel().get());
     }
 
     @Test
     public void testShowFromPackage() {
         assertEquals(options, options.showFromPackage());
-        assertEquals(JavadocMemberLevel.PACKAGE, options.getMemberLevel());
+        assertEquals(JavadocMemberLevel.PACKAGE, options.getMemberLevel().get());
     }
 
     @Test
     public void testShowFromProtected() {
         assertEquals(options, options.showFromProtected());
-        assertEquals(JavadocMemberLevel.PROTECTED, options.getMemberLevel());
+        assertEquals(JavadocMemberLevel.PROTECTED, options.getMemberLevel().get());
     }
 
     @Test
     public void testShowFromPrivate() {
         assertEquals(options, options.showFromPrivate());
-        assertEquals(JavadocMemberLevel.PRIVATE, options.getMemberLevel());
+        assertEquals(JavadocMemberLevel.PRIVATE, options.getMemberLevel().get());
     }
 
     @Test
     public void testFluentDocletClass() {
         final String docletValue = "org.gradle.CustomDocletClass";
         assertEquals(options, options.doclet(docletValue));
-        assertEquals(docletValue, options.getDoclet());
+        assertEquals(docletValue, options.getDoclet().get());
     }
 
     @Test
     public void testFluentDocletClasspath() {
         final File[] docletClasspathValue = new File[]{new File("doclet.jar"), new File("doclet-dep.jar")};
         assertEquals(options, options.docletpath(docletClasspathValue));
-        assertArrayEquals(docletClasspathValue, options.getDocletpath().toArray());
+        assertArrayEquals(Arrays.stream(docletClasspathValue).map(fileResolver::resolve).toArray(), options.getDocletpath().getFiles().toArray());
     }
 
     @Test
     public void testFluentSource() {
         final String sourceValue = "1.5";
         assertEquals(options, options.source(sourceValue));
-        assertEquals(sourceValue, options.getSource());
+        assertEquals(sourceValue, options.getSource().get());
     }
 
     @Test
     public void testFluentClasspath() {
         final File[] classpathValue = new File[]{new File("classpath.jar"), new File("classpath-dir")};
         assertEquals(options, options.classpath(classpathValue));
-        assertArrayEquals(classpathValue, options.getClasspath().toArray());
+        assertArrayEquals(Arrays.stream(classpathValue).map(fileResolver::resolve).toArray(), options.getClasspath().getFiles().toArray());
     }
 
     @Test
     public void testFluentBootclasspath() {
         final File[] bootClasspathValue = new File[]{new File("bootclasspath.jar"), new File("bootclasspath2.jar")};
         assertEquals(options, options.bootClasspath(bootClasspathValue));
-        assertArrayEquals(bootClasspathValue, options.getBootClasspath().toArray());
+        assertArrayEquals(Arrays.stream(bootClasspathValue).map(fileResolver::resolve).toArray(), options.getBootClasspath().getFiles().toArray());
     }
 
     @Test
     public void testFluentExtDirs() {
         final File[] extDirsValue = new File[]{new File("extDirOne"), new File("extDirTwo")};
         assertEquals(options, options.extDirs(extDirsValue));
-        assertArrayEquals(extDirsValue, options.getExtDirs().toArray());
+        assertArrayEquals(Arrays.stream(extDirsValue).map(fileResolver::resolve).toArray(), options.getExtDirs().getFiles().toArray());
     }
 
     @Test
     public void testQuietOutputLevel() {
         assertEquals(options, options.quiet());
-        assertEquals(JavadocOutputLevel.QUIET, options.getOutputLevel());
+        assertEquals(JavadocOutputLevel.QUIET, options.getOutputLevel().get());
     }
 
     @Test
     public void testVerboseOutputLevel() {
         assertEquals(options, options.verbose());
-        assertEquals(JavadocOutputLevel.VERBOSE, options.getOutputLevel());
-        assertTrue(options.isVerbose());
+        assertEquals(JavadocOutputLevel.VERBOSE, options.getOutputLevel().get());
+        assertTrue(options.getVerbose().get());
     }
 
     @Test
     public void testFluentBreakIterator() {
         assertEquals(options, options.breakIterator());
-        assertTrue(options.isBreakIterator());
+        assertTrue(options.getBreakIterator().get());
     }
 
     @Test
     public void testFluentLocale() {
         final String localeValue = "nl";
         assertEquals(options, options.locale(localeValue));
-        assertEquals(localeValue, options.getLocale());
+        assertEquals(localeValue, options.getLocale().get());
     }
 
     @Test
     public void testFluentEncoding() {
         final String encodingValue = "UTF-8";
         assertEquals(options, options.encoding(encodingValue));
-        assertEquals(encodingValue, options.getEncoding());
+        assertEquals(encodingValue, options.getEncoding().get());
     }
 
     @Test
     public void testFluentDirectory() {
         final File directoryValue = new File("testOutput");
         assertEquals(options, options.destinationDirectory(directoryValue));
-        assertEquals(directoryValue, options.getDestinationDirectory());
+        assertEquals(fileResolver.resolve(directoryValue), options.getDestinationDirectory().getAsFile().get());
     }
 
     @Test
     public void testFluentUse() {
         assertEquals(options, options.use());
-        assertTrue(options.isUse());
+        assertTrue(options.getUse().get());
     }
 
     @Test
     public void testFluentVersion() {
         assertEquals(options, options.version());
-        assertTrue(options.isVersion());
+        assertTrue(options.getVersion().get());
     }
 
     @Test
     public void testFluentAuthor() {
         assertEquals(options, options.author());
-        assertTrue(options.isAuthor());
+        assertTrue(options.getAuthor().get());
     }
 
     @Test
     public void testFluentSplitIndex() {
         assertEquals(options, options.splitIndex());
-        assertTrue(options.isSplitIndex());
+        assertTrue(options.getSplitIndex().get());
     }
 
     @Test
     public void testFluentWindowTitle() {
         final String windowTitleValue = "windowTitleValue";
         assertEquals(options, options.windowTitle(windowTitleValue));
-        assertEquals(windowTitleValue, options.getWindowTitle());
+        assertEquals(windowTitleValue, options.getWindowTitle().get());
     }
 
     @Test
     public void testFluentDocTitle() {
         final String docTitleValue = "docTitleValue";
         assertEquals(options, options.docTitle(docTitleValue));
-        assertEquals(docTitleValue, options.getDocTitle());
+        assertEquals(docTitleValue, options.getDocTitle().get());
     }
 
     @Test
     public void testFluentFooter() {
         final String footerValue = "footerValue";
         assertEquals(options, options.footer(footerValue));
-        assertEquals(footerValue, options.getFooter());
+        assertEquals(footerValue, options.getFooter().get());
     }
 
     @Test
     public void testFluentBottom() {
         final String bottomValue = "bottomValue";
         assertEquals(options, options.bottom(bottomValue));
-        assertEquals(bottomValue, options.getBottom());
+        assertEquals(bottomValue, options.getBottom().get());
     }
 
     @Test
     public void testFluentLink() {
         final String[] linkValue = new String[]{"http://otherdomain.org/javadoc"};
         assertEquals(options, options.links(linkValue));
-        assertArrayEquals(linkValue, options.getLinks().toArray());
+        assertArrayEquals(linkValue, options.getLinks().get().toArray());
     }
 
     @Test
@@ -290,14 +294,14 @@ public class StandardJavadocDocletOptionsTest {
         final String extDocUrl = "http://otherdomain.org/javadoc";
         final String packageListLoc = "/home/someuser/used-lib-local-javadoc-list";
         assertEquals(options, options.linksOffline(extDocUrl, packageListLoc));
-        assertEquals(extDocUrl, options.getLinksOffline().get(0).getExtDocUrl());
-        assertEquals(packageListLoc, options.getLinksOffline().get(0).getPackagelistLoc());
+        assertEquals(extDocUrl, options.getLinksOffline().get().get(0).getExtDocUrl());
+        assertEquals(packageListLoc, options.getLinksOffline().get().get(0).getPackagelistLoc());
     }
 
     @Test
     public void testFluentLinkSource() {
         assertEquals(options, options.linkSource());
-        assertTrue(options.isLinkSource());
+        assertTrue(options.getLinkSource().get());
     }
 
     @Test
@@ -310,148 +314,146 @@ public class StandardJavadocDocletOptionsTest {
 
         assertEquals(options, options.group(groupOneName, groupOnePackages));
         assertEquals(options, options.group(groupTwoName, groupTwoPackages));
-        assertEquals(2, options.getGroups().size());
-        assertArrayEquals(groupOnePackages, options.getGroups().get(groupOneName).toArray());
-        assertArrayEquals(groupTwoPackages, options.getGroups().get(groupTwoName).toArray());
+        assertEquals(2, options.getGroups().get().size());
+        assertArrayEquals(groupOnePackages, options.getGroups().get().get(groupOneName).toArray());
+        assertArrayEquals(groupTwoPackages, options.getGroups().get().get(groupTwoName).toArray());
     }
 
     @Test
     public void testFluentNoDeprecated() {
         assertEquals(options, options.noDeprecated());
-        assertTrue(options.isNoDeprecated());
+        assertTrue(options.getNoDeprecated().get());
     }
 
     @Test
     public void testFluentNoDeprecatedList() {
         assertEquals(options, options.noDeprecatedList());
-        assertTrue(options.isNoDeprecatedList());
+        assertTrue(options.getNoDeprecatedList().get());
     }
 
     @Test
     public void testFluentNoSince() {
         assertEquals(options, options.noSince());
-        assertTrue(options.isNoSince());
+        assertTrue(options.getNoSince().get());
     }
 
     @Test
     public void testFluentNoTree() {
         assertEquals(options, options.noTree());
-        assertTrue(options.isNoTree());
+        assertTrue(options.getNoTree().get());
     }
 
     @Test
     public void testFluentNoIndex() {
         assertEquals(options, options.noIndex());
-        assertTrue(options.isNoIndex());
+        assertTrue(options.getNoIndex().get());
     }
 
     @Test
     public void testFluentNoNavBar() {
         assertEquals(options, options.noNavBar());
-        assertTrue(options.isNoNavBar());
+        assertTrue(options.getNoNavBar().get());
     }
 
     @Test
     public void testFluentHelpFile() {
         final File helpFileValue = new File("help-file.txt");
         assertEquals(options, options.helpFile(helpFileValue));
-        assertEquals(helpFileValue, options.getHelpFile());
+        assertEquals(fileResolver.resolve(helpFileValue), options.getHelpFile().getAsFile().get());
     }
 
     @Test
     public void testFluentStylesheetFile() {
         final File stylesheetFileValue = new File("stylesheet.css");
         assertEquals(options, options.stylesheetFile(stylesheetFileValue));
-        assertEquals(stylesheetFileValue, options.getStylesheetFile());
+        assertEquals(fileResolver.resolve(stylesheetFileValue), options.getStylesheetFile().getAsFile().get());
     }
 
     @Test
     public void testFluentSerialWarn() {
         assertEquals(options, options.serialWarn());
-        assertTrue(options.isSerialWarn());
+        assertTrue(options.getSerialWarn().get());
     }
 
     @Test
     public void testFluentCharset() {
         final String charsetValue = "dummy-charset";
         assertEquals(options, options.charSet(charsetValue));
-        assertEquals(charsetValue, options.getCharSet());
+        assertEquals(charsetValue, options.getCharSet().get());
     }
 
     @Test
     public void testFluentDocEncoding() {
         final String docEncodingValue = "UTF-16";
         assertEquals(options, options.docEncoding(docEncodingValue));
-        assertEquals(docEncodingValue, options.getDocEncoding());
+        assertEquals(docEncodingValue, options.getDocEncoding().get());
     }
 
     @Test
     public void testFluentKeywords() {
         assertEquals(options, options.keyWords());
-        assertTrue(options.isKeyWords());
+        assertTrue(options.getKeyWords().get());
     }
 
     @Test
     public void testFluentTags() {
         final String[] tagsValue = new String[]{"param", "return", "todo:a:\"To Do:\""};
 
-        final List<String> tempList = new ArrayList<String>();
-        tempList.addAll(Arrays.asList(tagsValue));
+        final List<String> tempList = new ArrayList<String>(Arrays.asList(tagsValue));
 
         final Object[] totalTagsValue = tempList.toArray();
         assertEquals(options, options.tags(tagsValue));
-        assertArrayEquals(totalTagsValue, options.getTags().toArray());
+        assertArrayEquals(totalTagsValue, options.getTags().get().toArray());
     }
 
     @Test
     public void testFluentTaglets() {
         final String[] tagletsValue = new String[]{"com.sun.tools.doclets.ToDoTaglet"};
 
-        final List<String> tempList = new ArrayList<String>();
-        tempList.addAll(Arrays.asList(tagletsValue));
+        final List<String> tempList = new ArrayList<String>(Arrays.asList(tagletsValue));
 
         final Object[] totalTagletsValue = tempList.toArray();
         assertEquals(options, options.taglets(tagletsValue));
-        assertArrayEquals(totalTagletsValue, options.getTaglets().toArray());
+        assertArrayEquals(totalTagletsValue, options.getTaglets().get().toArray());
     }
 
     @Test
     public void testFluentTagletPath() {
         final File[] tagletPathValue = new File[]{new File("tagletOne.jar"), new File("tagletTwo.jar")};
         assertEquals(options, options.tagletPath(tagletPathValue));
-        assertArrayEquals(tagletPathValue, options.getTagletPath().toArray());
+        assertArrayEquals(Arrays.stream(tagletPathValue).map(fileResolver::resolve).toArray(), options.getTagletPath().getFiles().toArray());
     }
 
     @Test
     public void testFluentDocFilesSubDirs() {
         assertEquals(options, options.docFilesSubDirs());
-        assertTrue(options.isDocFilesSubDirs());
+        assertTrue(options.getDocFilesSubDirs().get());
     }
 
     @Test
     public void testFluentExcludeDocFilesSubDir() {
         final String[] excludeDocFilesSubDirValue = new String[]{".hg", ".svn", ".bzr", ".git"};
         assertEquals(options, options.excludeDocFilesSubDir(excludeDocFilesSubDirValue));
-        assertArrayEquals(excludeDocFilesSubDirValue, options.getExcludeDocFilesSubDir().toArray());
+        assertArrayEquals(excludeDocFilesSubDirValue, options.getExcludeDocFilesSubDir().get().toArray());
     }
 
     @Test
     public void testFluentNoQualifier() {
         String[] noQualifierValue = new String[]{"java.lang", "java.io"};
         assertEquals(options, options.noQualifiers(noQualifierValue));
-        assertArrayEquals(noQualifierValue, options.getNoQualifiers().toArray());
+        assertArrayEquals(noQualifierValue, options.getNoQualifiers().get().toArray());
     }
 
     @Test
     public void testFluentNoTimestamp() {
         assertEquals(options, options.noTimestamp());
-        assertTrue(options.isNoTimestamp());
+        assertTrue(options.getNoTimestamp().get());
     }
 
     @Test
     public void testFluentNoComment() {
         assertEquals(options, options.noComment());
-        assertTrue(options.isNoComment());
+        assertTrue(options.getNoComment().get());
     }
 
     @Test

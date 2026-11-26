@@ -95,7 +95,14 @@ class ExtraRepositories {
     }
 
     static boolean isDeclared(RepositoryHandler repos, String url) {
-        repos.any { it instanceof MavenArtifactRepository && normalizeUrl(it.url) == normalizeUrl(url) }
+        repos.any { it instanceof MavenArtifactRepository && normalizeUrl(urlOf(it)) == normalizeUrl(url) }
+    }
+
+    // The url is a Property<URI> since the Provider API migration and a plain URI before it.
+    // Unwrap it dynamically: the script also runs against older Gradle versions.
+    static Object urlOf(MavenArtifactRepository repository) {
+        def url = repository.url
+        return url.respondsTo('getOrNull') ? url.getOrNull() : url
     }
 
     static String normalizeUrl(Object url) {
