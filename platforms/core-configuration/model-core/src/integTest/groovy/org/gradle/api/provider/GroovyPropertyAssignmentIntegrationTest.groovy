@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider
 
+import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.configCache
 
@@ -318,6 +319,144 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         run("help")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/24719")
+    def "lazy extension assignment for #description"() {
+        groovyBuildFileWithExtension(inputFactory, inputValue, operation)
+
+        expect:
+        runAndAssert("myTask", expectedResult)
+
+        where:
+        description                           | operation | inputFactory                            | inputValue                               | expectedResult
+        "T = null"                            | "="       | "objects.property(MyObject)"            | 'null'                                   | "undefined"
+        "T = T"                               | "="       | "objects.property(MyObject)"            | 'new MyObject("hello")'                  | "hello"
+        "T = Provider<T>"                     | "="       | "objects.property(MyObject)"            | 'provider { new MyObject("hello") }'     | "hello"
+        "String = Object"                     | "="       | "objects.property(String)"              | 'new MyObject("hello")'                  | unsupportedWithCause("Cannot set the value of")
+        "File = T extends FileSystemLocation" | "="       | "objects.directoryProperty()"           | 'layout.buildDirectory.dir("out").get()' | "out"
+        "File = File"                         | "="       | "objects.directoryProperty()"           | 'file("out")'                            | "out"
+        "File = String"                       | "="       | "objects.fileProperty()"                | '"out.txt"'                              | "out.txt"
+        "Collection<T> = List<T>"             | "="       | "objects.listProperty(MyObject)"        | '[new MyObject("a")]'                    | "[a]"
+        "Collection<T> = Provider<List<T>>"   | "="       | "objects.listProperty(MyObject)"        | 'provider { [new MyObject("a")] }'       | "[a]"
+        "SetProperty<T> = T"                  | "="       | "objects.setProperty(MyObject)"         | 'new MyObject("a")'                      | "[a]"
+        "Collection<T> += T"                  | "+="      | "objects.listProperty(MyObject)"        | 'new MyObject("a")'                      | unsupportedWithCause("No signature of method")
+        "Map<K, V> = Map<K, V>"               | "="       | "objects.mapProperty(String, MyObject)" | '["a": new MyObject("b")]'               | "{a=b}"
+        "FileCollection = FileCollection"     | "="       | "objects.fileCollection()"              | 'files("a.txt")'                         | "[a.txt]"
+        "FileCollection = String"             | "="       | "objects.fileCollection()"              | '"a.txt"'                                | unsupportedWithCause("Failed to cast object")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24719")
+    def "lazy extension assignment for deprecated string to enum coercion"() {
+        groovyBuildFileWithExtension("objects.property(MyEnum)", '"yes"', "=")
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Assigning String value 'yes' to property of enum type 'MyEnum'. This behavior has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_string_to_enum_coercion_for_rich_properties")
+        runAndAssert("myTask", "YES")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24719")
+    def "lazy extension registered on project can be assigned at the top level of the build script"() {
+        buildFile """
+            extensions.add("myProp", objects.property(String))
+
+            myProp = "hello"
+
+            tasks.register("myTask") {
+                def input = myProp
+                doLast {
+                    println("$RESULT_PREFIX" + input.get())
+                }
+            }
+        """
+
+        expect:
+        runAndAssert("myTask", "hello")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24719")
+    def "lazy extension with explicit public type registered by a plugin can be assigned"() {
+        file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+            import org.gradle.api.plugins.ExtensionAware
+            import org.gradle.api.provider.Property
+            import org.gradle.api.reflect.TypeOf
+
+            interface MyExtension {}
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    def ext = project.extensions.create("myExt", MyExtension) as ExtensionAware
+                    ext.extensions.add(new TypeOf<Property<String>>() {}, "fooVersion", project.objects.property(String))
+                }
+            }
+        """
+        buildFile """
+            apply plugin: MyPlugin
+
+            myExt {
+                fooVersion = "40"
+            }
+
+            tasks.register("myTask") {
+                def input = myExt.fooVersion
+                doLast {
+                    println("$RESULT_PREFIX" + input.get())
+                }
+            }
+        """
+
+        expect:
+        runAndAssert("myTask", "40")
+    }
+
+    def "lazy extension with read-only public type #publicType registered by a plugin cannot be assigned"() {
+        file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+            import org.gradle.api.file.FileCollection
+            import org.gradle.api.plugins.ExtensionAware
+            import org.gradle.api.provider.Provider
+            import org.gradle.api.reflect.TypeOf
+
+            interface MyExtension {}
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    def ext = project.extensions.create("myExt", MyExtension) as ExtensionAware
+                    ext.extensions.add(new TypeOf<$publicType>() {}, "input", project.objects.$inputFactory)
+                }
+            }
+        """
+        buildFile """
+            apply plugin: MyPlugin
+
+            myExt {
+                input = $inputValue
+            }
+        """
+
+        expect:
+        runAndAssert("help", unsupportedWithCause("There's an extension registered with name 'input'. You should not reassign it via a property setter."))
+
+        where:
+        publicType         | inputFactory       | inputValue
+        "Provider<String>" | "property(String)" | '"a"'
+        "FileCollection"   | "fileCollection()" | 'files("a.txt")'
+    }
+
+    def "non-lazy extension cannot be reassigned"() {
+        buildFile """
+            ${groovyTypesDefinition()}
+
+            extensions.add("myObject", new MyObject("a"))
+
+            myObject = new MyObject("b")
+        """
+
+        expect:
+        runAndAssert("help", unsupportedWithCause("There's an extension registered with name 'myObject'. You should not reassign it via a property setter."))
+    }
+
     private void groovyBuildFile(String inputDeclaration, String inputValue, String operation) {
         buildFile.text = """
             ${groovyTypesDefinition()}
@@ -334,6 +473,28 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
 
             tasks.register("myTask", MyTask) {
                 input $operation $inputValue
+            }
+        """
+    }
+
+    private void groovyBuildFileWithExtension(String inputFactory, String inputValue, String operation) {
+        buildFile.text = """
+            ${groovyTypesDefinition()}
+
+            interface MyExtension {}
+
+            extensions.create("myExt", MyExtension)
+            myExt.extensions.add("input", $inputFactory)
+
+            myExt {
+                input $operation $inputValue
+            }
+
+            tasks.register("myTask") {
+                def input = myExt.input
+                doLast {
+                    ${groovyInputPrintRoutine()}
+                }
             }
         """
     }
