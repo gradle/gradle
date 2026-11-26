@@ -18,6 +18,7 @@ package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
 import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Arrays;
@@ -174,7 +175,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
         }
 
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(@Nullable Object obj) {
             if (!super.equals(obj)) {
                 return false;
             }

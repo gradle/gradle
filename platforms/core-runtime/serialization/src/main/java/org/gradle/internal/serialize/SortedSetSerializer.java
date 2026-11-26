@@ -18,6 +18,7 @@ package org.gradle.internal.serialize;
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +62,7 @@ public class SortedSetSerializer<T extends Comparable<T>> extends AbstractSerial
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
         if (!super.equals(obj)) {
             return false;
         }
