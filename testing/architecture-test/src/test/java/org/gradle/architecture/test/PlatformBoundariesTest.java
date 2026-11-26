@@ -20,7 +20,10 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAccess;
+import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaCodeUnit;
+import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -105,6 +108,14 @@ public class PlatformBoundariesTest {
         .that(areInPlatformDirectories())
         .should(importClassesOnlyFromAllowedPlatforms()));
 
+    /**
+     * Annotations are not member accesses, so {@link #platform_coupling} does not see them.
+     */
+    @ArchTest
+    public static final ArchRule platform_annotation_coupling = freeze(classes()
+        .that(areInPlatformDirectories())
+        .should(useAnnotationsOnlyFromAllowedPlatforms()));
+
     private static DescribedPredicate<? super JavaClass> areInPlatformDirectories() {
         return new DescribedPredicate<JavaClass>("are in platform directories") {
             @Override
@@ -119,7 +130,15 @@ public class PlatformBoundariesTest {
     }
 
     private static ArchCondition<? super JavaClass> importClassesOnlyFromAllowedPlatforms() {
-        return new ArchCondition<JavaClass>("import classes only from allowed platforms") {
+        return onlyFromAllowedPlatforms("import classes only from allowed platforms", "imports class", PlatformBoundariesTest::javaClassesAccessedFrom);
+    }
+
+    private static ArchCondition<? super JavaClass> useAnnotationsOnlyFromAllowedPlatforms() {
+        return onlyFromAllowedPlatforms("use annotations only from allowed platforms", "uses annotation", PlatformBoundariesTest::annotationTypesUsedBy);
+    }
+
+    private static ArchCondition<? super JavaClass> onlyFromAllowedPlatforms(String description, String verb, Function<JavaClass, Stream<JavaClass>> targetClasses) {
+        return new ArchCondition<JavaClass>(description) {
             @Override
             public void check(JavaClass ownJavaClass, ConditionEvents events) {
                 Path ownClassFile = getClassFile(ownJavaClass);
@@ -127,7 +146,7 @@ public class PlatformBoundariesTest {
                     return;
                 }
                 String ownPlatformName = platformNameOf(ownClassFile, ownJavaClass.getName());
-                javaClassesAccessedFrom(ownJavaClass).map(targetJavaClass -> {
+                targetClasses.apply(ownJavaClass).map(targetJavaClass -> {
                     Path targetClassFile = getClassFile(targetJavaClass);
                     if (targetClassFile != null && isInAnyPlatformDirectory(targetClassFile)) {
                         return Pair.ofNonNull(targetJavaClass.getName(), targetClassFile);
@@ -137,22 +156,15 @@ public class PlatformBoundariesTest {
                     String targetClassName = pair.getLeft();
                     Path targetClassFile = pair.getRight();
                     boolean conditionSatisfied = isInPlatformAllowedDirectory(ownPlatformName, targetClassFile);
-                    String message;
-                    if (conditionSatisfied) {
-                        message = String.format(
-                            "Class '%s' from platform '%s' does not import any class from forbidden platforms",
-                            ownJavaClass.getName(),
-                            ownPlatformName
-                        );
-                    } else {
-                        message = String.format(
-                            "Class '%s' from platform '%s' imports class '%s' from a forbidden platform '%s'",
-                            ownJavaClass.getName(),
-                            ownPlatformName,
-                            targetClassName,
-                            platformNameOf(targetClassFile, targetClassName)
-                        );
-                    }
+                    String message = String.format(
+                        "Class '%s' from platform '%s' %s '%s' from %s platform '%s'",
+                        ownJavaClass.getName(),
+                        ownPlatformName,
+                        verb,
+                        targetClassName,
+                        conditionSatisfied ? "an allowed" : "a forbidden",
+                        platformNameOf(targetClassFile, targetClassName)
+                    );
                     events.add(new SimpleConditionEvent(
                         ownJavaClass,
                         conditionSatisfied,
@@ -161,6 +173,26 @@ public class PlatformBoundariesTest {
                 });
             }
         };
+    }
+
+    /**
+     * The annotations on the class, on its fields, methods and constructors, and on their parameters.
+     */
+    private static Stream<JavaClass> annotationTypesUsedBy(JavaClass ownJavaClass) {
+        Stream<JavaAnnotation<?>> onMembers = ownJavaClass.getMembers().stream().flatMap(PlatformBoundariesTest::annotationsOf);
+        Stream<JavaAnnotation<?>> onClass = ownJavaClass.getAnnotations().stream().map(a -> (JavaAnnotation<?>) a);
+        return Stream.concat(onClass, onMembers)
+            .map(JavaAnnotation::getRawType)
+            .filter(distinctBy(JavaClass::getName));
+    }
+
+    private static Stream<JavaAnnotation<?>> annotationsOf(JavaMember member) {
+        Stream<JavaAnnotation<?>> own = member.getAnnotations().stream().map(a -> (JavaAnnotation<?>) a);
+        if (member instanceof JavaCodeUnit) {
+            Stream<JavaAnnotation<?>> onParameters = ((JavaCodeUnit) member).getParameters().stream().flatMap(p -> p.getAnnotations().stream().map(a -> (JavaAnnotation<?>) a));
+            return Stream.concat(own, onParameters);
+        }
+        return own;
     }
 
     private static Stream<JavaClass> javaClassesAccessedFrom(JavaClass ownJavaClass) {
