@@ -74,7 +74,6 @@ public class PackageCycleTest {
 
     private static final Map<String, List<String>> PER_MODULE_EXCLUDE_PATTERNS = Map.ofEntries(
         entry("antlr", List.of("org/gradle/api/plugins/antlr/internal/*")),
-        entry("base-diagnostics", List.of("org/gradle/api/reporting/model/internal/*")),
         // Needed for the factory methods in the base class
         entry("base-services", List.of("org/gradle/util/GradleVersion**")),
         entry("base-ide-plugins", List.of(

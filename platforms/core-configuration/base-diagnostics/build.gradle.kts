@@ -11,7 +11,6 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.enterpriseLogging)
-    api(projects.modelCore)
     api(projects.reportRendering)
     api(projects.stdlibJavaExtensions)
 
@@ -20,6 +19,7 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.functional)
+    implementation(projects.modelCore)
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.projectFeatures)

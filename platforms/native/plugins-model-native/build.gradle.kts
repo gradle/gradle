@@ -50,6 +50,8 @@ dependencies {
     testFixturesImplementation(testFixtures(projects.modelCore))
     testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(testFixtures(projects.coreApi))
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(libs.guava)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
