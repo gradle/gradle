@@ -11,12 +11,6 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.enterpriseLogging)
-
-    // TODO: Remove this dependency when possible, it shouldn't actually be needed by this project
-    api(projects.jvmServices) {
-        because("This is a transitive dependency of the core project, and should be removed when possible.")
-    }
-
     api(projects.modelCore)
     api(projects.reportRendering)
     api(projects.stdlibJavaExtensions)
