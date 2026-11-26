@@ -25,6 +25,8 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 
 class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
+    private static final List<String> NESTED_BUILD_SUBPROJECTS = ["project1", "project2"]
+
     BuildOperationsFixture fixture = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "can have buildLogic build and include build with buildLogic build"() {
@@ -236,7 +238,7 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
                 }
             """
             def build = it
-            ["project1", "project2"].each { name ->
+            NESTED_BUILD_SUBPROJECTS.each { name ->
                 buildFile(build.project(name).buildFile, """
                     // The Java plugin forces the configuration of the included builds
                     apply plugin: 'java'
@@ -287,7 +289,7 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
 
         private BuildTestFile createBuild(String name) {
             def build = new BuildTestFile(temporaryFolder.testDirectory.file(name), name)
-            new BuildTestFixture(build).multiProjectBuild(name, ["project1", "project2"])
+            new BuildTestFixture(build).multiProjectBuild(name, NESTED_BUILD_SUBPROJECTS)
             nestedBuilds.add(build)
             build
         }
