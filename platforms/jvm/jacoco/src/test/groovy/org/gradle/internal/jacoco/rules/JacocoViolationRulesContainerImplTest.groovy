@@ -19,12 +19,14 @@ package org.gradle.internal.jacoco.rules
 import org.gradle.api.Action
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule
+import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainerInputs
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class JacocoViolationRulesContainerImplTest extends Specification {
 
     Instantiator instantiator = Mock(Instantiator)
-    JacocoViolationRulesContainerImpl violationRulesContainer = new JacocoViolationRulesContainerImpl(instantiator)
+    JacocoViolationRulesContainerImpl violationRulesContainer = new JacocoViolationRulesContainerImpl(instantiator, TestUtil.objectFactory().newInstance(JacocoViolationRulesContainerInputs))
 
     def "provides expected default field values"() {
         expect:

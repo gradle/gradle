@@ -17,10 +17,13 @@
 package org.gradle.testing.jacoco.tasks;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.jacoco.AntJacocoCheck;
 import org.gradle.internal.jacoco.rules.JacocoViolationRulesContainerImpl;
 import org.gradle.internal.reflect.Instantiator;
@@ -31,6 +34,7 @@ import org.gradle.workers.WorkerExecutor;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * Task for verifying code coverage metrics. Fails the task if violations are detected based on specified rules.
@@ -53,8 +57,19 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
     public JacocoCoverageVerification() {
         super();
         Instantiator instantiator = getInstantiator();
-        violationRules = instantiator.newInstance(JacocoViolationRulesContainerImpl.class, instantiator);
+        violationRules = instantiator.newInstance(JacocoViolationRulesContainerImpl.class, instantiator, getLazyProperties().getViolationRules());
     }
+
+    /**
+     * The lazy properties behind the eager getters and setters of this task.
+     *
+     * @since 10.0.0
+     */
+    @Override
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract JacocoCoverageVerificationInputs getLazyProperties();
 
     /**
      * Returns the violation rules set for this task.
@@ -107,7 +122,7 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
             parameters.getExecutionData().convention(getExecutionData());
 
             parameters.getFailOnViolation().convention(getViolationRules().isFailOnViolation());
-            parameters.getRules().convention(getViolationRules().getRules());
+            parameters.getRules().convention(new ArrayList<>(getViolationRules().getRules()));
 
             parameters.getDummyOutputFile().fileValue(getDummyOutputFile());
         });

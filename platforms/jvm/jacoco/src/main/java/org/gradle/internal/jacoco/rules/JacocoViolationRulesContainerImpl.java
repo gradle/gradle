@@ -17,44 +17,55 @@
 package org.gradle.internal.jacoco.rules;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.views.ListPropertyListView;
+import org.gradle.api.tasks.Internal;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
+import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainerInputs;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class JacocoViolationRulesContainerImpl implements JacocoViolationRulesContainer {
 
     private final Instantiator instantiator;
-    private boolean failOnViolation = true;
-    private final List<JacocoViolationRule> rules = new ArrayList<JacocoViolationRule>();
+    private final JacocoViolationRulesContainerInputs lazyProperties;
 
-    public JacocoViolationRulesContainerImpl(Instantiator instantiator) {
+    public JacocoViolationRulesContainerImpl(Instantiator instantiator, JacocoViolationRulesContainerInputs lazyProperties) {
         this.instantiator = instantiator;
+        this.lazyProperties = lazyProperties;
+        lazyProperties.getFailOnViolation().convention(true);
+    }
+
+    @Internal
+    public JacocoViolationRulesContainerInputs getLazyProperties() {
+        return lazyProperties;
     }
 
     @Override
     public void setFailOnViolation(boolean failOnViolation) {
-        this.failOnViolation = failOnViolation;
+        lazyProperties.getFailOnViolation().set(failOnViolation);
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.failOnViolation")
     public boolean isFailOnViolation() {
-        return failOnViolation;
+        return lazyProperties.getFailOnViolation().get();
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.rules")
     public List<JacocoViolationRule> getRules() {
-        return Collections.unmodifiableList(rules);
+        return Collections.unmodifiableList(new ListPropertyListView<>(lazyProperties.getRules()));
     }
 
     @Override
     public JacocoViolationRule rule(Action<? super JacocoViolationRule> configureAction) {
         JacocoViolationRule validationRule = instantiator.newInstance(JacocoViolationRuleImpl.class);
         configureAction.execute(validationRule);
-        rules.add(validationRule);
+        lazyProperties.getRules().add(validationRule);
         return validationRule;
     }
 }

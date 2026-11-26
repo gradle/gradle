@@ -21,10 +21,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.provider.EagerPropertySupport;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -32,6 +33,8 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jacoco.JacocoAgentJar;
@@ -41,7 +44,6 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -87,19 +89,6 @@ public abstract class JacocoTaskExtension {
     private final JavaForkOptions task;
     private final ObjectFactory objectFactory;
 
-    private boolean enabled = true;
-    private final RegularFileProperty destinationFile;
-    private List<String> includes = new ArrayList<>();
-    private List<String> excludes = new ArrayList<>();
-    private List<String> excludeClassLoaders = new ArrayList<>();
-    private boolean includeNoLocationClasses;
-    private String sessionId;
-    private boolean dumpOnExit = true;
-    private Output output = Output.FILE;
-    private String address;
-    private int port;
-    private boolean jmx;
-
     /**
      * Creates a Jacoco task extension.
      *
@@ -108,12 +97,29 @@ public abstract class JacocoTaskExtension {
      * @param task the task we extend
      */
     @Inject
+    @SuppressWarnings("this-escape")
     public JacocoTaskExtension(ObjectFactory objects, JacocoAgentJar agent, JavaForkOptions task) {
         this.agent = agent;
         this.task = task;
         this.objectFactory = objects;
-        destinationFile = objects.fileProperty();
+        JacocoTaskExtensionInputs lazy = getLazyProperties();
+        lazy.getEnabled().convention(true);
+        lazy.getIncludeNoLocationClasses().convention(false);
+        lazy.getDumpOnExit().convention(true);
+        lazy.getOutput().convention(Output.FILE);
+        lazy.getPort().convention(0);
+        lazy.getJmx().convention(false);
     }
+
+    /**
+     * The lazy properties behind the eager getters and setters of this extension.
+     *
+     * @since 10.0.0
+     */
+    @Incubating
+    @Internal
+    @LazyProperties
+    public abstract JacocoTaskExtensionInputs getLazyProperties();
 
     /**
      * Whether or not the task should generate execution data. Defaults to {@code true}.
@@ -121,8 +127,9 @@ public abstract class JacocoTaskExtension {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.enabled")
     public boolean isEnabled() {
-        return enabled;
+        return getLazyProperties().getEnabled().get();
     }
 
     /**
@@ -131,7 +138,7 @@ public abstract class JacocoTaskExtension {
      * @since 1.6
      */
     public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+        getLazyProperties().getEnabled().set(enabled);
     }
 
     /**
@@ -142,8 +149,9 @@ public abstract class JacocoTaskExtension {
     @Optional
     @OutputFile
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.destinationFile")
     public File getDestinationFile() {
-        return destinationFile.getAsFile().getOrNull();
+        return getLazyProperties().getDestinationFile().getAsFile().getOrNull();
     }
 
     /**
@@ -156,7 +164,7 @@ public abstract class JacocoTaskExtension {
         // TODO: This is a workaround for behavior in AGP.
         // see https://github.com/gradle/gradle/issues/33389
         // This can be removed once we've fixed RegularFileProperty.fileProvider(...) to work properly
-        this.destinationFile.fileProvider(destinationFile.flatMap(Providers::of));
+        getLazyProperties().getDestinationFile().fileProvider(destinationFile.flatMap(Providers::of));
     }
 
     /**
@@ -165,7 +173,7 @@ public abstract class JacocoTaskExtension {
      * @since 1.7
      */
     public void setDestinationFile(@Nullable File destinationFile) {
-        this.destinationFile.set(destinationFile);
+        getLazyProperties().getDestinationFile().set(destinationFile);
     }
 
     /**
@@ -176,8 +184,10 @@ public abstract class JacocoTaskExtension {
     @Optional
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.includes")
     public List<String> getIncludes() {
-        return includes;
+        ListProperty<String> includes = getLazyProperties().getIncludes();
+        return includes.isPresent() ? EagerPropertySupport.conventionKeepingView(includes) : null;
     }
 
     /**
@@ -186,7 +196,7 @@ public abstract class JacocoTaskExtension {
      * @since 1.6
      */
     public void setIncludes(@Nullable List<String> includes) {
-        this.includes = includes;
+        EagerPropertySupport.setEager(getLazyProperties().getIncludes(), includes);
     }
 
     /**
@@ -197,8 +207,10 @@ public abstract class JacocoTaskExtension {
     @Optional
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.excludes")
     public List<String> getExcludes() {
-        return excludes;
+        ListProperty<String> excludes = getLazyProperties().getExcludes();
+        return excludes.isPresent() ? EagerPropertySupport.conventionKeepingView(excludes) : null;
     }
 
     /**
@@ -207,7 +219,7 @@ public abstract class JacocoTaskExtension {
      * @since 1.6
      */
     public void setExcludes(@Nullable List<String> excludes) {
-        this.excludes = excludes;
+        EagerPropertySupport.setEager(getLazyProperties().getExcludes(), excludes);
     }
 
     /**
@@ -218,8 +230,10 @@ public abstract class JacocoTaskExtension {
     @Optional
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.excludeClassLoaders")
     public List<String> getExcludeClassLoaders() {
-        return excludeClassLoaders;
+        ListProperty<String> excludeClassLoaders = getLazyProperties().getExcludeClassLoaders();
+        return excludeClassLoaders.isPresent() ? EagerPropertySupport.conventionKeepingView(excludeClassLoaders) : null;
     }
 
     /**
@@ -228,7 +242,7 @@ public abstract class JacocoTaskExtension {
      * @since 1.6
      */
     public void setExcludeClassLoaders(@Nullable List<String> excludeClassLoaders) {
-        this.excludeClassLoaders = excludeClassLoaders;
+        EagerPropertySupport.setEager(getLazyProperties().getExcludeClassLoaders(), excludeClassLoaders);
     }
 
     /**
@@ -239,8 +253,9 @@ public abstract class JacocoTaskExtension {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.includeNoLocationClasses")
     public boolean isIncludeNoLocationClasses() {
-        return includeNoLocationClasses;
+        return getLazyProperties().getIncludeNoLocationClasses().get();
     }
 
     /**
@@ -249,7 +264,7 @@ public abstract class JacocoTaskExtension {
      * @since 2.13
      */
     public void setIncludeNoLocationClasses(boolean includeNoLocationClasses) {
-        this.includeNoLocationClasses = includeNoLocationClasses;
+        getLazyProperties().getIncludeNoLocationClasses().set(includeNoLocationClasses);
     }
 
     /**
@@ -260,8 +275,9 @@ public abstract class JacocoTaskExtension {
     @Optional
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.sessionId")
     public String getSessionId() {
-        return sessionId;
+        return getLazyProperties().getSessionId().getOrNull();
     }
 
     /**
@@ -270,7 +286,7 @@ public abstract class JacocoTaskExtension {
      * @since 1.6
      */
     public void setSessionId(@Nullable String sessionId) {
-        this.sessionId = sessionId;
+        EagerPropertySupport.setEager(getLazyProperties().getSessionId(), sessionId);
     }
 
     /**
@@ -279,8 +295,9 @@ public abstract class JacocoTaskExtension {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.dumpOnExit")
     public boolean isDumpOnExit() {
-        return dumpOnExit;
+        return getLazyProperties().getDumpOnExit().get();
     }
 
     /**
@@ -289,7 +306,7 @@ public abstract class JacocoTaskExtension {
      * @since 1.6
      */
     public void setDumpOnExit(boolean dumpOnExit) {
-        this.dumpOnExit = dumpOnExit;
+        getLazyProperties().getDumpOnExit().set(dumpOnExit);
     }
 
     /**
@@ -298,8 +315,9 @@ public abstract class JacocoTaskExtension {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.output")
     public Output getOutput() {
-        return output;
+        return getLazyProperties().getOutput().getOrNull();
     }
 
     /**
@@ -308,7 +326,7 @@ public abstract class JacocoTaskExtension {
      * @since 1.6
      */
     public void setOutput(Output output) {
-        this.output = output;
+        EagerPropertySupport.setEager(getLazyProperties().getOutput(), output);
     }
 
     /**
@@ -319,8 +337,9 @@ public abstract class JacocoTaskExtension {
     @Optional
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.address")
     public String getAddress() {
-        return address;
+        return getLazyProperties().getAddress().getOrNull();
     }
 
     /**
@@ -329,7 +348,7 @@ public abstract class JacocoTaskExtension {
      * @since 1.6
      */
     public void setAddress(@Nullable String address) {
-        this.address = address;
+        EagerPropertySupport.setEager(getLazyProperties().getAddress(), address);
     }
 
     /**
@@ -338,8 +357,9 @@ public abstract class JacocoTaskExtension {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.port")
     public int getPort() {
-        return port;
+        return getLazyProperties().getPort().get();
     }
 
     /**
@@ -348,7 +368,7 @@ public abstract class JacocoTaskExtension {
      * @since 1.6
      */
     public void setPort(int port) {
-        this.port = port;
+        getLazyProperties().getPort().set(port);
     }
 
     /**
@@ -391,8 +411,9 @@ public abstract class JacocoTaskExtension {
      */
     @Input
     @ToBeReplacedByLazyProperty
+    @BackedByLazyProperty("lazyProperties.jmx")
     public boolean isJmx() {
-        return jmx;
+        return getLazyProperties().getJmx().get();
     }
 
     /**
@@ -401,7 +422,7 @@ public abstract class JacocoTaskExtension {
      * @since 1.6
      */
     public void setJmx(boolean jmx) {
-        this.jmx = jmx;
+        getLazyProperties().getJmx().set(jmx);
     }
 
     /**
