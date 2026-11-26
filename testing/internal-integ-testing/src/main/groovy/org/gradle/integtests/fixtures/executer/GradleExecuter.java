@@ -622,6 +622,14 @@ public interface GradleExecuter extends Stoppable {
      */
     GradleExecuter withoutExtraRepositories();
 
+    /**
+     * Does not make the build expect the locally built Kotlin DSL plugins. The build still gets the extra repositories.
+     * Then the build expects the published Kotlin DSL plugins, and it can still apply the locally built ones with an explicit version.
+     *
+     * @see org.gradle.integtests.fixtures.RepoScriptBlockUtil#locallyBuiltKotlinDslPluginsArguments
+     */
+    GradleExecuter withoutKotlinDslPluginsVersionOverride();
+
     GradleExecuter ignoreMissingSettingsFile();
 
     GradleExecuter ignoreCleanupAssertions();
