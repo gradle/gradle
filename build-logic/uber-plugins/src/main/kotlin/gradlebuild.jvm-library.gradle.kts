@@ -43,6 +43,46 @@ plugins {
 
 ensurePublishedLibrariesOnlyDependOnPublishedLibraries()
 
+// See gradlebuild.unittest-and-compile, gradlebuild.test-fixtures and gradlebuild/integrationtests/shared-configuration.kt
+val integrationTestConventionDependencies = listOf(
+    ":distributions-full",
+    ":instrumentation-agent",
+    ":internal-distribution-testing",
+    ":internal-integ-testing",
+    "org.junit.jupiter:junit-jupiter",
+    "org.junit.platform:junit-platform-launcher",
+    "org.junit.vintage:junit-vintage-engine",
+)
+val conventionDependencies = mapOf(
+    "test" to listOf(
+        "com.gradle:develocity-testing-annotations",
+        "junit:junit",
+        "net.bytebuddy:byte-buddy",
+        "org.apache.groovy:groovy",
+        "org.apache.groovy:groovy-ant",
+        "org.apache.groovy:groovy-json",
+        "org.apache.groovy:groovy-test",
+        "org.apache.groovy:groovy-xml",
+        "org.junit.platform:junit-platform-launcher",
+        "org.junit.vintage:junit-vintage-engine",
+        "org.mockito:mockito-core",
+        "org.objenesis:objenesis",
+        "org.spockframework:spock-core",
+        "org.spockframework:spock-junit4",
+    ),
+    "testFixtures" to listOf(
+        ":distributions-dependencies",
+        ":internal-testing",
+        "cglib:cglib",
+        "junit:junit",
+        "net.bytebuddy:byte-buddy",
+        "org.apache.groovy:groovy",
+        "org.spockframework:spock-core",
+    ),
+    "integTest" to integrationTestConventionDependencies,
+    "crossVersionTest" to integrationTestConventionDependencies + ":tooling-api",
+)
+
 configure<DependencyAnalysisSubExtension> {
     issues {
         onAny {
@@ -57,6 +97,16 @@ configure<DependencyAnalysisSubExtension> {
 
         onDuplicateClassWarnings {
             severity("fail")
+        }
+
+        // Dependencies the gradlebuild conventions add to every project, used or not
+        conventionDependencies.forEach { (sourceSetName, identifiers) ->
+            sourceSet(sourceSetName) {
+                onAny {
+                    severity("fail")
+                    exclude(*identifiers.toTypedArray())
+                }
+            }
         }
 
         ignoreSourceSet("crossVersionTest", "integTest", "jmh", "testFixtures")
