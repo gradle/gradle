@@ -57,7 +57,7 @@ tomlj = "1.0.0!!"
 # It is not the version that this checkout publishes (see platforms/dsl/kotlin-dsl-plugins), nor the one that this build uses (see the wrapper).
 # Most tests use the locally built plugins instead. Gradleception uses this version, and fails while it is not published.
 # See platforms/dsl/kotlin-dsl-plugins/README.md.
-kotlinDslPlugins = "6.8.0!!"
+kotlinDslPlugins = "6.8.1!!"
 
 [libraries]
 ant = { group = "org.apache.ant", name = "ant", version.ref = "ant" }
