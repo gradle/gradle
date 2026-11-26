@@ -1,5 +1,5 @@
 name: "Open a bot PR"
-description: "Commit the current working-tree changes onto a branch, push it, and open a PR as bot-gradle (optionally asking the merge bot to test and merge)."
+description: "Commit the current working-tree changes onto a branch, push it, and open a PR as bot-gradle (optionally adding it to the merge queue)."
 
 inputs:
   branch:
@@ -17,10 +17,10 @@ inputs:
   labels:
     description: "Comma-separated labels to apply to the PR"
     required: false
-  bot-command:
-    description: "@bot-gradle comment to post: 'test and merge' tests then auto-merges, 'test <pipeline>' tests only, empty posts nothing"
+  enqueue:
+    description: "Add the PR to the merge queue after waiting a minute for gradle-bot to set its required status check"
     required: false
-    default: "test and merge"
+    default: "true"
 
 runs:
   using: "composite"
@@ -44,7 +44,7 @@ runs:
         COMMIT_MSG: ${{ inputs.message }}
         REVIEWER: ${{ inputs.reviewer }}
         LABELS: ${{ inputs.labels }}
-        BOT_COMMAND: ${{ inputs.bot-command }}
+        ENQUEUE: ${{ inputs.enqueue }}
       run: |
         set -euo pipefail
         if [ -z "$(git status --porcelain)" ]; then
@@ -77,6 +77,9 @@ runs:
           --reviewer "$REVIEWER" \
           "${label_arg[@]}"
 
-        if [ -n "$BOT_COMMAND" ]; then
-          gh pr comment "$BRANCH" --body "@bot-gradle $BOT_COMMAND"
+        if [ "$ENQUEUE" = "true" ]; then
+          sleep 60
+          gh api graphql \
+            -f query='mutation($id: ID!) { enqueuePullRequest(input: {pullRequestId: $id}) { clientMutationId } }' \
+            -f id="$(gh pr view "$BRANCH" --json id --jq .id)"
         fi
