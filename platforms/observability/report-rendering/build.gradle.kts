@@ -22,14 +22,28 @@ description = "Provides foundational types needed for building renderable report
 
 dependencies {
     api(projects.core)
+    api(projects.coreApi)
+    api(projects.enterpriseLogging)
+    api(projects.fileCollections)
 
     api(libs.jspecify)
 
     implementation(projects.baseServices)
+    implementation(projects.concurrent)
+    implementation(projects.logging)
 
     implementation(libs.commonsLang)
+    implementation(libs.guava)
+
+    testFixturesImplementation(testFixtures(projects.logging))
 
     testImplementation(libs.jsoup)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.logging))
+
+    testRuntimeOnly(projects.distributionsCore) {
+        because("ReportGeneratorTest tests load services like ClassLoaderRegistry.")
+    }
 }
 
 gradleModule {
