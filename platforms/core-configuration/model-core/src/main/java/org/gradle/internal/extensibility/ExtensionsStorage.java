@@ -131,6 +131,12 @@ public class ExtensionsStorage {
         return extensionHolder != null ? extensionHolder.get() : null;
     }
 
+    @Nullable
+    public TypeOf<?> findPublicTypeByName(String name) {
+        ExtensionHolder<?> extensionHolder = extensions.get(name);
+        return extensionHolder != null ? extensionHolder.getPublicType() : null;
+    }
+
     private List<String> registeredExtensionTypeNames() {
         List<String> types = new ArrayList<>(extensions.size());
         for (ExtensionHolder<?> holder : extensions.values()) {

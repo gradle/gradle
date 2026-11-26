@@ -20,8 +20,10 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
+import org.gradle.api.internal.provider.support.LazyGroovySupport;
 import org.gradle.api.plugins.ExtensionsSchema;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
@@ -215,17 +217,29 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
 
         @Override
         public DynamicInvokeResult trySetProperty(String name, @Nullable Object value) {
-            return trySetProperty(name);
+            return trySetExtensionProperty(name, value);
         }
 
         @Override
         public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
-            return trySetProperty(name);
+            return trySetExtensionProperty(name, value);
         }
 
-        private DynamicInvokeResult trySetProperty(String name) {
+        private DynamicInvokeResult trySetExtensionProperty(String name, @Nullable Object value) {
+            if (hasConfigurablePublicType(name)) {
+                Object extension = extensionsStorage.findByName(name);
+                if (extension instanceof LazyGroovySupport) {
+                    ((LazyGroovySupport) extension).setFromAnyValue(value);
+                    return DynamicInvokeResult.found();
+                }
+            }
             checkExtensionIsNotReassigned(name);
             return DynamicInvokeResult.notFound();
+        }
+
+        private boolean hasConfigurablePublicType(String name) {
+            TypeOf<?> publicType = extensionsStorage.findPublicTypeByName(name);
+            return publicType != null && HasConfigurableValue.class.isAssignableFrom(publicType.getConcreteClass());
         }
 
         @Override
