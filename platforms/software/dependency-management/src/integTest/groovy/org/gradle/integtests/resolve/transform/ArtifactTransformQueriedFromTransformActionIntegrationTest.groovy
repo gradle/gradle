@@ -53,17 +53,8 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
         (1..8).each { publishBlueModule("first$it") }
         (1..4).each { publishBlueModule("second$it") }
 
-        // MakeRed is shared by the root project and project ':a', so that both use the same transform implementation
-        file("buildSrc/src/main/groovy/MakeRed.groovy") << """
-            import org.gradle.api.artifacts.transform.InputArtifact
-            import org.gradle.api.artifacts.transform.TransformAction
-            import org.gradle.api.artifacts.transform.TransformOutputs
-            import org.gradle.api.artifacts.transform.TransformParameters
-            import org.gradle.api.file.FileSystemLocation
-            import org.gradle.api.provider.Property
-            import org.gradle.api.provider.Provider
-            import org.gradle.api.tasks.Input
-
+        // MakeRed is declared in the settings script, so that the root project and project ':a' use the same transform implementation
+        settingsFile """
             interface NameParams extends TransformParameters {
                 @Input
                 Property<String> getName()
@@ -75,6 +66,17 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
 
                 void transform(TransformOutputs outputs) {
                     outputs.file(inputArtifact.get().asFile.name + ".red").text = "red"
+                }
+            }
+
+            gradle.lifecycle.beforeProject { project ->
+                def color = Attribute.of("color", String)
+                project.dependencies.registerTransform(MakeRed) {
+                    from.attribute(color, "blue")
+                    to.attribute(color, "red")
+                    parameters {
+                        name = "red"
+                    }
                 }
             }
         """
@@ -138,7 +140,7 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     }
 
     /**
-     * Declares the "firstPath" and "secondPath" configurations and the MakeRed transform, for a project with a "color" attribute.
+     * Declares the "firstPath" and "secondPath" configurations, for a project with a "color" attribute.
      */
     private String firstAndSecondPaths() {
         """
@@ -161,13 +163,6 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
                 }
                 ${(1..8).collect { "first(\"test:first${it}:1.0\")" }.join("\n")}
                 ${(1..4).collect { "second(\"test:second${it}:1.0\")" }.join("\n")}
-                registerTransform(MakeRed) {
-                    from.attribute(color, "blue")
-                    to.attribute(color, "red")
-                    parameters {
-                        name = "red"
-                    }
-                }
             }
         """
     }
@@ -209,7 +204,9 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
      */
     private void transformActionQueries(String query, String params = "", String members = "", String setParams = "") {
         buildFile << """
-            interface GreenParams extends NameParams {
+            interface GreenParams extends TransformParameters {
+                @Input
+                Property<String> getName()
                 ${params}
             }
 

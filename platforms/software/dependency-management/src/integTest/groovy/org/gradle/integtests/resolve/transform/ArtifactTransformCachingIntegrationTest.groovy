@@ -2398,7 +2398,7 @@ resultsFile:
     }
 
     /**
-     * Declares the attributes and the 'compile' configuration in each project of the build with the given root build file.
+     * Declares the attributes and the 'compile' configuration in each project of the build with the given settings file.
      * The attributes are available to build scripts as the 'usage' and 'artifactType' extra properties.
      */
     void declareAttributesInEachProject(TestFile settingsFile = getSettingsFile()) {
