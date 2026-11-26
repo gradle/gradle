@@ -12,7 +12,6 @@ plugins {
 description = "Kotlin DSL Provider"
 
 dependencies {
-    api(projects.antApi)
     api(projects.baseServices)
     api(projects.buildProcessServices)
     api(projects.classloaders)
@@ -21,16 +20,11 @@ dependencies {
     api(projects.concurrent)
     implementation(projects.processServices)
     api(projects.declarativeDslApi)
-    api(projects.fileOperations)
     api(projects.hashing)
-    api(projects.kotlinDslToolingModels)
     api(projects.loggingApi)
     api(projects.modelCore)
-    api(projects.normalizationApi)
     api(projects.persistentCache)
-    api(projects.startParameter)
     api(projects.stdlibJavaExtensions)
-    api(projects.toolingApi)
 
     api("org.gradle:kotlin-dsl-shared-runtime") {
         because("Internal KotlinDslPluginEntriesCache exposes PluginEntriesCache")
@@ -57,6 +51,7 @@ dependencies {
     implementation(projects.enterpriseOperations)
     implementation(projects.execution)
     implementation(projects.fileCollections)
+    implementation(projects.fileOperations)
     implementation(projects.fileTemp)
     implementation(projects.functional)
     implementation(projects.hashingServices)
@@ -68,7 +63,9 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.snapshots)
+    implementation(projects.startParameter)
     implementation(projects.projectFeatures)
+    implementation(projects.toolingApi)
     implementation(projects.wrapperShared)
 
     implementation(projects.javaApiExtractor)

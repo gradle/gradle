@@ -25,12 +25,14 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiAdditionalClasspath
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.util.GradleVersion
 import org.hamcrest.Description
@@ -41,7 +43,8 @@ import java.util.function.Consumer
 import java.util.function.Predicate
 import java.util.regex.Pattern
 
-import static org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequestKt.fetchKotlinBuildScriptModelFor
+import static org.gradle.kotlin.dsl.support.KotlinScriptTypeKt.kotlinScriptTypeFor
+import static org.gradle.kotlin.dsl.tooling.fixtures.ProjectRootOfKt.projectRootOf
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.hasItem
@@ -103,12 +106,44 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         kotlinBuildScriptModelFor(projectDir, scriptFile).sourcePath
     }
 
-    protected KotlinBuildScriptModel kotlinBuildScriptModelFor(File projectDir, File scriptFile = null) {
-        return fetchKotlinBuildScriptModelFor(
-            projectDir,
-            scriptFile,
-            { selectedProjectDir -> connector().forProjectDirectory(selectedProjectDir) }
-        )
+    // Lives here and not in test fixtures so that it is loaded by the same ClassLoader as the tooling API models
+    protected KotlinBuildScriptModel kotlinBuildScriptModelFor(File importedProjectDir, File scriptFile = null) {
+        def correlationId = System.nanoTime().toString()
+        if (scriptFile == null) {
+            return fetchKotlinBuildScriptModelFrom(importedProjectDir, null, correlationId)
+        }
+
+        def effectiveProjectDir = buildSrcProjectDirOf(scriptFile, importedProjectDir) ?: importedProjectDir
+        def scriptModel = fetchKotlinBuildScriptModelFrom(effectiveProjectDir, scriptFile, correlationId)
+        if (scriptModel.enclosingScriptProjectDir == null && kotlinScriptTypeFor(scriptFile) != KotlinScriptType.INIT) {
+            def externalProjectRoot = projectRootOf(scriptFile, importedProjectDir, null)
+            if (externalProjectRoot != importedProjectDir) {
+                return fetchKotlinBuildScriptModelFrom(externalProjectRoot, scriptFile, correlationId)
+            }
+        }
+        return scriptModel
+    }
+
+    private KotlinBuildScriptModel fetchKotlinBuildScriptModelFrom(File projectDir, File scriptFile, String correlationId) {
+        def arguments = ["-P${KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME}=$correlationId".toString()]
+        if (scriptFile != null) {
+            arguments << "-P${KotlinBuildScriptModel.SCRIPT_GRADLE_PROPERTY_NAME}=${scriptFile.canonicalPath}".toString()
+        }
+        def connection = connector().forProjectDirectory(projectDir).connect()
+        try {
+            return connection.model(KotlinBuildScriptModel)
+                .setJvmArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+                .forTasks(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
+                .withArguments(arguments as String[])
+                .get()
+        } finally {
+            connection.close()
+        }
+    }
+
+    private static File buildSrcProjectDirOf(File scriptFile, File importedProjectDir) {
+        def buildSrc = new File(importedProjectDir, "buildSrc")
+        return buildSrc.isDirectory() && scriptFile.canonicalPath.startsWith(buildSrc.canonicalPath) ? buildSrc : null
     }
 
     protected static List<File> canonicalClasspathOf(KotlinBuildScriptModel model) {

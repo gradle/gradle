@@ -28,7 +28,6 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.util.PropertiesCollection
-import kotlin.script.templates.ScriptTemplateDefinition
 
 
 @RunWith(Parameterized::class)
@@ -71,36 +70,11 @@ class KotlinBuildScriptPatternTest(val script: Script) {
         checkScriptRecognizedBy(KotlinGradleScriptTemplate::class, ScriptType.INIT)
     }
 
-    @Test
-    fun `recognizes build scripts from legacy script templates`() {
-        @Suppress("DEPRECATION")
-        checkScriptRecognizedByLegacy(KotlinBuildScript::class, ScriptType.BUILD)
-    }
-
-    @Test
-    fun `recognizes settings scripts from legacy script templates`() {
-        @Suppress("DEPRECATION")
-        checkScriptRecognizedByLegacy(KotlinSettingsScript::class, ScriptType.SETTINGS)
-    }
-
-    @Test
-    fun `recognizes init scripts from legacy script templates`() {
-        @Suppress("DEPRECATION")
-        checkScriptRecognizedByLegacy(KotlinInitScript::class, ScriptType.INIT)
-    }
-
     private
     fun checkScriptRecognizedBy(scriptParserClass: KClass<*>, supportedScriptType: ScriptType) {
         // Matching happens against a full path in IntelliJ
         val filePath = TextUtil.normaliseFileSeparators(Path("/some/path/to", script.name).pathString)
         assertScriptFilePatternMatches(filePathPatternFrom(scriptParserClass), supportedScriptType, filePath)
-    }
-
-    private
-    fun checkScriptRecognizedByLegacy(scriptParserClass: KClass<*>, supportedScriptType: ScriptType) {
-        // Matching happens against the file name in IntelliJ
-        val fileName = script.name
-        assertScriptFilePatternMatches(scriptFilePatternFromLegacy(scriptParserClass), supportedScriptType, fileName)
     }
 
     private
@@ -113,10 +87,6 @@ class KotlinBuildScriptPatternTest(val script: Script) {
         val compilationConfig = compilationConfigConstructor.newInstance() as ScriptCompilationConfiguration
         return compilationConfig[PropertiesCollection.Key<String>("filePathPattern")]!!
     }
-
-    private
-    fun scriptFilePatternFromLegacy(scriptParserClass: KClass<*>): String =
-        scriptParserClass.findAnnotation<ScriptTemplateDefinition>()!!.scriptFilePattern
 
     private
     fun assertScriptFilePatternMatches(scriptFilePattern: String, supportedScriptType: ScriptType, filePathOrName: String) {

@@ -1,4 +1,4 @@
-package org.gradle.kotlin.dsl.resolver
+package org.gradle.kotlin.dsl.tooling.fixtures
 
 import org.gradle.kotlin.dsl.fixtures.FolderBasedTest
 

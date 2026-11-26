@@ -17,16 +17,9 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.internal.hash.Hashing
-import org.gradle.util.internal.TextUtil.convertLineSeparatorsToUnix
 import java.io.File
 
 object KotlinScriptHashing {
-
-    fun hashOf(scriptText: CharSequence) =
-        hashOfNormalisedString(convertLineSeparatorsToUnix(scriptText.toString()))
-
-    fun hashOfNormalisedString(scriptText: CharSequence) =
-        Hashing.hashString(scriptText).toString()
 
     /**
      * Key of a precompiled script, used to find its type-safe accessors imports.
