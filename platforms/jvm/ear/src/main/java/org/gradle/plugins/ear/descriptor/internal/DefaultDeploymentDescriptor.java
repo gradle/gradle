@@ -22,16 +22,25 @@ import groovy.xml.XmlParser;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.DomNode;
+import org.gradle.api.internal.provider.EagerPropertySupport;
+import org.gradle.api.internal.provider.MapPropertyInternal;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
+import org.gradle.plugins.ear.descriptor.DeploymentDescriptorInputs;
 import org.gradle.plugins.ear.descriptor.EarModule;
 import org.gradle.plugins.ear.descriptor.EarSecurityRole;
 import org.gradle.plugins.ear.descriptor.EarWebModule;
+import org.jspecify.annotations.Nullable;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
 
@@ -41,7 +50,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.LinkedHashMap;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -61,129 +71,207 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
     private ObjectFactory objectFactory;
 
-    private String fileName = "application.xml";
-    private String version = "6";
-    private String applicationName;
-    private Boolean initializeInOrder = Boolean.FALSE;
-    private String description;
-    private String displayName;
-    private String libraryDirectory;
-    private Set<EarModule> modules = new LinkedHashSet<EarModule>();
-    private Set<EarSecurityRole> securityRoles = new LinkedHashSet<EarSecurityRole>();
-    private Map<String, String> moduleTypeMappings = new LinkedHashMap<String, String>();
+    private DeploymentDescriptorInputs lazyProperties;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultDeploymentDescriptor(PathToFileResolver fileResolver, ObjectFactory objectFactory) {
         this.fileResolver = fileResolver;
         this.objectFactory = objectFactory;
+        this.lazyProperties = storageWithDefaults(objectFactory.newInstance(DeploymentDescriptorInputs.class));
+    }
+
+    /**
+     * Stores the values of this descriptor in the given lazy properties from now on.
+     * Values stored before are not moved, so call this before the descriptor is configured.
+     */
+    public void attach(DeploymentDescriptorInputs target) {
+        lazyProperties = storageWithDefaults(target);
+    }
+
+    /**
+     * Stores the values of this descriptor in the given lazy properties from now on.
+     * The current values are moved there and replace what the lazy properties held.
+     */
+    public void attachWithValues(DeploymentDescriptorInputs target) {
+        if (target != lazyProperties) {
+            moveTo(storageWithDefaults(target));
+        }
+    }
+
+    /**
+     * Stores the values of this descriptor in lazy properties of its own again, if it is attached to the given ones.
+     * The current values are copied, so later changes on either side do not reach the other.
+     */
+    public void detach(DeploymentDescriptorInputs current) {
+        if (current == lazyProperties) {
+            moveTo(storageWithDefaults(objectFactory.newInstance(DeploymentDescriptorInputs.class)));
+        }
+    }
+
+    public DeploymentDescriptorInputs getLazyProperties() {
+        return lazyProperties;
+    }
+
+    private static DeploymentDescriptorInputs storageWithDefaults(DeploymentDescriptorInputs storage) {
+        storage.getFileName().convention("application.xml");
+        storage.getVersion().convention("6");
+        storage.getInitializeInOrder().convention(false);
+        return storage;
+    }
+
+    private void moveTo(DeploymentDescriptorInputs target) {
+        DeploymentDescriptorInputs source = lazyProperties;
+        copyValue(source.getFileName(), target.getFileName());
+        copyValue(source.getVersion(), target.getVersion());
+        copyValue(source.getApplicationName(), target.getApplicationName());
+        copyValue(source.getInitializeInOrder(), target.getInitializeInOrder());
+        copyValue(source.getDescription(), target.getDescription());
+        copyValue(source.getDisplayName(), target.getDisplayName());
+        copyValue(source.getLibraryDirectory(), target.getLibraryDirectory());
+        target.getModules().set(currentValueOf(source.getModules()));
+        target.getSecurityRoles().set(currentValueOf(source.getSecurityRoles()));
+        target.getModuleTypeMappings().set(currentValueOf(source.getModuleTypeMappings()));
+        lazyProperties = target;
+    }
+
+    private static <T> void copyValue(Property<T> source, Property<T> target) {
+        target.set(currentValueOf(source));
+    }
+
+    // Fixed values are copied, values from a task output stay providers, so nothing is calculated too early
+    private static <T> ProviderInternal<? extends T> currentValueOf(Provider<T> property) {
+        return Cast.<ProviderInternal<T>>uncheckedNonnullCast(property).calculateExecutionTimeValue().toProvider();
+    }
+
+    private static void putWithoutReading(MapProperty<String, String> property, String key, String value) {
+        Cast.<MapPropertyInternal<String, String>>uncheckedNonnullCast(property).insert(key, value);
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.fileName")
     public String getFileName() {
-        return fileName;
+        return lazyProperties.getFileName().getOrNull();
     }
 
     @Override
     public void setFileName(String fileName) {
-        this.fileName = fileName;
+        EagerPropertySupport.setEager(lazyProperties.getFileName(), fileName);
         readFrom(new File("META-INF", fileName));
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.version")
     public String getVersion() {
-        return version;
+        return lazyProperties.getVersion().getOrNull();
     }
 
     @Override
     public void setVersion(String version) {
-        this.version = version;
+        EagerPropertySupport.setEager(lazyProperties.getVersion(), version);
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.applicationName")
     public String getApplicationName() {
-        return applicationName;
+        return lazyProperties.getApplicationName().getOrNull();
     }
 
     @Override
     public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
+        EagerPropertySupport.setEager(lazyProperties.getApplicationName(), applicationName);
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.initializeInOrder")
     public Boolean getInitializeInOrder() {
-        return initializeInOrder;
+        return lazyProperties.getInitializeInOrder().getOrNull();
     }
 
     @Override
     public void setInitializeInOrder(Boolean initializeInOrder) {
-        this.initializeInOrder = initializeInOrder;
+        EagerPropertySupport.setEager(lazyProperties.getInitializeInOrder(), initializeInOrder);
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.description")
     public String getDescription() {
-        return description;
+        return lazyProperties.getDescription().getOrNull();
     }
 
     @Override
     public void setDescription(String description) {
-        this.description = description;
+        EagerPropertySupport.setEager(lazyProperties.getDescription(), description);
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.displayName")
     public String getDisplayName() {
-        return displayName;
+        return lazyProperties.getDisplayName().getOrNull();
     }
 
     @Override
     public void setDisplayName(String displayName) {
-        this.displayName = displayName;
+        EagerPropertySupport.setEager(lazyProperties.getDisplayName(), displayName);
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.libraryDirectory")
     public String getLibraryDirectory() {
-        return libraryDirectory;
+        return lazyProperties.getLibraryDirectory().getOrNull();
     }
 
     @Override
     public void setLibraryDirectory(String libraryDirectory) {
-        this.libraryDirectory = libraryDirectory;
+        EagerPropertySupport.setEager(lazyProperties.getLibraryDirectory(), libraryDirectory);
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.modules")
     public Set<EarModule> getModules() {
-        return modules;
+        return EagerPropertySupport.conventionKeepingViewOrNull(lazyProperties.getModules());
     }
 
     @Override
     public void setModules(Set<EarModule> modules) {
-        this.modules = modules;
+        EagerPropertySupport.setEager(lazyProperties.getModules(), modules);
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.securityRoles")
     public Set<EarSecurityRole> getSecurityRoles() {
-        return securityRoles;
+        return EagerPropertySupport.conventionKeepingViewOrNull(lazyProperties.getSecurityRoles());
     }
 
     @Override
     public void setSecurityRoles(Set<EarSecurityRole> securityRoles) {
-        this.securityRoles = securityRoles;
+        EagerPropertySupport.setEager(lazyProperties.getSecurityRoles(), securityRoles);
     }
 
     @Override
+    @BackedByLazyProperty("lazyProperties.moduleTypeMappings")
     public Map<String, String> getModuleTypeMappings() {
-        return moduleTypeMappings;
+        MapProperty<String, String> mappings = lazyProperties.getModuleTypeMappings();
+        return mappings.isPresent() ? EagerPropertySupport.conventionKeepingView(mappings) : null;
     }
 
     @Override
     public void setModuleTypeMappings(Map<String, String> moduleTypeMappings) {
-        this.moduleTypeMappings = moduleTypeMappings;
+        EagerPropertySupport.setEager(lazyProperties.getModuleTypeMappings(), moduleTypeMappings);
     }
 
     @Override
     public DefaultDeploymentDescriptor module(EarModule module, String type) {
-        modules.add(module);
-        moduleTypeMappings.put(module.getPath(), type);
+        addModule(module, type);
         return this;
+    }
+
+    private void addModule(EarModule module, String type) {
+        EagerPropertySupport.appendAll(lazyProperties.getModules(), Collections.singleton(module));
+        // A map property rejects null keys. A module without a path, read from a web module without web-uri, keeps the type of its class
+        if (module.getPath() != null) {
+            putWithoutReading(lazyProperties.getModuleTypeMappings(), module.getPath(), type);
+        }
     }
 
     @Override
@@ -193,20 +281,19 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
     @Override
     public DefaultDeploymentDescriptor webModule(String path, String contextRoot) {
-        modules.add(new DefaultEarWebModule(path, contextRoot));
-        moduleTypeMappings.put(path, "web");
+        addModule(new DefaultEarWebModule(path, contextRoot), "web");
         return this;
     }
 
     @Override
     public DefaultDeploymentDescriptor securityRole(EarSecurityRole role) {
-        securityRoles.add(role);
+        addSecurityRole(role);
         return this;
     }
 
     @Override
     public DeploymentDescriptor securityRole(String role) {
-        securityRoles.add(new DefaultEarSecurityRole(role));
+        addSecurityRole(new DefaultEarSecurityRole(role));
         return this;
     }
 
@@ -214,8 +301,12 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     public DeploymentDescriptor securityRole(Action<? super EarSecurityRole> action) {
         EarSecurityRole role = objectFactory.newInstance(DefaultEarSecurityRole.class);
         action.execute(role);
-        securityRoles.add(role);
+        addSecurityRole(role);
         return this;
+    }
+
+    private void addSecurityRole(EarSecurityRole role) {
+        EagerPropertySupport.appendAll(lazyProperties.getSecurityRoles(), Collections.singleton(role));
     }
 
     @Override
@@ -269,33 +360,33 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     public DeploymentDescriptor readFrom(Reader reader) {
         try {
             Node appNode = createParser().parse(reader);
-            version = (String) appNode.attribute("version");
+            setVersion((String) appNode.attribute("version"));
             for (final Node child : Cast.<List<Node>>uncheckedCast(appNode.children())) {
                 String childLocalName = localNameOf(child);
                 switch (childLocalName) {
                     case "application-name":
 
-                        applicationName = child.text();
+                        setApplicationName(child.text());
 
                         break;
                     case "initialize-in-order":
 
-                        initializeInOrder = Boolean.parseBoolean(child.text());
+                        setInitializeInOrder(Boolean.parseBoolean(child.text()));
 
                         break;
                     case "description":
 
-                        description = child.text();
+                        setDescription(child.text());
 
                         break;
                     case "display-name":
 
-                        displayName = child.text();
+                        setDisplayName(child.text());
 
                         break;
                     case "library-directory":
 
-                        libraryDirectory = child.text();
+                        setLibraryDirectory(child.text());
 
                         break;
                     case "module":
@@ -307,15 +398,13 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
                                 String webUri = childNodeText(moduleNode, "web-uri");
                                 String contextRoot = childNodeText(moduleNode, "context-root");
                                 module = new DefaultEarWebModule(webUri, contextRoot);
-                                modules.add(module);
-                                moduleTypeMappings.put(module.getPath(), "web");
+                                addModule(module, "web");
                             } else if (moduleNodeLocalName.equals("alt-dd")) {
                                 assert module != null;
                                 module.setAltDeployDescriptor(moduleNode.text());
                             } else {
                                 module = new DefaultEarModule(moduleNode.text());
-                                modules.add(module);
-                                moduleTypeMappings.put(module.getPath(), moduleNodeLocalName);
+                                addModule(module, moduleNodeLocalName);
                             }
                         }
 
@@ -324,7 +413,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
                         String roleName = childNodeText(child, "role-name");
                         String description = childNodeText(child, "description");
-                        securityRoles.add(new DefaultEarSecurityRole(roleName, description));
+                        addSecurityRole(new DefaultEarSecurityRole(roleName, description));
 
                         break;
                     default:
@@ -360,18 +449,39 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
     @Override
     public DefaultDeploymentDescriptor writeTo(Object path) {
-        transformer.transform(toXmlNode(), fileResolver.resolve(path));
+        transformer.transform(toXmlNode(Collections.emptySet(), null), fileResolver.resolve(path));
         return this;
     }
 
     @Override
     public DefaultDeploymentDescriptor writeTo(Writer writer) {
-        transformer.transform(toXmlNode(), writer);
+        return writeTo(writer, Collections.emptySet(), null);
+    }
+
+    /**
+     * Writes the descriptor with additions that apply to one write only, so the stored values are not changed.
+     *
+     * @param additionalModules modules written after the modules of this descriptor
+     * @param defaultLibraryDirectory the library directory written when this descriptor has none
+     */
+    public DefaultDeploymentDescriptor writeTo(Writer writer, Collection<EarModule> additionalModules, @Nullable String defaultLibraryDirectory) {
+        transformer.transform(toXmlNode(additionalModules, defaultLibraryDirectory), writer);
         return this;
     }
 
-    private DomNode toXmlNode() {
-        DomNode root = new DomNode(nodeNameFor("application"));
+    private DomNode toXmlNode(Collection<EarModule> additionalModules, @Nullable String defaultLibraryDirectory) {
+        String version = getVersion();
+        String applicationName = getApplicationName();
+        String description = getDescription();
+        String displayName = getDisplayName();
+        Boolean initializeInOrder = getInitializeInOrder();
+        String libraryDirectory = getLibraryDirectory() != null ? getLibraryDirectory() : defaultLibraryDirectory;
+        Set<EarModule> modules = new LinkedHashSet<>(lazyProperties.getModules().getOrElse(Collections.emptySet()));
+        modules.addAll(additionalModules);
+        Set<EarSecurityRole> securityRoles = lazyProperties.getSecurityRoles().getOrElse(Collections.emptySet());
+        Map<String, String> moduleTypeMappings = lazyProperties.getModuleTypeMappings().getOrElse(Collections.emptyMap());
+
+        DomNode root = new DomNode(nodeNameFor("application", version));
         Map<String, String> rootAttributes = Cast.uncheckedCast(root.attributes());
         if (version != null) {
             rootAttributes.put("version", version);
@@ -392,37 +502,35 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
             rootAttributes.put("xsi:schemaLocation", "https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/application_" + version + ".xsd");
         }
         if (applicationName != null) {
-            new Node(root, nodeNameFor("application-name"), applicationName);
+            new Node(root, nodeNameFor("application-name", version), applicationName);
         }
         if (description != null) {
-            new Node(root, nodeNameFor("description"), description);
+            new Node(root, nodeNameFor("description", version), description);
         }
         if (displayName != null) {
-            new Node(root, nodeNameFor("display-name"), displayName);
+            new Node(root, nodeNameFor("display-name", version), displayName);
         }
         if (initializeInOrder != null && initializeInOrder) {
-            new Node(root, nodeNameFor("initialize-in-order"), initializeInOrder);
+            new Node(root, nodeNameFor("initialize-in-order", version), initializeInOrder);
         }
         for (EarModule module : modules) {
-            Node moduleNode = new Node(root, nodeNameFor("module"));
-            module.toXmlNode(moduleNode, moduleNameFor(module));
+            Node moduleNode = new Node(root, nodeNameFor("module", version));
+            module.toXmlNode(moduleNode, moduleNameFor(module, moduleTypeMappings, version));
         }
-        if (securityRoles != null) {
-            for (EarSecurityRole role : securityRoles) {
-                Node roleNode = new Node(root, nodeNameFor("security-role"));
-                if (role.getDescription() != null) {
-                    new Node(roleNode, nodeNameFor("description"), role.getDescription());
-                }
-                new Node(roleNode, nodeNameFor("role-name"), role.getRoleName());
+        for (EarSecurityRole role : securityRoles) {
+            Node roleNode = new Node(root, nodeNameFor("security-role", version));
+            if (role.getDescription() != null) {
+                new Node(roleNode, nodeNameFor("description", version), role.getDescription());
             }
+            new Node(roleNode, nodeNameFor("role-name", version), role.getRoleName());
         }
         if (libraryDirectory != null) {
-            new Node(root, nodeNameFor("library-directory"), libraryDirectory);
+            new Node(root, nodeNameFor("library-directory", version), libraryDirectory);
         }
         return root;
     }
 
-    private Object moduleNameFor(EarModule module) {
+    private static Object moduleNameFor(EarModule module, Map<String, String> moduleTypeMappings, @Nullable String version) {
         String name = moduleTypeMappings.get(module.getPath());
         if (name == null) {
             if (module instanceof EarWebModule) {
@@ -432,10 +540,10 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
                 name = "ejb";
             }
         }
-        return nodeNameFor(name);
+        return nodeNameFor(name, version);
     }
 
-    private Object nodeNameFor(String name) {
+    private static Object nodeNameFor(String name, @Nullable String version) {
         if ("1.3".equals(version)) {
             return name;
         } else if ("1.4".equals(version)) {

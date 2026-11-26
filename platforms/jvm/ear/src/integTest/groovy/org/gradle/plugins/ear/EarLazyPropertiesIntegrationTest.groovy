@@ -144,7 +144,8 @@ class EarLazyPropertiesIntegrationTest extends AbstractIntegrationSpec {
         earEntries() == ["jars/earLib.jar"]
     }
 
-    def "libDirName bound to a task output fails when a deployment descriptor is generated, because the descriptor reads it while dependencies are resolved"() {
+    @ToBeFixedForConfigurationCache(because = "The configuration cache stores the destination of the lib copy spec, which reads libDirName before the producer ran")
+    def "libDirName bound to a task output runs that task first when a deployment descriptor is generated"() {
         buildFile """
             abstract class Producer extends DefaultTask {
                 @OutputFile
@@ -164,11 +165,12 @@ class EarLazyPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails("ear")
+        succeeds("ear")
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':ear'.")
-        failure.assertHasCause("Failed to query the value of task ':ear' property 'lazyProperties.libDirName'.")
+        result.assertTaskOrder(":producer", ":ear")
+        earEntries() == ["jars/earLib.jar"]
+        descriptor().contains("<library-directory>jars</library-directory>")
     }
 
     def "Kotlin DSL forms set libDirName"() {

@@ -17,7 +17,9 @@ package org.gradle.plugins.ear;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.jvm.tasks.JarInputs;
+import org.gradle.plugins.ear.descriptor.DeploymentDescriptorInputs;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -36,4 +38,12 @@ public interface EarInputs extends JarInputs {
      * @since 10.0.0
      */
     Property<String> getLibDirName();
+
+    /**
+     * The lazy properties behind the {@link Ear#getDeploymentDescriptor() deployment descriptor} of the task.
+     *
+     * @since 10.0.0
+     */
+    @LazyProperties
+    DeploymentDescriptorInputs getDeploymentDescriptor();
 }

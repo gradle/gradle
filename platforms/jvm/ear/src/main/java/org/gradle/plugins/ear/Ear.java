@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ear;
 
+import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
@@ -23,10 +24,13 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DuplicatesStrategy;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.provider.EagerPropertySupport;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
@@ -38,6 +42,7 @@ import org.gradle.internal.instrumentation.api.annotations.BackedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.LazyProperties;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
+import org.gradle.plugins.ear.descriptor.DeploymentDescriptorInputs;
 import org.gradle.plugins.ear.descriptor.EarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarModule;
@@ -45,12 +50,19 @@ import org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import static java.util.Collections.singleton;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
@@ -71,6 +83,7 @@ public abstract class Ear extends Jar {
     public static final String EAR_EXTENSION = "ear";
 
     private DeploymentDescriptor deploymentDescriptor;
+    private final DescriptorAdditions descriptorAdditions = new DescriptorAdditions();
     private CopySpec lib;
 
     /**
@@ -101,10 +114,6 @@ public abstract class Ear extends Jar {
         descriptorChild.from(callable(() -> {
             final DeploymentDescriptor descriptor = getDeploymentDescriptor();
             if (descriptor != null && getGenerateDeploymentDescriptor().get()) {
-                if (descriptor.getLibraryDirectory() == null) {
-                    descriptor.setLibraryDirectory(getLibDirName());
-                }
-
                 String descriptorFileName = descriptor.getFileName();
                 if (descriptorFileName.contains("/") || descriptorFileName.contains(File.separator)) {
                     throw new InvalidUserDataException("Deployment descriptor file name must be a simple name but was " + descriptorFileName);
@@ -115,20 +124,33 @@ public abstract class Ear extends Jar {
                 //  on each run.
                 //  See https://github.com/gradle/configuration-cache/issues/168
                 final OutputChangeListener outputChangeListener = outputChangeListener();
-                return fileCollectionFactory().generated(
+                FileCollection generated = fileCollectionFactory().generated(
                     getTemporaryDirFactory(),
                     descriptorFileName,
                     action(file -> outputChangeListener.invalidateCachesFor(singleton(file.getAbsolutePath()))),
                     action(outputStream ->
                         // delay obtaining contents to account for descriptor changes
                         // (for instance, due to modules discovered)
-                        descriptor.writeTo(new OutputStreamWriter(outputStream))
+                        writeDeploymentDescriptor(descriptor, outputStream)
                     )
                 );
+                if (descriptor instanceof DefaultDeploymentDescriptor) {
+                    // The descriptor is @Internal, so this is the only way its lazy values give task dependencies
+                    FileCollection lazyValueDependencies = fileCollectionFactory().configurableFiles().builtBy(producersOf(((DefaultDeploymentDescriptor) descriptor).getLazyProperties()));
+                    return ImmutableList.of(generated, lazyValueDependencies);
+                }
+                return generated;
             }
 
             return null;
         }));
+    }
+
+    private static List<TaskDependencyContainer> producersOf(DeploymentDescriptorInputs values) {
+        return Stream.of(
+            values.getFileName(), values.getVersion(), values.getApplicationName(), values.getInitializeInOrder(), values.getDescription(),
+            values.getDisplayName(), values.getLibraryDirectory(), values.getModules(), values.getSecurityRoles(), values.getModuleTypeMappings()
+        ).map(value -> ((ProviderInternal<?>) value).getProducer()).collect(ImmutableList.toImmutableList());
     }
 
     private FileCollectionFactory fileCollectionFactory() {
@@ -139,10 +161,27 @@ public abstract class Ear extends Jar {
         return getServices().get(OutputChangeListener.class);
     }
 
+    @SuppressWarnings("DefaultCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    private void writeDeploymentDescriptor(DeploymentDescriptor descriptor, OutputStream outputStream) {
+        Writer writer = new OutputStreamWriter(outputStream);
+        Set<EarModule> recordedModules = descriptorAdditions.modules;
+        String defaultLibraryDirectory = getLibDirName();
+        if (descriptor instanceof DefaultDeploymentDescriptor) {
+            ((DefaultDeploymentDescriptor) descriptor).writeTo(writer, recordedModules, defaultLibraryDirectory);
+        } else {
+            // Other implementations have no way to take additions for one write, so they store them
+            if (descriptor.getLibraryDirectory() == null) {
+                descriptor.setLibraryDirectory(defaultLibraryDirectory);
+            }
+            descriptor.getModules().addAll(recordedModules);
+            descriptor.writeTo(writer);
+        }
+    }
+
     private void recordTopLevelModules(FileCopyDetails details) {
         DeploymentDescriptor deploymentDescriptor = getDeploymentDescriptor();
         // since we might generate the deployment descriptor, record each top-level module
-        if (deploymentDescriptor != null && details.getPath().lastIndexOf("/") <= 0) {
+        if (deploymentDescriptor != null && !descriptorAdditions.existingDescriptorFound && details.getPath().lastIndexOf("/") <= 0) {
             EarModule module;
             if (details.getPath().toLowerCase(Locale.ROOT).endsWith(".war")) {
                 module = new DefaultEarWebModule(details.getPath(), details.getPath().substring(0, details.getPath().lastIndexOf(".")));
@@ -150,18 +189,27 @@ public abstract class Ear extends Jar {
                 module = new DefaultEarModule(details.getPath());
             }
 
-            deploymentDescriptor.getModules().add(module);
+            descriptorAdditions.modules.add(module);
         }
     }
 
     private void checkIfShouldGenerateDeploymentDescriptor(FileCopyDetails details) {
         DeploymentDescriptor deploymentDescriptor = getDeploymentDescriptor();
-        String descriptorPath = deploymentDescriptor != null ? "META-INF/" + deploymentDescriptor.getFileName() : null;
+        String descriptorPath = deploymentDescriptor != null && !descriptorAdditions.existingDescriptorFound ? "META-INF/" + deploymentDescriptor.getFileName() : null;
         if (details.getPath().equalsIgnoreCase(descriptorPath)) {
             // the deployment descriptor already exists; no need to generate it
-            setDeploymentDescriptor(null);
+            descriptorAdditions.existingDescriptorFound = true;
             details.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
         }
+    }
+
+    /**
+     * What one execution adds to the generated deployment descriptor, so the configured descriptor stays as it is.
+     */
+    @NullMarked
+    private static class DescriptorAdditions {
+        private final Set<EarModule> modules = new LinkedHashSet<>();
+        private boolean existingDescriptorFound;
     }
 
     @Override
@@ -209,7 +257,9 @@ public abstract class Ear extends Jar {
 
     private DeploymentDescriptor forceDeploymentDescriptor() {
         if (deploymentDescriptor == null) {
-            deploymentDescriptor = getObjectFactory().newInstance(DefaultDeploymentDescriptor.class);
+            DefaultDeploymentDescriptor descriptor = getObjectFactory().newInstance(DefaultDeploymentDescriptor.class);
+            descriptor.attach(getLazyProperties().getDeploymentDescriptor());
+            deploymentDescriptor = descriptor;
         }
         return deploymentDescriptor;
     }
@@ -298,6 +348,13 @@ public abstract class Ear extends Jar {
      * @since 1.0
      */
     public void setDeploymentDescriptor(DeploymentDescriptor deploymentDescriptor) {
+        DeploymentDescriptorInputs lazyDescriptor = getLazyProperties().getDeploymentDescriptor();
+        if (this.deploymentDescriptor instanceof DefaultDeploymentDescriptor && this.deploymentDescriptor != deploymentDescriptor) {
+            ((DefaultDeploymentDescriptor) this.deploymentDescriptor).detach(lazyDescriptor);
+        }
+        if (deploymentDescriptor instanceof DefaultDeploymentDescriptor) {
+            ((DefaultDeploymentDescriptor) deploymentDescriptor).attachWithValues(lazyDescriptor);
+        }
         this.deploymentDescriptor = deploymentDescriptor;
     }
 
