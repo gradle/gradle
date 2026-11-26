@@ -24,7 +24,9 @@ dependencies {
     testRuntimeOnly(projects.distributionsCore) {
         because("NonTransformedModelDslBackingTest instantiates DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(projects.distributionsCore)
+    integTestDistributionRuntimeOnly(projects.distributionsNative) {
+        because("ManagedTypeDslIntegrationTest and ModelMapDslIntegrationTest apply the model-reporting-tasks plugin.")
+    }
 }
 
 gradleModule {
