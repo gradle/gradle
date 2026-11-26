@@ -723,9 +723,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
 
         executionIdentifications.each {
             with(it) {
-                owner.with(componentId) {
-                    displayName == displayName
-                }
+                componentId.displayName == displayName
             }
         }
         def inputArtifactNames = executionIdentifications.collect { it.artifactName }
