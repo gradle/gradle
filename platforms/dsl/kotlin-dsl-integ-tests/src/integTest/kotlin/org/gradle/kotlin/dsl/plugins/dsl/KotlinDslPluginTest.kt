@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
@@ -37,12 +38,10 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `warns on unexpected kotlin-dsl plugin version`() {
 
-        // The test applies the in-development version of the kotlin-dsl
-        // which, by convention, it is always ahead of the version expected by
-        // the in-development version of Gradle
-        // (see publishedKotlinDslPluginVersion in the project's build logic)
-        withKotlinDslPlugin()
+        val locallyBuiltVersion = checkNotNull(RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsVersion())
+        executer.beforeExecute { it.withoutKotlinDslPluginsVersionOverride() }
 
+        withBuildScript(scriptWithKotlinDslPlugin(locallyBuiltVersion))
         withDefaultSettings().appendText(
             """
             rootProject.name = "forty-two"
@@ -51,7 +50,7 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
 
         build("help").apply {
             assertOutputContains(
-                "This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin but version '$futureKotlinDslPluginVersion' has been applied to root project 'forty-two'."
+                "This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin but version '$locallyBuiltVersion' has been applied to root project 'forty-two'."
             )
         }
     }

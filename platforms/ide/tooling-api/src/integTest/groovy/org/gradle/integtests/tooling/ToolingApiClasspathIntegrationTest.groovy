@@ -18,13 +18,10 @@ package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.util.internal.TextUtil
 
 class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
 
     def "tooling api classpath contains only slf4j and shaded tooling-api jar of expected size"() {
-        IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
         buildFile << """
             plugins {
                 id("java-library")
@@ -32,9 +29,7 @@ class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
 
             // For the current tooling API jar
             repositories {
-                maven {
-                    url = uri(file("${TextUtil.escapeString(buildContext.localRepository)}"))
-                }
+                ${RepoScriptBlockUtil.localRepositoriesDefinition()}
             }
 
             // For SFL4J

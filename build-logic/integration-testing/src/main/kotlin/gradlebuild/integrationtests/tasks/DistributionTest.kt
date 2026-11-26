@@ -158,7 +158,7 @@ class LocalRepositoryEnvironmentProvider(project: Project) : CommandLineArgument
         }
 
     override fun asArguments() =
-        if (!localRepo.isEmpty) mapOf("integTest.localRepository" to localRepo.singleFile).asSystemPropertyJvmArguments()
+        if (!localRepo.isEmpty) mapOf("integTest.localRepository" to localRepo.files.joinToString(File.pathSeparator)).asSystemPropertyJvmArguments()
         else emptyList()
 
     @Internal

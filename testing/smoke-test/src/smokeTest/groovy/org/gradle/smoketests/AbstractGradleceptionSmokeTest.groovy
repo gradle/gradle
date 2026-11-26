@@ -86,6 +86,13 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
         return super.runner(*args)
     }
 
+    // The Gradle build declares the repositories that it needs. It must get the published Kotlin DSL plugins that this Gradle expects,
+    // not the locally built ones, so that these tests fail while that version is not published.
+    @Override
+    protected List<String> extraRepositoriesParameters() {
+        return []
+    }
+
     protected SmokeTestGradleRunner runnerFor(List<String> tasks, File testKitDir) {
         def runner = testKitDir != null
             ? runnerWithTestKitDir(testKitDir, tasks)

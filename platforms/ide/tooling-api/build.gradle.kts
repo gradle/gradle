@@ -3,6 +3,7 @@ plugins {
     id("gradlebuild.publish-public-libraries")
     id("gradlebuild.shaded-jar")
     id("gradlebuild.cross-version-tests")
+    id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
 }
 
 description = "Gradle Tooling API - the programmatic API to invoke Gradle"

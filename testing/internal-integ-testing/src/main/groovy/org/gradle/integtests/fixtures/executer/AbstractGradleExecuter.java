@@ -179,6 +179,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean disableToolchainDetection = true;
     private boolean disablePluginRepositoryMirror = false;
     private boolean extraRepositoriesDisabled = false;
+    private boolean kotlinDslPluginsVersionOverrideDisabled = false;
 
     private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings = new ArrayList<>();
     private boolean eagerClassLoaderCreationChecksOn = true;
@@ -483,6 +484,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
         if (extraRepositoriesDisabled) {
             executer.withoutExtraRepositories();
+        }
+        if (kotlinDslPluginsVersionOverrideDisabled) {
+            executer.withoutKotlinDslPluginsVersionOverride();
         }
 
         return executer;
@@ -987,6 +991,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
+    public GradleExecuter withoutKotlinDslPluginsVersionOverride() {
+        kotlinDslPluginsVersionOverrideDisabled = true;
+        return this;
+    }
+
+    @Override
     public GradleExecuter ignoreCleanupAssertions() {
         this.ignoreCleanupAssertions = true;
         return this;
@@ -1249,6 +1259,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         if (!disablePluginRepositoryMirror) {
             properties.put(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY, gradlePluginRepositoryMirrorUrl());
+        }
+        // Only the Gradle version under development expects the locally built Kotlin DSL plugins
+        String locallyBuiltKotlinDslPluginsVersion = RepoScriptBlockUtil.locallyBuiltKotlinDslPluginsVersion();
+        if (locallyBuiltKotlinDslPluginsVersion != null && !extraRepositoriesDisabled && !kotlinDslPluginsVersionOverrideDisabled && distribution.getVersion().equals(buildContext.getVersion())) {
+            properties.put(RepoScriptBlockUtil.KOTLIN_DSL_PLUGINS_VERSION_OVERRIDE_PROPERTY, locallyBuiltKotlinDslPluginsVersion);
         }
 
         properties.put("file.encoding", getDefaultCharacterEncoding());

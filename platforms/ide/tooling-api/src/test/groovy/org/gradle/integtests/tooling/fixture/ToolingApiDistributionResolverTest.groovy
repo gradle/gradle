@@ -78,6 +78,23 @@ class ToolingApiDistributionResolverTest extends Specification {
         containsSlf4j(result)
     }
 
+    def "can resolve local distributions from one of several local repositories"() {
+        given:
+        def otherRepo = new TestFile(tempFolder.root, "other-repo").createDir()
+        def localRepo = new TestFile(tempFolder.root, "tooling-api-repo").createDir()
+        System.setProperty("integTest.localRepository", [otherRepo, localRepo]*.absolutePath.join(File.pathSeparator))
+        def localToolingApi = localRepo.file("org/gradle/gradle-tooling-api/10000.0/gradle-tooling-api-10000.0.jar")
+        localToolingApi.touch()
+        def underTest = new ToolingApiDistributionResolver("http://invalid-url")
+
+        when:
+        def result = underTest.resolve("10000.0")
+
+        then:
+        result.classpath.contains(localToolingApi)
+        containsSlf4j(result)
+    }
+
     def "does not download distributions twice"() {
         when:
         def destination = tempFolder.root

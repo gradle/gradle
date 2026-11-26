@@ -16,6 +16,7 @@
 
 plugins {
     id("gradlebuild.distribution.implementation-kotlin")
+    id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
 }
 
 dependencies {

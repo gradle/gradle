@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.execution
 
 import org.gradle.kotlin.dsl.execution.ResidualProgram.PluginRequestSpec
-import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.junit.Test
@@ -159,7 +158,7 @@ class PluginsBlockInterpreterTest {
     fun `single plugin - kotlin-dsl`() {
         assertStaticInterpretationOf(
             """`kotlin-dsl`""",
-            PluginRequestSpec("org.gradle.kotlin.kotlin-dsl", version = expectedKotlinDslPluginsVersion, apply = true)
+            PluginRequestSpec("org.gradle.kotlin.kotlin-dsl", apply = true, expectedKotlinDslPluginsVersion = true)
         )
     }
 
@@ -167,7 +166,7 @@ class PluginsBlockInterpreterTest {
     fun `single plugin - kotlin-dsl apply`() {
         assertStaticInterpretationOf(
             """`kotlin-dsl` apply false""",
-            PluginRequestSpec("org.gradle.kotlin.kotlin-dsl", version = expectedKotlinDslPluginsVersion, apply = false)
+            PluginRequestSpec("org.gradle.kotlin.kotlin-dsl", apply = false, expectedKotlinDslPluginsVersion = true)
         )
     }
 

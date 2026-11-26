@@ -16,6 +16,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import spock.lang.Issue
 
 class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
@@ -28,7 +29,7 @@ class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
                 id 'java-library'
             }
             repositories {
-                maven { url = '${buildContext.localRepository.toURI()}' }
+                ${RepoScriptBlockUtil.localRepositoriesDefinition()}
                 ${mavenCentralRepository()}
             }
 
@@ -72,7 +73,7 @@ class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
                 id 'java-library'
             }
             repositories {
-                maven { url = '${buildContext.localRepository.toURI()}' }
+                ${RepoScriptBlockUtil.localRepositoriesDefinition()}
                 ${mavenCentralRepository()}
             }
 
@@ -106,7 +107,7 @@ class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
                 id 'java-library'
             }
             repositories {
-                maven { url = '${buildContext.localRepository.toURI()}' }
+                ${RepoScriptBlockUtil.localRepositoriesDefinition()}
                 ${mavenCentralRepository()}
             }
 

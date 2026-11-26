@@ -1,6 +1,7 @@
 plugins {
     id("gradlebuild.internal.java")
     id("gradlebuild.cross-version-tests")
+    id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
 }
 
 description = "Integration tests which don't fit anywhere else - should probably be split up"
