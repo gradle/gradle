@@ -26,6 +26,7 @@ import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.uri.UriDisplay;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +64,7 @@ public class SecureFileDownloader {
         try {
             downloadResource(source, destination, resource);
         } catch (MissingResourceException e) {
-            throw new MissingResourceException(source, String.format("Unable to download '%s' into file '%s'", source, destination), e);
+            throw new MissingResourceException(source, String.format("Unable to download '%s' into file '%s'", UriDisplay.maskUserInfo(source), destination), e);
         }
     }
 
@@ -71,7 +72,7 @@ public class SecureFileDownloader {
         final ExternalResourceName resourceName = new ExternalResourceName(source) {
             @Override
             public String getShortDisplayName() {
-                return source.toString();
+                return UriDisplay.maskUserInfo(source).toString();
             }
         };
         return externalResourceFactory.createExternalResource(source, authentications).withProgressLogging().resource(resourceName);

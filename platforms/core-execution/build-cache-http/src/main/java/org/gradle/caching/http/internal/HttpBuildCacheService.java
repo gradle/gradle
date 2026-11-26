@@ -32,6 +32,7 @@ import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.transport.http.HttpClient;
+import org.gradle.internal.uri.UriDisplay;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,7 +103,7 @@ public class HttpBuildCacheService implements BuildCacheService {
         try (HttpClient.Response response = client.performRawGet(uri, defaultLoadHeaders)) {
             int statusCode = response.getStatusCode();
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Response for GET {}: {}", safeUri(uri), statusCode);
+                LOGGER.debug("Response for GET {}: {}", UriDisplay.maskUserInfo(uri), statusCode);
             }
             if (isHttpSuccess(statusCode)) {
                 reader.readFrom(response.getContent());
@@ -110,7 +111,7 @@ public class HttpBuildCacheService implements BuildCacheService {
             } else if (response.isMissing()) {
                 return false;
             } else {
-                String defaultMessage = String.format("Loading entry from '%s' response status %d: %s", safeUri(uri), statusCode, response.getStatusReason());
+                String defaultMessage = String.format("Loading entry from '%s' response status %d: %s", UriDisplay.maskUserInfo(uri), statusCode, response.getStatusReason());
                 return throwHttpStatusCodeException(statusCode, defaultMessage);
             }
         } catch (IOException e) {
@@ -140,10 +141,10 @@ public class HttpBuildCacheService implements BuildCacheService {
         try (HttpClient.Response response = client.performRawPut(uri, defaultStoreHeaders, putResource)) {
             int statusCode = response.getStatusCode();
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Response for PUT {}: {}", safeUri(uri), statusCode);
+                LOGGER.debug("Response for PUT {}: {}", UriDisplay.maskUserInfo(uri), statusCode);
             }
             if (!isHttpSuccess(statusCode)) {
-                String defaultMessage = String.format("Storing entry at '%s' response status %d: %s", safeUri(uri), statusCode, response.getStatusReason());
+                String defaultMessage = String.format("Storing entry at '%s' response status %d: %s", UriDisplay.maskUserInfo(uri), statusCode, response.getStatusReason());
                 throwHttpStatusCodeException(statusCode, defaultMessage);
             }
         } catch (ClientProtocolException e) {
@@ -176,20 +177,6 @@ public class HttpBuildCacheService implements BuildCacheService {
     @Override
     public void close() throws IOException {
         client.close();
-    }
-
-    /**
-     * Create a safe URI from the given one by stripping out user info.
-     *
-     * @param uri Original URI
-     * @return a new URI with no user info
-     */
-    private static URI safeUri(URI uri) {
-        try {
-            return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
-        } catch (URISyntaxException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
     }
 
     /**
