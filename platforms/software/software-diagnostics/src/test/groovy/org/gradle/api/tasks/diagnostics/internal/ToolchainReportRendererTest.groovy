@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal
+package org.gradle.api.tasks.diagnostics.internal
 
-import org.gradle.api.tasks.diagnostics.internal.ToolchainReportRenderer
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmToolchainMetadata
 import org.gradle.internal.logging.text.TestStyledTextOutput
+import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

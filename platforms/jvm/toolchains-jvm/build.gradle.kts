@@ -50,6 +50,7 @@ dependencies {
     api(libs.kotlinStdlib)
 
     implementation(projects.baseDiagnostics)
+    implementation(projects.softwareDiagnostics)
     implementation(projects.credentialsImpl)
     implementation(projects.domainObjectCollections)
     implementation(projects.fileTemp)
