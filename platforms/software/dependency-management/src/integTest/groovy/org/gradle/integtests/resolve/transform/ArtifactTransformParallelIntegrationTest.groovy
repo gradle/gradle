@@ -157,7 +157,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                 }
             """)
         }
-        buildFile << """
+        buildFile """
             dependencies {
                 compile project(":lib1")
                 compile project(":lib2")

@@ -128,13 +128,13 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         def m1 = mavenRepo.module("test", "test", "4.2").publish()
         m1.artifactFile.text = "test-test"
 
-        settingsFile << """
+        this.settingsFile(settingsFile, """
             dependencyResolutionManagement {
                 repositories {
                     maven { url = "${mavenRepo.uri}" }
                 }
             }
-        """
+        """)
         configureEachProject(settingsFile, """
             dependencies {
                 implementation 'test:test:4.2'

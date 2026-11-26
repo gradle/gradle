@@ -1642,7 +1642,7 @@ Found the following transformation chains:
 
     def "transforms are created as required and a new instance created for each file"() {
         given:
-        buildFile << """
+        buildFile """
             dependencies {
                 compile project(':lib')
 
@@ -2302,7 +2302,7 @@ Found the following transformation chains:
                 compile tasks.jar
             }
         """)
-        buildFile << """
+        buildFile """
             repositories {
                 maven { url = '$mavenRepo.uri' }
             }
@@ -2885,7 +2885,7 @@ Found the following transformation chains:
 
             $fileSizer
         """)
-        buildFile << """
+        buildFile """
             gradle.taskGraph.whenReady { taskGraph ->
                 taskGraph.allTasks.each { task ->
                     task.taskDependencies.getDependencies(task).each { dependency ->
@@ -3155,7 +3155,7 @@ Found the following transformation chains:
                 compile f2
             }
         """
-        buildFile << """
+        buildFile """
             dependencies {
                 compile project(':lib')
             }
@@ -3238,7 +3238,7 @@ Found the following transformation chains:
                 compile f2
             }
         """
-        buildFile << """
+        buildFile """
             dependencies {
                 compile project(':lib')
             }
@@ -3302,7 +3302,7 @@ Found the following transformation chains:
                 testFixturesElements f2
             }
         """
-        buildFile << """
+        buildFile """
             dependencies {
                 compile project(':lib')
                 compile(project(':lib')) {

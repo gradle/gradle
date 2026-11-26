@@ -35,7 +35,7 @@ class ArtifactTransformWithDependenciesParallelIntegrationTest extends AbstractH
         """
 
         setupBuildWithColorTransformThatTakesUpstreamArtifacts()
-        settingsFile << """
+        settingsFile """
             dependencyResolutionManagement {
                 repositories {
                     maven { url = "$mavenRepo.uri" }

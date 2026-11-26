@@ -97,7 +97,7 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
             }
         """)
 
-        buildFile << """
+        buildFile """
             import org.gradle.api.services.BuildServiceParameters
             import org.gradle.api.services.BuildServiceRegistry
             import org.gradle.api.services.ServiceReference
@@ -189,7 +189,7 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
                 outgoing.artifact(file("c.jar"))
             }
         """)
-        buildFile << """
+        buildFile """
             dependencies {
                 second(project(":c"))
             }

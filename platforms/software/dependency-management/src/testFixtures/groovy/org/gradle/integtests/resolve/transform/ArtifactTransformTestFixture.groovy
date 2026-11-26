@@ -65,7 +65,7 @@ trait ArtifactTransformTestFixture extends VariantAwareDependencyResolutionTestF
 
     void setupBuildWithColorAttributes(TestFile settingsFile = getSettingsFile(), Builder builder) {
         withScriptImports(settingsFile)
-        settingsFile << jarProducerTask() << showFileCollectionTask()
+        this.settingsFile(settingsFile, jarProducerTask() + showFileCollectionTask())
         taskTypeWithOutputFileProperty(settingsFile)
         taskTypeWithOutputDirectoryProperty(settingsFile)
         taskTypeLogsArtifactCollectionDetails(settingsFile)
@@ -135,7 +135,7 @@ class JarProducer extends DefaultTask {
      * applied to each project with {@link #configureEachProject(java.lang.String)} can use them.
      */
     void settingsScriptClasses(TestFile settingsFile = getSettingsFile(), String classes) {
-        withScriptImports(settingsFile) << classes
+        this.settingsFile(withScriptImports(settingsFile), classes)
     }
 
     /**
@@ -148,19 +148,19 @@ class JarProducer extends DefaultTask {
     }
 
     void configureEachProject(TestFile settingsFile, String configuration) {
-        withScriptImports(settingsFile) << """
+        this.settingsFile(withScriptImports(settingsFile), """
             gradle.lifecycle.beforeProject { project ->
                 project.with {
                     ${configuration}
                 }
             }
-        """
+        """)
     }
 
     /**
      * Adds the imports that are not default imports of scripts to the given settings script, once.
      */
-    private static TestFile withScriptImports(TestFile settingsFile) {
+    private TestFile withScriptImports(TestFile settingsFile) {
         def imports = """
             import ${javax.inject.Inject.name}
             // TODO: Default imports should work for of inner classes
@@ -169,7 +169,7 @@ class JarProducer extends DefaultTask {
             import ${ZipEntry.name}
         """
         if (!settingsFile.exists() || !settingsFile.text.contains(imports)) {
-            settingsFile << imports
+            this.settingsFile(settingsFile, imports)
         }
         settingsFile
     }

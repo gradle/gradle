@@ -55,7 +55,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
     void setupBuildWithNoSteps(@DelegatesTo(Builder) Closure cl = {}) {
         setupBuildWithColorAttributes(settingsFile, cl)
         setupTransformerTypes()
-        settingsFile << """
+        settingsFile """
             dependencyResolutionManagement {
                 repositories {
                     maven {
@@ -162,7 +162,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         setupBuildWithColorAttributes()
         setupTransformerTypes()
 
-        settingsFile << """
+        settingsFile """
             dependencyResolutionManagement {
                 repositories {
                     maven {
@@ -380,7 +380,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
                 }
             }
         """)
-        settingsFile << """
+        settingsFile """
             dependencyResolutionManagement {
                 repositories {
                     maven { url = '${mavenHttpRepo.uri}' }
@@ -418,7 +418,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
                 implementation "test:test:1.2"
             }
         """)
-        buildFile << """
+        buildFile """
             dependencies {
                 implementation project('a')
             }
@@ -493,7 +493,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
                 }
             }
         """)
-        settingsFile << """
+        settingsFile """
             dependencyResolutionManagement {
                 repositories {
                     maven { url = '${mavenHttpRepo.uri}' }
@@ -523,7 +523,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
                 }
             }
         """)
-        buildFile << """
+        buildFile """
             dependencies {
                 implementation 'test:test2:1.5'
                 implementation 'test:test3:1.5'
@@ -603,7 +603,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
 
         settingsFile << "include 'app', 'lib'"
         setupBuildWithChainedColorTransformThatTakesUpstreamArtifacts()
-        settingsFile << """
+        settingsFile """
             dependencyResolutionManagement {
                 repositories {
                     maven { url = '${mavenRepo.uri}' }

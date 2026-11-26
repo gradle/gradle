@@ -59,7 +59,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
             include 'app'
         """
         settingsScriptClasses(resolveTask)
-        settingsFile << """
+        settingsFile """
             dependencyResolutionManagement {
                 repositories {
                     maven { url = '${mavenHttpRepo.uri}' }
@@ -1594,7 +1594,7 @@ resultsFile:
                 compile "test:test:1.3"
             }
         """)
-        settingsFile << """
+        settingsFile """
             dependencyResolutionManagement {
                 repositories {
                     maven { url = "${mavenHttpRepo.uri}" }
@@ -1873,7 +1873,7 @@ resultsFile:
         given:
         declareAttributesInEachProject()
         setupJarSizeTransform()
-        settingsFile << """
+        settingsFile """
             dependencyResolutionManagement {
                 repositories {
                     maven { url = '$ivyHttpRepo.uri' }

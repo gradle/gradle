@@ -442,7 +442,7 @@ artifacts {
     runtimeOnly file("\$buildDir/test.jar")
 }
 """)
-        buildFile << """
+        buildFile """
 def artifactType = Attribute.of('artifactType', String)
 
 apply plugin: 'java-library'

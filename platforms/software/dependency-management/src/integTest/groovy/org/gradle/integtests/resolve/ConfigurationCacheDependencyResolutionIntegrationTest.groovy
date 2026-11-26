@@ -1232,7 +1232,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
                 }
             }
         """)
-        buildFile << """
+        buildFile """
             dependencies.artifactTypes {
                 blue {
                     attributes.attribute(color, 'blue')
@@ -1301,7 +1301,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
                 }
             }
         """)
-        buildFile << """
+        buildFile """
             dependencies {
                 implementation project(':a')
                 implementation project(':b')
@@ -1353,7 +1353,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
                 }
             }
         """)
-        buildFile << """
+        buildFile """
             repositories {
                 maven { url = '${remoteRepo.uri}' }
             }

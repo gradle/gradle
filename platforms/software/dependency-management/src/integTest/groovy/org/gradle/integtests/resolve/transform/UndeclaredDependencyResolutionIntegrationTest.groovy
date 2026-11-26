@@ -243,7 +243,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
                 }
             }
         """)
-        buildFile << """
+        buildFile """
             dependencies {
                 implementation project(':a')
                 implementation project(':b')

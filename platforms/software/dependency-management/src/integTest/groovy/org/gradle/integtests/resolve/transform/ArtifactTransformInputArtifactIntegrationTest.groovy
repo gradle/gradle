@@ -1038,7 +1038,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
         """)
-        buildFile << """
+        buildFile """
             repositories {
                 maven {
                     url = '${mavenRepo.uri}'
@@ -1120,7 +1120,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
         """)
-        buildFile << """
+        buildFile """
             repositories {
                 maven {
                     url = '${mavenRepo.uri}'

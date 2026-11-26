@@ -88,7 +88,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 include 'a', 'b', 'c'
             """
         setupBuildWithTransformFileInputs()
-        settingsFile << """
+        settingsFile """
             dependencyResolutionManagement {
                 repositories {
                     maven { url = '${mavenRepo.uri}' }

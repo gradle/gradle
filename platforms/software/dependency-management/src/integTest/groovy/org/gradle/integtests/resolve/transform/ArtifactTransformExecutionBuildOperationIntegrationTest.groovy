@@ -72,7 +72,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         def m1 = mavenRepo.module("com.test", "test", "4.2").publish()
         m1.artifactFile.text = "com.test-test"
 
-        settingsFile << """
+        settingsFile """
             dependencyResolutionManagement {
                 repositories {
                     maven { url = "${mavenRepo.uri}" }
