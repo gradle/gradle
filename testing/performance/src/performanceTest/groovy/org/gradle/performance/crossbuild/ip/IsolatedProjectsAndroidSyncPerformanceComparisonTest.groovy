@@ -23,6 +23,7 @@ import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.profiler.mutations.ApplyAbiChangeToSourceFileMutator
+import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -30,6 +31,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 @RunFor(
     @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["android100Kts"])
 )
+@Ignore("https://github.com/gradle/gradle-private/issues/5598")
 class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCrossBuildPerformanceTest {
 
     private static int maxWorkers = 8
