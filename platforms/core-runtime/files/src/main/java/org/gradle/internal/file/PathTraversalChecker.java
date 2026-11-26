@@ -17,6 +17,7 @@
 package org.gradle.internal.file;
 
 import java.io.File;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +57,12 @@ public class PathTraversalChecker {
             return true;
         }
 
-        return containsDirectoryNavigation(name);
+        try {
+            return containsDirectoryNavigation(name);
+        } catch (InvalidPathException e) {
+            // A name the file system cannot represent is never a safe one
+            return true;
+        }
     }
 
     /**
@@ -87,6 +93,11 @@ public class PathTraversalChecker {
                 // Directories with dots at the end will have them removed by win32 compatibility
                 // We don't know what paths might be directories, so just ban any occurrence of dots at the end
                 if (!part.equals(".") && part.endsWith(".")) {
+                    return true;
+                }
+                // Extra safety rule for trailing spaces to not rely on Win32 compatibility and
+                // the JDK path parser refusing them.
+                if (part.endsWith(" ")) {
                     return true;
                 }
             }
