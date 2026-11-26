@@ -17,6 +17,9 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.jspecify.annotations.NullMarked;
 
@@ -66,6 +69,16 @@ public class NestedValidationUtil {
         );
     }
 
+
+    static boolean isNestedBeanCandidate(Class<?> type) {
+        return !type.isPrimitive()
+            && !type.isArray()
+            && !type.isEnum()
+            && !FileCollection.class.isAssignableFrom(type)
+            && !FileSystemLocation.class.isAssignableFrom(type)
+            && !Provider.class.isAssignableFrom(type)
+            && !getUnsupportedReason(type).isPresent();
+    }
 
     private static Optional<String> getUnsupportedReason(Class<?> type) {
         if (type.getName().startsWith("java.") || type.getName().startsWith("javax.")) {

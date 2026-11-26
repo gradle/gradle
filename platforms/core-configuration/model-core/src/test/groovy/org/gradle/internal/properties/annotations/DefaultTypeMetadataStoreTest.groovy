@@ -477,6 +477,32 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         ]
     }
 
+    static abstract class TypeWithUnannotatedBean extends DefaultTask {
+        abstract BeanOptions getOptions()
+    }
+
+    static class BeanOptions {
+        @Input
+        String flag
+    }
+
+    def "suggests Nested for an unannotated bean property"() {
+        given:
+        def metadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [Classpath, CompileClasspath], [], [], typeAnnotationMetadataStore, propertyTypeResolver, cacheFactory, MissingPropertyAnnotationHandler.MISSING_INPUT_OUTPUT_HANDLER)
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false, TestUtil.problemsService())
+
+        when:
+        metadataStore.getTypeMetadata(TypeWithUnannotatedBean).visitValidationFailures(null, validationContext)
+
+        then:
+        validationContext.errors.size() == 1
+        validationContext.errors[0].solutions == [
+            "Add an input or output annotation",
+            "Annotate it with @Nested if it contains annotated properties",
+            "Mark it as @Internal",
+        ]
+    }
+
     static abstract class TypeWithUnannotatedMethods extends DefaultTask {
         void bad1() { }
         void bad2() { }

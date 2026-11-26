@@ -48,8 +48,11 @@ public interface MissingPropertyAnnotationHandler {
         } else {
             problem
                 .details("Properties must be annotated so that Gradle knows how to handle them during up-to-date checking")
-                .solution("Add " + displayName)
-                .solution("Mark it as @Internal");
+                .solution("Add " + displayName);
+            if (NestedValidationUtil.isNestedBeanCandidate(annotationMetadata.getDeclaredReturnType().getRawType())) {
+                problem.solution("Annotate it with @Nested if it contains annotated properties");
+            }
+            problem.solution("Mark it as @Internal");
         }
     });
 }
