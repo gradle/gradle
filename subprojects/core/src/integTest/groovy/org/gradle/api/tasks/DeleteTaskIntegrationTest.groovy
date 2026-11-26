@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
@@ -89,19 +88,18 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Destroyable file: ${file('baz').absolutePath}")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "clean build and build clean work reliably"() {
-        settingsFile << "include 'a', 'b'"
-        buildFile << """
-            subprojects {
-                apply plugin: 'java-library'
+        settingsFile "include 'a', 'b'"
+        buildFile("a/build.gradle", """
+            apply plugin: 'java-library'
+        """)
+        buildFile("b/build.gradle", """
+            apply plugin: 'java-library'
+
+            dependencies {
+                api project(':a')
             }
-            project(':b') {
-                dependencies {
-                    api project(':a')
-                }
-            }
-        """
+        """)
 
         file("a/src/main/java/Foo.java") << "public class Foo {}"
         file("b/src/main/java/Bar.java") << "public class Bar extends Foo {}"

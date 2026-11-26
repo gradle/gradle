@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.userinput
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -155,17 +154,15 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         "n"      | _
     }
 
-    @ToBeFixedForIsolatedProjects(because = "subprojects")
     def "can ask yes/no question when build is executed in parallel"() {
         given:
         withParallel()
 
-        buildFile << """
-            subprojects {
+        ["a", "b", "c"].each {
+            buildFile("$it/build.gradle", """
                 task "askYesNo"
-            }
-        """
-        createDirs("a", "b", "c")
+            """)
+        }
         settingsFile << "include 'a', 'b', 'c'"
 
         when:

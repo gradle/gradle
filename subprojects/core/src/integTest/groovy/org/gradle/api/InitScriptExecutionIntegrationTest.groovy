@@ -17,7 +17,6 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.TestFile
@@ -188,7 +187,6 @@ try {
         c > b
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "init script can inject configuration into the root project and all projects"() {
         given:
         createDirs("a", "b")
@@ -196,11 +194,11 @@ try {
 
         and:
         file("init.gradle") << """
-allprojects {
-    task worker
+gradle.lifecycle.beforeProject { project ->
+    project.tasks.register("worker")
 }
 rootProject {
-    task root(dependsOn: allprojects*.worker)
+    task root(dependsOn: [':worker', ':a:worker', ':b:worker'])
 }
         """
 

@@ -19,7 +19,6 @@ package org.gradle.execution.taskgraph
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -31,7 +30,6 @@ import spock.lang.Timeout
 
 
 @Requires(TestExecutionPreconditions.NotParallelExecutor)
-@ToBeFixedForIsolatedProjects(because = "allprojects")
 // no point, always runs in parallel
 class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -44,7 +42,8 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         createDirs("a", "b")
         settingsFile << 'include "a", "b"'
 
-        buildFile << """
+        // The task types are declared in the settings script, so that the rules registered for each project can use them
+        settingsFile """
             abstract class SerialPing extends DefaultTask {
 
                 SerialPing() { outputs.upToDateWhen { false } }
@@ -96,7 +95,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
                 }
             }
 
-            allprojects {
+            gradle.lifecycle.beforeProject {
                 def pingEndings = ['FailingPing', 'PingWithCacheableWarnings', 'SerialPing', 'InvalidPing']
 
                 tasks.addRule("<>Ping") { String name ->
@@ -127,11 +126,11 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     void withInvalidPing() {
-        buildFile << """
+        settingsFile """
             abstract class InvalidPing extends Ping {
                 @org.gradle.integtests.fixtures.validation.ValidationProblem File invalidInput
             }
-            allprojects {
+            gradle.lifecycle.beforeProject {
                 tasks.addRule("<>InvalidPing") { String name ->
                     if (name.endsWith("InvalidPing")) {
                         tasks.create(name, InvalidPing)
@@ -348,13 +347,12 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
     def "tasks are not run in parallel if destroy files overlap with output files in multiproject build"() {
         given:
         withParallelThreads(2)
-        buildFile << """
-            def dir = rootProject.file("dir")
-
-            project(':a') { aPing.destroyables.register dir }
-
-            project(':b') { bPing.outputs.file dir }
-        """
+        buildFile("a/build.gradle", """
+            aPing.destroyables.register new File(rootDir, "dir")
+        """)
+        buildFile("b/build.gradle", """
+            bPing.outputs.file new File(rootDir, "dir")
+        """)
 
         expect:
         2.times {
@@ -417,21 +415,20 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         given:
         withParallelThreads(2)
 
-        buildFile << """
-            def foo = rootProject.file("foo")
+        buildFile("a/build.gradle", """
+            def foo = new File(rootDir, "foo")
 
-            project(':a') {
-                aPing.destroyables.register foo
+            aPing.destroyables.register foo
 
-                bPing.outputs.file foo
-                bPing.doLast { foo << "foo" }
-            }
+            bPing.outputs.file foo
+            bPing.doLast { foo << "foo" }
+        """)
+        buildFile("b/build.gradle", """
+            def foo = new File(rootDir, "foo")
 
-            project(':b') {
-                cPing.inputs.file foo
-                cPing.dependsOn ":a:bPing"
-            }
-        """
+            cPing.inputs.file foo
+            cPing.dependsOn ":a:bPing"
+        """)
 
         expect:
         2.times {
@@ -574,9 +571,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
     @Issue("https://github.com/gradle/gradle/issues/17013")
     def "does not deadlock when resolving outputs requires resolving multiple artifacts"() {
-        buildFile("""
-            import org.gradle.util.internal.GFileUtils
-
+        settingsFile("""
             abstract class OutputDeadlockTask extends DefaultTask {
                 @Inject
                 abstract ProjectLayout getProjectLayout()
@@ -595,11 +590,11 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
                     def buildDirectory = projectLayout.buildDirectory
                     inputFiles.files.each { File inputFile ->
                         def outputFile = buildDirectory.file(inputFile.name + ".out").get().asFile
-                        GFileUtils.copyFile(inputFile, outputFile)
+                        org.gradle.util.internal.GFileUtils.copyFile(inputFile, outputFile)
                     }
                 }
             }
-            allprojects {
+            gradle.lifecycle.beforeProject {
                 apply plugin: 'java-library'
 
                 tasks.register("outputDeadlock", OutputDeadlockTask) {
@@ -625,7 +620,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
     @Issue("https://github.com/gradle/gradle/issues/17905")
     def "does not fail when outputs requires resolving configurations"() {
-        buildFile("""
+        def subprojectBuild = """
             abstract class OutputsAsMappedInputs extends DefaultTask {
                 @InputFiles
                 abstract ConfigurableFileCollection getInput()
@@ -649,28 +644,29 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
                 @TaskAction
                 void exec() {}
             }
-            subprojects {
-                configurations.create("myconfig1") {
-                    assert canBeResolved
-                    canBeConsumed = false
-                }
-                configurations.create("myconfig2") {
-                    assert canBeResolved
-                    canBeConsumed = false
-                }
 
-                def problematic = tasks.register("problematicTask", OutputsAsMappedInputs) {
-                    input.from(configurations.myconfig1)
-                }
-                def basic = tasks.register("basicTask", BasicTask) {
-                    input.from(configurations.myconfig2)
-                    outputFile.set(project.layout.buildDirectory.file("output.txt"))
-                }
-                tasks.register("runAll") {
-                    dependsOn(problematic, basic)
-                }
+            configurations.create("myconfig1") {
+                assert canBeResolved
+                canBeConsumed = false
             }
-        """)
+            configurations.create("myconfig2") {
+                assert canBeResolved
+                canBeConsumed = false
+            }
+
+            def problematic = tasks.register("problematicTask", OutputsAsMappedInputs) {
+                input.from(configurations.myconfig1)
+            }
+            def basic = tasks.register("basicTask", BasicTask) {
+                input.from(configurations.myconfig2)
+                outputFile.set(project.layout.buildDirectory.file("output.txt"))
+            }
+            tasks.register("runAll") {
+                dependsOn(problematic, basic)
+            }
+        """
+        buildFile("a/build.gradle", subprojectBuild)
+        buildFile("b/build.gradle", subprojectBuild)
         withParallelThreads(3)
 
         expect:

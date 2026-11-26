@@ -17,25 +17,26 @@
 package org.gradle.api.tasks.options
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 import static org.gradle.api.tasks.options.TaskOptionFixture.taskWithMultipleOptions
 
 class MultipleTaskOptionsIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "can configure tasks from command line in multiple projects"() {
         given:
         createDirs("project2")
-        settingsFile << "include 'project2'"
-        buildFile << """
-            allprojects {
-                task someTask(type: SomeTask)
-            }
-            task task1 //extra stress
-            task task2
+        settingsFile """
+            include 'project2'
 
             ${taskWithMultipleOptions()}
+
+            gradle.lifecycle.beforeProject { project ->
+                project.tasks.create('someTask', SomeTask)
+            }
+        """
+        buildFile """
+            task task1 //extra stress
+            task task2
         """
 
         when:
@@ -52,17 +53,17 @@ class MultipleTaskOptionsIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksScheduled(":task1", ":someTask", ":project2:someTask", ":task2")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "tasks can be configured with different options"() {
         given:
         createDirs("project2")
-        settingsFile << "include 'project2'"
-        buildFile << """
-            allprojects {
-                task someTask(type: SomeTask)
-            }
+        settingsFile """
+            include 'project2'
 
             ${taskWithMultipleOptions()}
+
+            gradle.lifecycle.beforeProject { project ->
+                project.tasks.create('someTask', SomeTask)
+            }
         """
 
         when:
@@ -74,17 +75,17 @@ class MultipleTaskOptionsIntegrationTest extends AbstractIntegrationSpec {
         output.count('second=two') == 1
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "tasks are configured exclusively with their options"() {
         given:
         createDirs("project2")
-        settingsFile << "include 'project2'"
-        buildFile << """
-            allprojects {
-                task someTask(type: SomeTask)
-            }
+        settingsFile """
+            include 'project2'
 
             ${taskWithMultipleOptions()}
+
+            gradle.lifecycle.beforeProject { project ->
+                project.tasks.create('someTask', SomeTask)
+            }
         """
 
         when:

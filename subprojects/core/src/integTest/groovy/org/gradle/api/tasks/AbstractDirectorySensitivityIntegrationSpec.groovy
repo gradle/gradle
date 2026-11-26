@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.fingerprint.DirectorySensitivity
 
 abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractIntegrationSpec {
@@ -221,7 +220,6 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         pathSensitivity << [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects, extensive cross-project access")
     def "artifact transforms are sensitive to empty directories by default"() {
         // Immutable artifact transforms are cached to the GradleUserHome,
         // so to avoid flakiness we need to request own GradleUserHome
@@ -264,7 +262,6 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         assertTransformExecuted()
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects, extensive cross-project access")
     def "artifact transforms ignore empty directories when specified"() {
         // Immutable artifact transforms are cached to the GradleUserHome,
         // so to avoid flakiness we need to request own GradleUserHome
@@ -415,10 +412,25 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
     }
 
     void createParameterizedTransformWithSensitivity(DirectorySensitivity directorySensitivity) {
-        settingsFile << """
+        settingsFile """
             include(':bar')
+
+            gradle.lifecycle.beforeProject { project ->
+                def augmented = Attribute.of('augmented', Boolean)
+                project.dependencies {
+                    attributesSchema {
+                        attribute(augmented)
+                    }
+
+                    artifactTypes {
+                        zip {
+                            attributes.attribute(augmented, false)
+                        }
+                    }
+                }
+            }
         """
-        buildFile << """
+        buildFile """
             ${showTransformedFilesTask}
             ${unzipTransform}
 
@@ -462,20 +474,6 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
             def augmented = Attribute.of('augmented', Boolean)
             def artifactType = Attribute.of('artifactType', String)
 
-            allprojects {
-                dependencies {
-                    attributesSchema {
-                        attribute(augmented)
-                    }
-
-                    artifactTypes {
-                        zip {
-                            attributes.attribute(augmented, false)
-                        }
-                    }
-                }
-            }
-
             dependencies {
                 registerTransform(UnzipTransform) {
                     from.attribute(augmented, false).attribute(artifactType, "zip")
@@ -504,23 +502,22 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
             task showTransformedFiles(type: ShowTransformedFiles) {
                 artifacts.from(configurations.foo)
             }
-
-            project(':bar') {
-                apply plugin: 'base'
-
-                configurations {
-                    foo
-                }
-
-                task zip(type: Zip) {
-                    from('foo')
-                }
-
-                artifacts {
-                    foo zip
-                }
-            }
         """
+        buildFile("bar/build.gradle", """
+            apply plugin: 'base'
+
+            configurations {
+                foo
+            }
+
+            task zip(type: Zip) {
+                from('foo')
+            }
+
+            artifacts {
+                foo zip
+            }
+        """)
     }
 
     static String getUnzipTransform() {

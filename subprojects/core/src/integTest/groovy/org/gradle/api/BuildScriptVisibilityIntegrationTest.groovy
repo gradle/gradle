@@ -18,10 +18,10 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 
 class BuildScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
+    @UnsupportedWithIsolatedProjects(because = "Tests looking up methods of the parent project from a child project, which Isolated Projects does not allow")
     def "methods defined in project build script are visible to descendant projects"() {
         createDirs("child1")
         settingsFile << """
@@ -70,7 +70,7 @@ println "child: " + doSomethingElse(11)
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
+    @UnsupportedWithIsolatedProjects(because = "Tests looking up methods of the parent project from a child project, which Isolated Projects does not allow")
     def "methods defined in project build script are visible to script plugins applied to project and descendants"() {
         createDirs("child1")
         settingsFile << """
@@ -121,7 +121,7 @@ println project.path + " - " + doSomethingElse(12)
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
+    @UnsupportedWithIsolatedProjects(because = "Tests looking up methods of the parent project from a child project, which Isolated Projects does not allow")
     def "methods defined in project build script are visible to descendant projects when script contains only methods"() {
         createDirs("child1")
         settingsFile << """

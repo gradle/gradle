@@ -17,7 +17,6 @@
 package org.gradle.api.services
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
@@ -29,14 +28,13 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         blockingServer.start()
 
         createDirs("a", "b", "c")
-        settingsFile << """
+        settingsFile """
             include 'a', 'b', 'c'
-        """
-        buildFile << """
+
             abstract class EmptyService implements BuildService<org.gradle.api.services.BuildServiceParameters.None> {}
 
-            allprojects {
-                task ping {
+            gradle.lifecycle.beforeProject { project ->
+                project.tasks.register("ping") {
                     def projectName = project.name
                     doLast {
                         ${blockingServer.callFromBuildUsingExpression("projectName")}
@@ -46,16 +44,16 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         """
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "tasks run in parallel when no max usages specified"() {
         given:
         withParallelThreads(2)
 
-        buildFile << """
-            def service = gradle.sharedServices.registerIfAbsent("exclusive", EmptyService) {}
-
-            allprojects {
-                ping.usesService(service)
+        settingsFile """
+            gradle.lifecycle.beforeProject { project ->
+                def service = project.gradle.sharedServices.registerIfAbsent("exclusive", EmptyService) {}
+                project.tasks.named("ping") {
+                    usesService(service)
+                }
             }
         """
 
@@ -70,18 +68,18 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         run ":a:ping", ":b:ping"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "tasks are not run in parallel when they require an exclusive shared service"() {
         given:
         withParallelThreads(2)
 
-        buildFile << """
-            def service = gradle.sharedServices.registerIfAbsent("exclusive", EmptyService) {
-                maxParallelUsages = 1
-            }
-
-            allprojects {
-                ping.usesService(service)
+        settingsFile """
+            gradle.lifecycle.beforeProject { project ->
+                def service = project.gradle.sharedServices.registerIfAbsent("exclusive", EmptyService) {
+                    maxParallelUsages = 1
+                }
+                project.tasks.named("ping") {
+                    usesService(service)
+                }
             }
         """
 
@@ -95,18 +93,18 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         run ":a:ping", ":b:ping"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "tasks run in parallel when sufficient max usages"() {
         given:
         withParallelThreads(2)
 
-        buildFile << """
-            def service = gradle.sharedServices.registerIfAbsent("service", EmptyService) {
-                maxParallelUsages = 2
-            }
-
-            allprojects {
-                ping.usesService(service)
+        settingsFile """
+            gradle.lifecycle.beforeProject { project ->
+                def service = project.gradle.sharedServices.registerIfAbsent("service", EmptyService) {
+                    maxParallelUsages = 2
+                }
+                project.tasks.named("ping") {
+                    usesService(service)
+                }
             }
         """
 
@@ -120,18 +118,18 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         run ":a:ping", ":b:ping"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "task parallelization is limited by max usages"() {
         given:
         withParallelThreads(3)
 
-        buildFile << """
-            def service = gradle.sharedServices.registerIfAbsent("service", EmptyService) {
-                maxParallelUsages = 2
-            }
-
-            allprojects {
-                ping.usesService(service)
+        settingsFile """
+            gradle.lifecycle.beforeProject { project ->
+                def service = project.gradle.sharedServices.registerIfAbsent("service", EmptyService) {
+                    maxParallelUsages = 2
+                }
+                project.tasks.named("ping") {
+                    usesService(service)
+                }
             }
         """
 
@@ -145,30 +143,22 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         run ":a:ping", ":b:ping", ":c:ping"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "task can use multiple services"() {
         given:
         withParallelThreads(3)
 
-        buildFile << """
-            def service1 = gradle.sharedServices.registerIfAbsent("service1", EmptyService) {
-                maxParallelUsages = 2
-            }
-            def service2 = gradle.sharedServices.registerIfAbsent("service2", EmptyService) {
-                maxParallelUsages = 3
-            }
-
-            project(':a') {
-                ping.usesService(service1)
-                ping.usesService(service2)
-            }
-            project(':b') {
-                ping.usesService(service1)
-                ping.usesService(service2)
-            }
-            project(':c') {
-                ping.usesService(service1)
-                ping.usesService(service2)
+        settingsFile """
+            gradle.lifecycle.beforeProject { project ->
+                def service1 = project.gradle.sharedServices.registerIfAbsent("service1", EmptyService) {
+                    maxParallelUsages = 2
+                }
+                def service2 = project.gradle.sharedServices.registerIfAbsent("service2", EmptyService) {
+                    maxParallelUsages = 3
+                }
+                project.tasks.named("ping") {
+                    usesService(service1)
+                    usesService(service2)
+                }
             }
         """
 

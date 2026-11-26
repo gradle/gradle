@@ -17,7 +17,7 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
@@ -29,7 +29,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Project ':child' dynamically looks up properties in the parent project")
+    @UnsupportedWithIsolatedProjects(because = "Tests looking up properties of the parent project from a child project, which Isolated Projects does not allow")
     def canAddDynamicPropertiesToProject() {
         createDirs("child")
         settingsFile """
@@ -85,7 +85,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         succeeds("testTask")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Project ':child' dynamically looks up a method in the parent project")
+    @UnsupportedWithIsolatedProjects(because = "Tests looking up methods of the parent project from a child project, which Isolated Projects does not allow")
     def canAddDynamicMethodsToProject() {
         createDirs("child")
         settingsFile """
@@ -457,7 +457,7 @@ assert 'some value' == project.properties.global
         succeeds()
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Parent project configures children")
+    @UnsupportedWithIsolatedProjects(because = "Tests a parent project injecting methods into its children, which Isolated Projects does not allow")
     def canInjectMethodsFromParentProject() {
         createDirs("child1", "child2")
         settingsFile """
