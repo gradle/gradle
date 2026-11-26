@@ -18,7 +18,6 @@ package org.gradle.integtests.composite
 
 import org.gradle.initialization.StartParameterBuildOptions.ContinueOption
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 /**
  * Tests for composite build delegating to tasks in an included build that produce more than one failure.
@@ -37,11 +36,12 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
         }
 
         buildC = multiProjectBuild('buildC', ['sub1', 'sub2', 'sub3']) {
-            buildFile << """
-                allprojects {
+            settingsFile << """
+                gradle.lifecycle.beforeProject {
                     ${javaProject()}
                 }
-
+            """
+            buildFile """
                 test.dependsOn 'sub1:test', 'sub2:test', 'sub3:test'
             """
             file('sub1/src/test/java/SampleTestC_Sub1.java') << junitTestClass('SampleTestC_Sub1')
@@ -55,7 +55,6 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "can collect build failures from multiple included builds"() {
         when:
         includedBuilds << buildB << buildC << buildD
@@ -83,7 +82,6 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
         failure.assertHasDescription("Execution failed for task ':buildD:test'.")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "can collect build failure in root and included build"() {
         when:
         includedBuilds << buildC

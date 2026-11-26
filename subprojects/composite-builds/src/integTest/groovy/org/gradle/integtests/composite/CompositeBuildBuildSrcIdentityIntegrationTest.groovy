@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
@@ -25,8 +24,8 @@ class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBui
     def setup() {
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
-            buildFile << """
-                allprojects {
+            settingsFile << """
+                gradle.lifecycle.beforeProject {
                     apply plugin: 'java'
                 }
             """
@@ -34,7 +33,6 @@ class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBui
         includedBuilds << buildB
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "includes build identifier in logging output with #display"() {
         dependency "org.test:buildB:1.0"
 
@@ -59,7 +57,6 @@ class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBui
         "rootProject.name='someLib'" | "configured root project name"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "includes build identifier in dependency report with #display"() {
         dependency "org.test:buildB:1.0"
 
@@ -67,13 +64,15 @@ class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBui
         buildB.file("buildSrc/settings.gradle") << """
             $settings
             include 'b1', 'b2'
+            gradle.lifecycle.beforeProject { apply plugin: 'java' }
         """
         buildB.file("buildSrc/build.gradle") << """
-            allprojects { apply plugin: 'java' }
             dependencies { implementation project(':b1') }
-            project(':b1') { dependencies { implementation project(':b2') } }
             classes.dependsOn tasks.dependencies
         """
+        buildFile(buildB.file("buildSrc/b1/build.gradle"), """
+            dependencies { implementation project(':b2') }
+        """)
 
         when:
         execute(buildA, ":assemble")
@@ -137,7 +136,6 @@ Required by:
         "rootProject.name='someLib'" | "configured root project name"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "includes build identifier in dependency resolution results with #display"() {
         dependency "org.test:buildB:1.0"
 
@@ -146,10 +144,10 @@ Required by:
             ${settings}
             include 'a'
         """
+        buildFile(buildB.file("buildSrc/a/build.gradle"), """
+            apply plugin: 'java'
+        """)
         buildB.file("buildSrc/build.gradle") << """
-            project(':a') {
-                apply plugin: 'java'
-            }
             dependencies {
                 implementation project(':a')
             }
