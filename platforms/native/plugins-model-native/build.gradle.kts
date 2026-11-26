@@ -15,6 +15,7 @@ dependencies {
     api(projects.domainObjectCollections)
     api(projects.enterpriseLogging)
     api(projects.fileCollections)
+    api(projects.helpPlugin)
     api(projects.modelCore)
     api(projects.platformBase)
     api(projects.reportRendering)
@@ -30,7 +31,6 @@ dependencies {
 
     api(projects.logging)
 
-    implementation(projects.helpPlugin)
     implementation(projects.daemonServerWorker)
     implementation(projects.modelReflect)
     implementation(projects.publish)

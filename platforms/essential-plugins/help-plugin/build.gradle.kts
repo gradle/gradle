@@ -13,11 +13,13 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.enterpriseLogging)
+    api(projects.fileCollections)
     api(projects.logging)
     api(projects.reportRendering)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 
+    implementation(projects.concurrent)
     implementation(projects.functional)
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
