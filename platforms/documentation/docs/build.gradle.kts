@@ -48,12 +48,6 @@ configurations {
     }
 }
 
-dependencyAnalysis {
-    issues {
-        ignoreSourceSet(sourceSets.docsTest.name)
-    }
-}
-
 dependencies {
     // generate Javadoc for the full Gradle distribution
     runtimeOnly(project(":distributions-full"))
@@ -68,10 +62,15 @@ dependencies {
     testImplementation(libs.jsoup)
 
     docsTestImplementation(platform(project(":distributions-dependencies")))
-    docsTestImplementation(project(":internal-integ-testing"))
     docsTestImplementation(project(":base-services"))
-    docsTestImplementation(project(":logging"))
+    docsTestImplementation(project(":internal-integ-testing"))
+    docsTestImplementation(project(":logging-api"))
+    docsTestImplementation(project(":stdlib-java-extensions"))
+    docsTestImplementation(testLibs.junitPlatformEngine)
+    docsTestImplementation(testLibs.samplesCheck)
+    docsTestImplementation(testLibs.samplesDiscovery)
     docsTestRuntimeOnly(testLibs.junitPlatform)
+    docsTestRuntimeOnly(project(":logging"))
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 
