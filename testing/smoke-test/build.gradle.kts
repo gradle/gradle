@@ -25,34 +25,38 @@ jvmCompile {
     addCompilationFrom(smokeTestSourceSet)
 }
 
-dependencyAnalysis {
-    issues {
-        ignoreSourceSet(smokeTestSourceSet.name)
-    }
-}
-
 addDependenciesAndConfigurations("smoke")
 
 val smokeTestImplementation = configurations.getByName("smokeTestImplementation")
+val smokeTestRuntimeOnly = configurations.getByName("smokeTestRuntimeOnly")
 val smokeTestDistributionRuntimeOnly = configurations.getByName("smokeTestDistributionRuntimeOnly")
 val smokeTestBinDistribution = configurations.getByName("smokeTestBinDistribution")
 val smokeTestSrcDistribution = configurations.getByName("smokeTestSrcDistribution")
 
 dependencies {
+    smokeTestImplementation(projects.baseServices)
+    smokeTestImplementation(projects.buildOperationsTrace)
+    smokeTestImplementation(projects.core)
+    smokeTestImplementation(projects.internalIntegTesting)
     smokeTestImplementation(projects.testKit)
-    smokeTestImplementation(projects.launcher)
-    smokeTestImplementation(libs.groovyJson)
-    smokeTestImplementation(testLibs.junitPlatform)
+    smokeTestImplementation(projects.logging)
+    smokeTestImplementation(projects.startParameter)
+    smokeTestImplementation(projects.stdlibJavaExtensions)
+    smokeTestImplementation(projects.testingBaseInfrastructure)
     smokeTestImplementation(libs.jacksonDatabind)
 
     smokeTestImplementation(testFixtures(projects.buildProcessServices))
-    smokeTestImplementation(testFixtures(projects.core))
     smokeTestImplementation(testFixtures(projects.modelReflect))
     smokeTestImplementation(testFixtures(projects.pluginDevelopment))
     smokeTestImplementation(testFixtures(projects.testingBase))
     smokeTestImplementation(testFixtures(projects.kotlinDslToolingBuilders))
-    smokeTestImplementation(testFixtures(projects.toolingApi))
-    smokeTestImplementation(testFixtures(projects.versionControl))
+    smokeTestImplementation(libs.commonsIo)
+    smokeTestImplementation(libs.groovy)
+    smokeTestImplementation(libs.jsr305)
+    smokeTestImplementation(libs.slf4jApi)
+    smokeTestImplementation(testLibs.junit)
+    smokeTestImplementation(testLibs.junit5JupiterApi)
+    smokeTestImplementation(testLibs.spock)
 
     smokeTestDistributionRuntimeOnly(projects.distributionsFull)
     // These will make the bin and src distribution available through `IntegrationTestBuildContext`
@@ -60,6 +64,11 @@ dependencies {
     smokeTestSrcDistribution(projects.distributionsFull)
 
     testFixturesRuntimeOnly(projects.internalIntegTesting)
+
+    smokeTestRuntimeOnly(projects.launcher)
+    smokeTestRuntimeOnly(testFixtures(projects.toolingApi))
+    smokeTestRuntimeOnly(libs.groovyJson)
+    smokeTestRuntimeOnly(testLibs.junitPlatform)
 }
 
 androidHomeWarmup {
