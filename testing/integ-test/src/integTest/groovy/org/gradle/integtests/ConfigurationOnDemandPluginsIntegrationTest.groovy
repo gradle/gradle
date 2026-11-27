@@ -18,15 +18,15 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 import org.junit.Rule
 import spock.lang.Issue
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class ConfigurationOnDemandPluginsIntegrationTest extends AbstractIntegrationSpec {
     @Rule ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)
 
     @Issue('GRADLE-3534')
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
+    @UnsupportedWithIsolatedProjects(because = "Isolated Projects ignores configure-on-demand and configures all projects")
     def "configures only requested projects when the #plugin plugin is applied"() {
         given:
         multiProjectBuild('multi', ['a', 'b']) {
