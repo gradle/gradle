@@ -99,6 +99,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -650,7 +651,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
                 // Map results for legacy reporting interface
                 reportGenerators.add(new CustomTestReportingGenerator(outputLocation, testReporter));
             } else {
-                reportGenerators.add(getObjectFactory().newInstance(GenericHtmlTestReportGenerator.class, outputLocation.toPath()));
+                reportGenerators.add(getObjectFactory().newInstance(GenericHtmlTestReportGenerator.class, outputLocation.toPath(), Collections.emptyList()));
             }
         } else {
             getLogger().info("Test report disabled, omitting generation of the HTML test report.");

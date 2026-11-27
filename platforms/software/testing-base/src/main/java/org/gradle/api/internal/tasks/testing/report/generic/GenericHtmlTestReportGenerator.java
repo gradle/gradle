@@ -75,6 +75,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
     private final Deleter deleter;
     private final FileCollectionFactory fileCollectionFactory;
     private final Path reportsDirectory;
+    private final List<TestReportEntryContributorSafe> entryContributors;
 
     @Inject
     public GenericHtmlTestReportGenerator(
@@ -82,13 +83,15 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         BuildOperationExecutor buildOperationExecutor,
         Deleter deleter,
         FileCollectionFactory fileCollectionFactory,
-        Path reportsDirectory
+        Path reportsDirectory,
+        List<TestReportEntryContributorSafe> entryContributors
     ) {
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
         this.deleter = deleter;
         this.fileCollectionFactory = fileCollectionFactory;
         this.reportsDirectory = reportsDirectory;
+        this.entryContributors = ImmutableList.copyOf(entryContributors);
     }
 
     @Override
@@ -183,7 +186,8 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
                         requestsBuilder.build(),
                         output,
                         outputReaders,
-                        rootDisplayNames
+                        rootDisplayNames,
+                        entryContributors
                     ));
                 }
             }, reportsDirectory.toFile());
@@ -209,19 +213,22 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         private final HtmlReportBuilder output;
         private final List<TestOutputReader> outputReaders;
         private final List<String> rootDisplayNames;
+        private final List<TestReportEntryContributorSafe> entryContributors;
 
         HtmlReportFileGenerator(
             boolean shrink,
             List<TestTreeModel> requests,
             HtmlReportBuilder output,
             List<TestOutputReader> outputReaders,
-            List<String> rootDisplayNames
+            List<String> rootDisplayNames,
+            List<TestReportEntryContributorSafe> entryContributors
         ) {
             this.shrink = shrink;
             this.requests = requests;
             this.output = output;
             this.outputReaders = outputReaders;
             this.rootDisplayNames = rootDisplayNames;
+            this.entryContributors = entryContributors;
         }
 
         @Override
@@ -235,7 +242,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
 
         @Override
         public void run(BuildOperationContext context) {
-            GenericPageRenderer renderer = new GenericPageRenderer(shrink, outputReaders, rootDisplayNames);
+            GenericPageRenderer renderer = new GenericPageRenderer(shrink, outputReaders, rootDisplayNames, entryContributors);
             for (TestTreeModel request : requests) {
                 output.renderHtmlPage(HtmlTestReportPathBuilder.buildFilePathForModel(shrink, request), request, renderer);
             }

@@ -16,7 +16,9 @@
 
 package org.gradle.internal.html;
 
+import org.gradle.internal.io.IoConsumer;
 import org.gradle.internal.xml.SimpleMarkupWriter;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -26,11 +28,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * <p>A streaming HTML writer.</p>
  */
 public class SimpleHtmlWriter extends SimpleMarkupWriter {
+    @Nullable
     private final Path htmlDirectory;
 
     public SimpleHtmlWriter(Writer writer) throws IOException {
@@ -38,7 +42,7 @@ public class SimpleHtmlWriter extends SimpleMarkupWriter {
     }
 
     @SuppressWarnings("this-escape")
-    public SimpleHtmlWriter(Writer writer, Path htmlDirectory, String indent) throws IOException {
+    public SimpleHtmlWriter(Writer writer, @Nullable Path htmlDirectory, @Nullable String indent) throws IOException {
         super(writer, indent);
         this.htmlDirectory = htmlDirectory;
         writeHtmlHeader();
@@ -54,6 +58,55 @@ public class SimpleHtmlWriter extends SimpleMarkupWriter {
             throw new IllegalArgumentException(String.format("Invalid HTML tag: '%s'", name));
         }
         return super.startElement(name);
+    }
+
+    /**
+     * Writes raw markup into the current element. Finishes the current tag if any is open.
+     *
+     * <p>
+     * Markup written to the {@link Appendable} given to the writer is not escaped or validated, so the caller is
+     * responsible for it being well-formed. The {@link Appendable} must not be used after the writer returns.
+     * </p>
+     */
+    public SimpleHtmlWriter writeRawMarkup(IoConsumer<Appendable> writer) throws IOException {
+        // Writing empty text finishes any pending start tag
+        characters("");
+        AtomicBoolean isClosed = new AtomicBoolean();
+        try {
+            writer.accept(new Appendable() {
+                private void checkClosed() {
+                    if (isClosed.get()) {
+                        throw new IllegalStateException("Appending after writeRawMarkup returned");
+                    }
+                }
+
+                @Override
+                public Appendable append(@Nullable CharSequence csq) throws IOException {
+                    checkClosed();
+                    writeRaw(String.valueOf(csq));
+                    return this;
+                }
+
+                @Override
+                public Appendable append(@Nullable CharSequence csq, int start, int end) throws IOException {
+                    checkClosed();
+                    // Only copy the range, not the whole sequence
+                    CharSequence sequence = csq == null ? "null" : csq;
+                    writeRaw(sequence.subSequence(start, end).toString());
+                    return this;
+                }
+
+                @Override
+                public Appendable append(char c) throws IOException {
+                    checkClosed();
+                    writeRaw(String.valueOf(c));
+                    return this;
+                }
+            });
+        } finally {
+            isClosed.set(true);
+        }
+        return this;
     }
 
     /**
@@ -83,7 +136,8 @@ public class SimpleHtmlWriter extends SimpleMarkupWriter {
         "a", "p",
         "pre", "div", "span",
         "label", "input",
-        "button"
+        "button",
+        "template"
     )));
 
     private static boolean isValidHtmlTag(String name) {

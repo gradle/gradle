@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputRead
 import org.gradle.api.tasks.testing.TestFileAttachmentDataEvent;
 import org.gradle.api.tasks.testing.TestKeyValueDataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.api.tasks.testing.TestReportEntryContext;
 import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.reporting.TabbedPageRenderer;
@@ -65,15 +66,18 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
     private final boolean shrink;
     private final List<TestOutputReader> outputReaders;
     private final List<String> rootDisplayNames;
+    private final List<TestReportEntryContributorSafe> entryContributors;
 
     GenericPageRenderer(
         boolean shrink,
         List<TestOutputReader> outputReaders,
-        List<String> rootDisplayNames
+        List<String> rootDisplayNames,
+        List<TestReportEntryContributorSafe> entryContributors
     ) {
         this.shrink = shrink;
         this.outputReaders = outputReaders;
         this.rootDisplayNames = rootDisplayNames;
+        this.entryContributors = entryContributors;
     }
 
     private void renderBreadcrumbs(SimpleHtmlWriter htmlWriter) throws IOException {
@@ -179,6 +183,21 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                 }
                 if (Iterables.any(info.getMetadatas(), event -> event instanceof TestFileAttachmentDataEvent)) {
                     perRootInfoTabsRenderer.add("attachments", new PerRootTabRenderer.ForFileAttachments(rootIndex, perRootInfoIndex));
+                }
+                if (!entryContributors.isEmpty()) {
+                    TestReportEntryContext context = DefaultTestReportEntryContext.create(
+                        info,
+                        PerRootTabRenderer.ForSummary.getResultType(info)
+                    );
+                    for (TestReportEntryContributorSafe entryContributor : entryContributors) {
+                        TestReportEntryContributorSafe.HtmlContent content = entryContributor.contentFor(context);
+                        if (content != null) {
+                            perRootInfoTabsRenderer.add(
+                                entryContributor.getEntryName(),
+                                new PerRootTabRenderer.ForCustomEntry(rootIndex, perRootInfoIndex, content)
+                            );
+                        }
+                    }
                 }
 
                 perRootInfoTabsRenderers.add(perRootInfoTabsRenderer);

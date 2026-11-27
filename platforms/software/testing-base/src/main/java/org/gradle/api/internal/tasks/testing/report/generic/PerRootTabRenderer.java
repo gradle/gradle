@@ -389,7 +389,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             return (total - info.getFailedLeafCount()) * 100 / total;
         }
 
-        private static TestResult.ResultType getResultType(PerRootInfo info) {
+        static TestResult.ResultType getResultType(PerRootInfo info) {
             if (info.isLeaf()) {
                 // For leaf nodes, we use the result type of the single result
                 if (info.getResults().size() > 1) {
@@ -453,6 +453,33 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             );
             htmlWriter.endElement(); // pre
             htmlWriter.endElement(); // span
+        }
+    }
+
+    /**
+     * Renders a custom entry into a declarative shadow root, so its styles don't leak into the page, and the
+     * {@code </template>} end tag closes any elements it left open. The host uses CSS containment so its layout doesn't
+     * leak either. This is not a security boundary, it only prevents most accidental leakage.
+     */
+    public static final class ForCustomEntry extends PerRootTabRenderer {
+        private final TestReportEntryContributorSafe.HtmlContent content;
+
+        public ForCustomEntry(
+            int rootIndex,
+            int perRootInfoIndex,
+            TestReportEntryContributorSafe.HtmlContent content
+        ) {
+            super(rootIndex, perRootInfoIndex);
+            this.content = content;
+        }
+
+        @Override
+        protected void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
+            htmlWriter.startElement("div").attribute("class", "custom-entry");
+            htmlWriter.startElement("template").attribute("shadowrootmode", "open");
+            htmlWriter.writeRawMarkup(content::writeHtml);
+            htmlWriter.endElement(); // template
+            htmlWriter.endElement(); // div
         }
     }
 

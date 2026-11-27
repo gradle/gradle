@@ -30,7 +30,7 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
     /**
      * Returns an object that can be used to report test events.
      * <p>
-     * This method differs from {@link #createTestEventReporter(String, Directory, Directory, boolean)} in the following ways:
+     * This method differs from {@link #createTestEventReporter(String, Directory, Directory, org.gradle.api.Action)} in the following ways:
      * <ul>
      *     <li>The root descriptor can be provided.</li>
      *     <li>Only the result writer listener is used, added to {@code testListenerInternalBroadcaster}.</li>
