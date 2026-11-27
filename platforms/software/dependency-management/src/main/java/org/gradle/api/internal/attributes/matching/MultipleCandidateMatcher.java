@@ -278,7 +278,7 @@ class MultipleCandidateMatcher {
         final AttributeSelectionSchema.PrecedenceResult precedenceResult = schema.orderByPrecedence(requested.keySet());
 
         for (int a : precedenceResult.getSortedOrder()) {
-            disambiguateRequestedAttribute(a);
+            disambiguateRequestedAttribute(a, remaining);
             if (remaining.cardinality() == 0) {
                 return;
             } else if (remaining.cardinality() == 1) {
@@ -287,24 +287,38 @@ class MultipleCandidateMatcher {
                 return;
             }
         }
+        // When disambiguating in unknown precedence order, we always use the same set of candidates
+        // so that this step is not affected by the order in which we iterate.
+        BitSet candidates = new BitSet();
+        candidates.or(remaining);
+
         // If the attribute does not have a known precedence, then we cannot stop
         // until we've disambiguated all of the attributes.
         for (int a : precedenceResult.getUnsortedOrder()) {
-            disambiguateRequestedAttribute(a);
+            disambiguateRequestedAttribute(a, candidates);
             if (remaining.cardinality() == 0) {
                 return;
             }
         }
     }
 
-    private void disambiguateRequestedAttribute(int a) {
-        Set<Object> candidateValues = getCandidateValues(compatible, c -> getCandidateValue(c, a));
-        if (candidateValues.size() <= 1) {
+    /**
+     * @param a The index of the requested attribute to disambiguate.
+     * @param candidates The set of candidate attribute sets to extract values from during disambiguation.
+     */
+    private void disambiguateRequestedAttribute(int a, BitSet candidates) {
+        Set<Object> candidateValues = getCandidateValues(candidates, c -> getCandidateValue(c, a));
+
+        // We continue disambiguation for attributes with only one value since we may have some candidates with
+        // no value for this attribute in addition to those with a value. Since we do not include `null` in the
+        // candidate values, we must continue to execute the disambiguation in case the single value is chosen
+        // and thus removes the candidates which do not have a value for this attribute.
+        if (candidateValues.isEmpty()) {
             return;
         }
 
         Set<Object> matches = unsafeDisambiguate(requestedAttributes.get(a), requestedAttributeValues[a], candidateValues);
-        if (matches != null && matches.size() < candidateValues.size()) {
+        if (matches != null) {
             // Remove any candidates which do not satisfy the disambiguation rule.
             for (int c = remaining.nextSetBit(0); c >= 0; c = remaining.nextSetBit(c + 1)) {
                 if (!matches.contains(getCandidateValue(c, a))) {
