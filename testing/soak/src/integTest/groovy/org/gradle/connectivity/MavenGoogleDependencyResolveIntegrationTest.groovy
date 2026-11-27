@@ -40,6 +40,7 @@ class MavenGoogleDependencyResolveIntegrationTest extends AbstractDependencyReso
 
     def "can query for human-readable repository name"() {
         given:
+        executer.withoutExtraRepositories()
         buildFile << """
             task checkRepoName {
                 doLast {
