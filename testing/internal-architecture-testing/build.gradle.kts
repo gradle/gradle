@@ -8,7 +8,8 @@ dependencies {
     api(platform(projects.distributionsDependencies))
     api(libs.archunit)
     api(libs.archunitJunit5Api)
-    api(libs.archunitJunit5) {
+
+    runtimeOnly(libs.archunitJunit5) {
         because("This is what we use to write our architecture tests")
     }
 }

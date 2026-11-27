@@ -39,7 +39,7 @@ fun TaskContainer.registerEarlyFeedbackLifecycleTasks() {
     register("sanityCheck") {
         description = "Run all basic checks (without tests) - to be run locally and on CI for early feedback"
         group = "verification"
-        dependsOn("compileAll", "codeQuality")
+        dependsOn("compileAll", "codeQuality", "projectHealth")
     }
 }
 

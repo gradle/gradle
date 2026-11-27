@@ -62,6 +62,7 @@ dependencies {
 
     implementation(libs.asm)
     implementation(libs.groovyJson)
+    implementation(libs.jetbrainsAnnotations)
     implementation(libs.kotlinReflect)
 
     implementation(libs.kotlinCompilerEmbeddable)
