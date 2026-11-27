@@ -519,11 +519,23 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
 
         private String buildProjectTree() {
-            Set<? extends ProjectDescriptor> allprojects = projectRegistry.getAllProjects();
-            return allprojects.stream()
+            StringBuilder buildProjectTree = new StringBuilder();
+
+            // The generated accessors are named after the root project (e.g. `projects.myRoot`),
+            // so the name must be part of the key, or builds with the same project paths would share accessors.
+            ProjectDescriptor rootProject = projectRegistry.getRootProject();
+            if (rootProject != null) {
+                buildProjectTree.append(rootProject.getName());
+                buildProjectTree.append(",");
+            }
+
+            String allProjectsPaths = projectRegistry.getAllProjects().stream()
                 .map(ProjectDescriptor::getPath)
                 .sorted()
                 .collect(Collectors.joining(","));
+            buildProjectTree.append(allProjectsPaths);
+
+            return buildProjectTree.toString();
         }
 
         @Override

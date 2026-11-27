@@ -16,7 +16,9 @@
 
 package org.gradle.integtests.resolve.typesafe
 
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 
 class TypeSafeProjectAccessorsCompositeBuildsIntegrationTest extends AbstractTypeSafeProjectAccessorsIntegrationTest {
 
@@ -45,5 +47,38 @@ class TypeSafeProjectAccessorsCompositeBuildsIntegrationTest extends AbstractTyp
         failureCauseContains("Could not get unknown property 'other' for extension 'projects' of type org.gradle.accessors.dm.RootProjectAccessor")
         // Desired behavior:
 //        outputContains 'Dependency path: ":other"'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22095")
+    def "included build with same project paths but different root project name gets its own root project accessor"() {
+        settingsFile << """
+            rootProject.name = 'test'
+
+            includeBuild 'other'
+        """
+        buildFile << """
+            println('Root build dependency path: [' + projects.test.path + ']')
+
+            tasks.register('work') {
+                dependsOn gradle.includedBuild('other').task(':work')
+            }
+        """
+        def otherSettings = file('other/settings.gradle')
+        FeaturePreviewsFixture.enableTypeSafeProjectAccessors(otherSettings)
+        otherSettings << """
+            rootProject.name = 'other'
+        """
+        file('other/build.gradle') << """
+            println('Included build dependency path: [' + projects.other.path + ']')
+
+            tasks.register('work')
+        """
+
+        when:
+        succeeds 'work'
+
+        then:
+        outputContains 'Root build dependency path: [:]'
+        outputContains 'Included build dependency path: [:]'
     }
 }
