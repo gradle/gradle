@@ -23,6 +23,17 @@ import org.gradle.internal.service.scopes.Scope;
 /**
  * <p>A {@code TaskActionListener} is notified of the actions that a task performs.</p>
  *
+ * <p>This listener type is not supported when the configuration cache is enabled.
+ * To run code right before and after a task executes, use a {@link org.gradle.api.tasks.TaskLifecycleListener}.
+ * It is called in more cases and at different points than this listener:</p>
+ * <ul>
+ *     <li>It is also called for tasks whose actions do not run, such as up-to-date tasks or tasks loaded from the build cache.
+ *     {@link org.gradle.api.tasks.TaskState#getSkipped()} tells whether the actions ran.</li>
+ *     <li>{@code beforeExecution} is called before the task inputs are snapshotted, while {@link #beforeActions(Task)} is called after.</li>
+ *     <li>{@code afterExecution} is called after the task outputs are recorded, so it must not write to them, while {@link #afterActions(Task)} is called before.</li>
+ * </ul>
+ *
+ * @see org.gradle.api.tasks.TaskLifecycleListener
  * @deprecated This type is not supported when configuration caching is enabled.
  * @since 0.9
  */

@@ -105,6 +105,7 @@ class DefaultTaskNodeExecutorTest extends Specification {
         getTaskActions() >> taskActions
         hasTaskActions() >> { !taskActions.isEmpty() }
         getStandardOutputCapture() >> standardOutputCapture
+        getLifecycleListeners() >> Collections.emptySet()
     }
 
     def taskProperties = Stub(TaskProperties) {
@@ -167,7 +168,8 @@ class DefaultTaskNodeExecutorTest extends Specification {
         TestFiles.fileCollectionFactory(),
         TestFiles.taskDependencyFactory(),
         Stub(PathToFileResolver),
-        missingTaskDependencyDetector
+        missingTaskDependencyDetector,
+        Stub(TaskLifecycleListenerInstantiator)
     )
 
     def doesNothingWhenTaskHasNoActions() {

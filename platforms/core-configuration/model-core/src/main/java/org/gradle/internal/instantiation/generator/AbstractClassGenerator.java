@@ -46,6 +46,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.api.reflect.InjectionPointQualifier;
+import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Cast;
@@ -1219,6 +1220,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 visitor.markPropertyAsIneligibleForConventionMapping(property);
             }
             for (PropertyMetadata property : readOnlyProperties) {
+                if (property.hasAnnotation(ServiceReference.class)) {
+                    // The generated getter looks up the build service, so the class needs access to the services it was created with
+                    visitor.mixInServiceInjection();
+                }
                 if (isReattachProperty(property)) {
                     boolean applyRole = isRoleType(property);
                     visitor.attachOnDemand(property, applyRole);

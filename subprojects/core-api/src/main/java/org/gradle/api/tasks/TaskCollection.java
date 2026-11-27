@@ -17,6 +17,7 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
@@ -132,4 +133,17 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
      */
     @Override
     <S extends T> TaskProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownTaskException;
+
+    /**
+     * Registers a listener to be notified before and after the execution of each task in this collection.
+     *
+     * <p>The listener is registered with tasks lazily, as they are configured, in the same way as {@link #configureEach(Action)}.</p>
+     *
+     * @param listenerType The type of the listener.
+     * @see Task#addLifecycleListener(Class)
+     * @see TaskLifecycleListener
+     * @since 9.10.0
+     */
+    @Incubating
+    void addLifecycleListener(Class<? extends TaskLifecycleListener<? super T>> listenerType);
 }

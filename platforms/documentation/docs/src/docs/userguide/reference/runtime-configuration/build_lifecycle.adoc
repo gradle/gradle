@@ -423,6 +423,10 @@ Many `BuildListeners` are deprecated and/or are *not* Configuration Cache friend
 | Fires before and after each task executes.
 | ❌
 
+| (Incubating) link:{javadocPath}/org/gradle/api/tasks/TaskLifecycleListener.html[`TaskLifecycleListener`]
+| Fires before and after the execution of the task it is registered with.
+| ✅
+
 | (Deprecated) link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraphListener.html[`TaskExecutionGraphListener`]
 | Fires when the task execution graph has been populated.
 | ❌
@@ -485,6 +489,88 @@ include::{snippetsPath}/reference/runtime-configuration/buildService/tests/build
 BUILD SUCCESSFUL in 0s
 2 actionable tasks: 2 executed
 ----
+
+[[task_lifecycle_listeners]]
+=== Task Lifecycle Listeners incubating-label:[]
+
+A link:{javadocPath}/org/gradle/api/tasks/TaskLifecycleListener.html[`TaskLifecycleListener`] runs code synchronously right before and after a single task executes.
+Use it to enrich task failures with task-specific details, to release resources even when the task fails, or to veto a task before it runs.
+Task lifecycle listeners are compatible with the <<configuration_cache.adoc#config_cache,Configuration Cache>>.
+
+You register a listener by type, using link:{javadocPath}/org/gradle/api/Task.html#addLifecycleListener(java.lang.Class)[`Task.addLifecycleListener(Class)`] or link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#addLifecycleListener(java.lang.Class)[`TaskCollection.addLifecycleListener(Class)`].
+Gradle creates a new instance of the listener for each task execution and calls `beforeExecution` and `afterExecution` on that instance.
+
+When an `Exec` task fails, the failure names only the executable.
+This example prints the full command line, the working directory, and the error output of the process for every `Exec` task that fails:
+
+====
+include::sample[dir="snippets/optimizing-builds/configuration-cache/taskLifecycleListeners/kotlin",files="build.gradle.kts[tags=task-lifecycle-listeners]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/taskLifecycleListeners/groovy",files="build.gradle[tags=task-lifecycle-listeners]"]
+====
+<1> The type parameter declares that the listener accepts only `Exec` tasks, so its methods receive an `Exec` task.
+<2> Instance fields carry state from `beforeExecution` to `afterExecution`, because each task execution gets its own listener instance.
+<3> `beforeExecution` runs before the task actions. The listener copies the error output of the process, and still writes it to `System.err`, which Gradle shows in the console. This replaces an error output configured on the task.
+<4> `afterExecution` receives the `TaskState`, which holds the failure, if the task failed. The printed lines appear with the output of the failed task.
+<5> `TaskCollection.addLifecycleListener` registers the listener with every `Exec` task.
+
+[[task_lifecycle_listeners_registration]]
+==== Registering listeners
+
+The type parameter of `TaskLifecycleListener<T>` declares which tasks the listener accepts.
+`Task.addLifecycleListener(Class)` only accepts listeners for any task.
+To register a listener for a specific task type, use a typed task collection, such as `tasks.withType<Copy>()`.
+For a single task, use the `addLifecycleListener(MyListener::class)` extension in Kotlin, or the static `Task.addLifecycleListener(task, MyListener.class)` method in Java.
+The compiler checks the task type in all of these.
+Gradle also checks it when you register the listener, for build scripts the compiler doesn't check, such as Groovy ones, and fails with a message naming both the listener's accepted type and the task type if they don't match.
+
+`TaskCollection.addLifecycleListener` registers the listener with tasks lazily, as they are configured, in the same way as `configureEach`.
+So the position of the listener among the listeners of a task is decided when the task is configured, not when `TaskCollection.addLifecycleListener` is called.
+Registering the same listener type with a task more than once has no effect.
+
+[[task_lifecycle_listeners_calls]]
+==== When listeners are called
+
+Gradle calls the listeners of every task that it tries to execute, including tasks that are up-to-date, skipped, or loaded from the build cache.
+Both methods run synchronously as part of the task execution, so the listeners of tasks executing in parallel are called concurrently.
+As listeners also run for tasks that do no work, their cost is paid on every build, even when all tasks are up-to-date.
+Work that only reports the outcome of tasks, such as uploading results, is better done by a <<#build_services_lifecycle,build service that implements `OperationCompletionListener`>>, which is notified asynchronously.
+`beforeExecution` is called in the order the listeners were registered, and `afterExecution` in the reverse order, so the listener registered first is notified first before the task executes and last after it.
+
+`beforeExecution` runs before Gradle snapshots the task inputs and performs up-to-date and build cache checks:
+
+* Configure lazy properties, such as `Property` or `ConfigurableFileCollection`, when you configure the task, not here.
+An input with a plain type, such as `String`, whose value is only known when the task executes, can be set here, as shown in <<configuration_cache_requirements.adoc#config_cache:requirements:task_lifecycle_listeners_plain_inputs,Setting task inputs that are not lazy properties>>.
+Gradle fingerprints the new value, but doesn't add task dependencies for it.
+* It must not change the task's outputs, including values that determine which outputs exist, such as whether a report is enabled.
+* It cannot change the task in other ways, such as declaring inputs or outputs, adding dependencies, actions, or listeners, or changing whether the task is skipped.
+* If it throws an exception, the task fails without running its actions. The same applies when Gradle cannot create the listener.
+
+`afterExecution` runs after Gradle records the task outputs, regardless of the task's outcome:
+
+* Gradle calls it on every listener whose `beforeExecution` completed, even if a later listener's `beforeExecution` failed.
+* If it throws an exception, the task fails in the current build. Later builds can still consider the task up-to-date or load it from the build cache.
+* Listeners must not produce task outputs.
+
+[[task_lifecycle_listeners_services]]
+==== Services and state
+
+A listener can be an abstract class or an interface.
+It can reference build services with `@ServiceReference`, and inject the following services with `@Inject`:
+
+* `ProviderFactory`
+* `FileSystemOperations`
+* `ArchiveOperations`
+* `ExecOperations`
+* `ProjectLayout`
+* `Problems`
+
+Unlike tasks, listeners cannot have `@Nested` properties.
+Keep state shared between task executions in a build service, not in the listener.
+
+The Configuration Cache stores only the listener types.
+Gradle creates the listeners again when the tasks execute, on both cache hits and cache misses.
+
+To migrate from `TaskExecutionListener`, `TaskActionListener`, or `gradle.taskGraph.beforeTask` and `afterTask`, see <<configuration_cache_requirements.adoc#config_cache:requirements:task_lifecycle_listeners,Replacing `taskGraph.beforeTask`, `TaskExecutionListener`, and `TaskActionListener` with a Task Lifecycle Listener>>.
 
 [[flow_actions]]
 === Flow Actions incubating-label:[]

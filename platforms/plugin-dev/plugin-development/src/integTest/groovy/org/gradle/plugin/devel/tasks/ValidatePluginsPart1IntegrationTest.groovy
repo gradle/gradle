@@ -495,6 +495,64 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         }
     }
 
+    def "can validate properties of a task lifecycle listener"() {
+        file("src/main/java/MyListener.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.services.*;
+            import org.gradle.api.tasks.*;
+
+            public abstract class MyListener implements TaskLifecycleListener<Task> {
+                // Valid because concrete getters are ignored
+                public String getName() { return "listener"; }
+
+                // Abstract getters need @ServiceReference or @Inject, also in a base listener
+                public abstract String getLabel();
+
+                // Valid because it is not a getter, so a subclass can implement it
+                public abstract String prefix();
+
+                // Valid because it references a build service
+                @ServiceReference("greeter")
+                public abstract Property<Greeter> getGreeter();
+
+                // Unsupported annotation
+                @Nested
+                public abstract Greeting getNested();
+
+                public static abstract class Greeter implements BuildService<BuildServiceParameters.None> {}
+
+                public static abstract class Greeting {}
+            }
+        """
+
+        expect:
+        assertValidationFailsWith(2)
+
+        and:
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'Gradle:Plugin Validation:Invalid annotation in context'
+            contextualLabel == 'Type \'MyListener\' property \'nested\' is annotated with invalid property type @Nested'
+            details == 'The \'@Nested\' annotation cannot be used in this context'
+            solutions == [
+                'Remove the property',
+                'Use a different annotation, e.g one of @Inject or @ServiceReference',
+            ]
+        }
+        verifyAll(receivedProblem(1)) {
+            severity == Severity.ERROR
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
+            contextualLabel == 'Type \'MyListener\' property \'label\' is abstract but is not annotated with @ServiceReference or @Inject'
+            details == 'Nothing can set the value of a lifecycle listener property, so Gradle only implements abstract getters that reference a build service or inject a service'
+            solutions == [
+                'Annotate it with @ServiceReference or @Inject',
+                'Implement the getter, or keep the value in a field',
+                'In a base listener, use an abstract method that is not a getter, such as label()',
+            ]
+        }
+    }
+
     def "can validate properties of an artifact transform parameters object"() {
         file("src/main/java/MyTransformParameters.java") << """
             import org.gradle.api.*;

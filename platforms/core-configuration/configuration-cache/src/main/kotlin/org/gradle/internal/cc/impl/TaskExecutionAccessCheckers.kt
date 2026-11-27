@@ -98,7 +98,8 @@ object TaskExecutionAccessCheckers {
         broadcaster: TaskExecutionAccessListener,
         workExecutionTracker: WorkExecutionTracker
     ) : AbstractTaskProjectAccessChecker(graphLoadingState, broadcaster, workExecutionTracker) {
-        override fun isTaskExecutionTime(task: TaskInternal): Boolean = task.state.executing
+        override fun isTaskExecutionTime(task: TaskInternal): Boolean =
+            task.state.executing || task.state.isNotifyingLifecycleListeners
     }
 
     class ConfigurationTimeBarrierBased(

@@ -145,6 +145,77 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         result.groupedOutput.task(':log').output =~ /First line of text\n{3,}Last line of text/
     }
 
+    @ToBeFixedForIsolatedProjects(because = "multi-project tests via BlockingHttpServer/parallel fail under IP")
+    def "output of task lifecycle listeners is grouped with the output of the task"() {
+        server.start()
+
+        given:
+        createDirs("1", "2", "3")
+        settingsFile << "include '1', '2', '3'"
+
+        buildFile << """
+            abstract class PrintingListener implements TaskLifecycleListener<Task> {
+                void beforeExecution(Task task) {
+                    println "Before " + task.path
+                }
+
+                void afterExecution(Task task, TaskState state) {
+                    println "After " + task.path
+                }
+            }
+
+            subprojects {
+                task log {
+                    addLifecycleListener(PrintingListener)
+                    def projectName = project.name
+                    doFirst {
+                        println "Output from " + projectName
+                        new java.net.URL("${server.uri}/log" + projectName).openConnection().getContentLength()
+                    }
+                }
+            }
+        """
+
+        when:
+        server.expectConcurrent("log1", "log2", "log3")
+        executer.withArgument("--parallel")
+            .withArgument("--no-problems-report")
+        // run build in another process to avoid interference from logging from test fixtures
+        result = executer.withTasks("log").start().waitForFinish()
+
+        then:
+        result.groupedOutput.taskCount == 3
+        result.groupedOutput.task(':1:log').output == "Before :1:log\nOutput from 1\nAfter :1:log"
+        result.groupedOutput.task(':2:log').output == "Before :2:log\nOutput from 2\nAfter :2:log"
+        result.groupedOutput.task(':3:log').output == "Before :3:log\nOutput from 3\nAfter :3:log"
+    }
+
+    def "output of task lifecycle listeners is grouped with the output of a failed task"() {
+        given:
+        buildFile << """
+            abstract class FailureListener implements TaskLifecycleListener<Task> {
+                void afterExecution(Task task, TaskState state) {
+                    println "Failure: " + state.failure.cause.message
+                }
+            }
+
+            task log {
+                addLifecycleListener(FailureListener)
+                doFirst {
+                    println "Output from task"
+                    throw new GradleException('Forced failure')
+                }
+            }
+        """
+
+        when:
+        fails('log')
+
+        then:
+        result.groupedOutput.task(':log').output == "Output from task\nFailure: Forced failure"
+        result.groupedOutput.task(':log').outcome == 'FAILED'
+    }
+
     @Requires(TestExecutionPreconditions.NotParallelExecutor)
     @ToBeFixedForIsolatedProjects(because = "multi-project tests via BlockingHttpServer/parallel fail under IP")
     def "long running task output correctly interleave with other tasks in parallel"() {
