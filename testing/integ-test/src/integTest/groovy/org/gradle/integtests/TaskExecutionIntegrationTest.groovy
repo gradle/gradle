@@ -20,7 +20,6 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import spock.lang.Issue
 import spock.lang.Timeout
@@ -160,16 +159,17 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def executesMultiProjectsTasksInASingleBuildAndEachTaskAtMostOnce() {
         createDirs("child1", "child2", "child1-2", "child1-2-2")
-        settingsFile << "include 'child1', 'child2', 'child1-2', 'child1-2-2'"
-        buildFile << """
+        settingsFile """
+            include 'child1', 'child2', 'child1-2', 'child1-2-2'
+            gradle.lifecycle.beforeProject { project ->
+                project.tasks.register("b")
+                project.tasks.register("c") { dependsOn 'b', ':a' }
+            }
+        """
+        buildFile """
             task a
-            allprojects {
-                task b
-                task c(dependsOn: ['b', ':a'])
-            };
         """
 
         expect:
@@ -179,18 +179,18 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def executesMultiProjectDefaultTasksInASingleBuildAndEachTaskAtMostOnce() {
-        createDirs("child1", "child2")
-        settingsFile << "include 'child1', 'child2'"
-        buildFile << """
+        settingsFile "include 'child1', 'child2'"
+        buildFile """
             defaultTasks 'a', 'b'
             task a
-            subprojects {
+        """
+        ["child1", "child2"].each {
+            buildFile "$it/build.gradle", """
                 task a(dependsOn: ':a')
                 task b(dependsOn: ':a')
-            }
-        """
+            """
+        }
 
         expect:
         2.times {
@@ -390,34 +390,32 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21962")
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "honours mustRunAfter task ordering declared via dependency resolution"() {
-        createDirs("a", "b")
-        settingsFile << """
+        settingsFile """
             include('a')
             include('b')
         """
-        taskTypeWithOutputFileProperty()
-        buildFile << """
-            subprojects {
-                configurations.create("implementation") {
-                    attributes.attribute(${Usage.name}.USAGE_ATTRIBUTE, objects.named(${Usage.name}, "test"))
-                }
+        def implementationConfiguration = """
+            configurations.create("implementation") {
+                attributes.attribute(${Usage.name}.USAGE_ATTRIBUTE, objects.named(${Usage.name}, "test"))
             }
-            project('a') {
-                task producer(type: FileProducer) {
-                    output = layout.buildDirectory.file("out.txt")
-                }
-                artifacts { implementation producer.output }
+        """
+        taskTypeWithOutputFileProperty(file("a/build.gradle"))
+        buildFile "a/build.gradle", """
+            $implementationConfiguration
+            task producer(type: FileProducer) {
+                output = layout.buildDirectory.file("out.txt")
             }
-            project('b') {
-                dependencies {
-                    implementation project(':a')
-                }
-                task resolve {
-                    mustRunAfter configurations.implementation
-                    doLast {  }
-                }
+            artifacts { implementation producer.output }
+        """
+        buildFile "b/build.gradle", """
+            $implementationConfiguration
+            dependencies {
+                implementation project(':a')
+            }
+            task resolve {
+                mustRunAfter configurations.implementation
+                doLast {  }
             }
         """
         expect:
@@ -662,31 +660,27 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
     }
 
     @Issue("gradle/gradle#783")
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "executes finalizer task as soon as possible after finalized task"() {
-        buildFile << """
-            project(":a") {
-                task jar() {
-                  dependsOn "compileJava"
-                }
-                task compileJava() {
-                  dependsOn ":b:jar"
-                  finalizedBy "compileFinalizer"
-                }
-                task compileFinalizer()
+        buildFile "a/build.gradle", """
+            task jar() {
+              dependsOn "compileJava"
             }
-
-            project(":b") {
-                task jar()
+            task compileJava() {
+              dependsOn ":b:jar"
+              finalizedBy "compileFinalizer"
             }
-
+            task compileFinalizer()
+        """
+        buildFile "b/build.gradle", """
+            task jar()
+        """
+        buildFile """
             task build() {
               dependsOn ":a:jar"
               dependsOn ":b:jar"
             }
         """
-        createDirs("a", "b")
-        settingsFile << "include 'a', 'b'"
+        settingsFile "include 'a', 'b'"
 
         expect:
         2.times {

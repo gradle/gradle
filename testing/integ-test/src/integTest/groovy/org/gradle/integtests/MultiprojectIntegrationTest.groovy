@@ -16,11 +16,11 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 import org.junit.Test
 
 class MultiprojectIntegrationTest extends AbstractIntegrationTest {
-    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
+    @UnsupportedWithIsolatedProjects(because = "Configures all projects from the root project, which Isolated Projects does not allow")
     @Test
     public void canInjectConfigurationFromParentProject() {
         createDirs("a", "b")

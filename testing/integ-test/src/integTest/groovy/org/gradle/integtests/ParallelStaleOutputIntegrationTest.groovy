@@ -20,13 +20,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.GradleVersion
 import org.gradle.util.Matchers
 import spock.lang.Issue
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 @Issue(["https://github.com/gradle/gradle/issues/17812", "https://github.com/gradle/gradle/issues/22090"])
 class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "fails when configuring tasks which do dependency resolution from non-project context in constructor"() {
-        buildFile << """
+        def projectConfiguration = """
             abstract class BadTask extends DefaultTask {
                 @OutputFile
                 abstract RegularFileProperty getOutputFile()
@@ -54,36 +52,32 @@ class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            subprojects {
-                apply plugin: 'base'
-                configurations {
-                    myconf
-                }
-                tasks.withType(GoodTask).configureEach {
-                    outputFile = layout.buildDirectory.file("good.txt")
-                }
-                tasks.withType(BadTask).configureEach {
-                    outputFile = layout.buildDirectory.file("bad.txt")
-                }
-                tasks.register("foo", GoodTask)
-                tasks.register("bar", BadTask)
-                clean {
-                    delete tasks.named("bar")
-                }
+            apply plugin: 'base'
+            configurations {
+                myconf
             }
-
-            project(":a") {
-                dependencies {
-                    myconf project(":b")
-                }
+            tasks.withType(GoodTask).configureEach {
+                outputFile = layout.buildDirectory.file("good.txt")
+            }
+            tasks.withType(BadTask).configureEach {
+                outputFile = layout.buildDirectory.file("bad.txt")
+            }
+            tasks.register("foo", GoodTask)
+            tasks.register("bar", BadTask)
+            clean {
+                delete tasks.named("bar")
             }
         """
-        settingsFile << """
+        buildFile "a/build.gradle", """
+            $projectConfiguration
+            dependencies {
+                myconf project(":b")
+            }
+        """
+        buildFile "b/build.gradle", projectConfiguration
+        settingsFile """
             include 'a', 'b'
         """
-        // Avoid missing project directory deprecation warnings
-        testDirectory.file("a").mkdirs()
-        testDirectory.file("b").mkdirs()
 
         expect:
         fails("a:foo", "b:foo", "--parallel")

@@ -17,7 +17,6 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.hamcrest.CoreMatchers
@@ -26,23 +25,22 @@ class MultiProjectDependencyIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         createDirs("a", "b", "c", "d")
-        settingsFile << 'include "a", "b", "c", "d"'
-        buildFile << """
-allprojects {
-    apply plugin: 'java-library'
-
-    task copyLibs(type: Copy) {
-        from configurations.runtimeClasspath
-        into 'deps'
-    }
-
-    compileJava.dependsOn copyLibs
-}
-"""
+        settingsFile """
+            include "a", "b", "c", "d"
+            gradle.lifecycle.beforeProject { project ->
+                project.apply plugin: 'java-library'
+                def copyLibs = project.tasks.register("copyLibs", Copy) {
+                    from project.configurations.runtimeClasspath
+                    into 'deps'
+                }
+                project.tasks.named("compileJava") {
+                    dependsOn copyLibs
+                }
+            }
+        """
         executer.withArgument('--info')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def "project dependency c->[a,b]"() {
         projectDependency from: 'c', to: ['a', 'b']
         when:
@@ -55,7 +53,6 @@ allprojects {
         depsCopied 'c', ['a', 'b']
     }
 
-    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def "project dependency c->b->a"() {
 
         projectDependency from: 'c', to: ['b']
@@ -71,7 +68,6 @@ allprojects {
         depsCopied 'a', []
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "project dependency a->[b,c] and b->c"() {
 
         projectDependency from: 'a', to: ['b', 'c']
@@ -87,7 +83,6 @@ allprojects {
         depsCopied 'c', []
     }
 
-    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def "project dependency a->[b,d] and b->c->d"() {
 
         projectDependency from: 'a', to: ['b', 'd']
@@ -105,7 +100,6 @@ allprojects {
         depsCopied 'd', []
     }
 
-    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def "project dependency a->[b,c] and b->d and c->d"() {
 
         projectDependency from: 'a', to: ['b', 'c']
@@ -123,7 +117,6 @@ allprojects {
         depsCopied 'd', []
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "circular project dependency without task cycle a->b->c->a:2"() {
 
         projectDependency from: 'a', to: ['b']
@@ -131,20 +124,18 @@ allprojects {
 
         def outputValue = System.currentTimeMillis()
 
-        buildFile << """
-project(':a') {
-    task writeOutputFile {
-        def outputDir = file('build')
-        doLast {
-            outputDir.mkdirs()
-            new File(outputDir, 'output.txt') << "${outputValue}"
-        }
-    }
-}
-project(':c') {
-    compileJava.dependsOn ':a:writeOutputFile'
-}
-"""
+        buildFile "a/build.gradle", """
+            task writeOutputFile {
+                def outputDir = file('build')
+                doLast {
+                    outputDir.mkdirs()
+                    new File(outputDir, 'output.txt') << "${outputValue}"
+                }
+            }
+        """
+        buildFile "c/build.gradle", """
+            compileJava.dependsOn ':a:writeOutputFile'
+        """
 
         when:
         run ':a:build'
@@ -159,7 +150,6 @@ project(':c') {
         file('a/build/output.txt').text == "$outputValue"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "project dependency cycle a->b->c->a"() {
         projectDependency from: 'a', to: ['b']
         projectDependency from: 'b', to: ['c']
@@ -173,7 +163,6 @@ project(':c') {
         failure.assertThatDescription(CoreMatchers.startsWith("Circular dependency between the following tasks:"))
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "project dependency a->b->c->d and c fails"() {
         projectDependency from: 'a', to: ['b']
         projectDependency from: 'b', to: ['c']
@@ -194,7 +183,6 @@ project(':c') {
     // 'c' + 'd' _may_ be built with parallel executer
     // test can't handle parallel task execution
     @Requires(TestExecutionPreconditions.NotParallelOrConfigCacheExecutor)
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "project dependency a->[b,c] and c->d and b fails"() {
         projectDependency from: 'a', to: ['b', 'c']
         projectDependency from: 'c', to: ['d']
@@ -210,7 +198,6 @@ project(':c') {
         jarsNotBuilt 'a', 'b', 'c', 'd'
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "project dependency a->[b,c] and c->d and b fails with run with --continue"() {
         projectDependency from: 'a', to: ['b', 'c']
         projectDependency from: 'c', to: ['d']
@@ -228,7 +215,6 @@ project(':c') {
         jarsNotBuilt 'a', 'b'
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "project dependency a->[b,c] and both b & c fail with --continue"() {
         projectDependency from: 'a', to: ['b', 'c']
         failingBuild 'b'
@@ -254,24 +240,20 @@ project(':c') {
             "api project(':${it}')"
         }.join('\n')
 
-        buildFile << """
-project(':$from') {
-    dependencies {
-        ${dependencies}
-    }
-}
-"""
+        buildFile "$from/build.gradle", """
+            dependencies {
+                ${dependencies}
+            }
+        """
     }
 
     def failingBuild(def project) {
         file("$project/src/main/java/Foo.java") << "class Foo {}"
-        buildFile << """
-project(':$project') {
-    compileJava.doFirst {
-        throw new RuntimeException('failure in $project')
-    }
-}
-"""
+        buildFile "$project/build.gradle", """
+            compileJava.doFirst {
+                throw new RuntimeException('failure in $project')
+            }
+        """
     }
 
     def jarsBuilt(String... projects) {
