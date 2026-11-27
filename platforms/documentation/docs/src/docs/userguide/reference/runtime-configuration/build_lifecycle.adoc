@@ -533,10 +533,9 @@ Both methods run synchronously as part of the task execution, so the listeners o
 
 `beforeExecution` runs before Gradle snapshots the task inputs and performs up-to-date and build cache checks:
 
-* It can change the values of task inputs, and Gradle fingerprints the changed values.
+* It is not meant for configuring the task. If it changes an input value anyway, Gradle fingerprints the changed value, but doesn't add task dependencies for it.
 * It must not change the task's outputs, including values that determine which outputs exist, such as whether a report is enabled.
 * It cannot change the task in other ways, such as declaring inputs or outputs, adding dependencies, actions, or listeners, or changing whether the task is skipped.
-* Changing an input value does not add task dependencies. If a changed input uses files produced by another task, declare that dependency when you configure the task.
 * If it throws an exception, the task fails without running its actions. The same applies when Gradle cannot create the listener.
 
 `afterExecution` runs after Gradle records the task outputs, regardless of the task's outcome:

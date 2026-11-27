@@ -69,11 +69,10 @@ public interface TaskLifecycleListener<T extends Task> {
      *
      * <p>Called for every task that Gradle tries to execute, including tasks that are later skipped, up-to-date or loaded from the build cache.</p>
      *
-     * <p>The values of task inputs can be changed here, and the changed values are fingerprinted.
+     * <p>This method is not meant for configuring the task. If it changes the value of a task input anyway,
+     * the changed value is fingerprinted, but no task dependencies are added for it, as the task graph is already built.
      * The outputs of the task are already resolved and must not be changed. This includes values that
-     * determine which outputs the task has, such as whether a report is enabled.
-     * Inputs changed here do not create task dependencies, as the task graph is already built.
-     * If a changed input uses files produced by another task, declare that dependency when configuring the task.</p>
+     * determine which outputs the task has, such as whether a report is enabled.</p>
      *
      * <p>Throwing an exception fails the task. The task actions are not executed in this case.
      * The listeners registered after this one are not notified at all, and {@link #afterExecution(Task, TaskState)}
