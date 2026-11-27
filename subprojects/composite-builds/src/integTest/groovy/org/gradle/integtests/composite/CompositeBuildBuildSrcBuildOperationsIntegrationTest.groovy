@@ -21,7 +21,6 @@ import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
@@ -37,8 +36,8 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
     def setup() {
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
-            buildFile << """
-                allprojects {
+            settingsFile << """
+                gradle.lifecycle.beforeProject {
                     apply plugin: 'java'
                 }
 """
@@ -46,7 +45,6 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         includedBuilds << buildB
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "generates configure, task graph and run tasks operations for buildSrc of included builds with #display"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -133,7 +131,6 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         "rootProject.name='someLib'" | "configured root project name"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "generates configure, task graph and run tasks operations when all builds have buildSrc with #display"() {
         given:
         dependency 'org.test:buildB:1.0'

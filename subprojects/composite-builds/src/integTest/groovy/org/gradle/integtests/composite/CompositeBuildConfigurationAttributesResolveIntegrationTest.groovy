@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.util.internal.ToBeImplemented
 
@@ -31,7 +30,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         using m2
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration")
     def "context travels to transitive dependencies"() {
         given:
         createDirs("a", "b", "includedBuild")
@@ -40,37 +38,37 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             includeBuild 'includedBuild'
             ${resolve.configureSettings("_compileFreeDebug", "_compileFreeRelease")}
         """
-        buildFile << '''
-            def buildType = Attribute.of('buildType', String)
-            def flavor = Attribute.of('flavor', String)
-            allprojects {
+        settingsFile '''
+            gradle.lifecycle.beforeProject {
                 dependencies {
                     attributesSchema {
-                        attribute(buildType)
-                        attribute(flavor)
+                        attribute(Attribute.of('buildType', String))
+                        attribute(Attribute.of('flavor', String))
                     }
                 }
             }
-            project(':a') {
-                configurations {
-                    _compileFreeDebug.attributes { attribute(buildType, 'debug'); attribute(flavor, 'free') }
-                    _compileFreeRelease.attributes { attribute(buildType, 'release'); attribute(flavor, 'free') }
-                }
-                dependencies {
-                    _compileFreeDebug project(':b')
-                    _compileFreeRelease project(':b')
-                }
-            }
-            project(':b') {
-                configurations.create('default')
-                artifacts {
-                    'default' file('b-transitive.jar')
-                }
-                dependencies {
-                    'default'('com.acme.external:external:1.0')
-                }
-            }
         '''
+        buildFile("a/build.gradle", """
+            def buildType = Attribute.of('buildType', String)
+            def flavor = Attribute.of('flavor', String)
+            configurations {
+                _compileFreeDebug.attributes { attribute(buildType, 'debug'); attribute(flavor, 'free') }
+                _compileFreeRelease.attributes { attribute(buildType, 'release'); attribute(flavor, 'free') }
+            }
+            dependencies {
+                _compileFreeDebug project(':b')
+                _compileFreeRelease project(':b')
+            }
+        """)
+        buildFile("b/build.gradle", """
+            configurations.create('default')
+            artifacts {
+                'default' file('b-transitive.jar')
+            }
+            dependencies {
+                'default'('com.acme.external:external:1.0')
+            }
+        """)
 
         file('includedBuild/build.gradle') << """
 
@@ -134,7 +132,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration")
     def "context travels to transitive dependencies via external components (Maven)"() {
         given:
         mavenRepo.module('com.acme.external', 'external', '1.2')
@@ -146,40 +143,40 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             includeBuild 'includedBuild'
             ${resolve.configureSettings("_compileFreeDebug", "_compileFreeRelease")}
         """
-        buildFile << """
-            def buildType = Attribute.of('buildType', String)
-            def flavor = Attribute.of('flavor', String)
-            allprojects {
+        settingsFile """
+            gradle.lifecycle.beforeProject {
                 repositories {
                     maven { url = '${mavenRepo.uri}' }
                 }
                 dependencies {
                     attributesSchema {
-                        attribute(buildType)
-                        attribute(flavor)
+                        attribute(Attribute.of('buildType', String))
+                        attribute(Attribute.of('flavor', String))
                     }
                 }
             }
-            project(':a') {
-                configurations {
-                    _compileFreeDebug.attributes { attribute(buildType, 'debug'); attribute(flavor, 'free') }
-                    _compileFreeRelease.attributes { attribute(buildType, 'release'); attribute(flavor, 'free') }
-                }
-                dependencies {
-                    _compileFreeDebug project(':b')
-                    _compileFreeRelease project(':b')
-                }
-            }
-            project(':b') {
-                configurations.create('default')
-                artifacts {
-                    'default' file('b-transitive.jar')
-                }
-                dependencies {
-                    'default'('com.acme.external:external:1.2')
-                }
-            }
         """
+        buildFile("a/build.gradle", """
+            def buildType = Attribute.of('buildType', String)
+            def flavor = Attribute.of('flavor', String)
+            configurations {
+                _compileFreeDebug.attributes { attribute(buildType, 'debug'); attribute(flavor, 'free') }
+                _compileFreeRelease.attributes { attribute(buildType, 'release'); attribute(flavor, 'free') }
+            }
+            dependencies {
+                _compileFreeDebug project(':b')
+                _compileFreeRelease project(':b')
+            }
+        """)
+        buildFile("b/build.gradle", """
+            configurations.create('default')
+            artifacts {
+                'default' file('b-transitive.jar')
+            }
+            dependencies {
+                'default'('com.acme.external:external:1.2')
+            }
+        """)
 
         file('includedBuild/build.gradle') << """
 
@@ -247,7 +244,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration")
     def "context travels to transitive dependencies via external components (Ivy)"() {
         given:
         ivyRepo.module('com.acme.external', 'external', '1.2')
@@ -259,40 +255,40 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             includeBuild 'includedBuild'
             ${resolve.configureSettings("_compileFreeDebug", "_compileFreeRelease")}
         """
-        buildFile << """
-            def buildType = Attribute.of('buildType', String)
-            def flavor = Attribute.of('flavor', String)
-            allprojects {
+        settingsFile """
+            gradle.lifecycle.beforeProject {
                 repositories {
                     ivy { url = '${ivyRepo.uri}' }
                 }
                 dependencies {
                     attributesSchema {
-                        attribute(buildType)
-                        attribute(flavor)
+                        attribute(Attribute.of('buildType', String))
+                        attribute(Attribute.of('flavor', String))
                     }
                 }
             }
-            project(':a') {
-                configurations {
-                    _compileFreeDebug.attributes { attribute(buildType, 'debug'); attribute(flavor, 'free') }
-                    _compileFreeRelease.attributes { attribute(buildType, 'release'); attribute(flavor, 'free') }
-                }
-                dependencies {
-                    _compileFreeDebug project(':b')
-                    _compileFreeRelease project(':b')
-                }
-            }
-            project(':b') {
-                configurations.create('default')
-                artifacts {
-                    'default' file('b-transitive.jar')
-                }
-                dependencies {
-                    'default'('com.acme.external:external:1.2')
-                }
-            }
         """
+        buildFile("a/build.gradle", """
+            def buildType = Attribute.of('buildType', String)
+            def flavor = Attribute.of('flavor', String)
+            configurations {
+                _compileFreeDebug.attributes { attribute(buildType, 'debug'); attribute(flavor, 'free') }
+                _compileFreeRelease.attributes { attribute(buildType, 'release'); attribute(flavor, 'free') }
+            }
+            dependencies {
+                _compileFreeDebug project(':b')
+                _compileFreeRelease project(':b')
+            }
+        """)
+        buildFile("b/build.gradle", """
+            configurations.create('default')
+            artifacts {
+                'default' file('b-transitive.jar')
+            }
+            dependencies {
+                'default'('com.acme.external:external:1.2')
+            }
+        """)
 
         file('includedBuild/build.gradle') << """
 
@@ -360,7 +356,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration")
     def "attribute values are matched across builds - #type"() {
         given:
         createDirs("a", "b", "includedBuild")
@@ -369,7 +364,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             includeBuild 'includedBuild'
             ${resolve.configureSettings("_compileFree", "_compilePaid")}
         """
-        buildFile << """
+        buildFile("a/build.gradle", """
             enum SomeEnum implements Named {
                 free, paid
                 @Override String getName() { return name() }
@@ -379,33 +374,29 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             class OtherThing implements Thing, Serializable { String name }
 
             def flavor = Attribute.of('flavor', $type)
-            allprojects {
-                dependencies {
-                    attributesSchema {
-                        attribute(flavor)
-                    }
+            dependencies {
+                attributesSchema {
+                    attribute(flavor)
                 }
             }
-            project(':a') {
-                configurations {
-                    _compileFree.attributes { attribute(flavor, $freeValue) }
-                    _compilePaid.attributes { attribute(flavor, $paidValue) }
-                }
-                dependencies {
-                    _compileFree project(':b')
-                    _compilePaid project(':b')
-                }
+            configurations {
+                _compileFree.attributes { attribute(flavor, $freeValue) }
+                _compilePaid.attributes { attribute(flavor, $paidValue) }
             }
-            project(':b') {
-                configurations.create('default')
-                artifacts {
-                    'default' file('b-transitive.jar')
-                }
-                dependencies {
-                    'default'('com.acme.external:external:1.0')
-                }
+            dependencies {
+                _compileFree project(':b')
+                _compilePaid project(':b')
             }
-        """
+        """)
+        buildFile("b/build.gradle", """
+            configurations.create('default')
+            artifacts {
+                'default' file('b-transitive.jar')
+            }
+            dependencies {
+                'default'('com.acme.external:external:1.0')
+            }
+        """)
 
         file('includedBuild/build.gradle') << """
             enum SomeEnum implements Named {
@@ -706,7 +697,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 //        }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration")
     def "reports failure to resolve due to incompatible attribute values"() {
         given:
         createDirs("a", "b", "includedBuild")
@@ -715,7 +705,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             includeBuild 'includedBuild'
             ${resolve.configureSettings("_compileFree", "_compilePaid")}
         """
-        buildFile << """
+        buildFile("a/build.gradle", """
             interface Thing extends Named { }
 
             class CompatRule implements AttributeCompatibilityRule<Thing> {
@@ -727,43 +717,39 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
 
             def flavor = Attribute.of('flavor', Thing)
-            allprojects {
-                dependencies {
-                    attributesSchema {
-                        attribute(flavor).compatibilityRules.add(CompatRule)
-                    }
+            dependencies {
+                attributesSchema {
+                    attribute(flavor).compatibilityRules.add(CompatRule)
                 }
             }
-            project(':a') {
-                configurations {
-                    _compileFree.attributes { attribute(flavor, named(Thing, 'free')) }
-                    _compilePaid.attributes { attribute(flavor, named(Thing, 'paid')) }
-                }
-                dependencies {
-                    _compileFree project(':b')
-                    _compilePaid project(':b')
-                }
-                task checkFree(dependsOn: configurations._compileFree) {
-                    doLast {
-                       assert configurations._compileFree.collect { it.name } == ['b-transitive.jar', 'c-foo.jar']
-                    }
-                }
-                task checkPaid(dependsOn: configurations._compilePaid) {
-                    doLast {
-                       assert configurations._compilePaid.collect { it.name } == ['b-transitive.jar', 'c-bar.jar']
-                    }
+            configurations {
+                _compileFree.attributes { attribute(flavor, named(Thing, 'free')) }
+                _compilePaid.attributes { attribute(flavor, named(Thing, 'paid')) }
+            }
+            dependencies {
+                _compileFree project(':b')
+                _compilePaid project(':b')
+            }
+            task checkFree(dependsOn: configurations._compileFree) {
+                doLast {
+                   assert configurations._compileFree.collect { it.name } == ['b-transitive.jar', 'c-foo.jar']
                 }
             }
-            project(':b') {
-                configurations.create('default')
-                artifacts {
-                    'default' file('b-transitive.jar')
-                }
-                dependencies {
-                    'default'('com.acme.external:external:1.0')
+            task checkPaid(dependsOn: configurations._compilePaid) {
+                doLast {
+                   assert configurations._compilePaid.collect { it.name } == ['b-transitive.jar', 'c-bar.jar']
                 }
             }
-        """
+        """)
+        buildFile("b/build.gradle", """
+            configurations.create('default')
+            artifacts {
+                'default' file('b-transitive.jar')
+            }
+            dependencies {
+                'default'('com.acme.external:external:1.0')
+            }
+        """)
 
         file('includedBuild/build.gradle') << """
             interface Thing extends Named { }
@@ -813,7 +799,6 @@ All of them match the consumer attributes:
   - Variant 'foo' capability 'com.acme.external:external:2.0-SNAPSHOT' declares attribute 'flavor' with value 'red'""")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration")
     def "context travels down to transitive dependencies with typed attributes using plugin"() {
         def resolve = new ResolveTestFixture(testDirectory)
 
@@ -833,50 +818,61 @@ All of them match the consumer attributes:
             rootProject.name = 'test'
             ${resolve.configureSettings("_compileFreeDebug", "_compileFreeRelease")}
         """
+        // The plugin is applied to the root project only; its classes are visible to the child projects' build scripts
         buildFile << """
             ${usesTypedAttributesPlugin(v1, usePluginsDSL)}
-
-            allprojects {
-                dependencies {
-                    attributesSchema {
-                        attribute(flavor)
-                        attribute(buildType)
-                    }
-                }
-            }
-            project(':a') {
-                configurations {
-                    _compileFreeDebug.attributes { attribute(buildType, debug); attribute(flavor, free) }
-                    _compileFreeRelease.attributes { attribute(buildType, release); attribute(flavor, free) }
-                }
-                dependencies {
-                    _compileFreeDebug project(':b')
-                    _compileFreeRelease project(':b')
-                }
-                task xcheckDebug(dependsOn: configurations._compileFreeDebug) {
-                    doLast {
-                       assert configurations._compileFreeDebug.collect { it.name } == ['b-transitive.jar', 'c-foo.jar']
-                    }
-                }
-                task xcheckRelease(dependsOn: configurations._compileFreeRelease) {
-                    doLast {
-                       assert configurations._compileFreeRelease.collect { it.name } == ['b-transitive.jar', 'c-bar.jar']
-                    }
-                }
-
-            }
-            project(':b') {
-                configurations.create('default') {
-
-                }
-                artifacts {
-                    'default' file('b-transitive.jar')
-                }
-                dependencies {
-                    'default'('com.acme.external:external:1.0')
-                }
-            }
         """
+        buildFile("a/build.gradle", """
+            import static com.acme.Flavor.free
+            import static com.acme.BuildType.debug
+            import static com.acme.BuildType.release
+
+            def flavor = Attribute.of(com.acme.Flavor)
+            def buildType = Attribute.of(com.acme.BuildType)
+            dependencies {
+                attributesSchema {
+                    attribute(flavor)
+                    attribute(buildType)
+                }
+            }
+            configurations {
+                _compileFreeDebug.attributes { attribute(buildType, debug); attribute(flavor, free) }
+                _compileFreeRelease.attributes { attribute(buildType, release); attribute(flavor, free) }
+            }
+            dependencies {
+                _compileFreeDebug project(':b')
+                _compileFreeRelease project(':b')
+            }
+            task xcheckDebug(dependsOn: configurations._compileFreeDebug) {
+                doLast {
+                   assert configurations._compileFreeDebug.collect { it.name } == ['b-transitive.jar', 'c-foo.jar']
+                }
+            }
+            task xcheckRelease(dependsOn: configurations._compileFreeRelease) {
+                doLast {
+                   assert configurations._compileFreeRelease.collect { it.name } == ['b-transitive.jar', 'c-bar.jar']
+                }
+            }
+        """)
+        buildFile("b/build.gradle", """
+            def flavor = Attribute.of(com.acme.Flavor)
+            def buildType = Attribute.of(com.acme.BuildType)
+            dependencies {
+                attributesSchema {
+                    attribute(flavor)
+                    attribute(buildType)
+                }
+            }
+            configurations.create('default') {
+
+            }
+            artifacts {
+                'default' file('b-transitive.jar')
+            }
+            dependencies {
+                'default'('com.acme.external:external:1.0')
+            }
+        """)
 
         file('includedBuild/build.gradle') << """
             ${usesTypedAttributesPlugin(v2, usePluginsDSL)}

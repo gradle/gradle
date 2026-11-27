@@ -20,8 +20,10 @@ import org.gradle.api.Action
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtraPropertiesExtension
+import org.gradle.api.provider.Provider
 import org.gradle.api.reflect.TypeOf
 import org.gradle.util.TestUtil
+import spock.lang.Issue
 import spock.lang.Specification
 
 import static org.gradle.api.reflect.TypeOf.typeOf
@@ -69,6 +71,44 @@ class ExtensionContainerTest extends Specification {
         when:
         container.add("foo", extension)
         container.extensionsAsDynamicObject.foo = new FooExtension()
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "There's an extension registered with name 'foo'. You should not reassign it via a property setter."
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24719")
+    def "lazy extension value can be set via dynamic property setter"() {
+        def property = TestUtil.objectFactory().property(String)
+
+        when:
+        container.add("foo", property)
+        container.extensionsAsDynamicObject.foo = "bar"
+
+        then:
+        property.get() == "bar"
+        container.getByName("foo").is(property)
+    }
+
+    def "lazy extension with read-only public type cannot be set via dynamic property setter"() {
+        def property = TestUtil.objectFactory().property(String)
+
+        when:
+        container.add(new TypeOf<Provider<String>>() {}, "foo", property)
+        container.extensionsAsDynamicObject.foo = "bar"
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "There's an extension registered with name 'foo'. You should not reassign it via a property setter."
+        !property.present
+    }
+
+    def "lazy extension cannot be replaced via dynamic property setter on the container"() {
+        given:
+        container.add("foo", TestUtil.objectFactory().property(String))
+
+        when:
+        container.foo = "bar"
 
         then:
         IllegalArgumentException e = thrown()

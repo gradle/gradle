@@ -19,9 +19,9 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
+
     /**
      * Caller should add define an 'inputFiles' property to define the inputs to the transform
      */
@@ -31,7 +31,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 someFiles.from { project.inputFiles }
             """)
         }
-        buildFile << """
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters{
                     $inputAnnotations
@@ -49,28 +49,24 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     output.text = input.text + paramContent + ".green"
                 }
             }
-        """
+        """)
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive a file collection containing pre-built files via parameter object"() {
         createDirs("a", "b", "c")
         settingsFile << """
                 include 'a', 'b', 'c'
             """
         setupBuildWithTransformFileInputs()
-        buildFile << """
-            allprojects {
-                ext.inputFiles = files('a.txt', 'b.txt')
+        configureEachProject("""
+            ext.inputFiles = files('a.txt', 'b.txt')
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
             }
-
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-"""
+        """)
         file('a/a.txt').text = '123'
         file('a/b.txt').text = 'abc'
 
@@ -83,7 +79,6 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive a file collection containing external dependencies as parameter"() {
         mavenRepo.module("test", "tool-a", "1.2").publish()
         mavenRepo.module("test", "tool-b", "1.2").publish()
@@ -93,23 +88,26 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 include 'a', 'b', 'c'
             """
         setupBuildWithTransformFileInputs()
-        buildFile << """
-            allprojects {
-                configurations.create("tools") { }
-                repositories.maven { url = '${mavenRepo.uri}' }
-                ext.inputFiles = configurations.tools
-            }
-
-            project(':a') {
-                dependencies {
-                    tools 'test:tool-a:1.2'
-                    tools 'test:tool-b:1.2'
-
-                    implementation project(':b')
-                    implementation project(':c')
+        settingsFile """
+            dependencyResolutionManagement {
+                repositories {
+                    maven { url = '${mavenRepo.uri}' }
                 }
             }
-"""
+        """
+        configureEachProject("""
+            configurations.create("tools") { }
+            ext.inputFiles = configurations.tools
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                tools 'test:tool-a:1.2'
+                tools 'test:tool-b:1.2'
+
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         run(":a:resolve")
@@ -120,36 +118,26 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive a file input from a nested bean on the parameter object"() {
         createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
-        buildFile << """
-            allprojects {
-                task tool(type: FileProducer) {
-                    output = file("build/tool-\${project.name}.jar")
-                }
+        configureEachProject("""
+            tasks.create('tool', FileProducer) {
+                output = file("build/tool-\${project.name}.jar")
             }
-        """
+        """)
         setupBuildWithColorTransform {
             params("""
                 nestedBean.inputFiles.from(tasks.tool)
             """)
         }
-        buildFile << """
+        settingsScriptClasses("""
             interface NestedInputFiles {
                 @InputFiles
                 ConfigurableFileCollection getInputFiles()
             }
-
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
-            }
-
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters{
                     @Nested
@@ -168,7 +156,12 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     output.text = input.text + paramContent + ".green"
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+            }
+        """)
 
         when:
         run(":a:resolve")
@@ -178,28 +171,24 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green]")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive a file collection containing task outputs as parameter"() {
         createDirs("a", "b", "c")
         settingsFile << """
                 include 'a', 'b', 'c'
             """
         setupBuildWithTransformFileInputs()
-        buildFile << """
-            allprojects {
-                task tool(type: FileProducer) {
-                    output = file("build/tool-\${project.name}.jar")
-                }
-                ext.inputFiles = files(tasks.tool.output)
+        configureEachProject("""
+            tasks.create('tool', FileProducer) {
+                output = file("build/tool-\${project.name}.jar")
             }
-
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
+            ext.inputFiles = files(tasks.tool.output)
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
             }
-        """
+        """)
 
         when:
         run(":a:resolve")
@@ -211,14 +200,13 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive a file collection containing transform outputs as parameter"() {
         createDirs("a", "b", "c", "d", "e")
         settingsFile << """
                 include 'a', 'b', 'c', 'd', 'e'
             """
         setupBuildWithTransformFileInputs()
-        buildFile << """
+        settingsScriptClasses("""
             abstract class MakeRed implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -230,40 +218,38 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     output.text = "ok"
                 }
             }
-
-            allprojects {
-                def attr = Attribute.of('color', String)
-                def tools = configurations.create("tools") {
-                    canBeConsumed = false
-                    canBeResolved = false
-                }
-                configurations.create("toolsPath") {
-                    extendsFrom(tools)
-                    canBeConsumed = false
-                    assert canBeResolved
-                    attributes.attribute(attr, 'blue')
-                }
-                ext.inputFiles = configurations.toolsPath.incoming.artifactView {
-                    attributes.attribute(attr, 'red')
-                }.files
-                dependencies {
-                    registerTransform(MakeRed) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'red')
-                    }
+        """)
+        configureEachProject("""
+            def attr = Attribute.of('color', String)
+            def tools = configurations.create("tools") {
+                canBeConsumed = false
+                canBeResolved = false
+            }
+            configurations.create("toolsPath") {
+                extendsFrom(tools)
+                canBeConsumed = false
+                assert canBeResolved
+                attributes.attribute(attr, 'blue')
+            }
+            ext.inputFiles = configurations.toolsPath.incoming.artifactView {
+                attributes.attribute(attr, 'red')
+            }.files
+            dependencies {
+                registerTransform(MakeRed) {
+                    from.attribute(color, 'blue')
+                    to.attribute(color, 'red')
                 }
             }
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                tools project(':d')
+                tools project(':e')
 
-            project(':a') {
-                dependencies {
-                    tools project(':d')
-                    tools project(':e')
-
-                    implementation project(':b')
-                    implementation project(':c')
-                }
+                implementation project(':b')
+                implementation project(':c')
             }
-"""
+        """)
 
         when:
         run(":a:resolve")
@@ -275,54 +261,50 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive a file collection containing substituted external dependencies as parameter"() {
         createDirs("tools", "tools/tool-a", "tools/tool-b")
         file("tools/settings.gradle") << """
             include 'tool-a', 'tool-b'
         """
-        file("tools/build.gradle") << """
-            allprojects {
+        ["tool-a", "tool-b"].each { tool ->
+            buildFile("tools/${tool}/build.gradle", """
                 group = 'test'
                 configurations.create("default")
                 task producer(type: Producer) {
                     outputFile = file("build/\${project.name}.jar")
                 }
                 artifacts."default" tasks.producer.outputFile
-            }
 
-            class Producer extends DefaultTask {
-                @OutputFile
-                final RegularFileProperty outputFile = project.objects.fileProperty()
+                class Producer extends DefaultTask {
+                    @OutputFile
+                    final RegularFileProperty outputFile = project.objects.fileProperty()
 
-                @TaskAction
-                def go() {
-                    outputFile.get().asFile.text = "output"
+                    @TaskAction
+                    def go() {
+                        outputFile.get().asFile.text = "output"
+                    }
                 }
-            }
-        """
+            """)
+        }
         createDirs("a", "b", "c")
         settingsFile << """
                 include 'a', 'b', 'c'
                 includeBuild 'tools'
             """
         setupBuildWithTransformFileInputs()
-        buildFile << """
-            allprojects {
-                configurations.create("tools") { }
-                ext.inputFiles = configurations.tools
-            }
+        configureEachProject("""
+            configurations.create("tools") { }
+            ext.inputFiles = configurations.tools
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                tools 'test:tool-a:1.2'
+                tools 'test:tool-b:1.2'
 
-            project(':a') {
-                dependencies {
-                    tools 'test:tool-a:1.2'
-                    tools 'test:tool-b:1.2'
-
-                    implementation project(':b')
-                    implementation project(':c')
-                }
+                implementation project(':b')
+                implementation project(':c')
             }
-"""
+        """)
 
         when:
         run(":a:resolve")
@@ -334,33 +316,23 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive a task output file as parameter"() {
         createDirs("a", "b", "c", "d", "e")
         settingsFile << """
                 include 'a', 'b', 'c', 'd', 'e'
             """
-        buildFile << """
-            allprojects {
-                task tool(type: FileProducer) {
-                    output = file("build/tool-\${project.name}.jar")
-                }
-                ext.inputFile = tasks.tool.output
+        configureEachProject("""
+            tasks.create('tool', FileProducer) {
+                output = file("build/tool-\${project.name}.jar")
             }
-        """
+            ext.inputFile = tasks.tool.output
+        """)
         setupBuildWithColorTransform {
             params("""
                 someFile = project.inputFile
             """)
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @InputFile
@@ -377,7 +349,13 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     output.text = input.text + parameters.someFile.get().asFile.text + ".green"
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         run(":a:resolve")
@@ -388,33 +366,23 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("processing c.jar using tool-a.jar")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive a task output directory as parameter"() {
         createDirs("a", "b", "c", "d", "e")
         settingsFile << """
                 include 'a', 'b', 'c', 'd', 'e'
             """
-        buildFile << """
-            allprojects {
-                task tool(type: DirProducer) {
-                    output = file("build/tool-\${project.name}-dir")
-                }
-                ext.inputDir = tasks.tool.output
+        configureEachProject("""
+            tasks.create('tool', DirProducer) {
+                output = file("build/tool-\${project.name}-dir")
             }
-        """
+            ext.inputDir = tasks.tool.output
+        """)
         setupBuildWithColorTransform {
             params("""
                 someDir = project.inputDir
             """)
         }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @InputDirectory
@@ -431,7 +399,13 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     output.text = input.text + parameters.someDir.get().asFile.list().length + ".green"
                 }
             }
-        """
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
+            }
+        """)
 
         when:
         run(":a:resolve")
@@ -442,29 +416,25 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("processing c.jar using tool-a-dir")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform does not execute when file inputs cannot be built"() {
         createDirs("a", "b", "c")
         settingsFile << """
                 include 'a', 'b', 'c'
             """
         setupBuildWithTransformFileInputs()
-        buildFile << """
-            allprojects {
-                task tool(type: FileProducer) {
-                    output = file("build/tool-\${project.name}.jar")
-                    doLast { throw new RuntimeException('broken') }
-                }
-                ext.inputFiles = files(tasks.tool.output)
+        configureEachProject("""
+            tasks.create('tool', FileProducer) {
+                output = file("build/tool-\${project.name}.jar")
+                doLast { throw new RuntimeException('broken') }
             }
-
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
+            ext.inputFiles = files(tasks.tool.output)
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
             }
-"""
+        """)
 
         when:
         executer.withArgument("--continue")
@@ -473,30 +443,26 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         then:
         result.assertTasksScheduled(":a:tool", ":b:producer", ":c:producer")
         outputDoesNotContain("processing")
-        failure.assertHasDescription("Execution failed for task ':a:tool' (registered in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':a:tool' (registered in settings file 'settings.gradle').")
         failure.assertHasFailures(1)
         failure.assertHasCause("broken")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "can use input path sensitivity #pathSensitivity for parameter object"() {
         createDirs("a", "b", "c")
         settingsFile << """
                 include 'a', 'b', 'c'
             """
         setupBuildWithTransformFileInputs("@PathSensitive(PathSensitivity.$pathSensitivity) @InputFiles")
-        buildFile << """
-            allprojects {
-                ext.inputFiles = rootProject.files(providers.gradleProperty('fileName'))
+        configureEachProject("""
+            ext.inputFiles = files(providers.gradleProperty('fileName').map { new File(rootDir, it) })
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
             }
-
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-        """
+        """)
         def (first, second, third) = files
 
         when:
@@ -544,23 +510,20 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 include 'a', 'b', 'c'
             """
         setupBuildWithTransformFileInputs("@Classpath")
-        buildFile << """
-            allprojects {
-                ext.inputFiles = files(rootProject.file("inputDir"), rootProject.file("input.jar"))
+        configureEachProject("""
+            ext.inputFiles = files(new File(rootDir, "inputDir"), new File(rootDir, "input.jar"))
+        """)
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation project(':b')
+                implementation project(':c')
             }
-
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-                normalization {
-                    runtimeClasspath {
-                        ignore("**/ignored.txt")
-                    }
+            normalization {
+                runtimeClasspath {
+                    ignore("**/ignored.txt")
                 }
             }
-        """
+        """)
         def inputDir = file("inputDir")
         inputDir.mkdirs()
         def inputJar = file("input.jar")

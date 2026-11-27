@@ -18,10 +18,8 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ProjectDirectoryCreator
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.util.internal.ToBeImplemented
 
-@ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
 class ArtifactTransformContinuousBuildIntegrationTest extends AbstractContinuousIntegrationTest implements ArtifactTransformTestFixture, ProjectDirectoryCreator {
 
     def setup() {
@@ -34,7 +32,7 @@ class ArtifactTransformContinuousBuildIntegrationTest extends AbstractContinuous
 
         setupBuildWithColorAttributes()
 
-        file("buildSrc/src/main/groovy/MakeGreen.groovy") << """
+        settingsScriptClasses("""
             import java.io.File
             import javax.inject.Inject;
             import org.gradle.api.provider.*
@@ -60,37 +58,37 @@ class ArtifactTransformContinuousBuildIntegrationTest extends AbstractContinuous
                     outputFile.text = "green"
                 }
             }
-        """
+        """)
 
-        buildFile << """
-            allprojects { p ->
-                dependencies {
-                    registerTransform(MakeGreen) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'green')
-                        parameters {
-                            inputFiles.from(project.file("input/input.txt"))
-                        }
+        configureEachProject("""
+            dependencies {
+                registerTransform(MakeGreen) {
+                    from.attribute(color, 'blue')
+                    to.attribute(color, 'green')
+                    parameters {
+                        inputFiles.from(project.file("input/input.txt"))
                     }
                 }
             }
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
-                }
+        """)
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
             }
-        """
+        """)
 
-        def producerInputFile = file("producer/input/input.txt")
-        producerInputFile.text = "input"
+        // The consumer resolves, so its registration (and its input file) is the one used
+        def inputFile = file("consumer/input/input.txt")
+        inputFile.text = "input"
 
         when:
         run ":consumer:resolve"
         then:
         executedAndNotSkipped(":consumer:resolve")
+        outputContains("Transforming producer.jar")
 
         when:
-        producerInputFile.text = "changed"
+        inputFile.text = "changed"
         then:
         // TODO: A build should be triggered, though it isn't since currently combine the secondary inputs into one hash
         //   buildTriggeredAndSucceeded()

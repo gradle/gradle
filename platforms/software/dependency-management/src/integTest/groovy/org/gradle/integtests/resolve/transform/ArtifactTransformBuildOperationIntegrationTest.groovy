@@ -31,7 +31,6 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedNode
@@ -48,7 +47,6 @@ import java.util.function.Predicate
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_ATTRIBUTE
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED
 
-@ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
 class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture, UndeclaredArtifactTransformInputDeprecation {
 
     @EqualsAndHashCode
@@ -95,11 +93,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         requireOwnGradleUserHomeDir("Artifact transforms should run every time and not be shared between tests")
 
         // group name is included in the capabilities of components, which are part of the transform identity
-        buildFile << """
-            allprojects {
-                group = "colored"
-            }
-        """
+        configureEachProject("""
+            group = "colored"
+        """)
 
         printTaskOnlyExecutionPlan()
     }
@@ -128,21 +124,22 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         """
     }
 
-    def setupExternalDependency(TestFile buildFile = getBuildFile()) {
+    def setupExternalDependency(TestFile settingsFile = getSettingsFile()) {
         def m1 = mavenRepo.module("test", "test", "4.2").publish()
         m1.artifactFile.text = "test-test"
 
-        buildFile << """
-            allprojects {
+        this.settingsFile(settingsFile, """
+            dependencyResolutionManagement {
                 repositories {
                     maven { url = "${mavenRepo.uri}" }
                 }
-
-                dependencies {
-                    implementation 'test:test:4.2'
-                }
             }
-        """
+        """)
+        configureEachProject(settingsFile, """
+            dependencies {
+                implementation 'test:test:4.2'
+            }
+        """)
     }
 
     def "single transform operations are captured"() {
@@ -154,13 +151,11 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         setupBuildWithColorTransformImplementation()
         setupExternalDependency()
 
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
-                }
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
             }
-        """
+        """)
 
         when:
         run ":consumer:resolve"
@@ -220,13 +215,11 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         setupBuildWithChainedColorTransform()
         setupExternalDependency()
 
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
-                }
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
             }
-        """
+        """)
 
         when:
         run ":consumer:resolve"
@@ -304,14 +297,12 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         setupBuildWithColorTransformWithAnotherTransformOutputAsInput()
         setupExternalDependency()
 
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
-                    transform project(":producer")
-                }
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
+                transform project(":producer")
             }
-        """
+        """)
 
         when:
         run ":consumer:resolve"
@@ -389,13 +380,11 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         setupBuildWithColorTransformThatTakesUpstreamArtifacts()
         setupExternalDependency()
 
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
-                }
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
             }
-        """
+        """)
 
         when:
         run ":consumer:resolve"
@@ -451,13 +440,11 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         setupBuildWithChainedColorTransformThatTakesUpstreamArtifacts()
         setupExternalDependency()
 
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
-                }
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
             }
-        """
+        """)
 
         when:
         run ":consumer:resolve"
@@ -535,31 +522,13 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         """
 
         setupBuildWithColorAttributes()
-        buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform(MakeColor) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'red')
-                        parameters.targetColor.set('red')
-                        parameters.multiplier.set(2)
-                    }
-                    registerTransform(MakeColor) {
-                        from.attribute(color, 'red')
-                        to.attribute(color, 'green')
-                        parameters.targetColor.set('green')
-                        parameters.multiplier.set(1)
-                    }
-                }
-            }
-
+        settingsScriptClasses("""
             interface TargetColor extends TransformParameters {
                 @Input
                 Property<String> getTargetColor()
                 @Input
                 Property<Integer> getMultiplier()
             }
-
             abstract class MakeColor implements TransformAction<TargetColor> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -574,16 +543,30 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                     }
                 }
             }
-        """
-        setupExternalDependency()
-
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
+        """)
+        configureEachProject("""
+            dependencies {
+                registerTransform(MakeColor) {
+                    from.attribute(color, 'blue')
+                    to.attribute(color, 'red')
+                    parameters.targetColor.set('red')
+                    parameters.multiplier.set(2)
+                }
+                registerTransform(MakeColor) {
+                    from.attribute(color, 'red')
+                    to.attribute(color, 'green')
+                    parameters.targetColor.set('green')
+                    parameters.multiplier.set(1)
                 }
             }
-        """
+        """)
+        setupExternalDependency()
+
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
+            }
+        """)
 
         when:
         run ":consumer:resolve"
@@ -663,41 +646,43 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             include 'producer', 'consumer'
         """
 
-        taskTypeWithMultipleOutputFileProperties()
-
-        buildFile << """
-            ${colorVariants()}
-            allprojects {
-                task producer(type: OutputFilesTask) {
-                    out1.convention(layout.buildDirectory.file("\${project.name}.out1.jar"))
-                    out2.convention(layout.buildDirectory.file("\${project.name}.out2.jar"))
-                }
-
-                artifacts {
-                    implementation tasks.producer.out1
-                    implementation tasks.producer.out2
-                }
-
-                task resolve(type: ShowFileCollection) {
-                    def view = configurations.resolver.incoming.artifactView {
-                        attributes.attribute(color, 'green')
-                    }.files
-                    files.from(view)
+        settingsScriptClasses("""
+            class OutputFilesTask extends DefaultTask {
+                @OutputFile
+                final RegularFileProperty out1 = project.objects.fileProperty()
+                @OutputFile
+                final RegularFileProperty out2 = project.objects.fileProperty()
+                @TaskAction
+                def go() {
+                    out1.get().asFile.text = "1"
+                    out2.get().asFile.text = "2"
                 }
             }
             ${showFileCollectionTask()}
-        """
-
-        buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform(MakeGreen) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'green')
-                    }
-                }
+        """)
+        configureEachProject("""
+            def color = Attribute.of('color', String)
+            ext.color = color
+            ${colorVariantConfigurations()}
+            tasks.create('producer', OutputFilesTask) {
+                out1.convention(layout.buildDirectory.file("\${project.name}.out1.jar"))
+                out2.convention(layout.buildDirectory.file("\${project.name}.out2.jar"))
             }
 
+            artifacts {
+                implementation tasks.producer.out1
+                implementation tasks.producer.out2
+            }
+
+            tasks.create('resolve', ShowFileCollection) {
+                def view = configurations.resolver.incoming.artifactView {
+                    attributes.attribute(color, 'green')
+                }.files
+                files.from(view)
+            }
+        """)
+
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<org.gradle.api.artifacts.transform.TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -709,15 +694,21 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                     output.text = input.text + ".green"
                 }
             }
-        """
-
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
+        """)
+        configureEachProject("""
+            dependencies {
+                registerTransform(MakeGreen) {
+                    from.attribute(color, 'blue')
+                    to.attribute(color, 'green')
                 }
             }
-        """
+        """)
+
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
+            }
+        """)
 
         setupExternalDependency()
 
@@ -798,18 +789,16 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         setupBuildWithColorTransformImplementation()
         setupExternalDependency()
 
-        buildFile << """
-            project(":consumer1") {
-                dependencies {
-                    implementation project(":producer")
-                }
+        buildFile("consumer1/build.gradle", """
+            dependencies {
+                implementation project(":producer")
             }
-            project(":consumer2") {
-                dependencies {
-                    implementation project(":producer")
-                }
+        """)
+        buildFile("consumer2/build.gradle", """
+            dependencies {
+                implementation project(":producer")
             }
-        """
+        """)
 
         when:
         run ":consumer1:resolve", ":consumer2:resolve"
@@ -890,22 +879,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         setupBuildWithColorAttributes()
         setupExternalDependency()
 
-        buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform(MakeGreen) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'green')
-                    }
-                }
-            }
-
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
-                }
-            }
-
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<org.gradle.api.artifacts.transform.TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -916,7 +890,20 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                     throw new IllegalStateException("failed making green: \${input.name}")
                 }
             }
-        """
+        """)
+        configureEachProject("""
+            dependencies {
+                registerTransform(MakeGreen) {
+                    from.attribute(color, 'blue')
+                    to.attribute(color, 'green')
+                }
+            }
+        """)
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
+            }
+        """)
 
         when:
         runAndFail ":consumer:resolve"
@@ -928,7 +915,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         result.groupedOutput.transform("MakeGreen", "producer.jar (project ':producer')")
             .assertOutputContains("processing [producer.jar]")
-
 
         def plannedNodes = getPlannedNodes(1)
 
@@ -971,7 +957,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         file("included/settings.gradle") << """
             include 'nested-producer'
         """
-        setupBuildWithColorAttributes(file("included/build.gradle"))
+        setupBuildWithColorAttributes(file("included/settings.gradle"))
 
         settingsFile << """
             includeBuild("included") {
@@ -989,13 +975,11 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         setupBuildWithColorTransformImplementation()
         setupExternalDependency()
 
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
-                }
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
             }
-        """
+        """)
 
         when:
         run ":consumer:resolve"
@@ -1074,21 +1058,17 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         file("included/settings.gradle") << """
             include 'producer', 'consumer'
         """
-        def includedBuildFile = file("included/build.gradle")
-        includedBuildFile << """
-            allprojects {
-                group = "colored"
+        def includedSettingsFile = file("included/settings.gradle")
+        configureEachProject(includedSettingsFile, """
+            group = "colored"
+        """)
+        setupBuildWithColorTransformImplementation(includedSettingsFile)
+        setupExternalDependency(includedSettingsFile)
+        buildFile("included/consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
             }
-        """
-        setupBuildWithColorTransformImplementation(includedBuildFile)
-        setupExternalDependency(includedBuildFile)
-        includedBuildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
-                }
-            }
-        """
+        """)
 
         settingsFile << """
             includeBuild("included")
@@ -1157,8 +1137,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             include 'producer', 'consumer'
         """
 
-        setupBuildWithColorTransform(buildFile)
-        buildFile << """
+        setupBuildWithColorTransform()
+        settingsScriptClasses("""
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
@@ -1175,17 +1155,15 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                     output.text = input.text + ".green"
                 }
             }
-        """
+        """)
 
         setupExternalDependency()
 
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
-                }
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
             }
-        """
+        """)
 
         when:
         withBuildCache().run ":consumer:resolve", "-DproducerContent=initial"
@@ -1230,8 +1208,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             include 'producer', 'consumer'
         """
 
-        setupBuildWithColorTransform(buildFile)
-        buildFile << """
+        setupBuildWithColorTransform()
+        settingsScriptClasses("""
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
@@ -1245,17 +1223,15 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                     output.text = input.text + ".green"
                 }
             }
-        """
+        """)
 
         setupExternalDependency()
 
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
-                }
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
             }
-        """
+        """)
 
         when:
         run ":consumer:resolve", "-DproducerContent=initial"
@@ -1295,14 +1271,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         setupBuildWithChainedColorTransform()
         setupExternalDependency()
 
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
-                }
-            }
-
-
+        buildFile("consumer/build.gradle", """
             class ShowFileCollectionWithoutDependencies extends DefaultTask {
                 @Internal
                 final ConfigurableFileCollection files = project.objects.fileCollection()
@@ -1316,17 +1285,21 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                     println "result = \${files.files.name}"
                 }
             }
-
-            project(":consumer") {
-                tasks.register("resolveWithoutDependencies", ShowFileCollectionWithoutDependencies) {
-                    def view = configurations.resolver.incoming.artifactView {
-                        attributes.attribute(color, 'green')
-                    }.files
-                    files.from(view)
-                    dependsOn(":producer:producer")
-                }
+        """)
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
             }
-        """
+        """)
+        buildFile("consumer/build.gradle", """
+            tasks.register("resolveWithoutDependencies", ShowFileCollectionWithoutDependencies) {
+                def view = configurations.resolver.incoming.artifactView {
+                    attributes.attribute(color, 'green')
+                }.files
+                files.from(view)
+                dependsOn(":producer:producer")
+            }
+        """)
 
         when: "this test relies on undeclared artifact transforms - the files property is annotated with @Internal, not @InputFiles"
         expectUndeclaredArtifactTransformInputDeprecation()
@@ -1345,7 +1318,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         getPlannedNodes(0)
         getExecutePlannedStepOperations(0).empty
     }
-
 
     def "planned transform steps from script plugin buildscript block are not captured"() {
         setupProjectTransformInBuildScriptBlock(true)
@@ -1408,13 +1380,13 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     private void setupProjectTransformInBuildScriptBlock(boolean inExternalScript) {
-        setupBuildWithChainedColorTransform()
+        setupBuildWithColorAttributes()
 
         createDirs("included/nested-producer")
         file("included/settings.gradle") << """
             include 'nested-producer'
         """
-        setupBuildWithColorAttributes(file("included/build.gradle"))
+        setupBuildWithColorAttributes(file("included/settings.gradle"))
 
         settingsFile << """
             includeBuild("included") {
@@ -1428,7 +1400,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             include 'consumer'
         """
 
-        // Can't define classes in buildscript block, so let's do it in buildSrc
+        // The transform is registered in a buildscript block, which can only see classes from buildSrc
         file("buildSrc/src/main/groovy/TargetColor.groovy") << """
             import ${TransformParameters.name}
             import ${Property.name}
