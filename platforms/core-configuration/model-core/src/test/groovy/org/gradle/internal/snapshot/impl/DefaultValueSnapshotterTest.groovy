@@ -18,6 +18,8 @@ package org.gradle.internal.snapshot.impl
 
 import org.gradle.api.Named
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Nested
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.Decoder
@@ -28,6 +30,8 @@ import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 import spock.lang.Specification
 
 class DefaultValueSnapshotterTest extends Specification {
@@ -750,5 +754,47 @@ class DefaultValueSnapshotterTest extends Specification {
         def sn1 = snapshotter.snapshot(value, snapshot)
         def sn2 = snapshotter.snapshot(value)
         assert sn1 == sn2
+    }
+
+    interface SelfNestedBean {
+        @Nested
+        SelfNestedBean getSelf()
+
+        Property<String> getName()
+    }
+
+    interface MutuallyNestedBeanA {
+        @Nested
+        MutuallyNestedBeanB getB()
+    }
+
+    interface MutuallyNestedBeanB {
+        @Nested
+        MutuallyNestedBeanA getA()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39202")
+    @ToBeImplemented("A @Nested type cycle should be reported, not exhaust the stack")
+    def "snapshotting a managed type with a self-referencing @Nested getter reports the cycle"() {
+        def original = TestUtil.objectFactory().newInstance(SelfNestedBean)
+
+        when:
+        snapshotter.snapshot(original)
+
+        then:
+        // Unlike isolation, this path does not even wrap the failure, so nothing names the value
+        thrown(StackOverflowError)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39202")
+    @ToBeImplemented("A @Nested type cycle should be reported, not exhaust the stack")
+    def "snapshotting a managed type with a mutual @Nested cycle reports the cycle"() {
+        def original = TestUtil.objectFactory().newInstance(MutuallyNestedBeanA)
+
+        when:
+        snapshotter.snapshot(original)
+
+        then:
+        thrown(StackOverflowError)
     }
 }
