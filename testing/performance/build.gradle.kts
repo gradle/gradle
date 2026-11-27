@@ -7,9 +7,17 @@ plugins {
 description = "Performance tests for the Gradle build tool"
 
 dependencies {
+    performanceTestImplementation(projects.baseServices)
     performanceTestImplementation(projects.internalIntegTesting)
+    performanceTestImplementation(projects.startParameter)
+    performanceTestImplementation(projects.stdlibJavaExtensions)
 
-    performanceTestImplementation(testFixtures(projects.toolingApi))
+    performanceTestImplementation(libs.commonsIo)
+    performanceTestImplementation(libs.commonsLang)
+    performanceTestImplementation(libs.groovy)
+    performanceTestImplementation(testLibs.gradleProfiler)
+    performanceTestImplementation(testLibs.junit)
+    performanceTestImplementation(testLibs.spock)
 
     performanceTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("All Gradle features have to be available.")
@@ -17,16 +25,8 @@ dependencies {
     performanceTestLocalRepository(projects.toolingApi) {
         because("IDE tests use the Tooling API.")
     }
-}
 
-dependencyAnalysis {
-    issues {
-        onUnusedDependencies {
-            exclude(testLibs.junitJupiter)
-        }
-
-        ignoreSourceSet(sourceSets.performanceTest.name)
-    }
+    performanceTestRuntimeOnly(testFixtures(projects.toolingApi))
 }
 
 errorprone {

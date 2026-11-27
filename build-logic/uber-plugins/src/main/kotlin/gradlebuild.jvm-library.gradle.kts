@@ -84,6 +84,7 @@ val conventionDependencies = mapOf(
     ),
     "integTest" to integrationTestConventionDependencies,
     "crossVersionTest" to integrationTestConventionDependencies + ":tooling-api",
+    "performanceTest" to integrationTestConventionDependencies,
 )
 
 configure<DependencyAnalysisSubExtension> {
