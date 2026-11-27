@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.resolve.attributes
 
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
-
 /**
  * Variant of the configuration attributes resolution integration test which makes use of the strongly typed attributes notation.
  */
@@ -27,7 +25,14 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         '''
             interface Flavor extends Named {
             }
+        ''' + typeDefsWithoutFlavor
+    }
 
+    /**
+     * Same as {@link #getTypeDefs()}, for a build that declares {@code Flavor} in buildSrc.
+     */
+    String getTypeDefsWithoutFlavor() {
+        '''
             enum BuildType implements Named {
                 debug,
                 release
@@ -68,6 +73,19 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
     @Override
     String getPaid() {
         'attribute(flavor, objects.named(Flavor, "paid"))'
+    }
+
+    /**
+     * Attribute rules apply to the type of their attribute.
+     * For the rules of one project to apply to the attribute of another project, both must use the same {@code Flavor} type.
+     */
+    private void declareFlavorInBuildSrc() {
+        file("buildSrc/src/main/groovy/Flavor.groovy") << """
+            import org.gradle.api.Named
+
+            interface Flavor extends Named {
+            }
+        """
     }
 
     def "resolution fails when two configurations use the same attribute name with different types"() {
@@ -591,18 +609,42 @@ All of them match the consumer attributes:
         result.assertTasksScheduled(':b:fooJar', ':a:checkDebug')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Compatibility and disambiguation rules require shared Class instance to be discovered.")
     def "producer can apply additional compatibility rules when consumer does not have an opinion for attribute known to both"() {
         given:
         createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
-        buildFile << """
-            $typeDefs
+        declareFlavorInBuildSrc()
+        buildFile("a/build.gradle", """
+            $typeDefsWithoutFlavor
 
             class DoNothingRule implements AttributeCompatibilityRule<Flavor> {
                 void execute(CompatibilityCheckDetails<Flavor> details) {
                 }
             }
+
+            dependencies.attributesSchema {
+                attribute(flavor) {
+                    compatibilityRules.add(DoNothingRule)
+                }
+            }
+            configurations {
+                _compileFreeDebug.attributes { $freeDebug }
+                _compileFreeRelease.attributes { $freeRelease }
+            }
+            dependencies {
+                _compileFreeDebug project(':b')
+                _compileFreeRelease project(':b')
+            }
+            task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                def files = configurations._compileFreeDebug
+                doLast {
+                   assert files.collect { it.name } == ['b-bar.jar']
+                }
+            }
+        """)
+        buildFile("b/build.gradle", """
+            $typeDefsWithoutFlavor
+
             class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
                 void execute(CompatibilityCheckDetails<Flavor> details) {
                     if (details.consumerValue.name == 'free' && details.producerValue.name == 'preview') {
@@ -611,70 +653,46 @@ All of them match the consumer attributes:
                 }
             }
 
-            project(':a') {
-                dependencies.attributesSchema {
-                    attribute(flavor) {
-                        compatibilityRules.add(DoNothingRule)
-                    }
-                }
-                configurations {
-                    _compileFreeDebug.attributes { $freeDebug }
-                    _compileFreeRelease.attributes { $freeRelease }
-                }
-                dependencies {
-                    _compileFreeDebug project(':b')
-                    _compileFreeRelease project(':b')
-                }
-                task checkDebug(dependsOn: configurations._compileFreeDebug) {
-                    def files = configurations._compileFreeDebug
-                    doLast {
-                       assert files.collect { it.name } == ['b-bar.jar']
-                    }
+            dependencies.attributesSchema {
+                attribute(flavor) {
+                    compatibilityRules.add(FlavorCompatibilityRule)
                 }
             }
-            project(':b') {
-                dependencies.attributesSchema {
-                    attribute(flavor) {
-                        compatibilityRules.add(FlavorCompatibilityRule)
-                    }
+            configurations {
+                foo {
+                    attributes { $debug; attribute(flavor, objects.named(Flavor, "release")) }
                 }
-                configurations {
-                    foo {
-                        attributes { $debug; attribute(flavor, objects.named(Flavor, "release")) }
-                    }
-                    bar {
-                        attributes { $debug; attribute(flavor, objects.named(Flavor, "preview")) }
-                    }
-                }
-                task fooJar(type: Jar) {
-                   archiveBaseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   archiveBaseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDirectory = buildDir }
-                artifacts {
-                    foo tasks.fooJar
-                    bar tasks.barJar
+                bar {
+                    attributes { $debug; attribute(flavor, objects.named(Flavor, "preview")) }
                 }
             }
-
-        """
+            task fooJar(type: Jar) {
+               archiveBaseName = 'b-foo'
+            }
+            task barJar(type: Jar) {
+               archiveBaseName = 'b-bar'
+            }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
+            artifacts {
+                foo tasks.fooJar
+                bar tasks.barJar
+            }
+        """)
 
         when:
         run ':a:checkDebug'
 
         then:
-        result.assertTasksScheduled(':b:barJar', ':a:checkDebug')
+        result.ignoreBuildSrc.assertTasksScheduled(':b:barJar', ':a:checkDebug')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Compatibility and disambiguation rules require shared Class instance to be discovered.")
     def "consumer can veto producers view of compatibility"() {
         given:
         createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
-        buildFile << """
-            $typeDefs
+        declareFlavorInBuildSrc()
+        buildFile("a/build.gradle", """
+            $typeDefsWithoutFlavor
 
             class VetoRule implements AttributeCompatibilityRule<Flavor> {
                 void execute(CompatibilityCheckDetails<Flavor> details) {
@@ -683,74 +701,91 @@ All of them match the consumer attributes:
                     }
                 }
             }
+
+            dependencies.attributesSchema {
+                attribute(flavor) {
+                    compatibilityRules.add(VetoRule)
+                }
+            }
+            configurations {
+                _compileFreeDebug.attributes { $freeDebug }
+            }
+            dependencies {
+                _compileFreeDebug project(':b')
+            }
+            task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                def files = configurations._compileFreeDebug
+                doLast {
+                   assert files.collect { it.name } == ['b-bar.jar']
+                }
+            }
+        """)
+        buildFile("b/build.gradle", """
+            $typeDefsWithoutFlavor
+
             class EverythingIsCompatibleRule implements AttributeCompatibilityRule<Flavor> {
                 void execute(CompatibilityCheckDetails<Flavor> details) {
                     details.compatible()
                 }
             }
 
-            project(':a') {
-                dependencies.attributesSchema {
-                    attribute(flavor) {
-                        compatibilityRules.add(VetoRule)
-                    }
-                }
-                configurations {
-                    _compileFreeDebug.attributes { $freeDebug }
-                }
-                dependencies {
-                    _compileFreeDebug project(':b')
-                }
-                task checkDebug(dependsOn: configurations._compileFreeDebug) {
-                    def files = configurations._compileFreeDebug
-                    doLast {
-                       assert files.collect { it.name } == ['b-bar.jar']
-                    }
+            dependencies.attributesSchema {
+                attribute(flavor) {
+                    compatibilityRules.add(EverythingIsCompatibleRule)
                 }
             }
-            project(':b') {
-                dependencies.attributesSchema {
-                    attribute(flavor) {
-                        compatibilityRules.add(EverythingIsCompatibleRule)
-                    }
+            configurations {
+                foo {
+                    attributes { $debug; attribute(flavor, objects.named(Flavor, 'preview')) }
                 }
-                configurations {
-                    foo {
-                        attributes { $debug; attribute(flavor, objects.named(Flavor, 'preview')) }
-                    }
-                    bar {
-                        attributes { $debug; attribute(flavor, objects.named(Flavor, 'any')) }
-                    }
-                }
-                task fooJar(type: Jar) {
-                   archiveBaseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   archiveBaseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDirectory = buildDir }
-                artifacts {
-                    foo tasks.fooJar
-                    bar tasks.barJar
+                bar {
+                    attributes { $debug; attribute(flavor, objects.named(Flavor, 'any')) }
                 }
             }
-
-        """
+            task fooJar(type: Jar) {
+               archiveBaseName = 'b-foo'
+            }
+            task barJar(type: Jar) {
+               archiveBaseName = 'b-bar'
+            }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
+            artifacts {
+                foo tasks.fooJar
+                bar tasks.barJar
+            }
+        """)
 
         when:
         run ':a:checkDebug'
 
         then:
-        result.assertTasksScheduled(':b:barJar', ':a:checkDebug')
+        result.ignoreBuildSrc.assertTasksScheduled(':b:barJar', ':a:checkDebug')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Compatibility and disambiguation rules require shared Class instance to be discovered.")
     def "producer can apply disambiguation for attribute known to both"() {
         given:
         createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
-        buildFile << """
-            $typeDefs
+        declareFlavorInBuildSrc()
+        buildFile("a/build.gradle", """
+            $typeDefsWithoutFlavor
+
+
+            configurations {
+                compile.attributes { $debug }
+            }
+            dependencies {
+                compile project(':b')
+            }
+            task check(dependsOn: configurations.compile) {
+                def files = configurations.compile
+                doLast {
+                   assert files.collect { it.name } == ['b-bar.jar']
+                }
+            }
+        """)
+        buildFile("b/build.gradle", """
+            $typeDefsWithoutFlavor
 
             class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
                 void execute(MultipleCandidatesDetails<Flavor> details) {
@@ -758,58 +793,58 @@ All of them match the consumer attributes:
                 }
             }
 
-            project(':a') {
-                configurations {
-                    compile.attributes { $debug }
-                }
-                dependencies {
-                    compile project(':b')
-                }
-                task check(dependsOn: configurations.compile) {
-                    def files = configurations.compile
-                    doLast {
-                       assert files.collect { it.name } == ['b-bar.jar']
-                    }
+            dependencies.attributesSchema {
+                attribute(flavor) {
+                    disambiguationRules.add(FlavorSelectionRule)
                 }
             }
-
-            project(':b') {
-                dependencies.attributesSchema {
-                    attribute(flavor) {
-                        disambiguationRules.add(FlavorSelectionRule)
-                    }
-                }
-                configurations {
-                    foo.attributes { $free; $debug }
-                    bar.attributes { $paid; $debug }
-                }
-                task fooJar(type: Jar) {
-                   archiveBaseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   archiveBaseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDirectory = buildDir }
-                artifacts {
-                    foo tasks.fooJar
-                    bar tasks.barJar
-                }
+            configurations {
+                foo.attributes { $free; $debug }
+                bar.attributes { $paid; $debug }
             }
-        """
+            task fooJar(type: Jar) {
+               archiveBaseName = 'b-foo'
+            }
+            task barJar(type: Jar) {
+               archiveBaseName = 'b-bar'
+            }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
+            artifacts {
+                foo tasks.fooJar
+                bar tasks.barJar
+            }
+        """)
 
         when:
         run ':a:check'
 
         then:
-        result.assertTasksScheduled(':b:barJar', ':a:check')
+        result.ignoreBuildSrc.assertTasksScheduled(':b:barJar', ':a:check')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Compatibility and disambiguation rules require shared Class instance to be discovered.")
     def "producer can apply disambiguation for attribute not known to consumer"() {
         given:
         createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
-        buildFile << """
+        buildFile("a/build.gradle", """
+            $typeDefs
+
+            def platform = Attribute.of('platform', String)
+
+            configurations {
+                compile.attributes { $debug }
+            }
+            dependencies {
+                compile project(':b')
+            }
+            task check(dependsOn: configurations.compile) {
+                def files = configurations.compile
+                doLast {
+                   assert files.collect { it.name } == ['b-bar.jar']
+                }
+            }
+        """)
+        buildFile("b/build.gradle", """
             $typeDefs
 
             class SelectionRule implements AttributeDisambiguationRule<String> {
@@ -820,42 +855,25 @@ All of them match the consumer attributes:
 
             def platform = Attribute.of('platform', String)
 
-            project(':a') {
-                configurations {
-                    compile.attributes { $debug }
-                }
-                dependencies {
-                    compile project(':b')
-                }
-                task check(dependsOn: configurations.compile) {
-                    def files = configurations.compile
-                    doLast {
-                       assert files.collect { it.name } == ['b-bar.jar']
-                    }
-                }
+            dependencies.attributesSchema.attribute(platform) {
+                disambiguationRules.add(SelectionRule)
             }
-            project(':b') {
-                dependencies.attributesSchema.attribute(platform) {
-                    disambiguationRules.add(SelectionRule)
-                }
-                configurations {
-                    foo.attributes { attribute(platform, 'b'); $debug }
-                    bar.attributes { attribute(platform, 'a'); $debug }
-                }
-                task fooJar(type: Jar) {
-                   archiveBaseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   archiveBaseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDirectory = buildDir }
-                artifacts {
-                    foo tasks.fooJar
-                    bar tasks.barJar
-                }
+            configurations {
+                foo.attributes { attribute(platform, 'b'); $debug }
+                bar.attributes { attribute(platform, 'a'); $debug }
             }
-
-        """
+            task fooJar(type: Jar) {
+               archiveBaseName = 'b-foo'
+            }
+            task barJar(type: Jar) {
+               archiveBaseName = 'b-bar'
+            }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
+            artifacts {
+                foo tasks.fooJar
+                bar tasks.barJar
+            }
+        """)
 
         when:
         run ':a:check'

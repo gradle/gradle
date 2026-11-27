@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class CompositeBuildWorkGraphCycleIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
@@ -72,62 +71,57 @@ class CompositeBuildWorkGraphCycleIntegrationTest extends AbstractCompositeBuild
           \\--- :buildB:make (*)""")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Uses subprojects to share transform class between projects")
     def "reports cycle within a build that includes only transforms"() {
         given:
-        def buildB = multiProjectBuild("buildB", ["lib", "consumer"]) {
-            buildFile << """
-                import org.gradle.api.artifacts.transform.TransformParameters
+        def buildB = multiProjectBuild("buildB", ["lib", "consumer"])
+        buildFile(buildB.project("lib").buildFile, producerAndConsumer())
+        buildFile(buildB.project("consumer").buildFile, """
+            import org.gradle.api.artifacts.transform.TransformParameters
 
-                abstract class TransformWithParams implements TransformAction<Parameters> {
-                    interface Parameters extends TransformParameters {
-                        @InputFiles
-                        ConfigurableFileCollection getExtra()
-                    }
-
-                    @InputArtifact
-                    abstract Provider<FileSystemLocation> getInputArtifact()
-
-                    void transform(TransformOutputs outputs) {
-                        def input = inputArtifact.get().asFile
-                        outputs.file(input.name + ".xform").text = input.text
-                    }
+            abstract class TransformWithParams implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @InputFiles
+                    ConfigurableFileCollection getExtra()
                 }
 
-                subprojects {
-                    ${producerAndConsumer()}
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    outputs.file(input.name + ".xform").text = input.text
                 }
+            }
 
-                project(":consumer") {
-                    def artifactType = Attribute.of("artifactType", String)
-                    def view = { String type ->
-                        configurations.resolveDeps.incoming.artifactView {
-                            attributes.attribute(artifactType, type)
-                        }.files
-                    }
+            ${producerAndConsumer()}
 
-                    dependencies {
-                        deps(project(":lib"))
+            def artifactType = Attribute.of("artifactType", String)
+            def view = { String type ->
+                configurations.resolveDeps.incoming.artifactView {
+                    attributes.attribute(artifactType, type)
+                }.files
+            }
 
-                        // Each transform consumes the output of the other transform as a parameter
-                        registerTransform(TransformWithParams) {
-                            from.attribute(artifactType, "txt")
-                            to.attribute(artifactType, "one")
-                            parameters.extra.from(view("two"))
-                        }
-                        registerTransform(TransformWithParams) {
-                            from.attribute(artifactType, "txt")
-                            to.attribute(artifactType, "two")
-                            parameters.extra.from(view("one"))
-                        }
-                    }
+            dependencies {
+                deps(project(":lib"))
 
-                    tasks.named("make") {
-                        inputs.files(view("one"))
-                    }
+                // Each transform consumes the output of the other transform as a parameter
+                registerTransform(TransformWithParams) {
+                    from.attribute(artifactType, "txt")
+                    to.attribute(artifactType, "one")
+                    parameters.extra.from(view("two"))
                 }
-            """
-        }
+                registerTransform(TransformWithParams) {
+                    from.attribute(artifactType, "txt")
+                    to.attribute(artifactType, "two")
+                    parameters.extra.from(view("one"))
+                }
+            }
+
+            tasks.named("make") {
+                inputs.files(view("one"))
+            }
+        """)
         includedBuilds << buildB
 
         buildA.buildFile.text = """

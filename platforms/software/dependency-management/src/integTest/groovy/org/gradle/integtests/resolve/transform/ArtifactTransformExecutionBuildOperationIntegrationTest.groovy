@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ScopeIdsFixture
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.operations.dependencies.transforms.ExecuteTransformActionBuildOperationType
@@ -33,14 +32,12 @@ import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuil
 import org.gradle.operations.execution.ExecuteDeferredWorkProgressDetails
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
 
-@ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
 class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
 
     def buildOperations = new BuildOperationsFixture(executer, testDirectoryProvider)
@@ -51,19 +48,19 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         requireOwnGradleUserHomeDir("Artifact transforms should run every time and not be shared between tests")
 
         // group name is included in the capabilities of components, which are part of the transform identity
-        buildFile << """
-            allprojects {
-                apply plugin: 'base'
-                group = "colored"
-            }
-            subprojects {
+        configureEachProject("""
+            apply plugin: 'base'
+            group = "colored"
+        """)
+        configureEachProject("""
+            if (project.path != ':') {
                 tasks.withType(DefaultTask) {
                     if (name != "collectScopeIds") {
                         dependsOn(":collectScopeIds")
                     }
                 }
             }
-        """
+        """)
 
         createDirs("producer", "consumer")
         settingsFile << """
@@ -71,21 +68,22 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         """
     }
 
-    def setupExternalDependency(TestFile buildFile = getBuildFile()) {
+    def setupExternalDependency() {
         def m1 = mavenRepo.module("com.test", "test", "4.2").publish()
         m1.artifactFile.text = "com.test-test"
 
-        buildFile << """
-            allprojects {
+        settingsFile """
+            dependencyResolutionManagement {
                 repositories {
                     maven { url = "${mavenRepo.uri}" }
                 }
-
-                dependencies {
-                    implementation 'com.test:test:4.2'
-                }
             }
         """
+        configureEachProject("""
+            dependencies {
+                implementation 'com.test:test:4.2'
+            }
+        """)
     }
 
     def "transform executions are captured"() {
@@ -96,19 +94,17 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         setupBuildWithColorTransformImplementation()
         setupExternalDependency()
 
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
 
-                    artifactTypes {
-                        jar {
-                            attributes.attribute(color, 'blue')
-                        }
+                artifactTypes {
+                    jar {
+                        attributes.attribute(color, 'blue')
                     }
                 }
             }
-        """
+        """)
 
         when:
         withBuildCache().run ":consumer:resolve"
@@ -234,21 +230,19 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
     def "cacheability information for #type artifact transform executions is captured"() {
         setupBuildWithColorTransform()
         setupExternalDependency()
-        buildFile << cacheableMakeGreenTransform(useInputChanges: inputChanges)
+        settingsScriptClasses(cacheableMakeGreenTransform(useInputChanges: inputChanges))
 
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
 
-                    artifactTypes {
-                        jar {
-                            attributes.attribute(color, 'blue')
-                        }
+                artifactTypes {
+                    jar {
+                        attributes.attribute(color, 'blue')
                     }
                 }
             }
-        """
+        """)
         def producerTransformSpec = { Map<String, Object> it -> it.artifactName == 'producer.jar' }
 
         when:
@@ -308,22 +302,20 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         """
 
         setupBuildWithColorTransform()
-        buildFile << cacheableMakeGreenTransform(useInputChanges: false, sleep: 10)
+        settingsScriptClasses(cacheableMakeGreenTransform(useInputChanges: false, sleep: 10))
         setupExternalDependency()
 
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
 
-                    artifactTypes {
-                        jar {
-                            attributes.attribute(color, 'blue')
-                        }
+                artifactTypes {
+                    jar {
+                        attributes.attribute(color, 'blue')
                     }
                 }
             }
-        """
+        """)
 
         when:
         run ":consumer:resolve"
@@ -381,22 +373,20 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         """
 
         setupBuildWithColorTransform()
-        buildFile << cacheableMakeGreenTransform(useInputChanges: false, sleep: 10)
+        settingsScriptClasses(cacheableMakeGreenTransform(useInputChanges: false, sleep: 10))
         setupExternalDependency()
 
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
 
-                    artifactTypes {
-                        jar {
-                            attributes.attribute(color, 'blue')
-                        }
+                artifactTypes {
+                    jar {
+                        attributes.attribute(color, 'blue')
                     }
                 }
             }
-        """
+        """)
 
         when:
         enableIdentityCache()
@@ -447,34 +437,32 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         createDirs("consumer1", "consumer2")
 
         setupBuildWithColorTransform()
-        buildFile << cacheableMakeGreenTransform(useInputChanges: false, sleep: 10)
+        settingsScriptClasses(cacheableMakeGreenTransform(useInputChanges: false, sleep: 10))
         setupExternalDependency()
 
-        buildFile << """
-            project(":consumer1") {
-                dependencies {
-                    implementation project(":producer")
+        buildFile("consumer1/build.gradle", """
+            dependencies {
+                implementation project(":producer")
 
-                    artifactTypes {
-                        jar {
-                            attributes.attribute(color, 'blue')
-                        }
+                artifactTypes {
+                    jar {
+                        attributes.attribute(color, 'blue')
                     }
                 }
             }
-            project(":consumer2") {
-                dependencies {
-                    implementation project(":producer")
+        """)
+        buildFile("consumer2/build.gradle", """
+            dependencies {
+                implementation project(":producer")
 
-                    artifactTypes {
-                        jar {
-                            attributes.attribute(color, 'blue')
-                        }
+                artifactTypes {
+                    jar {
+                        attributes.attribute(color, 'blue')
                     }
                 }
-                tasks.resolve.dependsOn(':consumer1:resolve')
             }
-        """
+            tasks.resolve.dependsOn(':consumer1:resolve')
+        """)
 
         when:
         run ":consumer2:resolve"
@@ -513,33 +501,31 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         createDirs("consumer1", "consumer2")
 
         setupBuildWithColorTransform()
-        buildFile << cacheableMakeGreenTransform(useInputChanges: true, sleep: 10)
+        settingsScriptClasses(cacheableMakeGreenTransform(useInputChanges: true, sleep: 10))
 
-        buildFile << """
-            project(":consumer1") {
-                dependencies {
-                    implementation project(":producer")
+        buildFile("consumer1/build.gradle", """
+            dependencies {
+                implementation project(":producer")
 
-                    artifactTypes {
-                        jar {
-                            attributes.attribute(color, 'blue')
-                        }
+                artifactTypes {
+                    jar {
+                        attributes.attribute(color, 'blue')
                     }
                 }
             }
-            project(":consumer2") {
-                dependencies {
-                    implementation project(":producer")
+        """)
+        buildFile("consumer2/build.gradle", """
+            dependencies {
+                implementation project(":producer")
 
-                    artifactTypes {
-                        jar {
-                            attributes.attribute(color, 'blue')
-                        }
+                artifactTypes {
+                    jar {
+                        attributes.attribute(color, 'blue')
                     }
                 }
-                tasks.resolve.dependsOn(':consumer1:resolve')
             }
-        """
+            tasks.resolve.dependsOn(':consumer1:resolve')
+        """)
 
         when:
         // Limit workers so the project transforms run sequentially
@@ -577,33 +563,31 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         createDirs("consumer1", "consumer2")
 
         setupBuildWithColorTransform()
-        buildFile << cacheableMakeGreenTransform(useInputChanges: true, sleep: 10)
+        settingsScriptClasses(cacheableMakeGreenTransform(useInputChanges: true, sleep: 10))
 
-        buildFile << """
-            project(":consumer1") {
-                dependencies {
-                    implementation project(":producer")
+        buildFile("consumer1/build.gradle", """
+            dependencies {
+                implementation project(":producer")
 
-                    artifactTypes {
-                        jar {
-                            attributes.attribute(color, 'blue')
-                        }
+                artifactTypes {
+                    jar {
+                        attributes.attribute(color, 'blue')
                     }
                 }
             }
-            project(":consumer2") {
-                dependencies {
-                    implementation project(":producer")
+        """)
+        buildFile("consumer2/build.gradle", """
+            dependencies {
+                implementation project(":producer")
 
-                    artifactTypes {
-                        jar {
-                            attributes.attribute(color, 'blue')
-                        }
+                artifactTypes {
+                    jar {
+                        attributes.attribute(color, 'blue')
                     }
                 }
-                tasks.resolve.dependsOn(':consumer1:resolve')
             }
-        """
+            tasks.resolve.dependsOn(':consumer1:resolve')
+        """)
 
         when:
         run ":consumer2:resolve"
@@ -641,7 +625,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
     def "captures all information on failure"() {
         setupBuildWithColorTransform()
         setupExternalDependency()
-        buildFile << """
+        settingsScriptClasses("""
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.RELATIVE)
@@ -653,22 +637,20 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
                     throw new RuntimeException("BOOM")
                 }
             }
-        """
+        """)
         setupExternalDependency()
 
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation project(":producer")
 
-                    artifactTypes {
-                        jar {
-                            attributes.attribute(color, 'blue')
-                        }
+                artifactTypes {
+                    jar {
+                        attributes.attribute(color, 'blue')
                     }
                 }
             }
-        """
+        """)
 
         when:
         withBuildCache().fails(":consumer:resolve")
@@ -705,7 +687,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         """
 
         setupBuildWithColorTransform()
-        buildFile << """
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -718,7 +700,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
                     output.text = input.name + ".green"
                 }
             }
-        """
+        """)
 
         // We need to add a Kotlin build file here so we have access to `gradleKotlinDsl()`
         file("consumer/build.gradle.kts") << """
@@ -741,9 +723,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
 
         executionIdentifications.each {
             with(it) {
-                owner.with(componentId) {
-                    displayName == displayName
-                }
+                componentId.displayName == displayName
             }
         }
         def inputArtifactNames = executionIdentifications.collect { it.artifactName }
@@ -765,19 +745,17 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
 
         setupBuildWithColorTransformImplementation()
 
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation files("file1.jar", "file2.jar")
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation files("file1.jar", "file2.jar")
 
-                    artifactTypes {
-                        jar {
-                            attributes.attribute(color, 'blue')
-                        }
+                artifactTypes {
+                    jar {
+                        attributes.attribute(color, 'blue')
                     }
                 }
             }
-        """
+        """)
         (1..2).each {
             file("consumer/file${it}.jar").text = "file $it"
         }
@@ -803,21 +781,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         setupBuildWithColorAttributes()
         setupExternalDependency()
 
-        buildFile << """
-            project(":consumer") {
-                dependencies {
-                    implementation files("file1.jar", "file2.jar")
-                    implementation project(":producer")
-                    implementation localGroovy()
-
-                    artifactTypes {
-                        jar {
-                            attributes.attribute(color, 'blue')
-                        }
-                    }
-                }
-            }
-
+        settingsScriptClasses("""
             abstract class Multiplier implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -832,7 +796,6 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
                     }
                 }
             }
-
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -845,21 +808,32 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
                     output.text = input.text + ".green"
                 }
             }
+        """)
+        buildFile("consumer/build.gradle", """
+            dependencies {
+                implementation files("file1.jar", "file2.jar")
+                implementation project(":producer")
+                implementation localGroovy()
 
-            allprojects {
-                dependencies {
-                   registerTransform(Multiplier) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'red')
-                    }
-                    registerTransform(MakeGreen) {
-                        from.attribute(color, 'red')
-                        to.attribute(color, 'green')
+                artifactTypes {
+                    jar {
+                        attributes.attribute(color, 'blue')
                     }
                 }
             }
-
-        """
+        """)
+        configureEachProject("""
+            dependencies {
+               registerTransform(Multiplier) {
+                    from.attribute(color, 'blue')
+                    to.attribute(color, 'red')
+                }
+                registerTransform(MakeGreen) {
+                    from.attribute(color, 'red')
+                    to.attribute(color, 'green')
+                }
+            }
+        """)
         (1..2).each {
             file("consumer/file${it}.jar").text = "file $it"
         }

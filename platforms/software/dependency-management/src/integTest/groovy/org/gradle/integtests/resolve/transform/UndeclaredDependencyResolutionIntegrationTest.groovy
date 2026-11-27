@@ -217,16 +217,15 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
             include 'a', 'b'
         """
         setupBuildWithColorAttributes()
-        buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform(MakeGreen) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'green')
-                    }
+        configureEachProject("""
+            dependencies {
+                registerTransform(MakeGreen) {
+                    from.attribute(color, 'blue')
+                    to.attribute(color, 'green')
                 }
             }
-
+        """)
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifactDependencies
                 abstract FileCollection getInputArtifactDependencies()
@@ -243,7 +242,8 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
                     }
                 }
             }
-
+        """)
+        buildFile """
             dependencies {
                 implementation project(':a')
                 implementation project(':b')

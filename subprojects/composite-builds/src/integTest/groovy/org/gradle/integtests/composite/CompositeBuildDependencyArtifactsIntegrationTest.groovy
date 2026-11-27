@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -38,8 +37,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         """
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
-            buildFile << """
-                allprojects {
+            settingsFile << """
+                gradle.lifecycle.beforeProject {
                     apply plugin: 'java'
                 }
             """
@@ -47,7 +46,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         includedBuilds << buildB
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "builds single artifact for substituted dependency"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -60,7 +58,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "builds multiple artifacts for substituted dependency"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -84,7 +81,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('build/libs/buildB-1.0-my.jar')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "builds artifacts for dependencies on multiple subprojects in the same build"() {
         given:
         dependency 'org.test:b1:1.0'
@@ -98,7 +94,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0.jar')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "builds substituted dependency with transitive external dependencies"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -121,7 +116,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), moduleC.artifactFile
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "builds substituted dependency with transitive external dependency that is substituted"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -147,7 +141,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildC.file('build/libs/buildC-1.0.jar')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "builds dependency once when included directly and as a transitive dependency"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -174,7 +167,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildC.file('build/libs/buildC-1.0.jar')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "builds substituted dependency with transitive external dependency that is substituted in the same build"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -193,7 +185,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('b1/build/libs/b1-1.0.jar')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "builds substituted dependency with transitive project dependencies"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -203,19 +194,18 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
                 implementation project(':b1')
                 implementation project(path: ':b2', configuration: 'other')
             }
-
-            project('b2') {
-                configurations {
-                    other
-                }
-                task myJar(type: Jar) {
-                    archiveClassifier = 'my'
-                }
-                artifacts {
-                    other myJar
-                }
-            }
 """
+        buildFile(buildB.project('b2').buildFile, """
+            configurations {
+                other
+            }
+            task myJar(type: Jar) {
+                archiveClassifier = 'my'
+            }
+            artifacts {
+                other myJar
+            }
+""")
 
         when:
         resolveArtifacts()
@@ -226,7 +216,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0-my.jar')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "builds substituted dependency with file dependency"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -248,7 +237,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file("build/libs/buildB-1.0-1.jar")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "builds substituted dependency with non-default configuration"() {
         given:
         buildA.buildFile << """
@@ -283,7 +271,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0-my.jar'), moduleC.artifactFile
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "builds substituted dependency with non-default artifactType"() {
         given:
         buildA.buildFile << """
@@ -310,7 +297,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/distributions/buildB-1.0.zip')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "builds substituted dependency with defined artifacts"() {
         given:
         buildA.buildFile << """
@@ -346,7 +332,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0-my.jar'), buildB.file('build/libs/another-1.0.jar')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "builds multiple configurations for the same substituted dependency"() {
         given:
         buildA.buildFile << """
@@ -378,19 +363,16 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('build/libs/buildB-1.0-my.jar')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "does not attempt to build dependency artifacts more than once"() {
         given:
         dependency 'org.test:b1:1.0'
         dependency 'org.test:b2:1.0'
 
-        buildB.buildFile << """
-            project(':b1') {
-                dependencies {
-                    implementation project(':b2')
-                }
+        buildFile(buildB.project('b1').buildFile, """
+            dependencies {
+                implementation project(':b2')
             }
-"""
+""")
         when:
         resolveArtifacts()
 
@@ -399,7 +381,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0.jar')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "build dependency artifacts only once when depended on by multiple subprojects"() {
         given:
         def buildC = singleProjectBuild("buildC") {
@@ -408,18 +389,13 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 """
         }
 
-        buildB.buildFile << """
-            project(':b1') {
+        ['b1', 'b2'].each {
+            buildFile(buildB.project(it).buildFile, """
                 dependencies {
                     implementation 'org.test:buildC:1.0'
                 }
-            }
-            project(':b2') {
-                dependencies {
-                    implementation 'org.test:buildC:1.0'
-                }
-            }
-"""
+            """)
+        }
         buildB.settingsFile << """
             includeBuild '${buildC.toURI()}'
 """
@@ -436,7 +412,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executedInOrder ":buildC:compileJava", ":buildC:jar", ":b2:compileJava", ":b2:jar"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "builds multiple configurations for the same project via separate dependency paths"() {
         given:
         buildA.buildFile << """
@@ -478,7 +453,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('build/libs/buildB-1.0-my.jar'), buildC.file("build/libs/buildC-1.0.jar")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "builds artifacts for different subprojects from the same build included via separate dependency paths"() {
         given:
         dependency 'org.test:b1:1.0'
@@ -503,7 +477,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executed ":buildB:b1:compileJava", ":buildB:b2:compileJava", ":buildC:compileJava"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "substitutes and builds compileOnly dependency"() {
         given:
         buildA.buildFile << """
@@ -518,7 +491,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executedInOrder ":buildB:compileJava", ":buildB:classes", ":compileJava", ":jar"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "substitutes and builds transitive compileOnly dependency"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -543,7 +515,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executedInOrder ":buildC:jar", ":buildB:jar"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "only builds dependency once when included as transitive compile and compileOnly dependency"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -566,7 +537,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executedInOrder ":buildB:compileJava", ":buildB:jar", ":buildC:compileJava", ":buildC:jar"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "handles compileOnly dependencies for different subprojects from the same build included via separate dependency paths"() {
         given:
         dependency 'org.test:b1:1.0'
@@ -591,16 +561,15 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executed ":buildB:b1:compileJava", ":buildB:b2:compileJava", ":buildC:compileJava"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "handles separate implementation and compileOnly dependencies on different subprojects"() {
         given:
         dependency 'org.test:buildC:1.0'
 
-        buildB.buildFile << """
+        settingsFile(buildB.settingsFile, """
             gradle.taskGraph.whenReady {
                 println "Executing buildB: " + it.allTasks.collect { it.identityPath }
             }
-"""
+""")
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
@@ -621,7 +590,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executedInOrder ":buildB:b2:jar", ":buildC:compileJava", ":buildC:jar"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "reports failure to build dependent artifact"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -640,7 +608,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
             .assertHasCause("jar task failed")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "reports failure to build transitive dependent artifact"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -672,7 +639,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "builds artifacts and reports failures for dependency on multiple subprojects where one fails"() {
         given:
         server.start()
@@ -691,14 +657,12 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
             }
 """
 
-        buildB.buildFile << """
-            project(':b2') {
-                jar.doLast {
-                    ${server.callFromTaskAction("b2")}
-                    throw new GradleException("jar task failed")
-                }
+        buildFile(buildB.project('b2').buildFile, """
+            jar.doLast {
+                ${server.callFromTaskAction("b2")}
+                throw new GradleException("jar task failed")
             }
-"""
+""")
 
         when:
         server.expectConcurrent("resolve", "b2")
@@ -711,7 +675,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         notExecuted(":resolveCompile")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "new substitutions can be discovered while building the task graph for the first level included builds"() {
         given:
         def firstLevel = (1..2).collect { "firstLevel$it" }

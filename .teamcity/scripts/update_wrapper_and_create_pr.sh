@@ -43,6 +43,31 @@ post() {
     echo "$body"
 }
 
+graphql() {
+    local query="$1"
+    local pr_id="$2"
+
+    local response
+    response=$(jq -n --arg query "$query" --arg id "$pr_id" '{query: $query, variables: {id: $id}}' | curl -sS -X POST \
+        -H "Authorization: bearer $GITHUB_TOKEN" \
+        -H "Content-Type: application/json" \
+        "https://api.github.com/graphql" \
+        -d @-)
+
+    if ! echo "$response" | jq -e '.data and (.errors | not)' >/dev/null 2>&1; then
+        printf "Error: GraphQL request failed - %s\n" "$response" >&2
+        return 1
+    fi
+}
+
+enqueue() {
+    local pr_id="$1"
+
+    sleep 60
+    graphql 'mutation($id: ID!) { enqueuePullRequest(input: {pullRequestId: $id}) { clientMutationId } }' "$pr_id"
+    echo "Added to the merge queue"
+}
+
 source_promoted_version() {
     local version_info="$1/promote-projects/gradle/build/version-info.properties"
 
@@ -124,16 +149,15 @@ main() {
     echo "PR_RESPONSE: $PR_RESPONSE"
 
     PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.number' 2>/dev/null)
+    PR_NODE_ID=$(echo "$PR_RESPONSE" | jq -er '.node_id')
 
     echo "##teamcity[buildStatus text='{build.status.text}, PR: https://github.com/gradle/gradle/pull/$PR_NUMBER']"
-
-    post "/issues/$PR_NUMBER/comments" '{
-        "body": "@bot-gradle test and merge"
-    }'
 
     post "/issues/$PR_NUMBER/labels" '{
         "labels": ["@dev-productivity"]
     }'
+
+    enqueue "$PR_NODE_ID"
 }
 
 main "$@"
