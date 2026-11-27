@@ -308,16 +308,17 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     private void finalizeNow(EvaluationScopeContext context, ValueConsumer consumer) {
-        try {
-            value = finalValue(context, value, state.forUpstream(consumer));
-        } catch (Exception e) {
-            if (displayName != null) {
-                throw new PropertyQueryException(String.format("Failed to calculate the value of %s.", displayName), e);
-            } else {
-                throw UncheckedException.throwAsUncheckedException(e);
+        state = state.finalizeWith(this.getDisplayName(), () -> {
+            try {
+                value = finalValue(context, value, state.forUpstream(consumer));
+            } catch (Exception e) {
+                if (displayName != null) {
+                    throw new PropertyQueryException(String.format("Failed to calculate the value of %s.", displayName), e);
+                } else {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
             }
-        }
-        state = state.finalState();
+        });
     }
 
     /**

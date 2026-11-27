@@ -19,12 +19,14 @@ package org.gradle.api.internal.file.collections
 import org.gradle.api.Task
 import org.gradle.api.Transformer
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionSpec
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.ConcurrentFinalizationException
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
@@ -35,6 +37,8 @@ import org.spockframework.lang.Wildcard
 import spock.lang.Issue
 
 import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 import java.util.function.Supplier
 
@@ -1093,6 +1097,36 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         and:
         0 * collection._
         0 * fileResolver._
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/29004")
+    def "cannot query files while another thread is finalizing them on read"() {
+        given:
+        def finalizationStarted = new CountDownLatch(1)
+        def completeFinalization = new CountDownLatch(1)
+        _ * fileResolver.resolve('a') >> new File('one')
+        collection.from({
+            finalizationStarted.countDown()
+            completeFinalization.await(10, TimeUnit.SECONDS)
+            'a'
+        } as Callable)
+        collection.finalizeValueOnRead()
+        def firstReader = new Thread({ collection.files })
+
+        when:
+        firstReader.start()
+        assert finalizationStarted.await(10, TimeUnit.SECONDS)
+        collection.files
+
+        then:
+        def e = thrown(ConcurrentFinalizationException)
+        e.message == "Cannot finalize the value of <display> because another thread is finalizing it. Finalizing a value from multiple threads at once is not supported. " +
+            "For more information, please refer to ${DocumentationRegistry.BASE_URL}/userguide/lazy_configuration.html#sharing_properties_between_parallel_tasks in the Gradle documentation."
+        !e.resolutions.empty
+
+        cleanup:
+        completeFinalization.countDown()
+        firstReader?.join(10_000)
     }
 
     def "can specify paths before queried and finalize on read"() {

@@ -24,6 +24,8 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.ModelObject;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.function.Function;
 
 /**
@@ -39,6 +41,7 @@ import java.util.function.Function;
  */
 public abstract class ValueState<S> {
     private static final ValueState<Object> FINALIZED_VALUE = new FinalizedValue<>();
+    private static final ThreadLocal<Deque<ValueState<?>>> FINALIZING_ON_CURRENT_THREAD = ThreadLocal.withInitial(ArrayDeque::new);
 
     /**
      * Creates a new non-finalized state.
@@ -60,9 +63,12 @@ public abstract class ValueState<S> {
     public abstract boolean shouldFinalize(Describable displayName, @Nullable ModelObject producer);
 
     /**
-     * Returns the state to replace this state once is finalized.
+     * Runs the given finalization, unless another call already completed it, and returns the state that replaces this state.
+     * When called during the finalization on the same thread, does not run it and returns this state.
+     *
+     * @throws ConcurrentFinalizationException when another thread is finalizing this state
      */
-    public abstract ValueState<S> finalState();
+    public abstract ValueState<S> finalizeWith(Describable displayName, Runnable finalization);
 
     /**
      * Sets a new convention value, replacing the existing one if set.
@@ -187,8 +193,8 @@ public abstract class ValueState<S> {
      * Adding a single reference can greatly effect the size of this structure and increase
      * memory consumption in a hard to see way.
      *
-     * ValueState currently uses 21 bytes plus 3 bytes of padding to maintain a 8-byte alignment (24 bytes overall).
-     * One reference is 4 bytes, which would force this structure to use 7 bytes of padding (32 bytes overall).
+     * ValueState currently uses 22 bytes plus 2 bytes of padding to maintain a 8-byte alignment (24 bytes overall).
+     * One reference is 4 bytes, which would force this structure to use 6 bytes of padding (32 bytes overall).
      */
     private static class NonFinalizedValue<S> extends ValueState<S> {
         private static final byte EXPLICIT_VALUE = 1;
@@ -198,8 +204,16 @@ public abstract class ValueState<S> {
         private static final byte IS_UPGRADED_PROPERTY_VALUE = 1 << 4;
         private static final byte WARN_ON_UPGRADED_PROPERTY_CHANGES = 1 << 5;
 
+        private static final byte FINALIZATION_NOT_STARTED = 0;
+        private static final byte FINALIZATION_IN_PROGRESS = 1;
+        private static final byte FINALIZATION_COMPLETED = 2;
+
         private final PropertyHost host;
         private byte flags;
+        /**
+         * Kept apart from {@link #flags}, which are updated without holding the monitor, so that those updates cannot overwrite it.
+         */
+        private byte finalizationStatus;
         private S convention;
 
         public NonFinalizedValue(PropertyHost host) {
@@ -217,8 +231,40 @@ public abstract class ValueState<S> {
             return true;
         }
 
+        /**
+         * The owner of this state may be read from multiple threads, for example by tasks running in parallel.
+         * Each of them can decide to finalize before the owner replaces this state with the final one, so only the first call runs the finalization.
+         * A nested read on the finalizing thread, for example from a nested evaluation scope, reads the value as it was before finalization.
+         */
         @Override
-        public ValueState<S> finalState() {
+        public ValueState<S> finalizeWith(Describable displayName, Runnable finalization) {
+            synchronized (this) {
+                if (finalizationStatus == FINALIZATION_COMPLETED) {
+                    return Cast.uncheckedCast(FINALIZED_VALUE);
+                }
+                if (finalizationStatus == FINALIZATION_IN_PROGRESS) {
+                    if (FINALIZING_ON_CURRENT_THREAD.get().contains(this)) {
+                        return this;
+                    }
+                    throw new ConcurrentFinalizationException(displayName);
+                }
+                finalizationStatus = FINALIZATION_IN_PROGRESS;
+            }
+            Deque<ValueState<?>> finalizingOnCurrentThread = FINALIZING_ON_CURRENT_THREAD.get();
+            finalizingOnCurrentThread.push(this);
+            try {
+                finalization.run();
+            } catch (Throwable t) {
+                synchronized (this) {
+                    finalizationStatus = FINALIZATION_NOT_STARTED;
+                }
+                throw t;
+            } finally {
+                finalizingOnCurrentThread.pop();
+            }
+            synchronized (this) {
+                finalizationStatus = FINALIZATION_COMPLETED;
+            }
             return Cast.uncheckedCast(FINALIZED_VALUE);
         }
 
@@ -509,9 +555,7 @@ public abstract class ValueState<S> {
         }
 
         @Override
-        public ValueState<S> finalState() {
-            // TODO - it is currently possible for multiple threads to finalize a property instance concurrently (https://github.com/gradle/gradle/issues/12811)
-            // This should be strict
+        public ValueState<S> finalizeWith(Describable displayName, Runnable finalization) {
             return this;
         }
 
