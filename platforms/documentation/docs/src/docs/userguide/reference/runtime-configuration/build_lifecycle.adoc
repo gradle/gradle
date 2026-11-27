@@ -529,6 +529,8 @@ Registering the same listener type with a task more than once has no effect.
 
 Gradle calls the listeners of every task that it tries to execute, including tasks that are up-to-date, skipped, or loaded from the build cache.
 Both methods run synchronously as part of the task execution, so the listeners of tasks executing in parallel are called concurrently.
+As listeners also run for tasks that do no work, their cost is paid on every build, even when all tasks are up-to-date.
+Work that only reports the outcome of tasks, such as uploading results, is better done by a <<#build_services_lifecycle,build service that implements `OperationCompletionListener`>>, which is notified asynchronously.
 `beforeExecution` is called in the order the listeners were registered, and `afterExecution` in the reverse order, so the listener registered first is notified first before the task executes and last after it.
 
 `beforeExecution` runs before Gradle snapshots the task inputs and performs up-to-date and build cache checks:

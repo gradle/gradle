@@ -42,6 +42,12 @@ import org.gradle.api.Task;
  * parallel are notified concurrently. Each listener instance is used by a single task execution, so its fields
  * need no synchronization, but build services and other state shared between task executions must be thread-safe.</p>
  *
+ * <p>Listeners are also notified for tasks that are up-to-date, loaded from the build cache or skipped, so their cost
+ * is paid on every build, even when no task does any work. Work that only reports the outcome of tasks, such as
+ * uploading results, is better done by a listener registered with
+ * {@link org.gradle.build.event.BuildEventsListenerRegistry#onTaskCompletion(org.gradle.api.provider.Provider)},
+ * which is notified asynchronously.</p>
+ *
  * <p>Unlike tasks, listeners cannot have {@link Nested @Nested} properties.
  * Build services must be referenced via {@code @ServiceReference} properties of the listener itself.</p>
  *
