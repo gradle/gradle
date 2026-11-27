@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.ProviderResolutionStrategy;
 import org.gradle.api.internal.provider.ValueSupplier;
@@ -25,6 +26,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.file.PathToFileResolver;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.Consumer;
 
@@ -58,9 +60,32 @@ public class ProviderBackedFileCollection extends CompositeFileCollection {
     }
 
     @Override
+    protected void visitContents(FileCollectionStructureVisitor visitor) {
+        visitChildren(child -> child.visitStructure(visitor), visitor.getValueConsumer());
+    }
+
+    @Override
     protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
+        visitChildren(visitor, ValueSupplier.ValueConsumer.IgnoreUnsafeRead);
+    }
+
+    private void visitChildren(Consumer<FileCollectionInternal> visitor, ValueSupplier.ValueConsumer consumer) {
         UnpackingVisitor unpackingVisitor = new UnpackingVisitor(visitor, resolver, taskDependencyFactory, patternSetFactory);
-        unpackingVisitor.add(providerResolutionStrategy.resolve(provider));
+        unpackingVisitor.add(resolveProvider(consumer));
+    }
+
+    @Nullable
+    private Object resolveProvider(ValueSupplier.ValueConsumer consumer) {
+        if (consumer == ValueSupplier.ValueConsumer.IgnoreUnsafeRead) {
+            return providerResolutionStrategy.resolve(provider);
+        }
+        // Reading with the consumer finalizes the properties the provider value is derived from
+        ValueSupplier.Value<?> value = provider.calculateValue(consumer);
+        if (value.isMissing()) {
+            // Let the strategy decide whether a missing value is an error, and report it the usual way
+            return providerResolutionStrategy.resolve(provider);
+        }
+        return value.get();
     }
 
     public ProviderInternal<?> getProvider() {

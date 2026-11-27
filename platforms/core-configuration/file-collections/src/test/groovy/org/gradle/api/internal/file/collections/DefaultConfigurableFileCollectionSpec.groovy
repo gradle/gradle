@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.PropertyHost
+import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
@@ -605,6 +606,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         1 * visitor.startVisit(FileCollectionInternal.OTHER, collection) >> true
+        1 * visitor.getValueConsumer() >> ValueSupplier.ValueConsumer.IgnoreUnsafeRead
         1 * fileResolver.resolve('a') >> one
         1 * visitor.startVisit(FileCollectionInternal.OTHER, { it as List == [one] }) >> true
         1 * visitor.visitCollection(FileCollectionInternal.OTHER, { it as List == [one] })
@@ -632,6 +634,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         1 * visitor.startVisit(_, collection) >> true
+        1 * visitor.getValueConsumer() >> ValueSupplier.ValueConsumer.IgnoreUnsafeRead
         1 * fileResolver.resolve("file") >> file
         1 * visitor.startVisit(_, _) >> true
         1 * visitor.visitCollection(_, { it.toList() == [file] })
@@ -1179,6 +1182,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         1 * structureVisitor.startVisit(_, collection) >> true
+        1 * structureVisitor.getValueConsumer() >> ValueSupplier.ValueConsumer.IgnoreUnsafeRead
         1 * structureVisitor.startVisit(_, _) >> { source, files ->
             assert files.toList() == [file1]
             true
@@ -1219,6 +1223,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         1 * structureVisitor.startVisit(_, collection) >> true
+        1 * structureVisitor.getValueConsumer() >> ValueSupplier.ValueConsumer.IgnoreUnsafeRead
         0 * structureVisitor._
 
         when:

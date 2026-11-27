@@ -19,6 +19,7 @@ package org.gradle.api.file
 import groovy.test.NotYetImplemented
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
     def "UPGRADED task #annotation configurable file collection is LENIENTLY implicitly finalized when task starts execution UNTIL NEXT MAJOR"() {
@@ -389,6 +390,133 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         then:
         outputContains("finalize failed with: Cannot finalize the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
         output.count("value = [${file('some-file')}]") == 2
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12798")
+    def "finalizes upstream file collection when strict property derived from #upstream is read"() {
+        given:
+        settingsFile 'rootProject.name = "broken"'
+        buildFile """
+            interface ProjectModel {
+                ConfigurableFileCollection getFiles()
+                ListProperty<String> getNames()
+            }
+
+            project.extensions.create('thing', ProjectModel.class)
+            thing.names.disallowUnsafeRead()
+            thing.names = ${upstream}.elements.map { elements -> elements.collect { it.asFile.name } }
+            thing.files.from("a")
+
+            gradle.taskGraph.whenReady {
+                println("names = " + thing.names.get())
+                try {
+                    thing.files.from("ignore me")
+                } catch(IllegalStateException e) {
+                    println("change files after read failed with: " + e.message)
+                }
+                println("files = " + thing.files.files.collect { it.name })
+            }
+
+            task show
+        """
+
+        when:
+        run("show")
+
+        then:
+        outputContains("names = [a]")
+        outputContains("change files after read failed with: The value for extension 'thing' property 'files' is final and cannot be changed any further.")
+        outputContains("files = [a]")
+
+        where:
+        upstream                  | _
+        "thing.files"             | _
+        "(thing.files + files())" | _
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12798")
+    def "finalizes upstream file collection and property when strict file collection is read using #method"() {
+        given:
+        settingsFile 'rootProject.name = "broken"'
+        buildFile """
+            interface ProjectModel {
+                ConfigurableFileCollection getStrict()
+                ConfigurableFileCollection getFiles()
+                RegularFileProperty getFile()
+            }
+
+            project.extensions.create('thing', ProjectModel.class)
+            thing.strict.disallowUnsafeRead()
+            thing.strict.from(thing.files)
+            thing.files.from(thing.file)
+            thing.file = layout.projectDirectory.file("a")
+
+            gradle.taskGraph.whenReady {
+                thing.strict.${method}
+                try {
+                    thing.files.from("ignore me")
+                } catch(IllegalStateException e) {
+                    println("change files after read failed with: " + e.message)
+                }
+                try {
+                    thing.file = layout.projectDirectory.file("ignore me")
+                } catch(IllegalStateException e) {
+                    println("change file after read failed with: " + e.message)
+                }
+                println("strict = " + thing.strict.files.collect { it.name })
+                println("files = " + thing.files.files.collect { it.name })
+                println("file = " + thing.file.get().asFile.name)
+            }
+
+            task show
+        """
+
+        when:
+        run("show")
+
+        then:
+        outputContains("change files after read failed with: The value for extension 'thing' property 'files' is final and cannot be changed any further.")
+        outputContains("change file after read failed with: The value for extension 'thing' property 'file' is final and cannot be changed any further.")
+        outputContains("strict = [a]")
+        outputContains("files = [a]")
+        outputContains("file = a")
+
+        where:
+        method                 | _
+        "getFiles()"           | _
+        "getElements().get()"  | _
+        "finalizeValue()"      | _
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12798")
+    def "strict file collection reports upstream property with no value"() {
+        given:
+        buildFile """
+            interface ProjectModel {
+                ConfigurableFileCollection getStrict()
+                RegularFileProperty getFile()
+            }
+
+            project.extensions.create('thing', ProjectModel.class)
+            thing.strict.disallowUnsafeRead()
+            thing.strict.from(thing.file)
+
+            gradle.taskGraph.whenReady {
+                try {
+                    thing.strict.files
+                } catch(Exception e) {
+                    println("read failed with: " + e.message)
+                }
+            }
+
+            task show
+        """
+
+        when:
+        run("show")
+
+        then:
+        outputContains("read failed with: Cannot query the value of extension 'thing' property 'file' because it has no value available.")
     }
 
     @NotYetImplemented

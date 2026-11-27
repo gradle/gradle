@@ -119,12 +119,12 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public void finalizeValue() {
         if (valueState.shouldFinalize(this::displayNameForThisCollection, null)) {
-            finalizeNow();
+            finalizeNow(ValueSupplier.ValueConsumer.IgnoreUnsafeRead);
         }
     }
 
-    private void finalizeNow() {
-        calculateFinalizedValue();
+    private void finalizeNow(ValueSupplier.ValueConsumer consumer) {
+        calculateFinalizedValue(valueState.forUpstream(consumer));
         valueState = valueState.finalState();
     }
 
@@ -420,9 +420,14 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         return this;
     }
 
-    private void calculateFinalizedValue() {
+    private void calculateFinalizedValue(ValueSupplier.ValueConsumer consumer) {
         ImmutableList.Builder<FileCollectionInternal> builder = ImmutableList.builder();
         value.visitContents(child -> child.visitStructure(new FileCollectionStructureVisitor() {
+            @Override
+            public ValueSupplier.ValueConsumer getValueConsumer() {
+                return consumer;
+            }
+
             @Override
             public void visitCollection(Source source, Iterable<File> contents) {
                 ImmutableSet<File> files = ImmutableSet.copyOf(contents);
@@ -445,9 +450,19 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
+    protected void visitContents(FileCollectionStructureVisitor visitor) {
+        finalizeOnReadIfNeeded(visitor.getValueConsumer());
+        super.visitContents(visitor);
+    }
+
+    @Override
     protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-        valueState.finalizeOnReadIfNeeded(this::displayNameForThisCollection, null, ValueSupplier.ValueConsumer.IgnoreUnsafeRead, unused -> finalizeNow());
+        finalizeOnReadIfNeeded(ValueSupplier.ValueConsumer.IgnoreUnsafeRead);
         value.visitContents(visitor);
+    }
+
+    private void finalizeOnReadIfNeeded(ValueSupplier.ValueConsumer consumer) {
+        valueState.finalizeOnReadIfNeeded(this::displayNameForThisCollection, null, consumer, this::finalizeNow);
     }
 
     @Override

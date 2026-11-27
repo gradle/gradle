@@ -202,11 +202,55 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public Provider<Set<FileSystemLocation>> getElements() {
-        return new BuildableBackedProvider<>(
-            this,
-            Cast.uncheckedCast(Set.class),
-            new FileCollectionElementsFactory(this)
-        );
+        return new FileCollectionElementsProvider(this);
+    }
+
+    private static class FileCollectionElementsProvider extends BuildableBackedProvider<Set<FileSystemLocation>> {
+
+        /**
+         * Visits the collections made of other collections and lazy values, reading those values with {@link ValueConsumer#DisallowUnsafeRead}.
+         * Skips all other collections, so that they are resolved only once, by the actual read.
+         */
+        private static final FileCollectionStructureVisitor DISALLOW_UNSAFE_READ_VISITOR = new FileCollectionStructureVisitor() {
+            @Override
+            public ValueConsumer getValueConsumer() {
+                return ValueConsumer.DisallowUnsafeRead;
+            }
+
+            @Override
+            public boolean startVisit(Source source, FileCollectionInternal fileCollection) {
+                return fileCollection instanceof CompositeFileCollection;
+            }
+
+            @Override
+            public void visitCollection(Source source, Iterable<File> contents) {
+            }
+
+            @Override
+            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+            }
+
+            @Override
+            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+            }
+        };
+
+        private final FileCollectionInternal fileCollection;
+
+        private FileCollectionElementsProvider(FileCollectionInternal fileCollection) {
+            super(fileCollection, Cast.uncheckedCast(Set.class), new FileCollectionElementsFactory(fileCollection));
+            this.fileCollection = fileCollection;
+        }
+
+        @Override
+        protected Value<? extends Set<FileSystemLocation>> calculateOwnValue(ValueConsumer consumer) {
+            if (consumer == ValueConsumer.DisallowUnsafeRead) {
+                // Finalize the configurable file collections and properties this collection is derived from,
+                // the same way a property that disallows unsafe reads finalizes the properties it is derived from
+                fileCollection.visitStructure(DISALLOW_UNSAFE_READ_VISITOR);
+            }
+            return super.calculateOwnValue(consumer);
+        }
     }
 
     private static class FileCollectionElementsFactory implements Factory<Set<FileSystemLocation>> {
