@@ -27,6 +27,7 @@ import org.opentest4j.TestAbortedException
 class MavenCentralDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
     def "resolves a minimal dependency from Maven Central"() {
         given:
+        executer.withoutExtraRepositories()
         buildFile << """
 repositories {
     mavenCentral()
