@@ -41,21 +41,17 @@ dependencies {
         because("SamplesIvyPublishIntegrationTest test applies the java-library plugin.")
     }
 
-    testFixturesApi(projects.baseServices) {
-        because("Test fixtures export the Action class")
-    }
-    testFixturesApi(projects.coreApi) {
-        because("Test fixtures export the RepositoryHandler class")
-    }
-    testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(libs.sshdScp)
-    testFixturesImplementation(libs.sshdSftp)
+    testFixturesApi(projects.internalDistributionTesting)
+    testFixturesApi(projects.internalIntegTesting)
 
     crossVersionTestImplementation(projects.internalIntegTesting)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("IvyPublishCrossVersionIntegrationTest test applies the war plugin.")
     }
+
+    testFixturesRuntimeOnly(projects.coreApi)
+    testFixturesRuntimeOnly(libs.sshdSftp)
 }
 
 gradleModule {

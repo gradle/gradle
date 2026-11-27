@@ -41,12 +41,23 @@ dependencies {
     testImplementation(projects.unitTestFixtures)
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.hashing))
     testImplementation(testFixtures(projects.modelReflect))
     testImplementation(libs.commonsIo)
 
-    testFixturesImplementation(projects.problems)
-
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    testFixturesApi(projects.baseServices)
+    testFixturesApi(projects.buildCache)
+    testFixturesApi(projects.buildOperations)
+    testFixturesApi(projects.files)
+    testFixturesApi(projects.hashing)
+    testFixturesApi(projects.problemsApi)
+    testFixturesApi(projects.snapshots)
+
+    testFixturesRuntimeOnly(projects.problems)
+
+    integTestImplementation(testFixtures(projects.hashing))
 }
 
 gradleModule {

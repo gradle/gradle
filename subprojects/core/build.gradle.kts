@@ -131,23 +131,23 @@ dependencies {
     testImplementation(projects.testingBase)
     testImplementation(libs.jsoup)
 
+    testFixturesApi(projects.antApi)
     testFixturesApi(projects.baseServices) {
         because("test fixtures expose Action")
     }
-    testFixturesApi(projects.baseServicesGroovy) {
-        because("test fixtures expose AndSpec")
-    }
+    testFixturesApi(projects.buildOperations)
+    testFixturesApi(projects.classloaders)
+    testFixturesApi(projects.concurrent)
     testFixturesApi(projects.coreApi) {
         because("test fixtures expose Task")
     }
+    testFixturesApi(projects.domainObjectCollections)
+    testFixturesApi(projects.enterpriseLogging)
     testFixturesApi(projects.logging) {
         because("test fixtures expose Logger")
     }
     testFixturesApi(projects.modelCore) {
         because("test fixtures expose IConventionAware")
-    }
-    testFixturesApi(projects.buildCache) {
-        because("test fixtures expose BuildCacheController")
     }
     testFixturesApi(projects.execution) {
         because("test fixtures expose OutputChangeListener")
@@ -158,38 +158,53 @@ dependencies {
     testFixturesApi(projects.fileCollections) {
         because("test fixtures expose file collection types")
     }
+    testFixturesApi(projects.fileOperations)
     testFixturesApi(projects.fileTemp) {
         because("test fixtures expose temp file types")
     }
+    testFixturesApi(projects.files)
+    testFixturesApi(projects.hashing)
+    testFixturesApi(projects.persistentCache)
+    testFixturesApi(projects.problemsApi)
     testFixturesApi(projects.resources) {
         because("test fixtures expose file resource types")
     }
     testFixturesApi(testFixtures(projects.buildOperations)) {
         because("test fixtures expose test build operations runner")
     }
-    testFixturesApi(testFixtures(projects.persistentCache)) {
-        because("test fixtures expose cross-build cache factory")
+    testFixturesImplementation(testFixtures(projects.persistentCache)) {
+        because("test fixtures use cross-build cache factory")
     }
     testFixturesApi(projects.processServices) {
         because("test fixtures expose exec handler types")
     }
-    testFixturesApi(testFixtures(projects.hashing)) {
-        because("test fixtures expose test hash codes")
+    testFixturesApi(projects.processServicesBase)
+    testFixturesApi(projects.serialization)
+    testFixturesApi(projects.serviceLookup)
+    testFixturesApi(projects.serviceProvider)
+    testFixturesApi(projects.serviceRegistryImpl)
+    testFixturesApi(projects.snapshots)
+    testFixturesApi(projects.time)
+    testFixturesImplementation(testFixtures(projects.hashing)) {
+        because("test fixtures use test hash codes")
     }
     testFixturesApi(testFixtures(projects.snapshots)) {
         because("test fixtures expose file snapshot related functionality")
     }
-    testFixturesApi(testFixtures(projects.serviceRegistryImpl)) {
-        because("test fixtures expose DefaultServiceRegistry")
-    }
     testFixturesApi(projects.unitTestFixtures) {
         because("test fixtures expose ProjectBuilder")
     }
+    testFixturesApi(libs.ant)
+    testFixturesApi(libs.guava)
+    testFixturesApi(libs.jspecify)
+    testFixturesApi(libs.jsr305)
+    testFixturesApi(testLibs.hamcrest)
     testFixturesImplementation(projects.problemsReporting)
     testFixturesImplementation(projects.ant)
-    testFixturesImplementation(projects.dependencyManagement) {
+    testFixturesApi(projects.dependencyManagement) {
         because("Used in VersionCatalogErrorMessages for org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder.getExcludedNames")
     }
+    testFixturesImplementation(projects.stdlibJavaExtensions)
 
     testFixturesRuntimeOnly(projects.pluginUse) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
@@ -204,6 +219,9 @@ dependencies {
     testImplementation(testFixtures(projects.domainObjectCollections))
     testImplementation(testFixtures(projects.modelReflect))
     testImplementation(testFixtures(projects.baseServices))
+    testImplementation(testFixtures(projects.hashing))
+    testImplementation(testFixtures(projects.logging))
+    testImplementation(testFixtures(projects.persistentCache))
     testImplementation(testFixtures(projects.snapshots))
     testImplementation(testFixtures(projects.time))
     testImplementation(testLibs.hamcrest)

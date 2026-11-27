@@ -35,9 +35,6 @@ dependencies {
     integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.resourcesHttp))
 
-    testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(testFixtures(projects.core))
-
     testRuntimeOnly(projects.distributionsCore) {
         because("AbstractOptionsTest instantiates DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
@@ -45,6 +42,9 @@ dependencies {
 
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
     javadocReferences(projects.pluginsJavaBase)
+
+    testFixturesApi(projects.internalDistributionTesting)
+    testFixturesApi(projects.internalIntegTesting)
 }
 
 gradleModule {

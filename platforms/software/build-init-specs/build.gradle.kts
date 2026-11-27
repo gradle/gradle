@@ -27,6 +27,11 @@ dependencies {
 
     testImplementation(projects.baseServices)
     testImplementation(testFixtures(project))
+
+    testFixturesApi(projects.buildInitSpecsApi)
+    testFixturesApi(projects.coreApi)
+
+    testFixturesImplementation(libs.commonsLang)
 }
 
 gradleModule {

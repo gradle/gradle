@@ -40,6 +40,8 @@ dependencies {
     testImplementation(testLibs.hamcrest)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    testFixturesImplementation(projects.stdlibJavaExtensions)
 }
 
 gradleModule {

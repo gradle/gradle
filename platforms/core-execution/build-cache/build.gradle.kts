@@ -30,8 +30,6 @@ dependencies {
     jmhImplementation(testLibs.jtar)
     jmhImplementation(testLibs.snappy)
 
-    testFixturesImplementation(testFixtures(projects.hashing))
-
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 
     testRuntimeOnly(projects.classpath)

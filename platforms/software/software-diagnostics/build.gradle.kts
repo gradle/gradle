@@ -48,10 +48,6 @@ dependencies {
 
     implementationResources(variantOf(libs.jquery) { artifactType("js") })
 
-    testFixturesApi(testFixtures(projects.platformNative))
-    testFixturesApi(testFixtures(projects.logging))
-    testFixturesImplementation(projects.internalIntegTesting)
-
     testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.dependencyManagement))
@@ -67,6 +63,10 @@ dependencies {
     integTestImplementation(libs.jsoup)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
+
+    testFixturesRuntimeOnly(projects.ide)
+    testFixturesRuntimeOnly(projects.internalIntegTesting)
+    testFixturesRuntimeOnly(projects.platformJvm)
 }
 
 gradleModule {

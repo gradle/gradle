@@ -53,9 +53,9 @@ dependencies {
     testImplementation(testFixtures(projects.time))
     testImplementation(testLibs.hamcrest)
 
-    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.stdlibJavaExtensions)
 
-    testFixturesImplementation(libs.jsoup)
+    testFixturesImplementation(testLibs.junit5JupiterApi)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
@@ -64,6 +64,15 @@ dependencies {
 
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
     javadocReferences(projects.testingJvm)
+
+    testFixturesApi(projects.baseServices)
+    testFixturesApi(projects.internalIntegTesting)
+    testFixturesApi(projects.testingBaseInfrastructure)
+    testFixturesApi(libs.groovyXml)
+    testFixturesApi(libs.guava)
+    testFixturesApi(libs.jsoup)
+    testFixturesApi(libs.jspecify)
+    testFixturesApi(testLibs.hamcrest)
 }
 
 gradleModule {

@@ -41,8 +41,13 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsPublishing)
 
-    testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(testFixtures(projects.core))
+    testFixturesImplementation(projects.security)
+    testFixturesImplementation(libs.bouncycastleProvider)
+
+    testFixturesApi(projects.internalDistributionTesting)
+    testFixturesApi(libs.bouncycastlePgp)
+
+    testFixturesRuntimeOnly(projects.internalIntegTesting)
 }
 
 gradleModule {

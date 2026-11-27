@@ -56,12 +56,15 @@ dependencies {
     integTestImplementation(testFixtures(projects.testingBase))
 
     testFixturesImplementation(testFixtures(projects.core))
-    testFixturesImplementation(testFixtures(projects.languageJvm))
+    testFixturesImplementation(testLibs.hamcrest)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
+
+    testFixturesApi(projects.stdlibJavaExtensions)
+    testFixturesApi(testFixtures(projects.languageJvm))
 }
 
 gradleModule {

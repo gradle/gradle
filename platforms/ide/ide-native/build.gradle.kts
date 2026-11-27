@@ -43,9 +43,15 @@ dependencies {
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.platformNative))
 
+    testFixturesApi(projects.internalDistributionTesting)
+    testFixturesApi(projects.platformNative)
+    testFixturesApi(testFixtures(projects.ide))
     testFixturesApi(testFixtures(projects.platformNative))
+    testFixturesApi(libs.jsr305)
+    testFixturesApi(libs.plist)
     testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(libs.plist)
+    testFixturesImplementation(libs.commonsIo)
+    testFixturesImplementation(libs.groovyXml)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

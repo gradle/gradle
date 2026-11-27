@@ -72,8 +72,9 @@ dependencies {
         because("Used by TestNG")
     }
 
-    testFixturesImplementation(projects.testingBase)
-    testFixturesImplementation(providedLibs.testng)
+    testFixturesApi(providedLibs.testng)
+
+    testFixturesRuntimeOnly(projects.testingBase)
 }
 
 gradleModule {

@@ -33,9 +33,15 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    testFixturesImplementation(testFixtures(projects.declarativeDslProvider))
-
     integTestDistributionRuntimeOnly(projects.distributionsFull)
+
+    testFixturesRuntimeOnly(projects.classpath)
+    testFixturesRuntimeOnly(projects.core)
+    testFixturesRuntimeOnly(projects.domainObjectCollections)
+    testFixturesRuntimeOnly(projects.normalization)
+    testFixturesRuntimeOnly(projects.processServices)
+
+    integTestImplementation(testFixtures(projects.declarativeDslProvider))
 }
 
 gradleModule {

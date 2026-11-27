@@ -32,7 +32,9 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.guava)
 
-    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.internalDistributionTesting)
+    testFixturesImplementation(projects.stdlibJavaExtensions)
+    testFixturesImplementation(libs.groovyXml)
 
     testFixturesImplementation(libs.jsoup)
 
@@ -46,6 +48,8 @@ dependencies {
     }
     testRuntimeOnly(projects.internalIntegTesting)
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
+
+    testFixturesRuntimeOnly(projects.internalIntegTesting)
 }
 
 gradleModule {

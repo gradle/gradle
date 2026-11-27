@@ -53,8 +53,7 @@ val integrationTestConventionDependencies = listOf(
     "org.junit.platform:junit-platform-launcher",
     "org.junit.vintage:junit-vintage-engine",
 )
-val conventionDependencies = mapOf(
-    "test" to listOf(
+val unitTestConventionDependencies = listOf(
         "com.gradle:develocity-testing-annotations",
         "junit:junit",
         "net.bytebuddy:byte-buddy",
@@ -69,7 +68,11 @@ val conventionDependencies = mapOf(
         "org.objenesis:objenesis",
         "org.spockframework:spock-core",
         "org.spockframework:spock-junit4",
-    ),
+)
+val conventionDependencies = mapOf(
+    "test" to unitTestConventionDependencies,
+    // Multi-release test source sets compile against the test classpath, see JvmCompileExtension
+    "java9Test" to unitTestConventionDependencies,
     "testFixtures" to listOf(
         ":distributions-dependencies",
         ":internal-testing",
@@ -109,7 +112,7 @@ configure<DependencyAnalysisSubExtension> {
             }
         }
 
-        ignoreSourceSet("crossVersionTest", "integTest", "jmh", "testFixtures")
+        ignoreSourceSet("crossVersionTest", "integTest", "jmh")
 
     }
 }

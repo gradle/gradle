@@ -52,14 +52,15 @@ dependencies {
 
     integTestImplementation(testLibs.ansiControlSequenceUtil)
 
-    testFixturesImplementation(projects.enterpriseWorkers)
-    testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(testFixtures(projects.time))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
     javadocReferences(projects.daemonServices)
+
+    testFixturesApi(projects.enterpriseLogging)
+    testFixturesApi(projects.loggingApi)
 }
 
 gradleModule {

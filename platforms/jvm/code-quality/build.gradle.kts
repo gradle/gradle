@@ -50,8 +50,6 @@ dependencies {
     testImplementation(testFixtures(projects.core))
     testImplementation(testLibs.hamcrest)
 
-    testFixturesImplementation(testFixtures(projects.core))
-
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
@@ -62,6 +60,9 @@ dependencies {
         because("We need to validate generated HTML reports")
     }
     integTestImplementation(testFixtures(projects.resourcesHttp))
+
+    testFixturesApi(projects.baseServices)
+    testFixturesApi(projects.stdlibJavaExtensions)
 }
 
 gradleModule {

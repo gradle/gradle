@@ -37,6 +37,7 @@ dependencies {
     testImplementation(projects.coreApi)
     testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.hashing))
     testImplementation(testLibs.hamcrest)
     testImplementation(testLibs.xmlApis)
 
@@ -50,6 +51,11 @@ dependencies {
     javadocReferences(projects.modelCore)
 
     testRuntimeOnly(testLibs.xerces)
+
+    testFixturesApi(projects.hashing)
+    testFixturesApi(libs.guava)
+
+    testFixturesImplementation(projects.stdlibJavaExtensions)
 }
 
 gradleModule {

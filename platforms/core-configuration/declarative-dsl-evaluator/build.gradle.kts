@@ -28,6 +28,8 @@ dependencies {
     api(projects.declarativeDslToolingModels)
 
     api(libs.kotlinStdlib)
+
+    testFixturesApi(projects.declarativeDslToolingModels)
 }
 
 gradleModule {

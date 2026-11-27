@@ -39,11 +39,15 @@ dependencies {
 
     compileOnly(libs.errorProneAnnotations)
 
-    testFixturesApi(testFixtures(projects.baseDiagnostics))
+    testFixturesApi(projects.baseServices)
+    testFixturesApi(projects.coreApi)
+    testFixturesApi(projects.domainObjectCollections)
+    testFixturesApi(projects.functional)
     testFixturesApi(testFixtures(projects.core))
     testFixturesApi(projects.internalIntegTesting)
-    testFixturesImplementation(libs.groovyDatetime)
-    testFixturesImplementation(libs.groovyDateUtil)
+    testFixturesApi(projects.modelReflect)
+    testFixturesApi(projects.stdlibJavaExtensions)
+    testFixturesApi(libs.jsr305)
 
     api(projects.processServicesApi)
 
@@ -58,7 +62,10 @@ dependencies {
     testImplementation(projects.stdlibJavaExtensions)
     testImplementation(projects.unitTestFixtures)
     testImplementation(testFixtures(projects.coreApi))
+    testImplementation(testFixtures(projects.hashing))
+    testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.modelReflect))
+    testImplementation(testFixtures(projects.persistentCache))
     testImplementation(testLibs.hamcrest)
 
     integTestImplementation(testFixtures(projects.processServices))

@@ -17,6 +17,8 @@ dependencies {
 
     testImplementation(testFixtures(projects.time))
     testImplementation(libs.jsr305)
+
+    testFixturesApi(libs.jspecify)
 }
 
 gradleModule {

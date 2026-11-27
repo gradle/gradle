@@ -32,11 +32,12 @@ dependencies {
     testImplementation(projects.internalIntegTesting)
     testImplementation(testFixtures(projects.core))
 
-    testFixturesImplementation(projects.internalIntegTesting)
-
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 
     integTestImplementation(testFixtures(projects.logging))
+
+    testFixturesApi(projects.internalDistributionTesting)
+    testFixturesApi(projects.internalIntegTesting)
 }
 
 gradleModule {

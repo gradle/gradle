@@ -49,18 +49,22 @@ dependencies {
     testImplementation(libs.commonsIo)
 
     testFixturesImplementation(testFixtures(projects.modelCore))
-    testFixturesImplementation(testFixtures(projects.coreApi))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
+    integTestImplementation(testFixtures(projects.baseDiagnostics))
     integTestImplementation(testFixtures(projects.ideNative))
     integTestImplementation(testFixtures(projects.languageNative))
 
     integTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("ModelReportIntegrationTest verifies the full set of tasks contributed by a Gradle distribution.")
     }
+
+    testFixturesApi(projects.coreApi)
+    testFixturesApi(projects.modelCore)
+    testFixturesApi(projects.platformBase)
 }
 
 gradleModule {

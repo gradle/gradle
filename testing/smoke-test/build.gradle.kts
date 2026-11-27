@@ -39,8 +39,6 @@ val smokeTestBinDistribution = configurations.getByName("smokeTestBinDistributio
 val smokeTestSrcDistribution = configurations.getByName("smokeTestSrcDistribution")
 
 dependencies {
-    testFixturesImplementation(projects.internalIntegTesting)
-
     smokeTestImplementation(projects.testKit)
     smokeTestImplementation(projects.launcher)
     smokeTestImplementation(libs.groovyJson)
@@ -60,6 +58,8 @@ dependencies {
     // These will make the bin and src distribution available through `IntegrationTestBuildContext`
     smokeTestBinDistribution(projects.distributionsFull)
     smokeTestSrcDistribution(projects.distributionsFull)
+
+    testFixturesRuntimeOnly(projects.internalIntegTesting)
 }
 
 androidHomeWarmup {

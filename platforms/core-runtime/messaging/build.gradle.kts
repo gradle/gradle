@@ -27,8 +27,6 @@ dependencies {
     testImplementation(testFixtures(projects.core))
     testImplementation(testLibs.hamcrest)
 
-    testFixturesImplementation(libs.slf4jApi)
-
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
     integTestImplementation(testFixtures(projects.testingBase))
 }

@@ -32,6 +32,9 @@ dependencies {
     testImplementation(testFixtures(projects.core))
 
     testFixturesImplementation(projects.unitTestFixtures)
+
+    testFixturesApi(projects.persistentCache)
+    testFixturesApi(projects.serialization)
 }
 
 gradleModule {

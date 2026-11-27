@@ -72,8 +72,12 @@ dependencies {
 
     // TODO: Make these available for all integration tests? Maybe all tests?
 
+    testFixturesApi(projects.buildOperationsTrace)
+    testFixturesApi(projects.internalIntegTesting)
+    testFixturesApi(projects.javaCompilerWorker)
     testFixturesApi(testFixtures(projects.languageJvm))
-    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.enterpriseOperations)
+    testFixturesImplementation(projects.internalDistributionTesting)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder test (JavaLanguagePluginTest) loads services from a Gradle distribution.")

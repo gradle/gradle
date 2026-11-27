@@ -49,16 +49,14 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
-    testFixturesApi(projects.baseServices) {
-        because("Test fixtures export the Action class")
-    }
-    testFixturesImplementation(projects.internalIntegTesting)
-
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 
     crossVersionTestImplementation(projects.internalIntegTesting)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
+
+    testFixturesApi(projects.internalDistributionTesting)
+    testFixturesApi(projects.internalIntegTesting)
 }
 
 gradleModule {

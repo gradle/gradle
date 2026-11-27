@@ -21,7 +21,7 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.toolchainsJvmShared)
 
-    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.internalDistributionTesting)
 
     testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")
@@ -29,6 +29,10 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 
     integTestImplementation(testFixtures(projects.toolchainsJvmShared))
+
+    testFixturesApi(projects.baseServices)
+    testFixturesApi(projects.internalIntegTesting)
+    testFixturesApi(projects.stdlibJavaExtensions)
 }
 
 gradleModule {

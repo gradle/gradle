@@ -50,6 +50,12 @@ dependencies {
 
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
     javadocReferences(projects.launcher)
+
+    testFixturesApi(projects.messaging)
+
+    testFixturesImplementation(projects.baseServicesGroovy)
+    testFixturesImplementation(projects.classloaders)
+    testFixturesImplementation(projects.stdlibJavaExtensions)
 }
 
 gradleModule {

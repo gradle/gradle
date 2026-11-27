@@ -18,15 +18,19 @@ dependencies {
     implementation(libs.slf4jApi)
 
     testImplementation(projects.coreApi)
+    testImplementation(projects.fileCollections)
     testImplementation(projects.native)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.fileCollections))
+    testImplementation(testFixtures(projects.hashing))
     testImplementation(libs.ant)
 
-    testFixturesApi(testFixtures(projects.hashing))
+    testFixturesApi(projects.files)
+    testFixturesApi(libs.jsr305)
 
-    testFixturesImplementation(projects.fileCollections)
+    testFixturesImplementation(testFixtures(projects.hashing))
+    testFixturesImplementation(libs.commonsIo)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

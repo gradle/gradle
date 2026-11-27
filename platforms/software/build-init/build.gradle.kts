@@ -63,8 +63,6 @@ dependencies {
         because("WrapperGenerator uses the /gradle-wrapper.jar resource")
     }
 
-    testFixturesImplementation(projects.pluginsJava)
-
     testImplementation(projects.internalIntegTesting)
     testImplementation(projects.stdlibJavaExtensions)
     testImplementation(projects.wrapperMain)
@@ -82,6 +80,11 @@ dependencies {
 
     integTestImplementation(testFixtures(projects.platformNative))
     integTestImplementation(testFixtures(projects.testingBase))
+
+    testFixturesApi(testLibs.hamcrest)
+
+    testFixturesImplementation(projects.pluginsJvmTestSuite)
+    testFixturesImplementation(projects.stdlibJavaExtensions)
 }
 
 gradleModule {

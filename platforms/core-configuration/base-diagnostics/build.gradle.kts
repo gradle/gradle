@@ -34,10 +34,7 @@ dependencies {
 
     implementation(libs.commonsLang)
 
-    testFixturesApi(testFixtures(projects.platformNative))
-    testFixturesApi(testFixtures(projects.logging))
-
-    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesApi(projects.internalIntegTesting)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
@@ -49,6 +46,11 @@ dependencies {
     integTestImplementation(testFixtures(projects.declarativeDslProvider))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    testFixturesRuntimeOnly(projects.ide)
+    testFixturesRuntimeOnly(projects.platformJvm)
+
+    testFixturesImplementation(testFixtures(projects.logging))
 }
 
 gradleModule {

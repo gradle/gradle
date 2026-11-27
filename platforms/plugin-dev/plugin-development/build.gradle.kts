@@ -77,7 +77,6 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 
-    testFixturesImplementation(libs.gson)
     testFixturesImplementation(testFixtures(projects.core))
 }
 

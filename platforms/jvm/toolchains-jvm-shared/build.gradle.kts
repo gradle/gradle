@@ -57,7 +57,14 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")
     }
 
-    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.internalDistributionTesting)
+    testFixturesImplementation(libs.commonsCompress)
+
+    testFixturesApi(projects.baseServices)
+    testFixturesApi(projects.jvmServices)
+    testFixturesApi(projects.stdlibJavaExtensions)
+
+    testFixturesRuntimeOnly(projects.internalIntegTesting)
 }
 
 gradleModule {

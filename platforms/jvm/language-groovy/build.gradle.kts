@@ -46,10 +46,16 @@ dependencies {
     testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
 
+    testFixturesApi(projects.baseServices)
+    testFixturesApi(projects.internalDistributionTesting)
+    testFixturesApi(projects.internalIntegTesting)
+    testFixturesApi(projects.logging)
+    testFixturesApi(projects.stdlibJavaExtensions)
     testFixturesApi(testFixtures(projects.languageJvm))
+    testFixturesApi(testFixtures(projects.modelReflect))
+    testFixturesApi(testFixtures(projects.testingBase))
+    testFixturesImplementation(projects.testingBaseInfrastructure)
     testFixturesImplementation(testFixtures(projects.core))
-    testFixturesImplementation(testFixtures(projects.modelReflect))
-    testFixturesImplementation(testFixtures(projects.testingBase))
 
     integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.testingBase))

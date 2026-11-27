@@ -54,10 +54,13 @@ dependencies {
     integTestImplementation(testFixtures(projects.declarativeDslProvider))
     integTestImplementation(testFixtures(projects.toolingApi))
 
-    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.internalDistributionTesting)
     testFixturesImplementation(testFixtures(projects.declarativeDslCore))
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
+
+    testFixturesApi(projects.declarativeDslEvaluator)
+    testFixturesApi(projects.internalIntegTesting)
 }
 
 gradleModule {

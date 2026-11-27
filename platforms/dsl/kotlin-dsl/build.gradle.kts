@@ -121,6 +121,7 @@ dependencies {
     testImplementation(projects.platformJvm)
     testImplementation(projects.versionControl)
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.hashing))
     testImplementation(libs.ant)
     testImplementation(libs.jspecify)
     testImplementation(testLibs.mockitoCore)
@@ -150,30 +151,33 @@ dependencies {
     testRuntimeOnly(testLibs.jacksonKotlin)
 
     testFixturesImplementation(projects.baseServices)
-    testFixturesImplementation(projects.coreApi)
     testFixturesImplementation(projects.core)
-    testFixturesImplementation(projects.fileTemp)
     testFixturesImplementation(projects.resources)
-    testFixturesImplementation(projects.kotlinDslToolingBuilders)
-    testFixturesImplementation(projects.testKit)
     testFixturesImplementation(projects.internalTesting)
-    testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(projects.unitTestFixtures)
-    testFixturesImplementation(projects.serviceRegistryImpl)
+    testFixturesImplementation(projects.serviceRegistryBuilder)
 
     testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(testFixtures(projects.hashing))
     testFixturesImplementation(testFixtures(projects.buildOperations))
-    testFixturesImplementation(testFixtures(projects.persistentCache))
-
-    testFixturesImplementation(libs.kotlinCompilerEmbeddable)
 
     testFixturesImplementation(testLibs.junit)
     testFixturesImplementation(testLibs.mockitoKotlin)
-    testFixturesImplementation(testLibs.jacksonKotlin)
-    testFixturesImplementation(libs.asm)
+    testFixturesImplementation(testLibs.mockitoCore)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
+
+    testFixturesApi(projects.buildProcessServices)
+    testFixturesApi(projects.classloaders)
+    testFixturesApi(projects.coreApi)
+    testFixturesApi(projects.internalDistributionTesting)
+    testFixturesApi(projects.internalIntegTesting)
+    testFixturesApi(projects.stdlibJavaExtensions)
+    testFixturesApi(projects.unitTestFixtures)
+    testFixturesApi(libs.kotlinCompilerEmbeddable)
+    testFixturesApi(testLibs.hamcrest)
+
+    testFixturesRuntimeOnly(projects.kotlinDslToolingBuilders)
+    testFixturesRuntimeOnly(testLibs.jacksonKotlin)
 }
 
 gradleModule {

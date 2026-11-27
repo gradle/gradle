@@ -47,6 +47,7 @@ dependencies {
     testImplementation(projects.serviceRegistryImpl)
     testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.hashing))
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testLibs.hamcrest)
 

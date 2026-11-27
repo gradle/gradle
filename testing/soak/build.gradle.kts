@@ -4,7 +4,8 @@ plugins {
 }
 
 dependencies {
-    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.internalDistributionTesting)
+    testFixturesImplementation(projects.stdlibJavaExtensions)
 
     integTestImplementation(projects.core)
     integTestImplementation(projects.coreApi)
@@ -18,6 +19,10 @@ dependencies {
     }
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
+
+    testFixturesApi(projects.baseServices)
+    testFixturesApi(projects.internalIntegTesting)
+    testFixturesApi(projects.jvmServices)
 }
 
 tasks.register("soakTest") {

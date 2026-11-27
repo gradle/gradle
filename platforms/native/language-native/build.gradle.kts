@@ -40,15 +40,15 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.slf4jApi)
 
-    testFixturesApi(projects.baseServices) {
-        because("Test fixtures export the Named class")
-    }
-    testFixturesApi(projects.platformBase) {
-        because("Test fixtures export the Platform class")
-    }
+    testFixturesApi(projects.internalDistributionTesting)
+    testFixturesApi(projects.internalIntegTesting)
+    testFixturesApi(testFixtures(projects.platformNative))
 
-    testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(testFixtures(projects.platformNative))
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.buildOperationsTrace)
+    testFixturesImplementation(projects.enterpriseOperations)
+    testFixturesImplementation(projects.stdlibJavaExtensions)
+    testFixturesImplementation(testLibs.hamcrest)
 
     testImplementation(projects.stdlibJavaExtensions)
     testImplementation(projects.unitTestFixtures)

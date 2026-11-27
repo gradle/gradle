@@ -24,9 +24,10 @@ dependencies {
 
     implementation(libs.commonsIo)
 
-    testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(projects.launcher)
-    testFixturesImplementation(testFixtures(projects.core))
+    testFixturesImplementation(projects.core)
+    testFixturesImplementation(projects.loggingApi)
+    testFixturesImplementation(projects.native)
+    testFixturesImplementation(libs.jsr305)
 
     integTestImplementation(projects.launcher)
     integTestImplementation(testFixtures(projects.buildConfiguration))
@@ -40,6 +41,12 @@ dependencies {
 
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
     javadocReferences(projects.coreApi)
+
+    testFixturesApi(projects.baseServices)
+    testFixturesApi(projects.internalDistributionTesting)
+    testFixturesApi(projects.internalIntegTesting)
+
+    testFixturesRuntimeOnly(projects.launcher)
 }
 
 gradleModule {

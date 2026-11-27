@@ -116,26 +116,23 @@ dependencies {
     integTestImplementation(testFixtures(projects.signing))
     integTestImplementation(testFixtures(projects.modelReflect))
 
-    testFixturesApi(projects.baseServices) {
-        because("Test fixtures export the Action class")
-    }
-    testFixturesApi(projects.persistentCache) {
-        because("Test fixtures export the CacheAccess class")
-    }
+    testFixturesApi(projects.coreApi)
+    testFixturesApi(projects.internalDistributionTesting)
+    testFixturesApi(projects.internalIntegTesting)
+    testFixturesApi(testFixtures(projects.core))
+    testFixturesApi(testFixtures(projects.resourcesHttp))
+    testFixturesApi(testLibs.testcontainers)
 
-    testFixturesImplementation(testFixtures(projects.core))
-    testFixturesImplementation(testFixtures(projects.resourcesHttp))
-    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(libs.groovyJson)
     testFixturesImplementation(libs.guava) {
         because("Groovy compiler reflects on private field on TextUtil")
     }
-    testFixturesApi(testLibs.testcontainersSpock) {
-        because("API because of Groovy compiler bug leaking internals")
-    }
-    testFixturesImplementation(projects.jvmServices) {
+    testImplementation(projects.jvmServices) {
         because("Groovy compiler bug leaks internals")
     }
+    testImplementation(testFixtures(projects.hashing))
+    testFixturesImplementation(testLibs.dockerJavaApi)
 
     integTestImplementation(projects.launcher) {
         because("Daemon fixtures need DaemonRegistry")

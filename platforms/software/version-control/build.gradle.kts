@@ -37,13 +37,20 @@ dependencies {
     testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
 
-    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.stdlibJavaExtensions)
 
-    testFixturesImplementation(libs.jgitSsh)
-    testFixturesImplementation(libs.commonsHttpclient)
+    testFixturesImplementation(libs.commonsIo)
 
     integTestImplementation(projects.launcher)
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
+
+    testFixturesApi(projects.baseServices)
+    testFixturesApi(projects.internalDistributionTesting)
+    testFixturesApi(libs.jgit)
+
+    testFixturesRuntimeOnly(projects.internalIntegTesting)
+    testFixturesRuntimeOnly(libs.commonsHttpclient)
+    testFixturesRuntimeOnly(libs.jgitSsh)
 }
 
 gradleModule {

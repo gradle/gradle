@@ -94,6 +94,12 @@ dependencies {
     testInterceptorsImplementation(testFixtures(projects.core))
     "testInterceptorsAnnotationProcessor"(projects.internalInstrumentationProcessor)
     "testInterceptorsAnnotationProcessor"(platform(projects.distributionsDependencies))
+
+    testFixturesApi(projects.classloaders)
+    testFixturesApi(projects.internalInstrumentationApi)
+    testFixturesApi(libs.jspecify)
+
+    testFixturesImplementation(libs.jsr305)
 }
 
 gradleModule {

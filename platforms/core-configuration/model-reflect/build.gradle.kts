@@ -20,9 +20,13 @@ dependencies {
 
     testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.persistentCache))
     testImplementation(libs.jsr305)
 
     testFixturesApi(projects.internalIntegTesting)
+    testFixturesApi(projects.logging)
+
+    testFixturesImplementation(projects.baseAsm)
 }
 
 gradleModule {

@@ -9,6 +9,7 @@ description = """Performance tests for the Develocity plugin
 
 dependencies {
     performanceTestImplementation(projects.baseServices)
+    performanceTestImplementation(libs.commonsIo)
     performanceTestImplementation(libs.groovy)
 
     performanceTestCompileOnly(projects.internalIntegTesting)
@@ -17,16 +18,20 @@ dependencies {
     performanceTestImplementation(testLibs.gradleProfiler)
     performanceTestImplementation(testLibs.spock)
 
-    testFixturesApi(libs.commonsIo)
+    testFixturesApi(projects.internalDistributionTesting)
+    testFixturesApi(projects.internalPerformanceTesting)
 
-    testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(projects.internalPerformanceTesting)
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.stdlibJavaExtensions)
+    testFixturesImplementation(projects.time)
 
     testFixturesImplementation(libs.groovyJson)
 
     performanceTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("so that all Gradle features are available")
     }
+
+    testFixturesRuntimeOnly(projects.internalIntegTesting)
 }
 
 performanceTest.registerTestProject<gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask>("javaProject") {

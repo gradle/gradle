@@ -54,12 +54,13 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 
-    testFixturesImplementation(projects.internalIntegTesting)
-
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
     javadocReferences(projects.pluginsJava)
 
     integTestImplementation(testFixtures(projects.core))
+
+    testFixturesApi(projects.internalDistributionTesting)
+    testFixturesApi(projects.internalIntegTesting)
 }
 
 gradleModule {

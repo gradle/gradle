@@ -45,17 +45,13 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
 
-    testFixturesApi(projects.baseServices) {
-        because("test fixtures export the Action class")
-    }
-    testFixturesApi(projects.logging) {
-        because("test fixtures export the ConsoleOutput class")
-    }
+    testFixturesApi(projects.internalDistributionTesting)
+    testFixturesApi(projects.internalIntegTesting)
     testFixturesApi(projects.toolingApi) {
         because("test fixtures export the EclipseWorkspace and EclipseWorkspaceProject classes")
     }
     testFixturesImplementation(projects.dependencyManagement)
-    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.stdlibJavaExtensions)
     testFixturesImplementation(testLibs.xmlunit)
 
     testImplementation(projects.stdlibJavaExtensions)
@@ -73,6 +69,8 @@ dependencies {
     javadocReferences(projects.idePlugins)
 
     integTestImplementation(testFixtures(projects.languageGroovy))
+
+    testFixturesRuntimeOnly(projects.logging)
 }
 
 gradleModule {

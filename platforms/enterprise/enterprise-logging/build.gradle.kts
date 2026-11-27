@@ -9,6 +9,8 @@ dependencies {
     api(projects.loggingApi)
 
     api(libs.jspecify)
+
+    testFixturesApi(projects.buildOperations)
 }
 
 gradleModule {

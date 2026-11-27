@@ -75,7 +75,10 @@ dependencies {
         because("TestTaskCusomExecutorIntegrationTest requires the full distribution to apply the DV plugin")
     }
 
-    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.internalDistributionTesting)
+    testFixturesImplementation(projects.stdlibJavaExtensions)
+
+    testFixturesApi(projects.internalIntegTesting)
 }
 
 gradleModule {

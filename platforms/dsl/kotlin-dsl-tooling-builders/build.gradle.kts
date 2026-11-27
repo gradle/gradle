@@ -36,9 +36,9 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 
+    testFixturesImplementation(projects.internalDistributionTesting)
     testFixturesImplementation(projects.kotlinDsl)
     testFixturesImplementation(testFixtures(projects.toolingApi))
-    testFixturesImplementation(projects.internalIntegTesting)
 
     crossVersionTestImplementation(projects.internalIntegTesting)
     crossVersionTestImplementation(projects.kotlinDsl)
@@ -46,6 +46,10 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Uses application plugin.")
     }
+
+    testFixturesApi(projects.toolingApi)
+
+    testFixturesRuntimeOnly(projects.internalIntegTesting)
 }
 
 gradleModule {

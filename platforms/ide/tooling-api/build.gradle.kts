@@ -36,8 +36,8 @@ dependencies {
         }
     }
 
-    testFixturesImplementation(projects.internalDistributionTesting)
     testFixturesImplementation(testFixtures(projects.buildProcessServices))
+    testFixturesImplementation(libs.commonsIo)
 
     testFixturesRuntimeOnly(testLibs.spockJUnit4) {
         because("Required for @org.junit.Rule, used in ToolingApiSpecification")
@@ -78,6 +78,14 @@ dependencies {
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
     javadocReferences(projects.coreApi)
     javadocReferences(projects.startParameter) // for org.gradle.StartParameter
+
+    testFixturesApi(projects.baseServices)
+    testFixturesApi(projects.internalDistributionTesting)
+    testFixturesApi(projects.loggingApi)
+    testFixturesApi(projects.serviceLookup)
+    testFixturesApi(projects.stdlibJavaExtensions)
+    testFixturesApi(testLibs.hamcrest)
+    testFixturesApi(testLibs.junitPlatformEngine)
 }
 
 gradleModule {

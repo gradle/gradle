@@ -26,6 +26,11 @@ dependencies {
 
     implementation(libs.fastutil)
 
+    testFixturesApi(projects.baseServices)
+    testFixturesApi(projects.coreApi)
+    testFixturesApi(projects.internalIntegTesting)
+    testFixturesApi(projects.modelCore)
+    testFixturesApi(testFixtures(projects.buildOperations))
     testFixturesApi(testFixtures(projects.modelCore))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
@@ -33,6 +38,10 @@ dependencies {
     testImplementation(projects.core)
     testImplementation(testFixtures(projects.core))
     testImplementation(libs.jsr305)
+
+    testFixturesImplementation(projects.core)
+    testFixturesImplementation(testFixtures(projects.core))
+    testFixturesImplementation(testLibs.hamcrest)
 }
 
 gradleModule {

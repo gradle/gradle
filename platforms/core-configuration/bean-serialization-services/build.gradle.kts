@@ -43,6 +43,9 @@ dependencies {
     implementation(libs.guava)
 
     testFixturesImplementation(testFixtures(projects.core))
+    testFixturesImplementation(testFixtures(projects.persistentCache))
+
+    testFixturesApi(projects.graphSerialization)
 }
 
 gradleModule {

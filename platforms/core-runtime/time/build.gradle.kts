@@ -25,6 +25,8 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     implementation(libs.jsr305)
+
+    testFixturesImplementation(libs.guava)
 }
 
 gradleModule {

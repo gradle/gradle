@@ -29,6 +29,8 @@ dependencies {
     integTestImplementation(testFixtures(projects.kotlinDsl))
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
+
+    testFixturesApi(projects.declarativeDslToolingModels)
 }
 
 gradleModule {

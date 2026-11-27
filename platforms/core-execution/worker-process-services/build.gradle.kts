@@ -43,13 +43,13 @@ dependencies {
     }
     testImplementation(testLibs.hamcrest)
 
-    testFixturesImplementation(projects.requestHandlerWorker)
-
     integTestImplementation(testFixtures(projects.core)) {
         because("AbstractWorkerProcessIntegrationSpec uses core infrastructure: ClassPathRegistry, ModuleRegistry, GlobalScopeServices, TestFiles, NativeServicesTestFixture")
     }
     integTestImplementation(testFixtures(projects.logging))
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    testFixturesApi(projects.requestHandlerWorker)
 }
 
 gradleModule {
