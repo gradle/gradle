@@ -30,6 +30,7 @@ dependencies {
     compileOnly(libs.jspecify)
 
     testImplementation(testFixtures(projects.kotlinDsl))
+    testImplementation(testLibs.hamcrest)
 
     integTestImplementation(testFixtures(projects.toolingApi))
 

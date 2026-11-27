@@ -38,8 +38,10 @@ dependencies {
     testCompileOnly(projects.toolchainsJvm) {
         because("JavaLauncher is required for mocking Test.")
     }
-    testImplementation(projects.platformJvm)
-    testImplementation(testFixtures(projects.core))
+    testImplementation(projects.logging)
+    testImplementation(projects.startParameter)
+
+    testRuntimeOnly(projects.platformJvm)
 }
 
 gradleModule {

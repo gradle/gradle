@@ -54,10 +54,8 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
-    testImplementation(projects.stdlibKotlinExtensions)
     testImplementation(testFixtures(projects.core))
 
-    testImplementation(testLibs.mockitoKotlin)
     testImplementation(libs.kotlinReflect)
 
     integTestImplementation(testFixtures(projects.logging))

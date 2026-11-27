@@ -26,15 +26,19 @@ dependencies {
 
     compileOnly(libs.jetbrainsAnnotations)
 
+    testImplementation(projects.core)
+    testImplementation(projects.stdlibJavaExtensions)
+    testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.modelCore))
-    testImplementation(testFixtures(projects.modelReflect))
-    testImplementation(libs.groovyDateUtil)
+    testImplementation(testLibs.hamcrest)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    integTestImplementation(testFixtures(projects.modelReflect))
 }
 
 gradleModule {

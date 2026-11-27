@@ -33,6 +33,8 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.baseAsm)
 
+    testImplementation(projects.baseServices)
+    testImplementation(projects.coreApi)
     testImplementation(testLibs.compileTesting)
     testImplementation(testFixtures(projects.core))
     // TODO remove this

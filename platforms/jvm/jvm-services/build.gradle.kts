@@ -46,6 +46,10 @@ dependencies {
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
+    testImplementation(projects.modelCore)
+    testImplementation(projects.scopedPersistentCache)
+    testImplementation(projects.stdlibJavaExtensions)
+    testImplementation(projects.unitTestFixtures)
     testImplementation(testFixtures(projects.core))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)

@@ -39,14 +39,17 @@ dependencies {
         because("Loaded by the AWS libraries with reflection when present: https://github.com/gradle/gradle/issues/15332")
     }
 
+    testImplementation(projects.logging)
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.dependencyManagement))
-    testImplementation(testFixtures(projects.ivy))
-    testImplementation(testFixtures(projects.maven))
 
+    integTestImplementation(testFixtures(projects.dependencyManagement))
+    integTestImplementation(testFixtures(projects.ivy))
+    integTestImplementation(testFixtures(projects.maven))
     integTestImplementation(testLibs.littleproxy)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
+
+    testRuntimeOnly(projects.publish)
 }
 
 gradleModule {

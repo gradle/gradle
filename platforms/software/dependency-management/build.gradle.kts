@@ -83,27 +83,29 @@ dependencies {
     implementation(libs.plexusUtils)
     implementation(libs.slf4jApi)
 
-    testImplementation(projects.softwareDiagnostics)
+    testImplementation(projects.buildCacheSpi)
+    testImplementation(projects.serviceRegistryImpl)
+    testImplementation(projects.unitTestFixtures)
 
     testImplementation(testLibs.asmUtil)
     testImplementation(libs.groovyXml)
     testImplementation(libs.jsoup)
 
     testImplementation(testFixtures(projects.serialization))
-    testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.dependencyManagementResources))
-    testImplementation(testFixtures(projects.execution))
     testImplementation(testFixtures(projects.logging))
-    testImplementation(testFixtures(projects.messaging))
-    testImplementation(testFixtures(projects.resourcesHttp))
-    testImplementation(testFixtures(projects.toolingApi))
-    testImplementation(testFixtures(projects.versionControl))
+    testImplementation(libs.ant)
+    testImplementation(libs.asmTree)
+    testImplementation(libs.commonsHttpclient)
+    testImplementation(testLibs.hamcrest)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
+    testRuntimeOnly(projects.softwareDiagnostics)
+    testRuntimeOnly(testFixtures(projects.toolingApi))
 
     integTestImplementation(testLibs.ansiControlSequenceUtil)
     integTestImplementation(libs.groovyJson)
@@ -138,6 +140,7 @@ dependencies {
     integTestImplementation(projects.launcher) {
         because("Daemon fixtures need DaemonRegistry")
     }
+    integTestImplementation(testFixtures(projects.resourcesHttp))
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Need access to java platforms")
     }
@@ -148,6 +151,8 @@ dependencies {
 
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
     javadocReferences(projects.coreApi)
+
+    runtimeOnly(libs.commonsHttpclient)
 }
 
 gradleModule {

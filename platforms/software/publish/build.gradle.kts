@@ -30,6 +30,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.jsr305)
 
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
 
     testRuntimeOnly(projects.distributionsCore) {

@@ -28,8 +28,6 @@ dependencies {
     testFixturesImplementation(projects.launcher)
     testFixturesImplementation(testFixtures(projects.core))
 
-    testImplementation(testFixtures(projects.core))
-
     integTestImplementation(projects.launcher)
     integTestImplementation(testFixtures(projects.buildConfiguration))
     integTestImplementation(testFixtures(projects.buildProcessServices))

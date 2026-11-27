@@ -30,9 +30,8 @@ dependencies {
 
     runtimeOnly(projects.dependencyManagement)
 
-    testImplementation(testFixtures(projects.core))
-
     integTestImplementation(projects.javadoc)
+    integTestImplementation(testFixtures(projects.core))
 
     integTestImplementation(testFixtures(projects.messaging))
     integTestImplementation(testFixtures(projects.enterpriseOperations))

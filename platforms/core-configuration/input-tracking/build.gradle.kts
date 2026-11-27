@@ -9,6 +9,8 @@ dependencies {
     api(libs.guava)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    testImplementation(libs.jsr305)
 }
 
 gradleModule {

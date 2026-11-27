@@ -115,21 +115,25 @@ dependencies {
         isTransitive = false
     }
 
+    testImplementation(projects.buildCacheCore)
     testImplementation(projects.buildCacheHttp)
-    testImplementation(projects.buildCacheLocal)
-    testImplementation(projects.buildInit)
     testImplementation(projects.jacoco)
     testImplementation(projects.platformJvm)
     testImplementation(projects.versionControl)
     testImplementation(testFixtures(projects.core))
     testImplementation(libs.ant)
+    testImplementation(libs.jspecify)
     testImplementation(testLibs.mockitoCore)
     testImplementation(testLibs.mockitoKotlin)
-    testImplementation(testLibs.jacksonKotlin)
     testImplementation(testLibs.archunit)
     testImplementation(libs.kotlinxCoroutinesJvm)
     testImplementation(testLibs.awaitility)
+    testImplementation(testLibs.hamcrest)
+    testImplementation(testLibs.junit5JupiterApi)
+    testImplementation(testLibs.awaitilityCore)
+    testImplementation(testLibs.kotlinTest)
 
+    integTestImplementation(projects.buildInit)
     integTestImplementation(projects.buildOption) {
         because("KotlinSettingsScriptIntegrationTest makes uses of FeatureFlag")
     }
@@ -139,9 +143,11 @@ dependencies {
     integTestImplementation(projects.internalTesting)
     integTestImplementation(testLibs.mockitoKotlin)
 
+    testRuntimeOnly(projects.buildInit)
     testRuntimeOnly(projects.distributionsNative) {
         because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt).")
     }
+    testRuntimeOnly(testLibs.jacksonKotlin)
 
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.coreApi)

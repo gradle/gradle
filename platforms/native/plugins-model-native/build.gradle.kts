@@ -39,8 +39,14 @@ dependencies {
 
     runtimeOnly(projects.dependencyManagement)
 
+    testImplementation(projects.baseCompilerWorker)
+    testImplementation(projects.stdlibJavaExtensions)
+    testImplementation(projects.unitTestFixtures)
+    testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.coreApi))
-    testImplementation(testFixtures(projects.platformBase))
+    testImplementation(testFixtures(projects.logging))
+    testImplementation(testFixtures(projects.modelCore))
+    testImplementation(libs.commonsIo)
 
     testFixturesImplementation(testFixtures(projects.modelCore))
     testFixturesImplementation(testFixtures(projects.coreApi))

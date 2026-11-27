@@ -19,6 +19,7 @@ dependencies {
         because("TextUtil is needed")
     }
     testImplementation(testFixtures(projects.native))
+    testImplementation(testLibs.hamcrest)
 }
 
 gradleModule {

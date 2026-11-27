@@ -52,9 +52,11 @@ dependencies {
     testFixturesApi(testFixtures(projects.logging))
     testFixturesImplementation(projects.internalIntegTesting)
 
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.dependencyManagement))
     testImplementation(testFixtures(projects.logging))
+    testImplementation(testLibs.hamcrest)
 
     testRuntimeOnly(projects.distributionsFull) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

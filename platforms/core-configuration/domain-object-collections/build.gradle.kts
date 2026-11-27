@@ -29,6 +29,10 @@ dependencies {
     testFixturesApi(testFixtures(projects.modelCore))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    testImplementation(projects.core)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(libs.jsr305)
 }
 
 gradleModule {

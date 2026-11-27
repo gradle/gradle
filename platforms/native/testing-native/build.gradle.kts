@@ -30,14 +30,18 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.guava)
 
-    testImplementation(testFixtures(projects.platformBase))
-    testImplementation(testFixtures(projects.testingBase))
-    testImplementation(testFixtures(projects.languageNative))
-
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(projects.distributionsNative)
+
+    testImplementation(projects.stdlibJavaExtensions)
+    testImplementation(projects.unitTestFixtures)
+    testImplementation(testFixtures(projects.core))
+
+    integTestImplementation(testFixtures(projects.languageNative))
+    integTestImplementation(testFixtures(projects.platformNative))
+    integTestImplementation(testFixtures(projects.testingBase))
 }
 
 gradleModule {

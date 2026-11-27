@@ -15,8 +15,6 @@ dependencies {
 
     implementation(libs.guava)
 
-    testImplementation(projects.internalTesting)
-
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 

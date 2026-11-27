@@ -37,9 +37,12 @@ dependencies {
 
     runtimeOnly(libs.kotlinReflect)
 
-    testImplementation(libs.asmCommons)
+    testImplementation(projects.ant)
+    testImplementation(projects.buildDiscovery)
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
+    testImplementation(testLibs.hamcrest)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 

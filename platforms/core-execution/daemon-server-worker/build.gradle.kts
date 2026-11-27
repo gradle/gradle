@@ -59,12 +59,12 @@ dependencies {
 
     implementation(libs.guava)
 
-    testImplementation(testFixtures(projects.core))
-
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
     javadocReferences(projects.workers)
+
+    testRuntimeOnly(projects.normalization)
 }
 
 gradleModule {

@@ -34,14 +34,13 @@ dependencies {
     implementation(projects.platformJvm)
     implementation(projects.publish)
 
+    integTestImplementation(testFixtures(projects.core))
     integTestImplementation(testFixtures(projects.dependencyManagement))
     integTestImplementation(testFixtures(projects.resourcesHttp))
 
-    testImplementation(projects.languageJava) {
+    testRuntimeOnly(projects.languageJava) {
         because("need to access JavaCompile task")
     }
-
-    testImplementation(testFixtures(projects.core))
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }

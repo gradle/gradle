@@ -34,8 +34,11 @@ dependencies {
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
+    testImplementation(projects.coreApi)
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
-    testImplementation(testLibs.xerces)
+    testImplementation(testLibs.hamcrest)
+    testImplementation(testLibs.xmlApis)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 
@@ -45,6 +48,8 @@ dependencies {
     // Javadoc-only: needed to resolve cross-module {@link} references (BuildService, ExtensionAware, InstantiatorFactory)
     javadocReferences(projects.coreApi)
     javadocReferences(projects.modelCore)
+
+    testRuntimeOnly(testLibs.xerces)
 }
 
 gradleModule {

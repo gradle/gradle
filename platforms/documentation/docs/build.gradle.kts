@@ -65,10 +65,7 @@ dependencies {
 
     userGuideStyleSheets(variantOf(buildLibs.docbook) { classifier("resources"); artifactType("zip") })
 
-    testImplementation(project(":base-services"))
-    testImplementation(project(":core"))
     testImplementation(libs.jsoup)
-    testImplementation(testLibs.httpmime)
 
     docsTestImplementation(platform(project(":distributions-dependencies")))
     docsTestImplementation(project(":internal-integ-testing"))
@@ -89,6 +86,8 @@ dependencies {
             because("Bump version brought in transitively by Dokka, to resolve CVE-2026-84939")
         }
     }
+
+    testRuntimeOnly(project(":core"))
 }
 
 jvmCompile {

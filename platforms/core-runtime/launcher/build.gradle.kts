@@ -81,13 +81,15 @@ dependencies {
     // See `BootstrapMainStarter`
     manifestClasspath(projects.gradleCliMain)
 
+    testImplementation(projects.internalDistributionTesting)
     testImplementation(projects.internalIntegTesting)
-    testImplementation(testFixtures(projects.serialization))
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.time))
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.toolingApi))
     testImplementation(testFixtures(projects.daemonProtocol))
+    testImplementation(libs.jsr305)
 
     integTestImplementation(projects.workerProcessServices)
     integTestImplementation(testFixtures(projects.buildConfiguration))

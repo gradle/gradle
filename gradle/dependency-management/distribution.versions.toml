@@ -72,6 +72,7 @@ awsSdkRetries = { group = "software.amazon.awssdk", name = "retries", version.re
 awsSdkRetriesSpi = { group = "software.amazon.awssdk", name = "retries-spi", version.ref = "awsS3" }
 bouncycastlePgp = { group = "org.bouncycastle", name = "bcpg-jdk18on", version.ref = "bouncycastle" }
 bouncycastleProvider = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncycastle" }
+bouncycastleUtil = { group = "org.bouncycastle", name = "bcutil-jdk18on", version.ref = "bouncycastle" }
 commonsCodec = { group = "commons-codec", name = "commons-codec", version.ref = "commonsCodec" }
 commonsCompress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commonsCompress" }
 commonsHttpclient = { group = "org.apache.httpcomponents", name = "httpclient", version.ref = "commonsHttpclient" }

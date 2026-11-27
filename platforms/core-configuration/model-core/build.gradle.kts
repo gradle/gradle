@@ -47,9 +47,19 @@ dependencies {
 
     api(projects.processServicesApi)
 
+    testImplementation(projects.baseAsm)
+    testImplementation(projects.buildOperations)
+    testImplementation(projects.domainObjectCollections)
+    testImplementation(projects.execution)
+    testImplementation(projects.fileCollections)
+    testImplementation(projects.loggingApi)
+    testImplementation(projects.processServices)
+    testImplementation(projects.serviceRegistryImpl)
+    testImplementation(projects.stdlibJavaExtensions)
+    testImplementation(projects.unitTestFixtures)
     testImplementation(testFixtures(projects.coreApi))
-    testImplementation(testFixtures(projects.languageGroovy))
     testImplementation(testFixtures(projects.modelReflect))
+    testImplementation(testLibs.hamcrest)
 
     integTestImplementation(testFixtures(projects.processServices))
 

@@ -47,10 +47,12 @@ dependencies {
 
     implementation(libs.guava)
 
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.pluginsJava))
-    testImplementation(testFixtures(projects.languageJava))
+    testImplementation(libs.commonsIo)
+    testImplementation(testLibs.hamcrest)
 
+    integTestImplementation(testFixtures(projects.languageJvm))
     integTestImplementation(testFixtures(projects.testingBase))
 
     testFixturesImplementation(testFixtures(projects.core))

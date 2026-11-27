@@ -25,8 +25,8 @@ dependencies {
 
     implementation(projects.loggingApi)
 
+    testImplementation(projects.baseServices)
     testImplementation(testFixtures(project))
-    testImplementation(testFixtures(projects.logging))
 }
 
 gradleModule {

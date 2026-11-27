@@ -53,7 +53,10 @@ dependencies {
 
     implementation(libs.guava)
 
+    testImplementation(projects.buildOperations)
     testImplementation(projects.problemsReporting)
+    testImplementation(projects.serialization)
+    testImplementation(projects.snapshots)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))

@@ -26,7 +26,14 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
 
+    testImplementation(projects.baseServices)
+    testImplementation(projects.functional)
+    testImplementation(projects.messaging)
+    testImplementation(projects.native)
+    testImplementation(projects.stdlibJavaExtensions)
+    testImplementation(projects.workerShared)
     testImplementation(testFixtures(projects.core))
+    testImplementation(testLibs.hamcrest)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("DefaultPersistentDirectoryCacheTest instantiates DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

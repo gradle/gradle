@@ -43,11 +43,9 @@ dependencies {
     runtimeOnly(libs.jclToSlf4j)
     runtimeOnly(libs.log4jToSlf4j)
 
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.time))
-    testImplementation(testFixtures(projects.testingJvm))
-    testImplementation(libs.groovyDatetime)
-    testImplementation(libs.groovyDateUtil)
     testImplementation(testLibs.ansiControlSequenceUtil)
 
     integTestImplementation(projects.problems)

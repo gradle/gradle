@@ -122,12 +122,14 @@ dependencies {
     runtimeOnly(libs.groovyNio)
     runtimeOnly(projects.groovyLoader)
 
+    testImplementation(projects.baseDiagnostics)
     testImplementation(projects.buildInit)
+    testImplementation(projects.internalIntegTesting)
     testImplementation(projects.io)
+    testImplementation(projects.platformJvm)
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(projects.testingBase)
     testImplementation(libs.jsoup)
-    testImplementation(libs.log4jToSlf4j)
-    testImplementation(libs.jclToSlf4j)
 
     testFixturesApi(projects.baseServices) {
         because("test fixtures expose Action")
@@ -200,19 +202,16 @@ dependencies {
     }
 
     testImplementation(testFixtures(projects.domainObjectCollections))
-    testImplementation(testFixtures(projects.serialization))
-    testImplementation(testFixtures(projects.coreApi))
-    testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.modelReflect))
     testImplementation(testFixtures(projects.baseServices))
-    testImplementation(testFixtures(projects.processServices))
     testImplementation(testFixtures(projects.snapshots))
-    testImplementation(testFixtures(projects.execution))
     testImplementation(testFixtures(projects.time))
+    testImplementation(testLibs.hamcrest)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("This is required by ProjectBuilder, but ProjectBuilder cannot declare :distributions-core as a dependency due to conflicts with other distributions.")
     }
+    testRuntimeOnly(libs.jclToSlf4j)
 
     integTestImplementation(projects.war)
     integTestImplementation(projects.groovyDsl)
@@ -221,6 +220,7 @@ dependencies {
     integTestImplementation(testFixtures(projects.native))
     integTestImplementation(testFixtures(projects.fileTemp))
     integTestImplementation(testFixtures(projects.launcher))
+    integTestImplementation(testFixtures(projects.processServices))
     integTestImplementation(testFixtures(projects.testingBase))
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {

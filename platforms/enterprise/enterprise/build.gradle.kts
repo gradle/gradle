@@ -42,6 +42,8 @@ dependencies {
         because("some used APIs (e.g. FileTree.visit) provide methods taking Groovy closures which causes compile errors")
     }
 
+    testImplementation(projects.resources)
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
 
     integTestImplementation(projects.internalIntegTesting)

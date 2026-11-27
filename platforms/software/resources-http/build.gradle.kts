@@ -28,13 +28,15 @@ dependencies {
 
     runtimeOnly(projects.core)
 
+    testImplementation(projects.internalDistributionTesting)
     testImplementation(projects.internalIntegTesting)
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.logging))
 
     testFixturesImplementation(projects.internalIntegTesting)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    integTestImplementation(testFixtures(projects.logging))
 }
 
 gradleModule {

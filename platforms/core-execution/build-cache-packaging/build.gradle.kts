@@ -16,9 +16,10 @@ dependencies {
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
 
-    testImplementation(testFixtures(projects.baseServices))
+    testImplementation(projects.baseServices)
+    testImplementation(projects.buildCacheCore)
+    testImplementation(projects.native)
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.coreApi))
 }
 
 gradleModule {

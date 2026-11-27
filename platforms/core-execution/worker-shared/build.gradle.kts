@@ -40,6 +40,7 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.jsr305)
 
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
 
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.

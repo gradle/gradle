@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsIo)
 
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)

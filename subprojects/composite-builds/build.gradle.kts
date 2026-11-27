@@ -33,10 +33,18 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.guava)
 
-    testImplementation(testFixtures(projects.dependencyManagement))
+    testImplementation(projects.buildDiscoveryImpl)
+    testImplementation(projects.buildOption)
+    testImplementation(projects.fileCollections)
+    testImplementation(projects.files)
+    testImplementation(projects.logging)
+    testImplementation(projects.serviceRegistryImpl)
+    testImplementation(projects.snapshots)
     testImplementation(testFixtures(projects.core))
+    testImplementation(libs.jsr305)
 
     integTestImplementation(projects.launcher)
+    integTestImplementation(testFixtures(projects.dependencyManagement))
 
     integTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("""

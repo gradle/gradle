@@ -48,13 +48,14 @@ dependencies {
         because("The actual version is provided by the user on the testRuntimeClasspath")
     }
 
-    testImplementation(testFixtures(projects.core))
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.time))
 
     testImplementation(testLibs.assertj) {
         because("We test assertion errors coming from AssertJ")
     }
+    testImplementation(testLibs.junitPlatformEngine)
     testImplementation(testLibs.opentest4j) {
         because("We test assertion errors coming from OpenTest4J")
     }

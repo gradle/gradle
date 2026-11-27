@@ -24,9 +24,11 @@ dependencies {
     implementation(libs.slf4jApi)
 
     testImplementation(projects.serviceRegistryImpl)
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.time))
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.time))
+    testImplementation(libs.commonsIo)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
     integTestImplementation(testFixtures(projects.testingBase))

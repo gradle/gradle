@@ -24,12 +24,21 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
-    testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.dependencyManagement))
-    testImplementation(testFixtures(projects.ivy))
-    testImplementation(testFixtures(projects.maven))
-
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
+
+    testRuntimeOnly(projects.classpath)
+    testRuntimeOnly(projects.coreApi)
+    testRuntimeOnly(projects.daemonServices)
+    testRuntimeOnly(projects.domainObjectCollections)
+    testRuntimeOnly(projects.logging)
+    testRuntimeOnly(projects.normalization)
+    testRuntimeOnly(projects.processServices)
+    testRuntimeOnly(projects.publish)
+    testRuntimeOnly(libs.bouncycastleProvider)
+
+    integTestImplementation(testFixtures(projects.dependencyManagement))
+    integTestImplementation(testFixtures(projects.ivy))
+    integTestImplementation(testFixtures(projects.maven))
 }
 
 gradleModule {

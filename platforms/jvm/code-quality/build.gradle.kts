@@ -46,7 +46,9 @@ dependencies {
     implementation(libs.guava)
 
     testImplementation(projects.pluginsJava)
-    testImplementation(testFixtures(projects.modelCore))
+    testImplementation(projects.unitTestFixtures)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testLibs.hamcrest)
 
     testFixturesImplementation(testFixtures(projects.core))
 

@@ -11,6 +11,8 @@ dependencies {
     api(libs.jspecify)
 
     implementation(libs.guava)
+
+    testImplementation(projects.baseServices)
 }
 
 gradleModule {

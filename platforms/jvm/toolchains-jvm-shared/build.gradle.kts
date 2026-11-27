@@ -46,8 +46,13 @@ dependencies {
     implementation(libs.commonsIo)
 
     testImplementation(testFixtures(projects.core))
-    testImplementation(projects.dependencyManagement)
+    testImplementation(projects.dependencyManagementResources)
+    testImplementation(projects.processServicesApi)
+    testImplementation(projects.processServicesBase)
+    testImplementation(projects.stdlibJavaExtensions)
+    testImplementation(libs.commonsCompress)
 
+    testRuntimeOnly(projects.dependencyManagement)
     testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")
     }

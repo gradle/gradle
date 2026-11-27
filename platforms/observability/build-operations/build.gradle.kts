@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.guava)
 
     testImplementation(testFixtures(projects.time))
+    testImplementation(libs.jsr305)
 }
 
 gradleModule {

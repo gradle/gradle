@@ -18,7 +18,9 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.inject)
 
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
+    testImplementation(libs.jsr305)
 
     testFixturesApi(projects.internalIntegTesting)
 }

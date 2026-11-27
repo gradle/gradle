@@ -55,11 +55,15 @@ dependencies {
         because("The actual version is provided by the user on the testRuntimeClasspath")
     }
 
+    testImplementation(projects.fileCollections)
+    testImplementation(projects.internalDistributionTesting)
+    testImplementation(projects.stdlibJavaExtensions)
+    testImplementation(projects.unitTestFixtures)
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.modelReflect))
     testImplementation(testFixtures(projects.time))
 
     integTestImplementation(testFixtures(projects.languageGroovy))
+    integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.scala))
     integTestImplementation(testFixtures(projects.testingBase))
     integTestImplementation(testFixtures(projects.toolingApi))

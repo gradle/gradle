@@ -26,7 +26,9 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsLang)
 
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
+    testImplementation(testLibs.hamcrest)
 
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
     javadocReferences(projects.coreApi)

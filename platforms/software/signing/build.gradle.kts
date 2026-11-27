@@ -32,12 +32,12 @@ dependencies {
     }
 
     testImplementation(projects.maven)
-    testImplementation(projects.ivy)
     testImplementation(testFixtures(projects.core))
 
     testRuntimeOnly(projects.distributionsPublishing) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
+    testRuntimeOnly(projects.ivy)
 
     integTestDistributionRuntimeOnly(projects.distributionsPublishing)
 

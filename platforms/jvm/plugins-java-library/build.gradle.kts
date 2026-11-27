@@ -33,6 +33,8 @@ dependencies {
     implementation(projects.pluginsJvmTestSuite)
 
     testImplementation(projects.pluginsJavaBase)
+    testImplementation(projects.stdlibJavaExtensions)
+    testImplementation(projects.testSuitesBase)
 
     testImplementation(testFixtures(projects.core))
 

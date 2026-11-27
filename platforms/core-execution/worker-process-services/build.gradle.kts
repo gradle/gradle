@@ -37,16 +37,18 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core)) {
         because("Unit tests use ConcurrentTestUtil and MultithreadedTestRule from core test fixtures")
     }
-    testImplementation(testFixtures(projects.logging))
+    testImplementation(testLibs.hamcrest)
 
     testFixturesImplementation(projects.requestHandlerWorker)
 
     integTestImplementation(testFixtures(projects.core)) {
         because("AbstractWorkerProcessIntegrationSpec uses core infrastructure: ClassPathRegistry, ModuleRegistry, GlobalScopeServices, TestFiles, NativeServicesTestFixture")
     }
+    integTestImplementation(testFixtures(projects.logging))
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 

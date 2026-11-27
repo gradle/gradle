@@ -60,18 +60,15 @@ dependencies {
 
     runtimeOnly(projects.javaCompilerPlugin)
 
-    testImplementation(testFixtures(projects.platformBase))
-    testImplementation(testFixtures(projects.languageGroovy))
-    testImplementation(testFixtures(projects.toolchainsJvm))
-    testImplementation(testFixtures(projects.toolchainsJvmShared))
-
-    testImplementation(libs.nativePlatform) {
-        because("Required for SystemInfo")
-    }
+    testImplementation(projects.stdlibJavaExtensions)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.hashing))
 
     integTestImplementation(testFixtures(projects.buildProcessServices))
+    integTestImplementation(testFixtures(projects.languageGroovy))
     integTestImplementation(testFixtures(projects.processServices))
     integTestImplementation(testFixtures(projects.testingBase))
+    integTestImplementation(libs.commonsHttpclient)
 
     // TODO: Make these available for all integration tests? Maybe all tests?
 

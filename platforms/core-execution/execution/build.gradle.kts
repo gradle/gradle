@@ -36,12 +36,13 @@ dependencies {
 
     implementation(libs.commonsLang)
 
+    testImplementation(projects.internalIntegTesting)
+    testImplementation(projects.stdlibJavaExtensions)
+    testImplementation(projects.unitTestFixtures)
     testImplementation(testFixtures(projects.serialization))
-    testImplementation(testFixtures(projects.baseServices))
-    testImplementation(testFixtures(projects.fileCollections))
-    testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.modelReflect))
+    testImplementation(libs.commonsIo)
 
     testFixturesImplementation(projects.problems)
 

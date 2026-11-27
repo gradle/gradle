@@ -57,10 +57,12 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
+    testImplementation(projects.hashing)
+    testImplementation(projects.loggingApi)
+    testImplementation(projects.problemsApi)
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
-    testImplementation(testFixtures(projects.toolchainsJvmShared))
-    testImplementation(testFixtures(projects.languageJava))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
@@ -72,6 +74,9 @@ dependencies {
     crossVersionTestImplementation(testFixtures(projects.toolchainsJvmShared))
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
+
+    integTestImplementation(testFixtures(projects.languageJava))
+    integTestImplementation(testFixtures(projects.toolchainsJvmShared))
 }
 
 gradleModule {

@@ -12,6 +12,8 @@ dependencies {
 
     api(libs.jsr305)
     api(libs.jspecify)
+
+    testImplementation(projects.baseServices)
 }
 
 gradleModule {

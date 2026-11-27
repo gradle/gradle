@@ -17,11 +17,12 @@ dependencies {
 
     implementation(libs.slf4jApi)
 
+    testImplementation(projects.coreApi)
+    testImplementation(projects.native)
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.fileCollections))
-    testImplementation(testFixtures(projects.messaging))
+    testImplementation(libs.ant)
 
     testFixturesApi(testFixtures(projects.hashing))
 

@@ -28,10 +28,13 @@ dependencies {
 
     implementation(libs.slf4jApi)
 
-    testImplementation(testFixtures(projects.core))
-
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
     javadocReferences(projects.workerProcessServices)
+
+    testRuntimeOnly(projects.classpath)
+    testRuntimeOnly(projects.domainObjectCollections)
+    testRuntimeOnly(projects.normalization)
+    testRuntimeOnly(projects.processServices)
 }
 
 gradleModule {

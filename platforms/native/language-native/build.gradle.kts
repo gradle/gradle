@@ -50,15 +50,21 @@ dependencies {
     testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(testFixtures(projects.platformNative))
 
+    testImplementation(projects.stdlibJavaExtensions)
+    testImplementation(projects.unitTestFixtures)
+    testImplementation(testFixtures(projects.buildOperations))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.hashing))
     testImplementation(testFixtures(projects.serialization))
-    testImplementation(testFixtures(projects.versionControl))
-    testImplementation(testFixtures(projects.platformBase))
-    testImplementation(testFixtures(projects.messaging))
+    testImplementation(libs.jsr305)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(projects.distributionsNative)
+
+    integTestImplementation(testFixtures(projects.platformNative))
+    integTestImplementation(testFixtures(projects.versionControl))
 }
 
 gradleModule {

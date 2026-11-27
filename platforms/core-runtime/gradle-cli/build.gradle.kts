@@ -57,11 +57,14 @@ dependencies {
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.workerShared)
 
-    testImplementation(projects.kotlinDsl)
+    testImplementation(projects.serialization)
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.logging))
+    testImplementation(libs.ant)
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
+    testRuntimeOnly(projects.kotlinDsl)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

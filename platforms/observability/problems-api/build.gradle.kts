@@ -42,7 +42,7 @@ dependencies {
     implementation(libs.jsr305)
 
     testImplementation(projects.logging)
-    testImplementation(testFixtures(projects.time))
+    testImplementation(projects.stdlibJavaExtensions)
 
     integTestImplementation(testFixtures(projects.logging))
 

@@ -58,10 +58,11 @@ dependencies {
     testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(testLibs.xmlunit)
 
+    testImplementation(projects.stdlibJavaExtensions)
+    testImplementation(projects.unitTestFixtures)
     testImplementation(testLibs.xmlunit)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.dependencyManagement))
-    testImplementation(testFixtures(projects.languageGroovy))
 
     testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
@@ -70,6 +71,8 @@ dependencies {
 
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
     javadocReferences(projects.idePlugins)
+
+    integTestImplementation(testFixtures(projects.languageGroovy))
 }
 
 gradleModule {

@@ -20,6 +20,8 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
+
+    testImplementation(projects.stdlibJavaExtensions)
 }
 
 gradleModule {

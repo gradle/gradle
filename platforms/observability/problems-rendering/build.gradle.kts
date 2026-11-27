@@ -28,6 +28,9 @@ dependencies {
 
     integTestImplementation(testFixtures(projects.logging))
     integTestDistributionRuntimeOnly(projects.distributionsFull)
+
+    testImplementation(projects.serialization)
+    testImplementation(projects.snapshots)
 }
 
 gradleModule {

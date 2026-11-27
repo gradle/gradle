@@ -15,10 +15,6 @@ dependencies {
 
     implementation(libs.commonsLang)
 
-    testImplementation(testFixtures(projects.baseServices))
-    testImplementation(testFixtures(projects.messaging))
-    testImplementation(testFixtures(projects.platformBase))
-
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }

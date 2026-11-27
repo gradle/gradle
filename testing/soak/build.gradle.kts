@@ -6,13 +6,12 @@ plugins {
 dependencies {
     testFixturesImplementation(projects.internalIntegTesting)
 
-    testImplementation(testFixtures(projects.kotlinDsl))
-    testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.workers))
-    testImplementation(testFixtures(projects.toolchainsJvm))
-    testImplementation(testFixtures(projects.toolchainsJvmShared))
-
+    integTestImplementation(projects.core)
+    integTestImplementation(projects.coreApi)
+    integTestImplementation(projects.kotlinDsl)
     integTestImplementation(projects.launcher)
+    integTestImplementation(testFixtures(projects.kotlinDsl))
+    integTestImplementation(testFixtures(projects.toolchainsJvmShared))
     integTestImplementation(testFixtures(projects.workers))
     integTestImplementation(testLibs.assertj) {
         because("Kotlin soak tests use AssertJ")

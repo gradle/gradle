@@ -39,6 +39,8 @@ dependencies {
 
     jmhImplementation(libs.guava)
     jmhImplementation(libs.fastutil)
+
+    testImplementation(libs.guava)
 }
 
 gradleModule {

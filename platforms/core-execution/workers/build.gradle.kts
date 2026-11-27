@@ -41,11 +41,14 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.guava)
 
+    testImplementation(projects.persistentCache)
+    testImplementation(projects.scopedPersistentCache)
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.logging))
-    testImplementation(testFixtures(projects.testingBase))
 
     integTestImplementation(projects.launcher)
+    integTestImplementation(projects.testingBaseInfrastructure)
+    integTestImplementation(testFixtures(projects.testingBase))
 
     testFixturesImplementation(libs.groovyJson)
 

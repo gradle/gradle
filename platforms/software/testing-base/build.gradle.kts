@@ -46,11 +46,12 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.slf4jApi)
 
-    testImplementation(testFixtures(projects.baseServices))
-    testImplementation(testFixtures(projects.messaging))
-    testImplementation(testFixtures(projects.platformBase))
-    testImplementation(testFixtures(projects.serialization))
+    testImplementation(projects.stdlibJavaExtensions)
+    testImplementation(testFixtures(projects.buildOperations))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.time))
+    testImplementation(testLibs.hamcrest)
 
     testFixturesImplementation(projects.internalIntegTesting)
 

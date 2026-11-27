@@ -23,6 +23,7 @@ jtar = "2.3!!"
 junit5ForTests = "5.12.2!!"
 junitForTests = "4.13.2!!"
 junitPlatformForTests = "1.12.2!!"
+kotlinTest = "1.3.11!!" # transitive version from awaitility-kotlin
 littleproxy = "2.2.1!!"
 lz4 = "1.11.4!!"
 mockitoCore = "5.23.0!!"
@@ -39,6 +40,7 @@ socksProxy = "4.2.0!!"
 spock = "2.4-groovy-4.0!!"
 testcontainers = "1.20.4!!"
 xerces = "2.12.2!!"
+xmlApis = "1.4.01!!"
 xmlunit = "1.6!!"
 
 [libraries]
@@ -50,6 +52,7 @@ archunitJunit5Api = { group = "com.tngtech.archunit", name = "archunit-junit5-ap
 asmUtil = { group = "org.ow2.asm", name = "asm-util", version.ref = "asm" }
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
 awaitility = { group = "org.awaitility", name = "awaitility-kotlin", version.ref = "awaitility" }
+awaitilityCore = { group = "org.awaitility", name = "awaitility", version.ref = "awaitility" }
 bytebuddy = { group = "net.bytebuddy", name = "byte-buddy", version.ref = "bytebuddy" }
 cglib = { group = "cglib", name = "cglib", version.ref = "cglib" }
 commonsMath = { group = "org.apache.commons", name = "commons-math3", version.ref = "commonsMath" }
@@ -72,11 +75,13 @@ jtar = { group = "org.kamranzafar", name = "jtar", version.ref = "jtar" }
 junit = { group = "junit", name = "junit", version.ref = "junitForTests" }
 junit5JupiterApi = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit5ForTests" }
 junit5JupiterEngine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit5ForTests" }
+junit5JupiterParams = { group = "org.junit.jupiter", name = "junit-jupiter-params", version.ref = "junit5ForTests" }
 junit5Vintage = { group = "org.junit.vintage", name = "junit-vintage-engine", version.ref = "junit5ForTests" }
 junitBom = { group = "org.junit", name = "junit-bom", version.ref = "junit5ForTests" }
 junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit5ForTests" }
 junitPlatform = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junitPlatformForTests" }
 junitPlatformEngine = { group = "org.junit.platform", name = "junit-platform-engine", version.ref = "junitPlatformForTests" }
+kotlinTest = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlinTest" }
 kotlinxCoroutinesDebug = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-debug", version.ref = "kotlinCoroutines" }
 littleproxy = { group = "io.github.littleproxy", name = "littleproxy", version.ref = "littleproxy" }
 lz4 = { group = "at.yawk.lz4", name = "lz4-java", version.ref = "lz4" }
@@ -107,4 +112,5 @@ spockJUnit4 = { group = "org.spockframework", name = "spock-junit4", version.ref
 testcontainers = { group = "org.testcontainers", name = "testcontainers", version.ref = "testcontainers" }
 testcontainersSpock = { group = "org.testcontainers", name = "spock", version.ref = "testcontainers" }
 xerces = { group = "xerces", name = "xercesImpl", version.ref = "xerces" }
+xmlApis = { group = "xml-apis", name = "xml-apis", version.ref = "xmlApis" }
 xmlunit = { group = "xmlunit", name = "xmlunit", version.ref = "xmlunit" }

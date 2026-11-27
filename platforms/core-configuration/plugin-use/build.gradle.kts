@@ -31,10 +31,12 @@ dependencies {
 
     implementation(libs.slf4jApi)
 
-    testImplementation(testFixtures(projects.resourcesHttp))
+    testImplementation(projects.buildInitSpecs)
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
 
     integTestImplementation(projects.groovyDsl)
+    integTestImplementation(testFixtures(projects.resourcesHttp))
     integTestImplementation(testLibs.groovyTest)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics) {

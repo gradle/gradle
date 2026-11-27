@@ -34,11 +34,11 @@ dependencies {
 
     implementation(libs.commonsLang)
 
-    testImplementation(testFixtures(projects.core))
-
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Uses application plugin.")
     }
+
+    integTestImplementation(testFixtures(projects.core))
 }
 
 gradleModule {

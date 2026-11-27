@@ -30,12 +30,19 @@ dependencies {
     jmhImplementation(testLibs.jtar)
     jmhImplementation(testLibs.snappy)
 
-    testImplementation(testFixtures(projects.baseServices))
-    testImplementation(testFixtures(projects.core))
-
     testFixturesImplementation(testFixtures(projects.hashing))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    testRuntimeOnly(projects.classpath)
+    testRuntimeOnly(projects.domainObjectCollections)
+    testRuntimeOnly(projects.normalization)
+    testRuntimeOnly(projects.processServices)
+
+    testImplementation(projects.baseServices)
+    testImplementation(testFixtures(projects.buildOperations))
+    testImplementation(testFixtures(projects.hashing))
+    testImplementation(testFixtures(projects.snapshots))
 }
 
 gradleModule {

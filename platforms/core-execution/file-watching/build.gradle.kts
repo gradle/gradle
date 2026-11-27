@@ -18,14 +18,14 @@ dependencies {
 
     implementation(libs.guava)
 
+    testImplementation(projects.baseServices)
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.fileCollections))
-    testImplementation(testFixtures(projects.toolingApi))
-    testImplementation(testFixtures(projects.launcher))
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Uses application plugin.")
     }
+
+    testRuntimeOnly(testFixtures(projects.toolingApi))
 }
 
 gradleModule {

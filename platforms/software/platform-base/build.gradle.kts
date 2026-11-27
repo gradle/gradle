@@ -23,14 +23,14 @@ dependencies {
 
     implementation(libs.commonsLang)
 
-    testImplementation(testFixtures(projects.coreApi))
-    testImplementation(projects.softwareDiagnostics)
+    testImplementation(testLibs.hamcrest)
 
     testFixturesApi(testFixtures(projects.modelCore))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("RuntimeShadedJarCreatorTest requires a distribution to access the ...-relocated.txt metadata")
     }
+    testRuntimeOnly(projects.softwareDiagnostics)
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 

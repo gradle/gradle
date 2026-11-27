@@ -36,12 +36,15 @@ dependencies {
 
     testFixturesImplementation(libs.jsoup)
 
-    testImplementation(projects.internalIntegTesting)
+    testImplementation(projects.internalDistributionTesting)
+    testImplementation(projects.languageJava)
+    testImplementation(projects.unitTestFixtures)
     testImplementation(testFixtures(projects.core))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
+    testRuntimeOnly(projects.internalIntegTesting)
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 

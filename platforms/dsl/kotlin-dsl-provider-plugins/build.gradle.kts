@@ -41,7 +41,9 @@ dependencies {
 
     compileOnly(libs.kotlinReflect)
 
+    testImplementation(projects.modelCore)
     testImplementation(testFixtures(projects.kotlinDsl))
+    testImplementation(testLibs.hamcrest)
     testImplementation(testLibs.mockitoKotlin)
 }
 

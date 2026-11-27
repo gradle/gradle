@@ -7,10 +7,10 @@ plugins {
 description = "Kotlin DSL Integration Tests"
 
 dependencies {
-    testImplementation(testFixtures(projects.kotlinDsl))
-
+    integTestImplementation(projects.kotlinDsl)
     integTestImplementation(projects.languageJvm)
     integTestImplementation(testFixtures(projects.jacoco))
+    integTestImplementation(testFixtures(projects.kotlinDsl))
     integTestImplementation(testFixtures(projects.testingBase))
     integTestImplementation(testLibs.mockwebserver)
     integTestImplementation(testLibs.mockitoKotlin)
@@ -25,6 +25,15 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
 
     crossVersionTestLocalRepository(projects.kotlinDslPlugins)
+
+    testRuntimeOnly(projects.classpath)
+    testRuntimeOnly(projects.core)
+    testRuntimeOnly(projects.coreApi)
+    testRuntimeOnly(projects.credentialsApi)
+    testRuntimeOnly(projects.domainObjectCollections)
+    testRuntimeOnly(projects.logging)
+    testRuntimeOnly(projects.normalization)
+    testRuntimeOnly(projects.processServices)
 }
 
 testFilesCleanup.reportOnly = true

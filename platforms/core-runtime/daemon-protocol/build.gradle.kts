@@ -42,7 +42,10 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.jsr305)
 
-    testImplementation(testFixtures(projects.serialization))
+    testImplementation(projects.classloaders)
+    testImplementation(projects.serviceLookup)
+    testImplementation(projects.serviceRegistryBuilder)
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
 
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.

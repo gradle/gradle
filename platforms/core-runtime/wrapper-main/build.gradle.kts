@@ -33,8 +33,6 @@ dependencies {
     implementation(projects.cli)
     implementation(projects.wrapperShared)
 
-    testImplementation(testFixtures(projects.core))
-
     integTestImplementation(projects.launcher)
     integTestImplementation(testLibs.littleproxy)
     integTestImplementation(testFixtures(projects.buildProcessServices))
@@ -48,6 +46,14 @@ dependencies {
 
     crossVersionTestNormalizedDistribution(projects.distributionsFull)
     crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
+
+    testRuntimeOnly(projects.classpath)
+    testRuntimeOnly(projects.coreApi)
+    testRuntimeOnly(projects.credentialsApi)
+    testRuntimeOnly(projects.domainObjectCollections)
+    testRuntimeOnly(projects.logging)
+    testRuntimeOnly(projects.normalization)
+    testRuntimeOnly(projects.processServices)
 }
 
 gradleModule {

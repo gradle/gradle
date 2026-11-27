@@ -19,9 +19,15 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.nativePlatform)
 
-    testImplementation(testFixtures(projects.core))
-
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    testRuntimeOnly(projects.classpath)
+    testRuntimeOnly(projects.coreApi)
+    testRuntimeOnly(projects.credentialsApi)
+    testRuntimeOnly(projects.domainObjectCollections)
+    testRuntimeOnly(projects.logging)
+    testRuntimeOnly(projects.normalization)
+    testRuntimeOnly(projects.processServices)
 }
 
 gradleModule {

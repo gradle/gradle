@@ -9,11 +9,13 @@ description = """Performance tests for the Develocity plugin
 
 dependencies {
     performanceTestImplementation(projects.baseServices)
+    performanceTestImplementation(libs.groovy)
 
     performanceTestCompileOnly(projects.internalIntegTesting)
     performanceTestCompileOnly(projects.internalPerformanceTesting)
 
     performanceTestImplementation(testLibs.gradleProfiler)
+    performanceTestImplementation(testLibs.spock)
 
     testFixturesApi(libs.commonsIo)
 

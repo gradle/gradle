@@ -52,12 +52,10 @@ dependencies {
     implementation(projects.startParameter)
     implementation(projects.workerShared)
 
-    testImplementation(testFixtures(projects.core))
-    testImplementation(projects.testingBase)
-
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder loads services from a Gradle distribution.")
     }
+    testRuntimeOnly(projects.testingBase)
 
     integTestImplementation(testFixtures(projects.buildProcessServices))
     integTestImplementation(testFixtures(projects.testingBase))

@@ -22,6 +22,7 @@ dependencies {
     implementation(projects.declarativeDslApi)
 
     testImplementation(projects.coreApi)
+    testImplementation(testLibs.junit5JupiterApi)
 
     testFixturesImplementation(libs.kotlinReflect)
 

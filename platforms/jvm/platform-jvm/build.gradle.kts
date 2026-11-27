@@ -31,12 +31,14 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
 
-    testImplementation(testFixtures(projects.platformBase))
-
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    testImplementation(testFixtures(projects.core))
+    testImplementation(libs.ant)
+    testImplementation(testLibs.hamcrest)
 }
 
 gradleModule {

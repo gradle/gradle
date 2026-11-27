@@ -29,11 +29,15 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
-    testImplementation(projects.io)
+    testImplementation(projects.buildOperations)
+    testImplementation(projects.classloaders)
+    testImplementation(projects.problemsApi)
     testImplementation(testFixtures(projects.core)) {
         because("Provides TestFiles, TestUtil, UsesNativeServices, and NoOpProblemDiagnosticsFactory used by process unit tests")
     }
     testImplementation(testFixtures(projects.logging))
+    testImplementation(libs.commonsIo)
+    testImplementation(testLibs.hamcrest)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

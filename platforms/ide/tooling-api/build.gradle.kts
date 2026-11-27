@@ -36,8 +36,6 @@ dependencies {
         }
     }
 
-    testImplementation(projects.internalDistributionTesting)
-
     testFixturesImplementation(projects.internalDistributionTesting)
     testFixturesImplementation(testFixtures(projects.buildProcessServices))
 
@@ -57,8 +55,10 @@ dependencies {
         because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
     }
 
-    testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.logging))
+    testImplementation(projects.coreApi)
+    testImplementation(projects.daemonMessaging)
+    testImplementation(projects.serialization)
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.time))
 
     integTestNormalizedDistribution(projects.distributionsFull) {

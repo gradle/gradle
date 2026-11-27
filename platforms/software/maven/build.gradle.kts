@@ -41,9 +41,8 @@ dependencies {
     implementation(libs.plexusUtils)
     implementation(libs.slf4jApi)
 
-    testImplementation(testLibs.xmlunit)
-
-    testImplementation(testFixtures(projects.modelCore))
+    testImplementation(projects.stdlibJavaExtensions)
+    testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.dependencyManagement))
 
     testRuntimeOnly(projects.distributionsCore) {

@@ -21,8 +21,11 @@ dependencies {
     implementation(libs.jsr305)
 
     testImplementation(projects.internalDistributionTesting)
+    testImplementation(projects.serviceRegistryImpl)
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.core))
+    testImplementation(testLibs.hamcrest)
 
     testFixturesImplementation(libs.slf4jApi)
 

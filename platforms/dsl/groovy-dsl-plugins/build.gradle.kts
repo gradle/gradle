@@ -28,8 +28,6 @@ dependencies {
 
     implementation(libs.guava)
 
-    testImplementation(testFixtures(projects.core))
-
     testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }

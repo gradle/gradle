@@ -28,7 +28,7 @@ dependencies {
 
     testImplementation(testFixtures(projects.core))   // AbstractProjectBuilderSpec, TestUtil
     testImplementation(projects.internalTesting)       // TestNameTestDirectoryProvider
-    testImplementation(testFixtures(projects.logging)) // ConfigureLogging, TestOutputEventListener
+    testImplementation(testLibs.hamcrest)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Required by ProjectBuilder to find gradle-plugins.properties")

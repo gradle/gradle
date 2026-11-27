@@ -21,6 +21,8 @@ dependencies {
 
     implementation(projects.baseServices)
 
+    testImplementation(projects.concurrent)
+    testImplementation(libs.asm)
     testImplementation(libs.asmTree)
 
     testRuntimeOnly(projects.resources)

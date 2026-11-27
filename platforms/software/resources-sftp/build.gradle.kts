@@ -24,14 +24,16 @@ dependencies {
     implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.dependencyManagement))
-    testImplementation(testFixtures(projects.ivy))
-    testImplementation(testFixtures(projects.maven))
 
+    integTestImplementation(testFixtures(projects.dependencyManagement))
+    integTestImplementation(testFixtures(projects.ivy))
+    integTestImplementation(testFixtures(projects.maven))
     integTestImplementation(libs.sshdScp)
     integTestImplementation(libs.sshdSftp)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
+
+    testRuntimeOnly(projects.publish)
 }
 
 gradleModule {

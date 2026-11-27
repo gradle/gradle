@@ -11,7 +11,9 @@ dependencies {
     api(libs.groovy)
     api(libs.guava)
 
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
+    testImplementation(testLibs.hamcrest)
 }
 
 gradleModule {

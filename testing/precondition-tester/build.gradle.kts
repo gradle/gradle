@@ -61,6 +61,51 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    testRuntimeOnly(projects.antImpl)
+    testRuntimeOnly(projects.baseDiagnostics)
+    testRuntimeOnly(projects.classpath)
+    testRuntimeOnly(projects.compositeBuilds)
+    testRuntimeOnly(projects.configurationCache)
+    testRuntimeOnly(projects.core)
+    testRuntimeOnly(projects.coreApi)
+    testRuntimeOnly(projects.credentialsApi)
+    testRuntimeOnly(projects.daemonServices)
+    testRuntimeOnly(projects.dependencyManagement)
+    testRuntimeOnly(projects.domainObjectCollections)
+    testRuntimeOnly(projects.flowServices)
+    testRuntimeOnly(projects.groovyDsl)
+    testRuntimeOnly(projects.ide)
+    testRuntimeOnly(projects.isolatedActionServices)
+    testRuntimeOnly(projects.kotlinDsl)
+    testRuntimeOnly(projects.kotlinDslProviderPlugins)
+    testRuntimeOnly(projects.logging)
+    testRuntimeOnly(projects.normalization)
+    testRuntimeOnly(projects.platformJvm)
+    testRuntimeOnly(projects.pluginUse)
+    testRuntimeOnly(projects.problemsImpl)
+    testRuntimeOnly(projects.processServices)
+    testRuntimeOnly(projects.publish)
+    testRuntimeOnly(projects.reflectionServices)
+    testRuntimeOnly(projects.resourcesHttp)
+    testRuntimeOnly(projects.softwareDiagnostics)
+    testRuntimeOnly(projects.toolingApiBuilders)
+    testRuntimeOnly(projects.versionControl)
+    testRuntimeOnly(projects.workerProcessServices)
+    testRuntimeOnly(projects.workers)
+    testRuntimeOnly(libs.bouncycastleProvider)
+    testRuntimeOnly(libs.commonsHttpclient)
+}
+
+dependencyAnalysis {
+    issues {
+        sourceSet("test") {
+            onUnusedDependencies {
+                // Used by integTest and crossVersionTest, which extend testImplementation
+                exclude(":distributions-core", ":internal-integ-testing", ":platform-native", ":signing", ":test-kit")
+            }
+        }
+    }
 }
 
 configurations.integTestImplementation {

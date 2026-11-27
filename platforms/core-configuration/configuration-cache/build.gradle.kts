@@ -99,18 +99,22 @@ dependencies {
 
     testImplementation(testFixtures(projects.beanSerializationServices))
     testImplementation(projects.io)
-    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.hashing))
+    testImplementation(libs.jspecify)
+    testImplementation(testLibs.hamcrest)
+    testImplementation(testLibs.junit5JupiterApi)
     testImplementation(testLibs.mockitoKotlin)
-    testImplementation(testLibs.kotlinxCoroutinesDebug)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
+    testRuntimeOnly(testLibs.kotlinxCoroutinesDebug)
 
     integTestImplementation(projects.groovyDsl)
     integTestImplementation(projects.ide)
     integTestImplementation(projects.launcher)
     integTestImplementation(projects.testKit)
+    integTestImplementation(testFixtures(projects.core))
 
     integTestImplementation(testLibs.playwright)
 

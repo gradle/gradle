@@ -43,6 +43,7 @@ dependencies {
 
     implementation(libs.guava)
 
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
 
     testFixturesApi(testFixtures(projects.languageJvm))

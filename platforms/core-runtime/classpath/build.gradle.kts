@@ -77,10 +77,8 @@ dependencies {
     annotationProcessor(projects.internalInstrumentationProcessor)
     annotationProcessor(platform(projects.distributionsDependencies))
 
+    testImplementation(projects.unitTestFixtures)
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.baseServices))
-
-    testImplementation(libs.asmCommons)
 
     testFixturesCompileOnly(libs.jetbrainsAnnotations)
 

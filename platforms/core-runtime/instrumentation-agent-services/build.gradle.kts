@@ -28,6 +28,7 @@ dependencies {
 
     implementation(libs.slf4jApi)
 
+    testImplementation(projects.loggingApi)
     testImplementation(testFixtures(projects.logging))
 
     integTestImplementation(projects.launcher)

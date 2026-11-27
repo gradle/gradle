@@ -29,6 +29,7 @@ dependencies {
 
     implementation(libs.guava)
 
+    testImplementation(projects.modelCore)
     testImplementation(testFixtures(projects.core))
 
     integTestImplementation(testFixtures(projects.modelReflect))

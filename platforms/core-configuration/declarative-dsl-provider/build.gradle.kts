@@ -43,11 +43,13 @@ dependencies {
     implementation(libs.kotlinReflect)
     implementation(libs.jspecify)
 
+    testImplementation(projects.domainObjectCollections)
     testImplementation(testLibs.mockitoKotlin)
     testImplementation(testFixtures(projects.declarativeDslCore))
     testImplementation(testFixtures(projects.declarativeDslEvaluator))
     testImplementation(projects.internalIntegTesting)
     testImplementation(testFixtures(projects.declarativeDslProvider))
+    testImplementation(testLibs.junit5JupiterApi)
 
     integTestImplementation(testFixtures(projects.declarativeDslProvider))
     integTestImplementation(testFixtures(projects.toolingApi))

@@ -27,7 +27,10 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
+    testImplementation(projects.jvmServices)
     testImplementation(testFixtures(projects.core))
+    testImplementation(libs.commonsIo)
+    testImplementation(testLibs.hamcrest)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("JavadocTest loads services from a Gradle distribution.")

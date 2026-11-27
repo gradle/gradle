@@ -21,7 +21,8 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
 
-    testImplementation(testFixtures(projects.snapshots))
+    testImplementation(projects.baseServices)
+    testImplementation(testFixtures(projects.hashing))
 }
 
 gradleModule {

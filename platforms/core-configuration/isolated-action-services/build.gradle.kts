@@ -47,6 +47,7 @@ dependencies {
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.beanSerializationServices))
+    testImplementation(testLibs.hamcrest)
     testImplementation(testLibs.mockitoKotlin)
 }
 

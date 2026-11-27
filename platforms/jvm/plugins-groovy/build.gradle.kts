@@ -35,8 +35,10 @@ dependencies {
 
     implementation(libs.guava)
 
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.languageGroovy))
+    testImplementation(testLibs.hamcrest)
 
     testRuntimeOnly(projects.distributionsJvm)
 

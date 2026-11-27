@@ -17,6 +17,17 @@ version = portalVersion
 
 base.archivesName = "plugins"
 
+dependencyAnalysis {
+    issues {
+        sourceSet("test") {
+            onRuntimeOnly {
+                // Needed at compile time for a supertype, which DAGP does not see
+                exclude(":logging")
+            }
+        }
+    }
+}
+
 dependencies {
     compileOnly(projects.languageJava)
     compileOnly(projects.pluginDevelopment)
@@ -33,11 +44,17 @@ dependencies {
     implementation(libs.kotlinSamWithReceiver.relaxRestriction())
     implementation(libs.kotlinAssignment.relaxRestriction())
 
-    testImplementation(testFixtures(projects.kotlinDsl))
+    testImplementation(projects.loggingApi)
     testImplementation(libs.kotlinReflect) {
         because("mockito-kotlin 1.6 requires kotlin-reflect in 1.0.7, we want to overrule that")
     }
-    testImplementation(testLibs.mockitoKotlin)
+    testImplementation(testLibs.hamcrest)
+    testImplementation(projects.logging) {
+        because("Kotlin needs ContextAwareTaskLogger.MessageRewriter, a supertype of ExperimentalCompilerWarningSilencer")
+    }
+
+    testRuntimeOnly(projects.core)
+    testRuntimeOnly(projects.coreApi)
 }
 
 // Note: these dependencies have strict versions, but Gradle currently supports the scenario when higher version of kotlin can be used

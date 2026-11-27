@@ -23,9 +23,13 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.jansi)
 
+    testImplementation(projects.concurrent)
+    testImplementation(projects.logging)
+    testImplementation(projects.loggingApi)
+    testImplementation(projects.serviceRegistryImpl)
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.files))
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.logging))
 
     jmhImplementation(projects.files)
     jmhImplementation(projects.baseServices)

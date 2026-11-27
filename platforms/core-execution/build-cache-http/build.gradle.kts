@@ -25,9 +25,9 @@ dependencies {
     implementation(libs.httpcore)
     implementation(libs.slf4jApi)
 
-    testImplementation(testFixtures(projects.core))
-
     integTestImplementation(testFixtures(projects.buildCache))
+    integTestImplementation(testFixtures(projects.core))
+    integTestImplementation(testFixtures(projects.hashing))
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Uses application plugin.")

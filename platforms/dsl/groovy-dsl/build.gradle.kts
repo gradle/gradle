@@ -44,8 +44,11 @@ dependencies {
     implementation(libs.kotlinStdlib)
     implementation(libs.slf4jApi)
 
+    testImplementation(projects.serviceRegistryImpl)
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.serialization))
+    testImplementation(testLibs.hamcrest)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("DefaultScriptTest creates a project with ProjectBuilder, which needs the runtime of the core distribution")

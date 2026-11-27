@@ -19,10 +19,16 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.guava)
 
-    testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.baseServices))
-
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    testRuntimeOnly(projects.classpath)
+    testRuntimeOnly(projects.domainObjectCollections)
+    testRuntimeOnly(projects.normalization)
+    testRuntimeOnly(projects.processServices)
+
+    testImplementation(testFixtures(projects.hashing))
+
+    integTestImplementation(testFixtures(projects.core))
 }
 
 gradleModule {

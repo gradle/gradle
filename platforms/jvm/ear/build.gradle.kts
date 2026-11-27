@@ -32,6 +32,7 @@ dependencies {
 
     testImplementation(testFixtures(projects.core))
     testImplementation(projects.war)
+    testImplementation(testLibs.hamcrest)
 
     testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

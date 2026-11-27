@@ -66,10 +66,9 @@ dependencies {
     testFixturesImplementation(projects.pluginsJava)
 
     testImplementation(projects.internalIntegTesting)
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(projects.wrapperMain)
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.platformNative))
-    testImplementation(testFixtures(projects.testingBase))
 
     testRuntimeOnly(providedLibs.maven3Compat)
 
@@ -80,6 +79,9 @@ dependencies {
     integTestRuntimeOnly(providedLibs.maven3Compat)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
+
+    integTestImplementation(testFixtures(projects.platformNative))
+    integTestImplementation(testFixtures(projects.testingBase))
 }
 
 gradleModule {

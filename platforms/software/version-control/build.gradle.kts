@@ -34,6 +34,7 @@ dependencies {
 
     runtimeOnly(libs.jgitSshAgent)
 
+    testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
 
     testFixturesImplementation(projects.internalIntegTesting)
