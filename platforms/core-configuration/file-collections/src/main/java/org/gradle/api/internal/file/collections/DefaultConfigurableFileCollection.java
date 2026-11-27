@@ -124,8 +124,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     private void finalizeNow() {
-        calculateFinalizedValue();
-        valueState = valueState.finalState();
+        valueState = valueState.finalizeWith(this::displayNameForThisCollection, this::calculateFinalizedValue);
     }
 
     public boolean isFinalizing() {

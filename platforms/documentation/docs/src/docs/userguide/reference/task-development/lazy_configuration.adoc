@@ -458,6 +458,36 @@ In other words, this method calculates the final value lazily as required, where
 This method can be used when the value may be expensive to calculate or may not have been configured yet.
 You also want to ensure that all consumers of the property see the same value when they query the value.
 
+[[sharing_properties_between_parallel_tasks]]
+== Sharing properties between tasks that run in parallel
+
+Tasks can run in parallel when you enable <<performance.adoc#sec:enable_parallel_execution,parallel execution>> or the <<configuration_cache.adoc#config_cache,Configuration Cache>>.
+If such tasks share a property, a provider, or a file collection, they can query it at the same time.
+Follow these principles when you share lazy properties:
+
+* *Configure values before tasks run.*
+Changing a shared value while tasks run, for example with `set()`, `convention()`, or `from()`, is not supported, and the change can be lost.
+Do not use properties to pass data between tasks.
+* *Expect a value that is not final to be calculated more than once.*
+A provider, or a property that is not final, calculates its value each time it is queried, possibly by several tasks at the same time.
+Keep such calculations free of side effects and safe to run concurrently.
+`disallowChanges()` does not change this, as it does not calculate the final value.
+A link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] is an exception: Gradle calls its `obtain()` method only once per build.
+* *Calculate a final value only once.*
+Gradle calculates the final value of a property or a file collection when you call `finalizeValue()`, when you first query a value that uses `finalizeValueOnRead()`, or when a task that uses the value as an input starts to run.
+Calculating the final value from multiple threads at once is not supported, and the build fails.
+Once calculated, the final value no longer changes.
+* *Keep shared mutable state in a <<build_services.adoc#build_services,build service>>.*
+Its implementation must be thread-safe.
+
+If the build fails because another thread is calculating the final value, use one of the following approaches:
+
+* Give each task its own property and <<connecting_properties_together,connect it>> to the provider that supplies the value, instead of sharing the same property instance.
+* If the value is available at configuration time, call `finalizeValue()` on the property before you share it, for example when you create the build service that holds it.
+* Enable the Configuration Cache.
+Each task then works with its own copy of the properties it references.
+This does not apply to properties held by a build service, which all tasks share.
+
 [[lazy_configuration_faqs]]
 == Using the Provider API
 

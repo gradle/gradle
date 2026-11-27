@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider
 
 import org.gradle.api.Task
 import org.gradle.api.Transformer
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularChainEvaluationSpec
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Provider
@@ -29,8 +30,12 @@ import org.gradle.internal.evaluation.EvaluationContext
 import org.gradle.internal.state.Managed
 import org.gradle.internal.state.ModelObject
 import org.gradle.util.internal.TextUtil
+import spock.lang.Issue
 
 import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 
 import static org.gradle.api.internal.provider.CircularEvaluationSpec.ProviderConsumer.GET_PRODUCER
@@ -1126,15 +1131,13 @@ The value of this provider is derived from:
         property.set(provider)
         property.finalizeValueOnRead()
 
-        // TODO - this verifies that a workaround to accidental concurrent access works. Instead, this should really be an error
-
         when:
         def result = property.get()
 
         then:
         result == someValue()
         1 * function.call() >> {
-            // Emulate concurrent get() in other thread
+            // Re-entrant read on the finalizing thread, as from a nested evaluation scope
             EvaluationContext.current().evaluateNested(property::get)
         }
         1 * function.call() >> someValue()
@@ -1146,6 +1149,40 @@ The value of this provider is derived from:
         then:
         result2 == someValue()
         0 * function._
+    }
+
+    def "can read value while finalizing another property that is finalizing this property on read"() {
+        def outer = propertyWithNoValue()
+        def outerFunction = Mock(Callable)
+        outer.set(new DefaultProvider<T>(outerFunction))
+        outer.finalizeValueOnRead()
+        def inner = propertyWithNoValue()
+        def innerFunction = Mock(Callable)
+        inner.set(new DefaultProvider<T>(innerFunction))
+        inner.finalizeValueOnRead()
+
+        when:
+        def result = outer.get()
+
+        then:
+        result == someValue()
+        1 * outerFunction.call() >> {
+            EvaluationContext.current().evaluateNested(inner::get)
+        }
+        1 * innerFunction.call() >> {
+            EvaluationContext.current().evaluateNested(outer::get)
+        }
+        1 * outerFunction.call() >> someValue()
+        0 * _
+
+        when:
+        def outerResult = outer.get()
+        def innerResult = inner.get()
+
+        then:
+        outerResult == someValue()
+        innerResult == someValue()
+        0 * _
     }
 
     def "replaces provider with no value with fixed missing value when value finalized"() {
@@ -2228,6 +2265,76 @@ The value of this property is derived from:
 
         and:
         1 * host.beforeRead(null) >> null
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/29004")
+    def "can read value when another thread completes finalization on read in between"() {
+        given:
+        def property = propertyWithNoValue()
+        property.set(someValue())
+        // Makes the read consult the host after it decides to finalize, which lets the test pause the second reader there
+        property.disallowUnsafeRead()
+
+        def secondReaderPaused = new CountDownLatch(1)
+        def resumeSecondReader = new CountDownLatch(1)
+        Thread secondReader = null
+        host.beforeRead(null) >> {
+            if (Thread.currentThread() == secondReader) {
+                secondReaderPaused.countDown()
+                resumeSecondReader.await(10, TimeUnit.SECONDS)
+            }
+            null
+        }
+        def secondReaderResult = new AtomicReference<Object>()
+        secondReader = new Thread({
+            try {
+                secondReaderResult.set(property.get())
+            } catch (Throwable t) {
+                secondReaderResult.set(t)
+            }
+        })
+
+        when:
+        secondReader.start()
+        assert secondReaderPaused.await(10, TimeUnit.SECONDS)
+        def firstReaderValue = property.get()
+        resumeSecondReader.countDown()
+        secondReader.join(10_000)
+        assert !secondReader.alive
+
+        then:
+        assertEqualValues(someValue(), firstReaderValue)
+        assertEqualValues(someValue(), secondReaderResult.get())
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/29004")
+    def "cannot read value while another thread is finalizing it on read"() {
+        given:
+        def finalizationStarted = new CountDownLatch(1)
+        def completeFinalization = new CountDownLatch(1)
+        def property = propertyWithNoValue()
+        property.set(new DefaultProvider<T>({
+            finalizationStarted.countDown()
+            completeFinalization.await(10, TimeUnit.SECONDS)
+            someValue()
+        }))
+        property.finalizeValueOnRead()
+        def firstReader = new Thread({ property.get() })
+
+        when:
+        firstReader.start()
+        assert finalizationStarted.await(10, TimeUnit.SECONDS)
+        property.get()
+
+        then:
+        def e = thrown(ConcurrentFinalizationException)
+        e.message == "Cannot finalize the value of ${displayName} because another thread is finalizing it. Finalizing a value from multiple threads at once is not supported. " +
+            "For more information, please refer to ${DocumentationRegistry.BASE_URL}/userguide/lazy_configuration.html#sharing_properties_between_parallel_tasks in the Gradle documentation."
+        !e.resolutions.empty
+
+        cleanup:
+        completeFinalization.countDown()
+        firstReader?.join(10_000)
     }
 
     def "finalizes upstream property when value read using #method and unsafe read disallowed"() {
