@@ -56,13 +56,3 @@ gradleModule {
         daemon = true
     }
 }
-
-dependencyAnalysis {
-    issues {
-        onRuntimeOnly {
-            // The plugin will suggest moving this to runtimeOnly, but it is needed during :plugins-java-library:compileJava
-            // to avoid "class file for org.gradle.api.tasks.bundling.Jar not found"
-            exclude(":language-jvm")
-        }
-    }
-}
