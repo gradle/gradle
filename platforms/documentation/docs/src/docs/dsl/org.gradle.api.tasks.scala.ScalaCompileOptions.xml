@@ -57,6 +57,14 @@
                 <td><literal>null</literal></td>
             </tr>
             <tr>
+                <td>compilerArgumentProviders</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
+                <td>allCompilerArgs</td>
+                <td>Additional parameters followed by provider arguments</td>
+            </tr>
+            <tr>
                 <td>listFiles</td>
                 <td><literal>false</literal></td>
             </tr>

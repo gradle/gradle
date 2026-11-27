@@ -267,7 +267,74 @@ The following table explains the values computed by Gradle:
                                         | no    | `-Xtarget:8`
 |===
 
-Setting any of these flags explicitly, or using flags containing `java-output-version`, on link:{groovyDslPath}/org.gradle.language.scala.tasks.BaseScalaCompileOptions.html#org.gradle.language.scala.tasks.BaseScalaCompileOptions:additionalParameters[`ScalaCompile.scalaCompileOptions.additionalParameters`] disables that logic in favor of the explicit flag.
+Setting any of these flags explicitly, or using flags containing `java-output-version`, on link:{groovyDslPath}/org.gradle.language.scala.tasks.BaseScalaCompileOptions.html#org.gradle.language.scala.tasks.BaseScalaCompileOptions:additionalParameters[`ScalaCompile.scalaCompileOptions.additionalParameters`] or through <<sec:scala_compiler_argument_providers,Scala compiler argument providers>> disables that logic in favor of the explicit flag.
+
+[[sec:scala_compiler_argument_providers]]
+== Contributing Scala compiler arguments
+
+Plugins can contribute Scala 2 and Scala 3 compiler arguments through the incubating link:{groovyDslPath}/org.gradle.language.scala.tasks.BaseScalaCompileOptions.html#org.gradle.language.scala.tasks.BaseScalaCompileOptions:compilerArgumentProviders[`scalaCompileOptions.compilerArgumentProviders`] property.
+Like Java's `options.compilerArgumentProviders`, this property accepts implementations of link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[`CommandLineArgumentProvider`].
+The Scala property uses a `ListProperty`, allowing providers to be added lazily.
+
+Arguments from `additionalParameters` are followed by contributions in provider registration order.
+Replacing `additionalParameters` preserves the provider contributions, their argument order, and repeated arguments.
+
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+import org.gradle.process.CommandLineArgumentProvider
+
+abstract class CompilerArguments : CommandLineArgumentProvider {
+    @get:Input
+    abstract val arguments: ListProperty<String>
+
+    override fun asArguments(): Iterable<String> = arguments.get()
+}
+
+val compilerArguments = objects.newInstance<CompilerArguments>()
+compilerArguments.arguments.add("-feature")
+
+tasks.withType<ScalaCompile>().configureEach {
+    scalaCompileOptions.compilerArgumentProviders.add(compilerArguments)
+    scalaCompileOptions.additionalParameters = listOf("-deprecation")
+}
+----
+=====
+
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+abstract class CompilerArguments implements CommandLineArgumentProvider {
+    @Input
+    abstract ListProperty<String> getArguments()
+
+    @Override
+    Iterable<String> asArguments() {
+        arguments.get()
+    }
+}
+
+def compilerArguments = objects.newInstance(CompilerArguments)
+compilerArguments.arguments.add('-feature')
+
+tasks.withType(ScalaCompile).configureEach {
+    scalaCompileOptions.compilerArgumentProviders.add(compilerArguments)
+    scalaCompileOptions.additionalParameters = ['-deprecation']
+}
+----
+=====
+
+Annotate each provider's properties to declare its inputs for up-to-date checking and build caching.
+For options derived from files, use typed file properties with the appropriate input and path-normalization annotations instead of tracking absolute file paths as strings.
+Implement `asArguments()` without accessing the project or other unsupported execution-time state so the provider can be reused with the configuration cache.
+
+The incubating `scalaCompileOptions.allCompilerArgs` property provides a lazy, read-only view of the combined arguments.
+Use the separate `scalaCompileOptions.compilerArgumentProviders` property for scalac arguments and `options.compilerArgumentProviders` for javac arguments during joint compilation.
+Continue to declare compiler-plugin artifacts through `scalaCompilerPlugins`.
 
 [[sec:scala_compiling_in_external_process]]
 == Compiling in external process

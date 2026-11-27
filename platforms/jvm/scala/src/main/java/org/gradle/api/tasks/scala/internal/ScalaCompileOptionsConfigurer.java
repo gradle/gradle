@@ -16,12 +16,13 @@
 
 package org.gradle.api.tasks.scala.internal;
 
-import org.gradle.api.tasks.scala.ScalaCompileOptions;
+import org.gradle.api.internal.tasks.scala.MinimalScalaCompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -55,7 +56,7 @@ public class ScalaCompileOptionsConfigurer {
     private static final VersionNumber PLAIN_TARGET_FORMAT_SINCE_VERSION = VersionNumber.parse("2.13.1");
     private static final VersionNumber RELEASE_REPLACES_TARGET_SINCE_VERSION = VersionNumber.parse("2.13.9");
 
-    public static void configure(ScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath) {
+    public static void configure(MinimalScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath) {
         if (toolchain == null) {
             return;
         }
@@ -74,12 +75,15 @@ public class ScalaCompileOptionsConfigurer {
             return;
         }
 
-        if (hasTargetDefiningParameter(scalaCompileOptions.getAdditionalParameters())) {
+        List<String> additionalParameters = scalaCompileOptions.getAdditionalParameters();
+        if (additionalParameters != null && hasTargetDefiningParameter(additionalParameters)) {
             return;
         }
 
         String targetParameter = determineTargetParameter(scalaVersion, (JavaToolchain) toolchain);
-        scalaCompileOptions.getAdditionalParameters().add(targetParameter);
+        List<String> allParameters = additionalParameters == null ? new ArrayList<>() : new ArrayList<>(additionalParameters);
+        allParameters.add(targetParameter);
+        scalaCompileOptions.setAdditionalParameters(allParameters);
     }
 
     private static boolean hasTargetDefiningParameter(List<String> additionalParameters) {

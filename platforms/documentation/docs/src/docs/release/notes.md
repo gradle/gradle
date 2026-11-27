@@ -88,6 +88,14 @@ Gradle provides a flexible [dependency management](userguide/getting_started_dep
 ### Platform and toolchain management
 Gradle provides comprehensive support for [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
 
+#### Scala compiler argument providers
+
+Plugins can now contribute Scala 2 and Scala 3 compiler arguments through the incubating `scalaCompileOptions.compilerArgumentProviders` property.
+It uses the same `CommandLineArgumentProvider` interface as Java compilation, exposed through a lazy `ListProperty`.
+Replacing `scalaCompileOptions.additionalParameters` preserves these contributions.
+
+See [Contributing Scala compiler arguments](userguide/scala_plugin.html#sec:scala_compiler_argument_providers) for examples and input-modeling guidance.
+
 ### Core plugin and plugin authoring enhancements
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
 
