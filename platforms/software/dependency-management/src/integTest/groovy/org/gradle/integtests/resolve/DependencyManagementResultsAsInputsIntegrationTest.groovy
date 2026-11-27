@@ -188,10 +188,19 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         failureDescriptionStartsWith("Some problems were found with the configuration of task ':verify' (type 'TaskWithInput').")
         def expectedDetails = "ResolvedArtifactResult is not supported on task properties annotated with $annotation".toString()
         def expectedContextualLabelPattern = ~/Type 'TaskWithInput' property '[^']+' has \Q$annotation\E annotation used on property of type '[^']+'/
-        receivedProblems.size().times { index ->
-            verifyAll(receivedProblem(index)) {
+        if (annotation == "@InputFile") {
+            ['ListProperty', 'MapProperty', 'SetProperty'].each { collectionType ->
+                verifyAll(findReceivedProblem { it.fqid == 'Gradle:Plugin Validation:Incorrect use of @InputFile annotation' && it.contextualLabel.contains("type '$collectionType<") }) {
+                    severity == Severity.ERROR
+                    details.startsWith("A property of type '$collectionType<")
+                    details.endsWith("represents a collection of files, but @InputFile expects a regular file")
+                }
+            }
+        }
+        // One per annotated property, including the nested one
+        7.times {
+            verifyAll(findReceivedProblem { it.fqid == 'Gradle:Plugin Validation:Unsupported value type' }) {
                 severity == Severity.ERROR
-                fqid == 'Gradle:Plugin Validation:Unsupported value type'
                 definition.id.displayName == 'Unsupported value type'
                 contextualLabel ==~ expectedContextualLabelPattern
                 details == expectedDetails

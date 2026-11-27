@@ -17,9 +17,22 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.tasks.OutputFiles;
 import org.gradle.internal.properties.OutputFilePropertyType;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
+
+import static org.gradle.internal.execution.model.annotations.FileAnnotationPropertyTypeValidation.LocationKind.DIRECTORY;
+import static org.gradle.internal.execution.model.annotations.FileAnnotationPropertyTypeValidation.validateNotOfKind;
 
 public class OutputFilesPropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
     public OutputFilesPropertyAnnotationHandler() {
         super(OutputFiles.class, OutputFilePropertyType.FILES);
+    }
+
+    @Override
+    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
+        validateNotOfKind(getAnnotationType(), "regular files", DIRECTORY, propertyMetadata, validationContext,
+            "Annotate with @OutputDirectories for directories",
+            "Change the property type to RegularFileProperty for regular files"
+        );
     }
 }

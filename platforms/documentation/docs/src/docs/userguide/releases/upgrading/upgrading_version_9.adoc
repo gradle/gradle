@@ -147,6 +147,15 @@ If your build asserts on an attribute value read from a `ResolutionResult` or fr
 Build operations and published Gradle Module Metadata already reported the name, so assertions against those are unaffected.
 Do not reintroduce the old string by overriding `getName()` to return `toString()`; see <<variant_attributes.adoc#sec:creating-attributes, Creating attributes>> for why the two must agree.
 
+[[file_annotation_property_type_mismatch]]
+==== File annotations must match the property type
+
+Gradle now reports a validation error when a file annotation does not match the kind of location the property type represents, for example `@InputFile` on a `DirectoryProperty`, or `@OutputDirectory` on a `ConfigurableFileCollection`.
+Previously, some of these combinations were accepted.
+
+To fix the error, use the annotation that matches the property type, or change the property type.
+See <<validation_problems.adoc#incorrect_use_of_file_annotation,Incorrect use of a file annotation>> for details.
+
 [[v9_upgrade_to_asm_9_11_1]]
 ==== Upgrade to ASM 9.11.1
 
