@@ -65,15 +65,15 @@ class CompileTransactionTest extends Specification {
     }
 
     CompileTransaction newCompileTransaction() {
-        return new CompileTransaction(spec, new PatternSet(), Collections.emptyMap(), TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
+        return new CompileTransaction(spec, new PatternSet(), Collections.emptyMap(), TestFiles.fileOperations(temporaryFolder), TestFiles.deleter(), [] as Set)
     }
 
     CompileTransaction newCompileTransaction(PatternSet classesToDelete) {
-        return new CompileTransaction(spec, classesToDelete, Collections.emptyMap(), TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
+        return new CompileTransaction(spec, classesToDelete, Collections.emptyMap(), TestFiles.fileOperations(temporaryFolder), TestFiles.deleter(), [] as Set)
     }
 
-    CompileTransaction newCompileTransaction(PatternSet classesToDelete, Map<GeneratedResource.Location, PatternSet> resourcesToDelete) {
-        return new CompileTransaction(spec, classesToDelete, resourcesToDelete, TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
+    CompileTransaction newCompileTransaction(PatternSet classesToDelete, Map<GeneratedResource.Location, PatternSet> resourcesToDelete, Set<String> classesToLoadFromStash = [] as Set) {
+        return new CompileTransaction(spec, classesToDelete, resourcesToDelete, TestFiles.fileOperations(temporaryFolder), TestFiles.deleter(), classesToLoadFromStash)
     }
 
     def "transaction base directory is cleared before execution"() {
@@ -180,6 +180,69 @@ class CompileTransactionTest extends Specification {
         then:
         thrown(CompilationFailedException)
         isEmptyDirectory(destinationDir)
+    }
+
+    def "stashed class files of the compile output are exposed on the spec by class name"() {
+        def destinationDir = spec.getDestinationDir()
+        createNewFile(new File(destinationDir, "Foo.class"))
+        createNewFile(new File(destinationDir, "org/example/Bar\$Inner.class"))
+        createNewFile(new File(destinationDir, "org/example/resource.txt"))
+        def annotationOutput = createNewDirectory(file("annotationOut"))
+        createNewFile(new File(annotationOutput, "Generated.class"))
+        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(annotationOutput)
+        def classesToDelete = new PatternSet().include("**/*.class")
+        Map<GeneratedResource.Location, PatternSet> resourcesToDelete = [(CLASS_OUTPUT): new PatternSet().include("**/*.txt")]
+
+        when:
+        def stashedClassFiles = newCompileTransaction(classesToDelete, resourcesToDelete, ["Foo", "org.example.Bar\$Inner"] as Set).execute {
+            return spec.getStashedClassFiles()
+        }
+
+        then:
+        stashedClassFiles.keySet() == ["Foo", "org.example.Bar\$Inner"] as Set
+        stashedClassFiles.values().every { it.parentFile == stashDir && it.isFile() }
+        stashedClassFiles["Foo"].name.startsWith("Foo.class.uniqueId")
+    }
+
+    def "only the stashed class files of the classes to load from the stash are recorded on the spec"() {
+        createNewFile(new File(spec.getDestinationDir(), "Foo.class"))
+        createNewFile(new File(spec.getDestinationDir(), "Bar.class"))
+        def classesToDelete = new PatternSet().include("**/*.class")
+
+        when:
+        def stashedClassFiles = newCompileTransaction(classesToDelete, [:], ["Foo"] as Set).execute {
+            return spec.getStashedClassFiles()
+        }
+
+        then:
+        stashedClassFiles.keySet() == ["Foo"] as Set
+        stashDir.list().length == 2
+    }
+
+    def "stashed class files are not recorded on the spec when no class is to be loaded from the stash"() {
+        createNewFile(new File(spec.getDestinationDir(), "Foo.class"))
+        def classesToDelete = new PatternSet().include("**/*.class")
+
+        when:
+        def stashedClassFiles = newCompileTransaction(classesToDelete, [:]).execute {
+            return spec.getStashedClassFiles()
+        }
+
+        then:
+        stashedClassFiles.isEmpty()
+        stashDir.list().length == 1
+    }
+
+    def "no stashed class files are exposed on the spec if nothing is stashed"() {
+        createNewFile(new File(spec.getDestinationDir(), "Foo.class"))
+
+        when:
+        def stashedClassFiles = newCompileTransaction().execute {
+            return spec.getStashedClassFiles()
+        }
+
+        then:
+        stashedClassFiles.isEmpty()
     }
 
     def "if something get stashed workResult passed to execution will mark 'did work'"() {

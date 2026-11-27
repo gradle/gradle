@@ -39,14 +39,18 @@ class SourceFileChangeProcessor {
         spec.addResourcesToGenerate(actualDependents.getDependentResources());
     }
 
-    public void processOnlyAccessibleChangeOfClasses(Set<String> classNames, RecompilationSpec spec) {
-        DependentsSet actualDependents = previousCompilation.findDependentsOfSourceChanges(classNames);
-        if (actualDependents.isDependencyToAll()) {
-            spec.setFullRebuildCause(actualDependents.getDescription());
+    /**
+     * Adds the dependents of classes that are recompiled although their source did not change. Unlike for a changed class,
+     * their constants are not taken as changed: without constants mapping, a changed constant means a full recompilation.
+     */
+    public void processDependentsOfRecompiledClasses(Set<String> classNames, RecompilationSpec spec) {
+        DependentsSet dependents = previousCompilation.findDependentsOfRecompiledClasses(classNames);
+        if (dependents.isDependencyToAll()) {
+            spec.setFullRebuildCause(dependents.getDescription());
             return;
         }
-        spec.addClassesToCompile(actualDependents.getAccessibleDependentClasses());
-        spec.addResourcesToGenerate(actualDependents.getDependentResources());
+        spec.addClassesToCompile(dependents.getAllDependentClasses());
+        spec.addResourcesToGenerate(dependents.getDependentResources());
     }
 
     public Set<String> processAnnotationDependenciesOfIndependentClasses(Set<String> classNames, RecompilationSpec spec) {

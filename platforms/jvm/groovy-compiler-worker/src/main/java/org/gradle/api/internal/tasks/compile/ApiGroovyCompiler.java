@@ -44,6 +44,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.groovyloader.GroovySystemLoader;
@@ -67,6 +68,7 @@ import static java.lang.Boolean.TRUE;
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public class ApiGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec>, Serializable {
+    private static final String COMPILE_CLASSPATH_LOADER_NAME = "api-groovy-compile-loader";
     private final Compiler<JavaCompileSpec> javaCompiler;
     private final ObjectFactory objectFactory;
 
@@ -186,14 +188,15 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         jointCompilationOptions.put("keepStubs", spec.getGroovyCompileOptions().isKeepStubs());
         configuration.setJointCompilationOptions(jointCompilationOptions);
 
+        Map<String, File> stashedClassFiles = spec.getStashedClassFiles();
         ClassLoader classPathLoader;
         if (version.compareTo(VersionNumber.parse("2.0")) < 0) {
             // using a transforming classloader is only required for older buggy Groovy versions
             classPathLoader = new GroovyCompileTransformingClassLoader(getExtClassLoader(), DefaultClassPath.of(spec.getCompileClasspath()));
         } else {
-            classPathLoader = new DefaultClassLoaderFactory().createIsolatedClassLoader("api-groovy-compile-loader", DefaultClassPath.of(spec.getCompileClasspath()));
+            classPathLoader = createCompileClasspathLoader(spec.getCompileClasspath(), stashedClassFiles);
         }
-        GroovyClassLoader compileClasspathClassLoader = new GroovyClassLoader(classPathLoader, null);
+        GroovyClassLoader compileClasspathClassLoader = new CompileClasspathGroovyClassLoader(classPathLoader, stashedClassFiles);
         GroovySystemLoader compileClasspathLoader = groovySystemLoaderFactory.forClassLoader(classPathLoader);
 
         FilteringClassLoader.Spec groovyCompilerClassLoaderSpec = new FilteringClassLoader.Spec();
@@ -210,7 +213,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         FilteringClassLoader groovyCompilerClassLoader = new FilteringClassLoader(GroovyClassLoader.class.getClassLoader(), groovyCompilerClassLoaderSpec);
 
         // AST transforms need their own class loader that shares compiler classes with the compiler itself
-        final GroovyClassLoader astTransformClassLoader = new GroovyClassLoader(groovyCompilerClassLoader, null);
+        final GroovyClassLoader astTransformClassLoader = new StashedClassesGroovyClassLoader(groovyCompilerClassLoader, stashedClassFiles);
         // can't delegate to compileClasspathLoader because this would result in ASTTransformation interface
         // (which is implemented by the transform class) being loaded by compileClasspathClassLoader (which is
         // where the transform class is loaded from)
@@ -368,6 +371,24 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             }
         }
         return VersionNumber.parse(version);
+    }
+
+    /**
+     * The classes being recompiled have been moved out of the destination directory, which is on the compile classpath,
+     * but the JVM still needs their class files whenever it links or reflects on a class of the previous compilation that
+     * refers to them, see {@link StashedClassesClassLoader}.
+     */
+    private static ClassLoader createCompileClasspathLoader(List<File> classpath, Map<String, File> stashedClassFiles) {
+        ClassPath compileClasspath = DefaultClassPath.of(classpath);
+        if (stashedClassFiles.isEmpty()) {
+            return new DefaultClassLoaderFactory().createIsolatedClassLoader(COMPILE_CLASSPATH_LOADER_NAME, compileClasspath);
+        }
+        return new DefaultClassLoaderFactory() {
+            @Override
+            protected ClassLoader doCreateClassLoader(String name, ClassLoader parent, ClassPath classPath) {
+                return new StashedClassesClassLoader(name, parent, classPath, stashedClassFiles);
+            }
+        }.createIsolatedClassLoader(COMPILE_CLASSPATH_LOADER_NAME, compileClasspath);
     }
 
     // Make sure that map only contains Boolean.TRUE and Boolean.FALSE values and no other Boolean instances.

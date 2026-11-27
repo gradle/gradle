@@ -221,6 +221,11 @@ public class ApiMemberSelector extends ClassVisitor {
             // A local, anonymous class or a private inner class - ignore the reference
             return;
         }
+        if (!name.equals(className) && !className.equals(outerName) && !className.startsWith(name + "$")) {
+            // A nested class of another class, listed here only because this class refers to it: its own class file
+            // describes it, and the reference is not part of this class's API
+            return;
+        }
 
         if (!apiIncludesPackagePrivateMembers && isPackagePrivateMember(access)) {
             return;

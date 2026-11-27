@@ -19,11 +19,10 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.internal.file.Deleter;
 import org.gradle.work.FileChange;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,36 +41,58 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
     }
 
     /**
-     * For all classes with Java source that we will be recompiled due to some change, we need to recompile all subclasses.
-     * This is because Groovy might try to load some subclass when analysing Groovy classes before Java compilation, but if parent class was stale,
-     * it has been deleted, so class loading of a subclass will fail.
+     * Groovy may load classes of the previous compilation from the classpath, not only read them: the compiler does so for the
+     * helper classes of a precompiled trait, and an AST transformation does so whenever it asks a classpath class for its
+     * {@code ClassNode#getTypeClass()}. The JVM then resolves the classes they refer to, whatever the visibility of the
+     * reference, and finds the classes being recompiled in their stashed class files, see
+     * {@code JavaCompileSpec#getStashedClassFiles()}. Nothing more is recompiled for that.
+     * <p>
+     * A recompiled class with a Java source needs more. It is not part of the Groovy compilation unit, and its class file is
+     * out of the output while it is recompiled, so the compiler cannot resolve it at all until it has run the Java compiler.
+     * The stashed class file is of no help here: it is kept away from the compiler on purpose, as it shows the class as it was
+     * before the change. The compiler reads the classes of the previous output it meets, and fails with a
+     * {@code NoClassDefFoundError} on any member of theirs, private or not, whose type is such a class. So all of its
+     * dependents are recompiled, repeatedly while that brings in further classes with Java sources.
      *
-     * Fix for issue <a href="https://github.com/gradle/gradle/issues/22531">#22531</a>.
+     * Fix for issues <a href="https://github.com/gradle/gradle/issues/22531">#22531</a> and
+     * <a href="https://github.com/gradle/gradle/issues/22814">#22814</a>.
      */
     @Override
     protected void processCompilerSpecificDependencies(
-        JavaCompileSpec spec,
         RecompilationSpec recompilationSpec,
         SourceFileChangeProcessor sourceFileChangeProcessor,
         SourceFileClassNameConverter sourceFileClassNameConverter
     ) {
-        if (!supportsGroovyJavaJointCompilation(spec)) {
-            return;
+        Set<String> examinedClasses = new HashSet<>();
+        while (!recompilationSpec.isFullRebuildNeeded()) {
+            Set<String> newClasses = new HashSet<>(recompilationSpec.getClassesToCompile());
+            newClasses.removeAll(examinedClasses);
+            if (newClasses.isEmpty()) {
+                return;
+            }
+            examinedClasses.addAll(newClasses);
+            Set<String> classesWithJavaSource = classesWithJavaSource(newClasses, sourceFileClassNameConverter);
+            if (!classesWithJavaSource.isEmpty()) {
+                sourceFileChangeProcessor.processDependentsOfRecompiledClasses(classesWithJavaSource, recompilationSpec);
+                examinedClasses.addAll(classesWithJavaSource);
+            }
         }
-        Set<String> classesWithJavaSource = recompilationSpec.getClassesToCompile().stream()
+    }
+
+    @Override
+    protected boolean needsStashedClassFiles() {
+        return true;
+    }
+
+    /**
+     * The classes of the Java sources of the given classes.
+     */
+    private static Set<String> classesWithJavaSource(Set<String> classes, SourceFileClassNameConverter sourceFileClassNameConverter) {
+        return classes.stream()
             .flatMap(classToCompile -> sourceFileClassNameConverter.getRelativeSourcePaths(classToCompile).stream())
             .filter(sourcePath -> sourcePath.endsWith(".java"))
             .flatMap(sourcePath -> sourceFileClassNameConverter.getClassNames(sourcePath).stream())
             .collect(Collectors.toSet());
-        if (!classesWithJavaSource.isEmpty()) {
-            // We need to collect just accessible dependents, since it seems
-            // private references to classes are not problematic when Groovy compiler loads a class
-            sourceFileChangeProcessor.processOnlyAccessibleChangeOfClasses(classesWithJavaSource, recompilationSpec);
-        }
-    }
-
-    private boolean supportsGroovyJavaJointCompilation(JavaCompileSpec spec) {
-        return spec instanceof GroovyJavaJointCompileSpec && ((GroovyJavaJointCompileSpec) spec).getGroovyCompileOptions().getFileExtensions().contains("java");
     }
 
     @Override

@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.Depend
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -47,6 +48,21 @@ public class PreviousCompilation {
 
     public DependentsSet findDependentsOfSourceChanges(Set<String> classNames) {
         return classAnalysis.findTransitiveDependents(classNames, classNames.stream().collect(Collectors.toMap(Function.identity(), classAnalysis::getConstants)));
+    }
+
+    /**
+     * The given classes being recompiled that a class not being recompiled refers to, directly or through other classes being
+     * recompiled.
+     */
+    public Set<String> findClassesReferencedFromOutside(Set<String> recompiledClasses) {
+        return classAnalysis.findClassesReferencedFromOutside(recompiledClasses);
+    }
+
+    /**
+     * The dependents of classes that are recompiled although their source did not change, so neither did their constants.
+     */
+    public DependentsSet findDependentsOfRecompiledClasses(Set<String> classNames) {
+        return classAnalysis.findTransitiveDependents(classNames, Collections.emptyMap());
     }
 
     public DependentsSet getAnnotationProcessingDependentsSet(String className) {

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.ByteStreams;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.FileOperations;
@@ -26,7 +27,10 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisDa
 import org.gradle.internal.IoActions;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.StreamHasher;
+import org.gradle.internal.tools.api.ApiClassExtractor;
+import org.gradle.internal.tools.api.impl.JavaApiMemberWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +48,7 @@ public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
     private final StreamHasher hasher;
     private final ClassDependenciesAnalyzer analyzer;
     private final FileOperations fileOperations;
+    private final ApiClassExtractor apiClassExtractor = ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter()).includePackagePrivateMembers().build();
 
     public DefaultClassSetAnalyzer(FileHasher fileHasher, StreamHasher streamHasher, ClassDependenciesAnalyzer analyzer, FileOperations fileOperations) {
         this.fileHasher = fileHasher;
@@ -108,12 +113,33 @@ public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
 
             try {
                 ClassAnalysis analysis = maybeStripToAbi(analyzer.getClassAnalysis(classFileHash, fileDetails));
-                accumulator.addClass(analysis, classFileHash);
+                accumulator.addClass(analysis, abiOnly ? abiHash(fileDetails, classFileHash) : classFileHash);
             } catch (Exception e) {
                 accumulator.fullRebuildNeeded(fileDetails.getName() + " could not be analyzed for incremental compilation. See the debug log for more details");
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Could not analyze " + fileDetails.getName() + " for incremental compilation", e);
                 }
+            }
+        }
+
+        /**
+         * The classes of a classpath entry are compared by their ABI, as the compile classpath is at the task level: a class
+         * whose bytes changed but whose ABI did not cannot affect the classes compiled against it. Falls back to the hash of
+         * the class file when the ABI cannot be extracted.
+         */
+        private HashCode abiHash(FileVisitDetails fileDetails, HashCode classFileHash) {
+            try {
+                byte[] classBytes;
+                InputStream inputStream = fileDetails.open();
+                try {
+                    classBytes = ByteStreams.toByteArray(inputStream);
+                } finally {
+                    IoActions.closeQuietly(inputStream);
+                }
+                return apiClassExtractor.extractApiClassFrom(classBytes).map(Hashing::hashBytes).orElse(classFileHash);
+            } catch (Exception e) {
+                LOGGER.debug("Could not extract the ABI of " + fileDetails.getName() + ", comparing its class file instead", e);
+                return classFileHash;
             }
         }
 
