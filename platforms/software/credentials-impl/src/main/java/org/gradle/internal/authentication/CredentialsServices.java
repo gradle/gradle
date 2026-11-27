@@ -16,7 +16,10 @@
 
 package org.gradle.internal.authentication;
 
+import org.gradle.authentication.aws.AwsImAuthentication;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.jspecify.annotations.NullMarked;
 
@@ -25,5 +28,15 @@ public class CredentialsServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(AuthenticationSchemeRegistry.class, DefaultAuthenticationSchemeRegistry.class);
+        registration.addProvider(new AuthenticationSchemeAction());
+    }
+
+    private static class AuthenticationSchemeAction implements ServiceRegistrationProvider {
+        // Not in resources-s3, which is not part of gradleApi(), so that ProjectBuilder tests can configure the scheme.
+        @SuppressWarnings("UnusedVariable")
+        @Provides
+        public void configure(ServiceRegistration registration, AuthenticationSchemeRegistry authenticationSchemeRegistry) {
+            authenticationSchemeRegistry.registerScheme(AwsImAuthentication.class, DefaultAwsImAuthentication.class);
+        }
     }
 }

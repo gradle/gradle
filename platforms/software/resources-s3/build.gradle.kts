@@ -1,12 +1,11 @@
 plugins {
-    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.implementation-java")
 }
 
 description = "Implementation for interacting with S3 repositories"
 
 dependencies {
     api(projects.serviceProvider)
-    api(projects.credentials)
     api(projects.credentialsApi)
     api(projects.resources)
     api(projects.resourcesHttp)
@@ -16,7 +15,7 @@ dependencies {
     api(libs.awsSdkRegions)
     api(libs.jspecify)
 
-    implementation(projects.baseServices)
+    implementation(projects.credentials)
     implementation(projects.hashing)
 
     implementation(libs.awsApacheHttpClient)
@@ -43,6 +42,7 @@ dependencies {
         because("Loaded by the AWS libraries with reflection when present: https://github.com/gradle/gradle/issues/15332")
     }
 
+    testImplementation(projects.credentialsImpl)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.dependencyManagement))
     testImplementation(testFixtures(projects.ivy))

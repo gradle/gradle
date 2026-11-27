@@ -81,6 +81,14 @@ Use the <<supported_repository_protocols.adoc#sec:s3-configuration-properties,`o
 
 The `aws.java.v1.disableDeprecationAnnouncement` system property no longer has any effect and can be removed.
 
+[[project_builder_repository_transports]]
+==== `ProjectBuilder` tests can't transfer files with S3, GCS or SFTP repositories
+
+Tests that run a build with `ProjectBuilder` can no longer resolve from or publish to `s3://`, `gcs://` or `sftp://` repositories.
+They fail with a "Not a supported repository protocol" error.
+Declaring these repositories still works, including with `AwsImAuthentication`.
+To test a build that transfers files with these repositories, use <<test_kit.adoc#test_kit,TestKit>>.
+
 [[derived_task_output_providers_execution_time]]
 ==== Transformations after `asFile`, `dir`, `file` and `zip` on task outputs are deferred
 
