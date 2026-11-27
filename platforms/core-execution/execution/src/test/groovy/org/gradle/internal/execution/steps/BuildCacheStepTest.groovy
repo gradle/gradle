@@ -95,7 +95,7 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
         0 * _
     }
 
-    def "executes work and stores in cache on cache miss"() {
+    def "executes work on cache miss when cache store reports #stored"() {
         given:
         def execution = Mock(Execution)
 
@@ -118,8 +118,11 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
         1 * execution.canStoreOutputsInCache() >> true
 
         then:
-        interaction { outputStored {} }
+        interaction { outputStored { stored } }
         0 * _
+
+        where:
+        stored << [true, false]
     }
 
     def "fails after #exceptionName unpack failure with descriptive error"() {
@@ -223,7 +226,7 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
         1 * execution.canStoreOutputsInCache() >> true
 
         then:
-        interaction { outputStored {} }
+        interaction { outputStored { true } }
         0 * _
     }
 

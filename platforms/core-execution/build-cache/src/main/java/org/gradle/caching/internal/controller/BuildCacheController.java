@@ -40,5 +40,10 @@ public interface BuildCacheController extends Closeable {
 
     Optional<BuildCacheLoadResult> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity);
 
-    void store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime);
+    /**
+     * Stores the entity's outputs in the writable caches.
+     *
+     * @return whether at least one cache completed a store operation
+     */
+    boolean store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime);
 }

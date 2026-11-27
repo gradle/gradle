@@ -170,8 +170,8 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
 
     private void store(CacheableWork work, BuildCacheKey cacheKey, ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork, Duration executionTime) {
         try {
-            buildCache.store(cacheKey, work, outputFilesProducedByWork, executionTime);
-            if (LOGGER.isInfoEnabled()) {
+            boolean stored = buildCache.store(cacheKey, work, outputFilesProducedByWork, executionTime);
+            if (stored && LOGGER.isInfoEnabled()) {
                 LOGGER.info("Stored cache entry for {} with cache key {}",
                     work.getDisplayName(), cacheKey.getHashCode());
             }

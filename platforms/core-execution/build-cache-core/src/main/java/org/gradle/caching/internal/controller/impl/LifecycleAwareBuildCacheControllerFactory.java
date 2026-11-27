@@ -78,8 +78,8 @@ public class LifecycleAwareBuildCacheControllerFactory {
         }
 
         @Override
-        public void store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
-            getDelegate().store(cacheKey, entity, snapshots, executionTime);
+        public boolean store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
+            return getDelegate().store(cacheKey, entity, snapshots, executionTime);
         }
 
         @Override
