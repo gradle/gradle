@@ -19,11 +19,11 @@ package org.gradle.internal.execution.history.impl;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Interner;
 import org.gradle.cache.CacheDecorator;
-import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.execution.history.AfterExecutionState;
+import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -32,17 +32,17 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.serialize.HashCodeSerializer;
 
 import java.util.Optional;
-import java.util.function.Supplier;
+import java.util.UUID;
 
 import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
 import static com.google.common.collect.Maps.transformValues;
 
 public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
 
-    private final IndexedCache<String, PreviousExecutionState> store;
+    private final MultiProcessSafeIndexedCache<String, PreviousExecutionState> store;
 
     public DefaultExecutionHistoryStore(
-        Supplier<PersistentCache> cache,
+        ExecutionHistoryCacheAccess cache,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         Interner<String> stringInterner,
         ClassLoaderHierarchyHasher classLoaderHasher
@@ -55,7 +55,7 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
         );
 
         CacheDecorator inMemoryCacheDecorator = inMemoryCacheDecoratorFactory.decorator(10000, false);
-        this.store = cache.get().createIndexedCache(
+        this.store = cache.createIndexedCache(
             IndexedCacheParameters.of("executionHistory", String.class, serializer)
             .withCacheDecorator(inMemoryCacheDecorator)
         );
@@ -68,7 +68,40 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
 
     @Override
     public void store(String key, AfterExecutionState executionState) {
-        store.put(key, new DefaultPreviousExecutionState(
+        store.put(key, toPreviousExecutionState(executionState));
+    }
+
+    @Override
+    public boolean storeIfUnchanged(String key, Optional<PreviousExecutionState> expectedState, AfterExecutionState executionState) {
+        PreviousExecutionState newState = toPreviousExecutionState(executionState);
+        return store.putIf(
+            key,
+            newState,
+            currentState -> sameHistoryEntry(Optional.ofNullable(currentState), expectedState)
+        );
+    }
+
+    @Override
+    public void remove(String key) {
+        store.remove(key);
+    }
+
+    private static boolean sameHistoryEntry(Optional<PreviousExecutionState> currentState, Optional<PreviousExecutionState> expectedState) {
+        if (!currentState.isPresent() || !expectedState.isPresent()) {
+            return !currentState.isPresent() && !expectedState.isPresent();
+        }
+        PreviousExecutionState current = currentState.get();
+        PreviousExecutionState expected = expectedState.get();
+        if (!(current instanceof DefaultPreviousExecutionState) || !(expected instanceof DefaultPreviousExecutionState)) {
+            return false;
+        }
+        return ((DefaultPreviousExecutionState) current).getExecutionHistoryEntryId()
+            .equals(((DefaultPreviousExecutionState) expected).getExecutionHistoryEntryId());
+    }
+
+    private static PreviousExecutionState toPreviousExecutionState(AfterExecutionState executionState) {
+        return new DefaultPreviousExecutionState(
+            UUID.randomUUID().toString(),
             executionState.getOriginMetadata(),
             executionState.getCacheKey(),
             executionState.getImplementation(),
@@ -77,12 +110,7 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
             prepareForSerialization(executionState.getInputFileProperties()),
             executionState.getOutputFilesProducedByWork(),
             executionState.isSuccessful()
-        ));
-    }
-
-    @Override
-    public void remove(String key) {
-        store.remove(key);
+        );
     }
 
     private static ImmutableSortedMap<String, FileCollectionFingerprint> prepareForSerialization(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints) {

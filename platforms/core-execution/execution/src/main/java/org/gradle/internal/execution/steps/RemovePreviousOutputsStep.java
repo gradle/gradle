@@ -106,7 +106,7 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
         });
     }
 
-    private void cleanupExclusivelyOwnedOutputs(MutableBeforeExecutionContext context, UnitOfWork work) {
+    private void cleanupExclusivelyOwnedOutputs(MutableBeforeExecutionContext context, MutableUnitOfWork work) {
         work.visitOutputs(context.getWorkspace(), new OutputVisitor() {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, OutputFileValueSupplier value) {
@@ -124,6 +124,8 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
                                 throw new AssertionError();
                         }
                     } catch (IOException ex) {
+                        // Cleanup may have already mutated the output tree, so the previous execution state is no longer trustworthy.
+                        work.getHistory().ifPresent(history -> history.remove(context.getIdentity().getUniqueId()));
                         throw UncheckedException.throwAsUncheckedException(ex);
                     }
                 }

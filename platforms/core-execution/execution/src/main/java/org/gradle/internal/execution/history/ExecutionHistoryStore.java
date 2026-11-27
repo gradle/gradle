@@ -27,5 +27,13 @@ public interface ExecutionHistoryStore {
 
     void store(String key, AfterExecutionState executionState);
 
+    /**
+     * Stores the execution state only if the history entry has not changed since it was loaded.
+     *
+     * @return {@code true} when the state was stored, {@code false} when another execution changed
+     * the history entry first
+     */
+    boolean storeIfUnchanged(String key, Optional<PreviousExecutionState> expectedState, AfterExecutionState executionState);
+
     void remove(String key);
 }

@@ -53,8 +53,9 @@ public class StoreExecutionStateStep<C extends PreviousExecutionContext & Cachin
                         cacheKeyCalculatedState.getBeforeExecutionState(),
                         executionOutputState
                     )))
-                .ifPresent(afterExecutionState -> history.store(
+                .ifPresent(afterExecutionState -> history.storeIfUnchanged(
                     context.getIdentity().getUniqueId(),
+                    context.getPreviousExecutionState(),
                     // TODO: Encode the "no cache key available" case in the context type hierarchy
                     afterExecutionState)));
         return result;

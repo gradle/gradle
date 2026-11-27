@@ -23,6 +23,7 @@ import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.jspecify.annotations.Nullable;
 
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
@@ -69,6 +70,20 @@ public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSa
         // Use writeFile because the cache can internally recover from datafile
         // corruption, so we don't care at this level if it's corrupt
         fileAccess.writeFile(() -> requireNonNull(cache).put(key, value));
+    }
+
+    @Override
+    public boolean putIf(K key, V value, Predicate<? super V> condition) {
+        final BTreePersistentIndexedCache<K, V> cache = getCache();
+        final boolean[] stored = {false};
+        fileAccess.writeFile(() -> {
+            V current = cache.get(key);
+            if (condition.test(current)) {
+                cache.put(key, value);
+                stored[0] = true;
+            }
+        });
+        return stored[0];
     }
 
     @Override
