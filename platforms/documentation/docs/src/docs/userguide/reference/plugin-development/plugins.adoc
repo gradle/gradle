@@ -234,6 +234,10 @@ In convention plugins, we can encapsulate arbitrary build configuration or custo
 To develop a convention plugin, you can use the protected <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,`buildSrc`>> folder, which represents a completely separate Gradle build.
 `buildSrc` has its own settings file to define where dependencies of this build are located.
 
+IMPORTANT: `buildSrc` only supports plugins in the *Project* scope (`Plugin<Project>`), such as the convention plugin below.
+It does *not* support `Plugin<Settings>` (settings plugins): `buildSrc` is built only after your build's settings script has been evaluated, so a plugin placed there cannot be applied from `settings.gradle(.kts)`.
+To define a plugin for the *Settings* or *Gradle* (init) scope, use an included build (or an external dependency) instead of `buildSrc`; see <<implementing_gradle_plugins_precompiled.adoc#settings_pre_compiled_plugins,Settings-scope precompiled script plugins>> and <<project_vs_settings_vs_init_plugins>>.
+
 We add a Kotlin script called `my-java-library.gradle.kts` inside the `buildSrc/src/main/kotlin` directory.
 Or conversely, a Groovy script called `my-java-library.gradle` inside the `buildSrc/src/main/groovy` directory.
 We put all the plugin application and configuration from the `database-logic` build file into it:
