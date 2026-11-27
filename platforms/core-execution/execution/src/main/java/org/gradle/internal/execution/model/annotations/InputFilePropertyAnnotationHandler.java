@@ -17,7 +17,12 @@ package org.gradle.internal.execution.model.annotations;
 
 import org.gradle.api.tasks.InputFile;
 import org.gradle.internal.properties.InputFilePropertyType;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
+import static org.gradle.internal.execution.model.annotations.FileAnnotationPropertyTypeValidation.LocationKind.DIRECTORY;
+import static org.gradle.internal.execution.model.annotations.FileAnnotationPropertyTypeValidation.LocationKind.FILE_COLLECTION;
+import static org.gradle.internal.execution.model.annotations.FileAnnotationPropertyTypeValidation.validateNotOfKind;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.INCREMENTAL;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZE_LINE_ENDINGS;
@@ -30,6 +35,19 @@ public class InputFilePropertyAnnotationHandler extends AbstractInputFilePropert
             InputFile.class,
             InputFilePropertyType.FILE,
             ModifierAnnotationCategory.annotationsOf(INCREMENTAL, NORMALIZATION, OPTIONAL, NORMALIZE_LINE_ENDINGS, REPLACES_EAGER_PROPERTY)
+        );
+    }
+
+    @Override
+    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
+        super.validatePropertyMetadata(propertyMetadata, validationContext);
+        validateNotOfKind(getAnnotationType(), "a regular file", DIRECTORY, propertyMetadata, validationContext,
+            "Annotate with @InputDirectory for directories",
+            "Change the property type to RegularFileProperty for regular files"
+        );
+        validateNotOfKind(getAnnotationType(), "a regular file", FILE_COLLECTION, propertyMetadata, validationContext,
+            "Annotate with @InputFiles for collections of files",
+            "Change the property type to RegularFileProperty for a single regular file"
         );
     }
 }

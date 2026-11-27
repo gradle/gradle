@@ -19,7 +19,11 @@ import org.gradle.api.tasks.InputDirectory;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
+import static org.gradle.internal.execution.model.annotations.FileAnnotationPropertyTypeValidation.LocationKind.FILE_COLLECTION_OTHER_THAN_FILE_TREE;
+import static org.gradle.internal.execution.model.annotations.FileAnnotationPropertyTypeValidation.LocationKind.REGULAR_FILE;
+import static org.gradle.internal.execution.model.annotations.FileAnnotationPropertyTypeValidation.validateNotOfKind;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.IGNORE_EMPTY_DIRECTORIES;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.INCREMENTAL;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
@@ -40,5 +44,18 @@ public class InputDirectoryPropertyAnnotationHandler extends AbstractInputFilePr
     protected DirectorySensitivity determineDirectorySensitivity(PropertyMetadata propertyMetadata) {
         // Being an input directory implies ignoring of empty directories.
         return DirectorySensitivity.IGNORE_DIRECTORIES;
+    }
+
+    @Override
+    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
+        super.validatePropertyMetadata(propertyMetadata, validationContext);
+        validateNotOfKind(getAnnotationType(), "a directory", REGULAR_FILE, propertyMetadata, validationContext,
+            "Annotate with @InputFile for regular files",
+            "Change the property type to DirectoryProperty for directories"
+        );
+        validateNotOfKind(getAnnotationType(), "a directory", FILE_COLLECTION_OTHER_THAN_FILE_TREE, propertyMetadata, validationContext,
+            "Annotate with @InputFiles for collections of files",
+            "Change the property type to DirectoryProperty for a single directory"
+        );
     }
 }

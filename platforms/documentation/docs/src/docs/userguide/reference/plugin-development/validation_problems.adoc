@@ -363,6 +363,15 @@ Fix it by choosing the annotation that matches the intent:
 
 If you really do want to track the file's absolute path as a string (not its contents), return a `String` and keep `@Input`.
 
+[[incorrect_use_of_file_annotation]]
+=== Incorrect use of a file annotation
+
+A property's file annotation does not match the kind of location its type represents.
+For example, link:{javadocPath}/org/gradle/api/tasks/InputFile.html[`@InputFile`] on a link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[`DirectoryProperty`], or link:{javadocPath}/org/gradle/api/tasks/OutputDirectory.html[`@OutputDirectory`] on a link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[`ConfigurableFileCollection`].
+For a `Provider` property, Gradle checks its value type.
+
+Fix it by making the annotation and the property type agree: either change the annotation, for example to `@InputDirectory` for a `DirectoryProperty`, or change the property type, for example to `RegularFileProperty` for `@InputFile`.
+
 [[service_reference_must_be_a_build_service]]
 === Property annotated with `@ServiceReference` is not a `BuildService`
 

@@ -40,6 +40,7 @@ import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
 import javax.inject.Inject
 
@@ -1006,6 +1007,129 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             ]
             originLocations == []
         }
+    }
+
+    @Issue([
+        "https://github.com/gradle/gradle/issues/16972",
+        "https://github.com/gradle/gradle/issues/27843",
+        "https://github.com/gradle/gradle/issues/35914",
+    ])
+    def "reports @#annotation.simpleName used on property of type #propertyType"() {
+        javaTaskSource << """
+            import java.io.File;
+            import java.util.*;
+            import org.gradle.api.*;
+            import org.gradle.api.file.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+
+            @DisableCachingByDefault(because = "test task")
+            public abstract class MyTask extends DefaultTask {
+                @${annotation.simpleName} ${normalization}
+                ${getterOf(propertyType)}
+
+                @TaskAction public void execute() {}
+            }
+        """
+
+        expect:
+        assertValidationFailsWith(1)
+
+        and:
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == "Gradle:Plugin Validation:Incorrect use of @${annotation.simpleName} annotation"
+            contextualLabel == "Type 'MyTask' property 'prop' has @${annotation.simpleName} annotation used on property of type '${propertyType}'"
+            details == "A property of type '${propertyType}' represents ${actualKind}, but @${annotation.simpleName} expects ${expectedKind}"
+            solutions == expectedSolutions
+            additionalData.asMap == [
+                'typeName' : 'MyTask',
+                'propertyName' : 'prop',
+            ]
+            originLocations == []
+        }
+
+        where:
+        annotation        | propertyType                 | actualKind              | expectedKind     | expectedSolutions
+        InputFile         | 'DirectoryProperty'          | 'a directory'           | 'a regular file' | ['Annotate with @InputDirectory for directories', 'Change the property type to RegularFileProperty for regular files']
+        InputFile         | 'Directory'                  | 'a directory'           | 'a regular file' | ['Annotate with @InputDirectory for directories', 'Change the property type to RegularFileProperty for regular files']
+        InputFile         | 'Provider<Directory>'        | 'a directory'           | 'a regular file' | ['Annotate with @InputDirectory for directories', 'Change the property type to RegularFileProperty for regular files']
+        InputFile         | 'ConfigurableFileCollection' | 'a collection of files' | 'a regular file' | ['Annotate with @InputFiles for collections of files', 'Change the property type to RegularFileProperty for a single regular file']
+        InputFile         | 'FileTree'                   | 'a collection of files' | 'a regular file' | ['Annotate with @InputFiles for collections of files', 'Change the property type to RegularFileProperty for a single regular file']
+        InputFile         | 'List<File>'                 | 'a collection of files' | 'a regular file' | ['Annotate with @InputFiles for collections of files', 'Change the property type to RegularFileProperty for a single regular file']
+        InputFile         | 'File[]'                     | 'a collection of files' | 'a regular file' | ['Annotate with @InputFiles for collections of files', 'Change the property type to RegularFileProperty for a single regular file']
+        InputFile         | 'ListProperty<RegularFile>'  | 'a collection of files' | 'a regular file' | ['Annotate with @InputFiles for collections of files', 'Change the property type to RegularFileProperty for a single regular file']
+        InputDirectory    | 'RegularFileProperty'        | 'a regular file'        | 'a directory'    | ['Annotate with @InputFile for regular files', 'Change the property type to DirectoryProperty for directories']
+        InputDirectory    | 'Provider<RegularFile>'      | 'a regular file'        | 'a directory'    | ['Annotate with @InputFile for regular files', 'Change the property type to DirectoryProperty for directories']
+        InputDirectory    | 'ConfigurableFileCollection' | 'a collection of files' | 'a directory'    | ['Annotate with @InputFiles for collections of files', 'Change the property type to DirectoryProperty for a single directory']
+        InputDirectory    | 'Set<File>'                  | 'a collection of files' | 'a directory'    | ['Annotate with @InputFiles for collections of files', 'Change the property type to DirectoryProperty for a single directory']
+        OutputFile        | 'DirectoryProperty'          | 'a directory'           | 'a regular file' | ['Annotate with @OutputDirectory for directories', 'Change the property type to RegularFileProperty for regular files']
+        OutputFile        | 'Provider<Directory>'        | 'a directory'           | 'a regular file' | ['Annotate with @OutputDirectory for directories', 'Change the property type to RegularFileProperty for regular files']
+        OutputFile        | 'ConfigurableFileCollection' | 'a collection of files' | 'a regular file' | ['Annotate with @OutputFiles for collections of files', 'Change the property type to RegularFileProperty for a single regular file']
+        OutputFile        | 'Map<String, File>'          | 'a collection of files' | 'a regular file' | ['Annotate with @OutputFiles for collections of files', 'Change the property type to RegularFileProperty for a single regular file']
+        OutputFiles       | 'DirectoryProperty'          | 'a directory'           | 'regular files'  | ['Annotate with @OutputDirectories for directories', 'Change the property type to RegularFileProperty for regular files']
+        OutputFiles       | 'ListProperty<Directory>'    | 'a directory'           | 'regular files'  | ['Annotate with @OutputDirectories for directories', 'Change the property type to RegularFileProperty for regular files']
+        OutputDirectory   | 'RegularFileProperty'        | 'a regular file'        | 'a directory'    | ['Annotate with @OutputFile for regular files', 'Change the property type to DirectoryProperty for directories']
+        OutputDirectory   | 'RegularFile'                | 'a regular file'        | 'a directory'    | ['Annotate with @OutputFile for regular files', 'Change the property type to DirectoryProperty for directories']
+        OutputDirectory   | 'FileTree'                   | 'a collection of files' | 'a directory'    | ['Annotate with @OutputDirectories for collections of directories', 'Change the property type to DirectoryProperty for a single directory']
+        OutputDirectory   | 'SetProperty<Directory>'     | 'a collection of files' | 'a directory'    | ['Annotate with @OutputDirectories for collections of directories', 'Change the property type to DirectoryProperty for a single directory']
+        OutputDirectories | 'RegularFileProperty'        | 'a regular file'        | 'directories'    | ['Annotate with @OutputFiles for regular files', 'Change the property type to DirectoryProperty for directories']
+        OutputDirectories | 'SetProperty<RegularFile>'   | 'a regular file'        | 'directories'    | ['Annotate with @OutputFiles for regular files', 'Change the property type to DirectoryProperty for directories']
+
+        normalization = annotation.simpleName.startsWith('Input') ? '@PathSensitive(PathSensitivity.NONE)' : ''
+    }
+
+    def "allows @#annotation.simpleName on property of type #propertyType"() {
+        javaTaskSource << """
+            import java.io.File;
+            import org.gradle.api.*;
+            import org.gradle.api.file.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+
+            @DisableCachingByDefault(because = "test task")
+            public abstract class MyTask extends DefaultTask {
+                @Optional @${annotation.simpleName} ${normalization}
+                ${getterOf(propertyType)}
+
+                @TaskAction public void execute() {}
+            }
+        """
+
+        expect:
+        assertValidationSucceeds()
+
+        where:
+        annotation        | propertyType
+        InputFile         | 'File'
+        InputFile         | 'RegularFileProperty'
+        InputFile         | 'Provider<RegularFile>'
+        InputFile         | 'java.nio.file.Path'
+        InputDirectory    | 'File'
+        InputDirectory    | 'DirectoryProperty'
+        InputDirectory    | 'Provider<Directory>'
+        InputDirectory    | 'ConfigurableFileTree'
+        InputDirectory    | 'FileTree'
+        OutputFile        | 'File'
+        OutputFile        | 'RegularFileProperty'
+        OutputFile        | 'Provider<RegularFile>'
+        OutputFiles       | 'ConfigurableFileCollection'
+        OutputFiles       | 'ListProperty<RegularFile>'
+        OutputDirectory   | 'File'
+        OutputDirectory   | 'DirectoryProperty'
+        OutputDirectory   | 'Provider<Directory>'
+        OutputDirectories | 'SetProperty<Directory>'
+
+        normalization = annotation.simpleName.startsWith('Input') ? '@PathSensitive(PathSensitivity.NONE)' : ''
+    }
+
+    private static String getterOf(String propertyType) {
+        if (propertyType.contains("Property") || propertyType == "ConfigurableFileCollection") {
+            return "public abstract ${propertyType} getProp();"
+        }
+        return "public ${propertyType} getProp() { return null; }"
     }
 
     abstract String getIterableSymbol()

@@ -729,11 +729,21 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         """
 
         expect:
-        executer.withArgument("-Dorg.gradle.internal.max.validation.errors=7")
-        assertValidationFailsWith(7)
+        executer.withArgument("-Dorg.gradle.internal.max.validation.errors=${7 + collectionProblems}")
+        assertValidationFailsWith(7 + collectionProblems)
 
         and:
-        verifyAll(receivedProblem(0)) {
+        if (collectionProblems > 0) {
+            ['ListProperty', 'MapProperty', 'SetProperty'].each { collectionType ->
+                verifyAll(findReceivedProblem { it.fqid == "Gradle:Plugin Validation:Incorrect use of @$annotation annotation" && it.contextualLabel.contains("type '$collectionType<") }) {
+                    severity == Severity.ERROR
+                    details.endsWith("represents a collection of files, but @$annotation expects a regular file")
+                }
+            }
+        }
+
+        and:
+        verifyAll(receivedProblem(0 + collectionProblems)) {
             severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Unsupported value type'
             contextualLabel == "Type 'MyTask' property 'direct' has @$annotation annotation used on property of type 'ResolvedArtifactResult'"
@@ -748,7 +758,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             ]
             originLocations == []
         }
-        verifyAll(receivedProblem(1)) {
+        verifyAll(receivedProblem(1 + collectionProblems)) {
             severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Unsupported value type'
             contextualLabel == "Type 'MyTask' property 'listPropertyInput' has @$annotation annotation used on property of type 'ListProperty<ResolvedArtifactResult>'"
@@ -763,7 +773,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             ]
             originLocations == []
         }
-        verifyAll(receivedProblem(2)) {
+        verifyAll(receivedProblem(2 + collectionProblems)) {
             severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Unsupported value type'
             contextualLabel == "Type 'MyTask' property 'mapPropertyInput' has @$annotation annotation used on property of type 'MapProperty<String, ResolvedArtifactResult>'"
@@ -778,7 +788,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             ]
             originLocations == []
         }
-        verifyAll(receivedProblem(3)) {
+        verifyAll(receivedProblem(3 + collectionProblems)) {
             severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Unsupported value type'
             contextualLabel == "Type 'MyTask' property 'nestedBean.nestedInput' has @$annotation annotation used on property of type 'Property<ResolvedArtifactResult>'"
@@ -794,7 +804,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             ]
             originLocations == []
         }
-        verifyAll(receivedProblem(4)) {
+        verifyAll(receivedProblem(4 + collectionProblems)) {
             severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Unsupported value type'
             contextualLabel == "Type 'MyTask' property 'propertyInput' has @$annotation annotation used on property of type 'Property<ResolvedArtifactResult>'"
@@ -809,7 +819,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             ]
             originLocations == []
         }
-        verifyAll(receivedProblem(5)) {
+        verifyAll(receivedProblem(5 + collectionProblems)) {
             severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Unsupported value type'
             contextualLabel == "Type 'MyTask' property 'providerInput' has @$annotation annotation used on property of type 'Provider<ResolvedArtifactResult>'"
@@ -824,7 +834,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             ]
             originLocations == []
         }
-        verifyAll(receivedProblem(6)) {
+        verifyAll(receivedProblem(6 + collectionProblems)) {
             severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Unsupported value type'
             contextualLabel == "Type 'MyTask' property 'setPropertyInput' has @$annotation annotation used on property of type 'SetProperty<ResolvedArtifactResult>'"
@@ -841,10 +851,10 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         }
 
         where:
-        annotation   | _
-        "Input"      | _
-        "InputFile"  | _
-        "InputFiles" | _
+        annotation   | collectionProblems
+        "Input"      | 0
+        "InputFile"  | 3
+        "InputFiles" | 0
     }
 }
 
