@@ -1110,9 +1110,10 @@ Hello, subproject1
 
     def "plugin applied to multiple projects can register a shared service"() {
         createDirs("a", "b", "c")
-        settingsFile "include 'a', 'b', 'c'"
         // The plugin is declared in the settings script, so that each project applies the same plugin class
         settingsFile """
+            include 'a', 'b', 'c'
+
             ${countingServiceClasses()}
 
             class CounterPlugin implements Plugin<Project> {
@@ -1129,13 +1130,14 @@ Hello, subproject1
             }
 
             gradle.lifecycle.beforeProject { project ->
-                project.pluginManager.apply(CounterPlugin)
+                if (project.path != ":") {
+                    project.pluginManager.apply(CounterPlugin)
+                }
             }
         """
 
         when:
-        // The root project also applies the plugin, so run the tasks of the subprojects only
-        run(":a:count", ":b:count", ":c:count")
+        run("count")
 
         then:
         output.count("service:") == 5
@@ -1146,7 +1148,7 @@ Hello, subproject1
         outputContains("service: closed with value 13")
 
         when:
-        run(":a:count", ":b:count", ":c:count")
+        run("count")
 
         then:
         output.count("service:") == 5
