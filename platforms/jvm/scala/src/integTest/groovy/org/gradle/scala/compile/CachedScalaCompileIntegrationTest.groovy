@@ -171,8 +171,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
 
         then:
         skipped compilationTask
-        // Local state is removed when loaded from cache
-        classes.analysisFile.assertDoesNotExist()
+        classes.analysisFile.assertIsFile()
 
         when:
         cleanBuildDir()
@@ -180,8 +179,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
 
         then:
         skipped compilationTask
-        // Local state is removed when loaded from cache
-        classes.analysisFile.assertDoesNotExist()
+        classes.analysisFile.assertIsFile()
 
         when:
         // Make sure we notice when classes are recompiled
@@ -191,8 +189,46 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
 
         then:
         executedAndNotSkipped compilationTask
-        assertAllRecompiled(classes.allClassesLastModified, old(classes.allClassesLastModified))
+        recompiled(classes.allClassesLastModified, old(classes.allClassesLastModified)) == [false, false, true]
         classes.analysisFile.assertIsFile()
+    }
+
+    def "compilation is incremental after loading from cache in another location"() {
+        def originalDir = testDirectory.file('original')
+        setupProjectInDirectory(originalDir)
+        def originalClasses = new ScalaCompilationFixture(originalDir)
+        originalClasses.baseline()
+
+        when:
+        executer.inDirectory(originalDir)
+        withBuildCache().run compilationTask
+
+        then:
+        executedAndNotSkipped compilationTask
+
+        when:
+        def relocatedDir = testDirectory.file('relocated')
+        setupProjectInDirectory(relocatedDir)
+        def classes = new ScalaCompilationFixture(relocatedDir)
+        classes.baseline()
+        originalDir.deleteDir()
+        executer.inDirectory(relocatedDir)
+        withBuildCache().run compilationTask
+
+        then:
+        skipped compilationTask
+        classes.analysisFile.assertIsFile()
+
+        when:
+        // Make sure we notice when classes are recompiled
+        classes.all*.compiledClass*.makeOlder()
+        classes.independentClassSource.change()
+        executer.inDirectory(relocatedDir)
+        withBuildCache().run compilationTask
+
+        then:
+        executedAndNotSkipped compilationTask
+        recompiled(classes.allClassesLastModified, old(classes.allClassesLastModified)) == [false, false, true]
     }
 
     def "stale outputs are cleaned up before the first compilation after loading from cache"() {
@@ -290,10 +326,8 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         file("build").assertIsDir().deleteDir()
     }
 
-    private static void assertAllRecompiled(List<Long> lastModified, List<Long> oldLastModified) {
-        [lastModified, oldLastModified].transpose().each { after, before ->
-            assert after != before
-        }
+    private static List<Boolean> recompiled(List<Long> lastModified, List<Long> oldLastModified) {
+        [lastModified, oldLastModified].transpose().collect { after, before -> after != before }
     }
 
 }

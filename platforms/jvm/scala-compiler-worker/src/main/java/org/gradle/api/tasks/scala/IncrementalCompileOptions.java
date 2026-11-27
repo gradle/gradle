@@ -19,6 +19,7 @@ package org.gradle.api.tasks.scala;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
+import org.gradle.api.tasks.OutputFile;
 
 import javax.inject.Inject;
 
@@ -38,7 +39,7 @@ public abstract class IncrementalCompileOptions {
      * Returns the file path where results of code analysis are to be stored.
      * @since 1.3
      */
-    @LocalState
+    @OutputFile
     public abstract RegularFileProperty getAnalysisFile();
 
     /**
