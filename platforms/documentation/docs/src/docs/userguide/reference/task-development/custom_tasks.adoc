@@ -397,10 +397,11 @@ The outcome of the task will be `FAILED`, the result of the build will be `FAILE
 When <<command_line_interface.adoc#sec:continue_build_on_failure, running with the `--continue` flag>>, Gradle will continue to run other requested tasks in the build after encountering a task failure.
 However, any tasks that depend on a failed task will not be executed.
 
-There is a special type of exception that behaves differently when downstream tasks only rely on the outputs of a failing task.
 A task can throw a subtype of link:{javadocPath}/org/gradle/api/tasks/VerificationException.html[VerificationException] to indicate that it has failed in a controlled manner such that its output is still valid for consumers.
-A task depends on the *outcome* of another task when it directly depends on it using `dependsOn`.
-When Gradle is run with `--continue`, consumer tasks that depend on a producer task's output (via a relationship between task inputs and outputs) can still run after the producer fails.
+After such a verification failure, Gradle continues to run other tasks and fails the build at the end.
+A task that depends on the *outcome* of another task via `dependsOn` does not run after the failure.
+Consumer tasks that depend on a producer task's output (via a relationship between task inputs and outputs) still run after the producer fails.
+See <<controlling_task_execution.adoc#sec:task_failures,Task failures>> for details.
 
 A failed unit test, for instance, will cause a failing outcome for the test task.
 However, this doesn't prevent another task from reading and processing the (valid) test results the task produced.
@@ -417,11 +418,11 @@ include::sample[dir="snippets/reference/task-development/verificationFailure/gro
 <3> *Task Failure*: The task throws a `VerificationException` and fails at this point.
 <4> *Continue to Modify Output*: This line never runs due to the exception stopping the task.
 <5> *Consume Output*: The `postProcess` task depends on the output of the `process` task due to using that task's outputs as its own inputs.
-<6> *Use Partial Result*: With the `--continue` flag set, Gradle still runs the requested `postProcess` task despite the `process` task's failure.  `postProcess` can read and display the partial (though still valid) result.
+<6> *Use Partial Result*: Gradle still runs the requested `postProcess` task despite the `process` task's link:{javadocPath}/org/gradle/api/tasks/VerificationException.html[verification] failure.  `postProcess` can read and display the partial (though still valid) result.
 
 [source,bash]
 ----
-$ ./gradlew postProcess --continue
+$ ./gradlew postProcess
 ----
 [source,text]
 ----

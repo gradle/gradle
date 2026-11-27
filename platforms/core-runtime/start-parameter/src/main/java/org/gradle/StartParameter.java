@@ -706,7 +706,11 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Specifies whether the build should continue on task failure. The default is false.
+     * Specifies whether the build should continue after any task failure. The default is false.
+     * <p>
+     * When false, the build still continues after a {@link org.gradle.api.tasks.VerificationException},
+     * such as failing tests, unless continuing is explicitly disabled with {@code --no-continue}.
+     *
      * @since 1.0
      */
     public boolean isContinueOnFailure() {
@@ -714,7 +718,9 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Specifies whether the build should continue on task failure. The default is false.
+     * Specifies whether the build should continue after any task failure. The default is false.
+     *
+     * @see #isContinueOnFailure()
      * @since 1.0
      */
     public void setContinueOnFailure(boolean continueOnFailure) {

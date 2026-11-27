@@ -68,6 +68,7 @@ public class StartParameterInternal extends StartParameter {
     private @Nullable String develocityUrl;
     private @Nullable String develocityPluginVersion;
     private boolean sharedMavenMirrorSettings = false;
+    private boolean continueOnVerificationFailure = true;
     // Runtime-only wiring, deliberately transient: a StartParameter captured in task state must be
     // serializable to the configuration cache without dragging the listener (and its services) along.
     private transient @Nullable Consumer<String> mutationListener;
@@ -214,6 +215,7 @@ public class StartParameterInternal extends StartParameter {
         p.daemonJvmCriteriaConfigured = daemonJvmCriteriaConfigured;
         p.parallelToolingModelBuilding = parallelToolingModelBuilding;
         p.sharedMavenMirrorSettings = sharedMavenMirrorSettings;
+        p.continueOnVerificationFailure = continueOnVerificationFailure;
         return p;
     }
 
@@ -470,6 +472,18 @@ public class StartParameterInternal extends StartParameter {
 
     public Duration getContinuousBuildQuietPeriod() {
         return continuousBuildQuietPeriod;
+    }
+
+    /**
+     * Whether task execution continues after a verification failure.
+     */
+    public boolean isContinueOnVerificationFailure() {
+        return continueOnVerificationFailure;
+    }
+
+    public void setContinueOnVerificationFailure(boolean continueOnVerificationFailure) {
+        onMutableCall("setContinueOnVerificationFailure(boolean)");
+        this.continueOnVerificationFailure = continueOnVerificationFailure;
     }
 
     public boolean isPropertyUpgradeReportEnabled() {

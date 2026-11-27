@@ -51,10 +51,10 @@ public class DefaultBuildWorkPreparer implements BuildWorkPreparer {
     @Override
     public FinalizedExecutionPlan finalizeWorkGraph(GradleInternal gradle, ExecutionPlan plan) {
         TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
-        if (gradle.getStartParameter().isContinueOnFailure()) {
-            plan.setContinueOnFailure(true);
-        }
-        FinalizedExecutionPlan finalizedExecutionPlan = plan.finalizePlan();
+        FinalizedExecutionPlan finalizedExecutionPlan = plan.finalizePlan(
+            gradle.getStartParameter().isContinueOnFailure(),
+            gradle.getStartParameter().isContinueOnVerificationFailure()
+        );
 
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Tasks to be executed: {}", plan.getContents().getTasks());

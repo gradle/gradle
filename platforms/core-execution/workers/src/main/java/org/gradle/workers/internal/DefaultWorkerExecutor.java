@@ -17,6 +17,7 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.tasks.VerificationException;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -46,6 +47,7 @@ import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutionException;
 import org.gradle.workers.WorkerExecutor;
 import org.gradle.workers.WorkerSpec;
+import org.jspecify.annotations.NullMarked;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
@@ -154,7 +156,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             // Isolate parameters in this thread prior to starting work in a separate thread
             spec = actionExecutionSpecFactory.newIsolatedSpec(description, workActionClass, parameters, workerRequirement, Collections.emptySet());
         } catch (Throwable t) {
-            throw new WorkExecutionException(description, t);
+            throw workExecutionException(description, t);
         }
 
         return submitWork(spec, workerFactory, workerRequirement);
@@ -168,7 +170,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
                 BuildOperationAwareWorker worker = workerFactory.getWorker(workerRequirement);
                 return worker.execute(spec, currentBuildOperation);
             } catch (Throwable t) {
-                throw new WorkExecutionException(spec.getDisplayName(), t);
+                throw workExecutionException(spec.getDisplayName(), t);
             }
         });
         executionQueue.submit(execution);
@@ -242,20 +244,43 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return new Class<?>[]{actionClass};
     }
 
-    @Contextual
-    private static class WorkExecutionException extends RuntimeException implements NonGradleCauseExceptionsHolder {
-        WorkExecutionException(String description, Throwable cause) {
-            super(toMessage(description), cause);
+    /**
+     * Wraps the failure of a work item, and keeps a verification failure a verification failure, so that it does not prevent consumers of the outputs from running.
+     */
+    private static RuntimeException workExecutionException(String description, Throwable cause) {
+        if (cause instanceof VerificationException) {
+            return new WorkVerificationException(description, cause);
         }
+        return new WorkExecutionException(description, cause);
+    }
 
-        private static String toMessage(String description) {
-            return "A failure occurred while executing " + description;
+    @Contextual
+    @NullMarked
+    private static class WorkVerificationException extends VerificationException implements NonGradleCauseExceptionsHolder {
+        WorkVerificationException(String description, Throwable cause) {
+            super(toExceptionMessage(description), cause);
         }
 
         @Override
         public boolean hasCause(Class<?> type) {
             return type.isInstance(getCause());
         }
+    }
+
+    @Contextual
+    private static class WorkExecutionException extends RuntimeException implements NonGradleCauseExceptionsHolder {
+        WorkExecutionException(String description, Throwable cause) {
+            super(toExceptionMessage(description), cause);
+        }
+
+        @Override
+        public boolean hasCause(Class<?> type) {
+            return type.isInstance(getCause());
+        }
+    }
+
+    private static String toExceptionMessage(String description) {
+        return "A failure occurred while executing " + description;
     }
 
     private static class WorkItemExecution extends AbstractConditionalExecution<DefaultWorkResult> implements AsyncWorkCompletion {
@@ -270,7 +295,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         public void waitForCompletion() {
             DefaultWorkResult result = await();
             if (!result.isSuccess()) {
-                throw new WorkExecutionException(description, result.getException());
+                throw workExecutionException(description, result.getException());
             }
         }
     }

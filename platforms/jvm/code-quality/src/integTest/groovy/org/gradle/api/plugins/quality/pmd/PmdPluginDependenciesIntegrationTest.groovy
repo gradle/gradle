@@ -59,7 +59,7 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':pmdTest' (registered by plugin 'org.gradle.pmd').")
+        failure.assertHasDescription("Execution failed for task ':pmdTest'.")
         and:
         succeeds("dependencies", "--configuration", "pmd")
         output.contains "$testDependency"

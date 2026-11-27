@@ -139,8 +139,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         Task task = task("task", type: Async, dependsOn: [finalized])
 
         when:
-        executionPlan.setContinueOnFailure(continueOnFailure)
-        addToGraphAndPopulate(task)
+        addToGraph(task)
+        populateGraph(continueOnFailure)
 
         then:
         executionPlan.tasks as List == [broken, finalized, finalizerDepDep, finalizerDep, finalizer, task]
@@ -159,8 +159,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         Task task = task("task", dependsOn: [broken])
 
         when:
-        executionPlan.setContinueOnFailure(continueOnFailure)
-        addToGraphAndPopulate(task)
+        addToGraph(task)
+        populateGraph(continueOnFailure)
 
         then:
         executionPlan.tasks as List == [broken, finalizerDepDep, finalizerDep, finalizer, task]
@@ -183,8 +183,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         Task task = task("task", type: Async, dependsOn: [finalized])
 
         when:
-        executionPlan.setContinueOnFailure(continueOnFailure)
-        addToGraphAndPopulate(task)
+        addToGraph(task)
+        populateGraph(continueOnFailure)
 
         then:
         executionPlan.tasks as List == [finalized, broken, finalizerDep, finalizer, task]
@@ -224,8 +224,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         Task unrelated = task("unrelated", type: Async, finalizedBy: [finalizer2])
 
         when:
-        executionPlan.setContinueOnFailure(true)
-        addToGraphAndPopulate(broken, unrelated)
+        addToGraph(broken, unrelated)
+        populateGraph(true)
 
         then:
         executionPlan.tasks as List == [broken, finalizerDep1, finalizer1, unrelated, finalizerDep2, finalizer2]
@@ -265,8 +265,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         Task b = task("b", type: Async, finalizedBy: [finalizer])
 
         when:
-        executionPlan.setContinueOnFailure(true)
-        addToGraphAndPopulate(a, b)
+        addToGraph(a, b)
+        populateGraph(true)
 
         then:
         executionPlan.tasks as List == [broken, a, b, finalizerDep, finalizer]
@@ -330,8 +330,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         Task b = task("b", type: Async, finalizedBy: [finalizer2])
 
         when:
-        executionPlan.setContinueOnFailure(true)
-        addToGraphAndPopulate(a, b)
+        addToGraph(a, b)
+        populateGraph(true)
 
         then:
         executionPlan.tasks as List == [broken, a, finalizerDepDep, finalizerDep1, finalizer1, b, finalizerDep2, finalizer2]
@@ -355,8 +355,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         Task b = task("b", type: Async, finalizedBy: [finalizer2], dependsOn: [a])
 
         when:
-        executionPlan.setContinueOnFailure(continueOnFailure)
-        addToGraphAndPopulate(a, b)
+        addToGraph(a, b)
+        populateGraph(continueOnFailure)
 
         then:
         executionPlan.tasks as List == [broken, a, finalizerDepDep, finalizerDep1, finalizer1, b, finalizerDep2, finalizer2]
@@ -378,8 +378,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         Task b = task("b", type: Async, finalizedBy: [finalizer2])
 
         when:
-        executionPlan.setContinueOnFailure(continueOnFailure)
-        addToGraphAndPopulate(a, b)
+        addToGraph(a, b)
+        populateGraph(continueOnFailure)
 
         then:
         executionPlan.tasks as List == [a, broken, finalizerDep1, finalizer1, b, finalizerDep2, finalizer2]
@@ -426,8 +426,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         Task b = task("b", type: Async, finalizedBy: [finalizer2])
 
         when:
-        executionPlan.setContinueOnFailure(true)
-        addToGraphAndPopulate(a, b)
+        addToGraph(a, b)
+        populateGraph(true)
 
         then:
         executionPlan.tasks as List == [broken, a, finalizerDep1, finalizer1, b, finalizerDep2, finalizer2]
@@ -451,8 +451,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         Task b = task("b", type: Async, finalizedBy: [finalizer2], dependsOn: [a])
 
         when:
-        executionPlan.setContinueOnFailure(continueOnFailure)
-        addToGraphAndPopulate(a, b)
+        addToGraph(a, b)
+        populateGraph(continueOnFailure)
 
         then:
         executionPlan.tasks as List == [broken, a, finalizerDep1, finalizer1, b, finalizerDep2, finalizer2]
@@ -499,8 +499,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         Task task = task("task", type: Async, finalizedBy: [finalizer2], dependsOn: [dep])
 
         when:
-        executionPlan.setContinueOnFailure(continueOnFailure)
-        addToGraphAndPopulate(task)
+        addToGraph(task)
+        populateGraph(continueOnFailure)
 
         then:
         executionPlan.tasks as List == [broken, dep, task, finalizerDep2, finalizer2, finalizerDep1, finalizer1]
@@ -581,8 +581,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         Task a = task("a", type: Async, finalizedBy: [finalizer], dependsOn: [broken])
 
         when:
-        executionPlan.setContinueOnFailure(true)
-        addToGraphAndPopulate(finalizerDep, a)
+        addToGraph(finalizerDep, a)
+        populateGraph(true)
 
         then:
         executionPlan.tasks as List == [finalizerDepDep, finalizerDep, broken, a, finalizer]
@@ -598,8 +598,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         Task finalized = task("finalized", type: Async, dependsOn: [broken], finalizedBy: [finalizer])
 
         when:
-        executionPlan.setContinueOnFailure(true)
-        addToGraphAndPopulate(finalizer, finalized)
+        addToGraph(finalizer, finalized)
+        populateGraph(true)
 
         then:
         executionPlan.tasks as List == [broken, finalized, finalizerDependency, finalizer]
@@ -643,8 +643,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         relationships(finalizer, dependsOn: [finalizerDep])
 
         when:
-        executionPlan.continueOnFailure = continueOnFailure
-        addToGraphAndPopulate(entryPoint)
+        addToGraph(entryPoint)
+        populateGraph(continueOnFailure)
 
         then:
         executionPlan.tasks as List == [entryPoint, finalizerDep, finalizer]
@@ -683,8 +683,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         relationships(finalizer, dependsOn: [entryPoint, finalizerDep])
 
         when:
-        executionPlan.continueOnFailure = true
-        addToGraphAndPopulate(entryPoint)
+        addToGraph(entryPoint)
+        populateGraph(true)
 
         then:
         executionPlan.tasks as List == [entryPoint, finalizerDepDep, finalizerDep, finalizer]
@@ -1235,7 +1235,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         _ * inOtherPlan.outputFile >> sharedFile
         otherPlan.addEntryTask(inOtherPlan)
         otherPlan.determineExecutionPlan()
-        WorkSource<?> otherFinalizedPlan = otherPlan.finalizePlan().asWorkSource()
+        WorkSource<?> otherFinalizedPlan = otherPlan.finalizePlan(false, true).asWorkSource()
 
         Task inThisPlan = task("inThisPlan", project: project(project, "b"), type: AsyncWithOutputFile)
         _ * inThisPlan.outputFile >> sharedFile
@@ -2018,9 +2018,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def entry = node("entry", dependsOn: target)
 
         when:
-        executionPlan.continueOnFailure = continueOnFailure
         addToGraph(dep, target, entry)
-        populateGraph()
+        populateGraph(continueOnFailure)
 
         then:
         scheduledNodes == [dep, target, entry]
@@ -2040,9 +2039,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def entry = node("entry", dependsOn: target)
 
         when:
-        executionPlan.continueOnFailure = continueOnFailure
         addToGraph(dep, target, entry)
-        populateGraph()
+        populateGraph(continueOnFailure)
 
         then:
         scheduledNodes == [dep, target, entry]
@@ -2096,9 +2094,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def entry = node("entry", dependsOn: target)
 
         when:
-        executionPlan.continueOnFailure = continueOnFailure
         addToGraph(target, entry)
-        populateGraph()
+        populateGraph(continueOnFailure)
 
         then:
         scheduledNodes == [target, entry]
@@ -2117,9 +2114,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def entry = node("entry", dependsOn: target)
 
         when:
-        executionPlan.continueOnFailure = continueOnFailure
         addToGraph(target, entry)
-        populateGraph()
+        populateGraph(continueOnFailure)
 
         then:
         scheduledNodes == [target, entry]
@@ -2169,9 +2165,9 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         populateGraph()
     }
 
-    private void populateGraph() {
+    private void populateGraph(boolean continueOnFailure = false) {
         executionPlan.determineExecutionPlan()
-        finalizedPlan = executionPlan.finalizePlan()
+        finalizedPlan = executionPlan.finalizePlan(continueOnFailure, true)
     }
 
     TestFile file(String path) {

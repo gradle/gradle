@@ -33,9 +33,8 @@ import java.util.function.Consumer;
  */
 @NotThreadSafe
 public interface ExecutionPlan extends Describable, Closeable {
-    void addFilter(Spec<? super Task> filter);
 
-    void setContinueOnFailure(boolean continueOnFailure);
+    void addFilter(Spec<? super Task> filter);
 
     void setScheduledWork(ScheduledWork work);
 
@@ -71,8 +70,15 @@ public interface ExecutionPlan extends Describable, Closeable {
 
     /**
      * Finalizes this plan once all nodes have been added. Must be called after {@link #determineExecutionPlan()}.
+     *
+     * @param continueOnFailure If true, continues executing work after any node fails.
+     * @param continueOnVerificationFailure If true, continues executing work after a node fails with a
+     * {@link org.gradle.api.tasks.VerificationException}, even when {@code continueOnFailure} is not set.
      */
-    FinalizedExecutionPlan finalizePlan();
+    FinalizedExecutionPlan finalizePlan(
+        boolean continueOnFailure,
+        boolean continueOnVerificationFailure
+    );
 
     /**
      * Invokes the given action when a task completes (as per {@link Node#isComplete()}). Does nothing for tasks that have already completed.
@@ -84,4 +90,5 @@ public interface ExecutionPlan extends Describable, Closeable {
      */
     @Override
     void close();
+
 }

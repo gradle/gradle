@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
@@ -35,6 +36,7 @@ import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestWorkerFailureException;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultOptions;
 import org.gradle.api.internal.tasks.testing.junit.result.TestEventReporterAsListener;
@@ -76,6 +78,7 @@ import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.exceptions.NonGradleCause;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -632,10 +635,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
                 testListenerInternalBroadcaster.removeAll();
             }
 
-            String failureMessage = mapCollectedResultsToError(testCountLogger);
-            if (failureMessage != null) {
-                throw new MarkedVerificationException(failureMessage);
-            }
+            maybeEmitFailureFromResults(testCountLogger);
         }
     }
 
@@ -678,38 +678,46 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     /**
-     * Maps the collected test results to an error message if the task should fail, or {@code null} if the task should succeed.
-     *
+     * Emit failures computed from the collected test results. May throw an exception or log warnings.
      * <p>
-     * Note that this may return a non-{@code null} value even if no test fails, e.g. if no tests were discovered.
+     * Note that this may print warnings or throw exceptions even if no test fails, e.g. if no tests were discovered.
      * The task should still fail in that case.
      * </p>
      *
      * @param testCountLogger the collected test result counts
-     * @return the error message, or {@code null} if the task should not fail
      */
-    @Nullable
-    private String mapCollectedResultsToError(TestCountLogger testCountLogger) {
-        if (testCountLogger.hadFailures()) {
-            if (testCountLogger.hasWorkerFailures()) {
-                return testCountLogger.handleWorkerFailures();
-            } else {
-                return handleTestFailures();
+    private void maybeEmitFailureFromResults(TestCountLogger testCountLogger) {
+        TestWorkerFailureException workerFailure = testCountLogger.handleWorkerFailures();
+        if (workerFailure != null) {
+            throw workerFailure;
+        }
+
+        String testFailureMessage = buildFailureResultsMessage(testCountLogger);
+        if (testFailureMessage != null) {
+            if (getIgnoreFailures()) {
+                getLogger().warn(testFailureMessage);
+                return;
             }
-        } else if (testCountLogger.getTotalTests() == 0) {
+            if (failFast) {
+                // Do not throw a VerificationFailure to prevent the build from continuing on test failure.
+                throw new FailFastTestFailureException(testFailureMessage);
+            }
+            throw new MarkedVerificationException(testFailureMessage);
+        }
+
+        if (testCountLogger.getTotalTests() == 0) {
             // No tests were executed, the following rules apply:
             // - If there are no filters, and no tests or test suites were discovered, fail
             // - If there are filters and the task is configured to fail when no tests match the filters, throw an exception
             // - Otherwise, this is fine - the task should succeed with no warnings or errors
             if (testsAreNotFiltered()) {
                 if (testCountLogger.getTotalDiscoveredItems() == 0 && getFailOnNoDiscoveredTests().get()) {
-                    return "There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.";
+                    throw new GradleException("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.");
                 }
             } else if (shouldFailOnNoMatchingTests()) {
-                return createNoMatchingTestErrorMessage();
+                throw new GradleException(createNoMatchingTestErrorMessage());
             }
         }
-        return null;
     }
 
     private boolean shouldFailOnNoMatchingTests() {
@@ -824,37 +832,24 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     @Input
     abstract public Property<Boolean> getFailOnNoDiscoveredTests();
 
-    /**
-     * Handles test failures based on the {@link #getIgnoreFailures()} property.
-     *
-     * @return the error message to throw, or {@code null} if failures are ignored
-     */
-    @Nullable
-    private String handleTestFailures() {
-        String message = buildFailureResultsMessage("There were failing tests.");
-
-        if (getIgnoreFailures()) {
-            getLogger().warn(message);
+    private @Nullable String buildFailureResultsMessage(TestCountLogger testCountLogger) {
+        if (!testCountLogger.hadFailures()) {
             return null;
-        } else {
-            return message;
         }
-    }
 
-    private String buildFailureResultsMessage(String message) {
         DirectoryReport htmlReport = getReports().getHtml();
         if (htmlReport.getRequired().get()) {
             String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint());
-            message = message.concat(" See the report at: " + reportUrl);
-        } else {
-            DirectoryReport junitXmlReport = getReports().getJunitXml();
-            if (junitXmlReport.getRequired().get()) {
-                String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint());
-                message = message.concat(" See the results at: " + resultsUrl);
-            }
+            return "There were failing tests. See the report at: " + reportUrl;
         }
 
-        return message;
+        DirectoryReport junitXmlReport = getReports().getJunitXml();
+        if (junitXmlReport.getRequired().get()) {
+            String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint());
+            return "There were failing tests. See the results at: " + resultsUrl;
+        }
+
+        return "There were failing tests.";
     }
 
     /**
@@ -882,4 +877,15 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             return new GeneratedTestReport(GeneratedTestReport.Kind.HTML, outputDir.toPath().resolve("index.html"));
         }
     }
+
+    /**
+     * Thrown when {@link #failFast} is enabled, so that the failure is not a verification failure.
+     */
+    @NullMarked
+    private static class FailFastTestFailureException extends GradleException implements NonGradleCause {
+        FailFastTestFailureException(String message) {
+            super(message);
+        }
+    }
+
 }

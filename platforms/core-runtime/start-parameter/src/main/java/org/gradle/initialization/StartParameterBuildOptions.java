@@ -169,8 +169,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
                 PROPERTY_NAME,
                 BooleanCommandLineOptionConfiguration.create(
                     LONG_OPTION,
-                    "Continues task execution after a task failure.",
-                    "Stops task execution after a task failure."
+                    "Continues task execution after any task failure.",
+                    "Stops task execution after any task failure, including failing tests."
                 )
             );
         }
@@ -178,6 +178,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setContinueOnFailure(value);
+            // An explicit --no-continue also stops on verification failures
+            settings.setContinueOnVerificationFailure(value);
         }
 
         @Override

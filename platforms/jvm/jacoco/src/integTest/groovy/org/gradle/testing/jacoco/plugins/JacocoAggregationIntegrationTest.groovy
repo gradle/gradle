@@ -554,7 +554,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForIsolatedProjects(because = "jacoco aggregation resolves subproject artifacts at config time")
-    def 'test verification failure prevents creation of aggregated report'() {
+    def 'test verification failure prevents creation of aggregated report with --no-continue flag'() {
         given:
         file("application/build.gradle") << """
             apply plugin: 'org.gradle.jacoco-report-aggregation'
@@ -578,19 +578,19 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             """
 
         when:
-        fails(":application:testCodeCoverageReport")
+        fails(":application:testCodeCoverageReport", "--no-continue")
 
         then:
         failure.assertHasDescription("Execution failed for task ':direct:test'.")
             .assertThatCause(startsWith("There were failing tests"))
-        result.assertTasksNotScheduled(':application:testCodeCoverageReport"')
+        result.assertTasksNotScheduled(':application:testCodeCoverageReport')
 
         file("application/build/reports/jacoco/testCodeCoverageReport/html/index.html").assertDoesNotExist()
         file("application/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml").assertDoesNotExist()
     }
 
     @ToBeFixedForIsolatedProjects(because = "jacoco aggregation resolves subproject artifacts at config time")
-    def 'test verification failure creates aggregated report with --continue flag'() {
+    def 'test verification failure creates aggregated report #description'() {
         given:
         file("application/build.gradle") << """
             apply plugin: 'org.gradle.jacoco-report-aggregation'
@@ -610,7 +610,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             """
 
         when:
-        def result = fails(":application:testCodeCoverageReport", "--continue")
+        def result = fails(*([":application:testCodeCoverageReport"] + options))
 
         then:
         result.assertTaskScheduled(':direct:test')
@@ -629,6 +629,11 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertHasClassCoverage("application.Adder")
         report.assertHasClassButNoCoverage("direct.Multiplier") // direct will _not_ have coverage as its test task has a verification failure
         report.assertHasClassCoverage("transitive.Powerize")
+
+        where:
+        options        | description
+        []             | 'by default'
+        ['--continue'] | 'with --continue flag'
     }
 
     @ToBeFixedForIsolatedProjects(because = "jacoco aggregation resolves subproject artifacts at config time")
