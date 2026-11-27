@@ -465,10 +465,10 @@ fun configureTests() {
         }
 
         if (project.supportsPredictiveTestSelection() && !isUnitTest()) {
-            // Falling back to https://ge.gradle.org when absent (e.g. GitHub actions for contributor PRs,
+            // Falling back to https://develocity.gradle.org when absent (e.g. GitHub actions for contributor PRs,
             // which use a public Build Scan instance).
             // Don't move this line into the lambda as it may cause config cache problems
-            val ptsServerUrl = project.develocityServerUrl.getOrElse("https://ge.gradle.org")
+            val ptsServerUrl = project.develocityServerUrl.getOrElse("https://develocity.gradle.org")
             extensions.findByType<DevelocityTestConfiguration>()?.predictiveTestSelection {
                 this as PredictiveTestSelectionConfigurationInternal
                 server = uri(ptsServerUrl)

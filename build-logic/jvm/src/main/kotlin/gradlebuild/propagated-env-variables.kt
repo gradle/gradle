@@ -95,7 +95,7 @@ val propagatedEnvironmentVariables = listOf(
     "CHROME_BIN",
 
     // Propagate to smoke test JVMs so inner Gradle builds match the outer build's Develocity server
-    // and edge discovery, instead of falling back to https://ge.gradle.org as an explicit remote
+    // and edge discovery, instead of falling back to https://develocity.gradle.org as an explicit remote
     // build cache server (which caused cache load stack traces to fail no-stack-trace assertions).
     "DEVELOCITY_SERVER_URL",
     "DEVELOCITY_EDGE_DISCOVERY"
