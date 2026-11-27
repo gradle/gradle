@@ -50,6 +50,7 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
 
     private static final String USER_PROVIDED = "User-provided";
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractWindowsKitComponentLocator.class);
+    // All mutable state is guarded by this: projects configured in parallel share the locator.
     private final SetMultimap<File, T> foundComponents = HashMultimap.create();
     private final Set<File> brokenComponents = new LinkedHashSet<File>();
     private final WindowsRegistry windowsRegistry;
@@ -78,7 +79,7 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
     }
 
     @Override
-    public SearchResult<T> locateComponent(File candidate) {
+    public synchronized SearchResult<T> locateComponent(File candidate) {
         initializeComponents();
 
         if (candidate != null) {
@@ -89,7 +90,7 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
     }
 
     @Override
-    public List<T> locateAllComponents() {
+    public synchronized List<T> locateAllComponents() {
         initializeComponents();
 
         return Lists.newArrayList(foundComponents.values());
