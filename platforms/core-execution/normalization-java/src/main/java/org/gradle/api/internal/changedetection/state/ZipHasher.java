@@ -49,6 +49,7 @@ import java.util.Set;
 public class ZipHasher implements RegularFileSnapshotContextHasher, ConfigurableNormalizer {
 
     private static final Set<String> KNOWN_ZIP_EXTENSIONS = ImmutableSet.of("zip", "jar", "war", "rar", "ear", "apk", "aar", "klib");
+    private static final int MAX_NESTING_DEPTH = 10;
     private static final Logger LOGGER = LoggerFactory.getLogger(ZipHasher.class);
     private static final HashCode EMPTY_HASH_MARKER = Hashing.signature(ZipHasher.class);
 
@@ -61,7 +62,7 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
 
     public ZipHasher(ResourceHasher resourceHasher) {
         this.resourceHasher = resourceHasher;
-        this.hashingExceptionReporter = (s, e) -> LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", s.getName(), e);
+        this.hashingExceptionReporter = (s, e) -> LOGGER.debug("Could not fingerprint entries of archive '{}'. Falling back to full content hash.", s.getName(), e);
     }
 
     @Nullable
@@ -95,12 +96,15 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
     private List<FileSystemLocationFingerprint> fingerprintZipEntries(String zipFile) throws IOException {
         try (ZipInput input = FileZipInput.create(new File(zipFile))) {
             List<FileSystemLocationFingerprint> fingerprints = new ArrayList<>();
-            fingerprintZipEntries("", zipFile, fingerprints, input);
+            fingerprintZipEntries("", zipFile, fingerprints, input, 1);
             return fingerprints;
         }
     }
 
-    private void fingerprintZipEntries(String parentName, String rootParentName, List<FileSystemLocationFingerprint> fingerprints, ZipInput input) throws IOException {
+    private void fingerprintZipEntries(String parentName, String rootParentName, List<FileSystemLocationFingerprint> fingerprints, ZipInput input, int depth) throws IOException {
+        if (depth > MAX_NESTING_DEPTH) {
+            throw new NestingTooDeepException(parentName, MAX_NESTING_DEPTH);
+        }
         fingerprints.add(newZipMarker(parentName));
         for (ZipEntry zipEntry : input) {
             if (zipEntry.isDirectory()) {
@@ -110,7 +114,7 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
             ZipEntryContext zipEntryContext = new DefaultZipEntryContext(zipEntry, fullName, rootParentName);
             if (isZipFile(zipEntry.getName())) {
                 zipEntryContext.getEntry().withInputStream(inputStream -> {
-                    fingerprintZipEntries(fullName, rootParentName, fingerprints, new StreamZipInput(inputStream));
+                    fingerprintZipEntries(fullName, rootParentName, fingerprints, new StreamZipInput(inputStream), depth + 1);
                     return null;
                 });
             } else {
@@ -132,5 +136,11 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
 
     public interface HashingExceptionReporter {
         void report(RegularFileSnapshot zipFileSnapshot, Exception e);
+    }
+
+    private static class NestingTooDeepException extends IOException {
+        public NestingTooDeepException(String entryName, int maxNestingDepth) {
+            super(String.format("Archive entry '%s' is nested more than %d levels deep.", entryName, maxNestingDepth));
+        }
     }
 }
