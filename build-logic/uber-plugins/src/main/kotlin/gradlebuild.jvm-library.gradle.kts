@@ -85,6 +85,7 @@ val conventionDependencies = mapOf(
     "integTest" to integrationTestConventionDependencies,
     "crossVersionTest" to integrationTestConventionDependencies + ":tooling-api",
     "performanceTest" to integrationTestConventionDependencies,
+    "smokeIdeTest" to integrationTestConventionDependencies,
     "smokeTest" to integrationTestConventionDependencies,
 )
 

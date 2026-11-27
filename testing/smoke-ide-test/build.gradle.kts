@@ -26,12 +26,6 @@ jvmCompile {
     addCompilationFrom(smokeIdeTestSourceSet)
 }
 
-dependencyAnalysis {
-    issues {
-        ignoreSourceSet(smokeIdeTestSourceSet.name)
-    }
-}
-
 addDependenciesAndConfigurations("smokeIde")
 
 val smokeIdeTestImplementation = configurations.getByName("smokeIdeTestImplementation")
@@ -90,9 +84,14 @@ dependencies {
     smokeIdeTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("Tests starts an IDE with using current Gradle distribution")
     }
+    smokeIdeTestImplementation(projects.baseServices)
     smokeIdeTestImplementation(projects.internalIntegTesting)
+    smokeIdeTestImplementation(libs.groovy)
+    smokeIdeTestImplementation(libs.guava)
     smokeIdeTestImplementation(testLibs.gradleProfiler)
-    smokeIdeTestImplementation(testFixtures(projects.core))
+    smokeIdeTestImplementation(testLibs.gradleProfilerBuildAction)
+    smokeIdeTestImplementation(testLibs.junit)
+    smokeIdeTestImplementation(testLibs.spock)
 }
 
 integTest.testJvmXmx = "5g"
