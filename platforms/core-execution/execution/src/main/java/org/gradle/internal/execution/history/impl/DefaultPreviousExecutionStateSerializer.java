@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -30,10 +29,8 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshotSerializer;
-import org.gradle.internal.snapshot.impl.SnapshotSerializer;
 
 import java.util.Map;
 
@@ -41,21 +38,18 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
     private final Serializer<FileCollectionFingerprint> fileCollectionFingerprintSerializer;
     private final Serializer<FileSystemSnapshot> fileSystemSnapshotSerializer;
     private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer;
-    private final Serializer<ValueSnapshot> valueSnapshotSerializer;
     private final HashCodeSerializer hashCodeSerializer;
     private final Serializer<OriginMetadata> originMetadataSerializer;
 
     public DefaultPreviousExecutionStateSerializer(
         Serializer<FileCollectionFingerprint> fileCollectionFingerprintSerializer,
         Serializer<FileSystemSnapshot> fileSystemSnapshotSerializer,
-        ClassLoaderHierarchyHasher classLoaderHasher,
         HashCodeSerializer hashCodeSerializer
     ) {
         this.fileCollectionFingerprintSerializer = fileCollectionFingerprintSerializer;
         this.fileSystemSnapshotSerializer = fileSystemSnapshotSerializer;
         this.hashCodeSerializer = hashCodeSerializer;
         this.implementationSnapshotSerializer = new ImplementationSnapshotSerializer();
-        this.valueSnapshotSerializer = new SnapshotSerializer(classLoaderHasher);
         this.originMetadataSerializer = new OriginMetadataSerializer();
     }
 
@@ -76,7 +70,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
         }
         ImmutableList<ImplementationSnapshot> taskActionImplementations = taskActionImplementationsBuilder.build();
 
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties = readInputProperties(decoder);
+        ImmutableSortedMap<String, HashCode> inputPropertyHashes = readInputPropertyHashes(decoder);
         ImmutableSortedMap<String, FileCollectionFingerprint> inputFilesFingerprints = readFingerprints(decoder);
         ImmutableSortedMap<String, FileSystemSnapshot> outputFilesSnapshots = readSnapshots(decoder);
 
@@ -87,7 +81,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
             cacheKey,
             taskImplementation,
             taskActionImplementations,
-            inputProperties,
+            inputPropertyHashes,
             inputFilesFingerprints,
             outputFilesSnapshots,
             successful
@@ -106,34 +100,34 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
             implementationSnapshotSerializer.write(encoder, actionImpl);
         }
 
-        writeInputProperties(encoder, execution.getInputProperties());
+        writeInputPropertyHashes(encoder, execution.getInputPropertyHashes());
         writeFingerprints(encoder, execution.getInputFileProperties());
         writeSnapshots(encoder, execution.getOutputFilesProducedByWork());
 
         encoder.writeBoolean(execution.isSuccessful());
     }
 
-    public ImmutableSortedMap<String, ValueSnapshot> readInputProperties(Decoder decoder) throws Exception {
+    private ImmutableSortedMap<String, HashCode> readInputPropertyHashes(Decoder decoder) throws Exception {
         int size = decoder.readSmallInt();
         if (size == 0) {
             return ImmutableSortedMap.of();
         }
         if (size == 1) {
-            return ImmutableSortedMap.of(decoder.readString(), readValueSnapshot(decoder));
+            return ImmutableSortedMap.of(decoder.readString(), hashCodeSerializer.read(decoder));
         }
 
-        ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.naturalOrder();
+        ImmutableSortedMap.Builder<String, HashCode> builder = ImmutableSortedMap.naturalOrder();
         for (int i = 0; i < size; i++) {
-            builder.put(decoder.readString(), readValueSnapshot(decoder));
+            builder.put(decoder.readString(), hashCodeSerializer.read(decoder));
         }
         return builder.build();
     }
 
-    public void writeInputProperties(Encoder encoder, ImmutableMap<String, ValueSnapshot> properties) throws Exception {
-        encoder.writeSmallInt(properties.size());
-        for (Map.Entry<String, ValueSnapshot> entry : properties.entrySet()) {
+    private void writeInputPropertyHashes(Encoder encoder, ImmutableMap<String, HashCode> hashes) throws Exception {
+        encoder.writeSmallInt(hashes.size());
+        for (Map.Entry<String, HashCode> entry : hashes.entrySet()) {
             encoder.writeString(entry.getKey());
-            writeValueSnapshot(encoder, entry.getValue());
+            hashCodeSerializer.write(encoder, entry.getValue());
         }
     }
 
@@ -173,14 +167,6 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
             encoder.writeString(entry.getKey());
             fileSystemSnapshotSerializer.write(encoder, entry.getValue());
         }
-    }
-
-    private ValueSnapshot readValueSnapshot(Decoder decoder) throws Exception {
-        return valueSnapshotSerializer.read(decoder);
-    }
-
-    private void writeValueSnapshot(Encoder encoder, ValueSnapshot snapshot) throws Exception {
-        valueSnapshotSerializer.write(encoder, snapshot);
     }
 
 }

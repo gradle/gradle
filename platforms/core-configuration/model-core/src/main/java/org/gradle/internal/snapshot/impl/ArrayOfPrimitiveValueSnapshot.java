@@ -82,6 +82,8 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
 
     @Override
     public void appendToHasher(Hasher hasher) {
+        ValueSnapshotType.ARRAY_OF_PRIMITIVE.appendTo(hasher);
+        hasher.putInt(primitiveType.ordinal());
         primitiveType.appendTo(hasher, array);
     }
 
@@ -293,7 +295,12 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
 
             @Override
             public void appendTo(Hasher hasher, Object array) {
-                HasherExtensions.putFloats(hasher, (float[]) array);
+                // Canonical NaN bits, as Arrays.equals(float[], float[]) treats all NaNs as equal
+                float[] floats = (float[]) array;
+                hasher.putInt(floats.length);
+                for (float f : floats) {
+                    hasher.putInt(Float.floatToIntBits(f));
+                }
             }
 
             @Override
@@ -329,7 +336,12 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
 
             @Override
             public void appendTo(Hasher hasher, Object array) {
-                HasherExtensions.putDoubles(hasher, (double[]) array);
+                // Canonical NaN bits, as Arrays.equals(double[], double[]) treats all NaNs as equal
+                double[] doubles = (double[]) array;
+                hasher.putInt(doubles.length);
+                for (double d : doubles) {
+                    hasher.putLong(Double.doubleToLongBits(d));
+                }
             }
 
             @Override

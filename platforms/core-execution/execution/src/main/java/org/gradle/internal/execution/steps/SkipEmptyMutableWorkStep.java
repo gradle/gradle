@@ -127,12 +127,6 @@ public class SkipEmptyMutableWorkStep extends MutableStep<PreviousExecutionConte
         };
     }
 
-    protected ImmutableSortedMap<String, ValueSnapshot> getKnownInputProperties(PreviousExecutionContext context) {
-        return context.getPreviousExecutionState()
-            .map(ExecutionInputState::getInputProperties)
-            .orElse(ImmutableSortedMap.of());
-    }
-
     protected ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getKnownInputFileProperties(PreviousExecutionContext context) {
         return context.getPreviousExecutionState()
             .map(ExecutionInputState::getInputFileProperties)
@@ -179,7 +173,6 @@ public class SkipEmptyMutableWorkStep extends MutableStep<PreviousExecutionConte
 
     private InputFingerprinter.Result fingerprintPrimaryInputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFileFingerprints, ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots) {
         return work.getInputFingerprinter().fingerprintInputProperties(
-            getKnownInputProperties(context),
             getKnownInputFileProperties(context),
             knownValueSnapshots,
             knownFileFingerprints,

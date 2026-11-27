@@ -76,11 +76,8 @@ public class GradleSerializedValueSnapshot implements ValueSnapshot {
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        if (implementationHash == null) {
-            hasher.putNull();
-        } else {
-            hasher.putHash(implementationHash);
-        }
+        ValueSnapshotType.GRADLE_SERIALIZED.appendTo(hasher);
+        SnapshotHashing.putNullableHash(hasher, implementationHash);
         hasher.putBytes(serializedValue);
     }
 

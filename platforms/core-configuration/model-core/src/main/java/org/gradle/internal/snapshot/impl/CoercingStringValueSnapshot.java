@@ -19,6 +19,7 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.api.Named;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
+import org.gradle.internal.hash.Hasher;
 import org.jspecify.annotations.Nullable;
 
 public class CoercingStringValueSnapshot extends StringValueSnapshot {
@@ -69,5 +70,11 @@ public class CoercingStringValueSnapshot extends StringValueSnapshot {
         // Also covers a Named enum whose getName() does return name(), and reports the unknown
         // value the same way as before for anything that matches no constant at all.
         return Enum.valueOf(enumType, value);
+    }
+
+    @Override
+    public void appendToHasher(Hasher hasher) {
+        ValueSnapshotType.COERCING_STRING.appendTo(hasher);
+        SnapshotHashing.putString(hasher, getValue());
     }
 }

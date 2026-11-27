@@ -67,7 +67,7 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
     @Nullable
     public Map<String, byte[]> getInputValueHashesBytes() {
         return getBeforeExecutionState()
-            .map(ExecutionInputState::getInputProperties)
+            .map(BeforeExecutionState::getInputProperties)
             .filter(inputValueFingerprints -> !inputValueFingerprints.isEmpty())
             .map(inputValueFingerprints -> inputValueFingerprints.entrySet().stream()
                 .collect(toLinkedHashMap(valueSnapshot -> Hashing.hashHashable(valueSnapshot).toByteArray())))
