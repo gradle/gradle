@@ -43,225 +43,87 @@ public class ModuleMetadataSpec {
         this.mustIncludeBuildId = mustIncludeBuildId;
     }
 
-    static class Identity {
+    record Identity(
+        ModuleVersionIdentifier coordinates,
+        List<Attribute> attributes,
+        @Nullable String relativeUrl
+    ) { }
 
-        final ModuleVersionIdentifier coordinates;
-        final List<Attribute> attributes;
-        @Nullable
-        final String relativeUrl;
+    record LocalVariant(
+        String name,
+        List<Attribute> attributes,
+        List<Capability> capabilities,
+        Set<Dependency> dependencies,
+        Set<DependencyConstraint> dependencyConstraints,
+        List<Artifact> artifacts
+    ) implements Variant { }
 
-        Identity(
-            ModuleVersionIdentifier coordinates,
-            List<Attribute> attributes,
-            @Nullable String relativeUrl
-        ) {
-            this.coordinates = coordinates;
-            this.attributes = attributes;
-            this.relativeUrl = relativeUrl;
-        }
+    record RemoteVariant(
+        String name,
+        List<Attribute> attributes,
+        AvailableAt availableAt,
+        List<Capability> capabilities
+    ) implements Variant { }
+
+    record Dependency(
+        DependencyCoordinates coordinates,
+        Set<ExcludeRule> excludeRules,
+        List<Attribute> attributes,
+        List<Capability> requestedCapabilities,
+        boolean endorseStrictVersions,
+        String reason,
+        ArtifactSelector artifactSelector
+    ) { }
+
+    sealed interface Variant permits LocalVariant, RemoteVariant {
     }
 
-    static class LocalVariant extends Variant {
+    record Attribute(
+        String name,
+        Object value
+    ) { }
 
-        final String name;
-        final List<Attribute> attributes;
-        final List<Capability> capabilities;
-        final List<Dependency> dependencies;
-        final List<DependencyConstraint> dependencyConstraints;
-        final List<Artifact> artifacts;
+    record Capability(
+        String group,
+        String name,
+        @Nullable String version
+    ) { }
 
-        LocalVariant(
-            String name,
-            List<Attribute> attributes,
-            List<Capability> capabilities,
-            List<Dependency> dependencies,
-            List<DependencyConstraint> dependencyConstraints,
-            List<Artifact> artifacts
-        ) {
-            this.name = name;
-            this.attributes = attributes;
-            this.capabilities = capabilities;
-            this.dependencies = dependencies;
-            this.dependencyConstraints = dependencyConstraints;
-            this.artifacts = artifacts;
-        }
-    }
+    record Version(
+        @Nullable String requires,
+        @Nullable String strictly,
+        @Nullable String preferred,
+        List<String> rejectedVersions
+    ) { }
 
-    static class RemoteVariant extends Variant {
+    record DependencyCoordinates(
+        String group,
+        String name,
+        Version version
+    ) { }
 
-        final String name;
-        final List<Attribute> attributes;
-        final AvailableAt availableAt;
-        final List<Capability> capabilities;
+    record ArtifactSelector(
+        String name,
+        String type,
+        @Nullable String extension,
+        @Nullable String classifier
+    ) { }
 
-        RemoteVariant(
-            String name,
-            List<Attribute> attributes,
-            AvailableAt availableAt,
-            List<Capability> capabilities
-        ) {
-            this.name = name;
-            this.attributes = attributes;
-            this.availableAt = availableAt;
-            this.capabilities = capabilities;
-        }
-    }
+    record DependencyConstraint(
+        DependencyCoordinates coordinates,
+        List<Attribute> attributes,
+        String reason
+    ) { }
 
-    static class Dependency {
+    record Artifact(
+        String name,
+        String uri,
+        File file
+    ) { }
 
-        final DependencyCoordinates coordinates;
-        final Set<ExcludeRule> excludeRules;
-        final List<Attribute> attributes;
-        final List<Capability> requestedCapabilities;
-        final boolean endorseStrictVersions;
-        final String reason;
-        final ArtifactSelector artifactSelector;
+    record AvailableAt(
+        String url,
+        ModuleVersionIdentifier coordinates
+    ) { }
 
-        public Dependency(
-            DependencyCoordinates coordinates,
-            Set<ExcludeRule> excludeRules,
-            List<Attribute> attributes,
-            List<Capability> requestedCapabilities,
-            boolean endorseStrictVersions,
-            String reason,
-            ArtifactSelector artifactSelector
-        ) {
-            this.coordinates = coordinates;
-            this.excludeRules = excludeRules;
-            this.attributes = attributes;
-            this.requestedCapabilities = requestedCapabilities;
-            this.endorseStrictVersions = endorseStrictVersions;
-            this.reason = reason;
-            this.artifactSelector = artifactSelector;
-        }
-    }
-
-    static abstract class Variant {
-    }
-
-    static class Attribute {
-
-        final String name;
-        final Object value;
-
-        public Attribute(String name, Object value) {
-            this.name = name;
-            this.value = value;
-        }
-    }
-
-    static class Capability {
-
-        final String group;
-        final String name;
-        @Nullable
-        final String version;
-
-        public Capability(String group, String name, @Nullable String version) {
-            this.group = group;
-            this.name = name;
-            this.version = version;
-        }
-    }
-
-    static class Version {
-
-        @Nullable
-        final String requires;
-        @Nullable
-        final String strictly;
-        @Nullable
-        final String preferred;
-        final List<String> rejectedVersions;
-
-        public Version(
-            @Nullable String requires,
-            @Nullable String strictly,
-            @Nullable String preferred,
-            List<String> rejectedVersions
-        ) {
-            this.requires = requires;
-            this.strictly = strictly;
-            this.preferred = preferred;
-            this.rejectedVersions = rejectedVersions;
-        }
-    }
-
-    static class DependencyCoordinates {
-
-        final String group;
-        final String name;
-        final Version version;
-
-        public DependencyCoordinates(
-            String group, String name, Version version
-        ) {
-            this.group = group;
-            this.name = name;
-            this.version = version;
-        }
-    }
-
-    static class ArtifactSelector {
-
-        final String name;
-        final String type;
-        @Nullable
-        final String extension;
-        @Nullable
-        final String classifier;
-
-        public ArtifactSelector(
-            String name,
-            String type,
-            @Nullable String extension,
-            @Nullable String classifier
-        ) {
-            this.name = name;
-            this.type = type;
-            this.extension = extension;
-            this.classifier = classifier;
-        }
-    }
-
-    static class DependencyConstraint {
-
-        final DependencyCoordinates coordinates;
-        final List<Attribute> attributes;
-        final String reason;
-
-        public DependencyConstraint(
-            DependencyCoordinates coordinates,
-            List<Attribute> attributes,
-            String reason
-        ) {
-            this.coordinates = coordinates;
-            this.attributes = attributes;
-            this.reason = reason;
-        }
-    }
-
-    static class Artifact {
-
-        final String name;
-        final String uri;
-        final File file;
-
-        public Artifact(String name, String uri, File file) {
-            this.name = name;
-            this.uri = uri;
-            this.file = file;
-        }
-    }
-
-    static class AvailableAt {
-
-        final String url;
-        final ModuleVersionIdentifier coordinates;
-
-        public AvailableAt(String url, ModuleVersionIdentifier coordinates) {
-            this.url = url;
-            this.coordinates = coordinates;
-        }
-    }
 }
