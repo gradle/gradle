@@ -16,8 +16,12 @@ dependencies {
     implementation(projects.declarativeDslToolingModels)
     implementation(projects.stdlibJavaExtensions)
 
+    crossVersionTestImplementation(projects.baseServices)
+    crossVersionTestImplementation(projects.declarativeDslCore)
     crossVersionTestImplementation(projects.declarativeDslEvaluator)
     crossVersionTestImplementation(projects.internalIntegTesting)
+    crossVersionTestImplementation(libs.groovy)
+    crossVersionTestImplementation(testLibs.spock)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsBasics)
 }

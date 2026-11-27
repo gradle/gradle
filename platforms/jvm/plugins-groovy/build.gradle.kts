@@ -52,6 +52,8 @@ dependencies {
     }
 
     crossVersionTestImplementation(projects.internalIntegTesting)
+    crossVersionTestImplementation(libs.groovy)
+    crossVersionTestImplementation(testLibs.spock)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
 }

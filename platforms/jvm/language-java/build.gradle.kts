@@ -88,6 +88,8 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
     crossVersionTestDistributionRuntimeOnly(projects.distributionsBasics)
+
+    crossVersionTestImplementation(testLibs.spock)
 }
 
 gradleModule {

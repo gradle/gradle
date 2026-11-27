@@ -72,6 +72,7 @@ dependencies {
 
 
     integTestImplementation(projects.internalIntegTesting)
+    integTestImplementation(libs.groovy)
     integTestImplementation(libs.groovyXml)
     integTestImplementation(testLibs.spock)
     integTestImplementation(testLibs.xmlunit)
@@ -80,6 +81,7 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
+    crossVersionTestImplementation(testLibs.spock)
     crossVersionTestImplementation(crossVersionTestModels(projects.toolingApi))
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)

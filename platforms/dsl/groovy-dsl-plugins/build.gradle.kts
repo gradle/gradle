@@ -35,9 +35,12 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 
     crossVersionTestImplementation(projects.internalIntegTesting)
+    crossVersionTestImplementation(testLibs.junit5JupiterApi)
+    crossVersionTestImplementation(testLibs.spock)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 
+    integTestImplementation(libs.groovy)
     integTestImplementation(testLibs.spock)
 }
 

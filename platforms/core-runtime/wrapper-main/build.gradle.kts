@@ -43,9 +43,10 @@ dependencies {
     integTestNormalizedDistribution(projects.distributionsFull)
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 
+    crossVersionTestImplementation(projects.baseServices)
     crossVersionTestImplementation(projects.internalIntegTesting)
-    crossVersionTestImplementation(projects.launcher)
-    crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
+    crossVersionTestImplementation(libs.groovy)
+    crossVersionTestImplementation(testLibs.spock)
 
     crossVersionTestNormalizedDistribution(projects.distributionsFull)
     crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
@@ -59,6 +60,8 @@ dependencies {
     testRuntimeOnly(projects.processServices)
 
     integTestRuntimeOnly(projects.launcher)
+
+    crossVersionTestRuntimeOnly(projects.launcher)
 }
 
 gradleModule {

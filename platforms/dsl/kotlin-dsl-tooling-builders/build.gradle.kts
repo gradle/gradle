@@ -40,6 +40,9 @@ dependencies {
 
     crossVersionTestImplementation(projects.internalIntegTesting)
     crossVersionTestImplementation(projects.kotlinDsl)
+    crossVersionTestImplementation(libs.groovy)
+    crossVersionTestImplementation(testLibs.hamcrest)
+    crossVersionTestImplementation(testLibs.spock)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Uses application plugin.")

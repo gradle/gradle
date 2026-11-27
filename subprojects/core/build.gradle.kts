@@ -259,7 +259,7 @@ dependencies {
     }
 
     crossVersionTestImplementation(projects.internalIntegTesting)
-    crossVersionTestImplementation(testLibs.spockJUnit4) {
+    crossVersionTestRuntimeOnly(testLibs.spockJUnit4) {
         because("Required for @org.junit.Rule")
     }
 

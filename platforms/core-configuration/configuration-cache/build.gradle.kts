@@ -141,6 +141,7 @@ dependencies {
     integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.processServices))
     integTestImplementation(libs.ant)
+    integTestImplementation(libs.groovy)
     integTestImplementation(libs.groovyJson)
     integTestImplementation(libs.jsr305)
     integTestImplementation(testLibs.spock)
@@ -149,7 +150,10 @@ dependencies {
         because("Includes tests for builds with the enterprise plugin and TestKit involved; ConfigurationCacheJacocoIntegrationTest requires JVM distribution")
     }
 
+    crossVersionTestImplementation(projects.buildOperationsTrace)
     crossVersionTestImplementation(projects.internalIntegTesting)
+    crossVersionTestImplementation(libs.jsr305)
+    crossVersionTestImplementation(testLibs.spock)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
 

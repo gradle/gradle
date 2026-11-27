@@ -38,7 +38,11 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 
+    crossVersionTestImplementation(projects.baseServices)
     crossVersionTestImplementation(projects.internalIntegTesting)
+    crossVersionTestImplementation(projects.stdlibJavaExtensions)
+    crossVersionTestImplementation(libs.groovy)
+    crossVersionTestImplementation(testLibs.spock)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
 

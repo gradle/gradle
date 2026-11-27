@@ -112,7 +112,7 @@ configure<DependencyAnalysisSubExtension> {
             }
         }
 
-        ignoreSourceSet("crossVersionTest", "jmh")
+        ignoreSourceSet("jmh")
 
     }
 }

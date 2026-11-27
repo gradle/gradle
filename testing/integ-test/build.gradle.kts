@@ -25,16 +25,27 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 
+    crossVersionTestImplementation(projects.baseServices)
+    crossVersionTestImplementation(projects.classloaders)
+    crossVersionTestImplementation(projects.classpath)
     crossVersionTestImplementation(projects.codeQuality)
+    crossVersionTestImplementation(projects.core)
     crossVersionTestImplementation(projects.ear)
+    crossVersionTestImplementation(projects.functional)
+    crossVersionTestImplementation(projects.ide)
     crossVersionTestImplementation(projects.idePlugins)
     crossVersionTestImplementation(projects.internalIntegTesting)
     crossVersionTestImplementation(projects.languageGroovy)
+    crossVersionTestImplementation(projects.languageJava)
+    crossVersionTestImplementation(projects.languageJvm)
+    crossVersionTestImplementation(projects.platformJvm)
     crossVersionTestImplementation(projects.pluginsApplication)
     crossVersionTestImplementation(projects.scala)
     crossVersionTestImplementation(projects.signing)
     crossVersionTestImplementation(projects.testingJvm)
     crossVersionTestImplementation(projects.war)
+    crossVersionTestImplementation(libs.groovy)
+    crossVersionTestImplementation(testLibs.spock)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
 

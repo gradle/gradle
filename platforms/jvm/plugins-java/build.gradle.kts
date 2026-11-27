@@ -50,6 +50,8 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 
     crossVersionTestImplementation(projects.internalIntegTesting)
+    crossVersionTestImplementation(libs.groovy)
+    crossVersionTestImplementation(testLibs.spock)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
 }
