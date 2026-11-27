@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.rules
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestDependency
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
@@ -186,6 +187,125 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'a:2', 'b'
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39922")
+    def "uses reselected replacement version with transitive dependencies declared in order #transitiveDependencies"() {
+        declaredDependencies 'library:1', 'library:2', 'bridge'
+        declaredReplacements 'legacy:library->org:library'
+        publishedMavenModules 'library:2->old', 'library:3->current', 'legacy:library->legacy-transitive'
+
+        def bridge = mavenRepo.module('org', 'bridge', '1')
+        transitiveDependencies.each {
+            def dependency = new TestDependency(it)
+            bridge.dependsOn(dependency.group, dependency.name, dependency.version)
+        }
+        bridge.publish()
+
+        expect:
+        resolvedModules 'bridge', 'library:3', 'current'
+
+        where:
+        transitiveDependencies << [
+            ['org:library:3', 'legacy:library:1'],
+            ['legacy:library:1', 'org:library:3']
+        ]
+    }
+
+    def "replacement target is upgraded after the replacement conflict is resolved (#order)"() {
+        declaredDependencies(*order)
+        publishedMavenModules 'x->y', 'y->z', 'z->library:3', 'library:2->old', 'library:3->current', 'legacy:library->legacy-transitive'
+        declaredReplacements 'legacy:library->org:library'
+
+        expect:
+        resolvedModules 'x', 'y', 'z', 'library:3', 'current'
+
+        where:
+        order << [
+            ['legacy:library:1', 'library:2', 'x'],
+            ['library:2', 'legacy:library:1', 'x'],
+            ['x', 'legacy:library:1', 'library:2'],
+        ]
+    }
+
+    def "replacement target is downgraded after the replacement conflict is resolved (#order)"() {
+        declaredDependencies(*order)
+        publishedMavenModules 'b->library:3', 'b:2', 'c->b:2', 'library:2->old', 'library:3->current', 'legacy:library->legacy-transitive'
+        declaredReplacements 'legacy:library->org:library'
+
+        expect:
+        resolvedModules 'b:2', 'c', 'library:2', 'old'
+
+        where:
+        order << [
+            ['legacy:library:1', 'library:2', 'b', 'c'],
+            ['b', 'legacy:library:1', 'library:2', 'c'],
+            ['b', 'c', 'legacy:library:1', 'library:2'],
+        ]
+    }
+
+    def "chained replacement source found transitively joins the conflict of the rest of the chain (#order)"() {
+        declaredDependencies(*order)
+        publishedMavenModules 'x->y', 'y->z', 'z->a'
+        declaredReplacements 'a->b', 'b->c'
+
+        expect:
+        resolvedModules 'x', 'y', 'z', 'c'
+
+        where:
+        order << [['b', 'c', 'x'], ['c', 'b', 'x']]
+    }
+
+    def "chained replacement source found after the rest of the chain is resolved (#order)"() {
+        declaredDependencies(*order)
+        publishedMavenModules 'c->a'
+        declaredReplacements 'a->b', 'b->c'
+
+        expect:
+        resolvedModules 'c'
+
+        where:
+        order << [['b', 'c'], ['c', 'b']]
+    }
+
+    def "chained replacement source found after the rest of the chain is resolved and upgraded (#order)"() {
+        declaredDependencies(*order)
+        def d = mavenRepo.module("org", "d", "1").dependsOn("org", "a", "1").dependsOn("org", "c", "2").publish()
+        mavenRepo.module("org", "c", "1").dependsOn(d).publish()
+        mavenRepo.module("org", "c", "2").dependsOn(d).publish()
+        declaredReplacements 'a->b', 'b->c'
+
+        expect:
+        resolvedModules 'c:2', 'd'
+
+        where:
+        order << [['b', 'c'], ['c', 'b']]
+    }
+
+    // 'b' joins the conflict through x:1, then leaves the graph when 'x' is upgraded, before the conflict is resolved.
+    // Declaring 'y' before 'x' selects x:2 before x:1 is traversed, so 'b' never joins. Those orders are left out.
+    @ToBeImplemented("Should resolve 'a', 'x:2', 'y': 'b' is no longer in the graph, but is still a conflict participant")
+    def "replacement target that leaves the graph before the conflict is resolved does not replace (#order)"() {
+        declaredDependencies(*order)
+        publishedMavenModules 'x->b', 'y->x:2'
+        declaredReplacements 'a->b'
+
+        expect:
+        resolvedModules 'b', 'x:2', 'y'
+
+        where:
+        order << ['a', 'x', 'y'].permutations().findAll { it.indexOf('x') < it.indexOf('y') }
+    }
+
+    // 'c' is found deeper than 'b', so 'b' links 'a' and 'c' before 'b' leaves the graph
+    @ToBeImplemented("Should resolve 'a', 'x:2', 'y', 'w', 'v', 'c'. 'b' is no longer in the graph, but still links 'a' to 'c'")
+    def "chained replacement whose middle leaves the graph before the end of the chain is found"() {
+        declaredDependencies 'a', 'x', 'y', 'w'
+        publishedMavenModules 'x->b', 'y->x:2', 'w->v->c'
+        declaredReplacements 'a->b', 'b->c'
+
+        expect:
+        resolvedModules 'x:2', 'y', 'w', 'v', 'c'
+    }
+
     def "latest replacement wins"() {
         declaredDependencies 'a', 'b', 'c'
         declaredReplacements 'a->b', 'a->c' //2 replacements for the same source module
@@ -198,6 +318,15 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         declaredReplacements 'a->b', 'b->c'
         expect:
         resolvedModules 'c'
+    }
+
+    def "supports consecutive replacements declared in order #order"() {
+        declaredDependencies(*order)
+        declaredReplacements 'a->b', 'b->c'
+        expect:
+        resolvedModules 'c'
+        where:
+        order << ['a', 'b', 'c'].permutations()
     }
 
     def "reports replacement cycles early"() {

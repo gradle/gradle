@@ -19,8 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleResolveState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveState;
@@ -29,7 +27,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Describables;
-import org.gradle.internal.UncheckedException;
 
 import java.util.Set;
 
@@ -37,31 +34,24 @@ public class DefaultModuleConflictHandler implements ModuleConflictHandler {
 
     private final static Logger LOGGER = Logging.getLogger(DefaultModuleConflictHandler.class);
 
-    private final ModuleConflictResolver<ComponentState> resolver;
-    private final ConflictContainer<ModuleIdentifier, ComponentState> conflicts = new ConflictContainer<>();
+    private final ConflictContainer<ModuleIdentifier> conflicts = new ConflictContainer<>();
     private final ImmutableModuleReplacements moduleReplacements;
     private final ResolveState resolveState;
 
-    public DefaultModuleConflictHandler(ModuleConflictResolver<ComponentState> resolver, ImmutableModuleReplacements moduleReplacements, ResolveState resolveState) {
-        this.resolver = resolver;
+    public DefaultModuleConflictHandler(ImmutableModuleReplacements moduleReplacements, ResolveState resolveState) {
         this.moduleReplacements = moduleReplacements;
         this.resolveState = resolveState;
-    }
-
-    @Override
-    public ModuleConflictResolver<ComponentState> getResolver() {
-        return resolver;
     }
 
     @Override
     public boolean registerCandidate(CandidateModule candidate) {
         ImmutableModuleReplacements.Replacement replacement = moduleReplacements.getReplacementFor(candidate.getId());
         ModuleIdentifier replacedBy = replacement == null ? null : replacement.getTarget();
-        ConflictContainer<ModuleIdentifier, ComponentState>.Conflict conflict = conflicts.newElement(candidate.getId(), candidate.getVersions(), replacedBy);
-        if (conflict != null) {
+        Set<ModuleIdentifier> participants = conflicts.newElement(candidate.getId(), replacedBy);
+        if (participants != null) {
             // For each module participating in the conflict, deselect the currently selection, and remove all outgoing edges from the version.
             // This will propagate through the graph and prune configurations that are no longer required.
-            for (ModuleIdentifier participant : conflict.participants) {
+            for (ModuleIdentifier participant : participants) {
                 resolveState.getModule(participant).markInModuleConflict();
             }
             return true;
@@ -78,36 +68,42 @@ public class DefaultModuleConflictHandler implements ModuleConflictHandler {
     }
 
     /**
-     * Resolves the conflict by delegating to the conflict resolver who selects single version from given candidates.
+     * Resolves the conflict by selecting the current selection of the module that replaces
+     * all other participants.
      */
     @Override
     public void resolveNextConflict() {
         assert hasConflicts();
-        ConflictContainer<ModuleIdentifier, ComponentState>.Conflict conflict = conflicts.popConflict();
-        ConflictResolverDetails<ComponentState> details = new DefaultConflictResolverDetails<>(conflict.candidates);
-        resolver.select(details);
-        if (details.hasFailure()) {
-            throw UncheckedException.throwAsUncheckedException(details.getFailure());
-        }
+        Set<ModuleIdentifier> participants = conflicts.popConflict();
+        ModuleIdentifier winningModuleId = findReplacementTarget(participants);
+        ModuleResolveState winningModule = resolveState.getModule(winningModuleId);
 
-        ComponentState selected = details.getSelected();
+        ComponentState selected = winningModule.getSelected();
         if (selected == null) {
-            throw new IllegalArgumentException("Module conflict resolver " + resolver + " did not select any module from " + conflict.candidates);
+            throw new IllegalStateException("Module " + winningModuleId + " has no selection while resolving the conflict between " + participants);
         }
 
         // Visit the winning module first so that when we visit unattached dependencies of
         // losing modules, the winning module always has a selected component.
-        ModuleResolveState winningModule = selected.getModule();
-        resolveState.getModule(winningModule.getId()).resolveModuleConflict(selected);
-
-        for (ModuleIdentifier moduleId : conflict.participants) {
-            if (!moduleId.equals(winningModule.getId())) {
+        winningModule.resolveModuleConflict(selected);
+        for (ModuleIdentifier moduleId : participants) {
+            if (!moduleId.equals(winningModuleId)) {
                 resolveState.getModule(moduleId).resolveModuleConflict(selected);
             }
         }
 
-        maybeSetReason(conflict.participants, details.getSelected());
-        LOGGER.debug("Selected {} from conflicting modules {}.", details.getSelected(), conflict.candidates);
+        maybeSetReason(participants, selected);
+        LOGGER.debug("Selected {} from conflicting modules {}.", selected, participants);
+    }
+
+    private ModuleIdentifier findReplacementTarget(Set<ModuleIdentifier> participants) {
+        for (ModuleIdentifier participant : participants) {
+            ImmutableModuleReplacements.Replacement replacement = moduleReplacements.getReplacementFor(participant);
+            if (replacement == null || !participants.contains(replacement.getTarget())) {
+                return participant;
+            }
+        }
+        throw new IllegalStateException("Module replacements form a cycle between " + participants);
     }
 
     private void maybeSetReason(Set<ModuleIdentifier> participants, ComponentResolutionState selected) {

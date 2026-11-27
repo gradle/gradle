@@ -216,13 +216,6 @@ class DependencyGraphBuilderTest extends Specification {
         def moduleA = DefaultModuleIdentifier.newId("group", "a")
         def moduleB = DefaultModuleIdentifier.newId("group", "b")
         moduleReplacements.getReplacementFor(moduleA) >> new ImmutableModuleReplacements.Replacement(moduleB, null)
-        1 * conflictResolver.select(!null) >> {  args ->
-            def details = args[0]
-            Collection<ComponentResolutionState> candidates = details.candidates
-            def sel = candidates.find { it.componentId == b.component.id }
-            assert sel
-            details.select(sel)
-        }
         0 * conflictResolver._
 
         when:

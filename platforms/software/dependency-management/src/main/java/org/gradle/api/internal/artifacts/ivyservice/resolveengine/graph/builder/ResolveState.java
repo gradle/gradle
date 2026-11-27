@@ -141,7 +141,7 @@ public class ResolveState {
         this.resolveOptimizations = new ResolveOptimizations();
         this.variantSelector = variantSelector;
 
-        this.moduleConflictHandler = new DefaultModuleConflictHandler(moduleConflictResolver, moduleReplacements, this);
+        this.moduleConflictHandler = new DefaultModuleConflictHandler(moduleReplacements, this);
         this.capabilitiesConflictHandler = new DefaultCapabilitiesConflictHandler(capabilityResolutionRules, this.versionComparator, versionParser, this);
 
         ModuleVersionIdentifier rootModuleVersionId = rootComponentState.getMetadata().getModuleVersionId();
@@ -162,7 +162,7 @@ public class ResolveState {
         rootComponent.setState(rootComponentState, ComponentGraphSpecificResolveState.EMPTY_STATE);
         rootModule.select(rootComponent);
 
-        this.selectorStateResolver = new SelectorStateResolver<>(moduleConflictHandler.getResolver(), rootComponent, resolveOptimizations, this.versionComparator, versionParser);
+        this.selectorStateResolver = new SelectorStateResolver<>(moduleConflictResolver, rootComponent, resolveOptimizations, this.versionComparator, versionParser);
         rootModule.setSelectorStateResolver(selectorStateResolver);
 
         // Create root node

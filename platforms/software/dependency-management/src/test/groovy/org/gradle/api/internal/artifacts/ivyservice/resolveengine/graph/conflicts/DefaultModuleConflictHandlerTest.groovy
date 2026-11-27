@@ -17,34 +17,34 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts
 
 import org.gradle.api.artifacts.ModuleIdentifier
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleResolveState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
 
 class DefaultModuleConflictHandlerTest extends Specification {
 
     Map<ModuleIdentifier, ModuleResolveState> allModules = [:]
+    Map<ModuleIdentifier, ComponentState> selections = [:]
     ResolveState resolveState = Mock(ResolveState) {
         getModules() >> allModules.values()
         getModule(_ as ModuleIdentifier) >> { ModuleIdentifier id ->
             allModules.computeIfAbsent(id, {
                 Mock(ModuleResolveState) {
                     getId() >> id
+                    getSelected() >> { selections[id] }
                 }
             })
         }
     }
 
-    def resolver = Mock(ModuleConflictResolver)
     def replacements = Mock(ImmutableModuleReplacements)
-    @Subject handler = new DefaultModuleConflictHandler(resolver, replacements, resolveState)
+    @Subject handler = new DefaultModuleConflictHandler(replacements, resolveState)
 
     def "registers unconflicted modules"() {
         def a = candidate("org", "a")
@@ -56,65 +56,72 @@ class DefaultModuleConflictHandlerTest extends Specification {
         !handler.hasConflicts()
     }
 
-    def "registers module with version conflict"() {
-        def a = candidate("org", "a", "1", "2")
-        def b = candidate("org", "b", "1")
-
-        when:
-        def aX = handler.registerCandidate(a)
-        def bX = handler.registerCandidate(b)
-
-        then:
-        aX
-        !bX
-        handler.hasConflicts()
-
-        and:
-        1 * resolveState.getModule(a.id).markInModuleConflict()
-    }
-
     def "registers module with module conflict"() {
-        def a = candidate("org", "a", "1", "2")
+        given:
+        registerReplacement("a", "b")
+        def a = candidate("org", "a", "1")
         def b = candidate("org", "b", "1")
-
-        replacements.getReplacementFor(DefaultModuleIdentifier.newId("org", "a")) >> new ImmutableModuleReplacements.Replacement(DefaultModuleIdentifier.newId("org", "b"), null)
 
         when:
         def aX = handler.registerCandidate(a)
         def bX = handler.registerCandidate(b)
 
         then:
-        aX
+        !aX
         bX
         handler.hasConflicts()
 
         and:
-        2 * resolveState.getModule(a.id).markInModuleConflict()
+        1 * resolveState.getModule(a.id).markInModuleConflict()
         1 * resolveState.getModule(b.id).markInModuleConflict()
     }
 
-    def "resolves conflict"() {
+    def "resolves conflict with the current selection of the replacing module"() {
         given:
-        def candidateModule = candidate("org", "a", "1", "2")
-        handler.registerCandidate(candidateModule)
-        def selectedVersion = candidateModule.versions.find { (it.componentId as ModuleComponentIdentifier).version == '2' }
-        def targetModule = selectedVersion.module
-        resolveState.getModule(DefaultModuleIdentifier.newId("org", "a")) >> targetModule
+        registerReplacement("a", "b")
+        def a = candidate("org", "a", "1")
+        def b = candidate("org", "b", "1")
+        handler.registerCandidate(a)
+        handler.registerCandidate(b)
+        def selected = b.versions[0]
+        selections[b.id] = selected
 
         when:
         handler.resolveNextConflict()
 
         then:
-        1 * resolver.select(_) >> { args ->
-            def details = args[0]
-            def selected = details.candidates.find { (it.componentId as ModuleComponentIdentifier).version == '2' }
-            details.select(selected)
-        }
-        1 * targetModule.resolveModuleConflict(selectedVersion)
-        0 * resolver._
+        1 * resolveState.getModule(b.id).resolveModuleConflict(selected)
 
         then:
+        1 * resolveState.getModule(a.id).resolveModuleConflict(selected)
+
+        and:
         !handler.hasConflicts()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39922")
+    def "resolves conflict with a selection made after the replacing module was registered"() {
+        given:
+        registerReplacement("a", "b")
+        def a = candidate("org", "a", "1")
+        def b = candidate("org", "b", "1")
+        handler.registerCandidate(b)
+        handler.registerCandidate(a)
+        def reselected = Stub(ComponentState)
+        selections[b.id] = reselected
+
+        when:
+        handler.resolveNextConflict()
+
+        then:
+        1 * resolveState.getModule(b.id).resolveModuleConflict(reselected)
+
+        then:
+        1 * resolveState.getModule(a.id).resolveModuleConflict(reselected)
+    }
+
+    private void registerReplacement(String a, String b) {
+        replacements.getReplacementFor(DefaultModuleIdentifier.newId("org", a)) >> new ImmutableModuleReplacements.Replacement(DefaultModuleIdentifier.newId("org", b), null)
     }
 
     private CandidateModule candidate(String group, String name, String ... versions) {

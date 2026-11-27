@@ -21,139 +21,113 @@ import spock.lang.Subject
 
 class ConflictContainerTest extends Specification {
 
-    @Subject container = new ConflictContainer<String, Integer>()
-
-    def "no conflict when candidates are empty"() {
-        def conflict = container.newElement('a', [], null)
-
-        expect:
-        conflict == null
-        container.size == 0
-    }
+    @Subject container = new ConflictContainer<String>()
 
     def "contains few unconflicted elements"() {
-        container.newElement("a", [1], null)
-        container.newElement("b", [1], null)
-        container.newElement("c", [1], "d")
+        container.newElement("a", null)
+        container.newElement("b", null)
+        container.newElement("c", "d")
+
         expect:
         container.size == 0
-    }
-
-    def "contains conflicting element"() {
-        container.newElement("a", [1], null)
-        container.newElement("b", [1, 2], null)
-        expect:
-        container.size == 1
-        container.popConflict().toString() == "b:1,2"
-    }
-
-    def "contains multiple conflicting elements"() {
-        container.newElement("a", [1, 2], null)
-        container.newElement("b", [3, 4], null)
-        expect:
-        container.size == 2
-        container.popConflict().toString() == "a:1,2"
-        container.popConflict().toString() == "b:3,4"
     }
 
     def "pops conflicts orderly"() {
-        container.newElement("c", [5, 6], null)
-        container.newElement("b", [3, 4], null)
-        container.newElement("a", [1, 2], null)
+        container.newElement("c", "f")
+        container.newElement("f", null)
+        container.newElement("b", "e")
+        container.newElement("e", null)
+        container.newElement("a", "d")
+        container.newElement("d", null)
+
         expect:
         container.size == 3
-        container.popConflict().toString() == "c:5,6"
-        container.popConflict().toString() == "b:3,4"
-        container.popConflict().toString() == "a:1,2"
+        container.popConflict().toList() == ["c", "f"]
+        container.popConflict().toList() == ["b", "e"]
+        container.popConflict().toList() == ["a", "d"]
     }
 
     def "contains replacement conflict"() {
-        container.newElement("a", [1, 2], "b")
-        container.newElement("b", [3, 4], null)
+        container.newElement("a", "b")
+        container.newElement("b", null)
+
         expect:
         container.size == 1
-        !container.hasMatchingConflict(val -> val == 2)
-        container.hasMatchingConflict(val -> val == 3)
-        container.popConflict().toString() == "a,b:3,4"
+        container.popConflict().toList() == ["a", "b"]
     }
 
     def "contains replacement conflict reversed"() {
-        container.newElement("b", [3, 4], null)
-        container.newElement("a", [1, 2], "b")
-        expect:
-        container.size == 1
-        container.popConflict().toString() == "b,a:3,4"
-    }
-
-    def "contains replacement and standard conflict"() {
-        container.newElement("a", [1, 2], "b")
-        container.newElement("b", [3], null)
-        container.newElement("b", [3, 4], null)
+        container.newElement("b", null)
+        container.newElement("a", "b")
 
         expect:
         container.size == 1
-        container.popConflict().toString() == "a,b:3,4"
+        container.popConflict().toList() == ["a", "b"]
     }
 
-    def "contains replacement and standard conflict reversed"() {
-        container.newElement("b", [3], null)
-        container.newElement("b", [3, 4], null)
-        container.newElement("a", [1, 2], "b")
+    def "contains replacement conflict interleaving"() {
+        container.newElement("a", null)
+        container.newElement("b", null)
+        container.newElement("c", "a")
+        container.newElement("d", null)
 
         expect:
         container.size == 1
-        container.popConflict().toString() == "b,a:3,4"
-    }
-
-    def "contains replacement and standard conflict mixed"() {
-        container.newElement("b", [3], null)
-        container.newElement("a", [1, 2], "b")
-        container.newElement("b", [3, 4], null)
-
-        expect:
-        container.size == 1
-        container.popConflict().toString() == "a,b:3,4"
-    }
-
-    def "contains replacement and standard conflict interleaving"() {
-        container.newElement("a", [1], null)
-        container.newElement("b", [1, 2], null) //standard
-        container.newElement("c", [3], "a") //module
-        container.newElement("d", [4], null)
-
-        expect:
-        container.size == 2
-        container.popConflict().toString() == "b:1,2"
-        container.popConflict().toString() == "c,a:1"
+        container.popConflict().toList() == ["c", "a"]
     }
 
     def "contains chained conflicts"() {
-        container.newElement("a", [1], "b") //a->b->c
-        container.newElement("b", [2], "c")
-        container.newElement("c", [3], null)
+        container.newElement("a", "b") //a->b->c
+        container.newElement("b", "c")
+        container.newElement("c", null)
 
         expect:
         container.conflicts.size() == 1
-        container.popConflict().toString() == "a,b,c:3"
+        container.popConflict().toList() == ["a", "b", "c"]
     }
 
     def "allows registering multiple elements with the same replacedBy before the replacedBy"() {
-        container.newElement("a", [1], "c")
-        container.newElement("b", [2], "c")
-        container.newElement("c", [3], null)
+        container.newElement("a", "c")
+        container.newElement("b", "c")
+        container.newElement("c", null)
 
         expect:
         container.conflicts.size() == 1
-        container.popConflict().toString() == "a,b,c:3"
+        container.popConflict().toList() == ["a", "b", "c"]
     }
 
     def "allows registering multiple elements with the same replacedBy after the replacedBy"() {
-        container.newElement("c", [3], null)
-        container.newElement("a", [1], "c")
-        container.newElement("b", [2], "c")
+        container.newElement("c", null)
+        container.newElement("a", "c")
+        container.newElement("b", "c")
 
         expect:
         container.conflicts.size() == 1
-        container.popConflict().toString() == "a,c,b:3"
+        container.popConflict().toList() == ["a", "c", "b"]
     }
+
+    def "contains chained conflicts registered in any order"() {
+        def replacedBy = [a: "b", b: "c", c: null]
+        order.each { container.newElement(it, replacedBy[it]) }
+
+        expect:
+        container.size == 1
+        container.popConflict() == ["a", "b", "c"] as Set
+
+        where:
+        order << ["a", "b", "c"].permutations()
+    }
+
+    def "merges conflicts that a later element joins"() {
+        container.newElement("a", "x")
+        container.newElement("x", "z")
+        container.newElement("b", "y")
+        container.newElement("y", "z")
+        container.newElement("z", null)
+
+        expect:
+        container.size == 1
+        container.popConflict().toList() == ["a", "x", "b", "y", "z"]
+    }
+
 }

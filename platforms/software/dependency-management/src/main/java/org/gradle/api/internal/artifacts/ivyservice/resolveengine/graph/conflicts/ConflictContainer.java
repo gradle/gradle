@@ -16,146 +16,93 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
-
-import static java.util.Collections.singletonList;
 
 /**
  * Generic container for conflicts. It's generic so that hopefully it's easier to comprehend (and test).
  */
-class ConflictContainer<K, T> {
+class ConflictContainer<K> {
 
-    final LinkedList<Conflict> conflicts = new LinkedList<>();
-    private final Map<K, Conflict> conflictsByParticipant = new HashMap<>();
+    final LinkedList<Set<K>> conflicts = new LinkedList<>();
 
-    private final Map<K, Collection<? extends T>> elements = new HashMap<>();
-    private final Multimap<K, K> targetToSource = LinkedHashMultimap.create();
+    private final Set<K> seen = new HashSet<>();
+    private final Multimap<K, K> replacementToReplaced = LinkedHashMultimap.create();
 
     /**
-     * Adds new element and returns a conflict instance if given element is conflicted. Element is conflicted when:
-     *  - has more than 1 candidate
-     *  - is in conflict with an existing element (via replacedBy relationship)
+     * Adds the given element and returns the participants of its conflict if it is in
+     * conflict with any other element seen previously.
      *
-     * @param target an element of some sort
-     * @param candidates candidates for given element
-     * @param replacedBy optional element that replaces the target
+     * @param element the element to add
+     * @param replacedBy optional element that replaces the given element
      */
     @Nullable
-    public Conflict newElement(K target, Collection<? extends T> candidates, @Nullable K replacedBy) {
-        if (candidates.isEmpty()) {
-            return null;
-        }
-        elements.put(target, candidates);
+    public Set<K> newElement(K element, @Nullable K replacedBy) {
+        seen.add(element);
+        K replacesElement = null;
         if (replacedBy != null) {
-            targetToSource.put(replacedBy, target);
-            if (elements.containsKey(replacedBy)) {
-                //1) we've seen the replacement, register new conflict and return
-                return registerConflict(target, replacedBy);
+            replacementToReplaced.put(replacedBy, element);
+            if (seen.contains(replacedBy)) {
+                replacesElement = replacedBy;
             }
         }
-
-        Collection<K> replacementSource = targetToSource.get(target);
-        if (!replacementSource.isEmpty()) {
-            //2) new module is a replacement to a module we've seen already, register conflict and return
-            return registerConflict(replacementSource, target);
+        Collection<K> elementReplaces = replacementToReplaced.get(element);
+        if (elementReplaces.isEmpty() && replacesElement == null) {
+            // We have not seen any other element that we replace or that replaces us.
+            return null;
         }
 
-        if (candidates.size() > 1) {
-            //3) new module has more than 1 version, register conflict and return
-            return registerConflict(target, target);
+        Set<K> participants = new LinkedHashSet<>(elementReplaces);
+        participants.add(element);
+        if (replacesElement != null) {
+            participants.add(replacesElement);
         }
-        return null;
-    }
-
-    private Conflict registerConflict(Collection<K> targets, K replacedBy) {
-        assert !targets.isEmpty();
-
-        //replacement candidates are the only important candidates
-        Collection<? extends T> candidates = elements.get(replacedBy);
-        assert candidates != null;
-
-        Set<K> participants = new LinkedHashSet<>(targets);
-        participants.add(replacedBy);
 
         //We need to ensure that the conflict is orderly injected to the list of conflicts
         //Brand new conflict goes to the end
-        //If we find any matching conflict we have to hook up with it
-
-        //Find an existing matching conflict
-        for (K participant : participants) {
-            Conflict c = conflictsByParticipant.get(participant);
-            if (c != null) {
-                //there is already registered conflict with at least one matching participant, hook up to this conflict
-                c.candidates = candidates;
-                c.participants.addAll(participants);
-                return c;
+        //If we find any matching conflicts we have to merge them into the earliest one
+        Set<K> merged = null;
+        Iterator<Set<K>> it = conflicts.iterator();
+        while (it.hasNext()) {
+            Set<K> c = it.next();
+            if (!Collections.disjoint(c, participants)) {
+                if (merged == null) {
+                    merged = c;
+                } else {
+                    merged.addAll(c);
+                    it.remove();
+                }
             }
         }
-
-        //No conflict with matching participants found, create new
-        Conflict c = new Conflict(participants, candidates);
-        conflicts.add(c);
-        for (K participant : participants) {
-            conflictsByParticipant.put(participant, c);
+        if (merged == null) {
+            merged = participants;
+            conflicts.add(merged);
+        } else {
+            merged.addAll(participants);
         }
-        return c;
-    }
-
-    private Conflict registerConflict(K target, K replacedBy) {
-        return registerConflict(singletonList(target), replacedBy);
+        return merged;
     }
 
     public int getSize() {
         return conflicts.size();
     }
 
-    public Conflict popConflict() {
+    public Set<K> popConflict() {
         assert !conflicts.isEmpty();
-        Conflict conflict = conflicts.pop();
-        for (K participant : conflict.participants) {
-            conflictsByParticipant.remove(participant);
-        }
-        return conflict;
+        return conflicts.pop();
     }
 
     public boolean isEmpty() {
         return conflicts.isEmpty();
     }
 
-    public boolean hasConflictFor(K participant) {
-        return conflictsByParticipant.containsKey(participant);
-    }
-
-    boolean hasMatchingConflict(Predicate<T> predicate) {
-        if (isEmpty()) {
-            return false;
-        }
-        return conflicts.stream().flatMap(conflict -> conflict.candidates.stream()).anyMatch(predicate);
-    }
-
-    class Conflict {
-        final Set<K> participants;
-        Collection<? extends T> candidates;
-
-        public Conflict(Set<K> participants, Collection<? extends T> candidates) {
-            this.participants = participants;
-            this.candidates = candidates;
-        }
-
-        @Override
-        public String toString() {
-            return Joiner.on(",").join(participants) + ":" + Joiner.on(",").join(candidates);
-        }
-    }
 }
