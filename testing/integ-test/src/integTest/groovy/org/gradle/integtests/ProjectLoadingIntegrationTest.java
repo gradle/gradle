@@ -24,7 +24,6 @@ import spock.lang.Issue;
 import java.io.File;
 
 import static org.hamcrest.CoreMatchers.startsWith;
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects;
 
 public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
@@ -231,7 +230,6 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         inTestDirectory().withTasks("do-stuff").run().assertTasksScheduled(":child1:do-stuff", ":child2:do-stuff");
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     @Test
     public void multiProjectBuildCanHaveAllProjectsAsChildrenOfSettingsDir() {
         TestFile settingsFile = testFile("settings.gradle");
@@ -239,16 +237,14 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         settingsFile.writelns(
             "rootProject.projectDir = new File(settingsDir, 'root')",
             "include 'sub'",
-            "project(':sub').projectDir = new File(settingsDir, 'root/sub')"
+            "project(':sub').projectDir = new File(settingsDir, 'root/sub')",
+            "gradle.lifecycle.beforeProject { project -> project.tasks.register('thing') }"
         );
-
-        getTestDirectory().createDir("root").file("build.gradle").writelns("allprojects { task thing }");
 
         inTestDirectory().withTasks(":thing").run().assertTasksScheduled(":thing");
         inTestDirectory().withTasks(":sub:thing").run().assertTasksScheduled(":sub:thing");
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     @Test
     public void usesRootProjectAsDefaultProjectWhenInSettingsDir() {
         TestFile settingsDir = testFile("gradle");
@@ -257,9 +253,9 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         settingsFile.writelns(
             "rootProject.projectDir = new File(settingsDir, '../root')",
             "include 'sub'",
-            "project(':sub').projectDir = new File(settingsDir, '../root/sub')"
+            "project(':sub').projectDir = new File(settingsDir, '../root/sub')",
+            "gradle.lifecycle.beforeProject { project -> project.tasks.register('thing') }"
         );
-        getTestDirectory().createDir("root").file("build.gradle").writelns("allprojects { task thing }");
 
         inDirectory(settingsDir).withTasks("thing").run().assertTasksScheduled(":thing", ":sub:thing");
     }

@@ -18,11 +18,9 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class ClosureScopeIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "check scope when closure in ext"() {
         given:
         buildFile("closure_in_ext.gradle", """
@@ -40,20 +38,21 @@ class ClosureScopeIntegrationTest extends AbstractIntegrationSpec implements Sta
                 }
             }
 
-            allprojects {
-                ext.someClosure = {
-                    project.name
-                }
+            ext.someClosure = {
+                project.name
+            }
 
-                tasks.register("someTask", TaskWithClosure) {
-                    closure.set(someClosure())
-                    closureProvider.set(provider(someClosure))
-                    projectName.set(project.name)
-                }
+            tasks.register("someTask", TaskWithClosure) {
+                closure.set(someClosure())
+                closureProvider.set(provider(someClosure))
+                projectName.set(project.name)
             }
         """)
         buildFile """
             apply from:'closure_in_ext.gradle'
+        """
+        buildFile "sampleSub/build.gradle", """
+            apply from:'../closure_in_ext.gradle'
         """
         createDirs("sampleSub")
         settingsFile """

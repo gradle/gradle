@@ -18,7 +18,7 @@ package org.gradle.integtests
 import org.gradle.api.problems.Severity
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.file.TestFile
 
@@ -100,7 +100,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         failure.assertHasCause("broken action")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
+    @UnsupportedWithIsolatedProjects(because = "Registers a task in another project, which Isolated Projects does not allow")
     def "reports task injected by other project fails with runtime exception"() {
         createDirs("a", "b")
         file("settings.gradle") << "include 'a', 'b'"
@@ -173,19 +173,16 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "reports unknown task"() {
         enableProblemsApiCheck()
         createDirs("a", "b")
-        settingsFile << """
+        settingsFile """
             rootProject.name = 'test'
             include 'a', 'b'
+            gradle.lifecycle.beforeProject { project -> project.tasks.register("someTask") }
         """
-        buildFile << """
-            allprojects { task someTask }
-            project(':a') { task someTaskA }
-            project(':b') { task someTaskB }
-        """
+        buildFile "a/build.gradle", "task someTaskA"
+        buildFile "b/build.gradle", "task someTaskB"
 
         when:
         fails "someTest"
@@ -254,19 +251,16 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         failureDescriptionContains("Task 'doesNotExist' not found in root project 'test' and its subprojects.")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "reports ambiguous task"() {
         enableProblemsApiCheck()
         createDirs("a", "b")
-        settingsFile << """
+        settingsFile """
             rootProject.name = 'test'
             include 'a', 'b'
+            gradle.lifecycle.beforeProject { project -> project.tasks.register("someTaskAll") }
         """
-        buildFile << """
-            allprojects { task someTaskAll }
-            project(':a') { task someTaskA }
-            project(':b') { task someTaskB }
-        """
+        buildFile "a/build.gradle", "task someTaskA"
+        buildFile "b/build.gradle", "task someTaskB"
 
         when:
         fails "soTa"
@@ -306,16 +300,13 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "IP changes error message")
     def "reports unknown project"() {
         enableProblemsApiCheck()
         createDirs("projA", "projB")
-        settingsFile << """
+        settingsFile """
             rootProject.name = 'test'
             include 'projA', 'projB'
-        """
-        buildFile << """
-            allprojects { task someTask }
+            gradle.lifecycle.beforeProject { project -> project.tasks.register("someTask") }
         """
 
         when:
@@ -340,16 +331,13 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "reports ambiguous project"() {
         enableProblemsApiCheck()
         createDirs("projA", "projB")
-        settingsFile << """
+        settingsFile """
             rootProject.name = 'test'
             include 'projA', 'projB'
-        """
-        buildFile << """
-            allprojects { task someTask }
+            gradle.lifecycle.beforeProject { project -> project.tasks.register("someTask") }
         """
 
         when:

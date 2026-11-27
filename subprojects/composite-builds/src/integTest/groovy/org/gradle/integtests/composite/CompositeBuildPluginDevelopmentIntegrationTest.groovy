@@ -19,7 +19,7 @@ package org.gradle.integtests.composite
 
 import org.gradle.api.problems.LineInFileLocation
 import org.gradle.api.problems.Severity
-import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
@@ -714,7 +714,7 @@ tasks.register("resolve") {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/15068")
-    @UnsupportedWithIsolatedProjects(because = "configure-on-demand is ignored under Isolated Projects")
+    @ToBeFixedForIsolatedProjects(because = "Isolated Projects does not support configure-on-demand yet")
     def "can develop plugin whose build requires dependency resolution using configure-on-demand"() {
         given:
         buildA = multiProjectBuild("cod", ["consumer"]) {
