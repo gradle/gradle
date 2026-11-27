@@ -11,12 +11,13 @@ tasks.withType<IntegrationTest>().configureEach {
     }
 }
 
-dependencies {
-    integTestRuntimeOnly(project(":kotlin-dsl-plugins")) {
-        because("Tests require 'future-plugin-versions.properties' on the test classpath and the embedded executer needs them available")
-        attributes {
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("future-versions-resource"))
-        }
+useLocallyBuiltKotlinDslPlugins("integTest")
+pluginManager.withPlugin("gradlebuild.cross-version-tests") {
+    useLocallyBuiltKotlinDslPlugins("crossVersionTest")
+}
+
+fun useLocallyBuiltKotlinDslPlugins(testSourceSet: String) {
+    dependencies {
+        "${testSourceSet}LocalRepository"(project(":kotlin-dsl-plugins"))
     }
-    integTestLocalRepository(project(":kotlin-dsl-plugins"))
 }

@@ -35,8 +35,6 @@ dependencies {
     crossVersionTestImplementation(projects.internalIntegTesting)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
-
-    crossVersionTestLocalRepository(projects.kotlinDslPlugins)
 }
 
 testFilesCleanup.reportOnly = true

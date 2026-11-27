@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrationTest {
     def setup() {
@@ -183,7 +182,6 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
         stopGradle()
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "will rebuild on change for build included into a multi-project build"() {
         def includedLibrary = singleProjectBuild("library") {
             buildFile << """
@@ -206,8 +204,8 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
             include "sub1"
             include "sub2"
         """
-        buildFile << """
-            subprojects {
+        ["sub1", "sub2"].each { name ->
+            buildFile("${name}/build.gradle", """
                 apply plugin: 'java'
                 apply plugin: 'application'
                 group = 'com.example'
@@ -217,11 +215,11 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
                 dependencies {
                     implementation 'org.test:library:0.1'
                 }
-            }
-            project(":sub2") {
-                run.mustRunAfter ":sub1:run"
-            }
-        """
+            """)
+        }
+        buildFile("sub2/build.gradle", """
+            run.mustRunAfter ":sub1:run"
+        """)
         def mainSourceSub1 = file("sub1/src/main/java/com/example/sub1/Main.java")
         mainSourceSub1 << """
             package com.example.sub1;

@@ -442,42 +442,42 @@
   },
   {
     "name": "declarative-dsl-api",
-    "path": "platforms/core-configuration/declarative-dsl-api",
+    "path": "platforms/dsl/declarative-dsl-api",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "declarative-dsl-core",
-    "path": "platforms/core-configuration/declarative-dsl-core",
+    "path": "platforms/dsl/declarative-dsl-core",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "declarative-dsl-evaluator",
-    "path": "platforms/core-configuration/declarative-dsl-evaluator",
+    "path": "platforms/dsl/declarative-dsl-evaluator",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "declarative-dsl-provider",
-    "path": "platforms/core-configuration/declarative-dsl-provider",
+    "path": "platforms/dsl/declarative-dsl-provider",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "declarative-dsl-tooling-builders",
-    "path": "platforms/core-configuration/declarative-dsl-tooling-builders",
+    "path": "platforms/dsl/declarative-dsl-tooling-builders",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": true
   },
   {
     "name": "declarative-dsl-tooling-models",
-    "path": "platforms/core-configuration/declarative-dsl-tooling-models",
+    "path": "platforms/dsl/declarative-dsl-tooling-models",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -781,6 +781,13 @@
     "path": "platforms/core-execution/hashing-services",
     "unitTests": true,
     "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "help-plugin",
+    "path": "platforms/essential-plugins/help-plugin",
+    "unitTests": true,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -1776,6 +1783,13 @@
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
+  },
+  {
+    "name": "wrapper-plugin",
+    "path": "platforms/essential-plugins/wrapper-plugin",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
   },
   {
     "name": "wrapper-shared",

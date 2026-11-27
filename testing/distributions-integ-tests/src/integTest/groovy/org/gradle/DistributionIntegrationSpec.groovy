@@ -117,6 +117,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "groovy-loader",
         "hashing",
         "hashing-services",
+        "help-plugin",
         "input-tracking",
         "installation-beacon",
         "instrumentation-agent-services",
@@ -201,7 +202,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        100
+        101
     }
 
     /**

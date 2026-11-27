@@ -1,6 +1,7 @@
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.cross-version-tests")
+    id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
 }
 
 description = "Publishing plugin for Ivy repositories"

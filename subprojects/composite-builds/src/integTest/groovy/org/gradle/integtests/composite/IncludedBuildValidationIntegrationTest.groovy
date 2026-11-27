@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Ignore
 
@@ -28,8 +27,8 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
 
     def setup() {
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
-            buildFile << """
-                allprojects {
+            settingsFile << """
+                gradle.lifecycle.beforeProject {
                     apply plugin: 'java'
                 }
 """
@@ -111,7 +110,6 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         execute(buildA, "help")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "allows to rename included build that conflicts with subproject name"() {
         given:
         createDirs("buildA", "buildA/buildB")

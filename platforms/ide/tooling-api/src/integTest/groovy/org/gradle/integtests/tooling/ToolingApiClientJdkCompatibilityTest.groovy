@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
@@ -47,7 +48,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
             ${mavenCentralRepository()}
 
             repositories {
-                maven { url = '${buildContext.localRepository.toURI()}' }
+                ${RepoScriptBlockUtil.localRepositoriesDefinition()}
             }
 
             task run(type: JavaExec) {

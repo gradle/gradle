@@ -21,7 +21,7 @@ import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public class BaseDiagnosticsServices extends AbstractGradleModuleServices {
+public class HelpPluginServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(HelpBuiltInCommand.class);

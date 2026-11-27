@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.slf4jApi)
 
     compileOnly(libs.errorProneAnnotations)
+    compileOnly(libs.jetbrainsAnnotations)
 }
 
 gradleModule {

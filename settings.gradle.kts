@@ -23,6 +23,7 @@ plugins {
 includeBuild("build-logic-commons")
 includeBuild("build-logic")
 
+apply(from = "gradle/shared-with-buildSrc/embedded-kotlin.settings.gradle.kts")
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 // If you include a new subproject here, consult internal documentation "Adding a new Build Tool subproject" page
@@ -109,12 +110,6 @@ val core = platform("core") {
         subproject("core-flow-services-api")
         subproject("core-kotlin-extensions")
         subproject("core-serialization-codecs")
-        subproject("declarative-dsl-api")
-        subproject("declarative-dsl-core")
-        subproject("declarative-dsl-evaluator")
-        subproject("declarative-dsl-provider")
-        subproject("declarative-dsl-tooling-models")
-        subproject("declarative-dsl-tooling-builders")
         subproject("dependency-management-serialization-codecs")
         subproject("domain-object-collections")
         subproject("encryption-services")
@@ -207,10 +202,18 @@ val reportingPlugins = platform("reporting-plugins") {
     subproject("reporting")
 }
 
+// Essential Plugins Platform
+val essentialPlugins = platform("essential-plugins") {
+    uses(core)
+    subproject("help-plugin")
+    subproject("wrapper-plugin")
+}
+
 // Software Platform
 val software = platform("software") {
     uses(core)
     uses(reportingPlugins)
+    uses(essentialPlugins)
     subproject("ant-api")
     subproject("ant")
     subproject("ant-impl")
@@ -303,6 +306,12 @@ platform("dsl") {
     uses(software)
     uses(jvm)
     uses(pluginDev)
+    subproject("declarative-dsl-api")
+    subproject("declarative-dsl-core")
+    subproject("declarative-dsl-evaluator")
+    subproject("declarative-dsl-provider")
+    subproject("declarative-dsl-tooling-builders")
+    subproject("declarative-dsl-tooling-models")
     subproject("groovy-dsl")
     subproject("groovy-dsl-plugins")
     subproject("kotlin-dsl")

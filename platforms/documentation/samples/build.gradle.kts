@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.internal.java")
+    id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
 }
 
 description = "Integration tests for our documentation snippets (aka samples)"

@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.Cast;
 import org.gradle.internal.hash.HashCode;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -96,7 +97,7 @@ public class BaseSerializerFactory {
         }
 
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(@Nullable Object obj) {
             if (!super.equals(obj)) {
                 return false;
             }

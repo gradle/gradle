@@ -18,10 +18,8 @@ dependencies {
         because("This is a transitive dependency of the core project, and should be removed when possible.")
     }
 
-    api(projects.logging)
     api(projects.modelCore)
     api(projects.reportRendering)
-    api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 
     api(libs.guava)
@@ -30,6 +28,7 @@ dependencies {
 
     implementation(projects.concurrent)
     implementation(projects.functional)
+    implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.projectFeatures)
 

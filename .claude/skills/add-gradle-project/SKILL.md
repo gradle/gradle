@@ -15,6 +15,7 @@ Before starting, you need these details from the user (ask if not provided):
 2. **Target platform and module** - Where in `settings.gradle.kts` to register it. The hierarchy is:
    - `platform("core")` contains modules: `core-runtime`, `core-configuration`, `core-execution`
    - `platform("reporting-plugins")` - flat list of subprojects
+   - `platform("essential-plugins")` - flat list of subprojects
    - `platform("software")` - flat list of subprojects (no nested modules)
    - `platform("jvm")` - flat list of subprojects
    - `platform("plugin-dev")` - flat list of subprojects

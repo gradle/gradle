@@ -1,9 +1,10 @@
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.update-init-template-versions")
+    id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
 }
 
-description = """This project contains the Build Init plugin, which is automatically applied to the root project of every build, and provides the init and wrapper tasks.
+description = """This project contains the Build Init plugin, which is automatically applied to the root project of every build, and provides the init task.
 
 This project should NOT be used as an implementation dependency anywhere (except when building a Gradle distribution)."""
 
@@ -20,7 +21,6 @@ dependencies {
     api(projects.daemonServerWorker)
     api(projects.daemonServices)
     api(projects.dependencyManagement)
-    api(projects.fileCollections)
     api(projects.logging)
     api(projects.platformJvm)
     api(projects.serviceProvider)
@@ -29,21 +29,15 @@ dependencies {
     api(projects.workers)
 
     implementation(projects.buildInitSpecsApi)
-    implementation(projects.fileOperations)
     implementation(projects.loggingApi)
     implementation(projects.platformNative)
-    implementation(projects.pluginsApplication) {
-        because("Needs access to StartScriptGenerator.")
-    }
     implementation(projects.pluginsJvmTestSuite)
     implementation(projects.serviceLookup)
     implementation(projects.startParameter)
-    implementation(projects.wrapperShared)
-    implementation(projects.resources)
+    implementation(projects.wrapperPlugin)
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
-    implementation(libs.gson)
     implementation(libs.commonsLang)
     implementation(libs.maven3SettingsBuilder)
     implementation(libs.maven3Model)
@@ -68,10 +62,6 @@ dependencies {
 
     compileOnly(projects.platformBase)
 
-    runtimeOnly(projects.wrapperMain) {
-        because("WrapperGenerator uses the /gradle-wrapper.jar resource")
-    }
-
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.platformBase)
     testFixturesImplementation(projects.coreApi)
@@ -80,6 +70,7 @@ dependencies {
     testFixturesImplementation(projects.testingBase)
     testFixturesImplementation(projects.testSuitesBase)
     testFixturesImplementation(projects.pluginsJvmTestSuite)
+    testFixturesImplementation(testFixtures(projects.wrapperPlugin))
 
 
     testImplementation(projects.baseServicesGroovy)
@@ -101,6 +92,7 @@ dependencies {
     }
 
     integTestImplementation(projects.native)
+    integTestImplementation(testFixtures(projects.wrapperPlugin))
 
     integTestRuntimeOnly(providedLibs.maven3Compat)
 

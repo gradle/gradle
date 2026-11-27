@@ -17,6 +17,7 @@
 package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
+import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -26,7 +27,8 @@ import org.jspecify.annotations.Nullable;
  */
 public abstract class AbstractSerializer<T extends @Nullable Object> implements Serializer<T> {
     @Override
-    public boolean equals(Object obj) {
+    @Contract("null -> false")
+    public boolean equals(@Nullable Object obj) {
         if (obj == null) {
             return false;
         }

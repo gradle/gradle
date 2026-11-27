@@ -1,6 +1,7 @@
 plugins {
     id("gradlebuild.distribution.implementation-kotlin")
     id("gradlebuild.cross-version-tests")
+    id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
 }
 
 description = "Kotlin DSL Tooling Builders for IDEs"

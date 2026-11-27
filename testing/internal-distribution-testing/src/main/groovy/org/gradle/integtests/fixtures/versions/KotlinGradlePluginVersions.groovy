@@ -34,9 +34,11 @@ class KotlinGradlePluginVersions {
         "2.1",
         "2.2",
         "2.3",
+        "2.4",
+        "2.5",
     ]
 
-    private static final LATEST_STABLE_OR_RC_MINIMUM_LANGUAGE_VERSION = VersionNumber.parse("2.0")
+    private static final LATEST_MINIMUM_SUPPORTED_LANGUAGE_VERSION = VersionNumber.parse("2.2") // including deprecated ones
 
     private final Factory<Properties> propertiesFactory
     private Properties properties
@@ -99,8 +101,8 @@ class KotlinGradlePluginVersions {
         kgpVersion < VersionNumber.parse(latestStable)
     }
 
-    List<String> languageVersionsSupportedByLatestStableOrRc() {
-        return LANGUAGE_VERSIONS.findAll { VersionNumber.parse(it) >= LATEST_STABLE_OR_RC_MINIMUM_LANGUAGE_VERSION }
+    List<String> languageVersionsSupportedByLatest() {
+        return LANGUAGE_VERSIONS.findAll { VersionNumber.parse(it) >= LATEST_MINIMUM_SUPPORTED_LANGUAGE_VERSION }
     }
 
     /**
@@ -121,6 +123,7 @@ class KotlinGradlePluginVersions {
     static final VersionNumber KOTLIN_2_3_21 = VersionNumber.parse('2.3.21')
     static final VersionNumber KOTLIN_2_4_0 = VersionNumber.parse('2.4.0')
     static final VersionNumber KOTLIN_2_4_20 = VersionNumber.parse('2.4.20')
+    static final VersionNumber KOTLIN_2_5_0 = VersionNumber.parse('2.5.0')
 
     static void assumeCurrentJavaVersionIsSupportedBy(String kotlinVersion) {
         assumeCurrentJavaVersionIsSupportedBy(VersionNumber.parse(kotlinVersion))
@@ -154,7 +157,7 @@ class KotlinGradlePluginVersions {
         return JavaVersion.VERSION_1_8
     }
 
-    private static JavaVersion getMaximumJavaVersionFor(VersionNumber kotlinVersion) {
+    static JavaVersion getMaximumJavaVersionFor(VersionNumber kotlinVersion) {
         if (kotlinVersion.baseVersion < KOTLIN_2_0_0) {
             return JavaVersion.VERSION_21
         }
@@ -169,6 +172,9 @@ class KotlinGradlePluginVersions {
         }
         if (kotlinVersion.baseVersion < KOTLIN_2_4_0) {
             return JavaVersion.VERSION_25
+        }
+        if (kotlinVersion.baseVersion < KOTLIN_2_5_0) {
+            return JavaVersion.VERSION_26
         }
         return null
     }

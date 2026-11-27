@@ -81,13 +81,13 @@ build-logic/kotlin-dsl/                                     @gradle/bt-tide
 build-logic/kotlin-dsl-shared-runtime/                      @gradle/bt-tide
 platforms/dsl/                                              @gradle/bt-tide
 
-# Core automation platform (Declarative DSL)
-platforms/core-configuration/declarative-dsl-api/                   @gradle/bt-declarative-gradle-project
-platforms/core-configuration/declarative-dsl-core/                  @gradle/bt-declarative-gradle-project
-platforms/core-configuration/declarative-dsl-evaluator/             @gradle/bt-declarative-gradle-project
-platforms/core-configuration/declarative-dsl-provider/              @gradle/bt-declarative-gradle-project
-platforms/core-configuration/declarative-dsl-tooling-builders/      @gradle/bt-declarative-gradle-project
-platforms/core-configuration/declarative-dsl-tooling-models/        @gradle/bt-declarative-gradle-project
+# Declarative DSL
+platforms/dsl/declarative-dsl-api/                                  @gradle/bt-declarative-gradle-project
+platforms/dsl/declarative-dsl-core/                                 @gradle/bt-declarative-gradle-project
+platforms/dsl/declarative-dsl-evaluator/                            @gradle/bt-declarative-gradle-project
+platforms/dsl/declarative-dsl-provider/                             @gradle/bt-declarative-gradle-project
+platforms/dsl/declarative-dsl-tooling-builders/                     @gradle/bt-declarative-gradle-project
+platforms/dsl/declarative-dsl-tooling-models/                       @gradle/bt-declarative-gradle-project
 
 # Core automation platform (core/runtime)
 platforms/core-runtime/                                     @gradle/bt-cortex
@@ -132,6 +132,9 @@ platforms/observability/          @gradle/bt-tide
 
 # Reporting plugins
 platforms/reporting-plugins/      @gradle/bt-tide
+
+# Essential plugins
+platforms/essential-plugins/      @gradle/bt-tide
 
 # Native
 platforms/native/                 @gradle/bt-jvm

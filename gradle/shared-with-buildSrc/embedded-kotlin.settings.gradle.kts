@@ -1,0 +1,53 @@
+/*
+ * Copyright 2026 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import java.net.URI
+
+// A build that runs on the Gradle under development needs the Kotlin that this Gradle embeds, on every script classpath.
+// For a dev build, only the Kotlin dev repository has this Kotlin.
+// The Kotlin DSL plugins come from the Plugin Portal, at the version that this Gradle expects. Thus such a build fails until that version is published.
+
+data class ExtraRepository(val name: String, val url: URI, val groups: String)
+
+// Declared after the repositories of the build. Thus only the versions that they do not have come from these repositories.
+val extraRepositories = listOfNotNull(
+    if (embeddedKotlinVersion.matches(Regex(".+-\\d+"))) ExtraRepository("Kotlin dev repository", URI("https://packages.jetbrains.team/maven/p/kt/dev"), "org\\.jetbrains\\.kotlin(\\..+)?") else null,
+)
+
+fun normalizeUrl(url: Any) = url.toString().replace("https://", "http://").trimEnd('/') + "/"
+
+fun RepositoryHandler.addExtraRepositories() {
+    extraRepositories.forEach { repository ->
+        if (any { it is MavenArtifactRepository && normalizeUrl(it.url) == normalizeUrl(repository.url) }) {
+            return@forEach
+        }
+        maven {
+            name = repository.name
+            url = repository.url
+            content {
+                includeGroupByRegex(repository.groups)
+            }
+        }
+    }
+}
+
+// Every settings file declares its plugin repositories. If a settings file declares none, an added repository replaces the default repository.
+// A repository that an init script adds is not a declaration of the build either.
+pluginManagement.repositories.addExtraRepositories()
+gradle.settingsEvaluated {
+    dependencyResolutionManagement.repositories.addExtraRepositories()
+}

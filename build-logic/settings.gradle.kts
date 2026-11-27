@@ -34,6 +34,7 @@ dependencyResolutionManagement {
     }
 }
 
+apply(from = "../gradle/shared-with-buildSrc/embedded-kotlin.settings.gradle.kts")
 apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 // Utilities for updating the build itself which are not part of the usual build process

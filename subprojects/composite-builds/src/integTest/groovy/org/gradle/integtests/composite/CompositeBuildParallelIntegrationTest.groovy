@@ -21,7 +21,6 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 @Requires(TestExecutionPreconditions.NotParallelExecutor)
 class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegrationTest {
@@ -95,7 +94,6 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
         execute(buildA, "jar", "--max-workers=4")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "constructs included build artifacts in parallel with multi-project included build"() {
         given:
         def maxWorkers = 4
@@ -103,8 +101,8 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
         when:
         def expectedCalls = []
         includedBuilds << multiProjectBuild("buildB", (1..maxWorkers).collect { "sub" + it }) {
-            buildFile << """
-                allprojects {
+            settingsFile << """
+                gradle.lifecycle.beforeProject {
                     apply plugin: 'java'
                     compileJava {
                         def projectName = project.name

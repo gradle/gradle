@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
@@ -54,16 +53,8 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
         (1..8).each { publishBlueModule("first$it") }
         (1..4).each { publishBlueModule("second$it") }
 
-        buildFile << """
-            import org.gradle.api.services.BuildServiceParameters
-            import org.gradle.api.services.BuildServiceRegistry
-            import org.gradle.api.services.ServiceReference
-            import org.gradle.workers.WorkParameters
-            import org.gradle.workers.WorkerExecutor
-            import javax.inject.Inject
-
-            def color = Attribute.of("color", String)
-
+        // MakeRed is declared in the settings script, so that the root project and project ':a' use the same transform implementation
+        settingsFile """
             interface NameParams extends TransformParameters {
                 @Input
                 Property<String> getName()
@@ -78,49 +69,47 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
                 }
             }
 
-            allprojects {
-                ${mavenTestRepository()}
-
-                def firstScope = configurations.dependencyScope("first")
-                def secondScope = configurations.dependencyScope("second")
-                configurations.resolvable("firstPath") {
-                    extendsFrom(firstScope)
-                    attributes.attribute(color, "blue")
-                }
-                configurations.resolvable("secondPath") {
-                    extendsFrom(secondScope)
-                    attributes.attribute(color, "blue")
-                }
-
-                dependencies {
-                    attributesSchema {
-                        attribute(color)
-                    }
-                    ${(1..8).collect { "first(\"test:first${it}:1.0\")" }.join("\n")}
-                    ${(1..4).collect { "second(\"test:second${it}:1.0\")" }.join("\n")}
-                    registerTransform(MakeRed) {
-                        from.attribute(color, "blue")
-                        to.attribute(color, "red")
-                        parameters {
-                            name = "red"
-                        }
+            gradle.lifecycle.beforeProject { project ->
+                def color = Attribute.of("color", String)
+                project.dependencies.registerTransform(MakeRed) {
+                    from.attribute(color, "blue")
+                    to.attribute(color, "red")
+                    parameters {
+                        name = "red"
                     }
                 }
             }
+        """
 
-            project(":a") {
-                tasks.register("warm") {
-                    // Runs MakeRed on the same artifacts with the same parameters, so that when the transform action below queries
-                    // the output of MakeRed, its execution is reused. Running MakeRed within the execution of another transform
-                    // is not supported either, and can fail.
-                    def redFiles = configurations.secondPath.incoming.artifactView {
-                        attributes.attribute(color, "red")
-                    }.files
-                    doLast {
-                        println("warm = " + redFiles.files*.name.sort())
-                    }
+        buildFile("a/build.gradle", """
+            def color = Attribute.of("color", String)
+
+            ${firstAndSecondPaths()}
+
+            tasks.register("warm") {
+                // Runs MakeRed on the same artifacts with the same parameters, so that when the transform action below queries
+                // the output of MakeRed, its execution is reused. Running MakeRed within the execution of another transform
+                // is not supported either, and can fail.
+                def redFiles = configurations.secondPath.incoming.artifactView {
+                    attributes.attribute(color, "red")
+                }.files
+                doLast {
+                    println("warm = " + redFiles.files*.name.sort())
                 }
             }
+        """)
+
+        buildFile """
+            import org.gradle.api.services.BuildServiceParameters
+            import org.gradle.api.services.BuildServiceRegistry
+            import org.gradle.api.services.ServiceReference
+            import org.gradle.workers.WorkParameters
+            import org.gradle.workers.WorkerExecutor
+            import javax.inject.Inject
+
+            def color = Attribute.of("color", String)
+
+            ${firstAndSecondPaths()}
 
             def redView = configurations.secondPath.incoming.artifactView {
                 attributes.attribute(color, "red")
@@ -151,6 +140,34 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     }
 
     /**
+     * Declares the "firstPath" and "secondPath" configurations, for a project with a "color" attribute.
+     */
+    private String firstAndSecondPaths() {
+        """
+            ${mavenTestRepository()}
+
+            def firstScope = configurations.dependencyScope("first")
+            def secondScope = configurations.dependencyScope("second")
+            configurations.resolvable("firstPath") {
+                extendsFrom(firstScope)
+                attributes.attribute(color, "blue")
+            }
+            configurations.resolvable("secondPath") {
+                extendsFrom(secondScope)
+                attributes.attribute(color, "blue")
+            }
+
+            dependencies {
+                attributesSchema {
+                    attribute(color)
+                }
+                ${(1..8).collect { "first(\"test:first${it}:1.0\")" }.join("\n")}
+                ${(1..4).collect { "second(\"test:second${it}:1.0\")" }.join("\n")}
+            }
+        """
+    }
+
+    /**
      * Adds the artifact of project ":c" to the artifacts of "secondPath".
      */
     private void addProjectArtifact() {
@@ -158,15 +175,16 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
         settingsFile << """
             include("c")
         """
-        buildFile << """
-            project(":c") {
-                file("c.jar").text = "c"
-                configurations.consumable("outgoing") {
-                    attributes.attribute(color, "blue")
-                    outgoing.artifact(file("c.jar"))
-                }
-            }
+        buildFile("c/build.gradle", """
+            def color = Attribute.of("color", String)
 
+            file("c.jar").text = "c"
+            configurations.consumable("outgoing") {
+                attributes.attribute(color, "blue")
+                outgoing.artifact(file("c.jar"))
+            }
+        """)
+        buildFile """
             dependencies {
                 second(project(":c"))
             }
@@ -186,7 +204,9 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
      */
     private void transformActionQueries(String query, String params = "", String members = "", String setParams = "") {
         buildFile << """
-            interface GreenParams extends NameParams {
+            interface GreenParams extends TransformParameters {
+                @Input
+                Property<String> getName()
                 ${params}
             }
 
@@ -310,7 +330,6 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
         because = "Accessing a project that no task declared as an input fails, as the project is not scheduled",
         iterationMatchers = [".*project=true.*"]
     )
-    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { ... } and project(...) { ... }")
     def "deprecated when a transform action queries the output of a transform through a build service it is given (parallel=#parallel, project=#project)"() {
         // A transform of a project artifact isolates its parameters through another caller than a transform of an external artifact.
         // The route the action takes to the files does not depend on the kind of artifact, so only this test covers project artifacts.
@@ -432,7 +451,6 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     }
 
     @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
-    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { ... } and project(...) { ... }")
     def "deprecated when the constructor of a transform action queries the output of a transform through a build service it is given (parallel=#parallel)"() {
         setupBuildWithTransforms()
         transformActionQueries(
@@ -464,7 +482,6 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     }
 
     @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
-    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { ... } and project(...) { ... }")
     def "deprecated when a transform action queries the output of a transform that a task also uses (parallel=#parallel, tasks=#tasks)"() {
         // Whether the task isolates the parameters of MakeRed before the transform action queries its output depends on scheduling
         setupBuildWithTransforms()
@@ -612,7 +629,6 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     }
 
     @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
-    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { ... } and project(...) { ... }")
     def "transform action may query the output of a transform through a file collection parameter that is not an input (parallel=#parallel)"() {
         // The file collection is resolved when the parameters of MakeGreen are isolated, before its actions run
         setupBuildWithTransforms()
@@ -638,7 +654,6 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     }
 
     @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
-    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { ... } and project(...) { ... }")
     def "transform action may query the output of a transform through a value source in a property parameter (parallel=#parallel)"() {
         // The value source is obtained when the parameters of MakeGreen are isolated, before its actions run
         setupBuildWithTransforms()
@@ -671,7 +686,6 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     }
 
     @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
-    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { ... } and project(...) { ... }")
     def "transform action may query the output of a transform through a value source in a list property parameter (parallel=#parallel)"() {
         // The value source is obtained when the parameters of MakeGreen are isolated, before its actions run
         setupBuildWithTransforms()
@@ -697,7 +711,6 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     }
 
     @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
-    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { ... } and project(...) { ... }")
     def "transform action may query the output of a transform through a value source it creates (parallel=#parallel)"() {
         // The value source is obtained by the transform action, but its files were resolved when the parameters of MakeGreen were isolated
         setupBuildWithTransforms()
@@ -731,7 +744,6 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     }
 
     @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
-    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { ... } and project(...) { ... }")
     def "worker API action may query the output of a transform through a build service it is given (parallel=#parallel)"() {
         // Worker API actions may acquire project locks, as the task releases its project lock when it waits for them after its actions
         setupBuildWithTransforms()
@@ -748,7 +760,6 @@ class ArtifactTransformQueriedFromTransformActionIntegrationTest extends Abstrac
     }
 
     @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = "Runs explicitly with and without parallel execution")
-    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { ... } and project(...) { ... }")
     def "worker API action may query the output of a transform through a value source it is given (parallel=#parallel)"() {
         // Worker API actions may acquire project locks, as the task releases its project lock when it waits for them after its actions
         setupBuildWithTransforms()

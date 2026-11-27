@@ -21,7 +21,6 @@ import org.gradle.api.problems.Severity
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.flow.FlowActionsFixture
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.internal.exceptions.LocationAwareException
 
@@ -38,8 +37,8 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         """
 
         buildB = multiProjectBuild("buildB", ["b1", "b2"]) {
-            buildFile << """
-                allprojects {
+            settingsFile << """
+                gradle.lifecycle.beforeProject {
                     apply plugin: "java"
                 }
             """
@@ -105,7 +104,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = [".*CallbackType: BUILD_.*"], because = "gradle.buildFinished or BuildListener")
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "fires build listener events on included builds"() {
         given:
         setupInitScript(buildFinishedCallbackType)
@@ -124,7 +122,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = [".*CallbackType: BUILD_.*"], because = "gradle.buildFinished or BuildListener")
-    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "fires build listener events for unused included builds"() {
         given:
         setupInitScript(buildFinishedCallbackType)
@@ -145,7 +142,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = [".*CallbackType: BUILD_.*"], because = "gradle.buildFinished or BuildListener")
-    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "fires build listener events for included build that provides buildscript and compile dependencies"() {
         given:
         setupInitScript(buildFinishedCallbackType)
@@ -173,7 +169,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = [".*CallbackType: BUILD_.*"], because = "gradle.buildFinished or BuildListener")
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "fires build listener events for included builds with additional discovered (compileOnly) dependencies"() {
         given:
         setupInitScript(buildFinishedCallbackType)
@@ -199,7 +194,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = [".*CallbackType: BUILD_.*"], because = "gradle.buildFinished or BuildListener")
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "buildFinished for root build is guaranteed to complete after included builds"() {
         given:
         setupInitScript(buildFinishedCallbackType)
@@ -308,7 +302,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = [".*CallbackType: BUILD_.*"], because = "gradle.buildFinished or BuildListener")
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "fires build finished events for all builds when build script for child build fails"() {
         given:
         setupInitScript(buildFinishedCallbackType)
@@ -361,7 +354,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = [".*CallbackType: BUILD_.*"], because = "gradle.buildFinished or BuildListener")
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "fires build finished events for all builds when build finished event for other builds fail"() {
         given:
         setupInitScript(buildFinishedCallbackType)
@@ -412,7 +404,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = [".*CallbackType: BUILD_.*"], because = "gradle.buildFinished or BuildListener")
-    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "fires build finished events for all builds when other builds fail"() {
         given:
         setupInitScript(buildFinishedCallbackType)

@@ -543,13 +543,13 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         """
 
         setupBuildWithColorTransformImplementation()
+        configureEachProject("""
+            tasks.create('additionalFile', FileProducer) {
+                output = layout.buildDirectory.file("\${project.name}.additional.blue")
+            }
+        """)
 
         buildFile << """
-            allprojects {
-                task additionalFile(type: FileProducer) {
-                    output = layout.buildDirectory.file("\${project.name}.additional.blue")
-                }
-            }
             dependencies.artifactTypes {
                 blue {
                     attributes.attribute(color, 'blue')
@@ -559,12 +559,12 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
                 implementation files(tasks.additionalFile.output, 'root.blue')
                 implementation project(':a')
             }
-            project(':a') {
-                dependencies {
-                    implementation files(tasks.additionalFile.output)
-                }
-            }
         """
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation files(tasks.additionalFile.output)
+            }
+        """)
         file('root.blue') << 'root'
     }
 
@@ -1028,7 +1028,9 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
     def "task input file collection can include transformed outputs of file collection containing transform outputs"() {
         setupBuildWithArtifactTransformOfProjectDependencies()
         buildFile << """
-            abstract class MakeRed implements TransformAction<TransformParameters.None> {
+            ${showFileCollectionTask()}
+
+            abstract class MakeRed implements TransformAction<org.gradle.api.artifacts.transform.TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
 
@@ -1100,16 +1102,20 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
     def "task inputs can include an external artifact that is transformed at configuration time"() {
         withColorVariants(mavenRepo.module("org.test", "test", "1.0").withModuleMetadata()).publish()
         setupBuildWithColorTransformImplementation()
+        configureEachProject("""
+            dependencies {
+                registerTransform(MakeGreen) {
+                    from.attribute(color, 'green')
+                    to.attribute(color, 'chartreuse')
+                }
+            }
+        """)
         buildFile << """
             repositories {
                 maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
-                registerTransform(MakeGreen) {
-                    from.attribute(color, 'green')
-                    to.attribute(color, 'chartreuse')
-                }
                 implementation "org.test:test:1.0"
             }
 
@@ -1168,7 +1174,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
             include 'producer'
         """
         def buildSrcBuildFile = file("buildSrc/build.gradle")
-        setupBuildWithColorTransformImplementation(buildSrcBuildFile)
+        setupBuildWithColorTransformImplementation(file("buildSrc/settings.gradle"))
         buildSrcBuildFile << """
             repositories {
                 maven { url = '${mavenRepo.uri}' }
@@ -1214,7 +1220,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
             include 'a'
         """
         setupBuildWithColorTransform()
-        buildFile << """
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -1225,7 +1231,8 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
                     throw new RuntimeException("broken: \${input.name}")
                 }
             }
-
+        """)
+        buildFile """
             dependencies.artifactTypes {
                 blue {
                     attributes.attribute(color, 'blue')
@@ -1235,12 +1242,12 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
                 implementation files('root.blue')
                 implementation project(':a')
             }
-            project(':a') {
-                dependencies {
-                    implementation files('a.blue')
-                }
-            }
         """
+        buildFile("a/build.gradle", """
+            dependencies {
+                implementation files('a.blue')
+            }
+        """)
         file('root.blue') << 'root'
         file('a/a.blue') << 'a'
         when:
@@ -1252,7 +1259,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         outputContains("processing root.blue")
         outputContains("processing a.jar")
         outputContains("processing a.blue")
-        failure.assertHasFailure("Execution failed for task ':resolve' (registered in build file 'build.gradle').") {
+        failure.assertHasFailure("Execution failed for task ':resolve' (registered in settings file 'settings.gradle').") {
             it.assertHasCause("Failed to transform root.blue to match attributes {artifactType=blue, color=green}.")
             it.assertHasCause("Failed to transform a.jar (project ':a') to match attributes {artifactType=jar, color=green}.")
             it.assertHasCause("Failed to transform a.blue to match attributes {artifactType=blue, color=green}.")
@@ -1268,7 +1275,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         outputContains("processing root.blue")
         outputContains("processing a.jar")
         outputContains("processing a.blue")
-        failure.assertHasFailure("Execution failed for task ':resolve' (registered in build file 'build.gradle').") {
+        failure.assertHasFailure("Execution failed for task ':resolve' (registered in settings file 'settings.gradle').") {
             it.assertHasCause("Failed to transform root.blue to match attributes {artifactType=blue, color=green}.")
             it.assertHasCause("Failed to transform a.jar (project ':a') to match attributes {artifactType=jar, color=green}.")
             it.assertHasCause("Failed to transform a.blue to match attributes {artifactType=blue, color=green}.")
@@ -1282,7 +1289,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
             include 'a', 'b'
         """
         setupBuildWithColorTransform()
-        buildFile << """
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -1293,7 +1300,8 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
                     throw new RuntimeException("broken: \${input.name}")
                 }
             }
-
+        """)
+        buildFile """
             dependencies {
                 implementation project(':a')
                 implementation project(':b')
@@ -1308,7 +1316,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         output.count("processing") == 2
         outputContains("processing a.jar")
         outputContains("processing b.jar")
-        failure.assertHasFailure("Execution failed for task ':resolve' (registered in build file 'build.gradle').") {
+        failure.assertHasFailure("Execution failed for task ':resolve' (registered in settings file 'settings.gradle').") {
             it.assertHasCause("Failed to transform a.jar (project ':a') to match attributes {artifactType=jar, color=green}.")
             // TODO - should collect all failures rather than stopping on first failure
         }
@@ -1321,7 +1329,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         output.count("processing") == 2
         outputContains("processing a.jar")
         outputContains("processing b.jar")
-        failure.assertHasFailure("Execution failed for task ':resolve' (registered in build file 'build.gradle').") {
+        failure.assertHasFailure("Execution failed for task ':resolve' (registered in settings file 'settings.gradle').") {
             it.assertHasCause("Failed to transform a.jar (project ':a') to match attributes {artifactType=jar, color=green}.")
             // TODO - should collect all failures rather than stopping on first failure
         }
@@ -1333,8 +1341,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         withColorVariants(remoteRepo.module("group", "thing2", "1.2")).publish().allowAll()
 
         setupBuildWithColorTransform()
-
-        buildFile << """
+        settingsScriptClasses("""
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
@@ -1345,7 +1352,8 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
                     throw new RuntimeException("broken: \${input.name}")
                 }
             }
-
+        """)
+        buildFile """
             repositories {
                 maven { url = '${remoteRepo.uri}' }
             }
@@ -1364,7 +1372,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         output.count("processing") == 2
         outputContains("processing thing1-1.2.jar")
         outputContains("processing thing2-1.2.jar")
-        failure.assertHasFailure("Execution failed for task ':resolve' (registered in build file 'build.gradle').") {
+        failure.assertHasFailure("Execution failed for task ':resolve' (registered in settings file 'settings.gradle').") {
             it.assertHasCause("Failed to transform thing1-1.2.jar (group:thing1:1.2) to match attributes {artifactType=jar, color=green, org.gradle.status=release}.")
             it.assertHasCause("Failed to transform thing2-1.2.jar (group:thing2:1.2) to match attributes {artifactType=jar, color=green, org.gradle.status=release}.")
         }
@@ -1377,7 +1385,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         output.count("processing") == 2
         outputContains("processing thing1-1.2.jar")
         outputContains("processing thing2-1.2.jar")
-        failure.assertHasFailure("Execution failed for task ':resolve' (registered in build file 'build.gradle').") {
+        failure.assertHasFailure("Execution failed for task ':resolve' (registered in settings file 'settings.gradle').") {
             it.assertHasCause("Failed to transform thing1-1.2.jar (group:thing1:1.2) to match attributes {artifactType=jar, color=green, org.gradle.status=release}.")
             it.assertHasCause("Failed to transform thing2-1.2.jar (group:thing2:1.2) to match attributes {artifactType=jar, color=green, org.gradle.status=release}.")
         }

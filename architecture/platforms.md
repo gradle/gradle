@@ -40,11 +40,17 @@ The diagram below shows the current set of architecture modules and platforms:
     style reporting_plugins fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
     reporting_plugins --> core
 
+    subgraph essential_plugins["essential-plugins platform"]
+    end
+    style essential_plugins fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
+    essential_plugins --> core
+
     subgraph software["software platform"]
     end
     style software fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
     software --> core
     software --> reporting_plugins
+    software --> essential_plugins
 
     subgraph jvm["jvm platform"]
     end
@@ -97,6 +103,11 @@ It is made up of 3 architecture modules:
 
 This is a platform that builds on the core platform to provide the `reporting-base` plugin with the reporting extension and the public reporting API, and the `build-dashboard` plugin.
 
+### Essential plugins platform
+
+This is a platform that builds on the core automation platform to provide the plugins that are applied to every build, regardless of what it builds.
+This includes the help and wrapper plugins.
+
 ### Software development platform
 
 This is a general purpose platform that builds on the core automation platform to add support for the automation of software development.
@@ -127,7 +138,7 @@ This platform provides specific support for Swift, C++ and C.
 
 ### DSL platform
 
-This is a platform that builds on the core, software, JVM and plugin development platforms. It provides the Groovy DSL and the Kotlin DSL. This covers the Groovy script compiler, the base classes of Groovy build scripts, Groovy precompiled script plugins, the Kotlin DSL plugins, Kotlin precompiled script plugins and the tooling models that IDEs use for Kotlin build scripts. Core keeps the DSL-agnostic parts, such as script sources and the selection of a DSL by file extension.
+This is a platform that builds on the core, software, JVM and plugin development platforms. It provides the Groovy DSL, the Kotlin DSL and the Declarative DSL. This covers the Groovy script compiler, the base classes of Groovy build scripts, Groovy precompiled script plugins, the Kotlin DSL plugins, Kotlin precompiled script plugins, the Declarative DSL schema, evaluator and script plugin factory, and the tooling models that IDEs use for Kotlin and Declarative build scripts. Core keeps the DSL-agnostic parts, such as script sources and the selection of a DSL by file extension.
 
 ## Cross-cutting architecture modules
 

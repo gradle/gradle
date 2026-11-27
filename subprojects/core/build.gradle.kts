@@ -1,6 +1,7 @@
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.cross-version-tests")
+    id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
 }
 
 description = "Public and internal 'core' Gradle APIs with implementation"
@@ -229,6 +230,7 @@ dependencies {
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.baseDiagnostics))
+    testImplementation(projects.helpPlugin)
     testImplementation(testFixtures(projects.processServices))
     testImplementation(testFixtures(projects.snapshots))
     testImplementation(testFixtures(projects.execution))

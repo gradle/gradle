@@ -51,6 +51,14 @@ snakeyaml = "2.6!!"
 sshd = "2.15.0!!"
 tomlj = "1.0.0!!"
 
+
+# The version of the kotlin-dsl plugins that the built distribution requests, for example in plugins { `kotlin-dsl` }.
+# It must be a published version that uses the kotlin version above.
+# It is not the version that this checkout publishes (see platforms/dsl/kotlin-dsl-plugins), nor the one that this build uses (see the wrapper).
+# Most tests use the locally built plugins instead. Gradleception uses this version, and fails while it is not published.
+# See platforms/dsl/kotlin-dsl-plugins/README.md.
+kotlinDslPlugins = "6.7.13!!"
+
 [libraries]
 ant = { group = "org.apache.ant", name = "ant", version.ref = "ant" }
 antLauncher = { group = "org.apache.ant", name = "ant-launcher", version.ref = "ant" }

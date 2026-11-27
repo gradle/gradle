@@ -22,8 +22,11 @@ import org.apache.tools.tar.TarOutputStream
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.FileSystemTestPreconditions
 import org.junit.ClassRule
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -153,6 +156,119 @@ class InstallTest extends Specification {
 
         then:
         homeDir == gradleHomeDir
+
+        and:
+        1 * download.download(configuration.distribution, _) >> { templateZipFile.copyTo(it[1]) }
+        0 * download._
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39813")
+    @Requires(FileSystemTestPreconditions.Symlinks)
+    def "does not delete the target of the symbolic link '#linkPath' when deleting an old distribution"() {
+        given:
+        _ * pathAssembler.getDistribution(configuration) >> localDistribution
+        _ * localDistribution.distributionDir >> new File(distributionDir.path)
+        _ * localDistribution.zipFile >> zipDestination
+
+        and:
+        def linkTarget = temporaryFolder.createDir("link-target")
+        def keptFile = linkTarget.createFile("keep.txt")
+        distributionDir.file(linkPath).createLink(linkTarget)
+
+        when:
+        def homeDir = install.createDist(configuration)
+
+        then:
+        homeDir == gradleHomeDir
+        distributionDir.list() as List == [gradleHomeDir.name]
+        keptFile.assertIsFile()
+
+        and:
+        1 * download.download(configuration.distribution, _) >> { templateZipFile.copyTo(it[1]) }
+        0 * download._
+
+        where:
+        linkPath << ["old/link", "link"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39813")
+    @Requires(FileSystemTestPreconditions.FilePermissions)
+    def "names the file that cannot be deleted when deleting an old distribution"() {
+        given:
+        _ * pathAssembler.getDistribution(configuration) >> localDistribution
+        _ * localDistribution.distributionDir >> distributionDir
+        _ * localDistribution.zipFile >> zipDestination
+
+        and:
+        def readOnlyDir = distributionDir.createDir("old/read-only")
+        def undeletableFile = readOnlyDir.createFile("file")
+        readOnlyDir.setPermissions("r-xr-xr-x")
+
+        when:
+        install.createDist(configuration)
+
+        then:
+        def failure = thrown(RuntimeException)
+        failure.message.startsWith("Could not delete directory ${distributionDir.file('old').absolutePath}")
+        failure.message.contains(undeletableFile.absolutePath)
+        failure.cause instanceof IOException
+
+        and:
+        1 * download.download(configuration.distribution, _) >> { templateZipFile.copyTo(it[1]) }
+        0 * download._
+
+        cleanup:
+        readOnlyDir.setPermissions("rwxr-xr-x")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39813")
+    @Requires(FileSystemTestPreconditions.FilePermissions)
+    def "deletes an empty directory that cannot be read when deleting an old distribution"() {
+        given:
+        _ * pathAssembler.getDistribution(configuration) >> localDistribution
+        _ * localDistribution.distributionDir >> distributionDir
+        _ * localDistribution.zipFile >> zipDestination
+
+        and:
+        def unreadableDir = distributionDir.createDir("old/unreadable")
+        unreadableDir.setPermissions("---------")
+
+        when:
+        def homeDir = install.createDist(configuration)
+
+        then:
+        homeDir == gradleHomeDir
+        distributionDir.list() as List == [gradleHomeDir.name]
+
+        and:
+        1 * download.download(configuration.distribution, _) >> { templateZipFile.copyTo(it[1]) }
+        0 * download._
+
+        cleanup:
+        if (unreadableDir.exists()) {
+            unreadableDir.setPermissions("rwxr-xr-x")
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39813")
+    def "reports that the downloaded distribution cannot be moved into place"() {
+        given:
+        _ * pathAssembler.getDistribution(configuration) >> localDistribution
+        _ * localDistribution.distributionDir >> distributionDir
+        _ * localDistribution.zipFile >> zipDestination
+
+        and:
+        configuration.retries = 2
+        configuration.retryBackOffMs = 0
+        zipDestination.createDir("in-the-way")
+
+        when:
+        install.createDist(configuration)
+
+        then:
+        def failure = thrown(RuntimeException)
+        failure.message.startsWith("Could not move ${zipDestination.absolutePath}.part to ${zipDestination.absolutePath}")
+        failure.cause instanceof IOException
 
         and:
         1 * download.download(configuration.distribution, _) >> { templateZipFile.copyTo(it[1]) }

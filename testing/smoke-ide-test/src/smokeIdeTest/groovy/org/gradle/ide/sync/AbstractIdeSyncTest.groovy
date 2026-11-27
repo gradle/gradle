@@ -89,6 +89,7 @@ abstract class AbstractIdeSyncTest extends Specification {
         outputDir.mkdirs()
 
         setupGradleProjectSettings()
+        disableLatestMinorVersionInspection()
 
         def hasMutators = !buildMutators.isEmpty()
 
@@ -200,6 +201,38 @@ abstract class AbstractIdeSyncTest extends Specification {
                 </option>
               </component>
             </project>
+        """.stripIndent()
+    }
+
+    /**
+     * IDEA's OutdatedGradleVersionChecker fails the sync with NoSuchElementException
+     * when the IDE knows no Gradle version with the same major version as the one
+     * being synced (GradleJvmSupportMatrix.suggestLatestMinorGradleVersion calls max()
+     * on an empty list). That's the case for Gradle 10 snapshots until JetBrains adds
+     * 10.x to its compatibility data. The checker is skipped when the
+     * LatestMinorVersion inspection is disabled, so disable it in the project profile.
+     *
+     * TODO: Remove once `intellij.idea` in gradle/dependency-management/smoke-tested-ides.properties
+     *  is 2026.3.1 or later, which fixes this in IDEA.
+     */
+    private void disableLatestMinorVersionInspection() {
+        def profilesDir = new File(projectDirectory, ".idea/inspectionProfiles")
+        profilesDir.mkdirs()
+        new File(profilesDir, "profiles_settings.xml").text = """\
+            <component name="InspectionProjectProfileManager">
+              <settings>
+                <option name="USE_PROJECT_PROFILE" value="true" />
+                <version value="1.0" />
+              </settings>
+            </component>
+        """.stripIndent()
+        new File(profilesDir, "Project_Default.xml").text = """\
+            <component name="InspectionProjectProfileManager">
+              <profile version="1.0">
+                <option name="myName" value="Project Default" />
+                <inspection_tool class="LatestMinorVersion" enabled="false" level="WARNING" enabled_by_default="false" />
+              </profile>
+            </component>
         """.stripIndent()
     }
 
