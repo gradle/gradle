@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
@@ -193,25 +192,27 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         buildOperations.none(RealizeTaskBuildOperationType, not(withPath(':', ':foo')))
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects, subprojects")
     def "registration and realization ops have correct paths"() {
         given:
         def createTasks = {
-            buildFile << """
+            buildFile """
                 apply plugin: 'base'
-                subprojects {
-                    apply plugin: 'base'
-                    rootProject.tasks.named('build').configure {
-                        it.dependsOn tasks.named('build')
-                    }
+                tasks.named('build').configure {
+                    it.dependsOn ':sub:build'
                 }
+            """
+            project('sub').buildFile """
+                apply plugin: 'base'
             """
         }
         multiProjectBuild('root', ['sub'], createTasks)
         includedBuild('buildSrc').multiProjectBuild('buildSrc', ['sub']) {
-            buildFile << """
-                allprojects { apply plugin: 'java-library' }
+            buildFile """
+                apply plugin: 'java-library'
                 dependencies { implementation(project(":sub")) }
+            """
+            project('sub').buildFile """
+                apply plugin: 'java-library'
             """
         }
         includedBuild('comp').multiProjectBuild('comp', ['sub'], createTasks).settingsFile

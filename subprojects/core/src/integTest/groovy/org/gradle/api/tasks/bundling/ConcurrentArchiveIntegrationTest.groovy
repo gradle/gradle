@@ -18,7 +18,6 @@ package org.gradle.api.tasks.bundling
 
 import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
@@ -32,7 +31,6 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
     BlockingHttpServer server = new BlockingHttpServer()
 
     @Issue("https://github.com/gradle/gradle/issues/22685")
-    @ToBeFixedForIsolatedProjects(because = "Access to root project from sub projects")
     def "can visit and edit zip archive differently from two different projects in a multiproject build"() {
         given: "an archive in the root of a multiproject build"
         createZip('test.zip') {
@@ -44,14 +42,14 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
                 file ('file3.txt').text =  'original text 3'
             }
         }
-        settingsFile << """include 'project1', 'project2'"""
+        settingsFile """include 'project1', 'project2'"""
 
         and: "where each project edits that same archive differently via a visitor"
-        file('project1/build.gradle') << """
+        buildFile("project1/build.gradle", """
             ${defineUpdateTask('zip')}
             ${defineVerifyTask('zip')}
 
-            def theArchive = rootProject.file('test.zip')
+            def theArchive = isolated.rootProject.projectDirectory.file('test.zip')
 
             tasks.register('update', UpdateTask) {
                 archive = theArchive
@@ -63,13 +61,13 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
                 archive = theArchive
                 beginsWith = 'modified by project1'
             }
-        """
+        """)
 
-        file('project2/build.gradle') << """
+        buildFile("project2/build.gradle", """
             ${defineUpdateTask('zip')}
             ${defineVerifyTask('zip')}
 
-            def theArchive = rootProject.file('test.zip')
+            def theArchive = isolated.rootProject.projectDirectory.file('test.zip')
 
             tasks.register('update', UpdateTask) {
                 archive = theArchive
@@ -81,7 +79,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
                 archive = theArchive
                 beginsWith = 'edited by project2'
             }
-        """
+        """)
 
         when:
         run 'verify'
@@ -91,7 +89,6 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22685")
-    @ToBeFixedForIsolatedProjects(because = "Access to root project from sub projects")
     def "can visit and edit tar archive differently from two different projects in a multiproject build"() {
         given: "an archive in the root of a multiproject build"
         createTar('test.tar') {
@@ -103,14 +100,14 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
                 file ('file3.txt').text =  'original text 3'
             }
         }
-        settingsFile << """include 'project1', 'project2'"""
+        settingsFile """include 'project1', 'project2'"""
 
         and: "where each project edits that same archive differently via a visitor"
-        file('project1/build.gradle') << """
+        buildFile("project1/build.gradle", """
             ${defineUpdateTask('tar')}
             ${defineVerifyTask('tar')}
 
-            def theArchive = rootProject.file('test.tar')
+            def theArchive = isolated.rootProject.projectDirectory.file('test.tar')
 
             tasks.register('update', UpdateTask) {
                 archive = theArchive
@@ -122,13 +119,13 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
                 archive = theArchive
                 beginsWith = 'modified by project1'
             }
-        """
+        """)
 
-        file('project2/build.gradle') << """
+        buildFile("project2/build.gradle", """
             ${defineUpdateTask('tar')}
             ${defineVerifyTask('tar')}
 
-            def theArchive = rootProject.file('test.tar')
+            def theArchive = isolated.rootProject.projectDirectory.file('test.tar')
 
             tasks.register('update', UpdateTask) {
                 archive = theArchive
@@ -140,7 +137,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
                 archive = theArchive
                 beginsWith = 'edited by project2'
             }
-        """
+        """)
 
         when:
         run 'verify'
@@ -151,7 +148,6 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
 
 
     @Issue("https://github.com/gradle/gradle/issues/22685")
-    @ToBeFixedForIsolatedProjects(because = "Access to root project from sub projects")
     def "can visit and edit zip archive differently from two different projects with the same name in different directories in a multiproject build"() {
         given: "an archive in the root of a multiproject build"
         createZip('test.zip') {
@@ -163,13 +159,13 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
                 file ('file3.txt').text =  'original text 3'
             }
         }
-        settingsFile << """include ':lib', ':utils:lib'"""
+        settingsFile """include ':lib', ':utils:lib'"""
 
         and: "where each project edits that same archive differently via a visitor"
-        file('lib/build.gradle') << """
+        buildFile("lib/build.gradle", """
             ${defineUpdateTask('zip')}
             ${defineVerifyTask('zip')}
-            def theArchive = rootProject.file('test.zip')
+            def theArchive = isolated.rootProject.projectDirectory.file('test.zip')
             tasks.register('update', UpdateTask) {
                 archive = theArchive
                 replacementText = 'modified by project1'
@@ -179,12 +175,12 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
                 archive = theArchive
                 beginsWith = 'modified by project1'
             }
-        """
+        """)
 
-        file('utils/lib/build.gradle') << """
+        buildFile("utils/lib/build.gradle", """
             ${defineUpdateTask('zip')}
             ${defineVerifyTask('zip')}
-            def theArchive = rootProject.file('test.zip')
+            def theArchive = isolated.rootProject.projectDirectory.file('test.zip')
             tasks.register('update', UpdateTask) {
                 archive = theArchive
                 replacementText = 'edited by project2'
@@ -194,7 +190,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
                 archive = theArchive
                 beginsWith = 'edited by project2'
             }
-        """
+        """)
 
         when:
         run 'verify'

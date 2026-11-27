@@ -18,7 +18,7 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 
 class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -112,7 +112,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         op.details.targetPath == null
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
+    @UnsupportedWithIsolatedProjects(because = "Tests a plugin applied to one project applying a plugin to another project, which Isolated Projects does not allow")
     def "uses target instead of parent"() {
         when:
         createDirs("a", "b")

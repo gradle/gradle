@@ -20,7 +20,6 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.matchers.UserAgentMatcher
@@ -162,21 +161,22 @@ assert 'value' == doStuff.someProp
     }
 
     @Test
-    @ToBeFixedForIsolatedProjects(because = "allprojects, access to root project")
     void cachesScriptClassForAGivenScript() {
         createDirs("a", "b")
-        testFile('settings.gradle') << 'include \'a\', \'b\''
-        testFile('external.gradle') << 'ext.appliedScript = this'
-        testFile('build.gradle') << '''
-allprojects {
-   apply from: "$rootDir/external.gradle"
+        testFile('settings.gradle') << '''
+include 'a', 'b'
+gradle.lifecycle.beforeProject { project ->
+    project.apply from: new File(project.rootDir, "external.gradle")
 }
-subprojects {
-    assert appliedScript.class == rootProject.appliedScript.class
-}
-task doStuff
 '''
-        inTestDirectory().withTasks('doStuff').run()
+        testFile('external.gradle') << 'println "applied script class: " + System.identityHashCode(getClass())'
+        testFile('build.gradle') << 'task doStuff'
+
+        ExecutionResult result = inTestDirectory().withTasks('doStuff').run()
+
+        def scriptClasses = result.output.readLines().findAll { it.startsWith("applied script class: ") }
+        assert scriptClasses.size() == 3
+        assert scriptClasses.toSet().size() == 1
     }
 
     private TestFile createBuildSrc() {

@@ -17,7 +17,6 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 class BuildSrcTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
@@ -90,16 +89,13 @@ class BuildSrcTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23885")
-    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "can exclude task from main build when buildSrc is present"() {
         file("buildSrc/build.gradle").createFile()
         createDirs("lib")
         settingsFile """
             include "lib"
-        """
-        buildFile """
-            allprojects {
-                task thing {
+            gradle.lifecycle.beforeProject {
+                tasks.create("thing") {
                     doLast {}
                 }
             }

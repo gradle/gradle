@@ -45,7 +45,6 @@ import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -1109,12 +1108,14 @@ Hello, subproject1
         failureHasCause(~/.*Cannot set the value of task ':subproject[12]:hello' property 'myServiceReference' of type MyService loaded with .* using a provider of type MyService loaded with .*\nThis can be caused by a plugin being applied to two sibling projects and then using a shared build service. To fix this, use `@ServiceReference` or add the problematic plugin with `apply false` to the root build script./)
     }
 
-    @ToBeFixedForIsolatedProjects(because = "subprojects")
     def "plugin applied to multiple projects can register a shared service"() {
         createDirs("a", "b", "c")
-        settingsFile << "include 'a', 'b', 'c'"
-        serviceImplementation()
-        buildFile << """
+        // The plugin is declared in the settings script, so that each project applies the same plugin class
+        settingsFile """
+            include 'a', 'b', 'c'
+
+            ${countingServiceClasses()}
+
             class CounterPlugin implements Plugin<Project> {
                 void apply(Project project) {
                     def provider = project.gradle.sharedServices.registerIfAbsent("counter", CountingService) {
@@ -1127,8 +1128,11 @@ Hello, subproject1
                     }
                 }
             }
-            subprojects {
-                apply plugin: CounterPlugin
+
+            gradle.lifecycle.beforeProject { project ->
+                if (project.path != ":") {
+                    project.pluginManager.apply(CounterPlugin)
+                }
             }
         """
 
@@ -1971,7 +1975,11 @@ Hello, subproject1
     }
 
     def serviceImplementation() {
-        buildFile """
+        buildFile countingServiceClasses()
+    }
+
+    static String countingServiceClasses() {
+        """
             interface CountingParams extends BuildServiceParameters {
                 Property<Integer> getInitial()
             }

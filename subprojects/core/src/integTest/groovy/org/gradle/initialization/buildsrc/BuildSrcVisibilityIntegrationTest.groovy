@@ -17,11 +17,9 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class BuildSrcVisibilityIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForIsolatedProjects(because = "Investigate")
     def "buildSrc classes are not visible in settings"() {
         file('buildSrc/build.gradle') << """
             apply plugin: 'groovy'
@@ -55,24 +53,18 @@ class BuildSrcVisibilityIntegrationTest extends AbstractIntegrationSpec {
         def localClassName = "org.acme.build.SomeBuildSrcClass"
         def dependencyClassName = "org.apache.commons.math3.util.FastMath"
 
-        settingsFile << """
+        settingsFile """
+            ${tryClass()}
 
-            gradle.ext.tryClass = { String from, String name, ClassLoader classLoader ->
-                try {
-                    classLoader.loadClass(name)
-                    println "FOUND [\$from] \$name"
-                } catch (ClassNotFoundException e) {
-                    println "NOT FOUND [\$from] \$name"
-                }
-            }
-
-            gradle.tryClass("settings", "$localClassName", getClass().classLoader)
-            gradle.tryClass("settings", "$dependencyClassName", getClass().classLoader)
+            tryClass("settings", "$localClassName", getClass().classLoader)
+            tryClass("settings", "$dependencyClassName", getClass().classLoader)
         """
 
-        buildFile << """
-            gradle.tryClass("project", "$localClassName", project.buildscript.classLoader)
-            gradle.tryClass("project", "$dependencyClassName", project.buildscript.classLoader)
+        buildFile """
+            ${tryClass()}
+
+            tryClass("project", "$localClassName", project.buildscript.classLoader)
+            tryClass("project", "$dependencyClassName", project.buildscript.classLoader)
         """
 
         when:
@@ -83,6 +75,22 @@ class BuildSrcVisibilityIntegrationTest extends AbstractIntegrationSpec {
         outputContains("NOT FOUND [settings] $dependencyClassName")
         outputContains("FOUND [project] $localClassName")
         outputContains("FOUND [project] $dependencyClassName")
+    }
+
+    /**
+     * Declares a closure that prints whether the given class loader can load the given class.
+     */
+    private static String tryClass() {
+        """
+            def tryClass = { String from, String name, ClassLoader classLoader ->
+                try {
+                    classLoader.loadClass(name)
+                    println "FOUND [\$from] \$name"
+                } catch (ClassNotFoundException e) {
+                    println "NOT FOUND [\$from] \$name"
+                }
+            }
+        """
     }
 
 }

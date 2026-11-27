@@ -18,7 +18,6 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -819,38 +818,34 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5415")
-    @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
     void 'finalizers are executed after the last task to be finalized'() {
         createDirs("a", "b")
         settingsFile << """
             include "a"
             include "b"
         """
-        buildFile """
-            configure(project(':a')) {
-                task finalizer {
-                    doLast {
-                        sleep 100
-                    }
-                }
-
-                task foo {
-                    finalizedBy finalizer
-                    doLast {
-                        sleep 500
-                    }
+        buildFile("a/build.gradle", """
+            task finalizer {
+                doLast {
+                    sleep 100
                 }
             }
 
-            configure(project(':b')) {
-                task foo {
-                    finalizedBy ':a:finalizer'
-                    doLast {
-                        sleep 1000
-                    }
+            task foo {
+                finalizedBy finalizer
+                doLast {
+                    sleep 500
                 }
             }
-        """
+        """)
+        buildFile("b/build.gradle", """
+            task foo {
+                finalizedBy ':a:finalizer'
+                doLast {
+                    sleep 1000
+                }
+            }
+        """)
 
         expect:
         2.times {
@@ -860,39 +855,35 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/10549")
-    @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
     def "mustRunAfter is respected for finalizer without direct dependency"() {
         createDirs("a", "b")
         settingsFile << """
             include 'a'
             include 'b'
         """
-        buildFile """
-            configure(project(':a')) {
-                task finalizer {
-                    doLast {
-                        println "finalized"
-                    }
-                }
-
-                task work {
-                    doLast {
-                        sleep 1000
-                        println "executed \${path}"
-                    }
-                    finalizedBy(finalizer)
+        buildFile("a/build.gradle", """
+            task finalizer {
+                doLast {
+                    println "finalized"
                 }
             }
 
-            configure(project(':b')) {
-                task work {
-                    doLast {
-                        println "executed \${path}"
-                    }
-                    mustRunAfter(":a:finalizer")
+            task work {
+                doLast {
+                    sleep 1000
+                    println "executed \${path}"
                 }
+                finalizedBy(finalizer)
             }
-        """
+        """)
+        buildFile("b/build.gradle", """
+            task work {
+                doLast {
+                    println "executed \${path}"
+                }
+                mustRunAfter(":a:finalizer")
+            }
+        """)
 
         expect:
         2.times {
@@ -901,11 +892,9 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
 
         and: "Apply workaround"
-        buildFile """
-            configure(project(':b')) {
-                work.mustRunAfter(":a:work")
-            }
-        """
+        buildFile("b/build.gradle", """
+            work.mustRunAfter(":a:work")
+        """)
         2.times {
             run("work", "--parallel")
             result.assertTaskOrder(":a:work", ":a:finalizer", ":b:work")

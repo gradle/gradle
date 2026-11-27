@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.options
 
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Ignore
 
 import static org.gradle.api.tasks.options.TaskOptionFixture.taskWithMultipleOptions
@@ -38,19 +37,18 @@ class TaskOptionFailureIntegrationTest extends AbstractOptionIntegrationSpec {
         failureCauseContains('Cannot specify duplicate annotation on the same member : org.gradle.api.tasks.options.Option')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Configuring projects from root")
     def "different tasks match name but only one accepts the option"() {
         given:
         createDirs("other")
-        settingsFile << "include 'other'"
-        buildFile << """
+        settingsFile "include 'other'"
+        buildFile """
             task someTask(type: SomeTask)
-            project(":other") {
-              task someTask
-            }
 
             ${TaskOptionFixture.taskWithMultipleOptions()}
         """
+        buildFile("other/build.gradle", """
+            task someTask
+        """)
 
         when:
         runAndFail 'someTask', '--first'
