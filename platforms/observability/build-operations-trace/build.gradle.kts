@@ -48,6 +48,9 @@ dependencies {
     implementation(libs.jacksonDatatypeJsr310)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

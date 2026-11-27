@@ -26,11 +26,15 @@ dependencies {
 
     testFixturesImplementation(libs.kotlinReflect)
 
+    integTestImplementation(projects.projectFeaturesApi)
     integTestImplementation(testFixtures(projects.kotlinDsl))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.hamcrest)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 
     testFixturesApi(projects.declarativeDslToolingModels)
+
 }
 
 gradleModule {
@@ -40,5 +44,3 @@ gradleModule {
         daemon = true
     }
 }
-
-

@@ -50,17 +50,18 @@ dependencies {
 
     testImplementation(testFixtures(projects.core))
 
-    integTestImplementation(testFixtures(projects.enterpriseOperations))
-    integTestImplementation(testFixtures(projects.languageJava))
-    integTestImplementation(testFixtures(projects.modelCore))
-    integTestImplementation(testFixtures(projects.pluginsJava))
-    integTestImplementation(testFixtures(projects.pluginsJavaBase))
+    integTestImplementation(projects.stdlibJavaExtensions)
     integTestImplementation(testFixtures(projects.resourcesHttp))
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
+
+    runtimeOnly(projects.testingBase)
+    runtimeOnly(projects.testingJvm)
 }
 
 gradleModule {

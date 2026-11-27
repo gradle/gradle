@@ -59,8 +59,10 @@ dependencies {
     }
 
     integTestImplementation(testFixtures(projects.baseDiagnostics))
+    integTestImplementation(libs.groovyJson)
 
     integTestImplementation(libs.jsoup)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 

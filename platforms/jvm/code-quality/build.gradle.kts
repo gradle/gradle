@@ -59,7 +59,8 @@ dependencies {
     integTestImplementation(libs.jsoup) {
         because("We need to validate generated HTML reports")
     }
-    integTestImplementation(testFixtures(projects.resourcesHttp))
+    integTestImplementation(testLibs.junit5JupiterApi)
+    integTestImplementation(testLibs.spock)
 
     testFixturesApi(projects.baseServices)
     testFixturesApi(projects.stdlibJavaExtensions)

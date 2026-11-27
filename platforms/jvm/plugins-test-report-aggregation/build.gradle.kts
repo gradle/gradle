@@ -35,6 +35,9 @@ dependencies {
     implementation(projects.testSuitesBase)
 
     integTestImplementation(testFixtures(projects.testingBase))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }

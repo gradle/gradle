@@ -30,15 +30,22 @@ dependencies {
 
     runtimeOnly(projects.dependencyManagement)
 
+    integTestImplementation(projects.buildOperationsTrace)
+    integTestImplementation(projects.enterpriseOperations)
+    integTestImplementation(projects.javaCompilerWorker)
     integTestImplementation(projects.javadoc)
+    integTestImplementation(projects.jvmServices)
+    integTestImplementation(projects.serialization)
+    integTestImplementation(projects.stdlibJavaExtensions)
+    integTestImplementation(projects.workers)
     integTestImplementation(testFixtures(projects.core))
 
-    integTestImplementation(testFixtures(projects.messaging))
-    integTestImplementation(testFixtures(projects.enterpriseOperations))
     integTestImplementation(testFixtures(projects.languageJava))
     integTestImplementation(testFixtures(projects.pluginsJavaBase))
     integTestImplementation(testFixtures(projects.pluginsJvmTestFixtures))
-    integTestImplementation(testFixtures(projects.workers))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 

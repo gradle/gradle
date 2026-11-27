@@ -32,6 +32,8 @@ dependencies {
     testImplementation(testFixtures(projects.logging))
 
     integTestImplementation(projects.launcher)
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 

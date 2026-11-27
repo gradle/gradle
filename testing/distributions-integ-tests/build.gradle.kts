@@ -14,6 +14,14 @@ dependencies {
     integTestSrcDistribution(projects.distributionsFull)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
+
+    integTestImplementation(projects.baseServices)
+    integTestImplementation(projects.core)
+    integTestImplementation(projects.loggingApi)
+    integTestImplementation(libs.commonsIo)
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 }
 
 // Using lazy makes sure we do not invalidate CC entries when head commit changes

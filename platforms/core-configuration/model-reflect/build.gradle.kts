@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.inject)
 
+    testImplementation(projects.internalIntegTesting)
     testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.persistentCache))

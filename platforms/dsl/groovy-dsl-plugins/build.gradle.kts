@@ -37,6 +37,8 @@ dependencies {
     crossVersionTestImplementation(projects.internalIntegTesting)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
+
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

@@ -65,11 +65,12 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
+    integTestImplementation(projects.stdlibJavaExtensions)
+    integTestImplementation(projects.unitTestFixtures)
     integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.testingBase))
-    integTestImplementation(testFixtures(projects.toolingApi))
-
-    integTestImplementation(testLibs.groovyTest)
+    integTestImplementation(libs.groovyXml)
+    integTestImplementation(testLibs.spock)
 
     integTestLocalRepository(projects.toolingApi) {
         because("Required by GradleImplDepsCompatibilityIntegrationTest")
@@ -78,6 +79,8 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 
     testFixturesImplementation(testFixtures(projects.core))
+
+    integTestRuntimeOnly(testFixtures(projects.toolingApi))
 }
 
 gradleModule {

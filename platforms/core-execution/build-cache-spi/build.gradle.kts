@@ -7,6 +7,9 @@ description = "Public API for extending the build cache"
 
 dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

@@ -43,8 +43,7 @@ dependencies {
         because("Required for @org.junit.Rule, used in ToolingApiSpecification")
     }
 
-    integTestImplementation(projects.kotlinDslToolingModels)
-    integTestImplementation(testFixtures(projects.buildProcessServices))
+    integTestImplementation(projects.jvmServices)
     integTestImplementation(testFixtures(projects.launcher))
     integTestImplementation(testFixtures(projects.toolchainsJvmShared))
 

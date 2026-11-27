@@ -51,6 +51,7 @@ dependencies {
     }
 
     integTestImplementation(testFixtures(projects.resourcesHttp))
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }

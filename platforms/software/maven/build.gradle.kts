@@ -57,6 +57,8 @@ dependencies {
 
     testFixturesApi(projects.internalDistributionTesting)
     testFixturesApi(projects.internalIntegTesting)
+
+    integTestImplementation(projects.enterpriseOperations)
 }
 
 gradleModule {

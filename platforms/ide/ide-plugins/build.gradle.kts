@@ -72,6 +72,8 @@ dependencies {
 
 
     integTestImplementation(projects.internalIntegTesting)
+    integTestImplementation(libs.groovyXml)
+    integTestImplementation(testLibs.spock)
     integTestImplementation(testLibs.xmlunit)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {

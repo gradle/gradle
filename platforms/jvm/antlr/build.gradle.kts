@@ -39,6 +39,9 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(projects.distributionsFull)
+
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

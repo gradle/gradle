@@ -41,6 +41,9 @@ dependencies {
     testImplementation(testFixtures(projects.buildOperations))
     testImplementation(testFixtures(projects.hashing))
     testImplementation(testFixtures(projects.snapshots))
+
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

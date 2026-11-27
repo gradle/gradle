@@ -22,6 +22,10 @@ dependencies {
     testImplementation(testFixtures(projects.core))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    integTestImplementation(projects.fileCollections)
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

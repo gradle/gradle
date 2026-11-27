@@ -83,7 +83,8 @@ dependencies {
     testFixturesCompileOnly(libs.jetbrainsAnnotations)
 
     integTestImplementation(projects.dependencyManagement)
-    integTestImplementation(testFixtures(projects.launcher))
+    integTestImplementation(projects.enterpriseOperations)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("BuildScriptClasspathIntegrationSpec uses the 'java' and 'me.champeau.mrjar' plugins")

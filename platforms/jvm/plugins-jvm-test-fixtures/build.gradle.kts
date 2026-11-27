@@ -46,6 +46,9 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 
     testFixturesApi(projects.internalIntegTesting)
+
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

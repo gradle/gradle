@@ -40,6 +40,8 @@ dependencies {
     testImplementation(testFixtures(projects.time))
 
     integTestImplementation(projects.internalIntegTesting)
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Integration tests require HttpBuildCache registration from build-cache-http, which is in distributions-jvm.")

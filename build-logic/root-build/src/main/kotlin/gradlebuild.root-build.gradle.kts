@@ -40,5 +40,12 @@ configure<DependencyAnalysisExtension> {
         }
     }
 
+    abi {
+        exclusions {
+            // Test source sets have no consumers, so none of their dependencies are api
+            excludeSourceSets("crossVersionTest", "docsTest", "integTest", "java9Test", "jmh", "performanceTest", "smokeIdeTest", "smokeTest", "test")
+        }
+    }
+
     useTypesafeProjectAccessors(true)
 }

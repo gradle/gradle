@@ -52,8 +52,12 @@ dependencies {
     testImplementation(libs.commonsIo)
     testImplementation(testLibs.hamcrest)
 
+    integTestImplementation(projects.buildOperationsTrace)
+    integTestImplementation(projects.hashing)
+    integTestImplementation(projects.testingBaseInfrastructure)
     integTestImplementation(testFixtures(projects.languageJvm))
     integTestImplementation(testFixtures(projects.testingBase))
+    integTestImplementation(testLibs.spock)
 
     testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(testLibs.hamcrest)

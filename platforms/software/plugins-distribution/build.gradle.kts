@@ -39,6 +39,8 @@ dependencies {
     }
 
     integTestImplementation(testFixtures(projects.core))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

@@ -28,7 +28,10 @@ dependencies {
 
     testImplementation(testFixtures(projects.hashing))
 
+    integTestImplementation(projects.baseServices)
     integTestImplementation(testFixtures(projects.core))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

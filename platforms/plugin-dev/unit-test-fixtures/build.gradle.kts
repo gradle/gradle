@@ -57,8 +57,14 @@ dependencies {
     }
     testRuntimeOnly(projects.testingBase)
 
+    integTestImplementation(projects.jvmServices)
+    integTestImplementation(projects.stdlibJavaExtensions)
+    integTestImplementation(projects.testingBaseInfrastructure)
     integTestImplementation(testFixtures(projects.buildProcessServices))
     integTestImplementation(testFixtures(projects.testingBase))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

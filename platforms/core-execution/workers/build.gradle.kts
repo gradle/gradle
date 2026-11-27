@@ -46,9 +46,13 @@ dependencies {
     testImplementation(projects.stdlibJavaExtensions)
     testImplementation(testFixtures(projects.core))
 
+    integTestImplementation(projects.enterpriseOperations)
+    integTestImplementation(projects.jvmServices)
     integTestImplementation(projects.launcher)
     integTestImplementation(projects.testingBaseInfrastructure)
     integTestImplementation(testFixtures(projects.testingBase))
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 
     testFixturesImplementation(libs.groovyJson)
 

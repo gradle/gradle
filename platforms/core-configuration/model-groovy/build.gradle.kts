@@ -23,6 +23,10 @@ dependencies {
         because("NonTransformedModelDslBackingTest instantiates DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    integTestImplementation(projects.problemsApi)
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

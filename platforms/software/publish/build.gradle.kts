@@ -41,6 +41,9 @@ dependencies {
     // Javadoc-only: needed to resolve {@link MavenPublication ...}/{@link IvyPublication ...} references (downstream modules)
     javadocReferences(projects.maven)
     javadocReferences(projects.ivy)
+
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

@@ -37,6 +37,8 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("AntBuilder relies on groovy-loader which ships with the JVM distribution")
     }
+
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

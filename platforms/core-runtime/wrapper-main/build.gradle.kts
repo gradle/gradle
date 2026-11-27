@@ -33,9 +33,12 @@ dependencies {
     implementation(projects.cli)
     implementation(projects.wrapperShared)
 
-    integTestImplementation(projects.launcher)
-    integTestImplementation(testLibs.littleproxy)
-    integTestImplementation(testFixtures(projects.buildProcessServices))
+    integTestImplementation(projects.baseServices)
+    integTestImplementation(projects.hashing)
+    integTestImplementation(libs.commonsIo)
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 
     integTestNormalizedDistribution(projects.distributionsFull)
     integTestDistributionRuntimeOnly(projects.distributionsFull)
@@ -54,6 +57,8 @@ dependencies {
     testRuntimeOnly(projects.logging)
     testRuntimeOnly(projects.normalization)
     testRuntimeOnly(projects.processServices)
+
+    integTestRuntimeOnly(projects.launcher)
 }
 
 gradleModule {

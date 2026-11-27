@@ -56,6 +56,8 @@ dependencies {
     }
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    integTestImplementation(testLibs.spock)
 }
 
 strictCompile {

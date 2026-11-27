@@ -101,6 +101,7 @@ nettyCommon = { group = "io.netty", name = "netty-common", version.ref = "netty"
 nettyHandler = { group = "io.netty", name = "netty-handler", version.ref = "netty" }
 nettyTransport = { group = "io.netty", name = "netty-transport", version.ref = "netty" }
 objenesis = { group = "org.objenesis", name = "objenesis", version.ref = "objenesis" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "mockwebserver" }
 opentest4j = { group = "org.opentest4j", name = "opentest4j", version.ref = "opentest4j" }
 playwright = { group = "com.microsoft.playwright", name = "playwright", version.ref = "playwright" }
 samplesCheck = { group = "org.gradle.exemplar", name = "samples-check", version.ref = "samples" }

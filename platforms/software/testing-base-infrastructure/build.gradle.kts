@@ -32,6 +32,9 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
     integTestImplementation(testFixtures(projects.testingBase))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
     javadocReferences(projects.toolingApiBuilders)

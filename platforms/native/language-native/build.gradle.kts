@@ -65,6 +65,7 @@ dependencies {
 
     integTestImplementation(testFixtures(projects.platformNative))
     integTestImplementation(testFixtures(projects.versionControl))
+    integTestImplementation(testLibs.opentest4j)
 }
 
 gradleModule {

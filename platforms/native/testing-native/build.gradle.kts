@@ -42,6 +42,8 @@ dependencies {
     integTestImplementation(testFixtures(projects.languageNative))
     integTestImplementation(testFixtures(projects.platformNative))
     integTestImplementation(testFixtures(projects.testingBase))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

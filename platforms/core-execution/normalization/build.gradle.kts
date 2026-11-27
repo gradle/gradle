@@ -16,6 +16,9 @@ dependencies {
     implementation(libs.guava)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
+
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

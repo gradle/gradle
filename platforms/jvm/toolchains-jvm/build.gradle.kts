@@ -75,8 +75,13 @@ dependencies {
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 
+    integTestImplementation(projects.buildOperationsTrace)
     integTestImplementation(testFixtures(projects.languageJava))
     integTestImplementation(testFixtures(projects.toolchainsJvmShared))
+    integTestImplementation(libs.commonsLang)
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
+
 }
 
 gradleModule {

@@ -58,6 +58,8 @@ dependencies {
     testFixturesRuntimeOnly(projects.problems)
 
     integTestImplementation(testFixtures(projects.hashing))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

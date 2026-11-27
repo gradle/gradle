@@ -48,6 +48,8 @@ dependencies {
     testFixturesApi(libs.bouncycastlePgp)
 
     testFixturesRuntimeOnly(projects.internalIntegTesting)
+
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

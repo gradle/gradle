@@ -29,10 +29,11 @@ dependencies {
     testFixturesImplementation(projects.native)
     testFixturesImplementation(libs.jsr305)
 
-    integTestImplementation(projects.launcher)
+    integTestImplementation(projects.clientServices)
     integTestImplementation(testFixtures(projects.buildConfiguration))
     integTestImplementation(testFixtures(projects.buildProcessServices))
     integTestImplementation(testFixtures(projects.testingBase))
+    integTestImplementation(testLibs.hamcrest)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
@@ -47,6 +48,8 @@ dependencies {
     testFixturesApi(projects.internalIntegTesting)
 
     testFixturesRuntimeOnly(projects.launcher)
+
+    integTestRuntimeOnly(projects.launcher)
 }
 
 gradleModule {

@@ -52,7 +52,9 @@ dependencies {
     testImplementation(testLibs.junit5JupiterApi)
 
     integTestImplementation(testFixtures(projects.declarativeDslProvider))
-    integTestImplementation(testFixtures(projects.toolingApi))
+    integTestImplementation(libs.kotlinCompilerEmbeddable)
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 
     testFixturesImplementation(projects.internalDistributionTesting)
     testFixturesImplementation(testFixtures(projects.declarativeDslCore))
@@ -61,6 +63,9 @@ dependencies {
 
     testFixturesApi(projects.declarativeDslEvaluator)
     testFixturesApi(projects.internalIntegTesting)
+
+    integTestRuntimeOnly(testFixtures(projects.toolingApi))
+
 }
 
 gradleModule {
@@ -70,5 +75,3 @@ gradleModule {
         daemon = true
     }
 }
-
-

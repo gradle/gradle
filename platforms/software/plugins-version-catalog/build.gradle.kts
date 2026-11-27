@@ -34,9 +34,11 @@ dependencies {
     implementation(projects.platformBase)
     implementation(projects.platformJvm)
 
+    integTestImplementation(projects.problemsApi)
     integTestImplementation(testFixtures(projects.core))
-    integTestImplementation(testFixtures(projects.jvmServices))
     integTestImplementation(testFixtures(projects.resourcesHttp))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }

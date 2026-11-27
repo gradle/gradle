@@ -34,9 +34,14 @@ dependencies {
     implementation(projects.platformJvm)
     implementation(projects.publish)
 
+    integTestImplementation(projects.jvmServices)
+    integTestImplementation(projects.stdlibJavaExtensions)
     integTestImplementation(testFixtures(projects.core))
     integTestImplementation(testFixtures(projects.dependencyManagement))
     integTestImplementation(testFixtures(projects.resourcesHttp))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 
     testRuntimeOnly(projects.languageJava) {
         because("need to access JavaCompile task")

@@ -42,6 +42,8 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 
     testFixturesImplementation(projects.stdlibJavaExtensions)
+
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

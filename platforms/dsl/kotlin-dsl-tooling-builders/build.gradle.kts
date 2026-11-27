@@ -32,8 +32,6 @@ dependencies {
     testImplementation(testFixtures(projects.kotlinDsl))
     testImplementation(testLibs.hamcrest)
 
-    integTestImplementation(testFixtures(projects.toolingApi))
-
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 
     testFixturesImplementation(projects.internalDistributionTesting)
@@ -50,6 +48,8 @@ dependencies {
     testFixturesApi(projects.toolingApi)
 
     testFixturesRuntimeOnly(projects.internalIntegTesting)
+
+    integTestRuntimeOnly(testFixtures(projects.toolingApi))
 }
 
 gradleModule {

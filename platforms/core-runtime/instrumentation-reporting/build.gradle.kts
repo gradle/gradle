@@ -12,6 +12,9 @@ dependencies {
     api(libs.jspecify)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
+
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

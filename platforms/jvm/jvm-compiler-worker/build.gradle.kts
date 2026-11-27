@@ -23,6 +23,9 @@ dependencies {
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
     javadocReferences(projects.languageJava)
     javadocReferences(projects.languageJvm)
+
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

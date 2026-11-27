@@ -135,14 +135,12 @@ dependencies {
     testImplementation(testLibs.kotlinTest)
 
     integTestImplementation(projects.buildInit)
-    integTestImplementation(projects.buildOption) {
-        because("KotlinSettingsScriptIntegrationTest makes uses of FeatureFlag")
-    }
+    integTestImplementation(projects.internalTesting)
     integTestImplementation(projects.languageGroovy) {
         because("ClassBytesRepositoryTest makes use of Groovydoc task.")
     }
-    integTestImplementation(projects.internalTesting)
     integTestImplementation(testLibs.mockitoKotlin)
+    integTestImplementation(testLibs.spock)
 
     testRuntimeOnly(projects.buildInit)
     testRuntimeOnly(projects.distributionsNative) {
@@ -178,6 +176,7 @@ dependencies {
 
     testFixturesRuntimeOnly(projects.kotlinDslToolingBuilders)
     testFixturesRuntimeOnly(testLibs.jacksonKotlin)
+
 }
 
 gradleModule {

@@ -24,7 +24,6 @@ description = """Problem SPI implementations.
     |This project contains the SPI implementations for the problem reporting infrastructure.
 """.trimMargin()
 
-
 dependencies {
     api(projects.buildOperations)
     api(projects.buildOption)
@@ -58,8 +57,12 @@ dependencies {
 
     testImplementation(libs.kotlinReflect)
 
-    integTestImplementation(testFixtures(projects.logging))
     integTestDistributionRuntimeOnly(projects.distributionsFull)
+
+    integTestImplementation(projects.coreApi)
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
+
 }
 
 gradleModule {

@@ -64,11 +64,14 @@ dependencies {
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.hashing))
 
-    integTestImplementation(testFixtures(projects.buildProcessServices))
     integTestImplementation(testFixtures(projects.languageGroovy))
     integTestImplementation(testFixtures(projects.processServices))
     integTestImplementation(testFixtures(projects.testingBase))
     integTestImplementation(libs.commonsHttpclient)
+    integTestImplementation(libs.commonsIo)
+    integTestImplementation(libs.httpcore)
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 
     // TODO: Make these available for all integration tests? Maybe all tests?
 

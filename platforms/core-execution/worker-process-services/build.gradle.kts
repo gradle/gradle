@@ -43,10 +43,19 @@ dependencies {
     }
     testImplementation(testLibs.hamcrest)
 
+    integTestImplementation(projects.instrumentationAgentServices)
+    integTestImplementation(projects.jvmServices)
+    integTestImplementation(projects.serviceRegistryBuilder)
+    integTestImplementation(projects.serviceRegistryImpl)
+    integTestImplementation(projects.workerShared)
     integTestImplementation(testFixtures(projects.core)) {
         because("AbstractWorkerProcessIntegrationSpec uses core infrastructure: ClassPathRegistry, ModuleRegistry, GlobalScopeServices, TestFiles, NativeServicesTestFixture")
     }
     integTestImplementation(testFixtures(projects.logging))
+    integTestImplementation(libs.ant)
+    integTestImplementation(libs.commonsLang)
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 
     testFixturesApi(projects.requestHandlerWorker)

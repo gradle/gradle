@@ -54,9 +54,15 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
+    integTestImplementation(projects.baseIdePlugins)
+    integTestImplementation(projects.enterpriseOperations)
+    integTestImplementation(projects.native)
     integTestImplementation(testFixtures(projects.baseDiagnostics))
     integTestImplementation(testFixtures(projects.ideNative))
     integTestImplementation(testFixtures(projects.languageNative))
+    integTestImplementation(libs.groovyXml)
+    integTestImplementation(libs.nativePlatform)
+    integTestImplementation(testLibs.hamcrest)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("ModelReportIntegrationTest verifies the full set of tasks contributed by a Gradle distribution.")

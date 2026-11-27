@@ -46,6 +46,11 @@ dependencies {
     implementation(libs.inject)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    integTestImplementation(projects.loggingApi)
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
+
 }
 
 gradleModule {
@@ -54,5 +59,3 @@ gradleModule {
         daemon = true
     }
 }
-
-

@@ -17,6 +17,9 @@ dependencies {
     testImplementation(testLibs.hamcrest)
 
     integTestImplementation(projects.dependencyManagement)
+    integTestImplementation(libs.commonsCompress)
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 

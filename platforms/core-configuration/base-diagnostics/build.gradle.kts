@@ -43,6 +43,7 @@ dependencies {
         because("ReportGeneratorTest tests load services like ClassLoaderRegistry.")
     }
 
+    integTestImplementation(projects.startParameter)
     integTestImplementation(testFixtures(projects.declarativeDslProvider))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)

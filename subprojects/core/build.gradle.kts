@@ -5,6 +5,17 @@ plugins {
 
 description = "Public and internal 'core' Gradle APIs with implementation"
 
+dependencyAnalysis {
+    issues {
+        sourceSet("integTest") {
+            onRuntimeOnly {
+                // DAGP does not see Groovy imports of nested classes
+                exclude(":groovy-dsl")
+            }
+        }
+    }
+}
+
 dependencies {
     api(projects.ant)
     api(projects.antApi)
@@ -231,12 +242,14 @@ dependencies {
     }
     testRuntimeOnly(libs.jclToSlf4j)
 
-    integTestImplementation(projects.war)
-    integTestImplementation(projects.groovyDsl)
-    integTestImplementation(testLibs.littleproxy)
+    integTestImplementation(projects.groovyDsl) {
+        because("Tests import DefaultScriptCompilationHandler.ScriptClassLoader")
+    }
+    integTestImplementation(projects.daemonServices)
+    integTestImplementation(projects.languageJvm)
+    integTestImplementation(projects.testingBaseInfrastructure)
     integTestImplementation(testFixtures(projects.domainObjectCollections))
     integTestImplementation(testFixtures(projects.native))
-    integTestImplementation(testFixtures(projects.fileTemp))
     integTestImplementation(testFixtures(projects.launcher))
     integTestImplementation(testFixtures(projects.processServices))
     integTestImplementation(testFixtures(projects.testingBase))
@@ -258,6 +271,8 @@ dependencies {
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
     javadocReferences(projects.credentials)
     javadocReferences(projects.buildState)
+
+    integTestRuntimeOnly(projects.war)
 }
 
 gradleModule {

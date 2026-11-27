@@ -25,9 +25,13 @@ dependencies {
     implementation(libs.httpcore)
     implementation(libs.slf4jApi)
 
-    integTestImplementation(testFixtures(projects.buildCache))
+    integTestImplementation(projects.buildCache)
+    integTestImplementation(projects.buildOperationsTrace)
+    integTestImplementation(projects.enterpriseOperations)
     integTestImplementation(testFixtures(projects.core))
     integTestImplementation(testFixtures(projects.hashing))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Uses application plugin.")

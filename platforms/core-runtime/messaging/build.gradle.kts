@@ -28,7 +28,12 @@ dependencies {
     testImplementation(testLibs.hamcrest)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
+    integTestImplementation(projects.serviceRegistryBuilder)
+    integTestImplementation(projects.testingBaseInfrastructure)
+    integTestImplementation(projects.toolingApi)
     integTestImplementation(testFixtures(projects.testingBase))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

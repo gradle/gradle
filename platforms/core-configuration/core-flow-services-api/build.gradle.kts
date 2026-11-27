@@ -25,6 +25,8 @@ dependencies {
     api(projects.coreApi)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    integTestImplementation(libs.groovy)
 }
 
 gradleModule {

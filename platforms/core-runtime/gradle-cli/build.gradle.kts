@@ -67,6 +67,9 @@ dependencies {
     testRuntimeOnly(projects.kotlinDsl)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

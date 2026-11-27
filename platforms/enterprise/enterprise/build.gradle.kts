@@ -48,11 +48,15 @@ dependencies {
 
     integTestImplementation(projects.internalIntegTesting)
     integTestImplementation(testFixtures(projects.toolingApi))
-    integTestImplementation(testFixtures(projects.core))
     integTestImplementation(testFixtures(projects.processServices))
 
     // Dependencies of the integ test fixtures
     integTestImplementation(testFixtures(projects.problemsApi))
+    integTestImplementation(libs.ant)
+    integTestImplementation(libs.groovy)
+    integTestImplementation(libs.groovyJson)
+    integTestImplementation(libs.jsr305)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

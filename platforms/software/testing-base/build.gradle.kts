@@ -73,6 +73,8 @@ dependencies {
     testFixturesApi(libs.jsoup)
     testFixturesApi(libs.jspecify)
     testFixturesApi(testLibs.hamcrest)
+
+    integTestImplementation(projects.buildOperationsTrace)
 }
 
 gradleModule {

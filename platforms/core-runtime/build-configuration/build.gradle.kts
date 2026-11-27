@@ -29,6 +29,7 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 
     integTestImplementation(testFixtures(projects.toolchainsJvmShared))
+    integTestImplementation(testLibs.spock)
 
     testFixturesApi(projects.baseServices)
     testFixturesApi(projects.internalIntegTesting)

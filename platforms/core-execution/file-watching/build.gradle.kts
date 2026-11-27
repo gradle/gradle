@@ -26,6 +26,14 @@ dependencies {
     }
 
     testRuntimeOnly(testFixtures(projects.toolingApi))
+
+    integTestImplementation(projects.enterpriseOperations)
+    integTestImplementation(projects.persistentCache)
+    integTestImplementation(projects.startParameter)
+    integTestImplementation(projects.stdlibJavaExtensions)
+    integTestImplementation(libs.commonsIo)
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

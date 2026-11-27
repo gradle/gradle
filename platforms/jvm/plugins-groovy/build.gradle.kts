@@ -42,7 +42,10 @@ dependencies {
 
     testRuntimeOnly(projects.distributionsJvm)
 
+    integTestImplementation(projects.javaCompilerWorker)
     integTestImplementation(testFixtures(projects.pluginsJavaBase))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("The full distribution is required to run the GroovyToJavaConversionIntegrationTest")

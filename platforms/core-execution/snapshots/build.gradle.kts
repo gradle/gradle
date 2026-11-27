@@ -33,6 +33,8 @@ dependencies {
     testFixturesImplementation(libs.commonsIo)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

@@ -57,7 +57,10 @@ dependencies {
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
     javadocReferences(projects.pluginsJava)
 
+    integTestImplementation(projects.stdlibJavaExtensions)
     integTestImplementation(testFixtures(projects.core))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 
     testFixturesApi(projects.internalDistributionTesting)
     testFixturesApi(projects.internalIntegTesting)

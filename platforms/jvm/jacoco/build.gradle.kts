@@ -50,6 +50,9 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 
     testFixturesRuntimeOnly(projects.internalIntegTesting)
+
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

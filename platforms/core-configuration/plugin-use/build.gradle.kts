@@ -37,7 +37,10 @@ dependencies {
 
     integTestImplementation(projects.groovyDsl)
     integTestImplementation(testFixtures(projects.resourcesHttp))
+    integTestImplementation(libs.groovy)
     integTestImplementation(testLibs.groovyTest)
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics) {
         because("Requires test-kit: 'java-gradle-plugin' is used in integration tests which always adds the test-kit dependency.")

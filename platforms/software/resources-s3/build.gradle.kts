@@ -42,10 +42,15 @@ dependencies {
     testImplementation(projects.logging)
     testImplementation(testFixtures(projects.core))
 
+    integTestImplementation(projects.baseServices)
+    integTestImplementation(projects.modelCore)
     integTestImplementation(testFixtures(projects.dependencyManagement))
     integTestImplementation(testFixtures(projects.ivy))
     integTestImplementation(testFixtures(projects.maven))
-    integTestImplementation(testLibs.littleproxy)
+    integTestImplementation(libs.commonsIo)
+    integTestImplementation(libs.groovy)
+    integTestImplementation(libs.groovyXml)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 

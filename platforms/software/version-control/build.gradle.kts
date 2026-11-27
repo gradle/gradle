@@ -41,7 +41,10 @@ dependencies {
 
     testFixturesImplementation(libs.commonsIo)
 
+    integTestImplementation(projects.enterpriseOperations)
     integTestImplementation(projects.launcher)
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 
     testFixturesApi(projects.baseServices)

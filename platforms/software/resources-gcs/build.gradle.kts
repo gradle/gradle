@@ -36,9 +36,14 @@ dependencies {
     testRuntimeOnly(projects.publish)
     testRuntimeOnly(libs.bouncycastleProvider)
 
+    integTestImplementation(projects.modelCore)
     integTestImplementation(testFixtures(projects.dependencyManagement))
     integTestImplementation(testFixtures(projects.ivy))
     integTestImplementation(testFixtures(projects.maven))
+    integTestImplementation(libs.commonsCodec)
+    integTestImplementation(libs.commonsIo)
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

@@ -28,12 +28,15 @@ dependencies {
     integTestImplementation(testFixtures(projects.dependencyManagement))
     integTestImplementation(testFixtures(projects.ivy))
     integTestImplementation(testFixtures(projects.maven))
-    integTestImplementation(libs.sshdScp)
-    integTestImplementation(libs.sshdSftp)
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 
     testRuntimeOnly(projects.publish)
+
+    integTestRuntimeOnly(libs.sshdSftp)
 }
 
 gradleModule {

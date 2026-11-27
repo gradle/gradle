@@ -17,10 +17,16 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
+    integTestImplementation(projects.stdlibJavaExtensions)
+    integTestImplementation(projects.time)
     integTestImplementation(testFixtures(projects.core))
     integTestImplementation(testFixtures(projects.logging))
+    integTestImplementation(libs.ant)
+    integTestImplementation(libs.groovy)
     integTestImplementation(libs.log4jToSlf4j)    // TestAntTask: org.apache.log4j
     integTestImplementation(libs.jclToSlf4j)      // TestAntTask: org.apache.commons.logging
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("DefaultIsolatedAntBuilderTest loads modules from the distribution")

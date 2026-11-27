@@ -44,8 +44,6 @@ dependencies {
     testImplementation(projects.logging)
     testImplementation(projects.stdlibJavaExtensions)
 
-    integTestImplementation(testFixtures(projects.logging))
-
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 
     testFixturesImplementation(projects.internalDistributionTesting)
@@ -55,6 +53,9 @@ dependencies {
     javadocReferences(projects.configurationProblemsBase)
 
     testFixturesApi(projects.baseServices)
+
+    integTestImplementation(projects.loggingApi)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

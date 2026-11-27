@@ -49,8 +49,8 @@ dependencies {
     testImplementation(testLibs.ansiControlSequenceUtil)
 
     integTestImplementation(projects.problems)
-
-    integTestImplementation(testLibs.ansiControlSequenceUtil)
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 
     testFixturesImplementation(testFixtures(projects.time))
 

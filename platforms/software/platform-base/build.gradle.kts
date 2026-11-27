@@ -31,6 +31,9 @@ dependencies {
     }
     testRuntimeOnly(projects.softwareDiagnostics)
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

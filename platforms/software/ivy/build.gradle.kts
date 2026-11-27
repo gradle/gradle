@@ -52,6 +52,8 @@ dependencies {
 
     testFixturesRuntimeOnly(projects.coreApi)
     testFixturesRuntimeOnly(libs.sshdSftp)
+
+    integTestImplementation(testLibs.hamcrest)
 }
 
 gradleModule {

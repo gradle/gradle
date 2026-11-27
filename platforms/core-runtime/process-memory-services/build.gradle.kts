@@ -28,6 +28,9 @@ dependencies {
     testRuntimeOnly(projects.logging)
     testRuntimeOnly(projects.normalization)
     testRuntimeOnly(projects.processServices)
+
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

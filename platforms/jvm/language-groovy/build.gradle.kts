@@ -59,9 +59,7 @@ dependencies {
 
     integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.testingBase))
-    integTestImplementation(libs.nativePlatform) {
-        because("Required for SystemInfo")
-    }
+    integTestImplementation(libs.commonsLang)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

@@ -44,7 +44,10 @@ dependencies {
     testImplementation(libs.jsr305)
 
     integTestImplementation(projects.launcher)
+    integTestImplementation(projects.stdlibJavaExtensions)
     integTestImplementation(testFixtures(projects.dependencyManagement))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("""

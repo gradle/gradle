@@ -33,7 +33,9 @@ dependencies {
         because("BuildDashboard has specific support for JVM plugins (CodeNarc, JaCoCo)")
     }
 
+    integTestImplementation(projects.stdlibJavaExtensions)
     integTestImplementation(testFixtures(projects.jacoco))
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

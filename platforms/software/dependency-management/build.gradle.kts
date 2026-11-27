@@ -107,11 +107,8 @@ dependencies {
     testRuntimeOnly(projects.softwareDiagnostics)
     testRuntimeOnly(testFixtures(projects.toolingApi))
 
-    integTestImplementation(testLibs.ansiControlSequenceUtil)
+    integTestImplementation(projects.buildOperationsTrace)
     integTestImplementation(libs.groovyJson)
-    integTestImplementation(testLibs.socksProxy) {
-        because("SOCKS proxy not part of internal-integ-testing api, since it has limited usefulness, so must be explicitly depended upon")
-    }
     integTestImplementation(testFixtures(projects.core))
     integTestImplementation(testFixtures(projects.signing))
     integTestImplementation(testFixtures(projects.modelReflect))
@@ -134,7 +131,7 @@ dependencies {
     testImplementation(testFixtures(projects.hashing))
     testFixturesImplementation(testLibs.dockerJavaApi)
 
-    integTestImplementation(projects.launcher) {
+    integTestRuntimeOnly(projects.launcher) {
         because("Daemon fixtures need DaemonRegistry")
     }
     integTestImplementation(testFixtures(projects.resourcesHttp))

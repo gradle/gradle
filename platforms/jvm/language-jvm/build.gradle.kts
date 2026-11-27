@@ -32,6 +32,7 @@ dependencies {
     testImplementation(projects.modelCore)
     testImplementation(testFixtures(projects.core))
 
+    integTestImplementation(projects.problemsApi)
     integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.resourcesHttp))
 

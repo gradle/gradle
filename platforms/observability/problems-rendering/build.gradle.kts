@@ -26,7 +26,6 @@ dependencies {
     implementation(libs.guava)
     implementation(projects.baseServices)
 
-    integTestImplementation(testFixtures(projects.logging))
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 
     testImplementation(projects.serialization)

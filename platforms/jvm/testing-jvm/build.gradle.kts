@@ -62,11 +62,12 @@ dependencies {
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.time))
 
-    integTestImplementation(testFixtures(projects.languageGroovy))
+    integTestImplementation(projects.buildOperationsTrace)
     integTestImplementation(testFixtures(projects.modelReflect))
-    integTestImplementation(testFixtures(projects.scala))
     integTestImplementation(testFixtures(projects.testingBase))
-    integTestImplementation(testFixtures(projects.toolingApi))
+    integTestImplementation(libs.groovyXml)
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
@@ -79,6 +80,8 @@ dependencies {
     testFixturesImplementation(projects.stdlibJavaExtensions)
 
     testFixturesApi(projects.internalIntegTesting)
+
+    integTestRuntimeOnly(testFixtures(projects.toolingApi))
 }
 
 gradleModule {

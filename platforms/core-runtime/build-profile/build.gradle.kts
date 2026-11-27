@@ -24,7 +24,9 @@ dependencies {
 
     testImplementation(projects.internalTesting)
 
+    integTestImplementation(libs.groovy)
     integTestImplementation(libs.jsoup)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

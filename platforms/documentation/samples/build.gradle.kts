@@ -5,11 +5,14 @@ plugins {
 description = "Integration tests for our documentation snippets (aka samples)"
 
 dependencies {
-    integTestImplementation(testLibs.samplesCheck) {
-        exclude(group = "org.codehaus.groovy", module = "groovy-all")
-    }
-    integTestImplementation(testFixtures(projects.modelCore))
+    integTestImplementation(projects.baseServices)
+    integTestImplementation(projects.jvmServices)
+    integTestImplementation(projects.stdlibJavaExtensions)
     integTestImplementation(testFixtures(projects.testingBase))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(libs.groovyXml)
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

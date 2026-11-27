@@ -38,6 +38,7 @@ dependencies {
     }
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 
+    integTestImplementation(projects.problemsApi)
     integTestImplementation(testFixtures(projects.modelReflect))
 
     testFixturesApi(projects.coreApi)

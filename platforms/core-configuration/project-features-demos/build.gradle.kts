@@ -42,5 +42,7 @@ dependencies {
     implementation(libs.commonsLang)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
-}
 
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
+}

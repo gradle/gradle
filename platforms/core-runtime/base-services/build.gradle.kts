@@ -56,6 +56,8 @@ dependencies {
     testFixturesApi(libs.guava)
 
     testFixturesImplementation(projects.stdlibJavaExtensions)
+
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

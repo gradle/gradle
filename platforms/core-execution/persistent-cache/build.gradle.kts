@@ -43,6 +43,8 @@ dependencies {
 
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
     javadocReferences(projects.scopedPersistentCache)
+
+    integTestImplementation(testLibs.spock)
 }
 
 gradleModule {

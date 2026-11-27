@@ -65,6 +65,8 @@ dependencies {
     javadocReferences(projects.workers)
 
     testRuntimeOnly(projects.normalization)
+
+    integTestImplementation(libs.groovy)
 }
 
 gradleModule {

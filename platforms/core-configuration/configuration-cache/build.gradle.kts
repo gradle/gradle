@@ -17,6 +17,17 @@ tasks.isolatedProjectsIntegTest {
     enabled = false
 }
 
+dependencyAnalysis {
+    issues {
+        sourceSet("integTest") {
+            onRuntimeOnly {
+                // DAGP does not see Groovy imports of nested classes
+                exclude(":groovy-dsl")
+            }
+        }
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
@@ -110,20 +121,29 @@ dependencies {
     }
     testRuntimeOnly(testLibs.kotlinxCoroutinesDebug)
 
-    integTestImplementation(projects.groovyDsl)
+    integTestImplementation(projects.buildOperationsTrace)
+    integTestImplementation(projects.groovyDsl) {
+        because("Tests import DefaultScriptCompilationHandler.ScriptClassLoader")
+    }
+    integTestImplementation(projects.daemonServerWorker)
     integTestImplementation(projects.ide)
     integTestImplementation(projects.launcher)
+    integTestImplementation(projects.platformJvm)
     integTestImplementation(projects.testKit)
     integTestImplementation(testFixtures(projects.core))
+    integTestImplementation(testFixtures(projects.dependencyManagement))
 
     integTestImplementation(testLibs.playwright)
 
     integTestImplementation(testFixtures(projects.toolingApi))
     integTestImplementation(testFixtures(projects.kotlinDslToolingBuilders))
-    integTestImplementation(testFixtures(projects.dependencyManagement))
     integTestImplementation(testFixtures(projects.jacoco))
     integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.processServices))
+    integTestImplementation(libs.ant)
+    integTestImplementation(libs.groovyJson)
+    integTestImplementation(libs.jsr305)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("Includes tests for builds with the enterprise plugin and TestKit involved; ConfigurationCacheJacocoIntegrationTest requires JVM distribution")
@@ -132,6 +152,7 @@ dependencies {
     crossVersionTestImplementation(projects.internalIntegTesting)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
+
 }
 
 gradleModule {

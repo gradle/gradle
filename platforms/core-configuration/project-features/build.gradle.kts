@@ -42,6 +42,10 @@ dependencies {
     testFixturesRuntimeOnly(projects.processServices)
 
     integTestImplementation(testFixtures(projects.declarativeDslProvider))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
+
 }
 
 gradleModule {
@@ -51,4 +55,3 @@ gradleModule {
         daemon = true
     }
 }
-

@@ -78,8 +78,10 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 
+    integTestImplementation(projects.testingBaseInfrastructure)
     integTestImplementation(testFixtures(projects.platformNative))
     integTestImplementation(testFixtures(projects.testingBase))
+    integTestImplementation(testLibs.spock)
 
     testFixturesApi(testLibs.hamcrest)
 

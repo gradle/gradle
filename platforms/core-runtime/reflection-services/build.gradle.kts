@@ -26,8 +26,12 @@ dependencies {
 
     implementation(projects.instrumentationAgentServices)
 
-    integTestImplementation(projects.launcher)
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    integTestRuntimeOnly(projects.launcher)
 }
 
 gradleModule {

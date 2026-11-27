@@ -38,7 +38,11 @@ dependencies {
 
     implementation(libs.guava)
 
+    integTestImplementation(projects.jvmServices)
+    integTestImplementation(projects.stdlibJavaExtensions)
     integTestImplementation(testFixtures(projects.testingBase))
+    integTestImplementation(libs.groovy)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }

@@ -95,6 +95,10 @@ dependencies {
     integTestImplementation(testFixtures(projects.buildConfiguration))
     integTestImplementation(testFixtures(projects.buildProcessServices))
     integTestImplementation(testFixtures(projects.toolchainsJvmShared))
+    integTestImplementation(libs.commonsIo)
+    integTestImplementation(libs.commonsLang)
+    integTestImplementation(testLibs.hamcrest)
+    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("built-in options are required to be present at runtime for 'TaskOptionsSpec'")
