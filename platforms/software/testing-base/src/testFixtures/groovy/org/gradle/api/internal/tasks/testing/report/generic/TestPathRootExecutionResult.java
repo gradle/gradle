@@ -56,6 +56,11 @@ public interface TestPathRootExecutionResult {
     TestPathRootExecutionResult assertChildCount(int tests, int failures);
 
     /**
+     * Asserts that the details tabs shown below the summary are exactly the given tabs, in order.
+     */
+    TestPathRootExecutionResult assertTabs(String... tabNames);
+
+    /**
      * Returns the number of child tests that were executed for the current test path.
      *
      * @return the number of executed child tests
