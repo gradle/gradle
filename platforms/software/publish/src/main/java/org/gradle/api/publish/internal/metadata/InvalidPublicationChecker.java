@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.SoftwareComponent;
@@ -79,6 +80,12 @@ public class InvalidPublicationChecker {
             } else {
                 variants.put(name, identity);
             }
+        }
+    }
+
+    public void checkFileUrl(String name, String url) {
+        if (!GradleModuleMetadataParser.isRelativeFileUrl(url)) {
+            failWith("File '" + name + "' cannot be published with URL '" + url + "'. The URL must be a relative path that uses '/' as separator.");
         }
     }
 

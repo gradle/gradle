@@ -798,6 +798,86 @@ class GradleModuleMetadataParserTest extends Specification {
         'artifact type'                | '/variants[0]/dependencies[0]/thirdPartyCompatibility/artifactSelector' | 'type'    | '"name": "v", "dependencies": [{ "group": "g", "module": "c", "thirdPartyCompatibility": { "artifactSelector": { "name": "foo" } }}]'
     }
 
+    def "fails for file url '#url' that is not a relative path"() {
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
+
+        when:
+        parser.parse(resource("""
+        {
+            "formatVersion": "1.1",
+            "variants": [
+                {
+                    "name": "v",
+                    "files": [{ "name": "c.jar", "url": "${url.replace('\\', '\\\\')}" }]
+                }
+            ]
+        }"""), metadata)
+
+        then:
+        0 * _
+        def e = thrown(MetaDataParseException)
+        e.cause.message == "invalid 'url' at /variants[0]/files[0]: '$url' must be a relative path that uses '/' as separator"
+
+        where:
+        url << [
+            "/c.jar",
+            "/repo/g/c/1.0/c.jar",
+            "//host/c.jar",
+            "/../c.jar",
+            "http://host/c.jar",
+            "file:/c.jar",
+            "file:c.jar",
+            "..\\c.jar",
+            "sub\\c.jar",
+            "C:\\some\\c.jar",
+            "C:\\\\some\\\\c.jar",
+            "\\/escaped\\/c.jar",
+            "C:/some/c.jar",
+            "c:c.jar",
+            "localhost:8080/c.jar",
+            "user:pass@host/c.jar"
+        ]
+    }
+
+    def "accepts file url '#url' that is a relative path"() {
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
+        def variant = Mock(MutableComponentVariant)
+
+        when:
+        parser.parse(resource("""
+        {
+            "formatVersion": "1.1",
+            "variants": [
+                {
+                    "name": "v",
+                    "files": [{ "name": "c.jar", "url": "$url" }]
+                }
+            ]
+        }"""), metadata)
+
+        then:
+        1 * metadata.addVariant("v", _) >> variant
+        1 * variant.addFile("c.jar", url)
+
+        where:
+        url << [
+            "c.jar",
+            "c-1.0-SNAPSHOT.jar",
+            "sub/c.jar",
+            "sub/dir/c.jar",
+            "./c.jar",
+            "sub/../c.jar",
+            "sub/dir/../../c.jar",
+            "../c.jar",
+            "../../other/1.0/other-1.0.jar",
+            "sub/../../c.jar",
+            "sub//c.jar",
+            "..c.jar",
+            "sub/c:d.jar",
+            "c.jar?a=b#c"
+        ]
+    }
+
     def "translates legacy usage values to replacement usage and library elements"() {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
         def expectedAttrs = attributes(

@@ -40,6 +40,11 @@ public interface ResourcePattern {
     ExternalResourceName toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact);
 
     /**
+     * Returns the path that contains every location this pattern can produce, which is the directory part of the pattern that precedes its first token.
+     */
+    ExternalResourceName toRootPath();
+
+    /**
      * Returns the path for the given module.
      */
     ExternalResourceName toModulePath(ModuleIdentifier moduleIdentifier);

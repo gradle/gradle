@@ -174,7 +174,7 @@ This value, nested in `variants`, must contain an array with zero or more elemen
 This value, nested in `variants`, must contain an array with zero or more elements. Each element must be an object with the following values:
 
 - `name`: The name of the file. A string. This will be used to calculate the identity of the file in the cache, which means it must be unique across variants for different files.
-- `url`: The location of the file. A string. This must be a path relative to the module.
+- `url`: The location of the file. A string. This must be a path relative to the module. The path uses `/` as separator and must not be absolute. It can designate a location outside the directory of the module through `..` segments, as long as that location is inside the repository.
 - `size`: The size of the file in bytes. A number.
 - `sha1`: The SHA1 hash of the file content. A hex string.
 - `sha256`: The SHA-256 hash of the file content. A hex string.

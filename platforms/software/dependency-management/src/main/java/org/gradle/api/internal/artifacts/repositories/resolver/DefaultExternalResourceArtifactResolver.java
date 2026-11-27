@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -30,13 +31,16 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor.DefaultResourceFileStore;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifactResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExternalResourceArtifactResolver.class);
+    private static final Pattern PATH_PARAMETERS = Pattern.compile(";[^/]*");
 
     private final ExternalResourceRepository repository;
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
@@ -96,12 +100,21 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
     }
 
     private LocallyAvailableExternalResource downloadByUrl(List<ResourcePattern> patternList, final UrlBackedArtifactMetadata artifact, ResourceAwareResolveResult result) {
+        String relativeUrl = normalizeRelativeUrl(artifact);
+        // A repository can have several patterns with different roots, so the same URL can be outside the root of one pattern and inside the root of another
+        boolean outsideRootOfSomePattern = false;
+        boolean insideRootOfSomePattern = false;
         for (ResourcePattern resourcePattern : patternList) {
             if (isIncomplete(resourcePattern, artifact)) {
                 continue;
             }
             ExternalResourceName moduleDir = resourcePattern.toModuleVersionPath(normalizeComponentId(artifact));
-            ExternalResourceName location = moduleDir.resolve(normalizeRelativeUrl(artifact));
+            ExternalResourceName location = locateInRepository(resourcePattern, moduleDir, relativeUrl);
+            if (location == null) {
+                outsideRootOfSomePattern = true;
+                continue;
+            }
+            insideRootOfSomePattern = true;
             result.attempted(location);
             LOGGER.debug("Loading {}", location);
             LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(artifact);
@@ -113,6 +126,37 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
             } catch (Exception e) {
                 throw ResourceExceptions.getFailed(location.getUri(), e);
             }
+        }
+        if (outsideRootOfSomePattern && !insideRootOfSomePattern) {
+            throw new InvalidUserDataException(String.format("Cannot locate file '%s' of %s as its URL '%s' designates a location outside the repository.", artifact.getFileName(), artifact.getComponentId().getDisplayName(), relativeUrl));
+        }
+        return null;
+    }
+
+    /**
+     * The URL of a file is resolved against the directory of its module version and may designate another directory, for example that of another version.
+     * It must not be able to select something the host of the repository serves outside the repository.
+     *
+     * @return null when the URL designates a location outside the root of the given pattern.
+     */
+    @Nullable
+    private static ExternalResourceName locateInRepository(ResourcePattern resourcePattern, ExternalResourceName moduleDir, String relativeUrl) {
+        try {
+            ExternalResourceName root = resourcePattern.toRootPath();
+            ExternalResourceName location = moduleDir.resolve(relativeUrl);
+            if (!location.isSameOrDescendantOf(root)) {
+                return null;
+            }
+            if (relativeUrl.indexOf(';') < 0) {
+                return location;
+            }
+            // Some servers remove the parameters of a path element before they handle '..', so that '..;x' designates the parent directory
+            ExternalResourceName locationWithoutParameters = moduleDir.resolve(PATH_PARAMETERS.matcher(relativeUrl).replaceAll(""));
+            if (locationWithoutParameters.isSameOrDescendantOf(root)) {
+                return location;
+            }
+        } catch (IllegalArgumentException e) {
+            // The URL designates a location above the root of the host
         }
         return null;
     }

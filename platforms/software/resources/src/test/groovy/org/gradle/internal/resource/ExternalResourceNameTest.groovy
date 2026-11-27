@@ -230,4 +230,49 @@ class ExternalResourceNameTest extends Specification {
         "file:////host/a/b"      | "z"                   | "file:////host/a/b/z"
         "file:////host//a//b"    | "z"                   | "file:////host/a/b/z"
     }
+
+    def "cannot resolve a path that designates a location above the root"() {
+        when:
+        new ExternalResourceName(URI.create(uri)).resolve(path)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Cannot resolve path '$path' relative to '$uri' as it designates a location above the root."
+
+        where:
+        uri                 | path
+        "http://host/a/b/c" | "../../../.."
+        "http://host/a/b/c" | "../../../../z"
+        "http://host/a/b/c" | "/.."
+        "http://host/a/b/c" | "/z/../../y"
+        "http://host"       | ".."
+        "/a"                | "../.."
+        "a"                 | "../.."
+    }
+
+    def "can check whether a name is located in another"() {
+        expect:
+        new ExternalResourceName(URI.create(uri)).isSameOrDescendantOf(new ExternalResourceName(URI.create(ancestor))) == expected
+
+        where:
+        uri                         | ancestor               | expected
+        "http://host/a/b/c"         | "http://host/a/b"      | true
+        "http://host/a/b/c"         | "http://host/a/b/"     | true
+        "http://host/a/b/c"         | "http://host/a/b/c"    | true
+        "http://host/a/b/c"         | "http://host/"         | true
+        "http://host/a/b/c"         | "http://host"          | false
+        "http://host/a/./b//c"      | "http://host/a/x/../b" | true
+        "http://host/a/b"           | "http://host/a/b/c"    | false
+        "http://host/a/bc"          | "http://host/a/b"      | false
+        "http://host/a/b/../c"      | "http://host/a/b"      | false
+        "http://host/a/b/c"         | "http://other/a/b"     | false
+        "http://host/a/b/c"         | "https://host/a/b"     | false
+        "http://host:8080/a/b/c"    | "http://host/a/b"      | false
+        "file:/a/b/c"               | "file:/a/b"            | true
+        "file:////host/a/b/c"       | "file:////host/a"      | true
+        "file:////host/a/b/c"       | "file:////other/a"     | false
+        "a/b/c"                     | "a/b"                  | true
+        "a/b/c"                     | "/a/b"                 | false
+        "/a/b/c"                    | "a/b"                  | false
+    }
 }

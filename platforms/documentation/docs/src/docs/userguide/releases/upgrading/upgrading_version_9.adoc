@@ -197,6 +197,25 @@ Previously, Gradle relied on the file extension: it unpacked a `.zip` file as a 
 An archive whose extension does not match its content now unpacks correctly.
 An archive that is neither a zip nor a tar.gz file fails with `Unsupported JDK archive format`.
 
+[[module_metadata_file_url_location]]
+==== Files of a module must be located in its repository
+
+The `url` of a file declared in <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>> must now be a relative path.
+Gradle fails to parse a `.module` file that declares a file with:
+
+* an absolute path, such as `/other-repo/lib.jar`,
+* a URL with a scheme, such as `https://example.com/lib.jar`,
+* a path that contains a backslash.
+
+Gradle also refuses to generate module metadata with such a URL.
+
+The `url` is resolved against the directory of the module version and can still designate another directory of the repository through `..` segments, such as `../other-version/lib.jar`.
+Resolving a file whose URL designates a location outside the repository the module comes from now fails.
+The same applies to a file added by a <<component_metadata_rules.adoc#component-metadata-rules,component metadata rule>> through link:{javadocPath}/org/gradle/api/artifacts/MutableVariantFilesMetadata.html#addFile(java.lang.String,java.lang.String)[`addFile(name, url)`], which also rejects a URL that contains a backslash.
+
+Previously, such a URL could designate any path on the host of the repository, or any local file for a `file:` repository.
+Gradle always publishes the name of the file as its `url`, so metadata published by Gradle is not affected.
+
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier
 

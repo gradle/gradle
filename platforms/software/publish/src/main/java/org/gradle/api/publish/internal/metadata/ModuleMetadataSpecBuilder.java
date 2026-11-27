@@ -187,6 +187,7 @@ public class ModuleMetadataSpecBuilder {
             return null;
         }
         PublicationInternal.PublishedFile publishedFile = publication.getPublishedFile(artifact);
+        checker.checkFileUrl(publishedFile.getName(), publishedFile.getUri());
         return new ModuleMetadataSpec.Artifact(
             publishedFile.getName(),
             publishedFile.getUri(),

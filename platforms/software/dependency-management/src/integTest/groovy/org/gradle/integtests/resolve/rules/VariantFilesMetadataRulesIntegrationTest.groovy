@@ -395,6 +395,113 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         }
     }
 
+    def "cannot add file located outside the repository using url '#url'"() {
+        given:
+        repository {
+            'org.test:moduleA:1.0'()
+        }
+
+        when:
+        buildFile << """
+            dependencies {
+                conf("org.test:moduleA:1.0") {
+                    if (${!useMaven() && !gradleMetadataPublished}) {
+                        targetConfiguration = "runtime" // explicit configuration selection for pure ivy
+                    }
+                }
+                components {
+                    withModule('org.test:moduleA', MissingFileRule) { params('-extraFeature', 'jar', '$url') }
+                }
+            }
+        """
+        // No other request is expected, in particular none for the location the URL designates
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+
+        then:
+        fails 'checkDep'
+        failure.assertHasCause("Could not download moduleA-1.0-extraFeature.jar (org.test:moduleA:1.0)")
+        failure.assertHasCause("Cannot locate file 'moduleA-1.0-extraFeature.jar' of org.test:moduleA:1.0 as its URL '$url' designates a location outside the repository.")
+
+        where:
+        url << [
+            "/outside/some.jar",
+            "../../../../../outside/some.jar",
+            "../../../../../../../../some.jar"
+        ]
+    }
+
+    def "cannot add file using a url with a backslash"() {
+        given:
+        repository {
+            'org.test:moduleA:1.0'()
+        }
+
+        when:
+        buildFile << """
+            dependencies {
+                conf("org.test:moduleA:1.0") {
+                    if (${!useMaven() && !gradleMetadataPublished}) {
+                        targetConfiguration = "runtime" // explicit configuration selection for pure ivy
+                    }
+                }
+                components {
+                    withModule('org.test:moduleA', MissingFileRule) { params('-extraFeature', 'jar', '..\\\\..\\\\some.jar') }
+                }
+            }
+        """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+            }
+        }
+
+        then:
+        fails 'checkDep'
+        failure.assertHasCause("Cannot add file moduleA-1.0-extraFeature.jar (url: ..\\..\\some.jar) because its url must use '/' as separator")
+    }
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    def "can add file located in another directory of the repository"() {
+        given:
+        repository {
+            'org.test:moduleA:1.0'()
+        }
+        def otherVersion = mavenHttpRepo.module('org.test', 'moduleA', '1.0-extra')
+        def extraFile = otherVersion.getArtifact("moduleA-1.0-extra.jar")
+        extraFile.file.parentFile.mkdirs()
+        extraFile.file << "extra"
+
+        when:
+        buildFile << """
+            dependencies {
+                conf("org.test:moduleA:1.0")
+                components {
+                    withModule('org.test:moduleA', MissingFileRule) { params('-extraFeature', 'jar', '../1.0-extra/moduleA-1.0-extra.jar') }
+                }
+            }
+            tasks.register('printFiles') {
+                def files = configurations.conf
+                doLast { println files*.name }
+            }
+        """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        extraFile.expectGet()
+
+        then:
+        succeeds 'printFiles'
+        outputContains("[moduleA-1.0.jar, moduleA-1.0-extraFeature.jar]")
+    }
+
     def "cannot add file with the same name multiple times"() {
         given:
         repository {
