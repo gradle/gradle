@@ -111,9 +111,6 @@ configure<DependencyAnalysisSubExtension> {
                 }
             }
         }
-
-        ignoreSourceSet("jmh")
-
     }
 }
 

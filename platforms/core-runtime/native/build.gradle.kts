@@ -32,7 +32,6 @@ dependencies {
     testImplementation(testFixtures(projects.core))
 
     jmhImplementation(projects.files)
-    jmhImplementation(projects.baseServices)
 }
 
 gradleModule {
