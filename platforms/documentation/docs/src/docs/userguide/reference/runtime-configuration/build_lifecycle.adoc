@@ -535,7 +535,9 @@ Work that only reports the outcome of tasks, such as uploading results, is bette
 
 `beforeExecution` runs before Gradle snapshots the task inputs and performs up-to-date and build cache checks:
 
-* It is not meant for configuring the task. If it changes an input value anyway, Gradle fingerprints the changed value, but doesn't add task dependencies for it.
+* Configure lazy properties, such as `Property` or `ConfigurableFileCollection`, when you configure the task, not here.
+An input with a plain type, such as `String`, whose value is only known when the task executes, can be set here, as shown in <<configuration_cache_requirements.adoc#config_cache:requirements:task_lifecycle_listeners_plain_inputs,Setting task inputs that are not lazy properties>>.
+Gradle fingerprints the new value, but doesn't add task dependencies for it.
 * It must not change the task's outputs, including values that determine which outputs exist, such as whether a report is enabled.
 * It cannot change the task in other ways, such as declaring inputs or outputs, adding dependencies, actions, or listeners, or changing whether the task is skipped.
 * If it throws an exception, the task fails without running its actions. The same applies when Gradle cannot create the listener.

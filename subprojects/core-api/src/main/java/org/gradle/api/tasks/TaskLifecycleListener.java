@@ -75,8 +75,10 @@ public interface TaskLifecycleListener<T extends Task> {
      *
      * <p>Called for every task that Gradle tries to execute, including tasks that are later skipped, up-to-date or loaded from the build cache.</p>
      *
-     * <p>This method is not meant for configuring the task. If it changes the value of a task input anyway,
-     * the changed value is fingerprinted, but no task dependencies are added for it, as the task graph is already built.
+     * <p>Lazy properties, such as {@link org.gradle.api.provider.Property} or {@link org.gradle.api.file.ConfigurableFileCollection},
+     * should be configured when the task is configured, not here. A task input with a plain type, such as {@code String},
+     * whose value is only known when the task executes, can be set here. The new value is fingerprinted, but no task
+     * dependencies are added for it, as the task graph is already built.
      * The outputs of the task are already resolved and must not be changed. This includes values that
      * determine which outputs the task has, such as whether a report is enabled.</p>
      *

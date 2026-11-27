@@ -1,0 +1,34 @@
+import javax.inject.Inject
+
+// tag::plain-input-listener[]
+// A task type from a plugin that you cannot change
+abstract class StampBuildNumber extends DefaultTask {
+    @Input
+    String buildNumber = 'local' // <1>
+
+    @OutputFile
+    abstract RegularFileProperty getOutput()
+
+    @TaskAction
+    void stamp() {
+        output.get().asFile.text = buildNumber
+        logger.lifecycle("Build number: $buildNumber")
+    }
+}
+
+abstract class SetBuildNumber implements TaskLifecycleListener<StampBuildNumber> {
+    @Inject
+    abstract ProviderFactory getProviders()
+
+    @Override
+    void beforeExecution(StampBuildNumber task) { // <2>
+        task.buildNumber = providers.gradleProperty('buildNumber').getOrElse('local') // <3>
+    }
+}
+
+tasks.withType(StampBuildNumber).addLifecycleListener(SetBuildNumber)
+// end::plain-input-listener[]
+
+tasks.register('stamp', StampBuildNumber) {
+    output = layout.buildDirectory.file('build-number.txt')
+}
