@@ -64,6 +64,19 @@ class PathTraversalCheckerTest extends Specification {
         "foo.\\bar.txt"| "foo\\bar.txt"
         "foo./bar.txt" | "foo/bar.txt"
         "foo..\\bar"   | "..foo\\bar"
+        ".. /foo"      | "..foo/foo"
+        ".. /.. /init.d/x" | "init.d/x"
+        "foo /bar"     | "foo bar"
+        "foo\\ \\bar"  | " foo/ bar"
+        "foo/bar "     | "foo bar/baz qux.txt"
+        "foo\\bar "    | "foo\\bar"
+        "foo?/bar"     | "foo/bar"
+    }
+
+    def "considers a name that cannot be parsed as a path unsafe"() {
+        expect:
+        isUnsafePathName("foo\u0000bar")
+        isUnsafePathName("foo/bar\u0000")
     }
 
     def "does not reject safe zip entry names with similar patterns"() {
@@ -97,7 +110,11 @@ class PathTraversalCheckerTest extends Specification {
             "foo...//",
             "foo...\\\\",
             "foo...//bar",
-            "foo...\\\\bar"
+            "foo...\\\\bar",
+            ".. /foo",
+            "foo /bar",
+            "foo/bar ",
+            "foo?/bar",
         ]
     }
 }
