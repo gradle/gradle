@@ -42,7 +42,8 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.Visibility
-import org.jetbrains.kotlin.fir.analysis.checkers.toVisibilityOrNull
+import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 import org.junit.Assert.assertTrue
 import org.junit.Ignore
@@ -1045,4 +1046,14 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     private
     fun CharSequence.count(text: CharSequence): Int =
         StringGroovyMethods.count(this, text)
+
+    private
+    fun KtModifierKeywordToken.toVisibilityOrNull(): Visibility? =
+        when (this) {
+            KtTokens.PUBLIC_KEYWORD -> Visibilities.Public
+            KtTokens.PRIVATE_KEYWORD -> Visibilities.Private
+            KtTokens.PROTECTED_KEYWORD -> Visibilities.Protected
+            KtTokens.INTERNAL_KEYWORD -> Visibilities.Internal
+            else -> null
+        }
 }

@@ -39,7 +39,7 @@ import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-import org.jetbrains.kotlin.name.NameUtils
+import org.jetbrains.kotlin.name.ScriptNames
 import org.junit.Test
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.kotlin.KStubbing
@@ -687,5 +687,5 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
 
     private
     fun scriptClassNameForFile(fileName: String) =
-        NameUtils.getScriptNameForFile(fileName).asString()
+        ScriptNames.getScriptNameForFile(fileName).asString()
 }

@@ -105,6 +105,9 @@ dependencies {
     runtimeOnly(libs.kotlinBuildToolsImpl) {
         isTransitive = false
     }
+    runtimeOnly(libs.kotlinBuildToolsCriImpl) {
+        isTransitive = false
+    }
     runtimeOnly(libs.kotlinScriptingJvm) {
         isTransitive = false
     }

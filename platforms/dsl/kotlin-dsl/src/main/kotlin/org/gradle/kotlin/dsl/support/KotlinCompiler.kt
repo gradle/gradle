@@ -26,7 +26,7 @@ import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
 import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
-import org.jetbrains.kotlin.name.NameUtils
+import org.jetbrains.kotlin.name.ScriptNames
 import org.slf4j.Logger
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -117,7 +117,7 @@ class DefaultKotlinCompiler(private val moduleRegistry: ModuleRegistry) : Intern
             scriptIdentity
         )
 
-        return NameUtils.getScriptNameForFile(scriptFile.name).asString()
+        return ScriptNames.getScriptNameForFile(scriptFile.name).asString()
     }
 
     private val receiverCache: MutableMap<KClass<*>, KClass<*>> = ConcurrentHashMap()

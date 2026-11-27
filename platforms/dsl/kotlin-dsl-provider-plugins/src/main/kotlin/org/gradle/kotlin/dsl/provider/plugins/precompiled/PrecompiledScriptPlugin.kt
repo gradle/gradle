@@ -30,7 +30,7 @@ import org.gradle.util.internal.TextUtil.convertLineSeparatorsToUnix
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
-import org.jetbrains.kotlin.name.NameUtils
+import org.jetbrains.kotlin.name.ScriptNames
 import java.io.File
 import java.util.Locale
 
@@ -284,7 +284,7 @@ fun KotlinLexer.skipWhiteSpaceAndComments() {
 
 private
 fun scriptClassNameForFile(file: File) =
-    NameUtils.getScriptNameForFile(file.name).asString()
+    ScriptNames.getScriptNameForFile(file.name).asString()
 
 
 private
