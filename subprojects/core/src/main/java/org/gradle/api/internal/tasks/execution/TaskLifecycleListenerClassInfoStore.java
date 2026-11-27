@@ -67,7 +67,7 @@ public class TaskLifecycleListenerClassInfoStore {
     /**
      * Returns the info of the given listener type.
      *
-     * @throws InvalidUserDataException when the type is not a valid listener.
+     * @throws org.gradle.api.GradleException when the type is not a valid listener.
      */
     public TaskLifecycleListenerClassInfo getClassInfo(Class<? extends TaskLifecycleListener<?>> listenerType, ProblemsInternal problems) {
         return classInfos.get(listenerType, type -> createClassInfo(type, problems));
