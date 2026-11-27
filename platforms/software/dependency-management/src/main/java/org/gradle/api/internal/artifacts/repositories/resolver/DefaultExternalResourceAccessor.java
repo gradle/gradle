@@ -60,7 +60,7 @@ public class DefaultExternalResourceAccessor implements ExternalResourceAccessor
             return resourceAccessor.getResource(resource, null, new DefaultResourceFileStore<String>(fileStore) {
                 @Override
                 protected String computeKey() {
-                    return resource.toString();
+                    return resource.getCacheKey();
                 }
             }, null);
         } catch (Exception e) {

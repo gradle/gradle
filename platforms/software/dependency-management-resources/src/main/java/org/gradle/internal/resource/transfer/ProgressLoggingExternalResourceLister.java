@@ -23,6 +23,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.resource.ExternalResourceListBuildOperationType;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.uri.UriDisplay;
 import org.jspecify.annotations.Nullable;
 
 import java.net.URI;
@@ -76,7 +77,7 @@ public class ProgressLoggingExternalResourceLister extends AbstractProgressLoggi
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor
-                .displayName("List " + parent.getUri())
+                .displayName("List " + UriDisplay.maskUserInfo(parent.getUri()))
                 .details(new ListOperationDetails(parent.getUri()));
         }
     }

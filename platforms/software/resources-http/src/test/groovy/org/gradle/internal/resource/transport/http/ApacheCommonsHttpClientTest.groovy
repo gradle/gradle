@@ -94,19 +94,6 @@ class ApacheCommonsHttpClientTest extends Specification {
         1 * response.entity.content.close()
     }
 
-    def "stripping user credentials removes username and password"() {
-        given:
-        def uri = new URI("https", "admin:password", "foo.example", 80, null, null, null)
-
-        when:
-        def strippedUri = ApacheCommonsHttpClient.stripUserCredentials(uri)
-
-        then:
-        strippedUri.userInfo == null
-        strippedUri.scheme == "https"
-        strippedUri.host == "foo.example"
-    }
-
     def "parseRFC9457Response extracts detail field"() {
         given:
         def responseBody = '{"type": "about:blank", "title": "Not Found", "status": 404, "detail": "The requested artifact was not found in the repository"}'

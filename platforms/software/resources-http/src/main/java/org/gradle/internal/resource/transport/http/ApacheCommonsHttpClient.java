@@ -26,16 +26,15 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.HttpErrorStatusCodeException;
 import org.gradle.internal.resource.ReadableContent;
+import org.gradle.internal.uri.UriDisplay;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -47,7 +46,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -168,7 +166,7 @@ public class ApacheCommonsHttpClient implements HttpClient {
     }
 
     private static HttpRequestException createHttpRequestException(String method, Throwable cause, URI uri) {
-        return new HttpRequestException(String.format("Could not %s '%s'.", method, stripUserCredentials(uri)), cause);
+        return new HttpRequestException(String.format("Could not %s '%s'.", method, UriDisplay.maskUserInfo(uri)), cause);
     }
 
     private Exception wrapWithExplanation(IOException e) {
@@ -232,18 +230,18 @@ public class ApacheCommonsHttpClient implements HttpClient {
     private HttpClient.Response performHttpRequest(HttpRequestBase request, HttpContext httpContext) throws IOException {
         // Without this, HTTP Client prohibits multiple redirects to the same location within the same context
         httpContext.removeAttribute(REDIRECT_LOCATIONS);
-        LOGGER.debug("Performing HTTP {}: {}", request.getMethod(), stripUserCredentials(request.getURI()));
+        LOGGER.debug("Performing HTTP {}: {}", request.getMethod(), UriDisplay.maskUserInfo(request.getURI()));
 
         try {
             CloseableHttpResponse response = getClient().execute(request, httpContext);
             return toHttpClientResponse(request, httpContext, response);
         } catch (IOException e) {
             validateRedirectChain(httpContext);
-            URI lastRedirectLocation = stripUserCredentials(getLastRedirectLocation(httpContext));
+            URI lastRedirectLocation = getLastRedirectLocation(httpContext);
             if (lastRedirectLocation == null) {
                 throw e;
             }
-            throw new FailureFromRedirectLocation(lastRedirectLocation, e);
+            throw new FailureFromRedirectLocation(UriDisplay.maskUserInfo(lastRedirectLocation), e);
         }
     }
 
@@ -279,10 +277,10 @@ public class ApacheCommonsHttpClient implements HttpClient {
         } else if (response.isMissing()) {
             // Consume content to avoid leaving the connection open.
             response.close();
-            LOGGER.info("Resource missing. [HTTP {}: {}]", response.getMethod(), stripUserCredentials(response.getEffectiveUri()));
+            LOGGER.info("Resource missing. [HTTP {}: {}]", response.getMethod(), UriDisplay.maskUserInfo(response.getEffectiveUri()));
             return response;
         } else {
-            URI effectiveUri = stripUserCredentials(response.getEffectiveUri());
+            URI effectiveUri = UriDisplay.maskUserInfo(response.getEffectiveUri());
             LOGGER.info("Failed to get resource: {}. [HTTP {}: {})]", response.getMethod(), response.getStatusCode(), effectiveUri);
 
             // Extract detailed error message (must be done before closing response)
@@ -380,22 +378,6 @@ public class ApacheCommonsHttpClient implements HttpClient {
             if (sharedContext != null) {
                 sharedContext.clear();
             }
-        }
-    }
-
-    /**
-     * Strips the {@link URI#getUserInfo() user info} from the {@link URI} making it
-     * safe to appear in log messages.
-     */
-    @VisibleForTesting
-    static @Nullable URI stripUserCredentials(@Nullable URI uri) {
-        if (uri == null) {
-            return null;
-        }
-        try {
-            return new URIBuilder(uri).setUserInfo(null).build();
-        } catch (URISyntaxException e) {
-            throw UncheckedException.throwAsUncheckedException(e, true);
         }
     }
 

@@ -60,7 +60,7 @@ public class MavenMetadataLoader {
         ExternalResource resource = cacheAwareExternalResourceAccessor.getResource(metadataLocation, null, new DefaultResourceFileStore<String>(resourcesFileStore) {
             @Override
             protected String computeKey() {
-                return metadataLocation.toString();
+                return metadataLocation.getCacheKey();
             }
         }, null);
         if (resource == null) {

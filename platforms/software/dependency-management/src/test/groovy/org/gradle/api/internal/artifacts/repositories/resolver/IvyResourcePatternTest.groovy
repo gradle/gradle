@@ -25,6 +25,14 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Specification
 
 class IvyResourcePatternTest extends Specification {
+    def "description does not include the user info of the URI"() {
+        def pattern = new IvyResourcePattern(new URI("http://user:secret@host/repo"), "[organisation]/[module]/[revision]")
+
+        expect:
+        pattern.toString() == "Ivy pattern 'http://***@host/repo/[organisation]/[module]/[revision]'"
+        pattern.pattern == "http://user:secret@host/repo/[organisation]/[module]/[revision]"
+    }
+
     def "can construct from URI and pattern"() {
         expect:
         new IvyResourcePattern(new URI(uri), pattern).pattern == expectedPattern

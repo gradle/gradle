@@ -59,4 +59,23 @@ class HttpsToHttpRedirectResolveIntegrationTest extends AbstractRedirectResolveI
             .assertHasResolution("Switch Ivy repository 'ivy($frontServerBaseUrl/repo)' to redirect to a secure protocol (like HTTPS) or allow insecure protocols.")
             .assertHasResolution(Documentation.dslReference(UrlArtifactRepository, "allowInsecureProtocol").getConsultDocumentationMessage())
     }
+
+    def "does not show credentials embedded in the repository URL when refusing a HTTPS to HTTP redirect"() {
+        given:
+        buildFile << configurationWithIvyDependencyAndExpectedArtifact('group:projectA:1.0', 'projectA-1.0.jar', false)
+            .replace("https://localhost", "https://someuser:s3cret@localhost")
+
+        when:
+        server.expectGetRedirected('/repo/group/projectA/1.0/ivy-1.0.xml', "${backingServer.uri}/redirected/group/projectA/1.0/ivy-1.0.xml")
+        backingServer.forbidGet('/redirected/group/projectA/1.0/ivy-1.0.xml', module.ivyFile)
+        server.forbidGet('/repo/group/projectA/1.0/projectA-1.0.jar')
+
+        then:
+        def maskedRepoUrl = "https://***@localhost:${server.sslPort}/repo"
+        fails('listJars')
+            .assertHasCause("Redirecting from secure protocol to insecure protocol, without explicit opt-in, is unsupported. '$maskedRepoUrl' is redirecting to '${backingServer.uri}/redirected/group/projectA/1.0/ivy-1.0.xml'.")
+            .assertHasResolution("Switch Ivy repository 'ivy($maskedRepoUrl)' to redirect to a secure protocol (like HTTPS) or allow insecure protocols.")
+            .assertNotOutput("s3cret")
+            .assertNotOutput("someuser")
+    }
 }

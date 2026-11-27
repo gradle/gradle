@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.UrlArtifactRepository;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.deprecation.Documentation;
+import org.gradle.internal.uri.UriDisplay;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
@@ -106,8 +107,8 @@ public class DefaultUrlArtifactRepository {
         if (redirectFrom != null) {
             contextualAdvice = String.format(
                 " '%s' is redirecting to '%s'. ",
-                redirectFrom,
-                redirectLocation
+                UriDisplay.maskUserInfo(redirectFrom),
+                UriDisplay.maskUserInfo(redirectLocation)
             );
         } else {
             contextualAdvice = "";

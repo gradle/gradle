@@ -120,18 +120,38 @@ class ExternalResourceNameTest extends Specification {
         ""       | ""          | ""
     }
 
-    def "displayable name is base uri plus the encoded path"() {
+    def "cache key is base uri plus the encoded path"() {
         expect:
         def name = new ExternalResourceName(URI.create(uri))
-        name.displayable == expectedDisplayable
+        name.cacheKey == expectedCacheKey
 
         where:
-        uri                          | expectedDisplayable
-        "http://host:80/a/%5B123%5D" | "http://host:80/a/%5B123%5D"
-        "http://host/a/b"            | "http://host/a/b"
-        "http://host"                | "http://host"
-        "a/b/c"                      | "a/b/c"
-        "file:/a/b/c"                | "file:/a/b/c"
+        uri                              | expectedCacheKey
+        "http://host:80/a/%5B123%5D"     | "http://host:80/a/%5B123%5D"
+        "http://host/a/b"                | "http://host/a/b"
+        "http://host"                    | "http://host"
+        "http://user:secret@host:80/a/b" | "http://user:secret@host:80/a/b"
+        "a/b/c"                          | "a/b/c"
+        "file:/a/b/c"                    | "file:/a/b/c"
+    }
+
+    def "display name does not include the user info"() {
+        expect:
+        def name = new ExternalResourceName(URI.create(uri))
+        name.displayName == expectedDisplayName
+        name.toString() == expectedDisplayName
+        name.resolve("c@d").displayName == expectedDisplayName + "/c@d"
+        name.root.displayName == expectedRoot
+        name.uri == URI.create(uri)
+
+        where:
+        uri                                    | expectedDisplayName            | expectedRoot
+        "http://user:secret@host:80/a/b"       | "http://***@host:80/a/b"       | "http://***@host:80/"
+        "http://user:se%40cr%2Fet@host/a/b"    | "http://***@host/a/b"          | "http://***@host/"
+        "http://user@host/a/%5B123%5D"         | "http://***@host/a/%5B123%5D"  | "http://***@host/"
+        "http://host/a/b"                      | "http://host/a/b"              | "http://host/"
+        "file:/a/b"                            | "file:/a/b"                    | "file:/"
+        "a/b"                                  | "a/b"                          | ""
     }
 
     def "short display name is last element of the path if present"() {
@@ -144,6 +164,7 @@ class ExternalResourceNameTest extends Specification {
         "http://host:80"  | "http://host:80"
         "http://host/a/b" | "b"
         "http://host"     | "http://host"
+        "http://u:p@host" | "http://***@host"
         "a/b/c"           | "c"
         "file:/a/b/c"     | "c"
     }
@@ -152,8 +173,8 @@ class ExternalResourceNameTest extends Specification {
     def "can handle UNC paths"() {
         expect:
         def name = new ExternalResourceName(uri)
-        name.displayable == expectedDecoded
-        name.resolve("").displayable == expectedDecoded
+        name.cacheKey == expectedDecoded
+        name.resolve("").cacheKey == expectedDecoded
 
         where:
         uri                              | expectedDecoded

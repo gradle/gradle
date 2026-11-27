@@ -48,7 +48,7 @@ class RemoteScriptUpToDateChecker(
         } else {
             val externalResourceName = ExternalResourceName(uri)
 
-            val cached = cachedExternalResourceIndex.lookup(externalResourceName.toString())
+            val cached = cachedExternalResourceIndex.lookup(externalResourceName.cacheKey)
             val remoteMetaData = try {
                 externalResourceConnector.getMetaData(externalResourceName, true)
             } catch (e: Exception) {
@@ -57,7 +57,7 @@ class RemoteScriptUpToDateChecker(
 
             if (cached != null && ExternalResourceMetaDataCompare.isDefinitelyUnchanged(cached.externalResourceMetaData) { remoteMetaData }) {
                 // reset the age of the cached entry to zero
-                cachedExternalResourceIndex.store(externalResourceName.toString(), cached.cachedFile, cached.externalResourceMetaData)
+                cachedExternalResourceIndex.store(externalResourceName.cacheKey, cached.cachedFile, cached.externalResourceMetaData)
                 true
             } else {
                 val externalResource = AccessorBackedExternalResource(externalResourceName, externalResourceConnector, true)
@@ -65,9 +65,9 @@ class RemoteScriptUpToDateChecker(
                 externalResource.withContentIfPresent(downloadAction)
 
                 lockingAccessCoordinator.useCache {
-                    val cachedResource = externalResourceFileStore.move(externalResource.toString(), downloadAction.destination)
+                    val cachedResource = externalResourceFileStore.move(externalResourceName.cacheKey, downloadAction.destination)
                     val fileInFileStore = cachedResource.file
-                    cachedExternalResourceIndex.store(externalResourceName.toString(), fileInFileStore, downloadAction.metaData)
+                    cachedExternalResourceIndex.store(externalResourceName.cacheKey, fileInFileStore, downloadAction.metaData)
                 }
 
                 false

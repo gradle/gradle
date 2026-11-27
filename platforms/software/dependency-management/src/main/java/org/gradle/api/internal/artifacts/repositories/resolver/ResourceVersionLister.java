@@ -203,7 +203,7 @@ public class ResourceVersionLister implements VersionLister {
 
     private List<String> listAll(ExternalResourceName parent, BuildableModuleVersionListingResolveResult result) {
         LOGGER.debug("using {} to list all in {}", repository, parent);
-        result.attempted(parent.toString());
+        result.attempted(parent);
         List<String> paths = listWithCache(parent);
         if (paths == null) {
             return Collections.emptyList();

@@ -49,6 +49,7 @@ import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.uri.UriDisplay;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -214,7 +215,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
             if (url == null || defaultUrl.equals(url.toString())) {
                 return repository.getName();
             }
-            return repository.getName() + '(' + url + ')';
+            return repository.getName() + '(' + UriDisplay.maskUserInfo(url) + ')';
         }
     }
 }

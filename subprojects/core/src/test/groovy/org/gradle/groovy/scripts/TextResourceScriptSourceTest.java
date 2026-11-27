@@ -173,6 +173,13 @@ public class TextResourceScriptSourceTest {
     }
 
     @Test
+    public void fileNameDoesNotIncludeUserInfoOfUri() throws URISyntaxException {
+        ScriptSource source = forUri(new URI("https://user:secret@www.gradle.org/unknown.txt"));
+        assertThat(source.getFileName(), equalTo("https://***@www.gradle.org/unknown.txt"));
+        assertThat(source.getDisplayName(), equalTo("<file-type> 'https://***@www.gradle.org/unknown.txt'"));
+    }
+
+    @Test
     public void generatesClassNameFromFileNameByRemovingExtensionAndAddingHashOfFileURL() {
         ScriptSource source = forFile(scriptFile);
         assertThat(source.getClassName(), matchesRegexp("build_[0-9a-z]+"));

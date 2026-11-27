@@ -19,6 +19,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.time.Clock;
+import org.gradle.internal.uri.UriDisplay;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.StatusEvent;
 import org.gradle.tooling.events.download.FileDownloadOperationDescriptor;
@@ -137,8 +138,9 @@ public class DistributionInstaller {
         }
 
         private void doDownload(URI address, File destination) throws Exception {
-            String displayName = "Download " + address;
-            FileDownloadOperationDescriptor descriptor = new DefaultFileDownloadOperationDescriptor(displayName, address, null);
+            URI displayAddress = UriDisplay.maskUserInfo(address);
+            String displayName = "Download " + displayAddress;
+            FileDownloadOperationDescriptor descriptor = new DefaultFileDownloadOperationDescriptor(displayName, displayAddress, null);
             long startTime = clock.getCurrentTime();
             buildProgressListener.onEvent(new DefaultFileDownloadStartEvent(startTime, displayName + " started", descriptor));
 
@@ -163,7 +165,7 @@ public class DistributionInstaller {
 
         private long withProgressLogging(URI address, File destination, OperationDescriptor operationDescriptor) throws Throwable {
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(DistributionInstaller.class);
-            progressLogger.setDescription("Download " + address);
+            progressLogger.setDescription("Download " + UriDisplay.maskUserInfo(address));
             progressLogger.started();
             try {
                 return withAsyncDownload(address, destination, operationDescriptor);

@@ -50,7 +50,7 @@ public class DownloadAction implements ExternalResource.ContentAndMetadataAction
         destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         this.metaData = metaData;
         if (logger != null) {
-            logger.info("Downloading {} to {}", source, destination);
+            logger.info("Downloading {} to {}", source.getDisplayName(), destination);
         }
         if (destination.getParentFile() != null) {
             GFileUtils.mkdirs(destination.getParentFile());

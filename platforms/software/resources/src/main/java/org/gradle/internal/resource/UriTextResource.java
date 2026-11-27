@@ -28,6 +28,7 @@ import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.PrimitiveHasher;
+import org.gradle.internal.uri.UriDisplay;
 import org.gradle.util.GradleVersion;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -103,7 +104,7 @@ public class UriTextResource implements TextResource {
         if (sourceFile != null) {
             return Describables.quoted(description, sourceFile.getAbsolutePath());
         } else {
-            return Describables.quoted(description, sourceUri);
+            return Describables.quoted(description, UriDisplay.maskUserInfo(sourceUri));
         }
     }
 
@@ -112,7 +113,7 @@ public class UriTextResource implements TextResource {
         if (sourceFile != null) {
             return Describables.quoted(description, resolver.resolveForDisplay(sourceFile));
         } else {
-            return Describables.quoted(description, sourceUri);
+            return Describables.quoted(description, UriDisplay.maskUserInfo(sourceUri));
         }
     }
 

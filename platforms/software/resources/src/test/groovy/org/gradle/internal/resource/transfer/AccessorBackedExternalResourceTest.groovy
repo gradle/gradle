@@ -32,6 +32,15 @@ class AccessorBackedExternalResourceTest extends Specification {
     def resourceUploader = Mock(ExternalResourceUploader)
     def resourceLister = Mock(ExternalResourceLister)
 
+    def "description does not include the user info of the name"() {
+        def name = new ExternalResourceName(URI.create("http://user:secret@host/a/b"))
+        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
+
+        expect:
+        resource.displayName == "http://***@host/a/b"
+        resource.toString() == "http://***@host/a/b"
+    }
+
     def "can copy content to a file"() {
         def name = new ExternalResourceName("resource")
         def file = tmpDir.file("out")

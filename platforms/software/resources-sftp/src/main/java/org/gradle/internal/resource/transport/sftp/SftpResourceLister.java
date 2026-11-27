@@ -51,7 +51,7 @@ public class SftpResourceLister implements ExternalResourceLister {
             if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
                 return null;
             }
-            throw new ResourceException(directory.getUri(), String.format("Could not list children for resource '%s'.", directory.getUri()), e);
+            throw new ResourceException(directory.getUri(), String.format("Could not list children for resource '%s'.", directory.getDisplayName()), e);
         } finally {
             sftpClientFactory.releaseSftpClient(client);
         }

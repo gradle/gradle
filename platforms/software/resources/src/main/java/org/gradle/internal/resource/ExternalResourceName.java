@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.String.format;
+import org.gradle.internal.uri.UriDisplay;
 
 /**
  * An immutable resource name. Resources are arranged in a hierarchy. Names may be relative, or absolute with some opaque root resource.
@@ -63,12 +64,15 @@ public class ExternalResourceName implements Describable {
 
     @Override
     public String getDisplayName() {
-        return getDisplayable();
+        if (encodedRoot == null) {
+            return encode(path, false);
+        }
+        return UriDisplay.maskUserInfo(encodedRoot) + encode(path, true);
     }
 
     public String getShortDisplayName() {
         int lastSlash = path.lastIndexOf('/');
-        return lastSlash == -1 ? getDisplayable() : path.substring(lastSlash + 1);
+        return lastSlash == -1 ? getDisplayName() : path.substring(lastSlash + 1);
     }
 
     @Override
@@ -91,9 +95,10 @@ public class ExternalResourceName implements Describable {
     }
 
     /**
-     * Returns the 'displayable' name, which is the opaque root + the encoded path of the name.
+     * Returns the key that identifies this resource in caches, which is the opaque root + the encoded path of the name.
+     * It keeps any user info of the root, so it must not end up in messages or logs.
      */
-    public String getDisplayable() {
+    public String getCacheKey() {
         if (encodedRoot == null) {
             return encode(path, false);
         }

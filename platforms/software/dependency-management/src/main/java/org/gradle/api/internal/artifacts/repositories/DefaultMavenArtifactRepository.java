@@ -76,6 +76,7 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
+import org.gradle.internal.uri.UriDisplay;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -273,7 +274,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
         return mavenMirrorResolver.mirrorFor(url, getName())
             .map(mirror -> {
                 if (mirror.isBlocked()) {
-                    throw new InvalidUserDataException(String.format("Repository '%s' (%s) is blocked by Maven mirror '%s' declared in the Maven settings.", getName(), url, mirror.getId()));
+                    throw new InvalidUserDataException(String.format("Repository '%s' (%s) is blocked by Maven mirror '%s' declared in the Maven settings.", getName(), UriDisplay.maskUserInfo(url), mirror.getId()));
                 }
                 return mirror.getUrl();
             })
@@ -472,7 +473,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
             if (url == null) {
                 return repository.getName();
             }
-            return repository.getName() + '(' + url + ')';
+            return repository.getName() + '(' + UriDisplay.maskUserInfo(url) + ')';
         }
     }
 

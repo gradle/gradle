@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transport.http;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.uri.UriDisplay;
 import org.gradle.internal.resource.UriTextResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,7 @@ public class ApacheDirectoryListingParser {
     public List<String> parse(URI baseURI, InputStream content, String contentType) throws Exception {
         baseURI = addTrailingSlashes(baseURI);
         if (contentType == null || !contentType.startsWith("text/html")) {
-            throw new ResourceException(baseURI, String.format("Unsupported ContentType %s for directory listing '%s'", contentType, baseURI));
+            throw new ResourceException(baseURI, String.format("Unsupported ContentType %s for directory listing '%s'", contentType, UriDisplay.maskUserInfo(baseURI)));
         }
         Charset contentEncoding = UriTextResource.extractCharacterEncoding(contentType, StandardCharsets.UTF_8);
         List<String> hrefs = anchorScanner.scan(IOUtils.toString(content, contentEncoding));

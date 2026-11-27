@@ -22,6 +22,7 @@ import org.gradle.api.resources.ResourceException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URI;
+import org.gradle.internal.uri.UriDisplay;
 
 public class ResourceExceptions {
     public static ResourceIsAFolderException readFolder(File location) {
@@ -44,25 +45,29 @@ public class ResourceExceptions {
 
     public static MissingResourceException getMissing(URI location, Throwable failure) {
         return new MissingResourceException(location,
-                String.format("Could not read '%s' as it does not exist.", location),
+                String.format("Could not read '%s' as it does not exist.", displayable(location)),
                 failure instanceof FileNotFoundException ? null : failure);
     }
 
     public static MissingResourceException getMissing(URI location) {
         return new MissingResourceException(location,
-                String.format("Could not read '%s' as it does not exist.", location));
+                String.format("Could not read '%s' as it does not exist.", displayable(location)));
     }
 
     public static ResourceException getFailed(URI location, Throwable failure) {
-        return failure(location, String.format("Could not get resource '%s'.", location), failure);
+        return failure(location, String.format("Could not get resource '%s'.", displayable(location)), failure);
     }
 
     public static ResourceException getFailed(URI location, int statusCode, Throwable cause) {
-        return new HttpErrorStatusCodeException(location, String.format("Could not get resource '%s'.", location), statusCode, cause);
+        return new HttpErrorStatusCodeException(location, String.format("Could not get resource '%s'.", displayable(location)), statusCode, cause);
     }
 
     public static ResourceException putFailed(URI location, Throwable failure) {
-        return failure(location, String.format("Could not write to resource '%s'.", location), failure);
+        return failure(location, String.format("Could not write to resource '%s'.", displayable(location)), failure);
+    }
+
+    private static String displayable(URI location) {
+        return location == null ? "null" : UriDisplay.maskUserInfo(location).toString();
     }
 
     /**

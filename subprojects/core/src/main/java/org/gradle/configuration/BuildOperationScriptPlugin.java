@@ -27,6 +27,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.internal.resource.TextResource;
+import org.gradle.internal.uri.UriDisplay;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
@@ -63,7 +64,7 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
             decorated.apply(target);
         } else {
             URI uri = resource.getFile() != null ? resource.getFile().toURI() : resource.getLocation().getURI();
-            UserCodeSource source = new UserCodeSource.Script(getSource().getShortDisplayName(), uri);
+            UserCodeSource source = new UserCodeSource.Script(getSource().getShortDisplayName(), uri == null ? null : UriDisplay.maskUserInfo(uri));
             UserCodeApplicationContext.Target appTarget = getApplicationTargetFor(target);
             userCodeApplicationContext.apply(source, appTarget, userCodeApplicationId -> buildOperationRunner.run(new RunnableBuildOperation() {
                 @Override
@@ -121,7 +122,7 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
         public String getUri() {
             if (file == null) {
                 URI uri = resourceLocation.getURI();
-                return uri == null ? null : uri.toASCIIString();
+                return uri == null ? null : UriDisplay.maskUserInfo(uri).toASCIIString();
             } else {
                 return null;
             }

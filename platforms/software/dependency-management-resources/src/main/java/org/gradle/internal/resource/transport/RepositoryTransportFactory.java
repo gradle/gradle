@@ -255,11 +255,11 @@ public class RepositoryTransportFactory {
 
         @Override
         public void upload(ReadableContent resource, ExternalResourceName destination) {
-            throw new ResourceException(destination.getUri(), String.format("Cannot upload to '%s' in offline mode.", destination.getUri()));
+            throw new ResourceException(destination.getUri(), String.format("Cannot upload to '%s' in offline mode.", destination.getDisplayName()));
         }
 
         private static ResourceException offlineResource(ExternalResourceName source) {
-            return new ResourceException(source.getUri(), String.format("No cached resource '%s' available for offline mode.", source.getUri()));
+            return new ResourceException(source.getUri(), String.format("No cached resource '%s' available for offline mode.", source.getDisplayName()));
         }
 
     }
