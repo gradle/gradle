@@ -60,6 +60,8 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -72,6 +74,8 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultBuildCacheController implements BuildCacheController {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildCacheController.class);
+
     @VisibleForTesting
     final RemoteBuildCacheServiceHandle remote;
 
@@ -155,8 +159,11 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
         tmp.withTempFile(((BuildCacheKeyInternal) key).getHashCodeInternal(), file -> {
             packExecutor.pack(file, key, entity, snapshots, executionTime);
-            remote.maybeStore(key, file);
-            local.maybeStore(key, file);
+            boolean storedRemotely = remote.maybeStore(key, file);
+            boolean storedLocally = local.maybeStore(key, file);
+            if ((storedRemotely || storedLocally) && LOGGER.isInfoEnabled()) {
+                LOGGER.info("Stored cache entry for {} with cache key {}", entity.getDisplayName(), key.getHashCode());
+            }
         });
     }
 

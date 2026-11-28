@@ -32,6 +32,7 @@ import org.gradle.integtests.fixtures.BuildCacheOperationFixtures
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.util.internal.TextUtil
+import spock.lang.Issue
 import spock.lang.Shared
 
 class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
@@ -340,6 +341,86 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         true       | true         | "remote($remoteCacheClass) { push = true }"
         false      | true         | "local.push = false; remote($remoteCacheClass) { push = true }"
         false      | false        | "local.enabled = false; remote($remoteCacheClass) { push = true }"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/40005")
+    def "logs stored cache entries only when a cache is writable"() {
+        given:
+        remote("return false", "writer.writeTo(new ByteArrayOutputStream())")
+        def localCache = new TestBuildCache(file("local-cache").createDir())
+        settingsFile << localCache.localCacheConfiguration() << """
+            buildCache {
+                local.enabled = $localEnabled
+                local.push = $localPush
+                remote($remoteCacheClass) {
+                    enabled = $remoteEnabled
+                    push = $remotePush
+                }
+            }
+        """
+        buildFile << cacheableTask() << """
+            tasks.register("t", CustomTask).configure { paths = ["out"] }
+        """
+
+        when:
+        succeeds("t", "--info")
+
+        then:
+        output.contains("Stored cache entry for task ':t' with cache key") == stored
+        localCache.empty == !(localEnabled && localPush)
+        operations.all(BuildCacheRemoteStoreBuildOperationType).size() == (remoteEnabled && remotePush ? 1 : 0)
+        operations.all(BuildCacheRemoteStoreBuildOperationType).every { it.result.stored }
+
+        where:
+        localEnabled | localPush | remoteEnabled | remotePush | stored
+        true         | true      | true          | true       | true
+        true         | true      | true          | false      | true
+        false        | false     | true          | true       | true
+        true         | false     | true          | true       | true
+        false        | false     | true          | false      | false
+        true         | false     | true          | false      | false
+        true         | false     | false         | false      | false
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/40005")
+    def "logs stored cache entries after remote #failureOperation failure only when local storage succeeds"() {
+        given:
+        remote(
+            failureOperation == "load" ? 'throw new RuntimeException("remote failure")' : "return false",
+            'throw new RuntimeException("remote failure")'
+        )
+        def localCache = new TestBuildCache(file("local-cache").createDir())
+        settingsFile << localCache.localCacheConfiguration() << """
+            buildCache {
+                local.enabled = $localEnabled
+                remote($remoteCacheClass) { push = true }
+            }
+        """
+        buildFile << cacheableTask() << """
+            tasks.register("t", CustomTask).configure { paths = ["out"] }
+            tasks.register("other", CustomTask).configure {
+                paths = ["other"]
+                dir = file("build/other-output")
+                otherDir = file("build/another-output")
+                mustRunAfter("t")
+            }
+        """
+
+        when:
+        succeeds("t", "other", "--info")
+
+        then:
+        output.contains("remote failure")
+        output.contains("Stored cache entry for task ':t' with cache key") == localEnabled
+        output.contains("Stored cache entry for task ':other' with cache key") == localEnabled
+        localCache.empty == !localEnabled
+
+        where:
+        failureOperation | localEnabled
+        "load"           | false
+        "load"           | true
+        "store"          | false
+        "store"          | true
     }
 
     def "records ops for remote hit"() {
