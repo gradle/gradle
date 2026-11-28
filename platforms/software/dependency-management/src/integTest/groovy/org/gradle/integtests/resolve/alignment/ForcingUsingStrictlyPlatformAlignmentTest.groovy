@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 @Requires(value = TestExecutionPreconditions.IsEmbeddedExecutor, reason = """
@@ -216,6 +217,123 @@ include 'other'
         failure.assertHasCause """Cannot find a version of 'org:databind' that satisfies the version constraints:
    Dependency path: root project 'test' (conf) --> 'org:databind:{strictly 2.7.9}'
    Constraint path: root project 'test' (conf) --> project ':other' (conf) --> org:core:2.9.4 ($coreVariant) --> org:platform:2.9.4 (default) --> 'org:databind:2.9.4' because of the following reason: belongs to platform org:platform:2.9.4"""
+    }
+
+    def "strict version range on a virtual platform fails with a resolution error"() {
+        given: "modules at 2.9.4 and 2.9.4.1, and a strict range on their platform that excludes both"
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+        buildFile << """
+            dependencies {
+                conf("org:core:2.9.4")
+                conf("org:kotlin:2.9.4.1")
+                constraints {
+                    conf("org:platform") {
+                        version { strictly '[2.7,2.8)' }
+                    }
+                }
+            }
+        """
+
+        and: "a rule making each module belong to the virtual platform org:platform at the module's version"
+        "a rule which infers module set from group and version"()
+
+        when: "resolving, with the platform's versions listed to evaluate the range"
+        allowAllRepositoryInteractions {
+            group('org') {
+                module('platform') {
+                    expectVersionListing()
+                }
+            }
+        }
+        fails ':checkDeps'
+
+        then: "resolution fails naming the platform and the strict range, instead of crashing"
+        failure.assertHasCause("Cannot find a version of 'org:platform' that satisfies the version constraints:")
+        failure.assertHasErrorOutput("Constraint path: root project 'test' (conf) --> 'org:platform:{strictly [2.7,2.8)}'")
+    }
+
+    def "enforced virtual platform with a version range fails with a resolution error"() {
+        given: "modules at 2.9.4 and 2.9.4.1, and an enforced platform with a range that excludes both"
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+        buildFile << """
+            dependencies {
+                conf("org:core:2.9.4")
+                conf("org:kotlin:2.9.4.1")
+                conf(enforcedPlatform("org:platform:[2.7,2.8)"))
+            }
+        """
+
+        and: "a rule making each module belong to the virtual platform org:platform at the module's version"
+        "a rule which infers module set from group and version"()
+
+        when: "resolving, with the platform's versions listed to evaluate the range"
+        allowAllRepositoryInteractions {
+            group('org') {
+                module('platform') {
+                    expectVersionListing()
+                }
+            }
+        }
+        fails ':checkDeps'
+
+        then: "resolution fails naming the platform and the enforced range, instead of crashing"
+        failure.assertHasCause("Cannot find a version of 'org:platform' that satisfies the version constraints:")
+        failure.assertHasErrorOutput("Dependency path: root project 'test' (conf) --> 'org:platform:{strictly [2.7,2.8)}'")
+    }
+
+    @ToBeImplemented("A virtual platform has no versions to list, so a range on it never resolves")
+    def "strict version range on a virtual platform that every module satisfies fails with a resolution error"() {
+        given: "modules at 2.9.4, and a strict range on their platform that includes 2.9.4"
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+        buildFile << """
+            dependencies {
+                conf("org:core:2.9.4")
+                conf("org:kotlin:2.9.4")
+                constraints {
+                    conf("org:platform") {
+                        version { strictly '[2.9,2.9.4]' }
+                    }
+                }
+            }
+        """
+
+        and: "a rule making each module belong to the virtual platform org:platform at the module's version"
+        "a rule which infers module set from group and version"()
+
+        when: "resolving, with the platform's versions listed to evaluate the range"
+        allowAllRepositoryInteractions {
+            group('org') {
+                module('platform') {
+                    expectVersionListing()
+                }
+            }
+        }
+        fails ':checkDeps'
+
+        then: "resolution fails like an out-of-range constraint, though every module is at 2.9.4"
+        failure.assertHasCause("Cannot find a version of 'org:platform' that satisfies the version constraints:")
+        failure.assertHasErrorOutput("Constraint path: root project 'test' (conf) --> 'org:platform:{strictly [2.9,2.9.4]}'")
     }
 
     String getCoreVariant() {
