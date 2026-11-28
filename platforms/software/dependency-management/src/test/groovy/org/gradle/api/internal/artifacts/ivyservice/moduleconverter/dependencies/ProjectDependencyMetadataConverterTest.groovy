@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
+import org.gradle.internal.configuration.problems.NoOpIsolatedProjectsProblemsReporter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.junit.Rule
@@ -48,7 +49,7 @@ class ProjectDependencyMetadataConverterTest extends AbstractDependencyDescripto
             getIdentity() >> projectId
         }
 
-        def projectDependency = new DefaultProjectDependency(projectState)
+        def projectDependency = new DefaultProjectDependency(projectState, null, new NoOpIsolatedProjectsProblemsReporter())
         if (!withArtifacts) {
             projectDependency.setTargetConfiguration(TEST_DEP_CONF)
         }

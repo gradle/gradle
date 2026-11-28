@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
@@ -24,6 +25,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SKIPPED
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
+@ToBeFixedForIsolatedProjects(because = "AGP reads ProjectDependency.getGroup() of project dependencies in checkMultidexDependency, a cross-project access")
 class AndroidProjectCachingSmokeTest extends AbstractAndroidProjectSmokeTest {
 
     def "can cache android application (agp=#agpVersion)"() {

@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
+import org.gradle.internal.configuration.problems.NoOpIsolatedProjectsProblemsReporter
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -46,7 +47,7 @@ class DefaultProjectDependencyTest extends Specification {
         }
         projectState.getMutableModel() >> project
 
-        projectDependency = new DefaultProjectDependency(projectState)
+        projectDependency = new DefaultProjectDependency(projectState, null, new NoOpIsolatedProjectsProblemsReporter())
         projectDependency.setAttributesFactory(AttributeTestUtil.attributesFactory())
         projectDependency.setCapabilityNotationParser(new CapabilityNotationParserFactory(false).create())
         projectDependency.setObjectFactory(TestUtil.objectFactory())
@@ -109,19 +110,19 @@ class DefaultProjectDependencyTest extends Specification {
     }
 
     private createProjectDependency() {
-        def out = new DefaultProjectDependency(projectState)
+        def out = new DefaultProjectDependency(projectState, null, new NoOpIsolatedProjectsProblemsReporter())
         out.addArtifact(new DefaultDependencyArtifact("name", "type", "ext", "classifier", "url"))
         out
     }
 
     void "knows if is equal"() {
-        def dep1 = new DefaultProjectDependency(projectState)
-        def dep2 = new DefaultProjectDependency(projectState)
+        def dep1 = new DefaultProjectDependency(projectState, null, new NoOpIsolatedProjectsProblemsReporter())
+        def dep2 = new DefaultProjectDependency(projectState, null, new NoOpIsolatedProjectsProblemsReporter())
 
-        def dep1WithConf = new DefaultProjectDependency(projectState)
+        def dep1WithConf = new DefaultProjectDependency(projectState, null, new NoOpIsolatedProjectsProblemsReporter())
         dep1WithConf.setTargetConfiguration("conf1")
 
-        def dep2WithConf = new DefaultProjectDependency(projectState)
+        def dep2WithConf = new DefaultProjectDependency(projectState, null, new NoOpIsolatedProjectsProblemsReporter())
         dep2WithConf.setTargetConfiguration("conf1")
 
         expect:
@@ -129,16 +130,16 @@ class DefaultProjectDependencyTest extends Specification {
         assertThat(dep1WithConf, strictlyEqual(dep2WithConf))
 
         when:
-        def base = new DefaultProjectDependency(projectState)
+        def base = new DefaultProjectDependency(projectState, null, new NoOpIsolatedProjectsProblemsReporter())
         base.setTargetConfiguration("conf1")
 
-        def differentConf = new DefaultProjectDependency(projectState)
+        def differentConf = new DefaultProjectDependency(projectState, null, new NoOpIsolatedProjectsProblemsReporter())
         differentConf.setTargetConfiguration("conf2")
 
         def otherProjectState = Mock(ProjectState) {
             getIdentity() >> ProjectIdentity.forSubproject(Path.ROOT, Path.path(":bar"))
         }
-        def differentProject = new DefaultProjectDependency(otherProjectState)
+        def differentProject = new DefaultProjectDependency(otherProjectState, null, new NoOpIsolatedProjectsProblemsReporter())
         differentProject.setTargetConfiguration("conf1")
 
         then:

@@ -234,9 +234,14 @@ test = { module = 'org:test', version = '1.0' }
 
             def verifyDep(Dependency original, Dependency copied) {
                 // Dependency
-                assert original.group == copied.group
+                if (original instanceof ProjectDependency) {
+                    assert copied instanceof ProjectDependency
+                    assert original.path == copied.path
+                } else {
+                    assert original.group == copied.group
+                    assert original.version == copied.version
+                }
                 assert original.name == copied.name
-                assert original.version == copied.version
                 assert original.reason == copied.reason
 
                 if (original instanceof ModuleDependency) {

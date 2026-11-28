@@ -18,9 +18,11 @@ package org.gradle.smoketests
 
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture
+import spock.lang.PendingFeature
 
 class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedProjectsSmokeTest {
 
+    @PendingFeature(reason = "The dependency-analysis plugin reads ModuleDependency.getRequestedCapabilities() of project dependencies on test fixtures, a cross-project access")
     def "can run Gradle build tasks with isolated projects enabled"() {
         given:
         def fixture = new ConfigurationCacheProblemsFixture(testProjectDir)
@@ -43,6 +45,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
         report.assertHasNoProblems()
     }
 
+    @PendingFeature(reason = "The dependency-analysis plugin reads ModuleDependency.getRequestedCapabilities() of project dependencies on test fixtures, a cross-project access")
     def "can schedule all Gradle build tasks with isolated projects enabled"() {
         def scheduleAllTasksScript = "schedule-all-tasks.gradle"
 

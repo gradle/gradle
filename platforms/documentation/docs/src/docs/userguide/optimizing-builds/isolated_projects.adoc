@@ -52,6 +52,10 @@ Such changes are highlighted in the release notes for each release.
 [[sec:changelog]]
 == Recent changes
 
+* Gradle 9.10.0
+** The group, version and requested feature capabilities of a dependency on another project are now treated as incompatible.
+See <<sec:project_dependency_cross_project,restricted access through project dependencies>> for the alternatives.
+
 * Gradle 9.7.0
 ** Isolated Projects is promoted from experimental to <<feature_lifecycle.adoc#sec:incubating_state,incubating>>.
 ** The stable `org.gradle.isolated-projects` property names are now preferred, and the earlier `.unsafe` names are <<sec:enable_ip,deprecated>>.
@@ -360,6 +364,23 @@ Most of those methods indirectly access the mutable state and are also not allow
 
 In general, it is easier to assume calling any method on another `Project` is forbidden,
 unless it is one of the handful getters that provide _immutable data_.
+
+[[sec:project_dependency_cross_project]]
+==== Restricted access through project dependencies
+
+A dependency on another project gives access to some of the mutable state of that project.
+These methods are not allowed on a dependency on another project:
+
+* `ProjectDependency.getGroup()` and `ProjectDependency.getVersion()`
+* `ModuleDependency.getRequestedCapabilities()`, when the dependency requires a feature
+
+Alternatives::
+* To get the requested capabilities, use `ModuleDependency.getCapabilitySelectors()`.
+* To filter or identify dependencies, use `ProjectDependency.getPath()` or `getName()`, and skip dependencies on projects before you read the group.
+* To get the coordinates of other projects, read them from the <<graph_resolution.adoc#dependency-graph-resolution,resolution result>>.
+* To use the same group or version in all projects, set the value with a <<sec:convention_plugins_ip,convention plugin>> or a <<sec:isolating_lifecycle_callbacks,state-isolating lifecycle callback>>, and read the value of the current project.
+
+See the <<upgrading_version_9.adoc#project_dependency_coordinates_isolated_projects,upgrade guide>> for examples.
 
 [[sec:immutable_cross_project]]
 ==== Unrestricted access to immutable data of other projects
