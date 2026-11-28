@@ -17,25 +17,27 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Describable
-import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.api.InvalidUserCodeException
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.Nested
-import org.gradle.internal.deprecation.DeprecationLogger
-import org.gradle.internal.featurelifecycle.DefaultDeprecatedUsageProgressDetails
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.instantiation.managed.ManagedObjectRegistry
+import org.gradle.internal.service.UnknownServiceException
 import org.gradle.internal.state.Managed
-import org.gradle.problems.buildtree.ProblemStream
 import org.gradle.process.ExecOperations
 import org.gradle.process.ExecResult
 import org.gradle.util.TestUtil
-import org.gradle.util.internal.RedirectStdOutAndErr
 import org.gradle.util.internal.TextUtil
-import org.junit.Rule
 import spock.lang.Issue
 
 import javax.inject.Inject
@@ -44,18 +46,8 @@ import static org.gradle.api.internal.provider.ValueSourceProviderFactory.ValueL
 
 class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
 
-    @Rule
-    RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
-    def progressEventEmitter = Mock(BuildOperationProgressEventEmitter)
-
-    def setup() {
-        DeprecationLogger.reset()
-        DeprecationLogger.init(WarningMode.All, progressEventEmitter, TestUtil.problemsService(), Stub(ProblemStream))
-    }
-
-    def cleanup() {
-        DeprecationLogger.reset()
-    }
+    private static final String PASS_VALUES_AS_PARAMETERS =
+        "Pass the values that need the service in as parameters, or inject a supported service into the value source implementation instead."
 
     def "parameters are configured eagerly"() {
 
@@ -252,52 +244,44 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/39090")
-    def "parameters injecting a service are deprecated"() {
+    def "parameters injecting a service are rejected"() {
         when:
         createProviderOf(InjectingParametersValueSource) {}
 
         then:
-        1 * progressEventEmitter.emitNowIfCurrent({ DefaultDeprecatedUsageProgressDetails details ->
-            details.summary == "Injecting services into the parameters of a value source has been deprecated." &&
-                details.removalDetails == "This will fail with an error in Gradle 10." &&
-                details.contextualAdvice == "Parameters type '${InjectingParametersValueSource.Parameters.name}' injects 'org.gradle.api.model.ObjectFactory'." &&
-                details.advice == "Parameters must only hold data. Pass the values that need the service in as parameters, or inject a supported service into the value source implementation instead." &&
-                details.documentationUrl.endsWith("/userguide/upgrading_version_9.html#value_source_parameters_service_injection")
-        })
+        def e = thrown(InvalidUserCodeException)
+        e.message == "Could not create provider for value source DefaultValueSourceProviderFactoryTest.InjectingParametersValueSource. " +
+            "Parameters type '${InjectingParametersValueSource.Parameters.name}' cannot inject 'org.gradle.api.model.ObjectFactory'. " +
+            "Parameters must only hold data."
+        e.resolutions == [
+            PASS_VALUES_AS_PARAMETERS,
+            new DocumentationRegistry().getDocumentationRecommendationFor("information", "configuration_cache_requirements", "config_cache:requirements:value_source")
+        ]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/39090")
-    def "deprecation is emitted on every creation of a provider"() {
-        when:
-        createProviderOf(InjectingParametersValueSource) {}
-        createProviderOf(InjectingParametersValueSource) {}
-
-        then:
-        2 * progressEventEmitter.emitNowIfCurrent(_ as DefaultDeprecatedUsageProgressDetails)
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/39090")
-    def "parameters that only hold data are not deprecated"() {
-        when:
-        createProviderOf(EchoValueSource) {
-            it.parameters.value.set("42")
+    def "parameters that only hold data are created and isolated"() {
+        given:
+        def provider = createProviderOf(DataOnlyValueSource) {
+            it.parameters.name.set("n")
+            it.parameters.tags.add("t")
+            it.parameters.counts.put("c", 1)
+            it.parameters.labels.add("l")
+            it.parameters.inner.value.set("v")
         }
-        createProviderOf(NoParameters) {}
-        createProviderOf(ExecValueSource) {}
 
-        then:
-        0 * progressEventEmitter._
+        expect:
+        provider.get() == "n [t] [c:1] [l] 0 false false v"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/39090")
-    def "parameters nesting a type that injects a service are deprecated naming the nested type"() {
+    def "parameters nesting a type that injects a service are rejected naming the nested type"() {
         when:
         createProviderOf(NestedInjectingParametersValueSource) {}
 
         then:
-        1 * progressEventEmitter.emitNowIfCurrent({ DefaultDeprecatedUsageProgressDetails details ->
-            details.contextualAdvice == "Parameters type '${NestedInjectingParametersValueSource.Parameters.name}' injects 'org.gradle.api.model.ObjectFactory' through '${NestedInjectingParametersValueSource.Inner.name}'."
-        })
+        def e = thrown(InvalidUserCodeException)
+        e.message.contains("Parameters type '${NestedInjectingParametersValueSource.Parameters.name}' cannot inject 'org.gradle.api.model.ObjectFactory' through '${NestedInjectingParametersValueSource.Inner.name}'.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/39090")
@@ -306,9 +290,25 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         createProviderOf(SelfNestingInjectingParametersValueSource) {}
 
         then:
-        1 * progressEventEmitter.emitNowIfCurrent({ DefaultDeprecatedUsageProgressDetails details ->
-            details.contextualAdvice == "Parameters type '${SelfNestingInjectingParametersValueSource.Parameters.name}' injects 'org.gradle.api.model.ObjectFactory' through '${SelfNestingInjectingParametersValueSource.Inner.name}'."
-        })
+        def e = thrown(InvalidUserCodeException)
+        e.message.contains("Parameters type '${SelfNestingInjectingParametersValueSource.Parameters.name}' cannot inject 'org.gradle.api.model.ObjectFactory' through '${SelfNestingInjectingParametersValueSource.Inner.name}'.")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39090")
+    def "parameters cannot look up the services of the build"() {
+        given:
+        def lookup = new DefaultValueSourceProviderFactory.ParametersServiceLookup(TestUtil.services())
+
+        expect:
+        lookup.get(ManagedObjectRegistry) != null
+        lookup.find(ObjectFactory) == null
+
+        when:
+        lookup.get(ObjectFactory)
+
+        then:
+        def e = thrown(UnknownServiceException)
+        e.message == "Services of type ObjectFactory are not available for injection into the parameters of a value source."
     }
 
     def "describable value source provides source information of missing value"() {
@@ -342,6 +342,38 @@ The value of this provider is derived from: nullValueSource""")
         @Override
         String getDisplayName() {
             "echo(${getParameters().value.orElse('?').get()})"
+        }
+    }
+
+    static abstract class DataOnlyValueSource implements ValueSource<String, Parameters> {
+
+        interface Inner {
+            Property<String> getValue()
+        }
+
+        interface Parameters extends ValueSourceParameters {
+            Property<String> getName()
+
+            ListProperty<String> getTags()
+
+            MapProperty<String, Integer> getCounts()
+
+            SetProperty<String> getLabels()
+
+            ConfigurableFileCollection getFiles()
+
+            DirectoryProperty getDir()
+
+            RegularFileProperty getFile()
+
+            @Nested
+            Inner getInner()
+        }
+
+        @Override
+        String obtain() {
+            def p = getParameters()
+            return "${p.name.get()} ${p.tags.get()} ${p.counts.get()} ${p.labels.get()} ${p.files.files.size()} ${p.dir.isPresent()} ${p.file.isPresent()} ${p.inner.value.get()}"
         }
     }
 
