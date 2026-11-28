@@ -528,4 +528,78 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             .generatedSourceFile(fqName(generatedInterceptor))
             .containsElementsIn(generatedInterceptor)
     }
+
+    def "should keep nullability of bridged methods in reporting adapter"() {
+        given:
+        def givenSource = source """
+            package org.gradle.test;
+
+            import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+            import org.jspecify.annotations.Nullable;
+
+            public interface Credentials {
+                @Nullable
+                @ToBeReplacedByLazyProperty
+                String getUsername();
+
+                void setUsername(@Nullable String username);
+
+                @ToBeReplacedByLazyProperty
+                String getPassword();
+
+                void setPassword(String password);
+
+                @ToBeReplacedByLazyProperty
+                Credentials.@Nullable Options getOptions();
+
+                void setOptions(Credentials.@Nullable Options options);
+
+                interface Options {
+                }
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        def generatedClass = source """
+            package org.gradle.internal.classpath.generated;
+            import org.gradle.test.Credentials;
+            import org.jspecify.annotations.Nullable;
+
+            @Generated
+            @SuppressWarnings("deprecation")
+            public final class Credentials_ReportingAdapter {
+                // Methods are generated in alphabetical order
+                public static Credentials.@Nullable Options access_get_getOptions(Credentials self) {
+                    return self.getOptions();
+                }
+
+                public static void access_set_setOptions(Credentials self, Credentials.@Nullable Options options) {
+                    self.setOptions(options);
+                }
+
+                public static String access_get_getPassword(Credentials self) {
+                    return self.getPassword();
+                }
+
+                public static void access_set_setPassword(Credentials self, String password) {
+                    self.setPassword(password);
+                }
+
+                public static @Nullable String access_get_getUsername(Credentials self) {
+                    return self.getUsername();
+                }
+
+                public static void access_set_setUsername(Credentials self, @Nullable String username) {
+                    self.setUsername(username);
+                }
+            }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(generatedClass))
+            .containsElementsIn(generatedClass)
+    }
 }

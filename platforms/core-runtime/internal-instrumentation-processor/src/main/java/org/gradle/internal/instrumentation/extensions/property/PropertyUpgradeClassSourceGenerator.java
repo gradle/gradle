@@ -38,6 +38,9 @@ import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import java.util.Collections;
 import java.util.List;
@@ -56,6 +59,7 @@ import static org.gradle.internal.instrumentation.processor.codegen.GradleRefere
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.LIST_PROPERTY_LIST_VIEW;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.MAP_PROPERTY_MAP_VIEW;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.SET_PROPERTY_SET_VIEW;
+import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.nullable;
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 
 import static java.util.Objects.requireNonNull;
@@ -135,7 +139,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             .map(element -> TypeVariableName.get((TypeVariable) element.asType()))
             .collect(Collectors.toList());
         List<ParameterSpec> parameters = bridgedMethod.getParameters().stream()
-            .map(ParameterSpec::get)
+            .map(PropertyUpgradeClassSourceGenerator::parameterSpecWithNullability)
             .collect(Collectors.toList());
         List<TypeName> exceptions = bridgedMethod.getThrownTypes().stream()
             .map(TypeName::get)
@@ -175,11 +179,34 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             .addAnnotations(annotationSpecs)
             .addTypeVariables(typeVariables)
             .addParameters(parameters)
-            .returns(TypeName.get(bridgedMethod.getReturnType()))
+            .returns(typeNameWithNullability(bridgedMethod.getReturnType()))
             .varargs(bridgedMethod.isVarArgs())
             .addExceptions(exceptions)
             .addCode(bodyBuilder.build())
             .build();
+    }
+
+    /**
+     * Like {@link ParameterSpec#get(VariableElement)}, but keeps the {@link Nullable} type annotation of the parameter.
+     */
+    private static ParameterSpec parameterSpecWithNullability(VariableElement parameter) {
+        return ParameterSpec.builder(typeNameWithNullability(parameter.asType()), parameter.getSimpleName().toString())
+            .addModifiers(parameter.getModifiers())
+            .build();
+    }
+
+    /**
+     * Like {@link TypeName#get(TypeMirror)}, but keeps the top-level {@link Nullable} type annotation.
+     * JavaPoet drops type annotations when converting a {@link TypeMirror}.
+     */
+    private static TypeName typeNameWithNullability(TypeMirror type) {
+        TypeName typeName = TypeName.get(type);
+        return isNullable(type) ? nullable(typeName) : typeName;
+    }
+
+    private static boolean isNullable(TypeMirror type) {
+        return type.getAnnotationMirrors().stream()
+            .anyMatch(annotation -> ((TypeElement) annotation.getAnnotationType().asElement()).getQualifiedName().contentEquals(Nullable.class.getName()));
     }
 
     private static List<AnnotationSpec> getAnnotations(PropertyUpgradeRequestExtra implementationExtra) {

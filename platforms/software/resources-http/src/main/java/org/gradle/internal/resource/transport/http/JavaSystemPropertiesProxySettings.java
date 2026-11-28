@@ -17,13 +17,14 @@
 package org.gradle.internal.resource.transport.http;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class JavaSystemPropertiesProxySettings implements HttpProxySettings {
     private static final Logger LOGGER = LoggerFactory.getLogger(JavaSystemPropertiesProxySettings.class);
 
-    private final HttpProxy proxy;
+    private final @Nullable HttpProxy proxy;
     private final String propertyPrefix;
     private final int defaultPort;
 
@@ -60,7 +61,7 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
     }
 
     @Override
-    public HttpProxySettings.HttpProxy getProxy() {
+    public HttpProxySettings.@Nullable HttpProxy getProxy() {
         return proxy;
     }
 

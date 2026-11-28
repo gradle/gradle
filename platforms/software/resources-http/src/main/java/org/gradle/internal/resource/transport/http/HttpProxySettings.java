@@ -23,14 +23,15 @@ import org.jspecify.annotations.Nullable;
 
 public interface HttpProxySettings {
 
-    HttpProxy getProxy();
+    @Nullable HttpProxy getProxy();
 
+    @NullMarked
     class HttpProxy {
         public final String host;
         public final int port;
-        public final HttpProxyCredentials credentials;
+        public final @Nullable HttpProxyCredentials credentials;
 
-        public HttpProxy(String host, int port, String username, String password) {
+        public HttpProxy(String host, int port, @Nullable String username, @Nullable String password) {
             this.host = host;
             this.port = port;
             if (username == null || username.isEmpty()) {
@@ -44,7 +45,7 @@ public interface HttpProxySettings {
     @NullMarked
     class HttpProxyCredentials implements Credentials {
         private final String username;
-        private final String password;
+        private final @Nullable String password;
 
         public HttpProxyCredentials(String username, @Nullable String password) {
             this.username = Preconditions.checkNotNull(username);

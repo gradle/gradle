@@ -20,6 +20,7 @@ dependencies {
 
     api(libs.groovy)
     api(libs.inject)
+    api(libs.jspecify)
 
     api(projects.processServices)
 
