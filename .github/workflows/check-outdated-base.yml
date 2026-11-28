@@ -1,0 +1,51 @@
+name: Check outdated PR base
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, ready_for_review, edited ]
+  schedule:
+    - cron: '35 6 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+env:
+  MAX_BASE_AGE_DAYS: 14
+
+jobs:
+  check-pull-request:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          filter: tree:0
+          sparse-checkout: .github/scripts
+      - uses: actions/github-script@v9
+        with:
+          script: |
+            const { checkPullRequest } = require('./.github/scripts/check-outdated-base.js')
+            await checkPullRequest({ context, core })
+
+  check-open-pull-requests:
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          filter: tree:0
+          sparse-checkout: .github/scripts
+      - uses: actions/github-script@v9
+        with:
+          script: |
+            const { checkOpenPullRequests } = require('./.github/scripts/check-outdated-base.js')
+            await checkOpenPullRequests({ github, context, core })
