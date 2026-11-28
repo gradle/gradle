@@ -56,7 +56,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestUtil
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -469,7 +468,6 @@ Outer.Inner entry = null
     }
 
     @Issue('GRADLE-3423')
-    @Ignore
     def testCompileWithInnerInnerClassReference() {
         ScriptSource source = new TextResourceScriptSource(new StringTextResource("script.gradle", innerClass))
 
@@ -481,9 +479,7 @@ Outer.Inner entry = null
 
         where:
         innerClass << [
-            // fails
             "import javax.swing.text.html.HTMLDocument.HTMLReader.SpecialAction",
-            // OK
             """
 import javax.swing.text.html.HTMLDocument.HTMLReader
 HTMLReader.SpecialAction action = null
