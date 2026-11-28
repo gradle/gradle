@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.protocol;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.internal.build.event.types.BuildEventPayloadSerializer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.invocation.BuildAction;
@@ -25,7 +26,6 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.serializer.OutputEventSerializer;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.DefaultSerializer;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.ListSerializer;
@@ -84,7 +84,6 @@ public class DaemonMessageSerializer {
     }
 
     private static class SuccessSerializer implements Serializer<Success> {
-        private final Serializer<Object> javaSerializer = new DefaultSerializer<>();
         private final Serializer<SerializedPayload> payloadSerializer = new SerializedPayloadSerializer();
         private final Serializer<Throwable> throwableSerializer;
 
@@ -118,10 +117,11 @@ public class DaemonMessageSerializer {
                     encoder.writeBoolean(result.wasCancelled());
                     throwableSerializer.write(encoder, result.getException());
                 }
-            } else {
-                // Serialize anything else
+            } else if (success.getValue() instanceof Status) {
                 encoder.writeByte((byte) 5);
-                javaSerializer.write(encoder, success.getValue());
+                writeStatus(encoder, (Status) success.getValue());
+            } else {
+                throw new IllegalArgumentException("Cannot serialize a result of type " + success.getValue().getClass().getName());
             }
         }
 
@@ -146,11 +146,30 @@ public class DaemonMessageSerializer {
                     RuntimeException exception = (RuntimeException) throwableSerializer.read(decoder);
                     return new Success(BuildActionResult.failed(wasCancelled, null, exception));
                 case 5:
-                    return new Success(javaSerializer.read(decoder));
+                    return new Success(readStatus(decoder));
                 default:
                     throw new IllegalArgumentException("Unexpected payload type.");
             }
         }
+    }
+
+    private static void writeStatus(Encoder encoder, Status status) throws Exception {
+        Long pid = status.getPid();
+        encoder.writeBoolean(pid != null);
+        if (pid != null) {
+            encoder.writeLong(pid);
+        }
+        encoder.writeString(status.getVersion());
+        encoder.writeString(status.getStatus());
+    }
+
+    private static Status readStatus(Decoder decoder) throws Exception {
+        Long pid = decoder.readBoolean() ? decoder.readLong() : null;
+        return new Status(
+            pid,
+            decoder.readString(),
+            decoder.readString()
+        );
     }
 
     private static class FailureSerializer implements Serializer<Failure> {
@@ -172,7 +191,7 @@ public class DaemonMessageSerializer {
     }
 
     private static class BuildEventSerializer implements Serializer<BuildEvent> {
-        private final Serializer<Object> payloadSerializer = new DefaultSerializer<>();
+        private final Serializer<Object> payloadSerializer = new BuildEventPayloadSerializer();
 
         @Override
         public void write(Encoder encoder, BuildEvent buildEvent) throws Exception {

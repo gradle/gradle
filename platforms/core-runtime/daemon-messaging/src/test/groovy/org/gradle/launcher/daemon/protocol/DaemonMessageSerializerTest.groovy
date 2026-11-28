@@ -31,6 +31,9 @@ import org.gradle.internal.logging.events.TextQuestionPromptEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
 import org.gradle.internal.logging.events.UserInputResumeEvent
 import org.gradle.internal.logging.events.YesNoQuestionPromptEvent
+import org.gradle.internal.build.event.types.DefaultOperationDescriptor
+import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent
+import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.classloader.SystemClassLoaderSpec
 import org.gradle.internal.serialize.DefaultSerializer
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderDetails
@@ -48,10 +51,21 @@ class DaemonMessageSerializerTest extends SerializerSpec {
 
     def "can serialize BuildEvent messages"() {
         expect:
-        def event = new BuildEvent(["a", "b", "c"])
+        def descriptor = new DefaultOperationDescriptor(new OperationIdentifier(1), "name", "display name", null)
+        def event = new BuildEvent(new DefaultOperationStartedProgressEvent(12, descriptor))
         def result = serialize(event, serializer)
         result instanceof BuildEvent
-        result.payload == ["a", "b", "c"]
+        result.payload instanceof DefaultOperationStartedProgressEvent
+        result.payload.eventTime == 12
+        result.payload.descriptor.displayName == "display name"
+    }
+
+    def "refuses to serialize a BuildEvent with an unknown payload type"() {
+        when:
+        toBytes(new BuildEvent(["a", "b", "c"]), serializer)
+
+        then:
+        thrown(IllegalArgumentException)
     }
 
     def "can serialize LogLevelChangeEvent messages"() {
@@ -64,10 +78,16 @@ class DaemonMessageSerializerTest extends SerializerSpec {
 
     def "can serialize Success message"() {
         expect:
-        def message = new Success("result")
+        def message = new Success(new Status(12L, "9.8", "IDLE"))
         def result = serialize(message, serializer)
         result instanceof Success
-        result.value == "result"
+        result.value instanceof Status
+        result.value.pid == 12L
+        result.value.version == "9.8"
+        result.value.status == "IDLE"
+
+        def withoutPid = serialize(new Success(new Status(null, "9.8", "BUSY")), serializer)
+        withoutPid.value.pid == null
 
         def message2 = new Success(null)
         def result2 = serialize(message2, serializer)
@@ -351,6 +371,15 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         then:
         def e = thrown(IllegalArgumentException)
         e.message.contains("Unexpected type tag 1")
+    }
+
+    def "refuses to serialize a Success message with an unknown value type"() {
+        when:
+        toBytes(new Success("result"), serializer)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Cannot serialize a result of type java.lang.String"
     }
 
     OutputEvent serialize(OutputEvent event, Serializer<Object> serializer) {

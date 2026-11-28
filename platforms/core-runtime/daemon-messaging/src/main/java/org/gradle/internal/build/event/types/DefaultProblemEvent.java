@@ -29,7 +29,11 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
         InternalProblemDescriptor descriptor,
         InternalProblemDetailsVersion2 details
     ) {
-        super(System.currentTimeMillis(), descriptor);
+        this(System.currentTimeMillis(), descriptor, details);
+    }
+
+    DefaultProblemEvent(long eventTime, InternalProblemDescriptor descriptor, InternalProblemDetailsVersion2 details) {
+        super(eventTime, descriptor);
         this.details = details;
     }
 
