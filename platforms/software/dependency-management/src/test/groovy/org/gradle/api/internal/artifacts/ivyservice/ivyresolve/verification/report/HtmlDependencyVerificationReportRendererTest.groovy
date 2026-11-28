@@ -163,15 +163,15 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
 
         where:
         failure                                                                 | stickyTipMessage
-        checksumFailure()                                                       | './gradlew --write-verification-metadata pgp,sha512 help'
-        missingChecksums()                                                      | './gradlew --write-verification-metadata pgp,sha512 help'
-        deletedArtifact()                                                       | './gradlew --write-verification-metadata pgp,sha512 help'
-        missingSignature()                                                      | './gradlew --write-verification-metadata pgp,sha512 help'
-        onlyIgnoredKeys()                                                       | './gradlew --write-verification-metadata pgp,sha512 help'
+        checksumFailure()                                                       | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
+        missingChecksums()                                                      | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
+        deletedArtifact()                                                       | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
+        missingSignature()                                                      | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
+        onlyIgnoredKeys()                                                       | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
         signatureFailure()                                                      | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
-        signatureFailure("Maven", ['abcd': signatureError(FAILED)])             | './gradlew --write-verification-metadata pgp,sha512 help'
-        signatureFailure("Maven", ['abcd': signatureError(IGNORED_KEY)])        | './gradlew --write-verification-metadata pgp,sha512 help'
-        signatureFailure("Maven", ['abcd': signatureError(PASSED_NOT_TRUSTED)]) | './gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure("Maven", ['abcd': signatureError(FAILED)])             | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
+        signatureFailure("Maven", ['abcd': signatureError(IGNORED_KEY)])        | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
+        signatureFailure("Maven", ['abcd': signatureError(PASSED_NOT_TRUSTED)]) | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
         signatureFailure("Maven", ['abcd': signatureError(MISSING_KEY)])        | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
     }
 
