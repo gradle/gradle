@@ -43,8 +43,14 @@ public class TaskGraphBuildExecutionAction  {
         ImmutableSet<Node> entryNodes = plan.getContents().getScheduledNodes().getEntryNodes();
         String invocation = renderRequestedTasks(startParameter);
         StyledTextOutput output = textOutputFactory.create(TaskGraphBuildExecutionAction.class);
-        DirectedGraphRenderer<TaskInfo> renderer = new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph());
+        DirectedGraphRenderer<TaskInfo> renderer = new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph(), dependencyDepthLimit(startParameter));
         renderer.renderTo(new RootNode(entryNodes, invocation), output);
+    }
+
+    private static int dependencyDepthLimit(StartParameterInternal startParameter) {
+        int limit = startParameter.getTaskGraphLimit();
+        // Ignore the RootNode that serves as a header for the task invocation
+        return limit == Integer.MAX_VALUE ? Integer.MAX_VALUE : limit + 1;
     }
 
     private static String renderRequestedTasks(StartParameterInternal startParameter) {
