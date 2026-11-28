@@ -11,7 +11,6 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.enterpriseLogging)
-    api(projects.fileCollections)
 
     // TODO: Remove this dependency when possible, it shouldn't actually be needed by this project
     api(projects.jvmServices) {
@@ -26,7 +25,6 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.concurrent)
     implementation(projects.functional)
     implementation(projects.logging)
     implementation(projects.loggingApi)

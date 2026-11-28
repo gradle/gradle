@@ -67,7 +67,7 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
-    integTestImplementation(testFixtures(projects.baseDiagnostics))
+    integTestImplementation(testFixtures(projects.reportRendering))
     integTestImplementation(testFixtures(projects.platformNative))
 
     integTestImplementation(libs.jsoup)

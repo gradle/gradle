@@ -9,7 +9,6 @@ dependencies {
     api(projects.languageNative)
     api(projects.ideNative)
 
-    api(projects.baseDiagnostics)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
@@ -31,6 +30,7 @@ dependencies {
 
     api(projects.logging)
 
+    implementation(projects.baseDiagnostics)
     implementation(projects.daemonServerWorker)
     implementation(projects.modelReflect)
     implementation(projects.publish)
