@@ -27,7 +27,7 @@ import spock.lang.Specification
 class BuildInitSpecRegistryTest extends Specification {
     def "empty registry is empty"() {
         expect:
-        new BuildInitSpecRegistry().isEmpty()
+        new BuildInitSpecRegistry().snapshot().isEmpty()
     }
 
     def "registry provides loaded specs"() {
@@ -41,20 +41,20 @@ class BuildInitSpecRegistryTest extends Specification {
         registry.register(generator.class, [spec1, spec2])
 
         then: "loaded specs can be found"
-        !registry.isEmpty()
-        registry.getAllSpecs() == [spec1, spec2]
-        registry.getGeneratorForSpec(spec1) == generator.class
-        registry.getGeneratorForSpec(spec2) == generator.class
+        !registry.snapshot().isEmpty()
+        registry.snapshot().getAllSpecs() == [spec1, spec2]
+        registry.snapshot().getGeneratorForSpec(spec1) == generator.class
+        registry.snapshot().getGeneratorForSpec(spec2) == generator.class
 
         when:
-        registry.getGeneratorForSpec(new TestBuildInitSpec("type3", "Some Third Name"))
+        registry.snapshot().getGeneratorForSpec(new TestBuildInitSpec("type3", "Some Third Name"))
 
         then: "not loaded specs can't be found"
         def e = thrown(IllegalStateException)
         e.message == "Spec: 'Some Third Name' with type: 'type3' is not registered!"
 
         when:
-        registry.getGeneratorForSpec(new TestBuildInitSpec("type3", "My Name"))
+        registry.snapshot().getGeneratorForSpec(new TestBuildInitSpec("type3", "My Name"))
 
         then: "specs with the same display name can't be found - we're finding specs by type"
         e = thrown(IllegalStateException)
@@ -70,13 +70,13 @@ class BuildInitSpecRegistryTest extends Specification {
         registry.register(generator.class, [spec1, spec2])
 
         when: "loaded specs can be found by type"
-        def result = registry.getSpecByType("type1")
+        def result = registry.snapshot().getSpecByType("type1")
 
         then:
         result == spec1
 
         when:
-        registry.getSpecByType("unknown")
+        registry.snapshot().getSpecByType("unknown")
 
         then: "Unknown spec type can't be found"
         def e = thrown(IllegalStateException)
@@ -129,12 +129,12 @@ Known types:
         registry.register(generator.class, [spec2])
 
         then:
-        !registry.isEmpty()
-        registry.getAllSpecs() == [spec1, spec2]
-        registry.getSpecByType("type") == spec1
-        registry.getSpecByType("type-2") == spec2
-        registry.getGeneratorForSpec(spec1) == generator.class
-        registry.getGeneratorForSpec(spec2) == generator.class
+        !registry.snapshot().isEmpty()
+        registry.snapshot().getAllSpecs() == [spec1, spec2]
+        registry.snapshot().getSpecByType("type") == spec1
+        registry.snapshot().getSpecByType("type-2") == spec2
+        registry.snapshot().getGeneratorForSpec(spec1) == generator.class
+        registry.snapshot().getGeneratorForSpec(spec2) == generator.class
     }
 
     def "multiple specs with same type cannot be registered to different generators"() {
@@ -169,5 +169,40 @@ Known types:
         then:
         def e = thrown(IllegalStateException)
         e.message == "Spec: 'My Other Name' with type: 'type' cannot use same type as another spec already registered!"
+    }
+
+    def "snapshot lists specs grouped by generator in generator registration order"() {
+        given:
+        def generator1 = new TestBuildInitGenerator()
+        def generator2 = Mock(BuildInitGenerator)
+        def specA = new TestBuildInitSpec("type-a", "A")
+        def specB = new TestBuildInitSpec("type-b", "B")
+        def specC = new TestBuildInitSpec("type-c", "C")
+        def registry = new BuildInitSpecRegistry()
+
+        when:
+        registry.register(generator1.class, [specA])
+        registry.register(generator2.class, [specB])
+        registry.register(generator1.class, [specC])
+
+        then:
+        registry.snapshot().getAllSpecs() == [specA, specC, specB]
+    }
+
+    def "snapshot is not changed by later registrations"() {
+        given:
+        def generator = new TestBuildInitGenerator()
+        def specA = new TestBuildInitSpec("type-a", "A")
+        def specB = new TestBuildInitSpec("type-b", "B")
+        def registry = new BuildInitSpecRegistry()
+        registry.register(generator.class, [specA])
+        def snapshot = registry.snapshot()
+
+        when:
+        registry.register(generator.class, [specB])
+
+        then:
+        snapshot.getAllSpecs() == [specA]
+        registry.snapshot().getAllSpecs() == [specA, specB]
     }
 }

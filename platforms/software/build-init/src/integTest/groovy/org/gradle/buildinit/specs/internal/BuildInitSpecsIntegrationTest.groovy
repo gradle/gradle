@@ -254,6 +254,22 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
         assertWrapperGenerated()
     }
 
+    @LeaksFileHandles
+    @Requires(TestExecutionPreconditions.IsConfigCached)
+    def "can generate a contributed project type when the configuration cache is reused"() {
+        given:
+        publishTestPlugin()
+        initSucceedsWithPluginSupplyingSpec("org.example.myplugin:1.0", "second-project-type")
+        file("new-project/project.output").delete()
+
+        when:
+        initSucceedsWithPluginSupplyingSpec("org.example.myplugin:1.0", "second-project-type")
+
+        then: "the settings plugin did not run, so the specs came from the configuration cache"
+        outputDoesNotContain("MyPlugin applied.")
+        assertProjectFileGenerated("project.output", "MyGenerator created this Second Project Type project.")
+    }
+
     @Ignore("Fails due to breaking changes to ProjectTypeBindingBuilder.  Temporarily disabling until we can publish a new declarative build init plugin.")
     @LeaksFileHandles
     @Requires(value = [
