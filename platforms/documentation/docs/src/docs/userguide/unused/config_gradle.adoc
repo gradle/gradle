@@ -19,7 +19,29 @@
 == Configuring JVM memory
 
 The `org.gradle.jvmargs` Gradle property controls the VM running the build.
-It defaults to `-Xmx512m "-XX:MaxMetaspaceSize=384m"`
+The build VM uses the following default arguments:
+
+* `-Xms256m -Xmx512m`
+* `-XX:MaxMetaspaceSize=768m`
+* `-XX:+HeapDumpOnOutOfMemoryError`
+
+The arguments in `org.gradle.jvmargs` are merged with these defaults.
+A default is only added if you do not configure the corresponding setting yourself:
+
+* `-Xms256m` and `-Xmx512m` are added only if you set neither `-Xms` nor `-Xmx`.
+Setting either one drops both heap defaults, so the minimum heap size never exceeds the maximum heap size.
+* `-XX:MaxMetaspaceSize=768m` is added unless you set `-XX:MaxMetaspaceSize`.
+* `-XX:+HeapDumpOnOutOfMemoryError` is added unless you set `-XX:+HeapDumpOnOutOfMemoryError` or `-XX:-HeapDumpOnOutOfMemoryError`.
+Use `-XX:-HeapDumpOnOutOfMemoryError` to disable heap dumps.
+
+There is no way to opt out of the defaults as a whole.
+
+[NOTE]
+====
+Only `-Xms` and `-Xmx` are recognized as heap size settings.
+If you size the heap with other options, such as `-XX:MaxRAMPercentage` or `-XX:MaxHeapSize`, the default `-Xmx512m` is still added.
+To control the heap size, for example when running in a container, use `-Xmx` or `-Xms`.
+====
 
 You can adjust JVM options for Gradle in the following ways.
 
@@ -27,9 +49,12 @@ You can adjust JVM options for Gradle in the following ways.
 ====
 [source,text]
 ----
-org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+org.gradle.jvmargs=-Xmx2g -Dfile.encoding=UTF-8
 ----
 ====
+
+With this setting, the build VM uses `-Xmx2g` and `-Dfile.encoding=UTF-8` together with the default `-XX:MaxMetaspaceSize=768m` and `-XX:+HeapDumpOnOutOfMemoryError`.
+Neither `-Xms256m` nor `-Xmx512m` is added because `-Xmx` is set.
 
 The `JAVA_OPTS` environment variable controls the command line client, which is only used to display console output. It defaults to `-Xmx64m`
 
@@ -46,6 +71,7 @@ JAVA_OPTS="-Xmx64m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
 There is one case where the client VM can also serve as the build VM:
 
 If you deactivate the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> and the client VM has the same settings as required for the build VM, the client VM will run the build directly.
+The required settings include the merged default arguments, so the client VM must be started with them, or with explicit overrides, as well.
 
 Otherwise, the client VM will fork a new VM to run the actual build in order to honor the different settings.
 ====
