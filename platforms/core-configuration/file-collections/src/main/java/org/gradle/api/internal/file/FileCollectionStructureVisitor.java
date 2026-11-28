@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
+import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
@@ -58,6 +59,16 @@ public interface FileCollectionStructureVisitor {
      */
     default VisitType prepareForVisit(FileCollectionInternal.Source source) {
         return VisitType.Visit;
+    }
+
+    /**
+     * How the visited collections should read the lazy values they are derived from, such as properties and other configurable file collections.
+     *
+     * <p>A visitor that reads on behalf of a value that disallows unsafe reads returns {@link ValueSupplier.ValueConsumer#DisallowUnsafeRead},
+     * so that those values are finalized, the same way a property that disallows unsafe reads finalizes the properties it is derived from.
+     */
+    default ValueSupplier.ValueConsumer getValueConsumer() {
+        return ValueSupplier.ValueConsumer.IgnoreUnsafeRead;
     }
 
     /**

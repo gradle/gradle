@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
+import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
@@ -36,6 +37,11 @@ public class DelegatingFileCollectionStructureVisitor implements FileCollectionS
     @Override
     public VisitType prepareForVisit(FileCollectionInternal.Source source) {
         return delegate.prepareForVisit(source);
+    }
+
+    @Override
+    public ValueSupplier.ValueConsumer getValueConsumer() {
+        return delegate.getValueConsumer();
     }
 
     @Override
