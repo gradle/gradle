@@ -201,6 +201,18 @@ class OperatingSystemTest extends Specification {
         OperatingSystem.current() instanceof OperatingSystem.FreeBSD
     }
 
+    def "freebsd identifies itself correctly"() {
+        def os = new OperatingSystem.FreeBSD()
+
+        expect:
+        !os.windows
+        os.unix
+        !os.macOsX
+        !os.linux
+        os.isFreeBSD()
+        os.familyName == "freebsd"
+    }
+
     def "uses default implementation for other os"() {
         System.properties['os.name'] = 'unknown'
 
