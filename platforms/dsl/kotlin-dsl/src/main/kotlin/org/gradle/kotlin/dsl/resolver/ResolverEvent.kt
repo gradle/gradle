@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("DEPRECATION_ERROR")
+
 package org.gradle.kotlin.dsl.resolver
 
 import kotlin.script.dependencies.KotlinScriptExternalDependencies

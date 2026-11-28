@@ -80,6 +80,7 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
         private val kgpVersionByKotlinLanguageVersion = mapOf(
             "1.4" to "2.0.21", // Every KGP that runs on current Gradle deprecates Kotlin 1.4; this is the newest one that still accepts it.
             "1.8" to "2.1.21",
+            "2.2" to "2.4.21",
             KOTLIN_DSL_LANGUAGE_VERSION to embeddedKotlinVersion,
         )
 

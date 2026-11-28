@@ -50,7 +50,7 @@ class Helper(private val providers: ProviderFactory) {
         handler.all {
             if (this is UrlArtifactRepository) {
                 // see https://github.com/gradle/gradle/issues/37612
-                @Suppress("USELESS_ELVIS")
+                @Suppress("USELESS_ELVIS", "UNNECESSARY_SAFE_CALL")
                 val currentUrl = this.url?.toString() ?: return@all
                 originalUrls.forEach { name, originalUrl ->
                     if (normalizeUrl(originalUrl) == normalizeUrl(currentUrl) && mirrorUrls.containsKey(name)) {
