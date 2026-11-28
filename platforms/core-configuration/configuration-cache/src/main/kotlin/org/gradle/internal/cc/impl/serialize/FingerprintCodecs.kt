@@ -73,7 +73,18 @@ internal object ValueSourceFingerprintCodec : Codec<ConfigurationCacheFingerprin
     }
 
     override suspend fun ReadContext.decode(): ConfigurationCacheFingerprint.ValueSource {
-        val valueSourceType = readClass()
+        val valueSourceType = try {
+            readClass()
+        } catch (failure: ClassNotFoundException) {
+            if (isIntegrityCheckEnabled) throw failure
+            throw FingerprintDeserializationException(
+                StructuredMessage.build {
+                    text("a build logic input type could not be loaded")
+                    failure.message?.let { text(": $it") }
+                },
+                failure
+            )
+        }
         val obtainedValue = withPropertyTrace(PropertyTrace.BuildLogicClass(valueSourceType.name)) {
             tryReading(
                 { decodeBean() },
