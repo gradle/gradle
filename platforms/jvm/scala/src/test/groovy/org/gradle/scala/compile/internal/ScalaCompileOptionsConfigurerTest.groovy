@@ -16,6 +16,7 @@
 
 package org.gradle.scala.compile.internal
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.scala.ScalaCompileOptions
 import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer
 import org.gradle.jvm.toolchain.JavaLanguageVersion
@@ -39,7 +40,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(javaToolchain, fallbackToolchain), classpath)
 
         then:
-        scalaCompileOptions.additionalParameters.last() == expectedTarget
+        scalaCompileOptions.additionalParameters.drop(1).join(' ') == expectedTarget
 
         where:
         javaToolchain | fallbackToolchain | scalaLibraryVersion | expectedTarget
@@ -61,10 +62,41 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         11            | true              | '2.12.14'           | '-target:jvm-1.8'
         11            | true              | '2.13.0'            | '-target:jvm-1.8'
 
-        11            | false             | '2.11.12'           | '-target:jvm-1.11'
-        11            | false             | '2.12.0'            | '-target:jvm-1.11'
-        11            | false             | '2.12.14'           | '-target:jvm-1.11'
-        11            | false             | '2.13.0'            | '-target:jvm-1.11'
+        11            | false             | '2.11.12'           | '-target:jvm-1.8'
+        11            | false             | '2.12.0'            | '-target:jvm-1.8'
+        11            | false             | '2.12.4'            | '-target:jvm-1.8'
+        11            | false             | '2.12.5'            | '-target:jvm-1.8 -release 11'
+        11            | false             | '2.12.14'           | '-target:jvm-1.8 -release 11'
+        17            | false             | '2.12.15'           | '-target:jvm-1.8 -release 17'
+        11            | false             | '2.13.0'            | '-target:jvm-1.8 -release 11'
+
+        8             | false             | '2.12.15'           | '-target:jvm-1.8'
+        11            | true              | '2.12.15'           | '-target:jvm-1.8'
+
+        8             | false             | '2.13.0-RC1'        | '-target:jvm-1.8'
+        11            | false             | '2.13.0-RC1'        | '-target:jvm-1.8 -release 11'
+        11            | true              | '2.13.0-RC1'        | '-target:jvm-1.8'
+        11            | true              | '2.12.17-RC1'       | '-target:8'
+        17            | false             | '2.12.17-RC1'       | '-release:17'
+        17            | true              | '3.0.0-RC1'         | '-Xtarget:8'
+
+        8             | false             | '2.12.16'           | '-target:8'
+        9             | false             | '2.12.16'           | '-target:9'
+        11            | false             | '2.12.16'           | '-target:11'
+
+        8             | false             | '2.12.17'           | '-release:8'
+        9             | false             | '2.12.17'           | '-release:9'
+        11            | false             | '2.12.17'           | '-release:11'
+        11            | false             | '2.12.18'           | '-release:11'
+
+        8             | true              | '2.12.16'           | '-target:8'
+        9             | true              | '2.12.16'           | '-target:8'
+        11            | true              | '2.12.16'           | '-target:8'
+
+        8             | true              | '2.12.17'           | '-target:8'
+        9             | true              | '2.12.17'           | '-target:8'
+        11            | true              | '2.12.17'           | '-target:8'
+        11            | true              | '2.12.18'           | '-target:8'
 
         8             | false             | '2.13.1'            | '-target:8'
         9             | false             | '2.13.1'            | '-target:9'
@@ -85,7 +117,37 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         17            | true              | '2.13.10'           | '-target:8'
         17            | true              | '3.2.1'             | '-Xtarget:8'
 
+        17            | false             | '3.7.4'             | '-release:17'
+        17            | true              | '3.7.4'             | '-Xtarget:8'
+        17            | false             | '3.8.0'             | '-release:17'
+        21            | false             | '3.8.4'             | '-release:21'
+        17            | true              | '3.8.0'             | '-Xtarget:17'
+        21            | true              | '3.10.1'            | '-Xtarget:17'
+        17            | true              | '3.8.0-RC1'         | '-Xtarget:17'
+
         toolchain = fallbackToolchain ? "$javaToolchain (fallback)" : javaToolchain
+    }
+
+    def 'fails for Scala #scalaLibraryVersion with Java #javaToolchain toolchain and #parameters'() {
+        given:
+        ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
+        scalaCompileOptions.additionalParameters = parameters
+        Set<File> classpath = [new File("scala3-library_3-${scalaLibraryVersion}.jar")]
+
+        when:
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(javaToolchain, fallbackToolchain), classpath)
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "Scala ${scalaLibraryVersion} requires Java 17 or later, but the Java toolchain is Java ${javaToolchain}. Use a Java toolchain of version 17 or later, or a Scala version before 3.8."
+
+        where:
+        javaToolchain | fallbackToolchain | scalaLibraryVersion | parameters
+        11            | false             | '3.8.0'             | []
+        8             | false             | '3.10.1'            | []
+        16            | true              | '3.8.4'             | []
+        11            | false             | '3.8.0-RC1'         | []
+        11            | false             | '3.8.0'             | ['-release:11']
     }
 
     def 'does not configure target jvm if toolchain is not present'() {

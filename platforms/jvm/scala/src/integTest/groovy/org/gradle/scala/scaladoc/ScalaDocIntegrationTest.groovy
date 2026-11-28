@@ -181,6 +181,7 @@ class ScalaDocIntegrationTest extends MultiVersionIntegrationSpec implements Dir
     }
 
     def "scaladoc is out of date when changing the java launcher"() {
+        Assume.assumeTrue(ScalaCoverage.scalaVersionsSupportedByJdk(VERSION_1_8).contains(version))
         def jdk8 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getJdk(VERSION_1_8))
         def jdk11 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getJdk(VERSION_11))
 

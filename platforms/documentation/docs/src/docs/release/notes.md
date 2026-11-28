@@ -88,6 +88,27 @@ Gradle provides a flexible [dependency management](userguide/getting_started_dep
 ### Platform and toolchain management
 Gradle provides comprehensive support for [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
 
+#### Scala 2.11, 2.12 and 2.13.0 compile with Java 9+ toolchains
+
+The Scala plugin [passes a target parameter to the Scala compiler](userguide/scala_plugin.html#sec:scala_target) based on the Java toolchain.
+With Scala 2.11, 2.12 or 2.13.0 and a Java 9 or higher toolchain, Gradle could pass a parameter that the compiler rejects, such as `-target:jvm-1.17`, and compilation failed.
+
+Gradle now passes parameters that these Scala versions accept:
+
+* Scala 2.12.17 and higher get `-release:<java_version>`.
+* Scala 2.12.16 gets `-target:<java_version>`.
+* Scala 2.11, older Scala 2.12 versions and Scala 2.13.0 get `-target:jvm-1.8`. From Scala 2.12.5, Gradle also passes `-release <java_version>` to compile against the API of the toolchain's Java version.
+* Pre-release versions, such as `2.13.0-RC1`, get the same parameters as their final release.
+
+#### Scala 3.8 compiles without a configured toolchain
+
+Scala 3.8 and higher require Java 17.
+Without a configured Java toolchain, Gradle passed `-Xtarget:8` to these Scala versions, which they reject, and compilation failed.
+Gradle now passes `-Xtarget:17`.
+
+With a toolchain older than Java 17, the Scala 3.8 compiler and Scaladoc tool cannot run.
+Gradle now fails the compile and Scaladoc tasks with a message that names the required Java version, instead of a class version error from the tool.
+
 ### Core plugin and plugin authoring enhancements
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
 

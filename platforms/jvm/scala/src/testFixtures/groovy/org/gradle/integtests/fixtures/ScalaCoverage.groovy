@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.test.fixtures.VersionCoverage
+import org.gradle.util.internal.VersionNumber
 
 import static org.hamcrest.Matchers.is
 import static org.hamcrest.Matchers.notNullValue
@@ -35,6 +36,7 @@ class ScalaCoverage {
         "3.2.2",
         "3.3.6",
         "3.7.1",
+        "3.8.4",
     ]
 
 
@@ -55,6 +57,13 @@ class ScalaCoverage {
         return latestScala3Version
     }
 
+    /**
+     * The lowest bytecode version the Scala compiler can emit, which it does without a configured Java toolchain.
+     */
+    static JavaVersion minimumBytecode(String scalaVersion) {
+        return VersionNumber.parse(scalaVersion).baseVersion >= VersionNumber.parse("3.8.0") ? JavaVersion.VERSION_17 : JavaVersion.VERSION_1_8
+    }
+
     static Set<String> scalaVersionsSupportedByJdk(JavaVersion javaVersion) {
         return scala2VersionsSupportedByJdk(javaVersion) + scala3VersionsSupportedByJdk(javaVersion)
     }
@@ -65,8 +74,8 @@ class ScalaCoverage {
         }
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)) {
             // All latest patches of 2.13 work on Java 9+
-            // 2.12 in theory supports it, but doesn't actually take it as a -target so we can't use it
-            return VersionCoverage.versionsAtLeast(SCALA_2, "2.13.0")
+            // 2.12.20 runs on Java 9 to 23 and Gradle no longer passes it a target it rejects
+            return VersionCoverage.versionsAtLeast(SCALA_2, "2.12.16")
         }
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_8)) {
             // Java 8 support not dropped yet
@@ -100,8 +109,12 @@ class ScalaCoverage {
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
             return VersionCoverage.versionsAtLeast(SCALA_3, "3.1.3")
         }
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_8)) {
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
             return SCALA_3
+        }
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_8)) {
+            // 3.8+ requires Java 17
+            return VersionCoverage.versionsBelow(SCALA_3, "3.8.0")
         }
         throw new IllegalArgumentException("Unsupported Java version for Scala 3: " + javaVersion)
     }

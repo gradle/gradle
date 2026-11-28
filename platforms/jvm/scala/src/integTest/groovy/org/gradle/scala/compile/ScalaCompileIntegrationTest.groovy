@@ -55,7 +55,7 @@ class ScalaCompileIntegrationTest extends MultiVersionIntegrationSpec implements
         executedAndNotSkipped(":compileScala")
 
         JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == currentJdk.javaVersion
-        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
+        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == ScalaCoverage.minimumBytecode(version.toString())
     }
 
     def "fail in case of errors and print correct positions"() {
@@ -88,7 +88,7 @@ class Person {
 
         then:
         executedAndNotSkipped(":compileScala")
-        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
+        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == ScalaCoverage.minimumBytecode(version.toString())
 
         where:
         value            | expression
@@ -115,7 +115,7 @@ class Person {
         then:
         executedAndNotSkipped(":compileScala")
 
-        JavaVersion.forClass(scalaClassFile("App.class").bytes) == JavaVersion.VERSION_1_8
+        JavaVersion.forClass(scalaClassFile("App.class").bytes) == ScalaCoverage.minimumBytecode(version.toString())
     }
 
 }

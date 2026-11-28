@@ -32,9 +32,13 @@ import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
 
 class AbstractScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSpec implements JavaToolchainFixture {
 
-    def getTargetJava8() {
-        return versionNumber >= VersionNumber.parse("2.13.9") ? "-release:8"
+    def getLowestTarget() {
+        return versionNumber.baseVersion >= VersionNumber.parse("3.8.0") ? "-release:17"
+            : versionNumber >= VersionNumber.parse("2.13.9") ? "-release:8"
             : versionNumber >= VersionNumber.parse("2.13.1") ? "-target:8"
+            : versionNumber >= VersionNumber.parse("2.13.0") ? "-target:jvm-1.8"
+            : versionNumber >= VersionNumber.parse("2.12.17") ? "-release:8"
+            : versionNumber >= VersionNumber.parse("2.12.16") ? "-target:8"
             : "-target:jvm-1.8"
     }
 
@@ -53,6 +57,10 @@ class AbstractScalaCompileJavaToolchainIntegrationTest extends MultiVersionInteg
     }
 
 
+    protected void assumeScalaRunsOn(Jvm jdk) {
+        Assume.assumeTrue(ScalaCoverage.scalaVersionsSupportedByJdk(jdk.javaVersion).contains(version))
+    }
+
     protected TestFile configureTool(Jvm jdk) {
         buildFile << """
             compileScala {
@@ -70,10 +78,11 @@ class ScalaCompileJavaToolchainIntegrationTest1 extends AbstractScalaCompileJava
         def currentJdk = Jvm.current()
         def otherJdk = AvailableJavaHomes.differentVersion
         def selectJdk = { it == "other" ? otherJdk : it == "current" ? currentJdk : null }
+        assumeScalaRunsOn(selectJdk(target))
 
         buildFile << """
             compileScala {
-                scalaCompileOptions.additionalParameters = ["${targetJava8}"]
+                scalaCompileOptions.additionalParameters = ["${lowestTarget}"]
             }
         """
 
@@ -94,7 +103,7 @@ class ScalaCompileJavaToolchainIntegrationTest1 extends AbstractScalaCompileJava
         outputContains("Compiling with Zinc Scala compiler")
 
         JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == targetJdk.javaVersion
-        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
+        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == ScalaCoverage.minimumBytecode(version.toString())
 
         where:
         what             | when                         | withTool | withJavaExtension | target
@@ -111,7 +120,7 @@ class ScalaCompileJavaToolchainIntegrationTest1 extends AbstractScalaCompileJava
 
         buildFile << """
             tasks.withType(ScalaCompile).configureEach {
-                scalaCompileOptions.additionalParameters = ["${targetJava8}"]
+                scalaCompileOptions.additionalParameters = ["${lowestTarget}"]
             }
 
             dependencies {
@@ -140,8 +149,8 @@ class ScalaCompileJavaToolchainIntegrationTest1 extends AbstractScalaCompileJava
         outputContains("Running Scala test with Java version ${jdk.javaVersion}")
 
         JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == jdk.javaVersion
-        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
-        JavaVersion.forClass(classFile("scala", "test", "ScalaTest.class").bytes) == JavaVersion.VERSION_1_8
+        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == ScalaCoverage.minimumBytecode(version.toString())
+        JavaVersion.forClass(classFile("scala", "test", "ScalaTest.class").bytes) == ScalaCoverage.minimumBytecode(version.toString())
 
         where:
         jdk << AvailableJavaHomes.supportedWorkerJdks
@@ -177,7 +186,7 @@ class ScalaCompileJavaToolchainIntegrationTest2 extends AbstractScalaCompileJava
         executedAndNotSkipped(":compileScala")
 
         JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == currentJdk.javaVersion
-        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
+        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == ScalaCoverage.minimumBytecode(version.toString())
 
         where:
         option << ["executable", "javaHome"]
@@ -186,10 +195,11 @@ class ScalaCompileJavaToolchainIntegrationTest2 extends AbstractScalaCompileJava
     def "up-to-date depends on the toolchain for Scala "() {
         def currentJdk = Jvm.current()
         def otherJdk = AvailableJavaHomes.getDifferentVersion()
+        assumeScalaRunsOn(otherJdk)
 
         buildFile << """
             compileScala {
-                scalaCompileOptions.additionalParameters = ["${targetJava8}"]
+                scalaCompileOptions.additionalParameters = ["${lowestTarget}"]
 
                 javaLauncher = javaToolchains.launcherFor {
                     languageVersion = JavaLanguageVersion.of(
@@ -225,6 +235,7 @@ class ScalaCompileJavaToolchainIntegrationTest2 extends AbstractScalaCompileJava
 
     def "source and target compatibility override toolchain (source #source, target #target) for Scala "() {
         def jdk11 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
+        assumeScalaRunsOn(jdk11)
 
         buildFile << """
             java {
@@ -234,7 +245,7 @@ class ScalaCompileJavaToolchainIntegrationTest2 extends AbstractScalaCompileJava
             }
 
             compileScala {
-                scalaCompileOptions.additionalParameters = ["${targetJava8}"]
+                scalaCompileOptions.additionalParameters = ["${lowestTarget}"]
 
                 ${source != 'none' ? "sourceCompatibility = JavaVersion.toVersion($source)" : ''}
                 ${target != 'none' ? "targetCompatibility = JavaVersion.toVersion($target)" : ''}
@@ -260,7 +271,7 @@ class ScalaCompileJavaToolchainIntegrationTest2 extends AbstractScalaCompileJava
         outputContains("task.sourceCompatibility = $sourceOut")
         outputContains("task.targetCompatibility = $targetOut")
         JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == JavaVersion.toVersion(targetOut)
-        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
+        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == ScalaCoverage.minimumBytecode(version.toString())
 
         where:
         source | target | sourceOut | targetOut
