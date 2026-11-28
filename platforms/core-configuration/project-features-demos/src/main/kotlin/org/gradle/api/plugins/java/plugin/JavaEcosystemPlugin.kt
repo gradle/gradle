@@ -19,9 +19,16 @@ package org.gradle.api.plugins.java.plugin
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.api.plugins.java.JavaProjectType
+import org.gradle.api.plugins.testing.JvmTestSuiteFeature
+import org.gradle.api.plugins.testing.KotlinTestJvmTestSuiteFeature
 import org.gradle.features.annotations.RegistersProjectFeatures
 
-@RegistersProjectFeatures(JavaProjectTypePlugin::class)
+@RegistersProjectFeatures(
+    JavaProjectTypePlugin::class,
+
+    JvmTestSuiteFeature::class,
+    KotlinTestJvmTestSuiteFeature::class,
+)
 class JavaEcosystemPlugin : Plugin<Settings> {
     override fun apply(target: Settings) {
         target.defaults.add("javaLibrary", JavaProjectType::class.java) { definition ->
