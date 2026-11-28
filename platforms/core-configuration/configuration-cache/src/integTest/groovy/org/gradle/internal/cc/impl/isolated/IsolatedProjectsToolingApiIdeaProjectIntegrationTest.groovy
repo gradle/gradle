@@ -537,6 +537,62 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         fixture.assertModelLoaded()
     }
 
+    def "IdeaProject model built from ideaModuleModel tasks matches the model built by model builders"() {
+        mavenRepo.module("org.example", "lib", "1.0").artifact(classifier: "sources").artifact(classifier: "javadoc").publish()
+        settingsFile << """
+            rootProject.name = 'root'
+            include(":a")
+            include(":b")
+        """
+        file("a/build.gradle") << """
+            plugins {
+                id 'java'
+                id 'idea'
+            }
+            repositories { maven { url = "${mavenRepo.uri}" } }
+            idea.module.downloadJavadoc = true
+            dependencies {
+                implementation(project(":b"))
+                implementation("org.example:lib:1.0")
+                testImplementation("i.dont:Exist:2.4")
+            }
+        """
+        file("b/build.gradle") << """
+            plugins {
+                id 'java'
+                id 'idea'
+            }
+            java.sourceCompatibility = JavaVersion.VERSION_11
+        """
+
+        when: "fetching without running model tasks"
+        withIsolatedProjects(ENABLE_IDEA_MODULE_MODEL_TASK)
+        def originalIdeaModel = fetchModel(IdeaProject)
+
+        then:
+        !file("a/build/ide-sync/idea-module.bin").exists()
+
+        when: "fetching after running model tasks"
+        withIsolatedProjects(ENABLE_IDEA_MODULE_MODEL_TASK)
+        def ideaModel = fetchModel(IdeaProject, IDEA_MODULE_MODEL_TASK)
+
+        then:
+        result.assertTasksExecuted(":a:ideaModuleModel", ":b:ideaModuleModel")
+        file("a/build/ide-sync/idea-module.bin").isFile()
+        file("b/build/ide-sync/idea-module.bin").isFile()
+
+        and:
+        def lib = ideaModel.modules.find { it.name == "a" }.dependencies.find { it instanceof IdeaSingleEntryLibraryDependency && it.file.name == "lib-1.0.jar" } as IdeaSingleEntryLibraryDependency
+        lib.source.name == "lib-1.0-sources.jar"
+        lib.javadoc.name == "lib-1.0-javadoc.jar"
+
+        and:
+        checkIdeaProject(ideaModel, originalIdeaModel)
+    }
+
+    private static final String IDEA_MODULE_MODEL_TASK = "ideaModuleModel"
+    private static final String ENABLE_IDEA_MODULE_MODEL_TASK = "-Dorg.gradle.internal.ide.idea.module-model-task=true"
+
     private static void checkIdeaProject(IdeaProject actual, IdeaProject expected) {
         checkModel(actual, expected, [
             { it.parent },
@@ -574,12 +630,12 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
     private static void checkDependency(IdeaDependency actual, IdeaDependency expected) {
         checkModel(actual, expected, [
             { it.scope.scope },
-            { it.exported },
         ])
 
         if (expected instanceof IdeaModuleDependency) {
             checkModel(actual, expected, [
                 { it.targetModuleName },
+                { it.exported },
             ])
         }
 
@@ -588,7 +644,6 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
                 { it.file },
                 { it.source },
                 { it.javadoc },
-                { it.exported },
             ])
         }
     }
