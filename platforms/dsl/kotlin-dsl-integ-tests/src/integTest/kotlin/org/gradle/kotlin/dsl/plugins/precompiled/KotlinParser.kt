@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.plugins.precompiled
 
 import org.jetbrains.kotlin.cli.jvm.compiler.IdeaStandaloneExecutionSetup
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreApplicationEnvironment
-import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreApplicationEnvironmentMode
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreProjectEnvironment
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.com.intellij.psi.PsiManager
@@ -43,7 +42,7 @@ object KotlinParser {
         val disposable = Disposer.newDisposable()
         try {
             IdeaStandaloneExecutionSetup.doSetup()
-            val applicationEnvironment = KotlinCoreApplicationEnvironment.create(disposable, KotlinCoreApplicationEnvironmentMode.UnitTest)
+            val applicationEnvironment = KotlinCoreApplicationEnvironment.create(disposable)
             applicationEnvironment.registerParserDefinition(KotlinParserDefinition())
             val projectEnvironment = KotlinCoreProjectEnvironment(disposable, applicationEnvironment)
             val manager = PsiManager.getInstance(projectEnvironment.project)

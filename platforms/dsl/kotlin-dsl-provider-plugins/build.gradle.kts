@@ -38,6 +38,7 @@ dependencies {
     implementation(projects.toolingApi)
 
     implementation(libs.kotlinCompilerEmbeddable)
+    implementation(libs.jetbrainsAnnotations)
 
     implementation("org.gradle:kotlin-dsl-shared-runtime")
 

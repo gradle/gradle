@@ -244,14 +244,18 @@ abstract class AbstractBinaryCompatibilityTest {
         rootDir.withFile("version.txt", "9.0.0")
 
         return rootDir.withUniqueDirectory("input-build").apply {
-            withFile(
-                "gradle/libs.versions.toml",
+            withSettings(
                 """
-                    [libraries]
-                    kotlinCompilerEmbeddable = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-embeddable", version = "$embeddedKotlinVersion" }
+                    dependencyResolutionManagement {
+                        versionCatalogs {
+                            create("buildLibs") {
+                                library("kotlinCompilerEmbeddable", "org.jetbrains.kotlin", "kotlin-compiler-embeddable").withoutVersion()
+                            }
+                        }
+                    }
+                    include("v1", "v2", "binary-compatibility")
                 """
             )
-            withSettings("""include("v1", "v2", "binary-compatibility")""")
             withBuildScript(
                 """
                     import gradlebuild.identity.extension.GradleModuleExtension
