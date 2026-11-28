@@ -18,6 +18,7 @@ package org.gradle.workers.internal
 
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -517,6 +518,61 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("Configure closure parameters: WorkParameters.None")
         outputContains("parameters: WorkParameters.None")
+
+        where:
+        isolationMode << ISOLATION_MODES
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/28667")
+    @ToBeFixedForConfigurationCache(because = "finalizeValueOnRead is not preserved when a task property is restored from the configuration cache")
+    def "submitting work finalizes upstream property marked finalizeValueOnRead with isolation mode #isolationMode"() {
+        file("file1.txt").text = "one"
+        file("file2.txt").text = "two"
+        buildFile << """
+            interface ReadFileParameters extends WorkParameters {
+                RegularFileProperty getFile()
+            }
+
+            abstract class ReadFile implements WorkAction<ReadFileParameters> {
+                void execute() {
+                    println("read = " + parameters.file.get().asFile.text)
+                }
+            }
+
+            abstract class ReadFileTask extends DefaultTask {
+                @Internal
+                abstract RegularFileProperty getSource()
+
+                @Internal
+                abstract RegularFileProperty getReplacement()
+
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor()
+
+                @TaskAction
+                void run() {
+                    def source = source
+                    workerExecutor.${isolationMode}().submit(ReadFile) { it.file.set(source) }
+                    workerExecutor.await()
+
+                    source.set(replacement)
+                    println("property changed to " + source.get().asFile.name)
+                }
+            }
+
+            tasks.register("readFile", ReadFileTask) {
+                source.convention(layout.projectDirectory.file("file1.txt"))
+                source.finalizeValueOnRead()
+                replacement.set(layout.projectDirectory.file("file2.txt"))
+            }
+        """
+
+        when:
+        fails("readFile")
+
+        then:
+        outputContains("read = one")
+        failure.assertHasCause("The value for task ':readFile' property 'source' is final and cannot be changed any further.")
 
         where:
         isolationMode << ISOLATION_MODES

@@ -1256,4 +1256,63 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         annotation << [InputArtifact, InputArtifactDependencies]
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/28667")
+    def "running transform finalizes upstream property marked finalizeValueOnRead"() {
+        file("input.txt").text = "input"
+        file("file1.txt").text = "one"
+        file("file2.txt").text = "two"
+        buildFile """
+            interface ReadFileParameters extends TransformParameters {
+                @InputFile
+                RegularFileProperty getFile()
+            }
+
+            abstract class ReadFile implements TransformAction<ReadFileParameters> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    println("read = " + parameters.file.get().asFile.text)
+                    outputs.file(inputArtifact.get().asFile)
+                }
+            }
+
+            def color = Attribute.of("color", String)
+            dependencies.artifactTypes.create("txt") {
+                attributes.attribute(color, "blue")
+            }
+
+            configurations.create("things")
+            dependencies {
+                things files("input.txt")
+            }
+
+            def file = objects.fileProperty()
+            file.convention(layout.projectDirectory.file("file1.txt"))
+            file.finalizeValueOnRead()
+
+            dependencies.registerTransform(ReadFile) {
+                from.attribute(color, "blue")
+                to.attribute(color, "green")
+                parameters.file.set(file)
+            }
+
+            def transformed = configurations.things.incoming.artifactView {
+                attributes.attribute(color, "green")
+            }.files
+            println("transformed = " + transformed.files*.name)
+
+            file.set(layout.projectDirectory.file("file2.txt"))
+            println("property changed to " + file.get().asFile.name)
+        """
+
+        when:
+        fails("help")
+
+        then:
+        outputContains("read = one")
+        outputContains("transformed = [input.txt]")
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
+    }
+
 }
