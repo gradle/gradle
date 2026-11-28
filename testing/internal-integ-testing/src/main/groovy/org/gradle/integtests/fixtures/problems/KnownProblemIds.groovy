@@ -142,8 +142,6 @@ class KnownProblemIds {
         "Dependencies:Declaration:Multiple 'from' invocations in version catalog": [VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION.name],
         'Dependencies:Declaration:No version catalog files were resolved to be imported': [VersionCatalogProblemId.NO_IMPORT_FILES.name],
         'Gradle:Deprecation:Implicit dependency between tasks in different builds': ['Implicit dependency between tasks in different builds'],
-        'Gradle:Deprecation:Implicit lookup of methods in parent projects': ['Implicit lookup of methods in parent projects'],
-        'Gradle:Deprecation:Implicit lookup of properties in parent projects': ['Implicit lookup of properties in parent projects'],
         'Gradle:Deprecation:BuildSrc script': ['BuildSrc script'],
         'Gradle:Deprecation:Custom Task action': ['Custom Task action'],
         'Gradle:Deprecation:Task usage': ['Task usage'],

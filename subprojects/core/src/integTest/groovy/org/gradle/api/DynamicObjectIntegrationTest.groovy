@@ -29,7 +29,6 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Project ':child' dynamically looks up properties in the parent project")
     def canAddDynamicPropertiesToProject() {
         createDirs("child")
         settingsFile """
@@ -37,23 +36,18 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         """
         buildFile "build.gradle", """
                 ext.rootProperty = 'root'
-                ext.sharedProperty = 'ignore me'
-                ext.property = 'value'
                 task rootTask
                 task testTask
         """
         buildFile "child/build.gradle", """
               ext.childProperty = 'child'
-              ext.sharedProperty = 'shared'
-              assert 'root' == rootProperty
-              assert 'root' == property('rootProperty')
-              assert 'root' == properties.rootProperty
+              ext.property = 'value'
               assert 'child' == childProperty
               assert 'child' == property('childProperty')
-              assert 'child' == properties.childProperty
-              assert 'shared' == sharedProperty
-              assert 'shared' == property('sharedProperty')
-              assert 'shared' == properties.sharedProperty
+              assert 'value' == property
+              // A property declared only in the parent project is not visible in the child.
+              assert !hasProperty('rootProperty')
+              assert null == findProperty('rootProperty')
         """
         if (GradleContextualExecuter.notConfigCache) { // this is a check for execution time
             buildFile "child/build.gradle", """
@@ -63,29 +57,21 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
               }
               class Reporter {
                 def checkProperties(object) {
-                  assert 'root' == object.rootProperty
                   assert 'child' == object.childProperty
-                  assert 'shared' == object.sharedProperty
                   assert 'value' == object.property
                   assert ':child:testTask' == object.testTask.path
+                  try { object.rootProperty; fail() } catch (MissingPropertyException e) { }
                   try { object.rootTask; fail() } catch (MissingPropertyException e) { }
                 }
               }
             """
             expectTaskProjectDeprecation()
-            // Object.rootProperty / object.property access via Reporter goes through getProperty()
-            expectExplicitParentPropertyAccessDeprecation('getProperty', 'rootProperty', ':child', "root project 'test'")
-            expectExplicitParentPropertyAccessDeprecation('getProperty', 'property', ':child', "root project 'test'")
         }
-        expectParentPropertyAccessDeprecation('rootProperty', ':child', "root project 'test'")
-        expectExplicitParentPropertyAccessDeprecation('property', 'rootProperty', ':child', "root project 'test'")
-        expectScriptGetPropertiesDeprecation(3)
 
         expect:
         succeeds("testTask")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Project ':child' dynamically looks up a method in the parent project")
     def canAddDynamicMethodsToProject() {
         createDirs("child")
         settingsFile """
@@ -93,17 +79,13 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         """
         buildFile "build.gradle", """
               def rootMethod(p) { 'root' + p }
-              def sharedMethod(p) { 'ignore me' }
               task rootTask
               task testTask
               class ConventionBean { def conventionMethod(name) { 'convention' + name } }
         """
         buildFile "child/build.gradle", """
               def childMethod(p) { 'child' + p }
-              def sharedMethod(p) { 'shared' + p }
-              assert 'rootMethod' == rootMethod('Method')
               assert 'childMethod' == childMethod('Method')
-              assert 'sharedMethod'== sharedMethod('Method')
         """
         if (GradleContextualExecuter.notConfigCache) { // this is a check for execution time
             buildFile "child/build.gradle", """
@@ -113,19 +95,16 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
               // Use a separate class, to isolate Project from the script
               class Reporter {
                 def checkMethods(object) {
-                  assert 'rootMethod' == object.rootMethod('Method')
                   assert 'childMethod' == object.childMethod('Method')
-                  assert 'sharedMethod'== object.sharedMethod('Method')
                   object.testTask { assert ':child:testTask' == delegate.path }
+                  // A method declared only in the parent project is not visible in the child.
+                  try { object.rootMethod('Method'); fail() } catch (MissingMethodException e) { }
                   try { object.rootTask { }; fail() } catch (MissingMethodException e) { }
                 }
               }
             """
             expectTaskProjectDeprecation()
-            // The Reporter calls object.rootMethod(...) via the Project, which carries no caller context.
-            expectParentMethodAccessDeprecation('rootMethod', ':child', "root project 'test'", null)
         }
-        expectParentMethodAccessDeprecation('rootMethod', ':child', "root project 'test'")
 
         expect:
         succeeds("testTask")
@@ -414,10 +393,6 @@ assert 'some value' == project.properties.global
         outputContains("names: [l1, l2, l3]")
     }
 
-    @Requires(
-        value = TestExecutionPreconditions.NotIsolatedProjects,
-        reason = "Exercises IP incompatible behavior: Groovy method inheritance"
-    )
     def canAddMethodsUsingAPropertyWhoseValueIsAClosure() {
         createDirs("child1", "child2")
         settingsFile """
@@ -433,10 +408,8 @@ assert 'some value' == project.properties.global
         """
         buildFile "child1/build.gradle", """
             ext.prop3 = { it * 2 }
-            assert prop2(12) == 6
             assert prop3(12) == 24
         """
-        expectParentPropertyAccessDeprecation('prop2', ':child1', "root project 'test'")
 
         expect:
         succeeds()
@@ -1057,27 +1030,4 @@ task print(type: MyTask) {
             "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
     }
 
-    private static final String BUILD_SCRIPT_ORIGIN = "a dynamic invocation in the build script"
-
-    private void expectParentPropertyAccessDeprecation(String propertyName, String childPath, String parentDisplayName) {
-        expectParentLookupDeprecation('property', propertyName, childPath, parentDisplayName, BUILD_SCRIPT_ORIGIN)
-    }
-
-    private void expectExplicitParentPropertyAccessDeprecation(String api, String propertyName, String childPath, String parentDisplayName) {
-        expectParentLookupDeprecation('property', propertyName, childPath, parentDisplayName, "'${api}()'")
-    }
-
-    private void expectParentMethodAccessDeprecation(String methodName, String childPath, String parentDisplayName, String origin = BUILD_SCRIPT_ORIGIN) {
-        expectParentLookupDeprecation('method', methodName, childPath, parentDisplayName, origin)
-    }
-
-    private void expectParentLookupDeprecation(String memberKind, String memberName, String childPath, String parentDisplayName, String origin) {
-        def plural = memberKind == 'property' ? 'properties' : 'methods'
-        executer.expectDocumentedDeprecationWarning("Implicit lookup of ${plural} in parent projects has been deprecated. " +
-            "This will fail with an error in Gradle 10. " +
-            "${memberKind.capitalize()} '${memberName}' was not declared in project '${childPath}' and was resolved from ${parentDisplayName}. " +
-            (origin ? "This lookup was initiated by ${origin}. " : "") +
-            "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
-    }
 }

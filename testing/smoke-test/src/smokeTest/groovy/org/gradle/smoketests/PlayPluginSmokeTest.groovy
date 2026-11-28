@@ -79,16 +79,6 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     }
 
     @Override
-    String getSubprojectExtensionAccess(String testedPluginId, String version) {
-        "play {}"
-    }
-
-    @Override
-    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
-        [parentMethodInvocationDeprecation('play')]
-    }
-
-    @Override
     SmokeTestGradleRunner runner(String... tasks) {
         // The playframework plugin calls the deprecated Configuration.setVisible(boolean) method
         return super.runner(tasks)
