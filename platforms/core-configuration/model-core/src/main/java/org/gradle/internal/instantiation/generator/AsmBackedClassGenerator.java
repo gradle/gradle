@@ -48,6 +48,7 @@ import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -938,6 +939,14 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 return;
             }
 
+            // Limited to upgraded properties: elsewhere a type declaring its own set<Name>(Object) alongside a lazy property fails to generate
+            if (property.hasAnnotationOnAnyGetter(ReplacesEagerProperty.class)) {
+                if (implementsSetterTakingObject(property)) {
+                    return;
+                }
+                assertNoBridgeSetterTakingObject(property);
+            }
+
             // GENERATE public void set<Name>(Object p) {
             //    ((LazyGroovySupport)<getter>()).setFromAnyValue(p);
             // }
@@ -948,6 +957,52 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _ALOAD(1);
                 _INVOKEINTERFACE(LAZY_GROOVY_SUPPORT_TYPE, "setFromAnyValue", ClassBuilderImpl.RETURN_VOID_FROM_OBJECT);
             }});
+        }
+
+        /**
+         * Does the type already implement a {@code set<Name>(Object)}? It may be an eager-style migration setter
+         * forwarding into the lazy container, or one synthesized by {@code @ReplacesEagerProperty} when the original
+         * type erases to Object. Either way our {@code setFromAnyValue}-backed overload would be a second method with
+         * the same signature, which the JVM rejects when the class is defined.
+         *
+         * <p>A fluent one counts too. The JVM accepts the pair, as the return types differ, but Groovy resolves
+         * every call and property assignment to our overload, so the fluent body would never run.
+         *
+         * <p>An abstract one is not an implementation: our overload is what implements it, so it must still be
+         * generated. Final ones count, which is why this looks at every setter rather than the overridable ones.
+         */
+        private static boolean implementsSetterTakingObject(PropertyMetadata property) {
+            for (Method setter : property.getSetters()) {
+                if (!Modifier.isAbstract(setter.getModifiers())
+                    && setter.getParameterCount() == 1
+                    && setter.getParameterTypes()[0].equals(Object.class)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * An eager setter that implements a generic {@code set<Name>(T)} comes with a compiler bridge
+         * {@code set<Name>(Object)} delegating to it. Our overload would override the bridge, so callers of the
+         * generic declaration would bypass the eager setter. Treating the bridge as the implementation instead would
+         * break assigning a {@code Provider} from Groovy, as the bridge casts its argument to {@code T}. Neither is
+         * right, so the shape is refused.
+         */
+        private void assertNoBridgeSetterTakingObject(PropertyMetadata property) {
+            for (Method bridge : property.getBridgeSetters()) {
+                if (bridge.getParameterTypes()[0].equals(Object.class)) {
+                    TreeFormatter formatter = new TreeFormatter();
+                    formatter.node("Cannot generate the Groovy DSL setter for upgraded property '");
+                    formatter.append(property.getName());
+                    formatter.append("' of ");
+                    formatter.appendType(type);
+                    formatter.append(", as it would override the compiler bridge ");
+                    formatter.appendMethod(bridge);
+                    formatter.append(" and callers of the generic setter it implements would bypass the eager setter.");
+                    throw new IllegalArgumentException(formatter.toString());
+                }
+            }
         }
 
         /**
