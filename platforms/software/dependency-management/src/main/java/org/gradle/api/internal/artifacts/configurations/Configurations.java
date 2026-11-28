@@ -16,17 +16,28 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.capabilities.Capability;
 
 import java.util.Set;
 
 public class Configurations {
 
-    public static Set<Capability> collectCapabilities(Configuration configuration, Set<Capability> out, Set<Configuration> visited) {
+    /**
+     * Collects the capabilities declared by the given configuration and all configurations
+     * in its {@code extendsFrom} hierarchy.
+     *
+     * <p>Visiting a configuration does not realize its outgoing publications:
+     * to declare capability you would need to call {@link Configuration#getOutgoing()}, so no realized publications =  no capabilities.</p>
+     */
+    public static Set<Capability> collectCapabilities(ConfigurationInternal configuration, Set<Capability> out, Set<Configuration> visited) {
         if (visited.add(configuration)) {
-            out.addAll(configuration.getOutgoing().getCapabilities());
+            ConfigurationPublications outgoing = configuration.getOutgoingIfInitialized();
+            if (outgoing != null) {
+                out.addAll(outgoing.getCapabilities());
+            }
             for (Configuration parent : configuration.getExtendsFrom()) {
-                collectCapabilities(parent, out, visited);
+                collectCapabilities((ConfigurationInternal) parent, out, visited);
             }
         }
         return out;

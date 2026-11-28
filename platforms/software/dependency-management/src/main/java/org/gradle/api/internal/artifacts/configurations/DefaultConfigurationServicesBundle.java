@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
+import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -29,9 +32,11 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
+import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.inject.Inject;
 
@@ -60,6 +65,9 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     private final ProviderFactory providerFactory;
     private final ProjectLeaseRegistry projectLeaseRegistry;
     private final DependencyManagementInstanceIdentity instanceIdentity;
+    private final PublishArtifactNotationParser artifactNotationParser;
+    private final NotationParser<Object, Capability> capabilityNotationParser;
+    private final UserCodeApplicationContext userCodeApplicationContext;
 
     @Inject
     public DefaultConfigurationServicesBundle(
@@ -77,7 +85,9 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
         ResolveExceptionMapper exceptionMapper,
         ProviderFactory providerFactory,
         ProjectLeaseRegistry projectLeaseRegistry,
-        DependencyManagementInstanceIdentity instanceIdentity
+        DependencyManagementInstanceIdentity instanceIdentity,
+        PublishArtifactNotationParser artifactNotationParser,
+        UserCodeApplicationContext userCodeApplicationContext
     ) {
         this.buildOperationRunner = buildOperationRunner;
         this.projectStateRegistry = projectStateRegistry;
@@ -94,6 +104,9 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
         this.providerFactory = providerFactory;
         this.projectLeaseRegistry = projectLeaseRegistry;
         this.instanceIdentity = instanceIdentity;
+        this.artifactNotationParser = artifactNotationParser;
+        this.capabilityNotationParser = new CapabilityNotationParserFactory(true).create();
+        this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
     @Override
@@ -171,4 +184,18 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
         return instanceIdentity;
     }
 
+    @Override
+    public PublishArtifactNotationParser getArtifactNotationParser() {
+        return artifactNotationParser;
+    }
+
+    @Override
+    public NotationParser<Object, Capability> getCapabilityNotationParser() {
+        return capabilityNotationParser;
+    }
+
+    @Override
+    public UserCodeApplicationContext getUserCodeApplicationContext() {
+        return userCodeApplicationContext;
+    }
 }
