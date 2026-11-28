@@ -31,6 +31,7 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.projectFeatures)
+    implementation(projects.projectFeaturesApi)
 
     implementation(libs.commonsLang)
 
