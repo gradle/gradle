@@ -35,6 +35,15 @@ public interface TargetMachineBuilder extends TargetMachine {
     TargetMachine getX86_64();
 
     /**
+     * Returns a {@link TargetMachine} for the operating system of this machine and the ARM 64-bit architecture.
+     *
+     * @since 9.10.0
+     */
+    default TargetMachine getARM64() {
+        return architecture(MachineArchitecture.ARM64);
+    }
+
+    /**
      * Returns a {@link TargetMachine} for the operating system of this machine and the specified architecture.
      * @since 5.2
      */

@@ -114,6 +114,11 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 
 The following are the features that have been promoted in this Gradle release.
 
+### ARM64 target machine architecture
+
+The `ARM64` machine architecture is no longer incubating.
+Native builds can now select 64-bit ARM target machines directly, for example with `machines.linux.ARM64`.
+
 <!--
 ### Example promoted
 -->

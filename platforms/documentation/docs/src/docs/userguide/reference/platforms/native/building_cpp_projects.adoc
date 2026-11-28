@@ -239,6 +239,10 @@ include::sample[dir="snippets/reference/platforms/native/cpp-basic/kotlin",files
 include::sample[dir="snippets/reference/platforms/native/cpp-basic/groovy",files="build.gradle[tags=cpp-select-target-machines]"]
 ====
 
+The `x86`, `x86_64`, and `ARM64` architectures can be selected for each operating system.
+For example, `machines.linux.ARM64` targets 64-bit ARM Linux.
+Building for an architecture other than the host architecture requires an installed tool chain capable of targeting that architecture.
+
 [[sec:cpp_packaging]]
 == Packaging and publishing
 
