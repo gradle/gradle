@@ -17,6 +17,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -39,16 +40,17 @@ public interface DependencySubstitutions {
      * configurations.main.resolutionStrategy.dependencySubstitution {
      *   // Use a rule to change the dependency module while leaving group + version intact
      *   all { DependencySubstitution dependency -&gt;
-     *     if (dependency.requested instanceof ModuleComponentSelector &amp;&amp; dependency.requested.module == 'groovy-all') {
-     *       dependency.useTarget dependency.requested.group + ':groovy:' + dependency.requested.version
+     *     if (dependency.requested instanceof ModuleComponentSelector &amp;&amp; dependency.requested.module == "groovy-all") {
+     *       dependency.useTarget(withModule(dependency.requested, dependency.requested.group, "groovy", dependency.requested.version))
      *     }
      *   }
-     *   // Use a rule to replace all missing projects with module dependencies
+     *   // Use a rule to replace missing projects with module dependencies
+     *   def modulesByProjectPath = [":api": "api", ":util:core": "util-core"]
      *   all { DependencySubstitution dependency -&gt;
-     *    if (dependency.requested instanceof ProjectComponentSelector) {
-     *       def targetProject = findProject(":${dependency.requested.path}")
-     *       if (targetProject == null) {
-     *         dependency.useTarget "org.myorg:" + dependency.requested.path + ":+"
+     *     if (dependency.requested instanceof ProjectComponentSelector) {
+     *       def module = modulesByProjectPath[dependency.requested.projectPath]
+     *       if (module != null &amp;&amp; findProject(dependency.requested.projectPath) == null) {
+     *         dependency.useTarget(withModule(dependency.requested, "org.myorg", module, "+"))
      *       }
      *     }
      *   }
@@ -90,6 +92,83 @@ public interface DependencySubstitutions {
      * @since 6.6
      */
     ComponentSelector platform(ComponentSelector selector);
+
+    /**
+     * Creates a module component selector for the given coordinates that keeps the
+     * attributes and capability selectors of the given component selector.
+     * <p>
+     * Use this in a substitution rule to change which module coordinates a dependency
+     * resolves to. For example, a {@code platform(...)} or {@code testFixtures(...)}
+     * dependency stays a platform or test fixtures dependency:
+     * <pre>
+     * configurations.runtimeClasspath.resolutionStrategy.dependencySubstitution {
+     *   all { DependencySubstitution dependency -&gt;
+     *     if (dependency.requested instanceof ModuleComponentSelector &amp;&amp; dependency.requested.group == "org.legacy") {
+     *       dependency.useTarget(withModule(dependency.requested, "org.renamed", dependency.requested.module, dependency.requested.version))
+     *     }
+     *   }
+     * }
+     * </pre>
+     * Capability selectors that name a feature, such as those of {@code testFixtures(...)}, are
+     * relative to the selected component and therefore follow the new module. Capability selectors
+     * with explicit coordinates are kept as they are.
+     * <p>
+     * The version is interpreted as in dependency notation. {@code '1.0'} requires 1.0 and
+     * {@code '1.0!!'} strictly requires it. Use {@link #withModule(ComponentSelector, String, String, Action)}
+     * for other rich versions.
+     *
+     * @param selector the selector whose attributes and capability selectors are kept
+     * @param group the group of the module to select
+     * @param name the name of the module to select
+     * @param version the version of the module to select
+     *
+     * @return a module component selector for the given coordinates
+     *
+     * @since 9.10.0
+     */
+    @Incubating
+    ComponentSelector withModule(ComponentSelector selector, String group, String name, String version);
+
+    /**
+     * Creates a module component selector for the given module, with a rich version configured
+     * by the given action, that keeps the attributes and capability selectors of the given
+     * component selector.
+     * <p>
+     * See {@link #withModule(ComponentSelector, String, String, String)}.
+     *
+     * @param selector the selector whose attributes and capability selectors are kept
+     * @param group the group of the module to select
+     * @param name the name of the module to select
+     * @param version configures the version of the module to select
+     *
+     * @return a module component selector for the given module and version
+     *
+     * @since 9.10.0
+     */
+    @Incubating
+    ComponentSelector withModule(ComponentSelector selector, String group, String name, Action<? super MutableVersionConstraint> version);
+
+    /**
+     * Creates a project component selector for the given project path that keeps the
+     * attributes and capability selectors of the given component selector.
+     * <p>
+     * Use this in a substitution rule to replace a dependency with a project. For example, a
+     * {@code platform(...)} or {@code testFixtures(...)} dependency stays a platform or
+     * test fixtures dependency. The path is interpreted as by {@link #project(String)}.
+     * <p>
+     * Capability selectors that name a feature, such as those of {@code testFixtures(...)}, are
+     * relative to the selected component and therefore follow the project. Capability selectors
+     * with explicit coordinates are kept as they are.
+     *
+     * @param selector the selector whose attributes and capability selectors are kept
+     * @param path the path of the project to select
+     *
+     * @return a project component selector for the given path
+     *
+     * @since 9.10.0
+     */
+    @Incubating
+    ComponentSelector withProject(ComponentSelector selector, String path);
 
     /**
      * DSL-friendly mechanism to construct a dependency substitution for dependencies matching the provided selector.

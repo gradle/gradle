@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.catalog.parser.StrictVersionParser
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.Actions
@@ -39,6 +40,7 @@ import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY
@@ -61,7 +63,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
     NotationParser moduleNotationParser = NotationParserBuilder.builder(Object, ComponentSelector).converter(new ModuleSelectorStringNotationConverter(new DefaultImmutableModuleIdentifierFactory())).toComposite()
 
     def setup() {
-        substitutions = DefaultDependencySubstitutions.forResolutionStrategy(currentBuild, moduleNotationParser, TestUtil.instantiatorFactory().decorateScheme().instantiator(), TestUtil.objectFactory(), AttributeTestUtil.attributesFactory(), Stub(NotationParser))
+        substitutions = DefaultDependencySubstitutions.forResolutionStrategy(currentBuild, moduleNotationParser, TestUtil.instantiatorFactory().decorateScheme().instantiator(), TestUtil.objectFactory(), AttributeTestUtil.attributesFactory(), Stub(NotationParser), StrictVersionParser.forDependencyNotation(SimpleMapInterner.notThreadSafe(), TestUtil.problemsService()))
     }
 
     def "provides no op resolve rule when no rules or forced modules configured"() {

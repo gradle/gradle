@@ -1,0 +1,3 @@
+com.example:platform:1.0 -> com.example.branch:platform:1.0-branch (platform-runtime)
+org.other:util -> org.other:util:2.0 (runtime)
+com.example:lib:1.0 -> com.example.branch:lib:1.0-branch (testFixturesRuntimeElements)

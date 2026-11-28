@@ -15,12 +15,14 @@ plugins {
 
 // tag::project_substitution[]
 configurations.configureEach {
-    resolutionStrategy.dependencySubstitution.all {
-        requested.let {
-            if (it is ModuleComponentSelector && it.group == "org.example") {
-                val targetProject = findProject(":${it.module}")
-                if (targetProject != null) {
-                    useTarget(targetProject)
+    resolutionStrategy.dependencySubstitution {
+        all {
+            requested.let {
+                if (it is ModuleComponentSelector && it.group == "org.example") {
+                    val targetProject = findProject(":${it.module}")
+                    if (targetProject != null) {
+                        useTarget(withProject(it, targetProject.path))
+                    }
                 }
             }
         }
