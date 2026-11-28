@@ -17,8 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.Deferrable;
-import org.gradle.internal.Try;
+import org.gradle.internal.execution.DeferredExecution;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -30,9 +29,9 @@ import java.io.File;
 @ThreadSafe
 public interface TransformInvocationFactory {
     /**
-     * Returns an invocation which allows invoking the actual transformer.
+     * Returns the deferred execution of the transform of the given input artifact.
      */
-    Deferrable<Try<ImmutableList<File>>> createInvocation(
+    DeferredExecution<ImmutableList<File>> createInvocation(
         Transform transform,
         File inputArtifact,
         TransformDependencies dependencies,

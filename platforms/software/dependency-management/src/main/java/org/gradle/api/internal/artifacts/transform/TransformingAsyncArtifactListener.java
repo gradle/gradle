@@ -25,10 +25,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
-import org.gradle.internal.Deferrable;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -37,6 +37,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 
 public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Visitor {
     private final List<BoundTransformStep> transformSteps;
@@ -91,7 +92,8 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         private final ImmutableAttributes target;
         private final List<BoundTransformStep> transformSteps;
         private Try<TransformStepSubject> transformedSubject;
-        private Deferrable<Try<TransformStepSubject>> invocation;
+        // Only set while an invocation waits to be run, so it is released once a result is set
+        private @Nullable TransformInvocation invocation;
 
         public TransformedArtifact(
             DisplayName artifactSetName,
@@ -178,6 +180,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                 synchronized (this) {
                     // Failed to resolve input artifact, no need to execute
                     transformedSubject = Try.failure(artifact.getFileSource().getValue().getFailure().get());
+                    invocation = null;
                     return false;
                 }
             }
@@ -186,15 +189,21 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                 return false;
             }
 
-            Deferrable<Try<TransformStepSubject>> invocation = createInvocation();
+            TransformInvocation invocation = createInvocation();
             synchronized (this) {
-                this.invocation = invocation;
-                if (invocation.getCompleted().isPresent()) {
+                if (transformedSubject != null) {
+                    // Finalized concurrently, no need to execute
+                    return false;
+                }
+                Optional<Try<TransformStepSubject>> result = invocation.getResultWithoutInvoking();
+                if (result.isPresent()) {
                     // Have already executed the transform, no need to execute
-                    transformedSubject = invocation.getCompleted().get();
+                    transformedSubject = result.get();
+                    this.invocation = null;
                     return false;
                 } else {
                     // Have not executed the transform, should execute
+                    this.invocation = invocation;
                     return true;
                 }
             }
@@ -211,6 +220,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             if (!artifact.getFileSource().getValue().isSuccessful()) {
                 synchronized (this) {
                     transformedSubject = Try.failure(artifact.getFileSource().getValue().getFailure().get());
+                    invocation = null;
                     return transformedSubject;
                 }
             }
@@ -220,7 +230,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                 return noInputResult;
             }
 
-            Deferrable<Try<TransformStepSubject>> invocation;
+            TransformInvocation invocation;
             synchronized (this) {
                 invocation = this.invocation;
             }
@@ -228,9 +238,10 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             if (invocation == null) {
                 invocation = createInvocation();
             }
-            Try<TransformStepSubject> result = invocation.completeAndGet();
+            Try<TransformStepSubject> result = invocation.invoke();
             synchronized (this) {
                 transformedSubject = result;
+                this.invocation = null;
                 return result;
             }
         }
@@ -248,24 +259,48 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             Try<TransformStepSubject> result = Try.successful(TransformStepSubject.initial(artifact).createSubjectFromResult(ImmutableList.of()));
             synchronized (this) {
                 transformedSubject = result;
+                invocation = null;
             }
             return result;
         }
 
-        private Deferrable<Try<TransformStepSubject>> createInvocation() {
-            TransformStepSubject initialSubject = TransformStepSubject.initial(artifact);
-            BoundTransformStep initialStep = transformSteps.get(0);
-            Deferrable<Try<TransformStepSubject>> invocation = initialStep.getTransformStep()
-                .createInvocation(initialSubject, initialStep.getUpstreamDependencies(), null);
-            for (int i = 1; i < transformSteps.size(); i++) {
-                BoundTransformStep nextStep = transformSteps.get(i);
-                invocation = invocation
-                    .flatMap(intermediateResult -> intermediateResult
-                        .map(intermediateSubject -> nextStep.getTransformStep()
-                            .createInvocation(intermediateSubject, nextStep.getUpstreamDependencies(), null))
-                        .getOrMapFailure(failure -> Deferrable.completed(Try.failure(failure))));
+        /**
+         * Creates the step invocations in order, up to the first whose result is not known yet.
+         */
+        private TransformInvocation createInvocation() {
+            TransformStepSubject subject = TransformStepSubject.initial(artifact);
+            for (int i = 0; i < transformSteps.size(); i++) {
+                TransformInvocation stepInvocation = createStepInvocation(i, subject);
+                Optional<Try<TransformStepSubject>> known = stepInvocation.getResultWithoutInvoking();
+                if (known.isEmpty()) {
+                    // The later steps can only be created once this step has produced their input.
+                    // Locking, so threads sharing the invocation stored by prepareInvocation run the rest once.
+                    int pendingStep = i;
+                    return TransformInvocation.deferred(Lazy.locking().of(() -> invokeFrom(pendingStep, stepInvocation)));
+                }
+                Try<TransformStepSubject> result = known.get();
+                if (!result.isSuccessful()) {
+                    return TransformInvocation.known(result);
+                }
+                subject = result.get();
             }
-            return invocation;
+            return TransformInvocation.known(Try.successful(subject));
+        }
+
+        /**
+         * Invokes the step whose result was not known, then creates and invokes each later one.
+         */
+        private Try<TransformStepSubject> invokeFrom(int pendingStep, TransformInvocation pending) {
+            Try<TransformStepSubject> result = pending.invoke();
+            for (int i = pendingStep + 1; i < transformSteps.size() && result.isSuccessful(); i++) {
+                result = createStepInvocation(i, result.get()).invoke();
+            }
+            return result;
+        }
+
+        private TransformInvocation createStepInvocation(int index, TransformStepSubject subject) {
+            BoundTransformStep step = transformSteps.get(index);
+            return step.getTransformStep().createInvocation(subject, step.getUpstreamDependencies(), null);
         }
 
         @Override
