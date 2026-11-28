@@ -21,11 +21,9 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
-import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.MetadataResolutionContext;
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataProcessor;
-import org.gradle.api.internal.artifacts.dsl.ImmutableComponentMetadataRules;
 import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -48,7 +46,6 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
-import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -68,7 +65,7 @@ import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
-import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Creates resolvers that can resolve module components from repositories.
@@ -77,6 +74,8 @@ import java.util.Collection;
 public class ExternalModuleComponentResolverFactory {
 
     private final static Logger LOGGER = Logging.getLogger(ExternalModuleComponentResolverFactory.class);
+
+    private final ConcurrentHashMap<ResolverEnvironment, ComponentResolvers> resolversCache = new ConcurrentHashMap<>();
 
     private final ModuleRepositoryCacheProvider cacheProvider;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
@@ -131,28 +130,31 @@ public class ExternalModuleComponentResolverFactory {
     }
 
     /**
-     * Creates component resolvers for the given repositories.
+     * Returns the component resolvers for the given environment, creating them on first use.
+     *
+     * <p>Creating a resolver chain is expensive: it creates a resolver per repository along with
+     * caching, filtering, verification and metadata processing wrappers. Chains created for equal
+     * environments are equivalent, so they are cached and reused across resolutions, including
+     * concurrent resolutions of different configurations and projects.
      */
-    public ComponentResolvers createResolvers(
-        Collection<? extends ResolutionAwareRepository> repositories,
-        ImmutableComponentMetadataRules rules,
-        VariantDerivationStrategy variantDerivationStrategy,
-        ComponentSelectionRulesInternal componentSelectionRules,
-        boolean dependencyVerificationEnabled,
-        CacheExpirationControl cacheExpirationControl,
-        ImmutableAttributesSchema consumerSchema
-    ) {
-        if (repositories.isEmpty()) {
+    public ComponentResolvers createResolvers(ResolverEnvironment environment) {
+        return resolversCache.computeIfAbsent(environment, this::doCreateResolvers);
+    }
+
+    private ComponentResolvers doCreateResolvers(ResolverEnvironment environment) {
+        if (environment.repositories().isEmpty()) {
             return new NoRepositoriesResolver();
         }
 
+        CacheExpirationControl cacheExpirationControl = environment.cacheExpirationControl();
+        boolean dependencyVerificationEnabled = environment.dependencyVerificationEnabled();
         ComponentMetadataProcessorFactory metadataProcessor = context ->
-            componentMetadataProcessorFactory.create(context, rules, variantDerivationStrategy);
+            componentMetadataProcessorFactory.create(context, environment.componentMetadataRules(), environment.variantDerivationStrategy());
 
-        UserResolverChain moduleResolver = new UserResolverChain(versionComparator, componentSelectionRules, versionParser, consumerSchema, attributesFactory, attributeSchemaServices, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cacheExpirationControl);
-        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionComparator, moduleIdentifierFactory, versionParser, consumerSchema, attributesFactory, attributeSchemaServices, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cacheExpirationControl);
+        UserResolverChain moduleResolver = new UserResolverChain(versionComparator, environment.getComponentSelectionRules(), versionParser, environment.consumerSchema(), attributesFactory, attributeSchemaServices, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cacheExpirationControl);
+        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionComparator, moduleIdentifierFactory, versionParser, environment.consumerSchema(), attributesFactory, attributeSchemaServices, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cacheExpirationControl);
 
-        for (ResolutionAwareRepository repository : repositories) {
+        for (ResolutionAwareRepository repository : environment.repositories()) {
             ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
 
             baseRepository.setComponentResolvers(parentModuleResolver);

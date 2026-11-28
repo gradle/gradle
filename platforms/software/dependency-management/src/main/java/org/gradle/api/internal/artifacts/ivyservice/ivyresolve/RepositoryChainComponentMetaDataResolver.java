@@ -68,6 +68,14 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
             throw new UnsupportedOperationException("Can resolve meta-data for module components only.");
         }
 
+        if (componentOverrideMetadata.isChanging() || componentOverrideMetadata.getArtifact() != null) {
+            // Override metadata can differ between resolutions of the same component, so results
+            // produced with overrides are not cached. In particular, changing modules must be
+            // re-checked against the repository caches on every resolution.
+            resolveModule((ModuleComponentIdentifier) identifier, componentOverrideMetadata).applyTo(result);
+            return;
+        }
+
         try {
             CalculatedValue<BuildableComponentResolveResult> metadataValueContainer =
                 metadataValueContainerCache.get((ModuleComponentIdentifier) identifier, () -> createValueContainerFor(identifier, componentOverrideMetadata));
