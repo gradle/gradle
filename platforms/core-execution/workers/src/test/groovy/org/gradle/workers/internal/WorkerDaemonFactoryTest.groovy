@@ -64,7 +64,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
         then:
         1 * buildOperationRunner.call(_) >> { args -> args[0].call(Stub(BuildOperationContext)) }
-        1 * client.execute(spec) >> new DefaultWorkResult(true, null)
+        1 * client.execute(spec, options) >> new DefaultWorkResult(true, null)
 
         then:
         1 * clientsManager.release(client)
@@ -79,7 +79,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
         then:
         1 * buildOperationRunner.call(_) >> { args -> args[0].call(Stub(BuildOperationContext)) }
-        1 * client.execute(spec) >> new DefaultWorkResult(true, null)
+        1 * client.execute(spec, options) >> new DefaultWorkResult(true, null)
 
         then:
         1 * clientsManager.release(client)
@@ -94,7 +94,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
         then:
         1 * buildOperationRunner.call(_) >> { args -> args[0].call() }
-        1 * client.execute(spec) >> { throw new RuntimeException("Boo!") }
+        1 * client.execute(spec, options) >> { throw new RuntimeException("Boo!") }
 
         then:
         thrown(RuntimeException)
@@ -117,7 +117,7 @@ class WorkerDaemonFactoryTest extends Specification {
         then:
         1 * clientsManager.reserveIdleClient(options) >> client
         1 * buildOperationRunner.call(_) >> { args -> args[0].call() }
-        1 * client.execute(spec) >> { throw new RuntimeException("Boo!") }
+        1 * client.execute(spec, options) >> { throw new RuntimeException("Boo!") }
 
         then:
         thrown(RuntimeException)
@@ -133,7 +133,7 @@ class WorkerDaemonFactoryTest extends Specification {
         then:
         1 * client.bindProblemsService(problems)
         1 * buildOperationRunner.call(_) >> { args -> args[0].call(Stub(BuildOperationContext)) }
-        1 * client.execute(spec) >> new DefaultWorkResult(true, null)
+        1 * client.execute(spec, options) >> new DefaultWorkResult(true, null)
 
         then:
         1 * client.clearProblemsService()
@@ -150,7 +150,7 @@ class WorkerDaemonFactoryTest extends Specification {
         then:
         1 * client.bindProblemsService(problems)
         1 * buildOperationRunner.call(_) >> { args -> args[0].call() }
-        1 * client.execute(spec) >> { throw new RuntimeException("worker execution failed") }
+        1 * client.execute(spec, options) >> { throw new RuntimeException("worker execution failed") }
 
         then:
         thrown(RuntimeException)

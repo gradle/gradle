@@ -22,6 +22,8 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class TransportableActionExecutionSpecSerializer implements Serializer<TransportableActionExecutionSpec> {
@@ -43,6 +45,20 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
         encoder.writeString(spec.getBaseDir().getAbsolutePath());
         encoder.writeString(spec.getProjectCacheDir().getAbsolutePath());
         encoder.writeBinary(spec.getSerializedParameters());
+
+        Map<String, String> systemProperties = spec.getSystemProperties();
+        encoder.writeInt(systemProperties.size());
+        for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
+            encoder.writeString(entry.getKey());
+            encoder.writeString(entry.getValue());
+        }
+
+        Set<String> clearedSystemProperties = spec.getClearedSystemProperties();
+        encoder.writeInt(clearedSystemProperties.size());
+        for (String name : clearedSystemProperties) {
+            encoder.writeString(name);
+        }
+
         if (spec.getClassLoaderStructure() instanceof HierarchicalClassLoaderStructure) {
             encoder.writeByte(HIERARCHICAL);
             hierarchicalClassLoaderStructureSerializer.write(encoder, (HierarchicalClassLoaderStructure) spec.getClassLoaderStructure());
@@ -67,6 +83,19 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
         String baseDirPath = decoder.readString();
         String projectCacheDir = decoder.readString();
         byte[] serializedParameters = decoder.readBinary();
+
+        int systemPropertiesCount = decoder.readInt();
+        Map<String, String> systemProperties = new LinkedHashMap<>(systemPropertiesCount);
+        for (int i = 0; i < systemPropertiesCount; i++) {
+            systemProperties.put(decoder.readString(), decoder.readString());
+        }
+
+        int clearedSystemPropertiesCount = decoder.readInt();
+        Set<String> clearedSystemProperties = new HashSet<>(clearedSystemPropertiesCount);
+        for (int i = 0; i < clearedSystemPropertiesCount; i++) {
+            clearedSystemProperties.add(decoder.readString());
+        }
+
         byte classLoaderStructureTag = decoder.readByte();
         ClassLoaderStructure classLoaderStructure;
         switch (classLoaderStructureTag) {
@@ -79,6 +108,6 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
             default:
                 throw new IllegalArgumentException("Unexpected payload type.");
         }
-        return new TransportableActionExecutionSpec(implementationClassName, serializedParameters, classLoaderStructure, new File(baseDirPath), new File(projectCacheDir), additionalAllowedServicesClassNames);
+        return new TransportableActionExecutionSpec(implementationClassName, serializedParameters, classLoaderStructure, new File(baseDirPath), new File(projectCacheDir), additionalAllowedServicesClassNames, systemProperties, clearedSystemProperties);
     }
 }

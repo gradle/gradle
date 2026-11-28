@@ -69,6 +69,23 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
         decodedSpec.additionalAllowedServicesClassNames == (["foo"] as Set)
     }
 
+    def "can serialize and deserialize a spec with system properties"() {
+        def spec = new TransportableActionExecutionSpec(Runnable.class.name, bytes, flatClassLoaderStructure(), new File("/foo"), new File("/project-cache"), ["foo"] as Set)
+            .withSystemProperties([foo: "bar", empty: ""], ["cleared"] as Set)
+
+        when:
+        serializer.write(encoder, spec)
+        encoder.flush()
+
+        and:
+        def decoder = new KryoBackedDecoder(new ByteArrayInputStream(outputStream.toByteArray()))
+        def decodedSpec = serializer.read(decoder)
+
+        then:
+        decodedSpec.systemProperties == [foo: "bar", empty: ""]
+        decodedSpec.clearedSystemProperties == (["cleared"] as Set)
+    }
+
     def filteringClassloaderSpec() {
         def classNames = [ 'allowed.Class1', 'allowed.Class2' ]
         def disallowedClassNames = [ 'disallowed.Class1', 'disallowed.Class2' ]

@@ -17,6 +17,8 @@
 package org.gradle.workers.internal;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 public class TransportableActionExecutionSpec {
@@ -26,14 +28,43 @@ public class TransportableActionExecutionSpec {
     private final File baseDir;
     private final Set<String> additionalAllowedServicesClassNames;
     private final File projectCacheDir;
+    private final Map<String, String> systemProperties;
+    private final Set<String> clearedSystemProperties;
 
     public TransportableActionExecutionSpec(String implementationClassName, byte[] serializedParameters, ClassLoaderStructure classLoaderStructure, File baseDir, File projectCacheDir, Set<String> additionalAllowedServicesClassNames) {
+        this(implementationClassName, serializedParameters, classLoaderStructure, baseDir, projectCacheDir, additionalAllowedServicesClassNames, Collections.emptyMap(), Collections.emptySet());
+    }
+
+    public TransportableActionExecutionSpec(String implementationClassName, byte[] serializedParameters, ClassLoaderStructure classLoaderStructure, File baseDir, File projectCacheDir, Set<String> additionalAllowedServicesClassNames, Map<String, String> systemProperties, Set<String> clearedSystemProperties) {
         this.implementationClassName = implementationClassName;
         this.serializedParameters = serializedParameters;
         this.classLoaderStructure = classLoaderStructure;
         this.baseDir = baseDir;
         this.projectCacheDir = projectCacheDir;
         this.additionalAllowedServicesClassNames = additionalAllowedServicesClassNames;
+        this.systemProperties = systemProperties;
+        this.clearedSystemProperties = clearedSystemProperties;
+    }
+
+    /**
+     * Returns a copy of this spec that sets the given system properties and clears the others while the work runs in a worker daemon.
+     */
+    public TransportableActionExecutionSpec withSystemProperties(Map<String, String> systemProperties, Set<String> clearedSystemProperties) {
+        return new TransportableActionExecutionSpec(implementationClassName, serializedParameters, classLoaderStructure, baseDir, projectCacheDir, additionalAllowedServicesClassNames, systemProperties, clearedSystemProperties);
+    }
+
+    /**
+     * System properties to set while the work runs in a worker daemon.
+     */
+    public Map<String, String> getSystemProperties() {
+        return systemProperties;
+    }
+
+    /**
+     * System properties the worker daemon was started with, but which must be cleared while the work runs.
+     */
+    public Set<String> getClearedSystemProperties() {
+        return clearedSystemProperties;
     }
 
     public File getBaseDir() {
