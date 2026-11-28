@@ -82,6 +82,30 @@ Gradle provides an intuitive [command-line interface](userguide/command_line_int
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
+#### Skip tasks based on a provider, with the reason computed alongside
+
+[`Task.onlyIf`](javadoc/org/gradle/api/Task.html#onlyIf(org.gradle.api.provider.Provider)) and [`Task.setOnlyIf`](javadoc/org/gradle/api/Task.html#setOnlyIf(org.gradle.api.provider.Provider)) now accept a `Provider`.
+Its value is queried when the task is about to execute, and can be:
+
+* A `Boolean`, which runs the task when `true` and skips it when `false`.
+* An [`OnlyIfDecision`](javadoc/org/gradle/api/tasks/OnlyIfDecision.html), which also carries the reason the task is skipped.
+
+Because the reason comes with the decision, a check that is expensive to compute runs once to produce both:
+
+```kotlin
+tasks.register("deploy") {
+    onlyIf(
+        providers.environmentVariable("DEPLOY_TOKEN")
+            .map { OnlyIfDecision.proceed() }
+            .orElse(OnlyIfDecision.skip("DEPLOY_TOKEN is not set"))
+    )
+}
+```
+
+With the [Configuration Cache](userguide/configuration_cache.html), a `providers.provider {}` value is computed when the cache entry is stored.
+To decide when the task executes, use a provider such as `providers.environmentVariable()` or a [`ValueSource`](userguide/configuration_cache_requirements.html#config_cache:requirements:value_source).
+See the [Using a provider as a predicate](userguide/controlling_task_execution.html#sec:using_a_provider_predicate) section in the Gradle User Manual for more details.
+
 ### Dependency management enhancements
 Gradle provides a flexible [dependency management](userguide/getting_started_dep_man.html) engine for declaring, resolving, and verifying the dependencies your build needs.
 
