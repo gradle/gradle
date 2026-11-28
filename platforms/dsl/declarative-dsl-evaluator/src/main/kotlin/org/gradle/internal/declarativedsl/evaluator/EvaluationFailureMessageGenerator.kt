@@ -22,7 +22,10 @@ import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.objectGraph.PropertyLinkTraceElement
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailure
+import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailureLocation
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailureReason
 import org.gradle.internal.declarativedsl.language.ParsingError
 import org.gradle.internal.declarativedsl.language.SingleFailureResult
@@ -150,16 +153,29 @@ object EvaluationFailureMessageGenerator {
 
     private
     fun describeDocumentCheckFailure(failure: DocumentCheckFailure): String =
-        locationPrefixString(failure.location.sourceData) + ": " + describeDocumentCheckFailureReason(failure.reason)
+        locationPrefixString(failure.location.sourceData) + ": " + describeDocumentCheckFailureReason(failure.reason, failure.location)
 
     private
-    fun describeDocumentCheckFailureReason(reason: DocumentCheckFailureReason) = when (reason) {
-        DocumentCheckFailureReason.PluginManagementBlockOrderViolated -> "illegal content before 'pluginManagement', which can only appear as the first element in the file"
-        DocumentCheckFailureReason.PluginsBlockOrderViolated -> "illegal content before 'plugins', which can only be preceded by 'pluginManagement'"
+    fun describeDocumentCheckFailureReason(reason: DocumentCheckFailureReason, location: DocumentCheckFailureLocation) = when (reason) {
+        DocumentCheckFailureReason.PluginManagementBlockOrderViolated ->
+            "illegal content before 'pluginManagement', which can only appear as the first element in the file. ${describeHowToFixBlockOrder(location, "pluginManagement")}"
+        DocumentCheckFailureReason.PluginsBlockOrderViolated ->
+            "illegal content before 'plugins', which can only be preceded by 'pluginManagement'. ${describeHowToFixBlockOrder(location, "plugins")}"
         DocumentCheckFailureReason.DuplicatePluginManagementBlock -> "duplicate 'pluginManagement'"
         DocumentCheckFailureReason.DuplicatePluginsBlock -> "duplicate 'plugins'"
         DocumentCheckFailureReason.AccessOnCurrentReceiverViolation -> "illegal receiver, only implicit 'this' receiver is allowed"
         is DocumentCheckFailureReason.UnsupportedSyntaxInDocument -> "unsupported syntax (${reason.cause})"
+    }
+
+    private
+    fun describeHowToFixBlockOrder(offendingLocation: DocumentCheckFailureLocation, blockName: String): String {
+        val offendingName = when (val node = offendingLocation.node) {
+            is ElementNode -> node.name
+            is PropertyNode -> node.name
+            else -> null
+        }
+        val offendingDescription = offendingName?.let { "'$it'" } ?: "this content"
+        return "Move $offendingDescription after the '$blockName' block."
     }
 
     private
