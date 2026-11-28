@@ -605,6 +605,42 @@ Problem found: Project is a prototype (in Others > Sample Problems)
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39461")
+    def "solution is rendered on the console without changing its case"() {
+        given:
+        withReportProblemTask """
+            def problemId = problems.getGroups().getOthers().group("Sample Problems").problemId("Project is a prototype")
+            problems.getReporter().report(problemId) { spec ->
+                spec.solution("gradlew help --task reportProblem")
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        outputContains "Possible solution: gradlew help --task reportProblem."
+        receivedProblem.solutions == ['gradlew help --task reportProblem']
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39461")
+    def "solution is rendered in the build failure without changing its case"() {
+        given:
+        disableProblemsApiCheck()
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().throwing(new RuntimeException(), problemId) { spec ->
+                spec.solution("gradlew help --task reportProblem")
+            }
+        """
+
+        when:
+        fails('reportProblem')
+
+        then:
+        errorOutput.contains("Possible solution: gradlew help --task reportProblem.")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/35914")
     def "build failure message does not contain duplicate information"() {
         given:
