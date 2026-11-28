@@ -1115,7 +1115,8 @@ class DependencyGraphBuilderTest extends Specification {
                 Describables.of(name),
                 attributes,
                 ImmutableCapabilities.EMPTY,
-                artifactMetadata
+                artifactMetadata,
+                false
             )
         )
 

@@ -235,6 +235,7 @@ image::dep-man-adv-4.png[]
 For each _node_, or *variant*, in a graph, Gradle performs *attribute* matching over each set of *artifacts* exposed by that _node_ to determine the best *artifact set*.
 
 If no *artifact sets* match the requested *attributes*, Gradle will attempt to construct an <<artifact_transforms.adoc#artifact-transforms,artifact transform>> chain to satisfy the request.
+With the `CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS` <<feature_lifecycle.adoc#feature_preview,feature preview>> enabled, Gradle prefers a transform chain from a variant with artifacts over a matching primary variant without artifacts, unless that primary variant declares every requested *attribute*; see <<variant_aware_resolution.adoc#sec:primary-variants-without-artifacts,primary variants without artifacts>>.
 
 For more details on the *attribute* matching process, see the previous <<variant_aware_resolution.adoc#sec:understanding-variant-selection,section>>.
 

@@ -238,6 +238,11 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
         }
 
         @Override
+        public ResolvedVariantSet subset(ImmutableList<ResolvedVariant> candidates) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public ImmutableAttributes getOverriddenAttributes() {
             return ImmutableAttributes.EMPTY;
         }

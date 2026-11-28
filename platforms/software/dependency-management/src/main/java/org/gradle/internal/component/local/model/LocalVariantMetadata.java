@@ -31,15 +31,22 @@ import org.jspecify.annotations.Nullable;
  */
 public final class LocalVariantMetadata extends DefaultVariantMetadata {
     private final CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts;
+    private final boolean previouslyUnselectable;
 
-    public LocalVariantMetadata(String name, @Nullable Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableCapabilities capabilities, CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts) {
+    public LocalVariantMetadata(String name, @Nullable Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableCapabilities capabilities, CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts, boolean previouslyUnselectable) {
         super(name, identifier, displayName, attributes, ImmutableList.of(), capabilities);
         this.artifacts = artifacts;
+        this.previouslyUnselectable = previouslyUnselectable;
     }
 
     @Override
     public boolean isEligibleForCaching() {
         return true;
+    }
+
+    @Override
+    public boolean isPreviouslyUnselectable() {
+        return previouslyUnselectable;
     }
 
     @Override

@@ -123,12 +123,19 @@ class DefaultConfigurationPublicationsTest extends Specification {
 
         expect:
         def variants = getOutgoingVariants(publications)
-        variants.size() == 1
+        variants.size() == 2
 
-        def child = variants.first()
-        child.displayName.displayName == "<config> variant 'child'"
-        child.attributes == AttributeTestUtil.attributes(["thing": "value"])
-        child.artifacts == variantDef.artifacts
+        def implicit = variants.first()
+        implicit.displayName == displayName
+        implicit.attributes == ImmutableAttributes.EMPTY
+        implicit.artifacts == allArtifacts
+        implicit.previouslyUnselectable
+
+        def explicit = (variants as List)[1]
+        explicit.displayName.displayName == "<config> variant 'child'"
+        explicit.attributes == AttributeTestUtil.attributes(["thing": "value"])
+        explicit.artifacts == variantDef.artifacts
+        !explicit.previouslyUnselectable
     }
 
     def "converts to OutgoingVariant when explicit variant and artifacts defined"() {
@@ -150,6 +157,7 @@ class DefaultConfigurationPublicationsTest extends Specification {
         implicit.displayName == displayName
         implicit.attributes == AttributeTestUtil.attributes(["thing": "value1"])
         implicit.artifacts == allArtifacts
+        !implicit.previouslyUnselectable
 
         def explicit = (variants as List)[1]
         explicit.displayName.displayName == "<config> variant 'child'"
@@ -176,6 +184,7 @@ class DefaultConfigurationPublicationsTest extends Specification {
         implicit.displayName == displayName
         implicit.attributes == AttributeTestUtil.attributes(["thing": "value1"])
         implicit.artifacts == allArtifacts
+        !implicit.previouslyUnselectable
 
         def explicit = (variants as List)[1]
         explicit.displayName.displayName == "<config> variant 'child'"
@@ -219,13 +228,13 @@ class DefaultConfigurationPublicationsTest extends Specification {
         Set<OutgoingVariant> variants = new LinkedHashSet<>()
         publications.collectVariants(new ConfigurationInternal.VariantVisitor() {
             @Override
-            void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
-                variants.add(new OutgoingVariant(displayName, attributes, artifacts))
+            void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts, boolean previouslyUnselectable) {
+                variants.add(new OutgoingVariant(displayName, attributes, artifacts, previouslyUnselectable))
             }
 
             @Override
             void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
-                variants.add(new OutgoingVariant(displayName, attributes, artifacts))
+                variants.add(new OutgoingVariant(displayName, attributes, artifacts, false))
             }
         })
         return variants
@@ -235,15 +244,18 @@ class DefaultConfigurationPublicationsTest extends Specification {
         public final AttributeContainerInternal attributes
         public final Collection<? extends PublishArtifact> artifacts
         public final DisplayName displayName
+        public final boolean previouslyUnselectable
 
         OutgoingVariant(
             DisplayName displayName,
             AttributeContainerInternal attributes,
-            Collection<? extends PublishArtifact> artifacts
+            Collection<? extends PublishArtifact> artifacts,
+            boolean previouslyUnselectable
         ) {
             this.displayName = displayName
             this.attributes = attributes
             this.artifacts = artifacts
+            this.previouslyUnselectable = previouslyUnselectable
         }
     }
 }

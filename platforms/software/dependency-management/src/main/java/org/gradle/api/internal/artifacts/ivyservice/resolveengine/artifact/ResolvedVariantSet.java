@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.transform.VariantDefinition;
@@ -46,6 +47,11 @@ public interface ResolvedVariantSet {
      * The artifact sets available for selection from this graph variant.
      */
     List<ResolvedVariant> getCandidates();
+
+    /**
+     * Returns a set like this one, with the given subset of its candidates.
+     */
+    ResolvedVariantSet subset(ImmutableList<ResolvedVariant> candidates);
 
     /**
      * Additional attributes attached to the edge that selected the producing graph

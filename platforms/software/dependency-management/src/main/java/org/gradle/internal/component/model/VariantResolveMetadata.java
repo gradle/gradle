@@ -64,6 +64,16 @@ public interface VariantResolveMetadata {
     }
 
     /**
+     * Is this a primary variant without artifacts whose configuration also declares secondary variants?
+     * <p>
+     * Such variants were excluded from artifact selection prior to Gradle 9.10. Since they lack the attributes of artifacts, such as
+     * {@code artifactType}, artifact selection compares them with the other variants on the requested attributes only.
+     */
+    default boolean isPreviouslyUnselectable() {
+        return false;
+    }
+
+    /**
      * An opaque identifier for a an artifact variant.
      * <p>
      * Implementations must implement equals and hashCode.

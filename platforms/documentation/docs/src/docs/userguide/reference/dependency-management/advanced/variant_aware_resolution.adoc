@@ -224,6 +224,10 @@ If candidates **still** remain, Gradle eliminates candidates based on **requeste
 ** ELSE, *remove candidates* that do provide it.
 * IF **only one candidate remains**, that candidate wins.
 
+NOTE: Steps 4 and 5 favor candidates that lack extra attributes.
+During artifact selection, a primary variant without artifacts lacks the attributes of artifacts, such as `artifactType`, so Gradle does not let these steps decide for it.
+See <<#sec:primary-variants-without-artifacts,primary variants without artifacts>>.
+
 [[sec:step_6_failure_condition]]
 === Step 6: Failure Condition
 
@@ -463,6 +467,16 @@ $ ./gradlew outgoingVariants -q
 ----
 include::{snippetsPath}/reference/dependency-management/advanced/customizingResolution-secondaryVariants/tests/secondaryVariantsNew.out[]
 ----
+
+[[sec:primary-variants-without-artifacts]]
+A configuration can declare secondary variants while its primary variant has no artifacts.
+Such a primary variant is not eligible for artifact selection, even when it is the best match for the request, unless you enable the `CONSIDER_ARTIFACTLESS_PRIMARY_VARIANTS` <<feature_lifecycle.adoc#feature_preview,feature preview>>.
+With the feature preview enabled, Gradle selects it when it is the best match, and the request resolves to no artifacts.
+It lacks the attributes of artifacts, such as `artifactType`, so Gradle compares it with other variants on the requested attributes only.
+Gradle prefers a transformation of a variant with artifacts over it, unless it declares every requested attribute.
+If those transformations are ambiguous, selection fails.
+When nothing else matches, either directly or through a transformation, Gradle selects it or a transformation of it, which also resolves to no artifacts.
+Starting with Gradle 11, such a primary variant is always eligible, and the feature preview is removed; see <<upgrading_version_9.adoc#variants_with_no_artifacts,the upgrade guide>>.
 
 [[sec:variant-visual]]
 == Visualizing Variant Information

@@ -207,7 +207,8 @@ Found the following transformation chains:
             matchingCache,
             AttributeTestUtil.attributesFactory(),
             schemaServices,
-            variantSelectionFailureProcessor
+            variantSelectionFailureProcessor,
+            false
         )
     }
 
