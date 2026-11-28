@@ -47,13 +47,10 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
               ext.sharedProperty = 'shared'
               assert 'root' == rootProperty
               assert 'root' == property('rootProperty')
-              assert 'root' == properties.rootProperty
               assert 'child' == childProperty
               assert 'child' == property('childProperty')
-              assert 'child' == properties.childProperty
               assert 'shared' == sharedProperty
               assert 'shared' == property('sharedProperty')
-              assert 'shared' == properties.sharedProperty
         """
         if (GradleContextualExecuter.notConfigCache) { // this is a check for execution time
             buildFile "child/build.gradle", """
@@ -79,7 +76,6 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         }
         expectParentPropertyAccessDeprecation('rootProperty', ':child', "root project 'test'")
         expectExplicitParentPropertyAccessDeprecation('property', 'rootProperty', ':child', "root project 'test'")
-        expectScriptGetPropertiesDeprecation(3)
 
         expect:
         succeeds("testTask")
@@ -171,26 +167,6 @@ global=overridden value
         file("child/build.gradle") << '''
 assert 'overridden value' == global
 '''
-
-        expect:
-        succeeds()
-    }
-
-    @Requires(
-        value = TestExecutionPreconditions.NotIsolatedProjects,
-        reason = "Project.getProperties() is a hard violation under Isolated Projects; see IsolatedProjectsAccessFromGroovyDslIntegrationTest"
-    )
-    def "properties added via gradle.properties are visible through the deprecated properties accessor"() {
-        propertiesFile '''
-global=some value
-'''
-        buildFile '''
-assert 'some value' == properties.global
-assert 'some value' == project.properties.global
-'''
-
-        expectScriptGetPropertiesDeprecation()
-        expectProjectGetPropertiesDeprecation()
 
         expect:
         succeeds()
@@ -525,25 +501,6 @@ assert 'some value' == project.properties.global
 
         expect:
         succeeds("run")
-    }
-
-    @Requires(
-        value = TestExecutionPreconditions.NotIsolatedProjects,
-        reason = "Project.getProperties() is a hard violation under Isolated Projects; see IsolatedProjectsAccessFromGroovyDslIntegrationTest"
-    )
-    def "properties added via the adhoc namespace are visible through the deprecated properties accessor"() {
-        buildFile '''
-ext {
-    set "p1", 1
-}
-
-assert properties.p1 == 1
-'''
-
-        expectScriptGetPropertiesDeprecation()
-
-        expect:
-        succeeds()
     }
 
     def canCallMethodWithClassArgumentType() {
@@ -1039,22 +996,6 @@ task print(type: MyTask) {
                 "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
         }
-    }
-
-    private void expectScriptGetPropertiesDeprecation(int repeated = 1) {
-        repeated.times {
-            executer.expectDocumentedDeprecationWarning("Dynamically calling getProperties() on a script has been deprecated. " +
-                "This will fail with an error in Gradle 10. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
-        }
-    }
-
-    private void expectProjectGetPropertiesDeprecation() {
-        executer.expectDocumentedDeprecationWarning("The Project.getProperties method has been deprecated. " +
-            "This will fail with an error in Gradle 10. " +
-            "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
     }
 
     private static final String BUILD_SCRIPT_ORIGIN = "a dynamic invocation in the build script"

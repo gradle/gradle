@@ -558,35 +558,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         failureCauseContains("Could not find method foo() for arguments [] on project ':a'")
     }
 
-    def "reports problem when build script uses #expr on its own project [#mode]"() {
-        file("build.gradle") << """
-            println($expr)
-        """
-
-        when:
-
-        executer.expectDocumentedDeprecationWarning(deprecation +
-            "This will fail with an error in Gradle 10. " +
-            "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
-
-        isolatedProjectsFailsUsing(mode, "help")
-
-        then:
-        fixture.assertIsolatedProjectsProblems(mode) {
-            projectsConfigured(":")
-            problem("Build file 'build.gradle': line 2: use of '$method' is not allowed with Isolated Projects")
-        }
-
-        where:
-        expr                 | method                    | deprecation
-        "properties"         | "Script.getProperties()"  | "Dynamically calling getProperties() on a script has been deprecated. "
-        "project.properties" | "Project.getProperties()" | "The Project.getProperties method has been deprecated. "
-
-        combined:
-        mode << ALL_MODES
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/22949")
     def "GroovyObject methods on DefaultProject route through DefaultProject's overrides under Isolated Projects"() {
         // Historically this scenario produced a cross-project access violation because each of

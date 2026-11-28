@@ -77,9 +77,6 @@
                 <td>projectDir</td>
             </tr>
             <tr>
-                <td>properties</td>
-            </tr>
-            <tr>
                 <td>repositories</td>
             </tr>
             <tr>

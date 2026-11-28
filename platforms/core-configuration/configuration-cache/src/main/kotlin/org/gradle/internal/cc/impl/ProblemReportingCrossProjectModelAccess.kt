@@ -200,14 +200,6 @@ class ProblemReportingCrossProjectModelAccess(
             }
         }
 
-        @Suppress("DEPRECATION")
-        override fun getProperties(): Map<String, Any?> {
-            onIsolationViolation("properties")
-            return ipProblems.runIgnoringProblemsOnCurrentThread {
-                delegate.properties
-            }
-        }
-
         override fun onMutableStateAccess(what: String) {
             onIsolationViolation(what)
         }

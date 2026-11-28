@@ -89,8 +89,6 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.buildoption.InternalOptions
-import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
-import org.gradle.internal.configuration.problems.NoOpIsolatedProjectsProblemsReporter
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.logging.LoggingManagerInternal
@@ -251,7 +249,6 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
         serviceRegistryMock.get(DomainObjectCollectionFactory) >> TestUtil.domainObjectCollectionFactory()
         serviceRegistryMock.get(CrossProjectModelAccess) >> new DefaultCrossProjectModelAccess(projectRegistry, instantiatorMock, gradleLifecycleActionExecutor)
-        serviceRegistryMock.get(IsolatedProjectsProblemsReporter) >> new NoOpIsolatedProjectsProblemsReporter()
         serviceRegistryMock.get(GradleLifecycleActionExecutor) >> gradleLifecycleActionExecutor
         serviceRegistryMock.get(ObjectFactory) >> objectFactory
         serviceRegistryMock.get(TaskDependencyFactory) >> DefaultTaskDependencyFactory.withNoAssociatedProject()
@@ -771,7 +768,7 @@ def scriptMethod(Closure closure) {
         !child1.hasProperty(propertyName)
     }
 
-    def properties() {
+    def "collects the properties of the project"() {
         given:
         serviceRegistryMock.get(ServiceRegistryFactory) >> Stub(ServiceRegistryFactory)
 
@@ -779,7 +776,7 @@ def scriptMethod(Closure closure) {
         project.ext.additional = 'additional'
 
         then:
-        def properties = project.properties
+        def properties = project.collectPropertiesInternal()
         properties.name == 'root'
         properties.additional == 'additional'
         properties['someTask'] == testTask
