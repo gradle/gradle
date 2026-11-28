@@ -69,6 +69,7 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultBuildCacheController implements BuildCacheController {
@@ -149,15 +150,18 @@ public class DefaultBuildCacheController implements BuildCacheController {
     }
 
     @Override
-    public void store(BuildCacheKey key, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
+    public boolean store(BuildCacheKey key, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
         if (!local.canStore() && !remote.canStore()) {
-            return;
+            return false;
         }
+        AtomicBoolean stored = new AtomicBoolean();
         tmp.withTempFile(((BuildCacheKeyInternal) key).getHashCodeInternal(), file -> {
             packExecutor.pack(file, key, entity, snapshots, executionTime);
-            remote.maybeStore(key, file);
-            local.maybeStore(key, file);
+            boolean storedRemotely = remote.maybeStore(key, file);
+            boolean storedLocally = local.maybeStore(key, file);
+            stored.set(storedRemotely || storedLocally);
         });
+        return stored.get();
     }
 
     @Override

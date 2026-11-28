@@ -132,6 +132,60 @@ class DefaultBuildCacheControllerTest extends Specification {
         0 * local.storeLocally(key, _)
     }
 
+    def "reports whether a store completed with local push #pushLocal and remote push #pushRemote"() {
+        given:
+        localPush = pushLocal
+        remotePush = pushRemote
+
+        when:
+        def stored = controller.store(key, cacheableEntity, snapshots, executionTime)
+
+        then:
+        stored == expectedStored
+        (pushRemote ? 1 : 0) * remote.store(key, _)
+        (pushLocal ? 1 : 0) * local.storeLocally(key, _)
+
+        where:
+        pushLocal | pushRemote | expectedStored
+        true      | true       | true
+        true      | false      | true
+        false     | true       | true
+        false     | false      | false
+    }
+
+    def "reports local store outcome after remote store failure with local push #pushLocal"() {
+        given:
+        localPush = pushLocal
+        def controller = getController()
+
+        when:
+        def stored = controller.store(key, cacheableEntity, snapshots, executionTime)
+        def storedAfterRemoteDisabled = controller.store(key, cacheableEntity, snapshots, executionTime)
+
+        then:
+        stored == pushLocal
+        storedAfterRemoteDisabled == pushLocal
+        1 * remote.store(key, _) >> { throw new RuntimeException("remote failure") }
+        (pushLocal ? 2 : 0) * local.storeLocally(key, _)
+
+        where:
+        pushLocal << [true, false]
+    }
+
+    def "reports no store when both caches are absent"() {
+        given:
+        local = null
+        remote = null
+
+        expect:
+        !controller.store(key, cacheableEntity, snapshots, executionTime)
+    }
+
+    def "no-op controller reports no store"() {
+        expect:
+        !NoOpBuildCacheController.INSTANCE.store(key, cacheableEntity, snapshots, executionTime)
+    }
+
     def "does not store to local if no local"() {
         given:
         local = null

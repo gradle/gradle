@@ -43,8 +43,8 @@ public class NoOpBuildCacheController implements BuildCacheController {
     }
 
     @Override
-    public void store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
-
+    public boolean store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
+        return false;
     }
 
     @Override
