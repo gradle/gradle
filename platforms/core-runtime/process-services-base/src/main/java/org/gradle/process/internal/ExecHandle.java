@@ -16,7 +16,6 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.api.Describable;
 import org.gradle.process.ExecResult;
 import org.jspecify.annotations.Nullable;
 
@@ -25,7 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public interface ExecHandle extends Describable {
+// TODO Rename `org.gradle.process.internal.ExecHandle` to `ExecHandleInternal`,
+//      to avoid confusing with the new public `org.gradle.process.ExecHandle`.
+//      I haven't done it yet because I wanted to keep the PR focused and not litter it with a tonne of renames.
+public interface ExecHandle extends org.gradle.process.ExecHandle {
 
     File getDirectory();
 
@@ -55,19 +57,7 @@ public interface ExecHandle extends Describable {
     void sendSignal(int signal);
 
     /**
-     * Aborts the process, blocking until the process has exited. Does nothing if the process has already completed.
-     */
-    void abort();
-
-    /**
-     * Waits for the process to finish. Returns immediately if the process has already completed.
-     *
-     * @return result
-     */
-    ExecResult waitForFinish();
-
-    /**
-     * Returns the result of the process execution, if it has finished.  If the process has not finished, returns null.
+     * Returns the result of the process execution, if it has finished. If the process has not finished, returns null.
      */
     @Nullable
     ExecResult getExecResult();
