@@ -47,7 +47,7 @@ abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE>
     }
 
     @Override
-    public final boolean calculatePresence(ValueConsumer consumer) {
+    public boolean calculatePresence(ValueConsumer consumer) {
         for (COLLECTOR collector : collectors) {
             if (!collector.calculatePresence(consumer)) {
                 // When any contributor is missing, the whole property is missing.

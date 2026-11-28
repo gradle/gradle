@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 public class MapCollectors {
@@ -55,6 +57,11 @@ public class MapCollectors {
         @Override
         public ExecutionTimeValue<? extends Map<? extends K, ? extends V>> calculateExecutionTimeValue() {
             return ExecutionTimeValue.fixedValue(ImmutableMap.of(key, value));
+        }
+
+        @Override
+        public Collection<? extends K> getKnownKeys() {
+            return Collections.singleton(key);
         }
 
         @Override
@@ -134,6 +141,11 @@ public class MapCollectors {
         }
 
         @Override
+        public Collection<? extends K> getKnownKeys() {
+            return Collections.singleton(key);
+        }
+
+        @Override
         public ValueProducer getProducer() {
             return providerOfValue.getProducer();
         }
@@ -141,6 +153,56 @@ public class MapCollectors {
         @Override
         public String toString() {
             return String.format("entry{%s=%s}", key, providerOfValue);
+        }
+    }
+
+    /**
+     * Takes the place of an entry whose key is put by a later collector, so that entry is not queried.
+     * Holds the position of the key, so the order of the keys does not change.
+     */
+    public static class ReplacedEntry<K, V> implements MapCollector<K, V> {
+        private final K key;
+
+        public ReplacedEntry(K key) {
+            this.key = key;
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return true;
+        }
+
+        @Override
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            collector.reserveKey(key, dest);
+            return Value.present();
+        }
+
+        @Override
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+            collector.add(key, dest);
+            return Value.present();
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends Map<? extends K, ? extends V>> calculateExecutionTimeValue() {
+            // The position of the key is held by DefaultMapProperty
+            return ExecutionTimeValue.fixedValue(ImmutableMap.of());
+        }
+
+        @Override
+        public Collection<? extends K> getKnownKeys() {
+            return Collections.singleton(key);
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return ValueProducer.unknown();
+        }
+
+        @Override
+        public String toString() {
+            return String.format("replaced{%s}", key);
         }
     }
 
@@ -172,6 +234,11 @@ public class MapCollectors {
         @Override
         public ExecutionTimeValue<? extends Map<? extends K, ? extends V>> calculateExecutionTimeValue() {
             return ExecutionTimeValue.fixedValue(entries);
+        }
+
+        @Override
+        public Collection<? extends K> getKnownKeys() {
+            return entries.keySet();
         }
 
         @Override
@@ -221,6 +288,11 @@ public class MapCollectors {
         @Override
         public ExecutionTimeValue<? extends Map<? extends K, ? extends V>> calculateExecutionTimeValue() {
             return providerOfEntries.calculateExecutionTimeValue();
+        }
+
+        @Override
+        public Collection<? extends K> getKnownKeys() {
+            return Collections.emptySet();
         }
 
         @Override

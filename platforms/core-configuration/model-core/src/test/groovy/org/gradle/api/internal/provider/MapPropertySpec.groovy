@@ -197,6 +197,133 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         assertValueIs(['k': 'v2'])
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/32149")
+    def "does not query providers of entries replaced by later #replacement"() {
+        given:
+        property.put('k', brokenValueSupplier())
+        property.put('k', notDefined())
+        replace(property)
+
+        expect:
+        property.present
+        assertValueIs(['k': 'v'])
+        property.keySet().get() == ['k'] as Set
+        property.calculateExecutionTimeValue().fixedValue == ['k': 'v']
+
+        where:
+        replacement             | replace
+        "put of value"          | { MapProperty<String, String> p -> p.put('k', 'v') }
+        "put of value provider" | { MapProperty<String, String> p -> p.put('k', Providers.of('v')) }
+        "putAll of map"         | { MapProperty<String, String> p -> p.putAll(['k': 'v']) }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32149")
+    def "#query queries only providers of entries that are not replaced by entries with known keys and keeps order of keys"() {
+        given:
+        def queried = []
+        def entry = { String value -> new DefaultProvider<String>({ queried << value; value }) }
+
+        property.put('a', entry('a1'))
+        property.put('b', entry('b1'))
+        property.put('b', entry('b2'))
+        property.put('c', entry('c1'))
+        property.put('d', entry('d1'))
+        property.put('d', entry('d2'))
+        property.put('e', entry('e1'))
+        property.putAll(new DefaultProvider<Map<String, String>>({ queried << 'all'; [d: 'd-all', e: 'e-all', f: 'f-all'] }))
+        property.put('c', entry('c2'))
+        property.put('d', entry('d3'))
+        property.put('g', entry('g1'))
+
+        expect:
+        read(property).toString() == expected
+        // e1 is replaced by an entry of a provider of entries, so it is still queried to calculate the presence
+        queried.sort() == ['a1', 'all', 'b2', 'c2', 'd3', 'e1', 'g1']
+
+        where:
+        query                          | read                                                       | expected
+        "getting value"                | { it.get().entrySet() }                                    | '[a=a1, b=b2, c=c2, d=d3, e=e-all, f=f-all, g=g1]'
+        "getting keys"                 | { it.keySet().get() }                                      | '[a, b, c, d, e, f, g]'
+        "checking presence"            | { it.present }                                             | 'true'
+        "calculating fixed CC value"   | { it.calculateExecutionTimeValue().fixedValue.entrySet() } | '[a=a1, b=b2, c=c2, d=d3, e=e-all, f=f-all, g=g1]'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32149")
+    def "changing execution time value does not query providers of replaced entries and keeps order of keys"() {
+        given:
+        def queried = []
+        property.put('a', brokenValueSupplier())
+        property.put('b', brokenValueSupplier())
+        property.put('c', new DefaultProvider<String>({ queried << 'c1'; 'c1' }))
+        property.putAll(supplierWithChangingExecutionTimeValues([d: 'd1', c: 'c2'], [d: 'd2', c: 'c3']))
+        property.put('a', supplierWithChangingExecutionTimeValues(String, 'a1', 'a2'))
+        property.put('b', 'b1')
+
+        when:
+        def value = property.calculateExecutionTimeValue()
+
+        then:
+        value.isChangingValue()
+        // Each query of the changing value queries the changing providers once
+        value.getChangingValue().get().entrySet().toString() == '[a=a1, b=b1, c=c2, d=d1]'
+        value.getChangingValue().get().entrySet().toString() == '[a=a2, b=b1, c=c3, d=d2]'
+        queried == ['c1']
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32149")
+    def "#query does not query providers of entries after a missing entry"() {
+        given:
+        property.put('a', notDefined())
+        property.putAll(brokenSupplier())
+
+        expect:
+        isMissing(property)
+
+        where:
+        query                  | isMissing
+        "getting value"        | { it.getOrNull() == null }
+        "getting keys"         | { it.keySet().getOrNull() == null }
+        "checking presence"    | { !it.present }
+        "calculating CC value" | { it.calculateExecutionTimeValue().isMissing() }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32149")
+    def "queries provider of entry when a later map has an equivalent key that is not equal"() {
+        given:
+        def caseInsensitive = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER)
+        caseInsensitive.put('A', 'x')
+        property.put('a', Providers.of('p'))
+        property.putAll(caseInsensitive)
+
+        expect:
+        property.get().entrySet().toString() == '[a=p, A=x]'
+        property.calculateExecutionTimeValue().fixedValue.entrySet().toString() == '[a=p, A=x]'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32149")
+    def "does not query provider of entry with GString key replaced by entry with String key"() {
+        given:
+        def key = 'k'
+        property.put("$key", brokenValueSupplier())
+        property.put('k', 'v')
+
+        expect:
+        property.present
+        assertValueIs(['k': 'v'])
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32149")
+    def "does not use producer of replaced entry"() {
+        given:
+        def task1 = Stub(Task)
+        def task2 = Stub(Task)
+        property.put('a', supplierWithProducer(task1, '1'))
+        property.put('a', supplierWithProducer(task2, '2'))
+
+        expect:
+        assertHasProducer(property, task2)
+    }
+
     def "adds a single entry from value provider using put"() {
         given:
         property.set('k1': 'v1')

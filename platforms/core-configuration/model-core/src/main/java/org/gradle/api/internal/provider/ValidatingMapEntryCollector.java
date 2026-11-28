@@ -17,6 +17,8 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
+import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 
@@ -67,5 +69,16 @@ class ValidatingMapEntryCollector<K, V> implements MapEntryCollector<K, V> {
         for (Map.Entry<? extends K, ? extends V> entry : entries) {
             add(entry.getKey(), entry.getValue(), dest);
         }
+    }
+
+    @Override
+    public K keyForComparison(K key) {
+        return keyType.isEnum() ? key : keySanitizer.sanitize(key);
+    }
+
+    @Override
+    public void reserveKey(K key, Map<K, V> dest) {
+        Map<K, @Nullable V> destWithReservedKeys = Cast.uncheckedNonnullCast(dest);
+        destWithReservedKeys.putIfAbsent(keySanitizer.sanitize(key), null);
     }
 }
